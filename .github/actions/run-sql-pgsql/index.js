@@ -19,33 +19,37 @@ try {
         try {
             var client = await pool.connect()
 
-            function sort_version(f1: any, f2: any): number {
-                const f1_ver_list: string[] = f1.split('.');
-	            const f2_ver_list: string[] = f2.split('.');
-	            for(let i = 0; i<3; i++)
-		        if (parseInt(f1_ver_list[i]) < parseInt(f2_ver_list[i])){
-			        return -1
-		        }
+            function sort_version(f1, f2){
+                const f1_ver_list = f1.split('.');
+	            const f2_ver_list = f2.split('.');
+	            for(let i = 0; i<3; i++){
+	                if (parseInt(f1_ver_list[i]) < parseInt(f2_ver_list[i])){
+			            return -1
+		            }
+	            }
 	            return 1
             }
 
-            function is_version_path(file_path: string): boolean {
-	            const rExp : RegExp = new RegExp('\\d+\.\\d+\.\\d+');
-	            return rExp.test(file_path)
+            function is_version_folder(path_name){
+	            const rExp = new RegExp(/\\d+\.\\d+\.\\d+/);
+	            return rExp.test(path_name)
             }
 
-            const path = fs.readdirSync(meta_script_path);
+            const files_or_folders = fs.readdirSync(meta_script_path);
             const sorted_version = []
-            for(let file_path of path){
-		        if (is_version_path(file_path)){
-			        sorted_version.push(file_path)
+            for(let file_or_folder of files_or_folders){
+		        if (is_version_folder(file_or_folder)){
+			        sorted_version.push(file_or_folder)
 		        }
 	        }
 	        sorted_version.sort(sort_version)
-            for (const file of sorted_version){
-                var pathname = path.join(dir, file)
-                sql = fs.readFileSync(pathname).toString();
-                await client.query(sql)
+            for (const version of sorted_version){
+                 var version_path_name = path.join(dir, version)
+                 for (const file of fs.readdirSync(version_path_name)){
+                    var file_path_name = path.join(dir, file)
+                    sql = fs.readFileSync(file_path_name).toString();
+                    await client.query(sql)
+                 }
             }
         } finally {
             client.release()
