@@ -31,14 +31,16 @@ try {
             }
 
             function is_version_folder(path_name){
-	            const rExp = new RegExp(/\\d+\.\\d+\.\\d+/);
+	            const rExp = new RegExp('\\d+\.\\d+\.\\d+');
 	            return rExp.test(path_name)
             }
 
             const files_or_folders = fs.readdirSync(meta_script_path);
+            console.log(files_or_folders)
             const sorted_version = []
             for(let file_or_folder of files_or_folders){
 		        if (is_version_folder(file_or_folder)){
+		            console.log(file_or_folder)
 			        sorted_version.push(file_or_folder)
 		        }
 	        }

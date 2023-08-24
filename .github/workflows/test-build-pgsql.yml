@@ -1,8 +1,6 @@
 name: Test Build Pgsql
 
-on:
-  schedule:
-    - cron: "0 0 * * *"
+on: workflow_dispatch
 
 env:
   DB_USER: admin
