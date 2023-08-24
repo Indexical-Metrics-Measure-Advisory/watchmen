@@ -36,19 +36,18 @@ try {
             }
 
             const files_or_folders = fs.readdirSync(meta_script_path);
-            console.log(files_or_folders)
             const sorted_version = []
             for(let file_or_folder of files_or_folders){
 		        if (is_version_folder(file_or_folder)){
-		            console.log(file_or_folder)
 			        sorted_version.push(file_or_folder)
 		        }
 	        }
 	        sorted_version.sort(sort_version)
+	        console.log(sorted_version)
             for (const version of sorted_version){
-                 var version_path_name = path.join(dir, version)
+                 var version_path_name = path.join(meta_script_path, version)
                  for (const file of fs.readdirSync(version_path_name)){
-                    var file_path_name = path.join(dir, file)
+                    var file_path_name = path.join(version_path_name, file)
                     sql = fs.readFileSync(file_path_name).toString();
                     await client.query(sql)
                  }
