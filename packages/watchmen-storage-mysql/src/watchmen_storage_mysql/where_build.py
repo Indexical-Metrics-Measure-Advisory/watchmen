@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import Any, Callable, List, Tuple
 
 from sqlalchemy import and_, case, func, literal, literal_column, or_, Table, text
+from sqlalchemy.sql.expression import cast
 
 from watchmen_storage import as_table_name, ask_decimal_fraction_digits, ask_decimal_integral_digits, \
 	ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, EntityCriteriaExpression, \
@@ -161,9 +162,9 @@ def build_criteria_expression(tables: List[Table], expression: EntityCriteriaExp
 	built_left = build_literal(tables, expression.left)
 	op = expression.operator
 	if op == EntityCriteriaOperator.IS_EMPTY:
-		return or_(built_left.is_(None), built_left == '')
+		return or_(built_left.is_(None), func.concat(built_left, '') == '')
 	elif op == EntityCriteriaOperator.IS_NOT_EMPTY:
-		return and_(built_left.is_not(None), built_left != '')
+		return and_(built_left.is_not(None), func.concat(built_left, '') != '')
 	elif op == EntityCriteriaOperator.IS_BLANK:
 		return or_(built_left.is_(None), func.trim(built_left) == '')
 	elif op == EntityCriteriaOperator.IS_NOT_BLANK:
