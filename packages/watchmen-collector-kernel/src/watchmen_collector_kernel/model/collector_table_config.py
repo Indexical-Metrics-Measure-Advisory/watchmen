@@ -86,6 +86,7 @@ class CollectorTableConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 	joinKeys: List[JoinKey] = []
 	dependOn: List[Dependence] = []
 	auditColumn: str = None
+	ignoredColumns: List[str] = None
 	jsonColumns: List[JsonColumn] = None
 	conditions: List[Condition] = []
 	dataSourceId: str = None
