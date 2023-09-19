@@ -360,6 +360,7 @@ table_collector_table_config = Table(
 	create_json('conditions'), create_str('label', 50),
 	create_json('depend_on'), create_int('triggered'),
 	create_str('audit_column', 50), create_str('data_source_id', 50),
+	create_json('ignored_columns'),
 	create_json('json_columns'), create_int('is_list'),
 	create_tenant_id(), *create_tuple_audit_columns(),
 	create_optimistic_lock()

@@ -6,7 +6,7 @@ from .extract_utils import build_criteria_by_primary_key
 from watchmen_collector_kernel.model import CollectorTableConfig
 from watchmen_data_kernel.service import ask_topic_storage, ask_topic_data_service
 from watchmen_data_kernel.topic_schema import TopicSchema
-from watchmen_model.admin import Topic, TopicKind
+from watchmen_model.admin import Topic, TopicKind, Factor
 from watchmen_storage import EntityCriteria, EntityStraightColumn
 from watchmen_utilities import get_current_time_in_seconds, ArrayHelper
 from watchmen_collector_kernel.cache import CollectorCacheService
@@ -61,13 +61,24 @@ class SourceTableExtractor:
 		              )
 		topic_storage = ask_topic_storage(topic, self.principal_service)
 		factors = topic_storage.ask_reflect_factors(config.tableName)
-		topic.factors = factors
+		topic.factors = self.filter_ignored_columns(factors, config) if config.ignoredColumns else factors
 		now = get_current_time_in_seconds()
 		topic.createdAt = now
 		topic.createdBy = self.principal_service.get_user_id()
 		topic.lastModifiedAt = now
 		topic.lastModifiedBy = self.principal_service.get_user_id()
 		return topic
+
+	def filter_ignored_columns(self, factors: List[Factor], config: CollectorTableConfig) -> List[Factor]:
+		ignored_columns = config.ignoredColumns
+
+		def filter_column(factor: Factor) -> bool:
+			if factor.name.lower() in ignored_columns:
+				return False
+			else:
+				return True
+
+		return ArrayHelper(factors).filter(lambda factor: filter_column(factor)).to_list()
 
 	def build_topic_by_config(self, config: CollectorTableConfig) -> Topic:
 		topic = CollectorCacheService.collector_topic().get_topic_by_id(self.fake_topic_id(config.configId))
@@ -89,7 +100,7 @@ class SourceTableExtractor:
 	def find_one_data(self, criteria: EntityCriteria = None) -> Optional[List[Dict[str, Any]]]:
 		result = self.service.find_limited_values(criteria=criteria, limit=1)
 		if result:
-			return self.lower_key(result)
+			return self.process_json_columns(self.lower_key(result))
 		else:
 			return [ArrayHelper(self.topic.factors).to_map(lambda factor: factor.name.lower(), lambda factor: None)]
 
@@ -220,11 +231,13 @@ class SourceTableExtractor:
 				for column in json_columns:
 					if key == column.columnName:
 						if value:
-							try:
+							if isinstance(value, str) or isinstance(value, bytes) or isinstance(value, bytearray):
 								tmp_data = json.loads(value)
-							except ValueError:
-								logger.error(f'table_name: {self.config.tableName}, column: {key}, value: {value}, is not json string')
-								break
+							elif isinstance(value, Dict):
+								tmp_data = value
+							else:
+								raise ValueError(f'table_name: {self.config.tableName}, column: {key}, value: {value}, is not json string')
+
 							if column.needFlatten:
 								tmp_data = process_need_flatten(tmp_data)
 							else:
