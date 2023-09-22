@@ -26,8 +26,10 @@ try {
 	                if (parseInt(f1_ver_list[i]) < parseInt(f2_ver_list[i])){
 			            return -1
 		            }
+                    if (parseInt(f1_ver_list[i]) > parseInt(f2_ver_list[i])){
+			            return 1
+		            }
 	            }
-	            return 1
             }
 
             function is_version_folder(path_name){
@@ -44,6 +46,7 @@ try {
 	        }
 	        sorted_version.sort(sort_version)
 	        console.log(sorted_version)
+
             for (const version of sorted_version){
                  var version_path_name = path.join(meta_script_path, version)
                  for (const file of fs.readdirSync(version_path_name)){
