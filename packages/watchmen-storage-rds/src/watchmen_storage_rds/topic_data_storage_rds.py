@@ -128,8 +128,8 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		finally:
 			self.close()
 
-	def ask_reflect_factors(self, table_name: str) -> List[Factor]:
-		columns = ask_columns(table_name, self.engine)
+	def ask_reflect_factors(self, table_name: str, schema: str) -> List[Factor]:
+		columns = ask_columns(table_name, schema, self.engine)
 		factors = ArrayHelper(columns) \
 			.map_with_index(lambda x, index: self.schema_column_to_factor(x, index + 1)) \
 			.to_list()

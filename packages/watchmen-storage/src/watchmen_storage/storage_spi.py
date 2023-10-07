@@ -225,7 +225,7 @@ class TopicDataStorageSPI(TransactionalStorageSPI):
 		pass
 
 	@abstractmethod
-	def ask_reflect_factors(self, table_name: str) -> List[Factor]:
+	def ask_reflect_factors(self, table_name: str, schema: str) -> List[Factor]:
 		pass
 
 	# noinspection PyMethodMayBeStatic
