@@ -205,6 +205,12 @@ class StorageS3(TransactionalStorageSPI):
 		"""
 		raise UnexpectedStorageException('Method[find_limited] does not support by S3 storage.')
 
+	def find_for_update_skip_locked(self, finder: EntityLimitedFinder) -> EntityList:
+		"""
+		not supported by S3
+		"""
+		raise UnexpectedStorageException('Method[find_for_update_skip_locked] does not support by S3 storage.')
+
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		"""
 		not supported by S3
@@ -258,7 +264,7 @@ class TopicDataStorageS3(StorageS3, TopicDataStorageSPI):
 		"""
 		raise UnexpectedStorageException('Method[ask_synonym_factors] does not support by S3 storage.')
 
-	def ask_reflect_factors(self, table_name: str) -> List[Factor]:
+	def ask_reflect_factors(self, table_name: str, schema: str) -> List[Factor]:
 		"""
 		not supported by S3
 		"""
