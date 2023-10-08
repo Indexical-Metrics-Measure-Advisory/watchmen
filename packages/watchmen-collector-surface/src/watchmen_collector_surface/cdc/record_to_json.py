@@ -85,8 +85,8 @@ class RecordToJsonService:
 		return record
 
 	def find_records_and_locked(self) -> List[ChangeDataRecord]:
-		self.change_record_service.begin_transaction()
 		try:
+			self.change_record_service.begin_transaction()
 			records = self.change_record_service.find_records_and_locked()
 			# TODO bulk update. No need
 			results = ArrayHelper(records).map(
@@ -196,6 +196,7 @@ class RecordToJsonService:
 			resourceId=self.generate_resource_id(change_data_record),
 			modelName=change_data_record.modelName,
 			objectId=root_data.get(root_config.objectKey),
+			sequence=root_data.get(root_config.sequenceKey),
 			tableName=root_config.tableName,
 			dataId=get_data_id(root_config.primaryKey, root_data),
 			content=content,

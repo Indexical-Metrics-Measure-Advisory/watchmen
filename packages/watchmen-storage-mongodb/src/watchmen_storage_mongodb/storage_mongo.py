@@ -543,7 +543,7 @@ class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 		"""
 		raise UnexpectedStorageException('Method[ask_synonym_factors] does not support by mongo storage.')
 
-	def ask_reflect_factors(self, table_name: str) -> List[Factor]:
+	def ask_reflect_factors(self, table_name: str, schema: str) -> List[Factor]:
 		"""
 		not supported by mongo
 		"""

@@ -84,7 +84,7 @@ class PostJsonService:
 			self.create_thread()
 
 	def change_data_json_listener(self):
-		unfinished_events = self.trigger_event_service.find_unfinished_events()
+		unfinished_events = self.trigger_event_service.find_executing_events()
 		if unfinished_events is None or len(unfinished_events) == 0:
 			if not ask_fastapi_job():
 				sleep(5)
@@ -155,8 +155,8 @@ class PostJsonService:
 		return change_data_json
 
 	def find_json_and_locked(self, model_trigger_id: int) -> List[ChangeDataJson]:
-		self.change_json_service.begin_transaction()
 		try:
+			self.change_json_service.begin_transaction()
 			records = self.change_json_service.find_json_and_locked(model_trigger_id)
 			results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value)).map(lambda record: self.change_json_service.update(record)).to_list()
 			self.change_json_service.commit_transaction()
@@ -172,6 +172,10 @@ class PostJsonService:
 				try:
 					if self.can_post(model_config, change_data_json):
 						self.post_json(model_config, change_data_json)
+					else:
+						self.change_json_service.update_change_data_json(
+							self.change_status(change_data_json, Status.EXECUTING.INITIAL)
+						)
 				except Exception as e:
 					logger.error(e, exc_info=True, stack_info=True)
 					change_data_json.isPosted = True
@@ -190,8 +194,8 @@ class PostJsonService:
 			return False
 
 	def update_result(self, change_data_json: ChangeDataJson, is_duplicated: bool = False):
-		self.change_json_service.begin_transaction()
 		try:
+			self.change_json_service.begin_transaction()
 			if not is_duplicated:
 				self.change_json_history_service.create(change_data_json)
 			# noinspection PyTypeChecker
@@ -259,10 +263,7 @@ class PostJsonService:
 
 		def sequenced(sequenced_json: ChangeDataJson) -> bool:
 			if compare_sequence(sequenced_json.sequence, change_json.sequence):
-				if sequenced_json.isPosted:
-					return True
-				else:
-					return False
+				return False
 			else:
 				return True
 
@@ -276,8 +277,8 @@ class PostJsonService:
 
 	def post_json(self, model_config: CollectorModelConfig, change_json: ChangeDataJson) -> ScheduledTask:
 		task = self.get_scheduled_task(model_config, change_json)
-		self.scheduled_task_service.begin_transaction()
 		try:
+			self.scheduled_task_service.begin_transaction()
 			self.scheduled_task_service.create(task)
 			change_json.isPosted = True
 			change_json.status = Status.SUCCESS.value

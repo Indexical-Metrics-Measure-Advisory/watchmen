@@ -27,13 +27,13 @@ class DataCaptureService:
 		self.table_config_service = get_table_config_service(self.principal_service)
 
 	def find_data_by_data_id(self, config: CollectorTableConfig, data_id: Dict) -> Optional[Dict[str, Any]]:
-		return SourceTableExtractor(config, self.principal_service).find_by_id(data_id)
+		return SourceTableExtractor(config).find_by_id(data_id)
 
 	def find_parent_node(self, config: CollectorTableConfig,
 	                     data_: Dict) -> Tuple[CollectorTableConfig, Optional[Dict[str, Any]]]:
 		if config.parentName:
 			parent_config = self.table_config_service.find_by_name(config.parentName, config.tenantId)
-			parent_data = SourceTableExtractor(parent_config, self.principal_service).find(
+			parent_data = SourceTableExtractor(parent_config).find(
 				ArrayHelper(config.joinKeys).map(lambda join_key: build_criteria_by_join_key(join_key, data_)).to_list()
 			)
 			if len(parent_data) != 1:
@@ -51,7 +51,7 @@ class DataCaptureService:
 			ArrayHelper(child_configs).map(lambda child_config: self.get_child_data(child_config, data))
 
 	def get_child_data(self, child_config: CollectorTableConfig, data_: Dict):
-		child_data = SourceTableExtractor(child_config, self.principal_service).find(
+		child_data = SourceTableExtractor(child_config).find(
 			ArrayHelper(child_config.joinKeys).map(lambda join_key: build_criteria_by_join_key(join_key, data_, True)).to_list()
 		)
 		if child_data:
@@ -62,7 +62,7 @@ class DataCaptureService:
 			ArrayHelper(child_data).each(lambda child: self.build_json(child_config, child))
 
 	def build_json_template(self, config: CollectorTableConfig, data_: Dict = None) -> Dict:
-		record = SourceTableExtractor(config, self.principal_service).find_one_data()
+		record = SourceTableExtractor(config).find_one_data()
 		if data_:
 			if config.isList:
 				data_[config.label] = record

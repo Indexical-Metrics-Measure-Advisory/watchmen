@@ -45,8 +45,8 @@ class TaskListener:
 		return task
 
 	def find_tasks_and_locked(self) -> List[ScheduledTask]:
-		self.scheduled_task_service.begin_transaction()
 		try:
+			self.scheduled_task_service.begin_transaction()
 			tasks = self.scheduled_task_service.find_tasks_and_locked()
 			results = ArrayHelper(tasks).map(
 				lambda task: self.change_status(task, Status.EXECUTING.value)
