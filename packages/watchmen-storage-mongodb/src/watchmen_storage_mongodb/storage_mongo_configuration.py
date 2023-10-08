@@ -9,6 +9,7 @@ from .storage_mongo import StorageMongoDB, TopicDataStorageMongoDB
 class Configuration:
 	dataSource: DataSource = DataSource(dataSourceType=DataSourceType.MONGODB)
 	params: MongoDataSourceParams = MongoDataSourceParams()
+	storageHolder: StorageMongoConfiguration
 
 	def host(self, host: str, port: int = 3306) -> Configuration:
 		self.dataSource.host = host
@@ -36,11 +37,16 @@ class Configuration:
 		self.params.echo = enabled
 		return self
 
+	def get_or_create_storage_holder(self) -> StorageMongoConfiguration:
+		if self.storageHolder is None:
+			self.storageHolder = StorageMongoConfiguration(self.dataSource, self.params)
+		return self.storageHolder
+
 	def build(self) -> StorageMongoDB:
-		return StorageMongoConfiguration(self.dataSource, self.params).create_storage()
+		return self.storageHolder.create_storage()
 
 	def build_topic_data(self) -> TopicDataStorageMongoDB:
-		return StorageMongoConfiguration(self.dataSource, self.params).create_topic_data_storage()
+		return self.storageHolder.create_topic_data_storage()
 
 
 class StorageMongoConfiguration:

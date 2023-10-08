@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from watchmen_model.system import DataSource, DataSourceType
+
 from .data_source_postgresql import PostgreSQLDataSourceHelper, PostgreSQLDataSourceParams
 from .storage_postgresql import StoragePostgreSQL, TopicDataStoragePostgreSQL
 
@@ -9,6 +10,7 @@ from .storage_postgresql import StoragePostgreSQL, TopicDataStoragePostgreSQL
 class Configuration:
 	dataSource: DataSource = DataSource(dataSourceType=DataSourceType.POSTGRESQL)
 	params: PostgreSQLDataSourceParams = PostgreSQLDataSourceParams()
+	storageHolder: StoragePostgreSQLConfiguration
 
 	def host(self, host: str, port: int = 3306) -> Configuration:
 		self.dataSource.host = host
@@ -37,11 +39,16 @@ class Configuration:
 		self.params.echo = enabled
 		return self
 
+	def get_or_create_storage_holder(self) -> StoragePostgreSQLConfiguration:
+		if self.storageHolder is None:
+			self.storageHolder = StoragePostgreSQLConfiguration(self.dataSource, self.params)
+		return self.storageHolder
+
 	def build(self) -> StoragePostgreSQL:
-		return StoragePostgreSQLConfiguration(self.dataSource, self.params).create_storage()
+		return self.storageHolder.create_storage()
 
 	def build_topic_data(self) -> TopicDataStoragePostgreSQL:
-		return StoragePostgreSQLConfiguration(self.dataSource, self.params).create_topic_data_storage()
+		return self.storageHolder.create_topic_data_storage()
 
 
 class StoragePostgreSQLConfiguration:

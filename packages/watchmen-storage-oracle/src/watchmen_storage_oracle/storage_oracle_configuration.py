@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from watchmen_model.system import DataSource, DataSourceType
+
 from .data_source_oracle import OracleDataSourceHelper, OracleDataSourceParams
 from .storage_oracle import StorageOracle, TopicDataStorageOracle
 
@@ -9,6 +10,7 @@ from .storage_oracle import StorageOracle, TopicDataStorageOracle
 class Configuration:
 	dataSource: DataSource = DataSource(dataSourceType=DataSourceType.ORACLE)
 	params: OracleDataSourceParams = OracleDataSourceParams()
+	storageHolder: StorageOracleConfiguration
 
 	def host(self, host: str, port: int = 3306) -> Configuration:
 		self.dataSource.host = host
@@ -39,11 +41,16 @@ class Configuration:
 		self.params.echo = enabled
 		return self
 
+	def get_or_create_storage_holder(self) -> StorageOracleConfiguration:
+		if self.storageHolder is None:
+			self.storageHolder = StorageOracleConfiguration(self.dataSource, self.params)
+		return self.storageHolder
+
 	def build(self) -> StorageOracle:
-		return StorageOracleConfiguration(self.dataSource, self.params).create_storage()
+		return self.storageHolder.create_storage()
 
 	def build_topic_data(self) -> TopicDataStorageOracle:
-		return StorageOracleConfiguration(self.dataSource, self.params).create_topic_data_storage()
+		return self.storageHolder.create_topic_data_storage()
 
 
 class StorageOracleConfiguration:
