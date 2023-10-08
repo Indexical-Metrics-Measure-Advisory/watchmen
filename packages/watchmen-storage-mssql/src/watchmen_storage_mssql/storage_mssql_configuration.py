@@ -47,10 +47,10 @@ class Configuration:
 		return self.storageHolder
 
 	def build(self) -> StorageMSSQL:
-		return self.storageHolder.create_storage()
+		return self.get_or_create_storage_holder().create_storage()
 
 	def build_topic_data(self) -> TopicDataStorageMSSQL:
-		return self.storageHolder.create_topic_data_storage()
+		return self.get_or_create_storage_holder().create_topic_data_storage()
 
 
 class StorageMSSQLConfiguration:
