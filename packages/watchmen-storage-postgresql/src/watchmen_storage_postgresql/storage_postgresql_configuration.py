@@ -10,7 +10,7 @@ from .storage_postgresql import StoragePostgreSQL, TopicDataStoragePostgreSQL
 class Configuration:
 	dataSource: DataSource = DataSource(dataSourceType=DataSourceType.POSTGRESQL)
 	params: PostgreSQLDataSourceParams = PostgreSQLDataSourceParams()
-	storageHolder: StoragePostgreSQLConfiguration
+	storageHolder: StoragePostgreSQLConfiguration = None
 
 	def host(self, host: str, port: int = 3306) -> Configuration:
 		self.dataSource.host = host

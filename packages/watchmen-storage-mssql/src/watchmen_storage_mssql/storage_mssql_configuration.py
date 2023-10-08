@@ -10,7 +10,7 @@ from .storage_mssql import StorageMSSQL, TopicDataStorageMSSQL
 class Configuration:
 	dataSource: DataSource = DataSource(dataSourceType=DataSourceType.MSSQL)
 	params: MSSQLDataSourceParams = MSSQLDataSourceParams()
-	storageHolder: StorageMSSQLConfiguration
+	storageHolder: StorageMSSQLConfiguration = None
 
 	def host(self, host: str, port: int = 3306) -> Configuration:
 		self.dataSource.host = host
