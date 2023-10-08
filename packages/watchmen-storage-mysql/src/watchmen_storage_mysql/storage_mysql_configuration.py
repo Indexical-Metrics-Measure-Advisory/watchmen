@@ -10,7 +10,7 @@ from .storage_mysql import StorageMySQL, TopicDataStorageMySQL
 class Configuration:
 	dataSource: DataSource = DataSource(dataSourceType=DataSourceType.MYSQL)
 	params: MySQLDataSourceParams = MySQLDataSourceParams()
-	storageHolder: StorageMySQLConfiguration
+	storageHolder: StorageMySQLConfiguration = None
 
 	def host(self, host: str, port: int = 3306) -> Configuration:
 		self.dataSource.host = host
