@@ -10,7 +10,7 @@ from .storage_oracle import StorageOracle, TopicDataStorageOracle
 class Configuration:
 	dataSource: DataSource = DataSource(dataSourceType=DataSourceType.ORACLE)
 	params: OracleDataSourceParams = OracleDataSourceParams()
-	storageHolder: StorageOracleConfiguration
+	storageHolder: StorageOracleConfiguration = None
 
 	def host(self, host: str, port: int = 3306) -> Configuration:
 		self.dataSource.host = host
