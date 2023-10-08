@@ -116,7 +116,7 @@ class TableExtractor:
 								'end_time': end_time
 							}
 							criteria.extend(prepare_query_criteria(variables, config.conditions))
-							source_records = SourceTableExtractor(config, self.principal_service).find_change_data(
+							source_records = SourceTableExtractor(config).find_change_data(
 								criteria
 							)
 							existed_records = self.change_data_record_service.find_existed_records(

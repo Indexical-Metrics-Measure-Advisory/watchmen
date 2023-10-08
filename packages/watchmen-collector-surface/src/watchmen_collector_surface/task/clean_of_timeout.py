@@ -101,7 +101,7 @@ class CleanOfTimeout:
 
 	def clean_task(self):
 		query_time = datetime.now() - timedelta(seconds=self.timeout)
-		tasks = self.change_data_record_service.find_timeout_record(query_time)
+		tasks = self.scheduled_task_service.find_timeout_task(query_time)
 
 		def change_status(task: ScheduledTask, status: int) -> ScheduledTask:
 			task.status = status

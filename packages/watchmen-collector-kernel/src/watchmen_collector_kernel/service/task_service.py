@@ -42,8 +42,8 @@ class TaskService:
 			return self.update_task_result(task, Status.FAIL.value)
 
 	def update_task_result(self, task: ScheduledTask, status: int) -> ScheduledTask:
-		self.scheduled_task_service.begin_transaction()
 		try:
+			self.scheduled_task_service.begin_transaction()
 			task.isFinished = True
 			task.status = status
 			self.scheduled_task_history_service.create(task)

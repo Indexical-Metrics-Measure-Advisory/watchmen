@@ -1,7 +1,8 @@
 import json
 from typing import Optional, List, Dict, Any, Tuple
 from logging import getLogger
-from watchmen_auth import PrincipalService
+from watchmen_auth import PrincipalService, fake_tenant_admin
+from watchmen_data_kernel.service.storage_helper import get_data_source_service
 from .extract_utils import build_criteria_by_primary_key
 from watchmen_collector_kernel.model import CollectorTableConfig
 from watchmen_data_kernel.service import ask_topic_storage, ask_topic_data_service
@@ -10,7 +11,6 @@ from watchmen_model.admin import Topic, TopicKind, Factor
 from watchmen_storage import EntityCriteria, EntityStraightColumn
 from watchmen_utilities import get_current_time_in_seconds, ArrayHelper
 from watchmen_collector_kernel.cache import CollectorCacheService
-
 
 logger = getLogger(__name__)
 
@@ -39,13 +39,13 @@ class LinkList:
 
 class SourceTableExtractor:
 
-	def __init__(self, config: CollectorTableConfig, principal_service: PrincipalService):
+	def __init__(self, config: CollectorTableConfig):
 		self.config = config
-		self.principal_service = principal_service
+		self.principal_service = fake_tenant_admin(config.tenantId)
 		self.topic = self.build_topic_by_config(self.config)
 		self.storage = ask_topic_storage(self.topic, self.principal_service)
 		self.storage.register_topic(self.topic)
-		self.service = ask_topic_data_service(TopicSchema(self.topic), self.storage, principal_service)
+		self.service = ask_topic_data_service(TopicSchema(self.topic), self.storage, self.principal_service)
 
 	# noinspection PyMethodMayBeStatic
 	def fake_topic_id(self, config_id: str) -> str:
@@ -60,7 +60,7 @@ class SourceTableExtractor:
 		              tenantId=self.principal_service.tenantId
 		              )
 		topic_storage = ask_topic_storage(topic, self.principal_service)
-		factors = topic_storage.ask_reflect_factors(config.tableName)
+		factors = topic_storage.ask_reflect_factors(config.tableName, self.get_schema(topic))
 		topic.factors = self.filter_ignored_columns(factors, config) if config.ignoredColumns else factors
 		now = get_current_time_in_seconds()
 		topic.createdAt = now
@@ -68,6 +68,10 @@ class SourceTableExtractor:
 		topic.lastModifiedAt = now
 		topic.lastModifiedBy = self.principal_service.get_user_id()
 		return topic
+
+	def get_schema(self, topic: Topic) -> str:
+		datasource = get_data_source_service(self.principal_service).find_by_id(topic.dataSourceId)
+		return datasource.name
 
 	def filter_ignored_columns(self, factors: List[Factor], config: CollectorTableConfig) -> List[Factor]:
 		ignored_columns = config.ignoredColumns
@@ -236,7 +240,8 @@ class SourceTableExtractor:
 							elif isinstance(value, Dict):
 								tmp_data = value
 							else:
-								raise ValueError(f'table_name: {self.config.tableName}, column: {key}, value: {value}, is not json string')
+								raise ValueError(
+									f'table_name: {self.config.tableName}, column: {key}, value: {value}, is not json string')
 
 							if column.needFlatten:
 								tmp_data = process_need_flatten(tmp_data)
