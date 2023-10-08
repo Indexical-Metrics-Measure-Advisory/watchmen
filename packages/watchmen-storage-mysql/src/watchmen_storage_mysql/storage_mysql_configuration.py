@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from watchmen_model.system import DataSource, DataSourceType
+
 from .data_source_mysql import MySQLDataSourceHelper, MySQLDataSourceParams
 from .storage_mysql import StorageMySQL, TopicDataStorageMySQL
 
@@ -9,6 +10,7 @@ from .storage_mysql import StorageMySQL, TopicDataStorageMySQL
 class Configuration:
 	dataSource: DataSource = DataSource(dataSourceType=DataSourceType.MYSQL)
 	params: MySQLDataSourceParams = MySQLDataSourceParams()
+	storageHolder: StorageMySQLConfiguration
 
 	def host(self, host: str, port: int = 3306) -> Configuration:
 		self.dataSource.host = host
@@ -37,11 +39,16 @@ class Configuration:
 		self.params.echo = enabled
 		return self
 
+	def get_or_create_storage_holder(self) -> StorageMySQLConfiguration:
+		if self.storageHolder is None:
+			self.storageHolder = StorageMySQLConfiguration(self.dataSource, self.params)
+		return self.storageHolder
+
 	def build(self) -> StorageMySQL:
-		return StorageMySQLConfiguration(self.dataSource, self.params).create_storage()
+		return self.storageHolder.create_storage()
 
 	def build_topic_data(self) -> TopicDataStorageMySQL:
-		return StorageMySQLConfiguration(self.dataSource, self.params).create_topic_data_storage()
+		return self.storageHolder.create_topic_data_storage()
 
 
 class StorageMySQLConfiguration:
