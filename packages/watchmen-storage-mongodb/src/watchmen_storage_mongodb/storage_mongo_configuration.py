@@ -9,7 +9,7 @@ from .storage_mongo import StorageMongoDB, TopicDataStorageMongoDB
 class Configuration:
 	dataSource: DataSource = DataSource(dataSourceType=DataSourceType.MONGODB)
 	params: MongoDataSourceParams = MongoDataSourceParams()
-	storageHolder: StorageMongoConfiguration
+	storageHolder: StorageMongoConfiguration = None
 
 	def host(self, host: str, port: int = 3306) -> Configuration:
 		self.dataSource.host = host
