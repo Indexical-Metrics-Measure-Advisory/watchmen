@@ -41,19 +41,6 @@ class OracleDataSourceHelper(DataSourceHelper):
 			encoding='utf-8'
 		)
 
-	# noinspection DuplicatedCode
-	@staticmethod
-	def find_param(params: Optional[List[DataSourceParam]], key: str) -> Optional[str]:
-		if params is None:
-			return None
-
-		for param in params:
-			if is_not_blank(param.name) and param.name.strip().lower() == key:
-				value = param.value
-				if is_not_blank(value):
-					return value.strip()
-		return None
-
 	@staticmethod
 	def acquire_engine_by_params(
 			username: str, password: str, host: str, port: str, name: str,

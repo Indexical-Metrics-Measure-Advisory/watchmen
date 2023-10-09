@@ -1,14 +1,17 @@
 import json
 from typing import Optional, List, Dict, Any, Tuple
 from logging import getLogger
-from watchmen_auth import PrincipalService, fake_tenant_admin
+
+from watchmen_model.system import DataSource
+
+from watchmen_auth import fake_tenant_admin
 from watchmen_data_kernel.service.storage_helper import get_data_source_service
 from .extract_utils import build_criteria_by_primary_key
 from watchmen_collector_kernel.model import CollectorTableConfig
 from watchmen_data_kernel.service import ask_topic_storage, ask_topic_data_service
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Topic, TopicKind, Factor
-from watchmen_storage import EntityCriteria, EntityStraightColumn
+from watchmen_storage import EntityCriteria, EntityStraightColumn, DataSourceHelper
 from watchmen_utilities import get_current_time_in_seconds, ArrayHelper
 from watchmen_collector_kernel.cache import CollectorCacheService
 
@@ -71,7 +74,11 @@ class SourceTableExtractor:
 
 	def get_schema(self, topic: Topic) -> str:
 		datasource = get_data_source_service(self.principal_service).find_by_id(topic.dataSourceId)
-		return datasource.name
+		return self.get_schema_from_datasource(datasource)
+
+	def get_schema_from_datasource(self, datasource: DataSource) -> str:
+		schema = DataSourceHelper.find_param(datasource.params, "schema")
+		return schema if schema else datasource.name
 
 	def filter_ignored_columns(self, factors: List[Factor], config: CollectorTableConfig) -> List[Factor]:
 		ignored_columns = config.ignoredColumns
