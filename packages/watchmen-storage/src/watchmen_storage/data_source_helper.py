@@ -8,6 +8,7 @@ from watchmen_model.system import DataSource, DataSourceParam
 from watchmen_utilities import ArrayHelper, is_blank
 from .secrets_manager import SecretsManger
 from .storage_spi import StorageSPI, TopicDataStorageSPI
+from watchmen_utilities import is_not_blank
 
 # database connection information
 HOST = "host"
@@ -123,6 +124,19 @@ class DataSourceHelper:
 				engine_params.params,
 				params
 			)
+
+	# noinspection DuplicatedCode
+	@staticmethod
+	def find_param(params: Optional[List[DataSourceParam]], key: str) -> Optional[str]:
+		if params is None:
+			return None
+
+		for param in params:
+			if is_not_blank(param.name) and param.name.strip().lower() == key:
+				value = param.value
+				if is_not_blank(value):
+					return value.strip()
+		return None
 
 
 def build_secrets_manager(data_source_params: Optional[List[DataSourceParam]]) -> SecretsManger:
