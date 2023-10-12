@@ -80,7 +80,7 @@ class StorageRDS(TransactionalStorageSPI):
 			self.connection.commit()
 		except Exception as e:
 			raise e
-		else:
+		finally:
 			self.close()
 
 	def rollback_and_close(self) -> None:
