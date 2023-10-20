@@ -43,8 +43,8 @@ def save_topic_data(trigger_data: PipelineTriggerData) -> TopicTrigger:
 	return service.trigger_by_insert(data)
 
 
-def pipeline_data(topic_code: str, data: Dict, tenantId: str) -> None:
-	trigger_data = PipelineTriggerData(code=topic_code, data=data, tenantId=tenantId)
+def pipeline_data(topic_code: str, data: Dict, tenant_id: str) -> None:
+	trigger_data = PipelineTriggerData(code=topic_code, data=data, tenantId=tenant_id)
 	topic_trigger = save_topic_data(trigger_data)
 	trigger_pipeline(trigger_data, topic_trigger)
 
