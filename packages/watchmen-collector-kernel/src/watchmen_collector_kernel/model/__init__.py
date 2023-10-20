@@ -1,5 +1,5 @@
 from .competitive_lock import CompetitiveLock
-from .scheduled_task import ScheduledTask
+from .scheduled_task import ScheduledTask, Dependence
 
 from .collector_module_config import CollectorModuleConfig
 from .collector_model_config import CollectorModelConfig

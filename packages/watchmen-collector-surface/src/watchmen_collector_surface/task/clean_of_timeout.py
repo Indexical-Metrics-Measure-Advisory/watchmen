@@ -1,8 +1,5 @@
 from datetime import datetime, timedelta
 from logging import getLogger
-from threading import Thread
-
-from time import sleep
 
 from watchmen_collector_kernel.model import Status, ChangeDataRecord, ChangeDataJson, ScheduledTask
 from watchmen_utilities import ArrayHelper
@@ -14,7 +11,7 @@ from watchmen_data_kernel.meta import TenantService
 from watchmen_collector_kernel.common import ask_clean_of_timeout_interval, ask_lock_timeout, ask_collector_timeout
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
 	get_change_data_json_service, get_scheduled_task_service
-from watchmen_collector_surface.settings import ask_fastapi_job
+
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 
 

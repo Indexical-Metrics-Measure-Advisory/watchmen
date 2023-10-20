@@ -32,14 +32,8 @@ class TaskService:
 		                                                                         self.principal_service)
 
 	# noinspection PyMethodMayBeStatic
-	def consume_task(self, task: ScheduledTask, executed: Callable[[str, Dict, str], None]) -> ScheduledTask:
-		try:
-			executed(task.topicCode, task.content, task.tenantId)
-			return self.update_task_result(task, Status.SUCCESS.value)
-		except Exception as e:
-			logger.error(e, exc_info=True, stack_info=True)
-			task.result = format_exc()
-			return self.update_task_result(task, Status.FAIL.value)
+	def consume_task(self, task: ScheduledTask, executed: Callable[[str, Dict, str], None]) -> None:
+		executed(task.topicCode, task.content, task.tenantId)
 
 	def update_task_result(self, task: ScheduledTask, status: int) -> ScheduledTask:
 		try:
