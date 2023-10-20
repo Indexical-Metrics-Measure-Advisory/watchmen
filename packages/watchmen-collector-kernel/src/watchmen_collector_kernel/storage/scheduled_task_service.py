@@ -113,6 +113,9 @@ class ScheduledTaskService(TupleService):
 		finally:
 			self.close_transaction()
 
+	def find_and_lock_by_id(self, task_id: int) -> Optional[ScheduledTask]:
+		return self.storage.find_and_lock_by_id(task_id, self.get_entity_id_helper())
+
 	def find_unfinished_tasks(self) -> List[Dict[str, Any]]:
 		self.begin_transaction()
 		try:
@@ -180,6 +183,27 @@ class ScheduledTaskService(TupleService):
 				straightColumns=[EntityStraightColumn(columnName='task_id'),
 				                 EntityStraightColumn(columnName='resource_id'),
 				                 EntityStraightColumn(columnName='tenant_id')]
+			))
+		finally:
+			self.close_transaction()
+
+	def find_model_dependent_tasks(self, model_name: str, object_id: str, event_id: str, tenant_id: str) -> List[ScheduledTask]:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'),
+					                         right=model_name),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'),
+					                         right=object_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_finished'),
+					                         right=False),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_id'),
+					                         right=event_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
+					                         right=tenant_id)
+				]
 			))
 		finally:
 			self.close_transaction()
