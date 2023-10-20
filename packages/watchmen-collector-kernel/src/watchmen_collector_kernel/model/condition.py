@@ -23,6 +23,8 @@ class ConditionOperator(str, Enum):
 	GREATER_THAN_OR_EQUALS = 'greater-than-or-equals',
 	IN = 'in',
 	NOT_IN = 'not-in'
+	LIKE = 'like',
+	NOT_LIKE = 'not-like'
 
 
 class Condition(DataModel, BaseModel):
