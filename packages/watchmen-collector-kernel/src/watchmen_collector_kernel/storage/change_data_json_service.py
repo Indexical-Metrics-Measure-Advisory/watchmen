@@ -83,7 +83,7 @@ class ChangeDataJsonService(TupleService):
 
 	# noinspection SpellCheckingInspection
 	def set_storable_id(self, storable: ChangeDataJson, storable_id: ChangeJsonId) -> Storable:
-		storable.changeRecordId = storable_id
+		storable.changeJsonId = storable_id
 		return storable
 
 	def update_change_data_json(self, storable: ChangeDataJson) -> ChangeDataJson:
@@ -248,6 +248,8 @@ class ChangeDataJsonService(TupleService):
 		finally:
 			self.storage.close()
 
+	def find_and_lock_by_id(self, change_json_id: int) -> Optional[ChangeDataJson]:
+		return self.storage.find_and_lock_by_id(change_json_id, self.get_entity_id_helper())
 
 def get_change_data_json_service(storage: TransactionalStorageSPI,
                                  snowflake_generator: SnowflakeGenerator,
