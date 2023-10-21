@@ -66,9 +66,12 @@ class TaskListener:
 	def find_task_and_locked(self, task: ScheduledTask) -> Optional[ScheduledTask]:
 		try:
 			self.scheduled_task_service.begin_transaction()
-			task = self.scheduled_task_service.update(self.change_status(task, Status.EXECUTING.value))
+			task = self.scheduled_task_service.find_and_lock_by_id(task.taskId)
+			result = None
+			if task and task.status == 0:
+				result = self.scheduled_task_service.update(self.change_status(task, Status.EXECUTING.value))
 			self.scheduled_task_service.commit_transaction()
-			return task
+			return result
 		finally:
 			self.scheduled_task_service.close_transaction()
 
@@ -79,9 +82,6 @@ class TaskListener:
 		unfinished_tasks = self.find_tasks_and_locked()
 		if unfinished_tasks:
 			ArrayHelper(unfinished_tasks).map(self.process_task)
-			self.process_tasks()
-		else:
-			return
 
 	def process_task(self, task: ScheduledTask) -> ScheduledTask:
 		try:

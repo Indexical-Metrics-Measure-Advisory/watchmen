@@ -247,14 +247,14 @@ class ScheduledTaskService(TupleService):
 		finally:
 			self.storage.close()
 
-	def is_model_finished(self, model_name: str, tenant_id: str) -> bool:
+	def is_model_finished(self, model_name: str, event_id: str) -> bool:
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker
 			return self.storage.count(self.get_entity_finder(
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_id'), right=event_id)
 				]
 			)) == 0
 		finally:
