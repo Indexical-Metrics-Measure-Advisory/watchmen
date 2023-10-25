@@ -189,6 +189,7 @@ class ChangeDataJsonService(TupleService):
 		finally:
 			self.storage.close()
 
+	"""
 	def is_event_finished(self, event_trigger_id: int) -> bool:
 		self.begin_transaction()
 		try:
@@ -201,30 +202,80 @@ class ChangeDataJsonService(TupleService):
 			)) == 0
 		finally:
 			self.close_transaction()
+	"""
+
+	def is_event_finished(self, event_trigger_id: int) -> bool:
+		try:
+			self.begin_transaction()
+			results = self.storage.find_limited(
+				EntityLimitedFinder(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
+						                         right=event_trigger_id)
+					],
+					limit=1
+				)
+			)
+			self.commit_transaction()
+			if len(results) == 0:
+				return True
+			else:
+				return False
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
+		finally:
+			self.close_transaction()
 
 	def is_model_finished(self, model_trigger_id: int) -> bool:
-		self.begin_transaction()
 		try:
-			# noinspection PyTypeChecker
-			return self.storage.count(self.get_entity_finder(
-				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'), right=model_trigger_id),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False)
-				]
-			)) == 0
+			self.begin_transaction()
+			results = self.storage.find_limited(
+				EntityLimitedFinder(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
+						                         right=model_trigger_id)
+					],
+					limit=1
+				)
+			)
+			self.commit_transaction()
+			if len(results) == 0:
+				return True
+			else:
+				return False
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
 		finally:
 			self.close_transaction()
 
 	def is_module_finished(self, module_trigger_id: int) -> bool:
-		self.begin_transaction()
 		try:
-			# noinspection PyTypeChecker
-			return self.storage.count(self.get_entity_finder(
-				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='module_trigger_id'), right=module_trigger_id),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False)
-				]
-			)) == 0
+			self.begin_transaction()
+			results = self.storage.find_limited(
+				EntityLimitedFinder(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='module_trigger_id'),
+						                         right=module_trigger_id)
+					],
+					limit=1
+				)
+			)
+			self.commit_transaction()
+			if len(results) == 0:
+				return True
+			else:
+				return False
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
 		finally:
 			self.close_transaction()
 
@@ -250,6 +301,7 @@ class ChangeDataJsonService(TupleService):
 
 	def find_and_lock_by_id(self, change_json_id: int) -> Optional[ChangeDataJson]:
 		return self.storage.find_and_lock_by_id(change_json_id, self.get_entity_id_helper())
+
 
 def get_change_data_json_service(storage: TransactionalStorageSPI,
                                  snowflake_generator: SnowflakeGenerator,
