@@ -5,26 +5,10 @@ from enum import Enum
 from typing import Optional, List, Union, Dict
 
 from pydantic import BaseModel
+from watchmen_storage import EntityCriteriaOperator
 
 from watchmen_model.common import DataModel
 from watchmen_utilities import ArrayHelper
-
-
-class ConditionOperator(str, Enum):
-	IS_EMPTY = 'is-empty',
-	IS_NOT_EMPTY = 'is-not-empty',
-	IS_BLANK = 'is-blank',
-	IS_NOT_BLANK = 'is-not-blank',
-	EQUALS = 'equals',
-	NOT_EQUALS = 'not-equals',
-	LESS_THAN = 'less-than',
-	LESS_THAN_OR_EQUALS = 'less-than-or-equals',
-	GREATER_THAN = 'greater-than',
-	GREATER_THAN_OR_EQUALS = 'greater-than-or-equals',
-	IN = 'in',
-	NOT_IN = 'not-in'
-	LIKE = 'like',
-	NOT_LIKE = 'not-like'
 
 
 class Condition(DataModel, BaseModel):
@@ -33,7 +17,7 @@ class Condition(DataModel, BaseModel):
 
 class ConditionExpression(Condition):
 	columnName: str
-	operator: ConditionOperator = ConditionOperator.EQUALS
+	operator: EntityCriteriaOperator = EntityCriteriaOperator.EQUALS
 	columnValue: Optional[Union[List[int], List[str], int, str, date, datetime]] = None
 
 
