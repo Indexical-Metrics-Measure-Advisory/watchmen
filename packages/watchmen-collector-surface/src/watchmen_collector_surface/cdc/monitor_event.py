@@ -13,7 +13,7 @@ from watchmen_collector_kernel.service import try_lock_nowait, unlock, trigger_e
 	trigger_event_by_records, trigger_event_by_table, get_resource_lock
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_trigger_event_service, \
 	get_trigger_model_service, get_trigger_table_service, get_change_data_record_service, get_change_data_json_service, \
-	get_trigger_module_service
+	get_trigger_module_service, get_scheduled_task_service
 from watchmen_collector_surface.settings import ask_fastapi_job, ask_monitor_event_wait
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
 from watchmen_utilities import ArrayHelper
@@ -51,6 +51,9 @@ class CollectorEventListener:
 		self.data_json_service = get_change_data_json_service(self.storage,
 		                                                      self.snowflake_generator,
 		                                                      self.principal_service)
+		self.scheduled_task_service = get_scheduled_task_service(self.storage,
+		                                                         self.snowflake_generator,
+		                                                         self.principal_service)
 		self.tenant_service = TenantService(self.principal_service)
 
 	def create_thread(self, scheduler=None) -> None:
@@ -133,6 +136,9 @@ class CollectorEventListener:
 	def is_all_json_posted(self, trigger_event: TriggerEvent) -> bool:
 		return self.data_json_service.is_event_finished(trigger_event.eventTriggerId)
 
+	def is_all_tasks_finished(self, trigger_event: TriggerEvent) -> bool:
+		return self.scheduled_task_service.is_event_finished(trigger_event.eventTriggerId)
+
 	def is_all_tables_extracted(self, trigger_model: TriggerModel) -> bool:
 		return ArrayHelper(
 			self.trigger_table_service.find_by_model_trigger_id(trigger_model.modelTriggerId)
@@ -189,7 +195,7 @@ class CollectorEventListener:
 
 	def check_finished(self, event: TriggerEvent):
 		if self.is_all_modules_finished(event) and self.is_all_records_merged(
-				event) and self.is_all_json_posted(event):
+				event) and self.is_all_json_posted(event) and self.is_all_tasks_finished(event):
 			event.isFinished = True
 			event.status = Status.SUCCESS.value
 			self.trigger_event_service.update_trigger_event(event)
@@ -200,6 +206,3 @@ class CollectorEventListener:
 			self.queuing_event(tenant)
 		else:
 			self.check_finished(event)
-
-
-
