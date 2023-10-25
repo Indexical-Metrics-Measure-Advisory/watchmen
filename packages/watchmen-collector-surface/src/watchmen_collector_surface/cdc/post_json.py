@@ -185,8 +185,8 @@ class PostJsonService:
 		                                                          change_data_json.objectId,
 		                                                          change_data_json.modelTriggerId)
 
-		def compare_sequence(sequence_0: int, sequence_1: int) -> int:
-			return sequence_0 - sequence_1
+		def compare_sequence(sequence_0: ChangeDataJson, sequence_1: ChangeDataJson) -> int:
+			return sequence_0.sequence - sequence_1.sequence
 
 		def process_json(change_data_json: ChangeDataJson):
 			try:
@@ -332,10 +332,10 @@ class PostJsonService:
 
 		return ArrayHelper(json_records).filter(
 			lambda json_record: is_dependent_task(json_record, change_json)
-		).map(lambda json_record: self.get_dependent_task(json_record)).to_list()
+		).map(lambda json_record: self.get_dependent_task_id(json_record)).to_list()
 
 	# noinspection PyMethodMayBeStatic
-	def get_dependent_task(self, change_json: ChangeDataJson) -> int:
+	def get_dependent_task_id(self, change_json: ChangeDataJson) -> int:
 		return change_json.taskId
 
 	# noinspection PyMethodMayBeStatic
