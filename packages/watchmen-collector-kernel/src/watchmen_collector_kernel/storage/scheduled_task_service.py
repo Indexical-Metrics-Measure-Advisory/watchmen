@@ -272,6 +272,30 @@ class ScheduledTaskService(TupleService):
 		finally:
 			self.close_transaction()
 
+	def is_event_finished(self, event_id: str) -> bool:
+		try:
+			self.begin_transaction()
+			results = self.storage.find_limited(
+				EntityLimitedFinder(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_id'), right=event_id)
+					],
+					limit=1
+				)
+			)
+			self.commit_transaction()
+			if len(results) == 0:
+				return True
+			else:
+				return False
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
+		finally:
+			self.close_transaction()
+
 
 def get_scheduled_task_service(storage: TransactionalStorageSPI,
                                snowflake_generator: SnowflakeGenerator,
