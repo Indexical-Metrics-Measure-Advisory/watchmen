@@ -16,11 +16,12 @@ from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalS
 class ChangeDataJsonShaper(EntityShaper):
 	def serialize(self, entity: ChangeDataJson) -> EntityRow:
 		return TupleShaper.serialize_tenant_based(entity,
-		                                          {
+		                                    {
 			                                          'change_json_id': entity.changeJsonId,
 			                                          'resource_id': entity.resourceId,
 			                                          'model_name': entity.modelName,
 			                                          'object_id': entity.objectId,
+			                                          'sequence': entity.sequence,
 			                                          'table_name': entity.tableName,
 			                                          'data_id': entity.dataId,
 			                                          'content': entity.content,
@@ -43,6 +44,7 @@ class ChangeDataJsonShaper(EntityShaper):
 			                                            resourceId=row.get('resource_id'),
 			                                            modelName=row.get('model_name'),
 			                                            objectId=row.get('object_id'),
+			                                            sequence=row.get('sequence'),
 			                                            tableName=row.get('table_name'),
 			                                            dataId=row.get('data_id'),
 			                                            content=row.get('content'),
@@ -106,7 +108,8 @@ class ChangeDataJsonService(TupleService):
 				shaper=self.get_entity_shaper(),
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=MODEL_TRIGGER_ID), right=model_trigger_id)
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=MODEL_TRIGGER_ID),
+					                         right=model_trigger_id)
 				],
 				straightColumns=[EntityStraightColumn(columnName=CHANGE_JSON_ID),
 				                 EntityStraightColumn(columnName=TENANT_ID)]
@@ -182,7 +185,8 @@ class ChangeDataJsonService(TupleService):
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'), right=model_trigger_id)
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
+					                         right=model_trigger_id)
 				],
 				sort=[EntitySortColumn(name='sequence', method=EntitySortMethod.ASC)]
 			))
