@@ -422,7 +422,7 @@ table_change_data_record_history = Table(
 table_change_data_json = Table(
 	'change_data_json', meta_data,
 	create_pk('change_json_id', Integer), create_str('resource_id', 100),
-	create_str('model_name', 50), create_str('object_id', 50),
+	create_str('model_name', 50), create_str('object_id', 50), create_int('sequence', True),
 	create_str('table_name', 50), create_json('data_id'),
 	create_json('content'), create_json('depend_on'), create_int('is_posted', False), create_int('task_id', True),
 	create_int('status', False), create_json('result'),
@@ -433,7 +433,7 @@ table_change_data_json = Table(
 table_change_data_json_history = Table(
 	'change_data_json_history', meta_data,
 	create_pk('change_json_id', Integer), create_str('resource_id', 100),
-	create_str('model_name', 50), create_str('object_id', 50),
+	create_str('model_name', 50), create_str('object_id', 50), create_int('sequence', True),
 	create_str('table_name', 50), create_json('data_id'),
 	create_json('content'), create_json('depend_on'), create_int('is_posted', False), create_int('task_id', True),
 	create_int('status', False), create_json('result'),
