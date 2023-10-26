@@ -3,7 +3,7 @@ from traceback import format_exc
 from typing import List, Optional
 
 from watchmen_collector_kernel.common import CollectorKernelException
-from watchmen_collector_kernel.model import Dependence
+from watchmen_collector_kernel.model import Dependence, ExecutionStatus
 from watchmen_utilities import ArrayHelper
 
 from watchmen_collector_kernel.model import ScheduledTask, Status
@@ -63,13 +63,20 @@ class TaskListener:
 		finally:
 			self.scheduled_task_service.close_transaction()
 
-	def find_task_and_locked(self, task: ScheduledTask) -> Optional[ScheduledTask]:
+	def find_task_and_locked(self, task: ScheduledTask) -> ExecutionStatus:
 		try:
 			self.scheduled_task_service.begin_transaction()
 			task = self.scheduled_task_service.find_and_lock_by_id(task.taskId)
-			result = None
-			if task and task.status == 0:
-				result = self.scheduled_task_service.update(self.change_status(task, Status.EXECUTING.value))
+			if task:
+				if task.status == Status.INITIAL.value:
+					self.scheduled_task_service.update(self.change_status(task, Status.EXECUTING.value))
+					result = ExecutionStatus.SHOULD_RUN
+				elif task.status == Status.EXECUTING.value:
+					result = ExecutionStatus.EXECUTING_BY_OTHERS
+				else:
+					raise Exception(f"The status : {task.status} is not supported in find_task_and_locked. The task is {task.taskId}")
+			else:
+				result = ExecutionStatus.FINISHED
 			self.scheduled_task_service.commit_transaction()
 			return result
 		finally:
@@ -107,12 +114,12 @@ class TaskListener:
 	def process_parent_tasks(self, task: ScheduledTask) -> List[ScheduledTask]:
 		return ArrayHelper(task.parentTaskId).map(self.process_parent_task).to_list()
 
-	def process_parent_task(self, parent_task_id: int) -> Optional[ScheduledTask]:
+	def process_parent_task(self, parent_task_id: int) -> ScheduledTask:
 		parent_task = self.scheduled_task_service.find_task_by_id(parent_task_id)
 		if parent_task:
 			return self.process_dependent_task(parent_task)
 		else:
-			parent_task_history = self.scheduled_task_history_service.find_task_by_id(parent_task.taskId)
+			parent_task_history = self.scheduled_task_history_service.find_task_by_id(parent_task_id)
 			if parent_task_history:
 				return parent_task_history
 			else:
@@ -132,12 +139,14 @@ class TaskListener:
 	def is_finished(self, task: ScheduledTask) -> bool:
 		return task.isFinished
 
-	def process_dependent_task(self, dependent_task: ScheduledTask) -> Optional[ScheduledTask]:
+	def process_dependent_task(self, dependent_task: ScheduledTask) -> ScheduledTask:
 		if dependent_task.status == 0:
-			locked_task = self.find_task_and_locked(dependent_task)
-			if locked_task:
-				return self.process_task(locked_task)
-		elif dependent_task.status == 1:
-			return dependent_task
+			status = self.find_task_and_locked(dependent_task)
+			if status == ExecutionStatus.SHOULD_RUN:
+				return self.process_task(dependent_task)
+			elif status == ExecutionStatus.EXECUTING_BY_OTHERS:
+				return dependent_task
+			elif status == ExecutionStatus.FINISHED:
+				return self.scheduled_task_history_service.find_task_by_id(dependent_task.taskId)
 		else:
 			return dependent_task
