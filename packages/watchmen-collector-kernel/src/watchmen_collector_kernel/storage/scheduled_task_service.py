@@ -114,7 +114,13 @@ class ScheduledTaskService(TupleService):
 			self.close_transaction()
 
 	def find_and_lock_by_id(self, task_id: int) -> Optional[ScheduledTask]:
-		return self.storage.find_and_lock_by_id(task_id, self.get_entity_id_helper())
+		row = self.storage.find_and_lock_by_id(task_id, self.get_entity_id_helper())
+		if row:
+			entity = self.get_entity_shaper().deserialize(row)
+			# noinspection PyTypeChecker
+			return entity
+		else:
+			return None
 
 	def find_unfinished_tasks(self) -> List[Dict[str, Any]]:
 		self.begin_transaction()
