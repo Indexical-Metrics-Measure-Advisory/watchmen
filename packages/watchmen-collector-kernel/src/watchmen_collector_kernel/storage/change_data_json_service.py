@@ -185,8 +185,7 @@ class ChangeDataJsonService(TupleService):
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
-					                         right=model_trigger_id)
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'), right=model_trigger_id)
 				],
 				sort=[EntitySortColumn(name='sequence', method=EntitySortMethod.ASC)]
 			))

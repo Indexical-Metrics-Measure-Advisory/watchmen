@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, TriggerModel, \
-	CollectorModelConfig, TriggerEvent, TriggerModule, Status
+	CollectorModelConfig, TriggerEvent, TriggerModule, Status, ExecutionStatus
 
 from watchmen_collector_kernel.service.model_config_service import get_model_config_service
 from watchmen_collector_kernel.storage import get_change_data_json_service, get_competitive_lock_service, \
@@ -151,66 +151,67 @@ class PostJsonService:
 
 	def process_change_data_json_in_paralleled(self, model_config: CollectorModelConfig, trigger_model: TriggerModel):
 		jsons = self.find_json_and_locked(trigger_model.modelTriggerId)
-		if jsons:
-			for change_data_json in jsons:
-				if self.is_duplicated(change_data_json):
+		for change_data_json in jsons:
+			if self.is_duplicated(change_data_json):
+				change_data_json.isPosted = True
+				self.update_result(change_data_json, True)
+			else:
+				try:
+					self.post_json(model_config, change_data_json)
+				except Exception as e:
+					logger.error(e, exc_info=True, stack_info=True)
 					change_data_json.isPosted = True
-					self.update_result(change_data_json, True)
-				else:
-					try:
-						self.post_json(model_config, change_data_json)
-					except Exception as e:
-						logger.error(e, exc_info=True, stack_info=True)
-						change_data_json.isPosted = True
-						change_data_json.status = Status.FAIL.value
-						change_data_json.result = format_exc()
-						self.update_result(change_data_json)
-		else:
-			return
+					change_data_json.status = Status.FAIL.value
+					change_data_json.result = format_exc()
+					self.update_result(change_data_json)
 
 	def process_change_data_json_in_sequenced(self, model_config: CollectorModelConfig, trigger_model: TriggerModel):
 		jsons = self.find_json_and_locked(trigger_model.modelTriggerId)
-		if jsons:
-			for change_data_json in jsons:
-				if self.is_duplicated(change_data_json):
-					change_data_json.isPosted = True
-					self.update_result(change_data_json, True)
-				else:
-					self.process_sequenced_json(model_config, change_data_json)
-		else:
-			return
+		for change_data_json in jsons:
+			if self.is_duplicated(change_data_json):
+				change_data_json.isPosted = True
+				self.update_result(change_data_json, True)
+			else:
+				self.process_sequenced_json(model_config, change_data_json)
 
-	def process_sequenced_json(self, model_config: CollectorModelConfig, change_data_json: ChangeDataJson) -> List[ChangeDataJson]:
-		json_records = self.change_json_service.find_by_object_id(change_data_json.modelName,
-		                                                          change_data_json.objectId,
-		                                                          change_data_json.modelTriggerId)
+	def process_sequenced_json(self, model_config: CollectorModelConfig, change_data_json: ChangeDataJson):
+		current_change_json = change_data_json
+		change_jsons = self.change_json_service.find_by_object_id(current_change_json.modelName,
+		                                                          current_change_json.objectId,
+		                                                          current_change_json.modelTriggerId)
 
-		def compare_sequence(sequence_0: ChangeDataJson, sequence_1: ChangeDataJson) -> int:
-			return sequence_0.sequence - sequence_1.sequence
-
-		def process_json(change_data_json: ChangeDataJson):
+		for change_json in change_jsons:
 			try:
-				locked_json = self.lock_json(change_data_json)
-				if locked_json:
-					self.post_json(model_config, locked_json)
+				status = self.check_json_execution_status(change_json)
+				if status == ExecutionStatus.SHOULD_RUN:
+					self.post_json(model_config, change_json)
+				elif status == ExecutionStatus.EXECUTING_BY_OTHERS:
+					break
+				elif status == ExecutionStatus.FINISHED:
+					continue
+				else:
+					raise Exception(f"error status {status} for the json {change_json.changeJsonId}")
 			except Exception as e:
 				logger.error(e, exc_info=True, stack_info=True)
-				change_data_json.isPosted = True
-				change_data_json.status = Status.FAIL.value
-				change_data_json.result = format_exc()
-				self.update_result(change_data_json)
+				change_json.isPosted = True
+				change_json.status = Status.FAIL.value
+				change_json.result = format_exc()
+				self.update_result(change_json)
 
-		return ArrayHelper(json_records).sort(compare_sequence).map(process_json).to_list()
-
-	def lock_json(self, change_json_json: ChangeDataJson) -> Optional[ChangeDataJson]:
+	def check_json_execution_status(self, change_json_json: ChangeDataJson) -> ExecutionStatus:
 		try:
 			self.change_json_service.begin_transaction()
 			change_json_json = self.change_json_service.find_and_lock_by_id(change_json_json.changeJsonId)
-			locked_json = None
-			if change_json_json and change_json_json.status == 0:
-				locked_json = self.scheduled_task_service.update(self.change_status(change_json_json, Status.EXECUTING.value))
+			if change_json_json:
+				if change_json_json.status == 0:
+					self.change_json_service.update(self.change_status(change_json_json, Status.EXECUTING.value))
+					result = ExecutionStatus.SHOULD_RUN
+				else:
+					result = ExecutionStatus.EXECUTING_BY_OTHERS
+			else:
+				result = ExecutionStatus.FINISHED
 			self.scheduled_task_service.commit_transaction()
-			return locked_json
+			return result
 		except Exception as e:
 			self.scheduled_task_service.rollback_transaction()
 			raise e
