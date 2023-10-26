@@ -183,7 +183,7 @@ class PostJsonService:
 		for change_json in change_jsons:
 			try:
 				if change_json.changeJsonId == current_change_json.changeJsonId:
-					current_change_json = self.post_json(model_config, change_json)
+					self.post_json(model_config, current_change_json)
 				else:
 					status = self.check_json_execution_status(change_json)
 					if status == ExecutionStatus.SHOULD_RUN:

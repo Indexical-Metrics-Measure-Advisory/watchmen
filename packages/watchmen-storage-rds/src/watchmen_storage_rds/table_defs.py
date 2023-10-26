@@ -356,6 +356,7 @@ table_collector_table_config = Table(
 	'collector_table_config', meta_data,
 	create_pk('config_id'), create_str('name', 50),
 	create_str('table_name', 50), create_json('primary_key'), create_str('object_key', 50),
+	create_str('sequence_key', 50),
 	create_str('model_name', 50), create_str('parent_name', 50), create_json('join_keys'),
 	create_json('conditions'), create_str('label', 50),
 	create_json('depend_on'), create_int('triggered'),

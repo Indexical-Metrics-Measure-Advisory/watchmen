@@ -16,7 +16,7 @@ from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalS
 class ChangeDataJsonShaper(EntityShaper):
 	def serialize(self, entity: ChangeDataJson) -> EntityRow:
 		return TupleShaper.serialize_tenant_based(entity,
-		                                    {
+		                                          {
 			                                          'change_json_id': entity.changeJsonId,
 			                                          'resource_id': entity.resourceId,
 			                                          'model_name': entity.modelName,
@@ -185,7 +185,8 @@ class ChangeDataJsonService(TupleService):
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'), right=model_trigger_id)
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
+					                         right=model_trigger_id)
 				],
 				sort=[EntitySortColumn(name='sequence', method=EntitySortMethod.ASC)]
 			))
@@ -303,7 +304,12 @@ class ChangeDataJsonService(TupleService):
 			self.storage.close()
 
 	def find_and_lock_by_id(self, change_json_id: int) -> Optional[ChangeDataJson]:
-		return self.storage.find_and_lock_by_id(change_json_id, self.get_entity_id_helper())
+		row = self.storage.find_and_lock_by_id(change_json_id, self.get_entity_id_helper())
+		if row:
+			entity = self.get_entity_shaper().deserialize(row)
+			return entity
+		else:
+			return None
 
 
 def get_change_data_json_service(storage: TransactionalStorageSPI,
