@@ -182,15 +182,20 @@ class PostJsonService:
 
 		for change_json in change_jsons:
 			try:
-				status = self.check_json_execution_status(change_json)
-				if status == ExecutionStatus.SHOULD_RUN:
-					self.post_json(model_config, change_json)
-				elif status == ExecutionStatus.EXECUTING_BY_OTHERS:
-					break
-				elif status == ExecutionStatus.FINISHED:
-					continue
+				if change_json.changeJsonId == current_change_json.changeJsonId:
+					current_change_json = self.post_json(model_config, change_json)
 				else:
-					raise Exception(f"error status {status} for the json {change_json.changeJsonId}")
+					status = self.check_json_execution_status(change_json)
+					if status == ExecutionStatus.SHOULD_RUN:
+						self.post_json(model_config, change_json)
+					elif status == ExecutionStatus.EXECUTING_BY_OTHERS:
+						if change_json.sequence < current_change_json.sequence and current_change_json.status == Status.EXECUTING.value:
+							self.restore_json(current_change_json)
+						break
+					elif status == ExecutionStatus.FINISHED:
+						continue
+					else:
+						raise Exception(f"error status {status} for the json {change_json.changeJsonId}")
 			except Exception as e:
 				logger.error(e, exc_info=True, stack_info=True)
 				change_json.isPosted = True
@@ -203,7 +208,7 @@ class PostJsonService:
 			self.change_json_service.begin_transaction()
 			change_json_json = self.change_json_service.find_and_lock_by_id(change_json_json.changeJsonId)
 			if change_json_json:
-				if change_json_json.status == 0:
+				if change_json_json.status == Status.INITIAL.value:
 					self.change_json_service.update(self.change_status(change_json_json, Status.EXECUTING.value))
 					result = ExecutionStatus.SHOULD_RUN
 				else:
@@ -299,6 +304,10 @@ class PostJsonService:
 			raise e
 		finally:
 			self.scheduled_task_service.close_transaction()
+
+	def restore_json(self, change_data_json: ChangeDataJson) -> ScheduledTask:
+		# noinspection PyTypeChecker
+		return self.change_json_service.update_change_data_json(self.change_status(change_data_json, Status.INITIAL.value))
 
 	def get_scheduled_task(self, model_config: CollectorModelConfig, change_json: ChangeDataJson) -> ScheduledTask:
 		return ScheduledTask(
