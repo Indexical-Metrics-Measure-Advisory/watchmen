@@ -126,7 +126,9 @@ class TaskListener:
 				raise CollectorKernelException(f"dependent task id: {parent_task_id} is not existed")
 
 	def process_model_dependencies(self, task: ScheduledTask) -> List[ScheduledTask]:
-		return ArrayHelper(task.dependOn).map(lambda dependence: self.process_model_dependent_tasks(task, dependence)).to_list()
+		return ArrayHelper(task.dependOn).map(
+			lambda dependence: self.process_model_dependent_tasks(task, dependence)
+		).flatten(1).to_list()
 
 	def process_model_dependent_tasks(self, task: ScheduledTask, dependence: Dependence) -> List[ScheduledTask]:
 		tasks = self.scheduled_task_service.find_model_dependent_tasks(dependence.modelName, dependence.objectId, task.eventId, task.tenantId)

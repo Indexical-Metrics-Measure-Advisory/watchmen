@@ -57,28 +57,13 @@ class CollectorEventListener:
 		self.tenant_service = TenantService(self.principal_service)
 
 	def create_thread(self, scheduler=None) -> None:
-		if ask_fastapi_job():
-			scheduler.add_job(CollectorEventListener.event_loop_run, 'interval', seconds=ask_monitor_event_wait(),
-			                  args=(self,))
-
-		else:
-			Thread(target=CollectorEventListener.run, args=(self,), daemon=True).start()
+		scheduler.add_job(CollectorEventListener.event_loop_run, 'interval', seconds=ask_monitor_event_wait(), args=(self,))
 
 	def event_loop_run(self):
 		try:
 			self.event_listener()
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-
-	def run(self):
-		try:
-			while True:
-				self.event_listener()
-				sleep(60)
-		except Exception as e:
-			logger.error(e, exc_info=True, stack_info=True)
-			sleep(60)
-			self.create_thread()
 
 	def is_all_modules_finished(self, event: TriggerEvent) -> bool:
 		return ArrayHelper(
