@@ -203,8 +203,6 @@ class ScheduledTaskService(TupleService):
 					                         right=model_name),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'),
 					                         right=object_id),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_finished'),
-					                         right=False),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_id'),
 					                         right=event_id),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
