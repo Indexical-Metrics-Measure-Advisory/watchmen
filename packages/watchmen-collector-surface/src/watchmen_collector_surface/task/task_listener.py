@@ -96,7 +96,7 @@ class TaskListener:
 			model_dependent_tasks = self.process_model_dependencies(task)
 			merged_tasks = parent_tasks + model_dependent_tasks
 			if self.check_dependent_tasks_finished(merged_tasks):
-				self.consume_task(task)
+				# self.consume_task(task)
 				return self.task_service.update_task_result(task, Status.SUCCESS.value)
 			else:
 				return self.restore_task(task)
@@ -126,7 +126,7 @@ class TaskListener:
 				raise CollectorKernelException(f"dependent task id: {parent_task_id} is not existed")
 
 	def process_model_dependencies(self, task: ScheduledTask) -> List[ScheduledTask]:
-		return ArrayHelper(task.dependOn).map(self.process_model_dependent_tasks).to_list()
+		return ArrayHelper(task.dependOn).map(lambda dependence: self.process_model_dependent_tasks(task, dependence)).to_list()
 
 	def process_model_dependent_tasks(self, task: ScheduledTask, dependence: Dependence) -> List[ScheduledTask]:
 		tasks = self.scheduled_task_service.find_model_dependent_tasks(dependence.modelName, dependence.objectId, task.eventId, task.tenantId)
