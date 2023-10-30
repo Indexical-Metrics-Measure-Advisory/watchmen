@@ -96,7 +96,7 @@ class TaskListener:
 			model_dependent_tasks = self.process_model_dependencies(task)
 			merged_tasks = parent_tasks + model_dependent_tasks
 			if self.check_dependent_tasks_finished(merged_tasks):
-				# self.consume_task(task)
+				self.consume_task(task)
 				return self.task_service.update_task_result(task, Status.SUCCESS.value)
 			else:
 				return self.restore_task(task)
