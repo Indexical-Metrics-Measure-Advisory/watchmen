@@ -184,6 +184,12 @@ class TrinoStorageSPI(TopicDataStorageSPI):
 		"""
 		raise InquiryTrinoException('Method[find_limited] does not support by trino storage.')
 
+	def find_for_update_skip_locked(self, finder: EntityLimitedFinder) -> EntityList:
+		"""
+		not supported by trino
+		"""
+		raise InquiryTrinoException('Method[find_for_update_skip_locked] does not support by trino storage.')
+
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		"""
 		not supported by trino
