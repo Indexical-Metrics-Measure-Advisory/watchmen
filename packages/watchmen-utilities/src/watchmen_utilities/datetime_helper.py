@@ -505,7 +505,7 @@ def move_day_of_month(a_date: date, move_type: str, value: int) -> date:
 		month = a_date.month
 		if month == 1 or month == 3 or month == 5 or month == 7 or month == 8 or month == 10 or month == 12:
 			return a_date.replace(day=31)
-		elif month == 4 or month == 6 or month == 9 or month == 1:
+		elif month == 4 or month == 6 or month == 9 or month == 11:
 			return a_date.replace(day=30)
 		else:
 			return try_to_move_date(a_date, a_date.year, a_date.month, 29)
