@@ -1,17 +1,20 @@
 import json
+from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Any, Tuple
 from logging import getLogger
 
-from watchmen_model.system import DataSource
+from watchmen_model.system import DataSource, DataSourceType
 
 from watchmen_auth import fake_tenant_admin
 from watchmen_data_kernel.service.storage_helper import get_data_source_service
+from .extract_spi import ExtractorSPI
 from .extract_utils import build_criteria_by_primary_key
 from watchmen_collector_kernel.model import CollectorTableConfig
 from watchmen_data_kernel.service import ask_topic_storage, ask_topic_data_service
 from watchmen_data_kernel.topic_schema import TopicSchema
-from watchmen_model.admin import Topic, TopicKind, Factor
-from watchmen_storage import EntityCriteria, EntityStraightColumn, DataSourceHelper
+from watchmen_model.admin import Topic, TopicKind, Factor, TopicType
+from watchmen_storage import EntityCriteria, EntityStraightColumn, DataSourceHelper, \
+	UnexpectedStorageException, ColumnNameLiteral, EntityCriteriaExpression, EntityDeleter
 from watchmen_utilities import get_current_time_in_seconds, ArrayHelper
 from watchmen_collector_kernel.cache import CollectorCacheService
 
@@ -40,7 +43,7 @@ class LinkList:
 		return self.head
 
 
-class SourceTableExtractor:
+class SourceExtractor(ExtractorSPI, ABC):
 
 	def __init__(self, config: CollectorTableConfig):
 		self.config = config
@@ -54,32 +57,11 @@ class SourceTableExtractor:
 	def fake_topic_id(self, config_id: str) -> str:
 		return f'f-{config_id}'
 
+	@abstractmethod
 	def fake_extracted_table_to_topic(self, config: CollectorTableConfig) -> Topic:
-		#  Fake synonym topic to visit source table
-		topic = Topic(topicId=self.fake_topic_id(config.configId),
-		              name=config.tableName,
-		              dataSourceId=config.dataSourceId,
-		              kind=TopicKind.SYNONYM,
-		              tenantId=self.principal_service.tenantId
-		              )
-		topic_storage = ask_topic_storage(topic, self.principal_service)
-		factors = topic_storage.ask_reflect_factors(config.tableName, self.get_schema(topic))
-		topic.factors = self.filter_ignored_columns(factors, config) if config.ignoredColumns else factors
-		now = get_current_time_in_seconds()
-		topic.createdAt = now
-		topic.createdBy = self.principal_service.get_user_id()
-		topic.lastModifiedAt = now
-		topic.lastModifiedBy = self.principal_service.get_user_id()
-		return topic
+		pass
 
-	def get_schema(self, topic: Topic) -> str:
-		datasource = get_data_source_service(self.principal_service).find_by_id(topic.dataSourceId)
-		return self.get_schema_from_datasource(datasource)
-
-	def get_schema_from_datasource(self, datasource: DataSource) -> str:
-		schema = DataSourceHelper.find_param(datasource.params, "schema")
-		return schema if schema else datasource.name
-
+	# noinspection PyMethodMayBeStatic
 	def filter_ignored_columns(self, factors: List[Factor], config: CollectorTableConfig) -> List[Factor]:
 		ignored_columns = config.ignoredColumns
 
@@ -100,7 +82,7 @@ class SourceTableExtractor:
 		CollectorCacheService.collector_topic().put_topic_by_id(topic)
 		return topic
 
-	def find_change_data(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
+	def find_primary_keys_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
 		return self.lower_key(self.service.find_straight_values(
 			criteria=criteria,
 			columns=ArrayHelper(self.config.primaryKey).map(
@@ -108,14 +90,14 @@ class SourceTableExtractor:
 			).to_list()
 		))
 
-	def find_one_data(self, criteria: EntityCriteria = None) -> Optional[List[Dict[str, Any]]]:
-		result = self.service.find_limited_values(criteria=criteria, limit=1)
+	def find_one_record_of_table(self) -> Optional[List[Dict[str, Any]]]:
+		result = self.service.find_limited_values(criteria=[], limit=1)
 		if result:
 			return self.process_json_columns(self.lower_key(result))
 		else:
 			return [ArrayHelper(self.topic.factors).to_map(lambda factor: factor.name.lower(), lambda factor: None)]
 
-	def find_by_id(self, data_id: Dict) -> Optional[Dict[str, Any]]:
+	def find_one_by_primary_keys(self, data_id: Dict) -> Optional[Dict[str, Any]]:
 		results = self.service.find(build_criteria_by_primary_key(data_id))
 		if len(results) == 1:
 			return self.process_json_columns(self.lower_key(results))[0]
@@ -124,12 +106,12 @@ class SourceTableExtractor:
 		else:
 			raise RuntimeError(f'too many results with {data_id} find')
 
-	def find(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
+	def find_records_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
 		data_ = self.lower_key(self.service.find(criteria))
 		return self.process_json_columns(data_)
 
-	def exists(self, criteria: EntityCriteria) -> bool:
-		return self.service.exists(criteria)
+	def delete_one_by_primary_keys(self, data_id: Dict):
+		pass
 
 	# noinspection PyMethodMayBeStatic
 	def lower_key(self, data_: List) -> Optional[List[Dict]]:
@@ -271,3 +253,100 @@ class SourceTableExtractor:
 			return ArrayHelper(data_).map(lambda row: change_column_value(row)).to_list()
 		else:
 			return data_
+
+
+class SourceTableExtractor(SourceExtractor):
+
+	def __init__(self, config: CollectorTableConfig):
+		super().__init__(config)
+
+	def fake_extracted_table_to_topic(self, config: CollectorTableConfig) -> Topic:
+		#  Fake synonym topic to visit source table
+		topic = Topic(topicId=self.fake_topic_id(config.configId),
+		              name=config.tableName,
+		              dataSourceId=config.dataSourceId,
+		              kind=TopicKind.SYNONYM,
+		              tenantId=self.principal_service.tenantId
+		              )
+		topic_storage = ask_topic_storage(topic, self.principal_service)
+		factors = topic_storage.ask_reflect_factors(config.tableName, self.get_schema(topic))
+		topic.factors = self.filter_ignored_columns(factors, config) if config.ignoredColumns else factors
+		now = get_current_time_in_seconds()
+		topic.createdAt = now
+		topic.createdBy = self.principal_service.get_user_id()
+		topic.lastModifiedAt = now
+		topic.lastModifiedBy = self.principal_service.get_user_id()
+		return topic
+
+	def get_schema(self, topic: Topic) -> str:
+		datasource = get_data_source_service(self.principal_service).find_by_id(topic.dataSourceId)
+		return self.get_schema_from_datasource(datasource)
+
+	# noinspection PyMethodMayBeStatic
+	def get_schema_from_datasource(self, datasource: DataSource) -> str:
+		schema = DataSourceHelper.find_param(datasource.params, "schema")
+		return schema if schema else datasource.name
+
+
+class SourceS3Extractor(SourceExtractor):
+
+	def __init__(self, config: CollectorTableConfig):
+		super().__init__(config)
+
+	def fake_extracted_table_to_topic(self, config: CollectorTableConfig) -> Topic:
+		#  Fake synonym topic to visit source table
+		topic = Topic(topicId=self.fake_topic_id(config.configId),
+		              name=config.tableName,
+		              type=TopicType.RAW,
+		              dataSourceId=config.dataSourceId,
+		              kind=TopicKind.SYNONYM,
+		              tenantId=self.principal_service.tenantId
+		              )
+		now = get_current_time_in_seconds()
+		topic.createdAt = now
+		topic.createdBy = self.principal_service.get_user_id()
+		topic.lastModifiedAt = now
+		topic.lastModifiedBy = self.principal_service.get_user_id()
+		return topic
+
+	def find_one_by_primary_keys(self, data_id: Dict) -> Optional[Dict[str, Any]]:
+		results = self.service.find(self.build_s3_key_criteria_by_primary_key(data_id))
+		if len(results) == 1:
+			return self.process_json_columns(self.lower_key(results))[0]
+		elif len(results) == 0:
+			return None
+		else:
+			raise RuntimeError(f'too many results with {data_id} find')
+
+	def build_s3_key_criteria_by_primary_key(self, data_id: Dict) -> List[EntityCriteriaExpression]:
+		criteria = []
+		for key, value in data_id.items():
+			criteria.append(
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName="key"), right=value)
+			)
+		return criteria
+
+	def find_records_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
+		raise UnexpectedStorageException('Method[find_records_by_criteria] does not support by S3 extractor.')
+
+	def delete_one_by_primary_keys(self, data_id: Dict):
+		criteria = self.build_s3_key_criteria_by_primary_key(data_id)
+		self.storage.delete(
+			EntityDeleter(
+				name=self.topic.topicId,
+				criteria=criteria
+			)
+		)
+
+
+def ask_source_extractor(config: CollectorTableConfig) -> ExtractorSPI:
+	data_source_id = config.dataSourceId
+	principal_service = fake_tenant_admin(config.tenantId)
+	data_source = get_data_source_service(principal_service).find_by_id(data_source_id)
+	if data_source.dataSourceType in (
+			DataSourceType.MYSQL, DataSourceType.ORACLE, DataSourceType.MYSQL, DataSourceType.POSTGRESQL):
+		return SourceTableExtractor(config)
+	elif data_source.dataSourceType in (DataSourceType.S3, DataSourceType.OSS):
+		return SourceS3Extractor(config)
+	else:
+		raise Exception(f"{data_source.dataSourceType} is not supported")

@@ -1,14 +1,17 @@
 from logging import getLogger
 from typing import Any, Dict, List, Optional
 
+from watchmen_utilities import ArrayHelper
+
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage
 from watchmen_storage import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, \
 	FreeAggregator, FreeFinder, FreePager, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException, \
-	EntityLimitedFinder
+	EntityLimitedFinder, EntityStraightColumn, UnsupportedStraightColumnException
 from .object_defs_s3 import find_directory, register_directory
-from .simple_storage_service import SimpleStorageService
+from .simple_storage_service import SimpleStorageService, ObjectContent
+from .where_build import get_key_by_criteria
 
 logger = getLogger(__name__)
 
@@ -104,9 +107,7 @@ class StorageS3(TransactionalStorageSPI):
 		"""
 		returns 0 when delete none, or 1 when delete one
 		"""
-		directory = find_directory(helper.name)
-		key = self.s3_client.gen_key(directory, entity_id)
-		return self.s3_client.delete_object(key)
+		return self.s3_client.delete_object(entity_id)
 
 	def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
 		"""
@@ -140,10 +141,8 @@ class StorageS3(TransactionalStorageSPI):
 		raise UnexpectedStorageException('Method[delete_only_and_pull] does not support by S3 storage.')
 
 	def delete(self, deleter: EntityDeleter) -> int:
-		"""
-		not supported by S3
-		"""
-		raise UnexpectedStorageException('Method[delete] does not support by S3 storage.')
+		key = get_key_by_criteria(deleter.criteria)
+		return self.s3_client.delete_object(key)
 
 	def delete_and_pull(self, deleter: EntityDeleter) -> EntityList:
 		"""
@@ -152,9 +151,7 @@ class StorageS3(TransactionalStorageSPI):
 		raise UnexpectedStorageException('Method[delete_and_pull] does not support by S3 storage.')
 
 	def find_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
-		directory = find_directory(helper.name)
-		key = SimpleStorageService.gen_key(directory, str(entity_id))
-		entity = self.s3_client.get_object(key)
+		entity = self.s3_client.get_object(entity_id)
 		if entity is None:
 			return None
 		else:
@@ -173,10 +170,12 @@ class StorageS3(TransactionalStorageSPI):
 		raise UnexpectedStorageException('Method[find_one] does not support by S3 storage.')
 
 	def find(self, finder: EntityFinder) -> EntityList:
-		"""
-		not supported by S3
-		"""
-		raise UnexpectedStorageException('Method[find] does not support by S3 storage.')
+		key = get_key_by_criteria(finder.criteria)
+		entity = self.s3_client.get_object(key)
+		if entity is None:
+			return []
+		else:
+			return [entity]
 
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		"""
@@ -189,15 +188,16 @@ class StorageS3(TransactionalStorageSPI):
 		raise UnexpectedStorageException('Method[find_distinct_values] does not support by S3 storage.')
 
 	def find_straight_values(self, finder: EntityStraightValuesFinder) -> EntityList:
-		"""
-		fill values with given straight columns, returns an entity list
-		entity will not be deserialized by shaper.
-		And when there is aggregated columns, other columns will be used in group by
-		"""
-		"""
-		not supported by S3
-		"""
-		raise UnexpectedStorageException('Method[find_straight_values] does not support by S3 storage.')
+		results = self.s3_client.get_keys_by_criteria(find_directory(finder.name),
+		                                              finder.criteria)
+
+		return ArrayHelper(results).map(lambda obj: self.get_straight_columns(finder.straightColumns, obj)).to_list()
+
+	def get_straight_columns(self, straightColumns: List[EntityStraightColumn], obj: ObjectContent) -> Dict:
+		if len(straightColumns) == 1:
+			return {straightColumns[0].columnName: obj.key}
+		else:
+			raise UnsupportedStraightColumnException(f'{straightColumns} does not support by S3 storage.')
 
 	def find_limited(self, finder: EntityLimitedFinder) -> EntityList:
 		"""
@@ -255,8 +255,8 @@ class TopicDataStorageS3(StorageS3, TopicDataStorageSPI):
 		pass
 
 	def truncate(self, helper: EntityHelper) -> None:
-		prefix = find_directory(helper.name)
-		self.s3_client.delete_multiple_objects(prefix)
+		directory = find_directory(helper.name)
+		self.s3_client.delete_objects_by_prefix(directory)
 
 	def ask_synonym_factors(self, table_name: str) -> List[Factor]:
 		"""
