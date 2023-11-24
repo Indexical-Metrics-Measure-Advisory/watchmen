@@ -1,20 +1,18 @@
 import logging
-from threading import Thread
 from traceback import format_exc
 from typing import Dict, Tuple, Optional, List, Any
 
-from time import sleep
 from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import CollectorTableConfig, \
 	ChangeDataRecord, ChangeDataJson, Status
 from watchmen_collector_kernel.model.change_data_json import Dependence
 from watchmen_collector_kernel.model.collector_table_config import Dependence as DependenceConfig
-from watchmen_collector_kernel.service import DataCaptureService, get_table_config_service
+from watchmen_collector_kernel.service import DataCaptureService, get_table_config_service, ask_source_extractor
 from watchmen_collector_kernel.service.extract_utils import get_data_id
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
 	get_change_data_json_service, get_collector_table_config_service, get_change_data_record_history_service, \
 	get_change_data_json_history_service
-from watchmen_collector_surface.settings import ask_fastapi_job, ask_record_to_json_wait
+from watchmen_collector_surface.settings import ask_record_to_json_wait
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
 from watchmen_utilities import ArrayHelper
 
@@ -55,25 +53,13 @@ class RecordToJsonService:
 		                                               self.principal_service)
 
 	def create_thread(self, scheduler=None) -> None:
-		if ask_fastapi_job():
-			scheduler.add_job(RecordToJsonService.event_loop_run, 'interval', seconds=ask_record_to_json_wait(), args=(self,))
-		else:
-			Thread(target=RecordToJsonService.run, args=(self,), daemon=True).start()
+		scheduler.add_job(RecordToJsonService.event_loop_run, 'interval', seconds=ask_record_to_json_wait(), args=(self,))
 
 	def event_loop_run(self):
 		try:
 			self.change_data_record_listener()
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-
-	def run(self):
-		try:
-			while True:
-				self.change_data_record_listener()
-		except Exception as e:
-			logger.error(e, exc_info=True, stack_info=True)
-			sleep(5)
-			self.create_thread()
 
 	# noinspection PyMethodMayBeStatic
 	def is_merged(self, change_record: ChangeDataRecord) -> bool:
@@ -101,10 +87,6 @@ class RecordToJsonService:
 
 	def change_data_record_listener(self):
 		unmerged_records = self.find_records_and_locked()
-		if len(unmerged_records) == 0:
-			if not ask_fastapi_job():
-				sleep(5)
-
 		for unmerged_record in unmerged_records:
 			change_data_record = unmerged_record
 			try:
@@ -112,6 +94,12 @@ class RecordToJsonService:
 			except Exception as e:
 				logger.error(e, exc_info=True, stack_info=True)
 				self.update_result(change_data_record, format_exc())
+			finally:
+				self.finalize(change_data_record)
+
+	def finalize(self, change_data_record: ChangeDataRecord):
+		config = self.table_config_service.find_by_table_name(change_data_record.tableName, change_data_record.tenantId)
+		ask_source_extractor(config).delete_one_by_primary_keys(change_data_record.dataId)
 
 	def update_result(self, change_data_record: ChangeDataRecord, result: str) -> None:
 		change_data_record.isMerged = True

@@ -8,8 +8,8 @@ import numpy as np
 
 from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, TriggerTable, \
 	Condition, Status
-from watchmen_collector_kernel.service import try_lock_nowait, unlock, SourceTableExtractor, CriteriaBuilder, \
-	build_audit_column_criteria, get_table_config_service
+from watchmen_collector_kernel.service import try_lock_nowait, unlock, CriteriaBuilder, \
+	build_audit_column_criteria, get_table_config_service, ask_source_extractor
 from watchmen_collector_kernel.service.extract_utils import cal_array2d_diff, build_data_id, get_data_id
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_trigger_table_service, get_competitive_lock_service, \
@@ -116,7 +116,7 @@ class TableExtractor:
 								'end_time': end_time
 							}
 							criteria.extend(prepare_query_criteria(variables, config.conditions))
-							source_records = SourceTableExtractor(config).find_change_data(
+							source_records = ask_source_extractor(config).find_primary_keys_by_criteria(
 								criteria
 							)
 							existed_records = self.change_data_record_service.find_existed_records(
