@@ -193,6 +193,7 @@ class StorageS3(TransactionalStorageSPI):
 
 		return ArrayHelper(results).map(lambda obj: self.get_straight_columns(finder.straightColumns, obj)).to_list()
 
+	# noinspection PyMethodMayBeStatic
 	def get_straight_columns(self, straightColumns: List[EntityStraightColumn], obj: ObjectContent) -> Dict:
 		if len(straightColumns) == 1:
 			return {straightColumns[0].columnName: obj.key}
@@ -200,10 +201,12 @@ class StorageS3(TransactionalStorageSPI):
 			raise UnsupportedStraightColumnException(f'{straightColumns} does not support by S3 storage.')
 
 	def find_limited(self, finder: EntityLimitedFinder) -> EntityList:
-		"""
-		not supported by S3
-		"""
-		raise UnexpectedStorageException('Method[find_limited] does not support by S3 storage.')
+		prefix = self.s3_client.ask_table_path(find_directory(finder.name))
+		objects = self.s3_client.list_objects(max_keys=finder.limit, prefix=prefix)
+		results = []
+		for object_ in objects:
+			results.append(self.s3_client.get_object(object_.key))
+		return results
 
 	def find_for_update_skip_locked(self, finder: EntityLimitedFinder) -> EntityList:
 		"""

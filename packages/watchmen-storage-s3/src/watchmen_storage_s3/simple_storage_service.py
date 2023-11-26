@@ -112,15 +112,16 @@ class SimpleStorageService:
 		                                   Prefix=self.ask_table_path(directory))
 		result = []
 		for page in page_iterator:
-			for obj in page['Contents']:
-				if obj.get('Key') != self.ask_table_path(directory) and is_valid_by_criteria(obj, criteria):
-					result.append(ObjectContent(key=obj.get('Key'),
-					                            lastModified=obj.get('LastModified'),
-					                            eTag=obj.get('ETag'),
-					                            size=obj.get('Size'),
-					                            storageClass=obj.get('StorageClass')
-					                            )
-					              )
+			if page.get('KeyCount', 0) > 0:
+				for obj in page['Contents']:
+					if obj.get('Key') != self.ask_table_path(directory) and is_valid_by_criteria(obj, criteria):
+						result.append(ObjectContent(key=obj.get('Key'),
+						                            lastModified=obj.get('LastModified'),
+						                            eTag=obj.get('ETag'),
+						                            size=obj.get('Size'),
+						                            storageClass=obj.get('StorageClass')
+						                            )
+						              )
 		return result
 
 	def ask_table_path(self, table_name: str) -> str:
