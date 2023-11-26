@@ -17,6 +17,7 @@ from watchmen_storage import EntityCriteria, EntityStraightColumn, DataSourceHel
 	UnexpectedStorageException, ColumnNameLiteral, EntityCriteriaExpression, EntityDeleter
 from watchmen_utilities import get_current_time_in_seconds, ArrayHelper
 from watchmen_collector_kernel.cache import CollectorCacheService
+from ..common import CollectorKernelException
 
 logger = getLogger(__name__)
 
@@ -316,15 +317,19 @@ class SourceS3Extractor(SourceExtractor):
 		elif len(results) == 0:
 			return None
 		else:
-			raise RuntimeError(f'too many results with {data_id} find')
+			raise CollectorKernelException(f'too many results with {data_id} find')
 
+	# noinspection PyMethodMayBeStatic
 	def build_s3_key_criteria_by_primary_key(self, data_id: Dict) -> List[EntityCriteriaExpression]:
 		criteria = []
-		for key, value in data_id.items():
-			criteria.append(
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName="key"), right=value)
-			)
-		return criteria
+		if len(data_id) == 1:
+			for key, value in data_id.items():
+				criteria.append(
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName="key"), right=value)
+				)
+			return criteria
+		else:
+			raise CollectorKernelException(f"{data_id} is not supported by build s3 key criteria")
 
 	def find_records_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
 		raise UnexpectedStorageException('Method[find_records_by_criteria] does not support by S3 extractor.')
