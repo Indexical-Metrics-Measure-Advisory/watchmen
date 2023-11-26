@@ -136,14 +136,14 @@ class CollectorEventListener:
 		return trigger_table.isExtracted
 
 	# noinspection PyMethodMayBeStatic
-	def event_resousce_id(self, tenant: Tenant) -> str:
-		return f'{tenant.tenantId}-trigger_event'
+	def trigger_event_lock_resource_id(self, tenant: Tenant) -> str:
+		return f'trigger_event_{tenant.tenantId}'
 
 	def event_listener(self) -> None:
 		tenants = self.tenant_service.find_all()
 		for tenant in tenants:
 			lock = get_resource_lock(self.snowflake_generator.next_id(),
-			                         self.event_resousce_id(tenant),
+			                         self.trigger_event_lock_resource_id(tenant),
 			                         tenant.tenantId)
 			try:
 				if try_lock_nowait(self.competitive_lock_service, lock):

@@ -86,6 +86,10 @@ class TableExtractor:
 	def get_time_window(self, event: TriggerEvent) -> Tuple[datetime, datetime]:
 		return event.startTime, event.endTime
 
+	# noinspection PyMethodMayBeStatic
+	def trigger_table_lock_resource_id(self, trigger_table: TriggerTable) -> str:
+		return f'trigger_table_{trigger_table.tableTriggerId}'
+
 	def trigger_table_listener(self):
 		unfinished_trigger_tables = self.trigger_table_service.find_unfinished()
 		if len(unfinished_trigger_tables) == 0:
@@ -94,7 +98,7 @@ class TableExtractor:
 		else:
 			for unfinished_trigger_table in unfinished_trigger_tables:
 				lock = get_resource_lock(self.snowflake_generator.next_id(),
-				                         unfinished_trigger_table.tableTriggerId,
+				                         self.trigger_table_lock_resource_id(unfinished_trigger_table),
 				                         unfinished_trigger_table.tenantId)
 				try:
 					if try_lock_nowait(self.competitive_lock_service, lock):

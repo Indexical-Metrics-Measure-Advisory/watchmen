@@ -8,11 +8,16 @@ from watchmen_collector_kernel.service import try_lock_nowait, get_resource_lock
 
 from watchmen_data_kernel.meta import TenantService
 
-from watchmen_collector_kernel.common import ask_clean_of_timeout_interval, ask_lock_timeout, ask_collector_timeout
+from watchmen_collector_kernel.common import ask_clean_of_timeout_interval, ask_lock_timeout, ask_collector_timeout, \
+	ask_clean_up_lock_timeout, ask_trigger_event_lock_timeout, ask_extract_table_lock_timeout, \
+	ask_s3_connector_lock_timeout
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
 	get_change_data_json_service, get_scheduled_task_service
 
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
+
+
+logger = getLogger(__name__)
 
 
 class CleanOfTimeout:
@@ -34,6 +39,10 @@ class CleanOfTimeout:
 		                                                         self.snowflake_generator,
 		                                                         self.principal_service)
 		self.cleanInterval = ask_clean_of_timeout_interval()
+		self.self_cleaning_lock_timeout = ask_clean_up_lock_timeout()
+		self.trigger_event_lock_timeout = ask_trigger_event_lock_timeout()
+		self.trigger_table_lock_timeout = ask_extract_table_lock_timeout()
+		self.s3_connector_lock_timeout = ask_s3_connector_lock_timeout()
 		self.lockTimeout = ask_lock_timeout()
 		self.timeout = ask_collector_timeout()
 
@@ -53,8 +62,16 @@ class CleanOfTimeout:
 		try:
 			if try_lock_nowait(self.competitive_lock_service, lock):
 				self.clean_timeout()
+			else:
+				self.self_cleaning()
 		finally:
 			unlock(self.competitive_lock_service, lock)
+
+	def self_cleaning(self):
+		locks = self.lock_service.find_lock_by_resource_id("clean_of_timeout")
+		for lock in locks:
+			if lock.resourceId == "clean_of_timeout" and lock.registeredAt < datetime.now() - timedelta(seconds=self.self_cleaning_lock_timeout):
+				self.lock_service.delete_by_id(lock.lockId)
 
 	def clean_timeout(self):
 		self.clean_lock()
@@ -63,10 +80,18 @@ class CleanOfTimeout:
 		self.clean_task()
 
 	def clean_lock(self):
-		query_time = datetime.now() - timedelta(seconds=self.lockTimeout)
-		locks = self.lock_service.find_overtime_lock(query_time)
+		locks = self.lock_service.find_all_lock()
 		for lock in locks:
-			self.lock_service.delete_by_id(lock.lockId)
+			if lock.resourceId == "clean_of_timeout":
+				continue
+			elif lock.resourceId == "s3_connector" and lock.registeredAt < (datetime.now() - timedelta(seconds=self.s3_connector_lock_timeout)):
+				self.lock_service.delete_by_id(lock.lockId)
+			elif lock.resourceId.startswith("trigger_event") and lock.registeredAt < (datetime.now() - timedelta(seconds=self.trigger_event_lock_timeout)):
+				self.lock_service.delete_by_id(lock.lockId)
+			elif lock.resourceId.startswith("trigger_table") and lock.registeredAt < (datetime.now() - timedelta(seconds=self.trigger_table_lock_timeout)):
+				self.lock_service.delete_by_id(lock.lockId)
+			else:
+				logger.debug(f"The lock {lock} is not timeout or supported. resource id is {lock.resourceId}, tenant id is {lock.tenantId}")
 
 	def clean_record(self):
 		query_time = datetime.now() - timedelta(seconds=self.timeout)

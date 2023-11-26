@@ -67,14 +67,35 @@ class CompetitiveLockService(EntityService):
 		finally:
 			self.storage.close()
 
-	def find_overtime_lock(self, query_time: datetime) -> List:
+	def find_overtime_lock(self, query_time: datetime) -> List[CompetitiveLock]:
 		try:
 			self.storage.connect()
+			# noinspection PyTypeChecker
 			return self.storage.find(self.get_entity_finder(criteria=[
 				EntityCriteriaExpression(
 					left=ColumnNameLiteral(columnName='registered_at'),
 					operator=EntityCriteriaOperator.LESS_THAN, right=query_time)
 			]))
+		finally:
+			self.storage.close()
+
+	def find_lock_by_resource_id(self, resource_id: str) -> List[CompetitiveLock]:
+		try:
+			self.storage.connect()
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(criteria=[
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName='resource_id'),
+					right=resource_id)
+			]))
+		finally:
+			self.storage.close()
+
+	def find_all_lock(self) -> List[CompetitiveLock]:
+		try:
+			self.storage.connect()
+			# noinspection PyTypeChecker
+			return self.storage.find_all(self.get_entity_finder([]))
 		finally:
 			self.storage.close()
 
