@@ -14,7 +14,7 @@ from watchmen_data_kernel.service import ask_topic_storage, ask_topic_data_servi
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Topic, TopicKind, Factor, TopicType
 from watchmen_storage import EntityCriteria, EntityStraightColumn, DataSourceHelper, \
-	UnexpectedStorageException, ColumnNameLiteral, EntityCriteriaExpression, EntityDeleter
+	UnexpectedStorageException, ColumnNameLiteral, EntityCriteriaExpression, EntityDeleter, EntityIdHelper
 from watchmen_utilities import get_current_time_in_seconds, ArrayHelper
 from watchmen_collector_kernel.cache import CollectorCacheService
 from ..common import CollectorKernelException
@@ -311,37 +311,26 @@ class SourceS3Extractor(SourceExtractor):
 		return topic
 
 	def find_one_by_primary_keys(self, data_id: Dict) -> Optional[Dict[str, Any]]:
-		results = self.service.find(self.build_s3_key_criteria_by_primary_key(data_id))
-		if len(results) == 1:
-			return self.process_json_columns(self.lower_key(results))[0]
-		elif len(results) == 0:
-			return None
+		result = self.service.find_data_by_id(self.build_s3_key_by_primary_key(data_id))
+		if result:
+			return self.process_json_columns(self.lower_key([result]))[0]
 		else:
-			raise CollectorKernelException(f'too many results with {data_id} find')
+			return None
 
 	# noinspection PyMethodMayBeStatic
-	def build_s3_key_criteria_by_primary_key(self, data_id: Dict) -> List[EntityCriteriaExpression]:
-		criteria = []
+	def build_s3_key_by_primary_key(self, data_id: Dict):
 		if len(data_id) == 1:
-			for key, value in data_id.items():
-				criteria.append(
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName="key"), right=value)
-				)
-			return criteria
+			return next(iter(data_id.values()))
 		else:
-			raise CollectorKernelException(f"{data_id} is not supported by build s3 key criteria")
+			raise CollectorKernelException(f"{data_id} is not supported by build s3 key")
 
 	def find_records_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
 		raise UnexpectedStorageException('Method[find_records_by_criteria] does not support by S3 extractor.')
 
 	def delete_one_by_primary_keys(self, data_id: Dict):
-		criteria = self.build_s3_key_criteria_by_primary_key(data_id)
-		self.storage.delete(
-			EntityDeleter(
-				name=self.topic.topicId,
-				criteria=criteria
-			)
-		)
+		key = self.build_s3_key_by_primary_key(data_id)
+		# S3 storage don't need transaction
+		self.storage.delete_by_id(key, EntityIdHelper())
 
 
 def ask_source_extractor(config: CollectorTableConfig) -> ExtractorSPI:
