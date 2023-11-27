@@ -11,7 +11,7 @@ from watchmen_model.system import DataSourceParam
 from watchmen_storage import ask_object_storage_need_date_directory, EntityCriteria
 from watchmen_utilities import serialize_to_json, ArrayHelper
 from .object_defs_s3 import as_file_name
-from .where_build import is_valid_by_criteria
+from .where_build import build_criteria
 
 logger = getLogger(__name__)
 
@@ -106,7 +106,7 @@ class SimpleStorageService:
 		else:
 			return objects
 
-	def get_keys_by_criteria(self, directory: Optional[str], criteria: EntityCriteria) -> Optional[List[ObjectContent]]:
+	def get_objects_by_criteria(self, directory: Optional[str], criteria: EntityCriteria) -> Optional[List[ObjectContent]]:
 		paginator = self.client.get_paginator('list_objects_v2')
 		page_iterator = paginator.paginate(Bucket=self.bucket_name,
 		                                   Prefix=self.ask_table_path(directory))
@@ -114,7 +114,7 @@ class SimpleStorageService:
 		for page in page_iterator:
 			if page.get('KeyCount', 0) > 0:
 				for obj in page['Contents']:
-					if obj.get('Key') != self.ask_table_path(directory) and is_valid_by_criteria(obj, criteria):
+					if obj.get('Key') != self.ask_table_path(directory) and build_criteria(obj, criteria):
 						result.append(ObjectContent(key=obj.get('Key'),
 						                            lastModified=obj.get('LastModified'),
 						                            eTag=obj.get('ETag'),

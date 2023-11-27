@@ -26,6 +26,7 @@ class DataCaptureService:
 		                                                                         self.principal_service)
 		self.table_config_service = get_table_config_service(self.principal_service)
 
+	# noinspection PyMethodMayBeStatic
 	def find_data_by_data_id(self, config: CollectorTableConfig, data_id: Dict) -> Optional[Dict[str, Any]]:
 		return ask_source_extractor(config).find_one_by_primary_keys(data_id)
 

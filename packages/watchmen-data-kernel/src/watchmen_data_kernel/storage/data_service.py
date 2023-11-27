@@ -11,7 +11,7 @@ from watchmen_model.admin import PipelineTriggerType, Topic
 from watchmen_model.common import DataModel, DataPage, Pageable
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import EntityColumnName, EntityCriteria, EntityPager, EntityStraightColumn, SnowflakeGenerator, \
-	TopicDataStorageSPI
+	TopicDataStorageSPI, EntityId
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 from .data_entity_helper import TopicDataEntityHelper
 
@@ -156,7 +156,7 @@ class TopicDataService(TopicStructureService):
 		finally:
 			storage.close()
 
-	def find_data_by_id(self, id_: int) -> Optional[Dict[str, Any]]:
+	def find_data_by_id(self, id_: EntityId) -> Optional[Dict[str, Any]]:
 		"""
 		return topic data
 		"""
@@ -165,7 +165,6 @@ class TopicDataService(TopicStructureService):
 		storage.connect()
 		topic_data: Optional[Dict[str, Any]] = storage.find_by_id(id_, data_entity_helper.get_entity_id_helper())
 		return topic_data
-
 
 	def find_one(self, criteria: EntityCriteria) -> Optional[Dict[str, Any]]:
 		"""
