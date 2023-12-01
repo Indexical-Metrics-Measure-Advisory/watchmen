@@ -310,10 +310,25 @@ class SourceS3Extractor(SourceExtractor):
 		topic.lastModifiedBy = self.principal_service.get_user_id()
 		return topic
 
+	def find_primary_keys_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
+		return self.service.find_straight_values(
+			criteria=criteria,
+			columns=ArrayHelper(self.config.primaryKey).map(
+				lambda column_name: EntityStraightColumn(columnName=column_name)
+			).to_list()
+		)
+
+	def find_one_record_of_table(self) -> Optional[List[Dict[str, Any]]]:
+		result = self.service.find_limited_values(criteria=[], limit=1)
+		if result:
+			return self.process_json_columns(result)
+		else:
+			return [ArrayHelper(self.topic.factors).to_map(lambda factor: factor.name, lambda factor: None)]
+
 	def find_one_by_primary_keys(self, data_id: Dict) -> Optional[Dict[str, Any]]:
 		result = self.service.find_data_by_id(self.build_s3_key_by_primary_key(data_id))
 		if result:
-			return self.process_json_columns(self.lower_key([result]))[0]
+			return self.process_json_columns([result])[0]
 		else:
 			return None
 
