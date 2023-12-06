@@ -343,27 +343,30 @@ export const Trigger = (props: { topics: Array<Topic>, pipelines: Array<Pipeline
 					{state.rowCount} row(s) found{state.rowCount === 0 ? ', seems no need to run.' : '.'}
 				</TriggerText>
 				<span/>
-				{state.rowCount > 1000
-					? <TriggerButton ink={ButtonInk.PRIMARY} onClick={onDownloadClicked}>
-						Download Data, Run with CLI
-					</TriggerButton>
-					: <RunInBrowserContainer>
-						<TriggerText>With</TriggerText>
-						<Input value={state.threads} onChange={onThreadsChange} ref={threadsInputRef}/>
-						<TriggerText>Threads</TriggerText>
-						<TriggerButton
-							ink={runningState.running !== RunningStatus.WAIT ? ButtonInk.WAIVE : ButtonInk.PRIMARY}
-							onClick={onRunClicked}>
-							<span>{runningState.running !== RunningStatus.STOPPED ? 'Run in Browser' : 'Triggerred'}</span>
-							{runningState.running === RunningStatus.ING
-								? <FontAwesomeIcon icon={ICON_LOADING} spin={true}/>
-								: null}
-						</TriggerButton>
-						<TriggerText>or</TriggerText>
-						<TriggerButton ink={ButtonInk.PRIMARY} onClick={onDownloadClicked}>
-							Download Data, Run with CLI
-						</TriggerButton>
-					</RunInBrowserContainer>}
+				<TriggerButton ink={ButtonInk.PRIMARY} onClick={onDownloadClicked}>
+					Download Data, Run with CLI
+				</TriggerButton>
+				{/*{state.rowCount > 1000*/}
+				{/*	? <TriggerButton ink={ButtonInk.PRIMARY} onClick={onDownloadClicked}>*/}
+				{/*		Download Data, Run with CLI*/}
+				{/*	</TriggerButton>*/}
+				{/*	: <RunInBrowserContainer>*/}
+				{/*		<TriggerText>With</TriggerText>*/}
+				{/*		<Input value={state.threads} onChange={onThreadsChange} ref={threadsInputRef}/>*/}
+				{/*		<TriggerText>Threads</TriggerText>*/}
+				{/*		<TriggerButton*/}
+				{/*			ink={runningState.running !== RunningStatus.WAIT ? ButtonInk.WAIVE : ButtonInk.PRIMARY}*/}
+				{/*			onClick={onRunClicked}>*/}
+				{/*			<span>{runningState.running !== RunningStatus.STOPPED ? 'Run in Browser' : 'Triggerred'}</span>*/}
+				{/*			{runningState.running === RunningStatus.ING*/}
+				{/*				? <FontAwesomeIcon icon={ICON_LOADING} spin={true}/>*/}
+				{/*				: null}*/}
+				{/*		</TriggerButton>*/}
+				{/*		<TriggerText>or</TriggerText>*/}
+				{/*		<TriggerButton ink={ButtonInk.PRIMARY} onClick={onDownloadClicked}>*/}
+				{/*			Download Data, Run with CLI*/}
+				{/*		</TriggerButton>*/}
+				{/*	</RunInBrowserContainer>}*/}
 				{runningState.running === RunningStatus.ING || runningState.running === RunningStatus.STOPPED
 					? <>
 						<span/>
