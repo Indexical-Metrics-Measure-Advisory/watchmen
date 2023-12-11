@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Any, Tuple
 from logging import getLogger
 
+from watchmen_data_kernel.meta import TopicService
+
 from watchmen_model.system import DataSource, DataSourceType
 
 from watchmen_auth import fake_tenant_admin
@@ -348,14 +350,27 @@ class SourceS3Extractor(SourceExtractor):
 		self.storage.delete_by_id(key, EntityIdHelper())
 
 
+class TopicTableExtractor(SourceExtractor):
+
+	def __init__(self, config: CollectorTableConfig):
+		super().__init__(config)
+
+	def fake_extracted_table_to_topic(self, config: CollectorTableConfig) -> Topic:
+		schema: TopicSchema = TopicService(self.principal_service).find_schema_by_name(config.tableName, config.tenantId)
+		return schema.topic
+
+
 def ask_source_extractor(config: CollectorTableConfig) -> ExtractorSPI:
-	data_source_id = config.dataSourceId
-	principal_service = fake_tenant_admin(config.tenantId)
-	data_source = get_data_source_service(principal_service).find_by_id(data_source_id)
-	if data_source.dataSourceType in (
-			DataSourceType.MYSQL, DataSourceType.ORACLE, DataSourceType.MYSQL, DataSourceType.POSTGRESQL):
-		return SourceTableExtractor(config)
-	elif data_source.dataSourceType in (DataSourceType.S3, DataSourceType.OSS):
-		return SourceS3Extractor(config)
+	if config.configId.startswith("f-"):
+		return TopicTableExtractor(config)
 	else:
-		raise Exception(f"{data_source.dataSourceType} is not supported")
+		data_source_id = config.dataSourceId
+		principal_service = fake_tenant_admin(config.tenantId)
+		data_source = get_data_source_service(principal_service).find_by_id(data_source_id)
+		if data_source.dataSourceType in (
+				DataSourceType.MYSQL, DataSourceType.ORACLE, DataSourceType.MYSQL, DataSourceType.POSTGRESQL):
+			return SourceTableExtractor(config)
+		elif data_source.dataSourceType in (DataSourceType.S3, DataSourceType.OSS):
+			return SourceS3Extractor(config)
+		else:
+			raise Exception(f"{data_source.dataSourceType} is not supported")

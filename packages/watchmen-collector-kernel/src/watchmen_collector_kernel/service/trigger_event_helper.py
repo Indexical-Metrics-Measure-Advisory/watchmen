@@ -1,4 +1,7 @@
 from typing import Dict
+
+from watchmen_auth import fake_tenant_admin
+
 from watchmen_utilities import ArrayHelper
 
 from watchmen_collector_kernel.model import TriggerEvent, TriggerTable, ChangeDataRecord, Status, TriggerModel, \
@@ -8,6 +11,9 @@ from watchmen_collector_kernel.storage import get_trigger_model_service, get_col
 	get_trigger_table_service, get_collector_table_config_service, get_collector_module_config_service, \
 	get_trigger_module_service, get_change_data_record_service, get_trigger_event_service
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage, ask_super_admin
+from .table_config_service import get_table_config_service
+from .module_config_service import get_module_config_service
+from .model_config_service import get_model_config_service
 
 from .trigger_collector import get_trigger_module_action, get_trigger_model_action, get_model_configs_by_module, \
 	get_trigger_table_action, save_trigger_table, save_trigger_model, save_trigger_module
@@ -248,6 +254,114 @@ def trigger_event_by_records(trigger_event: TriggerEvent):
 		).map(
 			lambda record: change_data_record_service.create(record)
 		)
+
+		trigger_event_service.commit_transaction()
+	except Exception as e:
+		trigger_event_service.rollback_transaction()
+		raise e
+	finally:
+		trigger_event_service.close_transaction()
+
+	# noinspection PyTypeChecker
+	return trigger_event
+
+
+def trigger_event_by_pipeline(trigger_event: TriggerEvent):
+	storage = ask_meta_storage()
+	snowflake_generator = ask_snowflake_generator()
+	principal_service = fake_tenant_admin(trigger_event.tenantId)
+	trigger_event_service = get_trigger_event_service(storage, snowflake_generator, principal_service)
+
+	module_config_service = get_module_config_service(principal_service)
+	model_config_service = get_model_config_service(principal_service)
+	table_config_service = get_table_config_service(principal_service)
+
+	table_config = table_config_service.find_by_table_name(trigger_event.tableName, trigger_event.tenantId)
+	model_config = model_config_service.find_by_name(table_config.modelName, trigger_event.tenantId)
+	module_config = module_config_service.find_by_module_id(model_config.moduleId, trigger_event.tenantId)
+
+	trigger_event_service.begin_transaction()
+	try:
+
+		trigger_event.status = Status.EXECUTING.value
+		trigger_event_service.update(trigger_event)
+
+		def new_trigger_module(module_name: str,
+		                       priority: int,
+		                       event_trigger_id: int,
+		                       tenant_id: str) -> TriggerModule:
+			return TriggerModule(
+				moduleName=module_name,
+				priority=priority,
+				is_finished=True,
+				eventTriggerId=event_trigger_id,
+				tenantId=tenant_id
+			)
+
+		trigger_module = new_trigger_module(module_config.moduleName,
+		                                    module_config.priority,
+		                                    trigger_event.eventTriggerId,
+		                                    trigger_event.tenantId)
+
+		trigger_module_service = get_trigger_module_service(trigger_event_service.storage,
+		                                                    trigger_event_service.snowflakeGenerator,
+		                                                    trigger_event_service.principalService)
+
+		save_trigger_module(trigger_module_service, trigger_module, trigger_module_service.principalService)
+
+		def new_trigger_model(model_name: str,
+		                      priority: int,
+		                      module_trigger_id: int,
+		                      event_trigger_id: int,
+		                      tenant_id: str) -> TriggerModel:
+			return TriggerModel(
+				modelName=model_name,
+				priority=priority,
+				isFinished=True,
+				moduleTriggerId=module_trigger_id,
+				eventTriggerId=event_trigger_id,
+				tenantId=tenant_id
+			)
+
+		trigger_model = new_trigger_model(model_config.modelName,
+		                                  model_config.priority,
+		                                  trigger_module.moduleTriggerId,
+		                                  trigger_module.eventTriggerId,
+		                                  trigger_module.tenantId)
+
+		trigger_model_service = get_trigger_model_service(trigger_event_service.storage,
+		                                                  trigger_event_service.snowflakeGenerator,
+		                                                  trigger_event_service.principalService)
+
+		save_trigger_model(trigger_model_service, trigger_model, trigger_model_service.principalService)
+
+		def new_trigger_table(table_name: str,
+		                      model_name: str,
+		                      model_trigger_id: int,
+		                      module_trigger_id: int,
+		                      event_trigger_id: int,
+		                      tenant_id: str) -> TriggerTable:
+			return TriggerTable(
+				tableName=table_name,
+				dataCount=0,
+				modelName=model_name,
+				isExtracted=False,
+				modelTriggerId=model_trigger_id,
+				moduleTriggerId=module_trigger_id,
+				eventTriggerId=event_trigger_id,
+				tenantId=tenant_id
+			)
+
+		trigger_table = new_trigger_table(table_config.tableName,
+		                                  table_config.modelName,
+		                                  trigger_model.modelTriggerId,
+		                                  trigger_model.moduleTriggerId,
+		                                  trigger_model.eventTriggerId,
+		                                  trigger_model.tenantId)
+		trigger_table_service = get_trigger_table_service(trigger_model_service.storage,
+		                                                  trigger_model_service.snowflakeGenerator,
+		                                                  trigger_model_service.principalService)
+		save_trigger_table(trigger_table_service, trigger_table, trigger_table_service.principalService)
 
 		trigger_event_service.commit_transaction()
 	except Exception as e:
