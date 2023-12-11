@@ -131,3 +131,30 @@ async def load_count_of_trigger_event(
 		return result
 	finally:
 		trigger_event_service.close_transaction()
+
+
+@router.post('/collector/trigger/event/pipeline', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
+             response_model=TriggerEvent)
+async def trigger_event_by_pipeline(
+		event: TriggerEvent, principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> TriggerEvent:
+	if event.startTime is None or event.endTime is None:
+		raise_400('start time or end time  is required.')
+
+	if is_blank(event.tableName):
+		raise_400('table name is required.')
+
+	if is_blank(event.pipelineId):
+		raise_400('pipeline id is required.')
+
+	validate_tenant_id(event, principal_service)
+	trigger_event_service = get_trigger_event_service(ask_meta_storage(),
+	                                                  ask_snowflake_generator(),
+	                                                  principal_service)
+	# noinspection PyTypeChecker
+	if trigger_event_service.is_storable_id_faked(event.eventTriggerId):
+		trigger_event_service.redress_storable_id(event)
+		event.isFinished = False
+		event.status = Status.INITIAL.value
+		event.type = EventType.BY_PIPELINE.value
+		return trigger_event_service.create_trigger_event(event)

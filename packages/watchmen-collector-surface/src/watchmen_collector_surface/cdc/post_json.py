@@ -2,11 +2,11 @@ import logging
 
 
 from traceback import format_exc
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, TriggerModel, \
-	CollectorModelConfig, TriggerEvent, TriggerModule, Status, ExecutionStatus
+	CollectorModelConfig, TriggerEvent, TriggerModule, Status, ExecutionStatus, EventType
 
 from watchmen_collector_kernel.service.model_config_service import get_model_config_service
 from watchmen_collector_kernel.storage import get_change_data_json_service, get_competitive_lock_service, \
@@ -75,7 +75,7 @@ class PostJsonService:
 			ArrayHelper(unfinished_events).each(self.process_modules)
 
 	def process_modules(self, unfinished_event: TriggerEvent):
-		trigger_modules = self.trigger_module_service.find_by_event_trigger_id(unfinished_event.get('event_trigger_id'))
+		trigger_modules = self.trigger_module_service.find_by_event_trigger_id(unfinished_event.eventTriggerId)
 
 		def is_higher_priority_module(trigger_module: TriggerModule, current_trigger_module: TriggerModule) -> bool:
 			if trigger_module.priority < current_trigger_module.priority:
@@ -95,23 +95,23 @@ class PostJsonService:
 
 		def process_module(trigger_module: TriggerModule):
 			if check_module_priority(trigger_module):
-				self.process_models(trigger_module)
+				self.process_models(unfinished_event, trigger_module)
 			else:
 				logger.debug(f'module {trigger_module.moduleName} priority not fit: {trigger_module.priority}')
 
 		ArrayHelper(trigger_modules).each(process_module)
 
-	def process_models(self, trigger_module: TriggerModule):
+	def process_models(self, trigger_event: TriggerEvent, trigger_module: TriggerModule):
 		trigger_models = self.trigger_model_service.find_by_module_trigger_id(trigger_module.moduleTriggerId)
 
 		def process_model(trigger_model: TriggerModel):
 			model_config = self.model_config_service.find_by_name(trigger_model.modelName, trigger_model.tenantId)
 			if check_model_priority(trigger_model):
 				if model_config.isParalleled:
-					self.process_change_data_json_in_paralleled(model_config, trigger_model)
+					self.process_change_data_json_in_paralleled(trigger_event, model_config, trigger_model)
 				else:
 					if self.is_sequenced_trigger_model_record_to_json_finished(trigger_model):
-						self.process_change_data_json_in_sequenced(model_config, trigger_model)
+						self.process_change_data_json_in_sequenced(trigger_event, model_config, trigger_model)
 					else:
 						logger.debug(f'sequenced model {trigger_model.modelName} not finish record to json yet')
 			else:
@@ -149,7 +149,7 @@ class PostJsonService:
 		finally:
 			self.change_json_service.close_transaction()
 
-	def process_change_data_json_in_paralleled(self, model_config: CollectorModelConfig, trigger_model: TriggerModel):
+	def process_change_data_json_in_paralleled(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig, trigger_model: TriggerModel):
 		jsons = self.find_json_and_locked(trigger_model.modelTriggerId)
 		for change_data_json in jsons:
 			if self.is_duplicated(change_data_json):
@@ -157,7 +157,7 @@ class PostJsonService:
 				self.update_result(change_data_json, True)
 			else:
 				try:
-					self.post_json(model_config, change_data_json)
+					self.post_json(trigger_event, model_config, change_data_json)
 				except Exception as e:
 					logger.error(e, exc_info=True, stack_info=True)
 					change_data_json.isPosted = True
@@ -165,16 +165,16 @@ class PostJsonService:
 					change_data_json.result = format_exc()
 					self.update_result(change_data_json)
 
-	def process_change_data_json_in_sequenced(self, model_config: CollectorModelConfig, trigger_model: TriggerModel):
+	def process_change_data_json_in_sequenced(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig, trigger_model: TriggerModel):
 		jsons = self.find_json_and_locked(trigger_model.modelTriggerId)
 		for change_data_json in jsons:
 			if self.is_duplicated(change_data_json):
 				change_data_json.isPosted = True
 				self.update_result(change_data_json, True)
 			else:
-				self.process_sequenced_json(model_config, change_data_json)
+				self.process_sequenced_json(trigger_event, model_config, change_data_json)
 
-	def process_sequenced_json(self, model_config: CollectorModelConfig, change_data_json: ChangeDataJson):
+	def process_sequenced_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig, change_data_json: ChangeDataJson):
 		current_change_json = change_data_json
 		change_jsons = self.change_json_service.find_by_object_id(current_change_json.modelName,
 		                                                          current_change_json.objectId,
@@ -183,11 +183,11 @@ class PostJsonService:
 		for change_json in change_jsons:
 			try:
 				if change_json.changeJsonId == current_change_json.changeJsonId:
-					self.post_json(model_config, current_change_json)
+					self.post_json(trigger_event, model_config, current_change_json)
 				else:
 					status = self.check_json_execution_status(change_json)
 					if status == ExecutionStatus.SHOULD_RUN:
-						self.post_json(model_config, change_json)
+						self.post_json(trigger_event, model_config, change_json)
 					elif status == ExecutionStatus.EXECUTING_BY_OTHERS:
 						if change_json.sequence < current_change_json.sequence and current_change_json.status == Status.EXECUTING.value:
 							self.restore_json(current_change_json)
@@ -276,6 +276,7 @@ class PostJsonService:
 		       and self.change_json_service.is_module_finished(trigger_module.moduleTriggerId)
 
 	def is_trigger_model_post_json_finished(self, trigger_model: TriggerModel) -> bool:
+		# noinspection PyTypeChecker
 		return trigger_model.isFinished and self.change_record_service.is_model_finished(trigger_model.modelTriggerId) \
 		       and self.change_json_service.is_model_finished(trigger_model.modelTriggerId) \
 		       and self.scheduled_task_service.is_model_finished(trigger_model.modelName, trigger_model.eventTriggerId)
@@ -286,8 +287,8 @@ class PostJsonService:
 		else:
 			return False
 
-	def post_json(self, model_config: CollectorModelConfig, change_json: ChangeDataJson) -> ScheduledTask:
-		task = self.get_scheduled_task(model_config, change_json)
+	def post_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig, change_json: ChangeDataJson) -> ScheduledTask:
+		task = self.get_scheduled_task(trigger_event, model_config, change_json)
 		try:
 			self.scheduled_task_service.begin_transaction()
 			self.scheduled_task_service.create(task)
@@ -309,12 +310,12 @@ class PostJsonService:
 		# noinspection PyTypeChecker
 		return self.change_json_service.update_change_data_json(self.change_status(change_data_json, Status.INITIAL.value))
 
-	def get_scheduled_task(self, model_config: CollectorModelConfig, change_json: ChangeDataJson) -> ScheduledTask:
+	def get_scheduled_task(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig, change_json: ChangeDataJson) -> ScheduledTask:
 		return ScheduledTask(
 			taskId=self.snowflake_generator.next_id(),
 			resourceId=self.generate_resource_id(change_json),
 			topicCode=self.get_topic_code(change_json),
-			content=change_json.content,
+			content=self.get_content(trigger_event, model_config, change_json),
 			modelName=change_json.modelName,
 			objectId=change_json.objectId,
 			dependOn=change_json.dependOn,
@@ -323,8 +324,34 @@ class PostJsonService:
 			status=Status.INITIAL.value,
 			result=None,
 			tenantId=change_json.tenantId,
-			eventId=change_json.eventTriggerId
+			eventId=change_json.eventTriggerId,
+			pipelineId=self.get_pipeline_id(trigger_event),
+			type=self.get_task_type(trigger_event)
 		)
+
+	# noinspection PyMethodMayBeStatic
+	def get_content(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig, change_json: ChangeDataJson) -> Optional[Dict]:
+		if trigger_event.type == EventType.BY_PIPELINE.value:
+			if model_config.rawTopicCode.startswith("raw_"):
+				return change_json.content.get("data_")
+			else:
+				return change_json.content
+		else:
+			return change_json.content
+
+	# noinspection PyMethodMayBeStatic
+	def get_pipeline_id(self, trigger_event: TriggerEvent) -> Optional[str]:
+		if trigger_event.type == EventType.BY_PIPELINE.value:
+			return trigger_event.pipelineId
+		else:
+			return None
+
+	# noinspection PyMethodMayBeStatic
+	def get_task_type(self, trigger_event: TriggerEvent) -> int:
+		if trigger_event.type == EventType.DEFAULT.value:
+			return 1
+		elif trigger_event.type == EventType.BY_PIPELINE.value:
+			return 2
 
 	def get_topic_code(self, change_json: ChangeDataJson) -> str:
 		return self.model_config_service.find_by_name(change_json.modelName, change_json.tenantId).rawTopicCode

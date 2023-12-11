@@ -1,17 +1,22 @@
-from typing import Dict
+from typing import Dict, Optional
 from logging import getLogger
 import asyncio
+
+from watchmen_model.common import PipelineId
+
+from watchmen_model.admin import PipelineTriggerType
+
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
 from watchmen_data_kernel.storage import TopicTrigger
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin
-from watchmen_model.pipeline_kernel import PipelineTriggerData
+from watchmen_model.pipeline_kernel import PipelineTriggerData, TopicDataColumnNames
 from watchmen_pipeline_kernel.pipeline import create_monitor_log_pipeline_invoker, PipelineTrigger
 
 logger = getLogger(__name__)
 
 
-async def handle_trigger_data(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger):
+async def handle_trigger_data(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger, pipeline_id: Optional[PipelineId] = None):
 	# use super admin
 	principal_service = ask_super_admin()
 	# change the tenant_id
@@ -26,7 +31,7 @@ async def handle_trigger_data(trigger_data: PipelineTriggerData, topic_trigger: 
 		principal_service=principal_service,
 		asynchronized=False,
 		handle_monitor_log=create_monitor_log_pipeline_invoker(trace_id, principal_service)
-	).start(topic_trigger)
+	).start(topic_trigger, pipeline_id)
 
 
 def save_topic_data(trigger_data: PipelineTriggerData) -> TopicTrigger:
@@ -52,3 +57,17 @@ def pipeline_data(topic_code: str, data: Dict, tenant_id: str) -> None:
 # noinspection PyMethodMayBeStatic
 def trigger_pipeline(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger):
 	asyncio.run(handle_trigger_data(trigger_data, topic_trigger))
+
+
+def run_pipeline(topic_code: str, data: Dict, tenant_id: str,  pipeline_id: PipelineId) -> None:
+	trigger_data = PipelineTriggerData(code=topic_code, data=data, tenantId=tenant_id)
+	topic_trigger = TopicTrigger(
+		previous=None,
+		current=data,
+		triggerType=PipelineTriggerType.INSERT,
+		internalDataId=data.get(TopicDataColumnNames.ID.value)
+	)
+	asyncio.run(handle_trigger_data(trigger_data, topic_trigger, pipeline_id))
+
+
+
