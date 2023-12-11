@@ -50,27 +50,13 @@ class TableExtractor:
 		                                                                 self.principal_service)
 
 	def create_thread(self, scheduler=None) -> None:
-		if ask_fastapi_job():
-			scheduler.add_job(TableExtractor.event_loop_run, 'interval', seconds=ask_table_extract_wait(), args=(self,))
-
-		else:
-			Thread(target=TableExtractor.run, args=(self,), daemon=True).start()
+		scheduler.add_job(TableExtractor.event_loop_run, 'interval', seconds=ask_table_extract_wait(), args=(self,))
 
 	def event_loop_run(self):
 		try:
 			self.trigger_table_listener()
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-
-	# noinspection PyUnresolvedReferences
-	def run(self):
-		try:
-			while True:
-				self.trigger_table_listener()
-		except Exception as e:
-			logger.error(e, exc_info=True, stack_info=True)
-			sleep(5)
-			self.create_thread()
 
 	# noinspection PyMethodMayBeStatic
 	def is_extracted(self, trigger_table: TriggerTable) -> bool:
@@ -92,58 +78,54 @@ class TableExtractor:
 
 	def trigger_table_listener(self):
 		unfinished_trigger_tables = self.trigger_table_service.find_unfinished()
-		if len(unfinished_trigger_tables) == 0:
-			if not ask_fastapi_job():
-				sleep(5)
-		else:
-			for unfinished_trigger_table in unfinished_trigger_tables:
-				lock = get_resource_lock(self.snowflake_generator.next_id(),
-				                         self.trigger_table_lock_resource_id(unfinished_trigger_table),
-				                         unfinished_trigger_table.tenantId)
-				try:
-					if try_lock_nowait(self.competitive_lock_service, lock):
-						trigger = self.trigger_table_service.find_by_id(unfinished_trigger_table.tableTriggerId)
-						if self.is_extracted(trigger):
-							continue
-						else:
-							config = self.table_config_service.find_by_table_name(trigger.tableName, trigger.tenantId)
-							trigger_event = self.trigger_event_service.find_event_by_id(trigger.eventTriggerId)
+		for unfinished_trigger_table in unfinished_trigger_tables:
+			lock = get_resource_lock(self.snowflake_generator.next_id(),
+			                         self.trigger_table_lock_resource_id(unfinished_trigger_table),
+			                         unfinished_trigger_table.tenantId)
+			try:
+				if try_lock_nowait(self.competitive_lock_service, lock):
+					trigger = self.trigger_table_service.find_by_id(unfinished_trigger_table.tableTriggerId)
+					if self.is_extracted(trigger):
+						continue
+					else:
+						config = self.table_config_service.find_by_table_name(trigger.tableName, trigger.tenantId)
+						trigger_event = self.trigger_event_service.find_event_by_id(trigger.eventTriggerId)
 
-							def prepare_query_criteria(variables_: Dict,
-							                           conditions: List[Condition]) -> EntityCriteria:
-								return CriteriaBuilder(variables_).build_criteria(conditions)
+						def prepare_query_criteria(variables_: Dict,
+						                           conditions: List[Condition]) -> EntityCriteria:
+							return CriteriaBuilder(variables_).build_criteria(conditions)
 
-							start_time, end_time = self.get_time_window(trigger_event)
-							criteria = build_audit_column_criteria(config.auditColumn, start_time, end_time)
-							variables = {
-								'start_time': start_time,
-								'end_time': end_time
-							}
-							criteria.extend(prepare_query_criteria(variables, config.conditions))
-							source_records = ask_source_extractor(config).find_primary_keys_by_criteria(
-								criteria
+						start_time, end_time = self.get_time_window(trigger_event)
+						criteria = build_audit_column_criteria(config.auditColumn, start_time, end_time)
+						variables = {
+							'start_time': start_time,
+							'end_time': end_time
+						}
+						criteria.extend(prepare_query_criteria(variables, config.conditions))
+						source_records = ask_source_extractor(config).find_primary_keys_by_criteria(
+							criteria
+						)
+						existed_records = self.change_data_record_service.find_existed_records(
+							trigger.tableTriggerId)
+						if existed_records:
+							diff_records: List[List] = self.get_diff(source_records, existed_records)
+							logger.info(
+								f'table_name: {config.tableName}, source_records: {len(source_records)}, existed_records: {len(existed_records)}, diffs: {len(diff_records)}'
 							)
-							existed_records = self.change_data_record_service.find_existed_records(
-								trigger.tableTriggerId)
-							if existed_records:
-								diff_records: List[List] = self.get_diff(source_records, existed_records)
-								logger.info(
-									f'table_name: {config.tableName}, source_records: {len(source_records)}, existed_records: {len(existed_records)}, diffs: {len(diff_records)}'
-								)
-								for diff_record in diff_records:
-									self.save_change_data_record(trigger, build_data_id(config.primaryKey, diff_record))
-							else:
-								logger.info(
-									f'table_name: {config.tableName}, source_records: {len(source_records)}, existed_records: {len(existed_records)}'
-								)
-								ArrayHelper(source_records).map(
-									lambda record: self.save_change_data_record(trigger,
-									                                            get_data_id(config.primaryKey, record)))
-							data_count = ArrayHelper(source_records).size()
-							self.trigger_table_service.update_table_trigger(self.set_extracted(trigger, data_count))
-							break
-				finally:
-					unlock(self.competitive_lock_service, lock)
+							for diff_record in diff_records:
+								self.save_change_data_record(trigger, build_data_id(config.primaryKey, diff_record))
+						else:
+							logger.info(
+								f'table_name: {config.tableName}, source_records: {len(source_records)}, existed_records: {len(existed_records)}'
+							)
+							ArrayHelper(source_records).map(
+								lambda record: self.save_change_data_record(trigger,
+								                                            get_data_id(config.primaryKey, record)))
+						data_count = ArrayHelper(source_records).size()
+						self.trigger_table_service.update_table_trigger(self.set_extracted(trigger, data_count))
+						break
+			finally:
+				unlock(self.competitive_lock_service, lock)
 
 	def save_change_data_record(self,
 	                            trigger_table: TriggerTable,

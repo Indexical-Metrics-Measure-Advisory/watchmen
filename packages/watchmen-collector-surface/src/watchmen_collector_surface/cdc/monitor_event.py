@@ -1,7 +1,4 @@
 import logging
-from threading import Thread
-
-from time import sleep
 from typing import List, Optional
 
 from watchmen_model.system import Tenant
@@ -10,11 +7,11 @@ from watchmen_data_kernel.meta import TenantService
 
 from watchmen_collector_kernel.model import TriggerEvent, TriggerModel, TriggerTable, TriggerModule, Status, EventType
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, trigger_event_by_default, \
-	trigger_event_by_records, trigger_event_by_table, get_resource_lock
+	trigger_event_by_records, trigger_event_by_table, get_resource_lock, trigger_event_by_pipeline
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_trigger_event_service, \
 	get_trigger_model_service, get_trigger_table_service, get_change_data_record_service, get_change_data_json_service, \
 	get_trigger_module_service, get_scheduled_task_service
-from watchmen_collector_surface.settings import ask_fastapi_job, ask_monitor_event_wait
+from watchmen_collector_surface.settings import ask_monitor_event_wait
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
 from watchmen_utilities import ArrayHelper
 
@@ -170,6 +167,8 @@ class CollectorEventListener:
 				trigger_event_by_table(event)
 			elif event.type == EventType.BY_RECORD.value:
 				trigger_event_by_records(event)
+			elif event.type == EventType.BY_PIPELINE.value:
+				trigger_event_by_pipeline(event)
 			else:
 				raise Exception(f'Event type {event.type} is not supported.')
 		else:

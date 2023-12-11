@@ -7,6 +7,11 @@ from pydantic import BaseModel
 from enum import Enum
 
 
+class TaskType(int, Enum):
+	DEFAULT = 1,
+	RUN_PIPELINE = 2
+
+
 class Result(str, Enum):
 	DEPENDENCY_FAILED = "DEPENDENCY_FAILED"
 	PROCESS_TASK_SUCCESS = "PROCESS_TASK_SUCCESS"
@@ -47,9 +52,12 @@ class ScheduledTask(TenantBasedTuple, BaseModel):
 	status: int
 	result: Dict
 	eventId: str
+	pipelineId: str
+	type: int
 
 	def __setattr__(self, name, value):
 		if name == 'dependOn':
 			super().__setattr__(name, construct_depend_on(value))
 		else:
 			super().__setattr__(name, value)
+

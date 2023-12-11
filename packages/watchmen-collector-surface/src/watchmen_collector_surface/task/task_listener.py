@@ -3,7 +3,7 @@ from traceback import format_exc
 from typing import List, Optional
 
 from watchmen_collector_kernel.common import CollectorKernelException
-from watchmen_collector_kernel.model import Dependence, ExecutionStatus
+from watchmen_collector_kernel.model import Dependence, ExecutionStatus, TaskType
 from watchmen_utilities import ArrayHelper
 
 from watchmen_collector_kernel.model import ScheduledTask, Status
@@ -11,7 +11,7 @@ from watchmen_collector_kernel.service import get_task_service
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_scheduled_task_service, \
 	get_scheduled_task_history_service
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
-from .handler import pipeline_data
+from .handler import pipeline_data, run_pipeline
 from watchmen_collector_surface.settings import ask_task_listener_wait
 
 logger = logging.getLogger('apscheduler')
@@ -106,7 +106,10 @@ class TaskListener:
 			return self.task_service.update_task_result(task, Status.FAIL.value)
 
 	def consume_task(self, task: ScheduledTask) -> None:
-		self.task_service.consume_task(task, pipeline_data)
+		if task.type == TaskType.DEFAULT.value:
+			self.task_service.consume_task(task, pipeline_data)
+		elif task.type == TaskType.RUN_PIPELINE.value:
+			self.task_service.consume_task(task, run_pipeline)
 
 	def restore_task(self, task: ScheduledTask) -> ScheduledTask:
 		return self.scheduled_task_service.update_task(self.change_status(task, Status.INITIAL.value))

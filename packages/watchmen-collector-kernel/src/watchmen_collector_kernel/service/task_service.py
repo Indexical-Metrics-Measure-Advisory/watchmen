@@ -1,11 +1,10 @@
 import json
 from logging import getLogger
-from traceback import format_exc
-from typing import Callable, Dict, Optional, List
+from typing import Callable, Dict, Optional, List, Union
 
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.model import ScheduledTask, Status
-from watchmen_collector_kernel.model.scheduled_task import Dependence
+from watchmen_collector_kernel.model import ScheduledTask
+from watchmen_collector_kernel.model.scheduled_task import Dependence, TaskType
 from watchmen_collector_kernel.storage import get_scheduled_task_service, get_scheduled_task_history_service
 from watchmen_model.common import ScheduledTaskId
 from watchmen_storage import TransactionalStorageSPI, SnowflakeGenerator
@@ -32,8 +31,12 @@ class TaskService:
 		                                                                         self.principal_service)
 
 	# noinspection PyMethodMayBeStatic
-	def consume_task(self, task: ScheduledTask, executed: Callable[[str, Dict, str], None]) -> None:
-		executed(task.topicCode, task.content, task.tenantId)
+	def consume_task(self, task: ScheduledTask, executed: Union[Callable[[str, Dict, str], None],
+	                                                            Callable[[str, Dict, str, str], None]]) -> None:
+		if task.type == TaskType.DEFAULT.value:
+			executed(task.topicCode, task.content, task.tenantId)
+		elif task.type == TaskType.RUN_PIPELINE.value:
+			executed(task.topicCode, task.content, task.tenantId, task.pipelineId)
 
 	def update_task_result(self, task: ScheduledTask, status: int) -> ScheduledTask:
 		try:

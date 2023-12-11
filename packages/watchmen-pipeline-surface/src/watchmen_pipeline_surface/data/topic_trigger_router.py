@@ -119,8 +119,6 @@ async def rerun_by_topic_data(
 		pipeline = pipeline_service.find_by_id(pipeline_id)
 		if pipeline is None:
 			raise_404('Pipeline not found.')
-		if has_summary(pipeline):
-			raise_400('Rerun by data id is not supported on summary pipeline.')
 
 	# here is a problem, the only certain thing is data already in storage or not
 	# has to find out the previous status of this data row, it is created by insert or merge?
@@ -152,10 +150,11 @@ async def find_source_topic_schema(principal_service, tenant_id, topic_id, topic
 	return schema
 
 
-@router.get('/pipeline/log/rerun/uid', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=PipelineTriggerResult)
-async def rerun_with_uid(uid:str,principal_service: PrincipalService = Depends(get_any_admin_principal)):
+@router.get('/pipeline/log/rerun/uid', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
+            response_model=PipelineTriggerResult)
+async def rerun_with_uid(uid: str, principal_service: PrincipalService = Depends(get_any_admin_principal)):
 	log_data, trace_id = await rerun_monitor_log(principal_service, uid)
-	return PipelineTriggerResult(received=True, traceId=trace_id, internalDataId=str(log_data.dataId),logId=uid)
+	return PipelineTriggerResult(received=True, traceId=trace_id, internalDataId=str(log_data.dataId), logId=uid)
 
 
 async def rerun_monitor_log(principal_service, uid):
@@ -173,17 +172,19 @@ async def rerun_monitor_log(principal_service, uid):
 	return log_data, trace_id
 
 
-@router.post('/pipeline/log/rerun/error', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[PipelineTriggerResult])
-async def rerun_with_error_log(error_log:PipelineMonitorResult,principal_service: PrincipalService = Depends(get_any_admin_principal)):
+@router.post('/pipeline/log/rerun/error', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
+             response_model=List[PipelineTriggerResult])
+async def rerun_with_error_log(error_log: PipelineMonitorResult,
+                               principal_service: PrincipalService = Depends(get_any_admin_principal)):
 	rerun_result_list = []
 
 	if len(error_log.errorDetails) > 2000:
 		raise_400("Too many error logs to rerun, please seplit them into multiple requests.")
 
-
 	for error_detail in error_log.errorDetails:
 		log_data, trace_id = await rerun_monitor_log(principal_service, error_detail["uid"])
-		rerun_result_list.append(PipelineTriggerResult(received=True, traceId=trace_id, internalDataId=str(log_data.dataId), logId=error_detail["uid"]))
+		rerun_result_list.append(
+			PipelineTriggerResult(received=True, traceId=trace_id, internalDataId=str(log_data.dataId),
+			                      logId=error_detail["uid"]))
 
 	return rerun_result_list
-

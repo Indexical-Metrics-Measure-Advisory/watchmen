@@ -21,7 +21,8 @@ class TriggerEventShaper(EntityShaper):
 			'status': entity.status,
 			'type': entity.type,
 			'table_name': entity.tableName,
-			'records': entity.records
+			'records': entity.records,
+			'pipeline_id': entity.pipelineId
 		})
 
 	def deserialize(self, row: EntityRow) -> TriggerEvent:
@@ -34,7 +35,8 @@ class TriggerEventShaper(EntityShaper):
 			status=row.get('status'),
 			type=row.get('type'),
 			tableName=row.get('table_name'),
-			records=row.get('records')
+			records=row.get('records'),
+			pipelineId=row.get('pipeline_id')
 		))
 
 
@@ -112,6 +114,7 @@ class TriggerEventService(TupleService):
 		finally:
 			self.close_transaction()
 
+	"""
 	def find_executing_events(self) -> List[Dict[str, Any]]:
 		try:
 			self.begin_transaction()
@@ -120,6 +123,18 @@ class TriggerEventService(TupleService):
 				criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1)],
 				straightColumns=[EntityStraightColumn(columnName=self.get_storable_id_column_name()),
 				                 EntityStraightColumn(columnName='tenant_id')],
+				sort=[EntitySortColumn(name=self.get_storable_id_column_name(), method=EntitySortMethod.ASC)]
+			))
+		finally:
+			self.close_transaction()
+	"""
+
+	def find_executing_events(self) -> List[TriggerEvent]:
+		try:
+			self.begin_transaction()
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(
+				criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1)],
 				sort=[EntitySortColumn(name=self.get_storable_id_column_name(), method=EntitySortMethod.ASC)]
 			))
 		finally:

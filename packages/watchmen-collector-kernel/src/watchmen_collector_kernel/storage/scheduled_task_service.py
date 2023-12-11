@@ -4,8 +4,6 @@ from typing import Optional, List, Any, Dict
 from watchmen_collector_kernel.common import ask_partial_size, STATUS
 from watchmen_utilities import ArrayHelper
 
-from watchmen_collector_kernel.model.scheduled_task import Dependence
-
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import ScheduledTask
 from watchmen_meta.common import TupleService, TupleShaper
@@ -32,7 +30,9 @@ class ScheduledTaskShaper(EntityShaper):
 			'is_finished': entity.isFinished,
 			'status': entity.status,
 			'result': entity.result,
-			'event_id': entity.eventId
+			'event_id': entity.eventId,
+			'pipeline_id': entity.pipelineId,
+			'type': entity.type
 		})
 
 	def deserialize(self, row: EntityRow) -> ScheduledTask:
@@ -50,7 +50,9 @@ class ScheduledTaskShaper(EntityShaper):
 			isFinished=row.get('is_finished'),
 			status=row.get('status'),
 			result=row.get('result'),
-			eventId=row.get('event_id')
+			eventId=row.get('event_id'),
+			pipelineId=row.get('pipeline_id'),
+			type=row.get('type')
 		))
 
 
