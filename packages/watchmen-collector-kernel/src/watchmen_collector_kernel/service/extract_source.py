@@ -364,6 +364,34 @@ class TopicTableExtractor(SourceExtractor):
 		                                                                               config.tenantId)
 		return schema.topic
 
+	def find_primary_keys_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
+		return self.service.find_straight_values(
+			criteria=criteria,
+			columns=ArrayHelper(self.config.primaryKey).map(
+				lambda column_name: EntityStraightColumn(columnName=column_name)
+			).to_list()
+		)
+
+	def find_one_record_of_table(self) -> Optional[List[Dict[str, Any]]]:
+		result = self.service.find_limited_values(criteria=[], limit=1)
+		if result:
+			return self.process_json_columns(result)
+		else:
+			return [ArrayHelper(self.topic.factors).to_map(lambda factor: factor.name, lambda factor: None)]
+
+	def find_one_by_primary_keys(self, data_id: Dict) -> Optional[Dict[str, Any]]:
+		results = self.service.find(build_criteria_by_primary_key(data_id))
+		if len(results) == 1:
+			return self.process_json_columns(results)[0]
+		elif len(results) == 0:
+			return None
+		else:
+			raise RuntimeError(f'too many results with {data_id} find')
+
+	def find_records_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
+		data_ = self.service.find(criteria)
+		return self.process_json_columns(data_)
+
 
 def ask_source_extractor(config: CollectorTableConfig) -> ExtractorSPI:
 	if config.configId.startswith("f-"):
