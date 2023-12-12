@@ -355,8 +355,13 @@ class TopicTableExtractor(SourceExtractor):
 	def __init__(self, config: CollectorTableConfig):
 		super().__init__(config)
 
+	# noinspection PyMethodMayBeStatic
+	def get_topic_name_by_table_name(self, table_name: str) -> str:
+		return table_name.removeprefix("topic_")
+
 	def fake_extracted_table_to_topic(self, config: CollectorTableConfig) -> Topic:
-		schema: TopicSchema = TopicService(self.principal_service).find_schema_by_name(config.tableName, config.tenantId)
+		schema: TopicSchema = TopicService(self.principal_service).find_schema_by_name(self.get_topic_name_by_table_name(config.tableName),
+		                                                                               config.tenantId)
 		return schema.topic
 
 
