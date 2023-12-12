@@ -1,18 +1,16 @@
 import {ParameterJointType} from '@/services/data/tuples/factor-calculator-types';
 import {Pipeline, PipelineId} from '@/services/data/tuples/pipeline-types';
-import {fetchTopicDataIds, fetchTopicRowCount, rerunTopic} from '@/services/data/tuples/topic';
+import {fetchTopicDataIds, fetchTopicRowCount} from '@/services/data/tuples/topic';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
 import {getServiceHost} from '@/services/data/utils';
-import {isXaNumber} from '@/services/utils';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {ICON_LOADING} from '@/widgets/basic/constants';
-import {Input} from '@/widgets/basic/input';
 import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import dayjs from 'dayjs';
-import React, {ChangeEvent, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {TopFilterEdit} from './top-filter-edit';
 import {TriggerTopicFilter} from './types';
 import {
@@ -48,7 +46,7 @@ export const Trigger = (props: { topics: Array<Topic>, pipelines: Array<Pipeline
 	const {topics, pipelines} = props;
 
 	const {fire: fireGlobal} = useEventBus();
-	const threadsInputRef = useRef<HTMLInputElement>(null);
+	// const threadsInputRef = useRef<HTMLInputElement>(null);
 	const [state, setState] = useState<State>({
 		trigger: {
 			joint: {
@@ -179,96 +177,96 @@ export const Trigger = (props: { topics: Array<Topic>, pipelines: Array<Pipeline
 		link.download = `manual-topic[${topic?.name ?? ''}]-trigger-${dayjs().format('YYYYMMDDHHmmss')}.json`;
 		link.click();
 	};
-	const onThreadsChange = (event: ChangeEvent<HTMLInputElement>) => {
-		if (runningState.running !== RunningStatus.WAIT) {
-			return;
-		}
-
-		const {value} = event.target;
-		setState(({trigger, rowCount}) => {
-			return {trigger, rowCount, threads: value} as unknown as State;
-		});
-	};
-	const onRunClicked = async () => {
-		if (runningState.running !== RunningStatus.WAIT) {
-			return;
-		}
-
-		const threads = state.threads;
-		if (isXaNumber(threads, false)) {
-			if (`${threads}`.indexOf('.') !== -1) {
-				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
-					Please identify threads count first, it should be a positive integral number.
-				</AlertLabel>, () => threadsInputRef.current?.focus());
-				return;
-			}
-		} else {
-			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
-				Please identify threads count first, it should be a positive integral number.
-			</AlertLabel>, () => threadsInputRef.current?.focus());
-			return;
-		}
-		const threadCount = parseInt(`${threads}`);
-		if (threadCount === 0) {
-			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
-				Please identify threads count first, it should be a positive integral number.
-			</AlertLabel>, () => threadsInputRef.current?.focus());
-			return;
-		}
-
-		setRunningState(state => ({...state, running: RunningStatus.ING}));
-		const dataIds = await fetchDataIds();
-		const runnable = dataIds.map(dataId => {
-			return state.trigger.pipelineIds.map(pipelineId => {
-				return {
-					topicId: state.trigger.topicId,
-					pipelineId: pipelineId,
-					dataId: dataId
-				};
-			});
-		}).flat();
-		setRunningState(state => ({...state, running: RunningStatus.ING, total: runnable.length}));
-
-		let successCount = 0;
-		let failedCount = 0;
-		let totalCount = runnable.length;
-		const fire = () => {
-			if (runnable.length === 0) {
-				if (successCount + failedCount === totalCount) {
-					setRunningState(state => ({...state, running: RunningStatus.STOPPED}));
-				}
-				return;
-			}
-			const {topicId, pipelineId, dataId} = runnable.shift()!;
-
-			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
-				return await rerunTopic(topicId!, pipelineId, dataId);
-			}, () => {
-				successCount++;
-				setRunningState(state => {
-					return {
-						running: RunningStatus.ING,
-						total: state.total,
-						success: state.success + 1,
-						failed: state.failed
-					};
-				});
-				fire();
-			}, () => {
-				failedCount++;
-				setRunningState(state => {
-					return {
-						running: RunningStatus.ING,
-						total: state.total,
-						success: state.success,
-						failed: [...state.failed, {dataId, pipelineId}]
-					};
-				});
-				fire();
-			}, true);
-		};
-		new Array(threadCount).fill(1).forEach(() => fire());
-	};
+	// const onThreadsChange = (event: ChangeEvent<HTMLInputElement>) => {
+	// 	if (runningState.running !== RunningStatus.WAIT) {
+	// 		return;
+	// 	}
+	//
+	// 	const {value} = event.target;
+	// 	setState(({trigger, rowCount}) => {
+	// 		return {trigger, rowCount, threads: value} as unknown as State;
+	// 	});
+	// };
+	// const onRunClicked = async () => {
+	// 	if (runningState.running !== RunningStatus.WAIT) {
+	// 		return;
+	// 	}
+	//
+	// 	const threads = state.threads;
+	// 	if (isXaNumber(threads, false)) {
+	// 		if (`${threads}`.indexOf('.') !== -1) {
+	// 			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
+	// 				Please identify threads count first, it should be a positive integral number.
+	// 			</AlertLabel>, () => threadsInputRef.current?.focus());
+	// 			return;
+	// 		}
+	// 	} else {
+	// 		fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
+	// 			Please identify threads count first, it should be a positive integral number.
+	// 		</AlertLabel>, () => threadsInputRef.current?.focus());
+	// 		return;
+	// 	}
+	// 	const threadCount = parseInt(`${threads}`);
+	// 	if (threadCount === 0) {
+	// 		fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
+	// 			Please identify threads count first, it should be a positive integral number.
+	// 		</AlertLabel>, () => threadsInputRef.current?.focus());
+	// 		return;
+	// 	}
+	//
+	// 	setRunningState(state => ({...state, running: RunningStatus.ING}));
+	// 	const dataIds = await fetchDataIds();
+	// 	const runnable = dataIds.map(dataId => {
+	// 		return state.trigger.pipelineIds.map(pipelineId => {
+	// 			return {
+	// 				topicId: state.trigger.topicId,
+	// 				pipelineId: pipelineId,
+	// 				dataId: dataId
+	// 			};
+	// 		});
+	// 	}).flat();
+	// 	setRunningState(state => ({...state, running: RunningStatus.ING, total: runnable.length}));
+	//
+	// 	let successCount = 0;
+	// 	let failedCount = 0;
+	// 	let totalCount = runnable.length;
+	// 	const fire = () => {
+	// 		if (runnable.length === 0) {
+	// 			if (successCount + failedCount === totalCount) {
+	// 				setRunningState(state => ({...state, running: RunningStatus.STOPPED}));
+	// 			}
+	// 			return;
+	// 		}
+	// 		const {topicId, pipelineId, dataId} = runnable.shift()!;
+	//
+	// 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
+	// 			return await rerunTopic(topicId!, pipelineId, dataId);
+	// 		}, () => {
+	// 			successCount++;
+	// 			setRunningState(state => {
+	// 				return {
+	// 					running: RunningStatus.ING,
+	// 					total: state.total,
+	// 					success: state.success + 1,
+	// 					failed: state.failed
+	// 				};
+	// 			});
+	// 			fire();
+	// 		}, () => {
+	// 			failedCount++;
+	// 			setRunningState(state => {
+	// 				return {
+	// 					running: RunningStatus.ING,
+	// 					total: state.total,
+	// 					success: state.success,
+	// 					failed: [...state.failed, {dataId, pipelineId}]
+	// 				};
+	// 			});
+	// 			fire();
+	// 		}, true);
+	// 	};
+	// 	new Array(threadCount).fill(1).forEach(() => fire());
+	// };
 	const onDownloadFailedClicked = () => {
 		const content = JSON.stringify({
 			url: `${getServiceHost()}topic/data/rerun?topic_id=${topic?.topicId ?? ''}&data_id=:dataId&pipeline_id=:pipelineId`,
