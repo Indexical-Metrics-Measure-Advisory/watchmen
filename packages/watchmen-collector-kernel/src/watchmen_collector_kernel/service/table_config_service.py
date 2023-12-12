@@ -73,14 +73,19 @@ class TableConfigService:
 	def fake_config_id(self, topic_id: str) -> str:
 		return f"f-{topic_id}"
 
-	def find_by_topic_name(self, topic_name: str, tenant_id: str) -> Optional[CollectorTableConfig]:
+	# noinspection PyMethodMayBeStatic
+	def get_topic_name_by_table_name(self, table_name: str) -> str:
+		return table_name.removeprefix("topic_")
+
+	def find_by_topic_name(self, table_name: str, tenant_id: str) -> Optional[CollectorTableConfig]:
+		topic_name = self.get_topic_name_by_table_name(table_name)
 		schema = TopicService(self.principalService).find_schema_by_name(topic_name, tenant_id)
 		now = get_current_time_in_seconds()
 		if schema:
 			return CollectorTableConfig(
 				configId=self.fake_config_id(schema.topic.topicId),
 				name=topic_name,
-				tableName=topic_name,
+				tableName=table_name,
 				primaryKey=["id_"],
 				objectKey="id_",
 				sequenceKey=None,
