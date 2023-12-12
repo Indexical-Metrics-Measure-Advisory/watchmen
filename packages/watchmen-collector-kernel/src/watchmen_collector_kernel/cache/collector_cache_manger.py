@@ -4,6 +4,10 @@ from watchmen_data_kernel.cache.cache_manager import cache_set
 from watchmen_data_kernel.cache import configure_cache
 
 
+class ModuleConfigByIdCache(Cache):
+	pass
+
+
 class ModelConfigByIdCache(Cache):
 	pass
 
@@ -32,6 +36,10 @@ class CollectorTopicByIdCache(Cache):
 	pass
 
 
+configure_cache('MODULE_CONFIG_BY_ID',
+                {'cache_class': ModuleConfigByIdCache, 'maxsize': 512})
+
+
 configure_cache('MODEL_CONFIG_BY_ID',
                 {'cache_class': ModelConfigByIdCache, 'maxsize': 512})
 
@@ -58,6 +66,10 @@ configure_cache('TABLE_CONFIG_BY_TENANT_AND_TABLE_NAME',
 
 configure_cache('COLLECTOR_TOPIC_BY_ID',
                 {'cache_class': CollectorTopicByIdCache, 'maxsize': 512})
+
+
+def get_module_config_by_id_cache() -> ModuleConfigByIdCache:
+	return cache_set['MODULE_CONFIG_BY_ID']
 
 
 def get_model_config_by_tenant_and_name_cache() -> ModelConfigByTenantAndNameCache:
