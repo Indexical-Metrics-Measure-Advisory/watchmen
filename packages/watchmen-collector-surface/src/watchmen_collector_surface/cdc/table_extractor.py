@@ -14,7 +14,7 @@ from watchmen_collector_kernel.service.extract_utils import cal_array2d_diff, bu
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_trigger_table_service, get_competitive_lock_service, \
 	get_collector_table_config_service, get_trigger_event_service, get_change_data_record_service
-from watchmen_collector_surface.settings import ask_fastapi_job, ask_table_extract_wait
+from watchmen_collector_surface.settings import ask_table_extract_wait
 from watchmen_meta.common import ask_super_admin, ask_snowflake_generator, ask_meta_storage
 from watchmen_storage import EntityCriteria
 from watchmen_utilities import ArrayHelper
