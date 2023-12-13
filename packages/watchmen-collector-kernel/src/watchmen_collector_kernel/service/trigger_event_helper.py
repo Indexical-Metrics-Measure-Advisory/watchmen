@@ -293,7 +293,7 @@ def trigger_event_by_pipeline(trigger_event: TriggerEvent):
 			return TriggerModule(
 				moduleName=module_name,
 				priority=priority,
-				is_finished=True,
+				is_finished=False,
 				eventTriggerId=event_trigger_id,
 				tenantId=tenant_id
 			)
@@ -317,7 +317,7 @@ def trigger_event_by_pipeline(trigger_event: TriggerEvent):
 			return TriggerModel(
 				modelName=model_name,
 				priority=priority,
-				isFinished=True,
+				isFinished=False,
 				moduleTriggerId=module_trigger_id,
 				eventTriggerId=event_trigger_id,
 				tenantId=tenant_id
