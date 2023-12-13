@@ -348,10 +348,10 @@ class PostJsonService:
 
 	# noinspection PyMethodMayBeStatic
 	def get_task_type(self, trigger_event: TriggerEvent) -> int:
-		if trigger_event.type == EventType.DEFAULT.value:
-			return 1
-		elif trigger_event.type == EventType.BY_PIPELINE.value:
+		if trigger_event.type == EventType.BY_PIPELINE.value:
 			return 2
+		else:
+			return 1
 
 	def get_topic_code(self, change_json: ChangeDataJson) -> str:
 		return self.model_config_service.find_by_name(change_json.modelName, change_json.tenantId).rawTopicCode
