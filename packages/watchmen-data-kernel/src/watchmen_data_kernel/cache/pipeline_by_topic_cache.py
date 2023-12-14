@@ -21,6 +21,7 @@ class PipelineByTopicCache:
 	def declare_no_pipelines(self, topic_id: TopicId) -> None:
 		self.byTopicIdCache.put(topic_id, [])
 
+	'''
 	def append_one(self, topic_id: TopicId, pipeline_id: PipelineId) -> None:
 		"""
 		append given pipeline id into by topic id cache
@@ -42,6 +43,7 @@ class PipelineByTopicCache:
 				self.byTopicIdCache.remove(topic_id)
 			else:
 				self.byTopicIdCache.put(topic_id, remains)
+	'''
 
 	def remove(self, topic_id: TopicId) -> None:
 		self.byTopicIdCache.remove(topic_id)

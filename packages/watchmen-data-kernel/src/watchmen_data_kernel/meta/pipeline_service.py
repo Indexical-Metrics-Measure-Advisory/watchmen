@@ -37,14 +37,8 @@ class PipelineService:
 			storage_service.close_transaction()
 
 	def find_by_topic_id(self, topic_id: TopicId) -> List[Pipeline]:
-		pipeline_ids = CacheService.pipelines_by_topic().get(topic_id)
-		if pipeline_ids is not None:
-			pipelines = ArrayHelper(pipeline_ids) \
-				.map(lambda x: self.find_by_id(x)) \
-				.filter(lambda x: x is not None).to_list()
-			if len(pipelines) != len(pipeline_ids):
-				loaded = ArrayHelper(pipelines).map(lambda x: x.pipelineId).to_list()
-				raise Exception(f'Except pipelines[{pipeline_ids}], but get[{loaded}] only.')
+		pipelines = CacheService.pipelines_by_topic().get(topic_id)
+		if pipelines is not None:
 			return pipelines
 
 		storage_service = PipelineStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principalService)
