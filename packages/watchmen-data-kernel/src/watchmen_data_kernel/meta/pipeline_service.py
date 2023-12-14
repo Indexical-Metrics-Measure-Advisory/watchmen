@@ -57,6 +57,8 @@ class PipelineService:
 				CacheService.pipelines_by_topic().declare_no_pipelines(topic_id)
 				return pipelines
 
-			return ArrayHelper(pipelines).each(lambda x: CacheService.pipeline().put(x)).to_list()
+			CacheService.pipelines_by_topic().put(topic_id, pipelines)
+			return pipelines
+			# return ArrayHelper(pipelines).each(lambda x: CacheService.pipeline().put(x)).to_list()
 		finally:
 			storage_service.close_transaction()

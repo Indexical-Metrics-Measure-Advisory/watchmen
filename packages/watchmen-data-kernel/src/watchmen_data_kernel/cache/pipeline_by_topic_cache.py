@@ -1,5 +1,7 @@
 from typing import List, Optional
 
+from watchmen_model.admin import Pipeline
+
 from watchmen_model.common import PipelineId, TopicId
 from watchmen_utilities import ArrayHelper
 from .cache_manager import get_pipeline_by_topic_id_cache
@@ -46,6 +48,9 @@ class PipelineByTopicCache:
 
 	def clear(self):
 		self.byTopicIdCache.clear()
+
+	def put(self, topic_id: TopicId, pipelines: List[Pipeline]) -> List[Pipeline]:
+		return self.byTopicIdCache.put(topic_id, pipelines)
 
 
 pipeline_by_topic_cache = PipelineByTopicCache()
