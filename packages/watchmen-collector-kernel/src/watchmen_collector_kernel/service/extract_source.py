@@ -401,7 +401,7 @@ def ask_source_extractor(config: CollectorTableConfig) -> ExtractorSPI:
 		principal_service = fake_tenant_admin(config.tenantId)
 		data_source = get_data_source_service(principal_service).find_by_id(data_source_id)
 		if data_source.dataSourceType in (
-				DataSourceType.MYSQL, DataSourceType.ORACLE, DataSourceType.MYSQL, DataSourceType.POSTGRESQL):
+				DataSourceType.MYSQL, DataSourceType.ORACLE, DataSourceType.MSSQL, DataSourceType.POSTGRESQL):
 			return SourceTableExtractor(config)
 		elif data_source.dataSourceType in (DataSourceType.S3, DataSourceType.OSS):
 			return SourceS3Extractor(config)
