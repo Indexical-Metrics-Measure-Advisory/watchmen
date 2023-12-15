@@ -1,7 +1,5 @@
 import logging
 from datetime import datetime
-from threading import Thread
-from time import sleep
 from typing import Tuple, Dict, List, Any
 
 import numpy as np
