@@ -21,7 +21,8 @@ class PipelineKernelSettings(BaseSettings):
 	PIPELINE_UPDATE_RETRY_INTERVAL: int = 10  # retry interval in milliseconds
 	PIPELINE_UPDATE_RETRY_FORCE: bool = True  # enable force retry after all retries failed
 	PIPELINE_ASYNC_HANDLE_MONITOR_LOG: bool = True  # handle monitor log (might with pipelines) asynchronized
-	QUERY_MONITOR_LOG:bool = False
+	QUERY_MONITOR_LOG: bool = False
+	PIPELINE_RECURSION_LIMIT: int = 900
 
 	class Config:
 		# secrets_dir = '/var/run'
@@ -31,6 +32,8 @@ class PipelineKernelSettings(BaseSettings):
 
 
 settings = PipelineKernelSettings()
+
+
 # logger.info(f'Pipeline kernel settings[{settings.dict()}].')
 
 
@@ -92,5 +95,9 @@ def ask_async_handle_monitor_log() -> bool:
 	return settings.PIPELINE_ASYNC_HANDLE_MONITOR_LOG
 
 
-def ask_query_monitor_log()->bool  :
+def ask_query_monitor_log() -> bool:
 	return settings.QUERY_MONITOR_LOG
+
+
+def ask_pipeline_recursion_limit() -> int:
+	return settings.PIPELINE_RECURSION_LIMIT
