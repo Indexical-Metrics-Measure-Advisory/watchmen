@@ -35,6 +35,7 @@ class PipelinesDispatcher:
 				self.start(handle_monitor_log, limit-1)
 		except RecursionError as e:
 			logger.error(e, exc_info=True, stack_info=True)
+			raise e
 
 	def next_context(self) -> Optional[RuntimePipelineContext]:
 		if len(self.contexts) == 0:
