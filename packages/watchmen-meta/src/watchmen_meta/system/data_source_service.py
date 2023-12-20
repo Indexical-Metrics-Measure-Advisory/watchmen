@@ -35,13 +35,13 @@ class DataSourceShaper(EntityShaper):
 		return ArrayHelper(params).map(lambda x: DataSourceShaper.serialize_param(x)).to_list()
 
 	def encrypt_pwd(self, pwd: Optional[str]) -> str:
-		if not ask_datasource_aes_enabled() or is_empty(str):
+		if not ask_datasource_aes_enabled() or is_empty(pwd):
 			return pwd
 		else:
 			return '{AES}' + b64encode(self.ask_aes().encrypt(pwd.encode('utf-8'))).decode()
 
 	def decrypt_pwd(self, pwd: Optional[str]) -> str:
-		if not ask_datasource_aes_enabled() or is_empty(str):
+		if not ask_datasource_aes_enabled() or is_empty(pwd):
 			return pwd
 		elif not pwd.startswith('{AES}'):
 			return pwd
