@@ -9,6 +9,7 @@ class StorageSettings(BaseSettings):
 	DECIMAL_FRACTION_DIGITS: int = 8
 	DISABLE_COMPILED_CACHE: bool = False
 	OBJECT_STORAGE_NEED_DATE_DIRECTORY: bool = False
+	S3_BUCKET_AUTH_IAM_ENABLE: bool = False
 
 	SQL_ANALYZER_ON: bool = True
 	
@@ -26,6 +27,7 @@ storage_settings = StorageSettings()
 def ask_sql_analyzer_on() -> bool:
 	return storage_settings.SQL_ANALYZER_ON
 
+
 def ask_decimal_integral_digits() -> int:
 	return storage_settings.DECIMAL_INTEGRAL_DIGITS
 
@@ -42,5 +44,5 @@ def ask_object_storage_need_date_directory() -> bool:
 	return storage_settings.OBJECT_STORAGE_NEED_DATE_DIRECTORY
 
 
-def ask_store_json_in_clob() -> bool:
-	return storage_settings.STORE_JSON_IN_CLOB
+def ask_s3_bucket_auth_iam_enable() -> bool:
+	return storage_settings.S3_BUCKET_AUTH_IAM_ENABLE

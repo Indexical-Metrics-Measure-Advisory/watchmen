@@ -8,7 +8,7 @@ from datetime import datetime
 
 from watchmen_model.common import DataModel
 from watchmen_model.system import DataSourceParam
-from watchmen_storage import ask_object_storage_need_date_directory, EntityCriteria
+from watchmen_storage import ask_object_storage_need_date_directory, EntityCriteria, ask_s3_bucket_auth_iam_enable
 from watchmen_utilities import serialize_to_json, ArrayHelper
 from .object_defs_s3 import as_file_name
 from .where_build import build_criteria
@@ -31,17 +31,37 @@ class SimpleStorageService:
 		self.access_key_secret = access_key_secret
 		self.bucket_name = bucket_name
 		self.params = params
-		self.client = client(
-			service_name='s3',
-			region_name=endpoint,
-			aws_access_key_id=access_key_id,
-			aws_secret_access_key=access_key_secret
-		)
-		self.resource = resource(
-			service_name='s3',
-			region_name=endpoint,
-			aws_access_key_id=access_key_id,
-			aws_secret_access_key=access_key_secret)
+		self.client = self.get_client(access_key_id, access_key_secret, endpoint, bucket_name, params)
+		self.resource = self.get_resource(access_key_id, access_key_secret, endpoint, bucket_name, params)
+
+	def get_client(self, access_key_id: str, access_key_secret: str, endpoint: str, bucket_name: str,
+	               params: Optional[List[DataSourceParam]]) -> client:
+		if ask_s3_bucket_auth_iam_enable():
+			return client(
+				service_name='s3',
+				region_name=endpoint
+			)
+		else:
+			return client(
+				service_name='s3',
+				region_name=endpoint,
+				aws_access_key_id=access_key_id,
+				aws_secret_access_key=access_key_secret
+			)
+
+	def get_resource(self, access_key_id: str, access_key_secret: str, endpoint: str, bucket_name: str,
+	                 params: Optional[List[DataSourceParam]]) -> resource:
+		if ask_s3_bucket_auth_iam_enable():
+			return resource(
+				service_name='s3',
+				region_name=endpoint
+			)
+		else:
+			return resource(
+				service_name='s3',
+				region_name=endpoint,
+				aws_access_key_id=access_key_id,
+				aws_secret_access_key=access_key_secret)
 
 	def gen_key(self, directory: str, id_: str) -> str:
 		if ask_object_storage_need_date_directory():
@@ -106,7 +126,8 @@ class SimpleStorageService:
 		else:
 			return objects
 
-	def get_objects_by_criteria(self, directory: Optional[str], criteria: EntityCriteria) -> Optional[List[ObjectContent]]:
+	def get_objects_by_criteria(self, directory: Optional[str], criteria: EntityCriteria) -> Optional[
+		List[ObjectContent]]:
 		paginator = self.client.get_paginator('list_objects_v2')
 		page_iterator = paginator.paginate(Bucket=self.bucket_name,
 		                                   Prefix=self.ask_table_path(directory))
