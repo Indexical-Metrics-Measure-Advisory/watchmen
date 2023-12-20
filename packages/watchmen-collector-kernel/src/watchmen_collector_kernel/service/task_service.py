@@ -2,8 +2,10 @@ import json
 from logging import getLogger
 from typing import Callable, Dict, Optional, List, Union
 
+from sqlalchemy.exc import IntegrityError
+
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.model import ScheduledTask
+from watchmen_collector_kernel.model import ScheduledTask, Status
 from watchmen_collector_kernel.model.scheduled_task import Dependence, TaskType
 from watchmen_collector_kernel.storage import get_scheduled_task_service, get_scheduled_task_history_service
 from watchmen_model.common import ScheduledTaskId
@@ -38,12 +40,31 @@ class TaskService:
 		elif task.type == TaskType.RUN_PIPELINE.value:
 			executed(task.topicCode, task.content, task.tenantId, task.pipelineId)
 
-	def update_task_result(self, task: ScheduledTask, status: int) -> ScheduledTask:
+	def update_task_result(self, task: ScheduledTask, status: int, result=None) -> ScheduledTask:
 		try:
 			self.scheduled_task_service.begin_transaction()
 			task.isFinished = True
 			task.status = status
+			task.result = result
 			self.scheduled_task_history_service.create(task)
+			self.scheduled_task_service.delete(task.taskId)
+			self.scheduled_task_service.commit_transaction()
+			return task
+		except Exception as e:
+			self.scheduled_task_service.rollback_transaction()
+			raise e
+		finally:
+			self.scheduled_task_service.close_transaction()
+
+	def finish_task(self, task: ScheduledTask, status: int, result=None) -> ScheduledTask:
+		try:
+			return self.update_task_result(task, status, result)
+		except IntegrityError:
+			self.delete_task(task)
+
+	def delete_task(self, task: ScheduledTask) -> ScheduledTask:
+		try:
+			self.scheduled_task_service.begin_transaction()
 			self.scheduled_task_service.delete(task.taskId)
 			self.scheduled_task_service.commit_transaction()
 			return task

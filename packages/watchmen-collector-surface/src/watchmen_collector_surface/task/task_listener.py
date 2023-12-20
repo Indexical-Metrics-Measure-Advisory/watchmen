@@ -2,7 +2,7 @@ import logging
 from traceback import format_exc
 from typing import List, Optional
 
-from watchmen_collector_kernel.common import CollectorKernelException
+from watchmen_collector_kernel.common import CollectorKernelException, ask_exception_max_length
 from watchmen_collector_kernel.model import Dependence, ExecutionStatus, TaskType
 from watchmen_utilities import ArrayHelper
 
@@ -97,13 +97,18 @@ class TaskListener:
 			merged_tasks = parent_tasks + model_dependent_tasks
 			if self.check_dependent_tasks_finished(merged_tasks):
 				self.consume_task(task)
-				return self.task_service.update_task_result(task, Status.SUCCESS.value)
+				return self.task_service.finish_task(task, Status.SUCCESS.value)
 			else:
 				return self.restore_task(task)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-			task.result = format_exc()
-			return self.task_service.update_task_result(task, Status.FAIL.value)
+			return self.task_service.finish_task(task, Status.FAIL.value, self.truncated_string(format_exc()))
+
+	# noinspection PyMethodMayBeStatic
+	def truncated_string(self, long_string: str) -> str:
+		max_length = ask_exception_max_length()
+		truncated_string = long_string[:max_length]
+		return truncated_string
 
 	def consume_task(self, task: ScheduledTask) -> None:
 		if task.type == TaskType.DEFAULT.value:
