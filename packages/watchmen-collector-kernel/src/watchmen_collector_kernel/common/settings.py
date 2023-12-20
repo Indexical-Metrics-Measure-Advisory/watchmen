@@ -5,17 +5,17 @@ logger = getLogger(__name__)
 
 
 class CollectorSettings(BaseSettings):
-	CLEAN_OF_TIMEOUT_INTERVAL: int = 60
-	TRIGGER_EVENT_LOCK_TIMEOUT = 300
-	EXTRACT_TABLE_LOCK_TIMEOUT = 3600
-	S3_CONNECTOR_LOCK_TIMEOUT = 300
-	CLEAN_UP_LOCK_TIMEOUT = 300
+	CLEAN_OF_TIMEOUT_INTERVAL: int = 300
 	LOCK_TIMEOUT: int = 1800
+	TRIGGER_EVENT_LOCK_TIMEOUT = 300
+	EXTRACT_TABLE_LOCK_TIMEOUT = 7200
+	CLEAN_UP_LOCK_TIMEOUT = 300
 	COLLECTOR_TIMEOUT: int = 600
+	COLLECTOR_TASK_TIMEOUT: int = 900
+	S3_CONNECTOR_LOCK_TIMEOUT = 300
 	PARTIAL_SIZE: int = 100
-
 	COLLECTOR_CONFIG_CACHE_ENABLED: bool = True
-
+	EXCEPTION_MAX_LENGTH = 1000  # character
 
 	class Config:
 		# secrets_dir = '/var/run'
@@ -62,3 +62,11 @@ def ask_partial_size() -> int:
 
 def ask_collector_config_cache_enabled() -> bool:
 	return collector_settings.COLLECTOR_CONFIG_CACHE_ENABLED
+
+
+def ask_collector_task_timeout() -> int:
+	return collector_settings.COLLECTOR_TASK_TIMEOUT
+
+
+def ask_exception_max_length() -> int:
+	return collector_settings.EXCEPTION_MAX_LENGTH

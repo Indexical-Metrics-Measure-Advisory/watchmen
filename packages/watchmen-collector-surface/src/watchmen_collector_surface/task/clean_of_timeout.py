@@ -4,18 +4,17 @@ from logging import getLogger
 from watchmen_collector_kernel.model import Status, ChangeDataRecord, ChangeDataJson, ScheduledTask
 from watchmen_utilities import ArrayHelper
 
-from watchmen_collector_kernel.service import try_lock_nowait, get_resource_lock, unlock
+from watchmen_collector_kernel.service import try_lock_nowait, get_resource_lock, unlock, get_task_service
 
 from watchmen_data_kernel.meta import TenantService
 
 from watchmen_collector_kernel.common import ask_clean_of_timeout_interval, ask_lock_timeout, ask_collector_timeout, \
 	ask_clean_up_lock_timeout, ask_trigger_event_lock_timeout, ask_extract_table_lock_timeout, \
-	ask_s3_connector_lock_timeout
+	ask_s3_connector_lock_timeout, ask_collector_task_timeout
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
 	get_change_data_json_service, get_scheduled_task_service
 
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
-
 
 logger = getLogger(__name__)
 
@@ -38,6 +37,9 @@ class CleanOfTimeout:
 		self.scheduled_task_service = get_scheduled_task_service(self.storage,
 		                                                         self.snowflake_generator,
 		                                                         self.principal_service)
+		self.task_service = get_task_service(self.storage,
+		                                     self.snowflake_generator,
+		                                     self.principal_service)
 		self.cleanInterval = ask_clean_of_timeout_interval()
 		self.self_cleaning_lock_timeout = ask_clean_up_lock_timeout()
 		self.trigger_event_lock_timeout = ask_trigger_event_lock_timeout()
@@ -45,6 +47,7 @@ class CleanOfTimeout:
 		self.s3_connector_lock_timeout = ask_s3_connector_lock_timeout()
 		self.lockTimeout = ask_lock_timeout()
 		self.timeout = ask_collector_timeout()
+		self.task_timeout = ask_collector_task_timeout()
 
 	def create_thread(self, scheduler=None) -> None:
 		scheduler.add_job(CleanOfTimeout.event_loop_run, 'interval', seconds=self.cleanInterval, args=(self,))
@@ -70,7 +73,8 @@ class CleanOfTimeout:
 	def self_cleaning(self):
 		locks = self.lock_service.find_lock_by_resource_id("clean_of_timeout")
 		for lock in locks:
-			if lock.resourceId == "clean_of_timeout" and lock.registeredAt < datetime.now() - timedelta(seconds=self.self_cleaning_lock_timeout):
+			if lock.resourceId == "clean_of_timeout" and lock.registeredAt < datetime.now() - timedelta(
+					seconds=self.self_cleaning_lock_timeout):
 				self.lock_service.delete_by_id(lock.lockId)
 
 	def clean_timeout(self):
@@ -84,14 +88,18 @@ class CleanOfTimeout:
 		for lock in locks:
 			if lock.resourceId == "clean_of_timeout":
 				continue
-			elif lock.resourceId == "s3_connector" and lock.registeredAt < (datetime.now() - timedelta(seconds=self.s3_connector_lock_timeout)):
+			elif lock.resourceId == "s3_connector" and lock.registeredAt < (
+					datetime.now() - timedelta(seconds=self.s3_connector_lock_timeout)):
 				self.lock_service.delete_by_id(lock.lockId)
-			elif lock.resourceId.startswith("trigger_event") and lock.registeredAt < (datetime.now() - timedelta(seconds=self.trigger_event_lock_timeout)):
+			elif lock.resourceId.startswith("trigger_event") and lock.registeredAt < (
+					datetime.now() - timedelta(seconds=self.trigger_event_lock_timeout)):
 				self.lock_service.delete_by_id(lock.lockId)
-			elif lock.resourceId.startswith("trigger_table") and lock.registeredAt < (datetime.now() - timedelta(seconds=self.trigger_table_lock_timeout)):
+			elif lock.resourceId.startswith("trigger_table") and lock.registeredAt < (
+					datetime.now() - timedelta(seconds=self.trigger_table_lock_timeout)):
 				self.lock_service.delete_by_id(lock.lockId)
 			else:
-				logger.debug(f"The lock {lock} is not timeout or supported. resource id is {lock.resourceId}, tenant id is {lock.tenantId}")
+				logger.debug(
+					f"The lock {lock} is not timeout or supported. resource id is {lock.resourceId}, tenant id is {lock.tenantId}")
 
 	def clean_record(self):
 		query_time = datetime.now() - timedelta(seconds=self.timeout)
@@ -124,15 +132,8 @@ class CleanOfTimeout:
 	def clean_task(self):
 		query_time = datetime.now() - timedelta(seconds=self.timeout)
 		tasks = self.scheduled_task_service.find_timeout_task(query_time)
-
-		def change_status(task: ScheduledTask, status: int) -> ScheduledTask:
-			task.status = status
-			return task
-
 		ArrayHelper(tasks).map(
-			lambda task: change_status(task, Status.INITIAL.value)
-		).map(
-			lambda task: self.scheduled_task_service.update_task(task)
+			lambda task: self.task_service.finish_task(task, Status.FAIL.value, "timeout")
 		)
 
 
