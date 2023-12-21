@@ -1,5 +1,6 @@
 import json
 from abc import ABC, abstractmethod
+from json import JSONDecodeError
 from typing import Optional, List, Dict, Any, Tuple
 from logging import getLogger
 
@@ -228,7 +229,11 @@ class SourceExtractor(ExtractorSPI, ABC):
 					if key == column.columnName:
 						if value:
 							if isinstance(value, str) or isinstance(value, bytes) or isinstance(value, bytearray):
-								tmp_data = json.loads(value)
+								try:
+									tmp_data = json.loads(value)
+								except JSONDecodeError as e:
+									logger.error(f'table_name: {self.config.tableName}, column: {key}, value: {value}, is not json string')
+									raise e
 							elif isinstance(value, Dict):
 								tmp_data = value
 							else:
