@@ -87,12 +87,15 @@ class SourceExtractor(ExtractorSPI, ABC):
 		return topic
 
 	def find_primary_keys_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
-		return self.lower_key(self.service.find_straight_values(
-			criteria=criteria,
-			columns=ArrayHelper(self.config.primaryKey).map(
-				lambda column_name: EntityStraightColumn(columnName=column_name)
-			).to_list()
-		))
+		try:
+			return self.lower_key(self.service.find_straight_values(
+				criteria=criteria,
+				columns=ArrayHelper(self.config.primaryKey).map(
+					lambda column_name: EntityStraightColumn(columnName=column_name)
+				).to_list()
+			))
+		except Exception as e:
+			raise CollectorKernelException(f'find primary keys error, the table is {self.config.tableName}, the criteria is {criteria}') from e
 
 	def find_one_record_of_table(self) -> Optional[List[Dict[str, Any]]]:
 		result = self.service.find_limited_values(criteria=[], limit=1)
@@ -231,9 +234,8 @@ class SourceExtractor(ExtractorSPI, ABC):
 							if isinstance(value, str) or isinstance(value, bytes) or isinstance(value, bytearray):
 								try:
 									tmp_data = json.loads(value)
-								except JSONDecodeError as e:
-									logger.error(f'table_name: {self.config.tableName}, column: {key}, value: {value}, is not json string')
-									raise e
+								except JSONDecodeError:
+									raise CollectorKernelException(f'table_name: {self.config.tableName}, column: {key}, value: {value}, is not json string')
 							elif isinstance(value, Dict):
 								tmp_data = value
 							else:
