@@ -95,7 +95,9 @@ class SourceExtractor(ExtractorSPI, ABC):
 				).to_list()
 			))
 		except Exception as e:
-			raise CollectorKernelException(f'find primary keys error, the table is {self.config.tableName}, the criteria is {criteria}') from e
+			raise CollectorKernelException(
+				f'find_primary_keys_by_criteria error, the table is {self.config.tableName}, the criteria is {criteria}'
+			) from e
 
 	def find_one_record_of_table(self) -> Optional[List[Dict[str, Any]]]:
 		result = self.service.find_limited_values(criteria=[], limit=1)
@@ -114,8 +116,13 @@ class SourceExtractor(ExtractorSPI, ABC):
 			raise RuntimeError(f'too many results with {data_id} find')
 
 	def find_records_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
-		data_ = self.lower_key(self.service.find(criteria))
-		return self.process_json_columns(data_)
+		try:
+			data_ = self.lower_key(self.service.find(criteria))
+			return self.process_json_columns(data_)
+		except Exception as e:
+			raise CollectorKernelException(
+				f'find_records_by_criteria error, the table is {self.config.tableName}, the criteria is {criteria}'
+			) from e
 
 	def delete_one_by_primary_keys(self, data_id: Dict):
 		pass
@@ -232,10 +239,7 @@ class SourceExtractor(ExtractorSPI, ABC):
 					if key == column.columnName:
 						if value:
 							if isinstance(value, str) or isinstance(value, bytes) or isinstance(value, bytearray):
-								try:
-									tmp_data = json.loads(value)
-								except JSONDecodeError:
-									raise CollectorKernelException(f'table_name: {self.config.tableName}, column: {key}, value: {value}, is not json string')
+								tmp_data = json.loads(value)
 							elif isinstance(value, Dict):
 								tmp_data = value
 							else:
