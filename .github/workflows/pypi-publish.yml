@@ -7,6 +7,8 @@ on:
         required: true
       PIP_PASSWORD:
         required: true
+      PYPI_TOKEN:
+        required: true
     inputs:
       branch:
         description: Pre-release branch
