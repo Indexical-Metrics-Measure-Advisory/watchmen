@@ -6,7 +6,7 @@ from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, TenantId, CollectorModelConfigId
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
-	EntityCriteriaExpression, ColumnNameLiteral, EntitySort, EntitySortMethod
+	EntityCriteriaExpression, ColumnNameLiteral, EntitySortMethod, EntitySortColumn
 
 
 class CollectorModuleConfigShaper(EntityShaper):
@@ -83,7 +83,7 @@ class CollectorModuleConfigService(TupleService):
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)],
-			sort=[EntitySort(name='priority', method=EntitySortMethod.ASC)]
+			sort=[EntitySortColumn(name='priority', method=EntitySortMethod.ASC)]
 		))
 
 	def find_by_name(self, module_name: str) -> Optional[CollectorModuleConfig]:
