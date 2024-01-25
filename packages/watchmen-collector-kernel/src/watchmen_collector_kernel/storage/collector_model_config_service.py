@@ -116,7 +116,7 @@ class CollectorModelConfigService(TupleService):
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='module_id'), right=module_id)],
-			sort=EntitySort(name='priority', method=EntitySortMethod.ASC)
+			sort=[EntitySort(name='priority', method=EntitySortMethod.ASC)]
 		))
 
 
