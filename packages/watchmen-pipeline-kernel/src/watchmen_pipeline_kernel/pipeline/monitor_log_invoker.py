@@ -1,4 +1,4 @@
-from asyncio import ensure_future, run
+import asyncio
 from logging import getLogger
 from typing import Callable
 
@@ -8,6 +8,7 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import PipelineTriggerType, TopicKind
 from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineTriggerTraceId
 from watchmen_pipeline_kernel.common import PipelineKernelException
+from watchmen_utilities import run
 from .pipeline_trigger import PipelineTrigger
 
 logger = getLogger(__name__)
@@ -50,7 +51,7 @@ def create_monitor_log_pipeline_invoker(
 				handle_monitor_log=handle_monitor_log
 			)
 			if asynchronized:
-				ensure_future(trigger.invoke())
+				asyncio.ensure_future(trigger.invoke())
 			else:
 				run(trigger.invoke())
 
