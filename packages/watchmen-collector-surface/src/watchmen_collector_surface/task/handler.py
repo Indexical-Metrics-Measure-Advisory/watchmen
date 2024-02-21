@@ -1,6 +1,5 @@
 from typing import Dict, Optional
 from logging import getLogger
-import asyncio
 
 from watchmen_model.common import PipelineId
 
@@ -12,6 +11,7 @@ from watchmen_data_kernel.storage import TopicTrigger
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin
 from watchmen_model.pipeline_kernel import PipelineTriggerData, TopicDataColumnNames
 from watchmen_pipeline_kernel.pipeline import create_monitor_log_pipeline_invoker, PipelineTrigger
+from watchmen_utilities import run
 
 logger = getLogger(__name__)
 
@@ -56,7 +56,7 @@ def pipeline_data(topic_code: str, data: Dict, tenant_id: str) -> None:
 
 # noinspection PyMethodMayBeStatic
 def trigger_pipeline(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger):
-	asyncio.run(handle_trigger_data(trigger_data, topic_trigger))
+	run(handle_trigger_data(trigger_data, topic_trigger))
 
 
 def run_pipeline(topic_code: str, data: Dict, tenant_id: str,  pipeline_id: PipelineId) -> None:
@@ -67,7 +67,7 @@ def run_pipeline(topic_code: str, data: Dict, tenant_id: str,  pipeline_id: Pipe
 		triggerType=PipelineTriggerType.INSERT,
 		internalDataId=data.get(TopicDataColumnNames.ID.value)
 	)
-	asyncio.run(handle_trigger_data(trigger_data, topic_trigger, pipeline_id))
+	run(handle_trigger_data(trigger_data, topic_trigger, pipeline_id))
 
 
 
