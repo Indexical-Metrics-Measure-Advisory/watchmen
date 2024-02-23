@@ -35,7 +35,7 @@ class DataCaptureService:
 		if config.parentName:
 			parent_config = self.table_config_service.find_by_name(config.parentName, config.tenantId)
 			parent_data = ask_source_extractor(parent_config).find_records_by_criteria(
-				ArrayHelper(config.joinKeys).map(lambda join_key: build_criteria_by_join_key(join_key, data_)).to_list()
+				ArrayHelper(config.joinKeys).map(lambda join_key: build_criteria_by_join_key(join_key.parentKey, data_)).to_list()
 			)
 			if len(parent_data) != 1:
 				raise RuntimeError(f'The data : {data_}, config_name: {config.name}, '
@@ -53,7 +53,7 @@ class DataCaptureService:
 
 	def get_child_data(self, child_config: CollectorTableConfig, data_: Dict):
 		child_data = ask_source_extractor(child_config).find_records_by_criteria(
-			ArrayHelper(child_config.joinKeys).map(lambda join_key: build_criteria_by_join_key(join_key, data_)).to_list()
+			ArrayHelper(child_config.joinKeys).map(lambda join_key: build_criteria_by_join_key(join_key.childKey, data_)).to_list()
 		)
 		if child_data:
 			if child_config.isList:
