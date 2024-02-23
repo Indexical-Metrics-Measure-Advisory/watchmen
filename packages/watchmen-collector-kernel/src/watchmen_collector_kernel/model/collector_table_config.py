@@ -2,7 +2,7 @@ from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel
 
-from .condition import Condition, construct_conditions
+from .condition import Condition, construct_conditions, construct_condition
 from watchmen_model.common import TenantBasedTuple, Storable, OptimisticLock
 from watchmen_utilities import ArrayHelper
 
@@ -10,6 +10,12 @@ from watchmen_utilities import ArrayHelper
 class JoinCondition(Storable, BaseModel):
 	parentKey: Condition = None
 	childKey: Condition = None
+
+	def __setattr__(self, name, value):
+		if name == 'parentKey':
+			super().__setattr__(name, construct_condition(value))
+		elif name == 'childKey':
+			super().__setattr__(name, construct_condition(value))
 
 
 class Dependence(Storable, BaseModel):
