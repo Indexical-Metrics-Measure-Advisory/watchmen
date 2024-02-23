@@ -7,9 +7,9 @@ from watchmen_model.common import TenantBasedTuple, Storable, OptimisticLock
 from watchmen_utilities import ArrayHelper
 
 
-class JoinKey(Storable, BaseModel):
-	parentKey: str = None
-	childKey: str = None
+class JoinCondition(Storable, BaseModel):
+	parentKey: Condition = None
+	childKey: Condition = None
 
 
 class Dependence(Storable, BaseModel):
@@ -41,20 +41,18 @@ def construct_json_columns(json_columns: Optional[List[Union[JsonColumn, Dict]]]
 		return ArrayHelper(json_columns).map(lambda x: construct_json_column(x)).to_list()
 
 
-def construct_join_key(join_key: Union[JoinKey, Dict]) -> Optional[JoinKey]:
-	if join_key is None:
-		return None
-	elif isinstance(join_key, JoinKey):
-		return join_key
-	else:
-		return JoinKey(**join_key)
-
-
-def construct_join_keys(join_keys: Optional[List[Union[JoinKey, Dict]]]) -> Optional[List[JoinKey]]:
-	if join_keys is None:
+def construct_join_condition(join_condition: Optional[Union[JoinCondition, Dict]]) -> Optional[JoinCondition]:
+	if join_condition is None:
 		return None
 	else:
-		return ArrayHelper(join_keys).map(lambda x: construct_join_key(x)).to_list()
+		return JoinCondition(**join_condition)
+
+
+def construct_join_conditions(join_conditions: Optional[List[Union[JoinCondition, Dict]]]) -> Optional[List[JoinCondition]]:
+	if join_conditions is None:
+		return None
+	else:
+		return ArrayHelper(join_conditions).map(lambda x: construct_join_condition(x)).to_list()
 
 
 def construct_dependence(dependence: Union[Dependence, Dict]) -> Optional[Dependence]:
@@ -83,7 +81,7 @@ class CollectorTableConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 	modelName: str = None
 	parentName: str = None
 	label: str = None
-	joinKeys: List[JoinKey] = []
+	joinKeys: List[JoinCondition] = None
 	dependOn: List[Dependence] = []
 	auditColumn: str = None
 	ignoredColumns: List[str] = None
@@ -95,7 +93,7 @@ class CollectorTableConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 
 	def __setattr__(self, name, value):
 		if name == 'joinKeys':
-			super().__setattr__(name, construct_join_keys(value))
+			super().__setattr__(name, construct_join_conditions(value))
 		elif name == 'dependOn':
 			super().__setattr__(name, construct_depend_on(value))
 		elif name == 'conditions':
