@@ -18,7 +18,7 @@ class Condition(DataModel, BaseModel):
 class ConditionExpression(Condition):
 	columnName: str
 	operator: EntityCriteriaOperator = EntityCriteriaOperator.EQUALS
-	columnValue: Optional[Union[List[int], List[str], int, str, date, datetime]] = None
+	columnValue: Optional[Union[List[int], List[str], int, str]] = None
 
 
 class ConditionJointConjunction(str, Enum):
