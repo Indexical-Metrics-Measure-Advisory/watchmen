@@ -53,7 +53,7 @@ class DataCaptureService:
 
 	def get_child_data(self, child_config: CollectorTableConfig, data_: Dict):
 		child_data = ask_source_extractor(child_config).find_records_by_criteria(
-			ArrayHelper(child_config.joinKeys).map(lambda join_key: build_criteria_by_join_key(join_key, data_, True)).to_list()
+			ArrayHelper(child_config.joinKeys).map(lambda join_key: build_criteria_by_join_key(join_key, data_)).to_list()
 		)
 		if child_data:
 			if child_config.isList:
