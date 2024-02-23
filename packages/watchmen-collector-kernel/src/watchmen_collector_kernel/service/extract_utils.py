@@ -3,8 +3,10 @@ from logging import getLogger
 from typing import Dict, Any, List
 
 import numpy as np
+from .criteria_builder import CriteriaBuilder
 
-from watchmen_collector_kernel.model.collector_table_config import JoinKey
+from watchmen_collector_kernel.model import Condition
+
 from watchmen_storage import EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaStatement, EntityCriteria, \
 	EntityCriteriaOperator
 from watchmen_utilities import ArrayHelper
@@ -54,14 +56,8 @@ def build_criteria_by_primary_key(data_id: Dict) -> List[EntityCriteriaExpressio
 	return criteria
 
 
-def build_criteria_by_join_key(join_key: JoinKey, data: Dict, is_child: bool = False) -> EntityCriteriaStatement:
-	if is_child:
-		column_name = join_key.childKey
-		column_value = data.get(join_key.parentKey)
-	else:
-		column_name = join_key.parentKey
-		column_value = data.get(join_key.childKey)
-	return EntityCriteriaExpression(left=ColumnNameLiteral(columnName=column_name), right=column_value)
+def build_criteria_by_join_key(join_key: Condition, data: Dict) -> EntityCriteriaStatement:
+	return CriteriaBuilder(data).build_statement(join_key)
 
 
 def cal_array2d_diff(array_0: np.ndarray, array_1: np.ndarray) -> np.ndarray:
