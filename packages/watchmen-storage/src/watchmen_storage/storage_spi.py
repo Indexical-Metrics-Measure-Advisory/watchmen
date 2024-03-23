@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
+from watchmen_model.system import DataSource
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage
 from .free_storage_types import FreeAggregatePager, FreeAggregator, FreeFinder, FreePager
@@ -201,7 +202,7 @@ class TransactionalStorageSPI(StorageSPI):
 
 class TopicDataStorageSPI(TransactionalStorageSPI):
 	@abstractmethod
-	def register_topic(self, topic: Topic) -> None:
+	def register_topic(self, topic: Topic, datasource: DataSource) -> None:
 		pass
 
 	@abstractmethod

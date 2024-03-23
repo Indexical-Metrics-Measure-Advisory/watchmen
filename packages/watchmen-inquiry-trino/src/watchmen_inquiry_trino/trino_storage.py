@@ -13,6 +13,7 @@ from watchmen_data_kernel.meta import DataSourceService
 from watchmen_data_kernel.utils import parse_move_date_pattern
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage, FactorId, TopicId
+from watchmen_model.system import DataSource
 from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, \
 	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
 	EntityCriteriaOperator, EntityCriteriaStatement, EntitySortColumn, EntitySortMethod, FreeAggregateArithmetic, \
@@ -105,7 +106,7 @@ class TrinoStorage(TrinoStorageSPI):
 		self.schemas = TrinoStorageSchemas()
 		self.connection = None
 
-	def register_topic(self, topic: Topic) -> None:
+	def register_topic(self, topic: Topic, datasource: DataSource) -> None:
 		data_source_id = topic.dataSourceId
 		if is_blank(data_source_id):
 			raise InquiryTrinoException(
