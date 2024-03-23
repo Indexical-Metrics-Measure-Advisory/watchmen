@@ -2,7 +2,7 @@ from datetime import datetime  # noqa
 from typing import Dict, Optional, Tuple
 
 from sqlalchemy import Integer, String, Table
-
+from watchmen_model.system import DataSource
 from watchmen_model.admin import is_aggregation_topic, is_raw_topic, Topic
 from watchmen_model.common import TopicId
 from watchmen_storage import SNOWFLAKE_WORKER_ID_TABLE, UnexpectedStorageException
@@ -586,7 +586,7 @@ def find_from_topic_tables(table_name: str) -> Optional[Table]:
 		return found[0]
 
 
-def register_table(topic: Topic) -> None:
+def register_table(topic: Topic, datasource: DataSource) -> None:
 	existing = topic_tables.get(topic.topicId)
 	if existing is not None:
 		last_modified_at = existing[1]
@@ -595,8 +595,8 @@ def register_table(topic: Topic) -> None:
 			return
 
 	if is_raw_topic(topic):
-		topic_tables[topic.topicId] = (build_by_raw(topic), topic.lastModifiedAt)
+		topic_tables[topic.topicId] = (build_by_raw(topic, datasource), topic.lastModifiedAt)
 	elif is_aggregation_topic(topic):
-		topic_tables[topic.topicId] = (build_by_aggregation(topic), topic.lastModifiedAt)
+		topic_tables[topic.topicId] = (build_by_aggregation(topic, datasource), topic.lastModifiedAt)
 	else:
-		topic_tables[topic.topicId] = (build_by_regular(topic), topic.lastModifiedAt)
+		topic_tables[topic.topicId] = (build_by_regular(topic, datasource), topic.lastModifiedAt)

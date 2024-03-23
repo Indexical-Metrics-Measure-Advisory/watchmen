@@ -2,9 +2,10 @@ from typing import List  # noqa
 
 from sqlalchemy import Column, Date, DateTime, DECIMAL, Integer, String, Table, Time
 
+from watchmen_model.system import DataSource
 from watchmen_model.admin import Factor, FactorType, Topic, TopicKind
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
-from watchmen_storage import as_table_name, UnexpectedStorageException
+from watchmen_storage import as_table_name, UnexpectedStorageException, DataSourceHelper
 from watchmen_utilities import ArrayHelper, is_blank
 from .table_defs_helper import create_bool, create_datetime, create_int, create_json, create_pk, \
 	create_tuple_id_column, meta_data
@@ -129,7 +130,7 @@ def create_columns(factors: List[Factor]) -> List[Column]:
 	return ArrayHelper(factors).map(lambda x: create_column(x)).to_list()
 
 
-def build_by_raw(topic: Topic) -> Table:
+def build_by_raw(topic: Topic, datasource: DataSource) -> Table:
 	if topic.kind == TopicKind.SYNONYM:
 		# all factors at top level will be mapped to column
 		columns = create_columns(ArrayHelper(topic.factors).filter(lambda x: '.' not in x.name).to_list())
@@ -146,11 +147,12 @@ def build_by_raw(topic: Topic) -> Table:
 	return Table(
 		as_table_name(topic), meta_data,
 		*columns,
-		extend_existing=True, include_columns=ArrayHelper(columns).map(lambda x: x.name).to_list()
+		extend_existing=True, include_columns=ArrayHelper(columns).map(lambda x: x.name).to_list(),
+		schema=get_schema_from_datasource(datasource)
 	)
 
 
-def build_by_aggregation(topic: Topic) -> Table:
+def build_by_aggregation(topic: Topic, datasource: DataSource) -> Table:
 	if topic.kind == TopicKind.SYNONYM:
 		columns = create_columns(topic.factors)
 	else:
@@ -167,11 +169,12 @@ def build_by_aggregation(topic: Topic) -> Table:
 	return Table(
 		as_table_name(topic), meta_data,
 		*columns,
-		extend_existing=True, include_columns=ArrayHelper(columns).map(lambda x: x.name).to_list()
+		extend_existing=True, include_columns=ArrayHelper(columns).map(lambda x: x.name).to_list(),
+		schema=get_schema_from_datasource(datasource)
 	)
 
 
-def build_by_regular(topic: Topic) -> Table:
+def build_by_regular(topic: Topic, datasource: DataSource) -> Table:
 	if topic.kind == TopicKind.SYNONYM:
 		columns = create_columns(topic.factors)
 	else:
@@ -186,5 +189,11 @@ def build_by_regular(topic: Topic) -> Table:
 	return Table(
 		as_table_name(topic), meta_data,
 		*columns,
-		extend_existing=True, include_columns=ArrayHelper(columns).map(lambda x: x.name).to_list()
+		extend_existing=True, include_columns=ArrayHelper(columns).map(lambda x: x.name).to_list(),
+		schema=get_schema_from_datasource(datasource)
 	)
+
+
+def get_schema_from_datasource(datasource: DataSource) -> str:
+	schema = DataSourceHelper.find_param(datasource.params, "schema")
+	return schema if schema else datasource.name

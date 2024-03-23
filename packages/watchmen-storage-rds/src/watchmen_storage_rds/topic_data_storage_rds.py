@@ -9,6 +9,7 @@ from sqlalchemy import and_, func, select, Table, text
 from sqlalchemy.sql import Join, label
 from sqlalchemy.sql.elements import Label, literal_column
 
+from watchmen_model.system import DataSource
 from watchmen_model.admin import Factor, FactorType, Topic
 from watchmen_model.common import DataPage, TopicId
 from watchmen_storage import as_table_name, EntityHelper, FreeAggregateArithmetic, FreeAggregateColumn, \
@@ -28,8 +29,8 @@ logger = getLogger(__name__)
 
 class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 	# noinspection PyMethodMayBeStatic
-	def register_topic(self, topic: Topic) -> None:
-		register_table(topic)
+	def register_topic(self, topic: Topic, datasource: DataSource) -> None:
+		register_table(topic, datasource)
 
 	def drop_topic_entity(self, topic: Topic) -> None:
 		entity_name = as_table_name(topic)
