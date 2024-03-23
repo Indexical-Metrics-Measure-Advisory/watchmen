@@ -1,6 +1,7 @@
 from logging import getLogger
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+from watchmen_model.system import DataSource
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage, Storable
 from watchmen_storage import as_table_name, Entity, EntityColumnAggregateArithmetic, EntityDeleter, \
@@ -306,6 +307,12 @@ class StorageMongoDB(TransactionalStorageSPI):
 			.map(finder.shaper.deserialize) \
 			.to_list()
 
+	def find_for_update_skip_locked(self, finder: EntityLimitedFinder) -> EntityList:
+		"""
+		not supported by mongo
+		"""
+		raise UnexpectedStorageException('Method[find_for_update_skip_locked] does not support by mongo storage.')
+
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		document = self.find_document(finder.name)
 		where = build_criteria_for_statement([document], finder.criteria)
@@ -509,7 +516,7 @@ class StorageMongoDB(TransactionalStorageSPI):
 
 
 class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
-	def register_topic(self, topic: Topic) -> None:
+	def register_topic(self, topic: Topic, datasource: DataSource) -> None:
 		register_document(topic)
 
 	def create_topic_entity(self, topic: Topic) -> None:

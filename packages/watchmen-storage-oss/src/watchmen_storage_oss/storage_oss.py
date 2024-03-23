@@ -1,6 +1,7 @@
 from logging import getLogger
 from typing import Any, Dict, List, Optional
 
+from watchmen_model.system import DataSource
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage
 from watchmen_storage import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
@@ -233,7 +234,7 @@ class StorageOss(TransactionalStorageSPI):
 
 # noinspection DuplicatedCode
 class TopicDataStorageOss(StorageOss, TopicDataStorageSPI):
-	def register_topic(self, topic: Topic) -> None:
+	def register_topic(self, topic: Topic, datasource: DataSource) -> None:
 		register_directory(topic)
 
 	def create_topic_entity(self, topic: Topic) -> None:

@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from typing import Any, Dict, List, Optional
 
+from watchmen_model.system import DataSource
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage
 from watchmen_storage import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
@@ -215,7 +216,7 @@ class TrinoStorageSPI(TopicDataStorageSPI):
 		raise InquiryTrinoException('Method[count] does not support by trino storage.')
 
 	@abstractmethod
-	def register_topic(self, topic: Topic) -> None:
+	def register_topic(self, topic: Topic, datasource: DataSource) -> None:
 		pass
 
 	@abstractmethod

@@ -1,10 +1,9 @@
 import json
 from abc import ABC, abstractmethod
-from json import JSONDecodeError
 from typing import Optional, List, Dict, Any, Tuple
 from logging import getLogger
 
-from watchmen_data_kernel.meta import TopicService
+from watchmen_data_kernel.meta import TopicService, DataSourceService
 
 from watchmen_model.system import DataSource, DataSourceType
 
@@ -17,10 +16,10 @@ from watchmen_data_kernel.service import ask_topic_storage, ask_topic_data_servi
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Topic, TopicKind, Factor, TopicType
 from watchmen_storage import EntityCriteria, EntityStraightColumn, DataSourceHelper, \
-	UnexpectedStorageException, ColumnNameLiteral, EntityCriteriaExpression, EntityDeleter, EntityIdHelper
+	UnexpectedStorageException, EntityIdHelper
 from watchmen_utilities import get_current_time_in_seconds, ArrayHelper
 from watchmen_collector_kernel.cache import CollectorCacheService
-from ..common import CollectorKernelException
+from watchmen_collector_kernel.common import CollectorKernelException
 
 logger = getLogger(__name__)
 
@@ -54,8 +53,12 @@ class SourceExtractor(ExtractorSPI, ABC):
 		self.principal_service = fake_tenant_admin(config.tenantId)
 		self.topic = self.build_topic_by_config(self.config)
 		self.storage = ask_topic_storage(self.topic, self.principal_service)
-		self.storage.register_topic(self.topic)
+		self.register_topic(self.topic)
 		self.service = ask_topic_data_service(TopicSchema(self.topic), self.storage, self.principal_service)
+
+	def register_topic(self, topic: Topic):
+		datasource = DataSourceService(self.principal_service).find_by_id(topic.dataSourceId)
+		self.storage.register_topic(self.topic, datasource)
 
 	# noinspection PyMethodMayBeStatic
 	def fake_topic_id(self, config_id: str) -> str:

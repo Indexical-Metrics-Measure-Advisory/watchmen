@@ -3,6 +3,8 @@ from datetime import date
 from decimal import Decimal
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+from watchmen_data_kernel.meta import DataSourceService
+
 from watchmen_inquiry_kernel.common.utils import process_sql
 from watchmen_pipeline_kernel.pipeline.sql_performance_invoker import create_sql_performance_pipeline_invoker
 
@@ -33,7 +35,7 @@ from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteral
 	EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, \
 	EntityCriteriaStatement, EntitySortColumn, EntitySortMethod, FreeAggregateArithmetic, FreeAggregateColumn, \
 	FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, \
-	 TopicDataStorageSPI
+	TopicDataStorageSPI
 from watchmen_storage.sql_analysis.ast_visitor import QueryPerformance
 from watchmen_utilities import ArrayHelper, date_might_with_prefix, get_current_time_in_seconds, is_blank, is_date, \
 	is_decimal, is_not_blank, is_time, month_diff, move_date, translate_date_format_to_memory, truncate_time, year_diff
@@ -264,9 +266,9 @@ class SubjectStorage:
 		return TopicSchema(Topic(
 			topicId='-1',
 			factors=ArrayHelper(self.schema.get_subject().dataset.columns)
-			.map_with_index(as_factor)
-			.filter(lambda x: x is not None)
-			.to_list()
+				.map_with_index(as_factor)
+				.filter(lambda x: x is not None)
+				.to_list()
 		))
 
 	def ask_storage_finder(self) -> Tuple[FreeFinder, List[List[PossibleParameterType]]]:
@@ -332,7 +334,10 @@ class SubjectStorage:
 
 		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
 		# register topic, in case of it is not registered yet
-		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
+		ArrayHelper(available_schemas).each(
+			lambda x: storage.register_topic(x.get_topic(), DataSourceService(self.principalService).find_by_id(
+				x.get_topic().dataSourceId))
+		)
 		return FreeFinder(
 			columns=columns, joins=joins, criteria=criteria, commandOnly=False,
 			queryPfmMonitor=create_sql_performance_pipeline_invoker(
@@ -495,7 +500,7 @@ class SubjectStorage:
 			a_start_value, an_end_value = to_decimal(a_start_value, an_end_value)
 			return \
 				None if a_start_value is None else a_start_value.to_integral(), \
-					None if an_end_value is None else an_end_value.to_integral()
+				None if an_end_value is None else an_end_value.to_integral()
 
 		if funnel_type == ReportFunnelType.NUMERIC:
 			return to_decimal(start_value, end_value)
@@ -1255,7 +1260,12 @@ class SubjectStorage:
 			else:
 				return self.ask_trino_find_agent()
 		# register topic, in case of it is not registered yet
-		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
+		ArrayHelper(available_schemas).each(
+			lambda x: storage.register_topic(x.get_topic(),
+			                                 DataSourceService(self.principalService).find_by_id(
+				                                 x.get_topic().dataSourceId)
+			                                 )
+		)
 		return StorageFindAgent(storage)
 
 	def ask_trino_find_agent(self) -> FindAgent:
@@ -1263,7 +1273,12 @@ class SubjectStorage:
 		storage = ask_trino_topic_storage(self.principalService)
 		# register topic, in case of it is not registered yet
 		available_schemas = self.schema.get_available_schemas()
-		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
+		ArrayHelper(available_schemas).each(
+			lambda x: storage.register_topic(
+				x.get_topic(),
+				DataSourceService(self.principalService).find_by_id(x.get_topic().dataSourceId)
+			)
+		)
 		return StorageFindAgent(storage)
 
 	def find_data(self, find: Callable[[FindAgent], Any]) -> Union[List[Dict[str, Any]], DataPage]:
