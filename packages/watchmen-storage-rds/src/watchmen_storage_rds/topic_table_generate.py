@@ -1,4 +1,4 @@
-from typing import List  # noqa
+from typing import List, Optional  # noqa
 
 from sqlalchemy import Column, Date, DateTime, DECIMAL, Integer, String, Table, Time
 
@@ -194,6 +194,6 @@ def build_by_regular(topic: Topic, datasource: DataSource) -> Table:
 	)
 
 
-def get_schema_from_datasource(datasource: DataSource) -> str:
+def get_schema_from_datasource(datasource: DataSource) -> Optional[str]:
 	schema = DataSourceHelper.find_param(datasource.params, "schema")
-	return schema if schema else datasource.name
+	return schema if schema else None
