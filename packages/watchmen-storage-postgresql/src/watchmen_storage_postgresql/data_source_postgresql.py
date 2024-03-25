@@ -72,9 +72,7 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 			data_source_params: Optional[List[DataSourceParam]],
 			params: PostgreSQLDataSourceParams
 	) -> Engine:
-		charset = PostgreSQLDataSourceHelper.find_param(data_source_params, 'client_encoding')
-		if is_blank(charset):
-			data_source_params = PostgreSQLDataSourceHelper.append_param(data_source_params, 'client_encoding', 'utf8')
+		url_params = PostgreSQLDataSourceHelper.build_url_params(data_source_params)
 
 		# please set search_path for current user who connect to db, make sure the default one is what you need.
 		# otherwise, might incorrect schema used.
@@ -86,11 +84,27 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 		# 	raise UnexpectedStorageException(
 		# 		f'Parameter [search_path] must be specified for PostgreSQL data source [{name}].')
 
-		search = PostgreSQLDataSourceHelper.build_url_search(data_source_params)
+		search = PostgreSQLDataSourceHelper.build_url_search(url_params)
 		if is_not_blank(search):
 			search = f'?{search}'
 		url = f'postgresql+psycopg2://{username}:{password}@{host}:{port}/{name}{search}'
 		return PostgreSQLDataSourceHelper.acquire_engine_by_url(url, params)
+
+	@staticmethod
+	def build_url_params(data_source_params: Optional[List[DataSourceParam]]) -> Optional[List[DataSourceParam]]:
+		url_params = []
+
+		def filter_param(param: DataSourceParam):
+			if param.name == "client_encoding":
+				url_params.append(param)
+
+		ArrayHelper(data_source_params).each(lambda param: filter_param(param))
+
+		charset = PostgreSQLDataSourceHelper.find_param(url_params, 'client_encoding')
+		if is_blank(charset):
+			url_params = PostgreSQLDataSourceHelper.append_param(url_params, 'client_encoding', 'utf8')
+
+		return url_params
 
 	def acquire_storage(self) -> StoragePostgreSQL:
 		return StoragePostgreSQL(self.engine)

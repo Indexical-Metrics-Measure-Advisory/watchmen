@@ -22,7 +22,6 @@ class MySQLDataSourceParams(DataModel):
 	poolRecycle: int = 3600
 
 
-
 class MySQLDataSourceHelper(DataSourceHelper):
 	def __init__(self, data_source: DataSource, params: MySQLDataSourceParams = MySQLDataSourceParams()):
 		super().__init__(data_source)
@@ -38,7 +37,7 @@ class MySQLDataSourceHelper(DataSourceHelper):
 			json_serializer=serialize_to_json,
 			encoding='utf-8',
 			pool_pre_ping=True,
-		    # pool_size = 2,
+			# pool_size = 2,
 			# max_overflow = 0
 		)
 
@@ -75,14 +74,28 @@ class MySQLDataSourceHelper(DataSourceHelper):
 			data_source_params: Optional[List[DataSourceParam]],
 			params: MySQLDataSourceParams
 	) -> Engine:
-		charset = MySQLDataSourceHelper.find_param(data_source_params, 'charset')
-		if is_blank(charset):
-			data_source_params = MySQLDataSourceHelper.append_param(data_source_params, 'charset', 'utf8')
-		search = MySQLDataSourceHelper.build_url_search(data_source_params)
+		url_params = MySQLDataSourceHelper.build_url_params(data_source_params)
+		search = MySQLDataSourceHelper.build_url_search(url_params)
 		if is_not_blank(search):
 			search = f'?{search}'
 		url = f'mysql+pymysql://{username}:{password}@{host}:{port}/{name}{search}'
 		return MySQLDataSourceHelper.acquire_engine_by_url(url, params)
+
+	@staticmethod
+	def build_url_params(data_source_params: Optional[List[DataSourceParam]]) -> Optional[List[DataSourceParam]]:
+		url_params = []
+
+		def filter_param(param: DataSourceParam):
+			if param.name == "charset":
+				url_params.append(param)
+
+		ArrayHelper(data_source_params).each(lambda param: filter_param(param))
+
+		charset = MySQLDataSourceHelper.find_param(url_params, 'charset')
+		if is_blank(charset):
+			url_params = MySQLDataSourceHelper.append_param(url_params, 'charset', 'utf8')
+
+		return url_params
 
 	def acquire_storage(self) -> StorageMySQL:
 		return StorageMySQL(self.engine)
