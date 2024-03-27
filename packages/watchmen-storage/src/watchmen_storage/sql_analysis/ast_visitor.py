@@ -1,3 +1,5 @@
+from typing import Tuple, Optional
+
 from pydantic import BaseModel
 from sqlparse.sql import Case, Comparison, Function, Identifier, IdentifierList, Parenthesis, Token, Where
 
@@ -338,23 +340,36 @@ class ComparisonVisitor:
 			self, token: Comparison, context: SqlContext, visitor_list, previous_token: Token = None,
 			next_token: Token = None):
 		if context.status == "case" and context.sub_status == "WHEN":
-			left_table, left = token.left.normalized.split(".")
+			schema, left_table, left = self.parse_token(token.left.value)
 			add_column_topic(context, left_table)
 			add_column(context, left)
 		elif context.status == "where":
-			if "." in token.left.normalized:
-				left_table, left = token.left.normalized.split(".")
+			if "." in token.left.value:
+				schema, left_table, left_column = self.parse_token(token.left.value)
 				operator = find_operator(token)
 				value = token.right.value
-				context.where.append(WhereColumn(table=left_table, name=left, operator=operator, value=value))
-
-
+				context.where.append(WhereColumn(table=left_table, name=left_column, operator=operator, value=value))
 		elif token.is_group and token.left and token.right and not context.status == "case":
-			left_table, left = token.left.normalized.split(".")
-			right_table, right = token.right.normalized.split(".")
+			schema, left_table, left = self.parse_token(token.left.value)
+			schema, right_table, right = self.parse_token(token.right.value)
 			operator = find_operator(token)
 			context.joins.append(
 				JoinColumn(leftTable=left_table, left=left, rightTable=right_table, right=right, operator=operator))
+
+	# noinspection PyMethodMayBeStatic
+	def parse_token(self, value: str) -> Tuple[Optional[str], str, str]:
+		token_parts = value.split(".")
+		if len(token_parts) == 3:
+			schema = token_parts[0]
+			table = token_parts[1]
+			column = token_parts[2]
+		elif len(token_parts) == 2:
+			schema = None
+			table = token_parts[0]
+			column = token_parts[1]
+		else:
+			raise RuntimeError(f"token {value} is not standard")
+		return schema, table, column
 
 
 class CaseVisitor:
