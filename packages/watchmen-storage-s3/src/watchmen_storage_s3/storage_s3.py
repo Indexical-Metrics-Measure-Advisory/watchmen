@@ -56,7 +56,7 @@ class StorageS3(TransactionalStorageSPI):
 	def insert_one(self, one: Entity, helper: EntityHelper) -> None:
 		directory = find_directory(helper.name)
 		row = helper.shaper.serialize(one)
-		key = self.s3_client.gen_key(directory, str(row['id_']))
+		key = self.s3_client.gen_key(directory, str(row['id_']), row)
 		self.s3_client.put_object(key, row)
 
 	def insert_all(self, data: List[Entity], helper: EntityHelper) -> None:
