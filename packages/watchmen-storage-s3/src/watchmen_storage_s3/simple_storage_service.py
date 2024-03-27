@@ -63,12 +63,13 @@ class SimpleStorageService:
 				aws_access_key_id=access_key_id,
 				aws_secret_access_key=access_key_secret)
 
-	def gen_key(self, directory: str, id_: str) -> str:
-		if ask_object_storage_need_date_directory():
-			literal = self.get_param("filename")
-			key = as_file_name(literal, directory, id_)
+	def gen_key(self, directory: str, id_: str, row: Dict) -> str:
+		literal = self.get_param("filename")
+		prefix = self.get_param("s3_prefix")
+		if literal:
+			name = as_file_name(literal, row)
+			key = f'{prefix}/{directory}/{name}'
 		else:
-			prefix = self.get_param("s3_prefix")
 			key = f'{prefix}/{directory}/{id_}'
 		return key
 

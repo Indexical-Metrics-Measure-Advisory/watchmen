@@ -1,5 +1,8 @@
 from typing import Dict
 from string import Template
+
+from watchmen_utilities import ArrayHelper
+
 from watchmen_model.admin import Topic
 from watchmen_model.common import TopicId
 from watchmen_storage import UnexpectedStorageException
@@ -19,16 +22,26 @@ def find_directory(name: str) -> str:
 	return directory
 
 
-def as_file_name(literal: str, directory: str, id_: str) -> str:
+def as_file_name(literal: str, row: Dict) -> str:
+	tokens = literal.split("/")
+	values = {}
+
+	def set_value_from_row(token: str):
+		variable_name = token.removeprefix("${").removesuffix("}")
+		values[variable_name] = row.get(variable_name)
+
+	def set_value_from_now():
+		now = datetime.now()
+		values["year"] = now.strftime("%Y")
+		values["month"] = now.strftime("%m")
+		values["day"] = now.strftime("%d")
+		values["hour"] = now.strftime("%Y")
+		values["minute"] = now.strftime("%Y")
+		values["sec"] = now.strftime("%Y")
+
+	ArrayHelper(tokens).each(set_value_from_row)
+	set_value_from_now()
+
 	tmp = Template(literal)
-	now = datetime.now()
-	values = {'year': now.strftime("%Y"),
-	          'month': now.strftime("%m"),
-	          'day': now.strftime("%d"),
-	          'hour': now.strftime("%H"),
-	          'minute': now.strftime("%M"),
-	          'sec': now.strftime("%S"),
-	          'directory': directory,
-	          'id': id_
-	          }
-	return tmp.substitute(values)
+	return tmp.safe_substitute(values)
+
