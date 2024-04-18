@@ -1,3 +1,4 @@
+import {Chainlit} from '@/chainlit';
 import {isDataQualityCenterEnabled, isSaml2MockEnabled} from '@/feature-switch';
 import {findAccount, isAdmin, isSuperAdmin} from '@/services/data/account';
 import {removeSSOTriggerURL, saveCurrentURL} from '@/services/data/login';
@@ -45,6 +46,7 @@ export const AppRoutes = () => {
 	return <Suspense fallback={<div/>}>
 		<BrowserRouter basename={process.env.REACT_APP_WEB_CONTEXT}>
 			<RemoteRequest/>
+			<Chainlit/>
 			<InternalRoutes/>
 		</BrowserRouter>
 	</Suspense>;

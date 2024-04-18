@@ -30,69 +30,92 @@ const writeThemeProperty = (theme: Theme) => {
 		}
 	});
 };
+// noinspection CssUnresolvedCustomProperty
 const GlobalStyle: any = createGlobalStyle<{ theme: Theme }>`
-	*, *:before, *:after {
-		margin     : 0;
-		padding    : 0;
-		box-sizing : border-box;
-	}
-	html {
-		${({theme}) => writeThemeProperty(theme)}
-		width : 100%;
-	}
-	body {
-		margin                  : 0;
-		font-family             : var(--font-family);
-		font-size               : var(--font-size);
-		color                   : var(--font-color);
-		-webkit-font-smoothing  : antialiased;
-		-moz-osx-font-smoothing : grayscale;
-		position                : relative;
-		background-color        : var(--bg-color);
-		overflow-x              : hidden;
-		width                   : 100%;
-	}
-	a,
-	a:visited {
-		color : var(--font-color);
-	}
-	input::placeholder,
-	textarea::placeholder {
-		color : var(--placeholder-color);
-	}
-	code {
-		font-family : var(--code-font-family);
-	}
-	main[data-v-scroll],
-	div[data-v-scroll],
-	div[data-h-scroll],
-	textarea[data-v-scroll],
-	textarea[data-h-scroll] {
-		&::-webkit-scrollbar {
-			background-color : transparent;
-		}
-		&::-webkit-scrollbar-track {
-			background-color : var(--scrollbar-bg-color);
-			border-radius    : 2px;
-		}
-		&::-webkit-scrollbar-thumb {
-			background-color : var(--scrollbar-thumb-bg-color);
-			border-radius    : 2px;
-		}
-	}
-	div[data-h-scroll],
-	textarea[data-h-scroll] {
-		&::-webkit-scrollbar {
-			height : 8px;
-		}
-	}
-	main[data-v-scroll],
-	div[data-v-scroll],
-	textarea[data-v-scroll] {
-		&::-webkit-scrollbar {
-			width : 4px;
-		}
-	}
+    *, *:before, *:after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    html {
+        ${({theme}) => writeThemeProperty(theme)}
+        width: 100%;
+
+        div${process.env.REACT_APP_CHIANLIT_ROOT_SELECTOR} {
+            display: none;
+        }
+
+        &[data-chainlit-enabled=true][data-chainlit-visible=true] {
+            div${process.env.REACT_APP_CHIANLIT_ROOT_SELECTOR} {
+                display: block;
+            }
+        }
+    }
+
+    body {
+        margin: 0;
+        /* noinspection CssNoGenericFontName */
+        font-family: var(--font-family);
+        font-size: var(--font-size);
+        color: var(--font-color);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        position: relative;
+        background-color: var(--bg-color);
+        overflow-x: hidden;
+        width: 100%;
+    }
+
+    a,
+    a:visited {
+        color: var(--font-color);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        color: var(--placeholder-color);
+    }
+
+    code {
+        /* noinspection CssNoGenericFontName */
+        font-family: var(--code-font-family);
+    }
+
+    main[data-v-scroll],
+    div[data-v-scroll],
+    div[data-h-scroll],
+    textarea[data-v-scroll],
+    textarea[data-h-scroll] {
+        &::-webkit-scrollbar {
+            background-color: transparent;
+        }
+
+        &::-webkit-scrollbar-track {
+            background-color: var(--scrollbar-bg-color);
+            border-radius: 2px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: var(--scrollbar-thumb-bg-color);
+            border-radius: 2px;
+        }
+    }
+
+    div[data-h-scroll],
+    textarea[data-h-scroll] {
+        &::-webkit-scrollbar {
+            height: 8px;
+        }
+    }
+
+    main[data-v-scroll],
+    div[data-v-scroll],
+    textarea[data-v-scroll] {
+        &::-webkit-scrollbar {
+            width: 4px;
+        }
+    }
 `;
 
 const THEMES: Record<string, Theme> = {
