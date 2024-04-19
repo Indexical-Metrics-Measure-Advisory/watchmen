@@ -15,7 +15,7 @@ class CollectorSettings(BaseSettings):
 	S3_CONNECTOR_LOCK_TIMEOUT = 300
 	PARTIAL_SIZE: int = 100
 	COLLECTOR_CONFIG_CACHE_ENABLED: bool = True
-	EXCEPTION_MAX_LENGTH = 1000  # character
+	EXCEPTION_MAX_LENGTH = 3000  # character
 
 	class Config:
 		# secrets_dir = '/var/run'

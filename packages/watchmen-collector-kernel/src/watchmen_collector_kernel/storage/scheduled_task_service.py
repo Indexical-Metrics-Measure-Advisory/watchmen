@@ -209,7 +209,8 @@ class ScheduledTaskService(TupleService):
 					                         right=event_id),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
 					                         right=tenant_id)
-				]
+				],
+				sort=[EntitySortColumn(name='task_id', method=EntitySortMethod.ASC)]
 			))
 		finally:
 			self.close_transaction()
