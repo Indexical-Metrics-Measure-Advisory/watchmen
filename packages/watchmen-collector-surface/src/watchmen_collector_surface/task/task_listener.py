@@ -1,7 +1,7 @@
 import logging
 from enum import Enum
 from traceback import format_exc
-from typing import List, Optional, Callable, Tuple
+from typing import List, Callable, Tuple
 
 from watchmen_collector_kernel.common import ask_exception_max_length
 from watchmen_collector_kernel.model import TaskType
@@ -22,7 +22,8 @@ logger.setLevel(logging.ERROR)
 class DependentTaskExecutionStatus(int, Enum):
 	EXECUTED = 1,
 	COMPETED = 2,
-	FINISHED = 3
+	FINISHED = 3,
+	UNFINISHED = 4
 
 
 class TaskListener:
@@ -79,25 +80,41 @@ class TaskListener:
 			ArrayHelper(unfinished_tasks).map(self.process_task)
 
 	def process_task(self, task: ScheduledTask) -> ScheduledTask:
-		try:
-			if self.check_dependent_tasks_finished(task):
-				self.consume_task(task)
-				return self.task_service.finish_task(task, Status.SUCCESS.value)
-			else:
-				return self.restore_task(task)
-		except Exception as e:
-			logger.error(e, exc_info=True, stack_info=True)
-			return self.task_service.finish_task(task, Status.FAIL.value, self.truncated_string(format_exc()))
+		if self.is_dependence_tasks_finished(task):
+			return self.executing_task(task)
+		else:
+			return self.restore_task(task)
 
-	def process_task_without_dependent_check(self, task: ScheduledTask) -> ScheduledTask:
+	def executing_task(self, task: ScheduledTask) -> ScheduledTask:
+		if task.parentTaskId:
+			unfinished_tasks = self.scheduled_task_service.find_model_dependent_tasks(task.modelName, task.objectId, task.eventId, task.tenantId)
+			for unfinished_task in unfinished_tasks:
+				if unfinished_task.taskId < task.taskId:
+					status, finished_task = self.process_dependent_task(unfinished_task, self.consume_task)
+					if status == DependentTaskExecutionStatus.FINISHED:
+						continue
+					else:
+						return self.restore_task(task)
+				elif unfinished_task.taskId == task.taskId:
+					task = self.consume_task(unfinished_task)
+				else:
+					status, finished_task = self.process_dependent_task(unfinished_task, self.consume_task)
+					if status == DependentTaskExecutionStatus.FINISHED:
+						continue
+					else:
+						return task
+		else:
+			return self.consume_task(task)
+
+	def consume_task(self, task: ScheduledTask) -> ScheduledTask:
 		try:
-			self.consume_task(task)
+			self.task_consume_service(task)
 			return self.task_service.finish_task(task, Status.SUCCESS.value)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
 			return self.task_service.finish_task(task, Status.FAIL.value, self.truncated_string(format_exc()))
 
-	def consume_task(self, task: ScheduledTask):
+	def task_consume_service(self, task: ScheduledTask):
 		if task.type == TaskType.DEFAULT.value:
 			self.task_service.consume_task(task, pipeline_data)
 		elif task.type == TaskType.RUN_PIPELINE.value:
@@ -112,62 +129,50 @@ class TaskListener:
 	def restore_task(self, task: ScheduledTask) -> ScheduledTask:
 		return self.scheduled_task_service.update_task(self.change_status(task, Status.INITIAL.value))
 
-	def check_dependent_tasks_finished(self, task: ScheduledTask) -> bool:
-		return self.check_parent_tasks_status(task) and self.check_dependence_tasks_status(task)
-
-	def check_parent_tasks_status(self, task: ScheduledTask) -> bool:
-		def compare(task_id: int, another_task_id: int) -> int:
-			return task_id - another_task_id
-
-		parent_task_ids = ArrayHelper(task.parentTaskId).sort(compare).to_list()
-		for parent_task_id in parent_task_ids:
-			status, task = self.process_dependent_task(parent_task_id, self.process_task_without_dependent_check)
-			if status == DependentTaskExecutionStatus.FINISHED:
-				continue
-			else:
-				return False
-		return True
-
-	def check_dependence_tasks_status(self, task: ScheduledTask) -> bool:
+	def is_dependence_tasks_finished(self, task: ScheduledTask) -> bool:
 		dependencies = ArrayHelper(task.dependOn).to_list()
 		for dependence in dependencies:
 			depend_tasks = self.scheduled_task_service.find_model_dependent_tasks(dependence.modelName,
 			                                                                      dependence.objectId, task.eventId,
 			                                                                      task.tenantId)
 			for depend_task in depend_tasks:
-				status, task = self.process_dependent_task(depend_task.taskId, self.process_task)
+				status, task = self.process_dependent_task(depend_task, self.process_task)
 				if status == DependentTaskExecutionStatus.FINISHED:
 					continue
 				else:
 					return False
 		return True
 
-	def process_dependent_task(self, task_id: int,
-	                           func_task: Callable[[ScheduledTask], ScheduledTask]) -> Tuple[DependentTaskExecutionStatus, Optional[ScheduledTask]]:
+	def process_dependent_task(self, task: ScheduledTask,
+	                           func: Callable[[ScheduledTask], ScheduledTask]) -> Tuple[DependentTaskExecutionStatus, ScheduledTask]:
 		try:
 			self.scheduled_task_service.begin_transaction()
-			status, task = self.check_dependent_task_status(task_id)
+			locked_task = self.scheduled_task_service.find_and_lock_by_id(task.task_id)
+			if locked_task is None:
+				return DependentTaskExecutionStatus.FINISHED, task
+			status = self.check_dependent_task_status(task)
 			if status == DependentTaskExecutionStatus.EXECUTED:
 				self.scheduled_task_service.update(self.change_status(task, Status.EXECUTING.value))
 			self.scheduled_task_service.commit_transaction()
 
 			if status == DependentTaskExecutionStatus.EXECUTED:
-				task = func_task(task)
-				return DependentTaskExecutionStatus.EXECUTED.FINISHED, task
+				task = func(task)
+				if task.isFinished:
+					return DependentTaskExecutionStatus.FINISHED, task
+				else:
+					return DependentTaskExecutionStatus.UNFINISHED, task
 			else:
 				return status, task
 		finally:
 			self.scheduled_task_service.close_transaction()
 
-	def check_dependent_task_status(self, task_id: int) -> Tuple[DependentTaskExecutionStatus, Optional[ScheduledTask]]:
-		task = self.scheduled_task_service.find_and_lock_by_id(task_id)
-		if task:
-			if task.status == Status.INITIAL.value:
-				return DependentTaskExecutionStatus.EXECUTED, task
-			elif task.status == Status.EXECUTING.value:
-				return DependentTaskExecutionStatus.COMPETED, task
-			else:
-				raise Exception(
-					f"The status : {task.status} is not supported in find_task_and_locked. The task is {task.taskId}")
+	# noinspection PyMethodMayBeStatic
+	def check_dependent_task_status(self, task: ScheduledTask) -> DependentTaskExecutionStatus:
+		if task.status == Status.INITIAL.value:
+			return DependentTaskExecutionStatus.EXECUTED
+		elif task.status == Status.EXECUTING.value:
+			return DependentTaskExecutionStatus.COMPETED
 		else:
-			return DependentTaskExecutionStatus.FINISHED, None
+			raise Exception(
+				f"The status : {task.status} is not supported in find_task_and_locked. The task is {task.taskId}")
+
