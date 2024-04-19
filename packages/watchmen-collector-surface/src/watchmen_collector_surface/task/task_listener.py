@@ -63,25 +63,6 @@ class TaskListener:
 		finally:
 			self.scheduled_task_service.close_transaction()
 
-	def find_task_and_locked(self, task: ScheduledTask) -> ExecutionStatus:
-		try:
-			self.scheduled_task_service.begin_transaction()
-			task = self.scheduled_task_service.find_and_lock_by_id(task.taskId)
-			if task:
-				if task.status == Status.INITIAL.value:
-					self.scheduled_task_service.update(self.change_status(task, Status.EXECUTING.value))
-					result = ExecutionStatus.SHOULD_RUN
-				elif task.status == Status.EXECUTING.value:
-					result = ExecutionStatus.EXECUTING_BY_OTHERS
-				else:
-					raise Exception(f"The status : {task.status} is not supported in find_task_and_locked. The task is {task.taskId}")
-			else:
-				result = ExecutionStatus.FINISHED
-			self.scheduled_task_service.commit_transaction()
-			return result
-		finally:
-			self.scheduled_task_service.close_transaction()
-
 	def task_listener(self) -> None:
 		self.process_tasks()
 
@@ -130,6 +111,7 @@ class TaskListener:
 	def check_parent_tasks_status(self, task: ScheduledTask) -> bool:
 		def compare(task_id: int, another_task_id: int) -> int:
 			return task_id - another_task_id
+
 		parent_task_ids = ArrayHelper(task.parentTaskId).sort(compare).to_list()
 		for parent_task_id in parent_task_ids:
 			result_task = self.process_parent_task(parent_task_id)
@@ -142,7 +124,7 @@ class TaskListener:
 	def process_parent_task(self, parent_task_id: int) -> ScheduledTask:
 		parent_task = self.scheduled_task_service.find_task_by_id(parent_task_id)
 		if parent_task:
-			return self.process_dependent_task(parent_task, self.executing_task)
+			return self.process_dependent_task(parent_task, self.consume_task)
 		else:
 			parent_task_history = self.scheduled_task_history_service.find_task_by_id(parent_task_id)
 			if parent_task_history:
@@ -164,21 +146,22 @@ class TaskListener:
 					return False
 		return True
 
-	def process_dependent_task(self, dependent_task: ScheduledTask, func: Callable[[ScheduledTask], ScheduledTask]) -> ScheduledTask:
+	def process_dependent_task(self, dependent_task: ScheduledTask,
+	                           func_task: Callable[[ScheduledTask], ScheduledTask]) -> ScheduledTask:
 		try:
 			self.scheduled_task_service.begin_transaction()
 			task = self.scheduled_task_service.find_and_lock_by_id(dependent_task.taskId)
 			if task:
 				if task.status == Status.INITIAL.value:
 					self.scheduled_task_service.update(self.change_status(task, Status.EXECUTING.value))
-					result = func(dependent_task)
+					result = func_task(dependent_task)
 				elif task.status == Status.EXECUTING.value:
 					result = dependent_task
 				else:
 					raise Exception(
 						f"The status : {task.status} is not supported in find_task_and_locked. The task is {task.taskId}")
 			else:
-				result =  dependent_task
+				result = dependent_task
 			self.scheduled_task_service.commit_transaction()
 			return result
 		finally:
