@@ -98,7 +98,7 @@ class TaskListener:
 				elif unfinished_task.taskId == task.taskId:
 					task = self.consume_task(unfinished_task)
 				else:
-					status, finished_task = self.process_dependent_task(unfinished_task, self.consume_task)
+					status, processed_task = self.process_dependent_task(unfinished_task, self.consume_task)
 					if status == DependentTaskExecutionStatus.FINISHED:
 						continue
 					else:
@@ -136,7 +136,7 @@ class TaskListener:
 			                                                                      dependence.objectId, task.eventId,
 			                                                                      task.tenantId)
 			for depend_task in depend_tasks:
-				status, task = self.process_dependent_task(depend_task, self.process_task)
+				status, processed_task = self.process_dependent_task(depend_task, self.process_task)
 				if status == DependentTaskExecutionStatus.FINISHED:
 					continue
 				else:
@@ -145,24 +145,29 @@ class TaskListener:
 
 	def process_dependent_task(self, task: ScheduledTask,
 	                           func: Callable[[ScheduledTask], ScheduledTask]) -> Tuple[DependentTaskExecutionStatus, ScheduledTask]:
+
+		status = self.check_dependent_task_status(task)
+		if status == DependentTaskExecutionStatus.COMPETED:
+			return DependentTaskExecutionStatus.COMPETED, task
+
 		try:
 			self.scheduled_task_service.begin_transaction()
-			locked_task = self.scheduled_task_service.find_and_lock_by_id(task.task_id)
-			if locked_task is None:
-				return DependentTaskExecutionStatus.FINISHED, task
-			status = self.check_dependent_task_status(task)
-			if status == DependentTaskExecutionStatus.EXECUTED:
+			locked_task = self.scheduled_task_service.find_one_and_lock_nowait(task.task_id)
+			if locked_task:
 				self.scheduled_task_service.update(self.change_status(task, Status.EXECUTING.value))
-			self.scheduled_task_service.commit_transaction()
-
-			if status == DependentTaskExecutionStatus.EXECUTED:
+				self.scheduled_task_service.commit_transaction()
 				task = func(task)
 				if task.isFinished:
 					return DependentTaskExecutionStatus.FINISHED, task
 				else:
 					return DependentTaskExecutionStatus.UNFINISHED, task
 			else:
-				return status, task
+				self.scheduled_task_service.rollback_transaction()
+				dependent_task = self.scheduled_task_service.find_task_by_id(task.task_id)
+				if dependent_task:
+					return DependentTaskExecutionStatus.COMPETED, dependent_task
+				else:
+					return DependentTaskExecutionStatus.FINISHED, task
 		finally:
 			self.scheduled_task_service.close_transaction()
 
