@@ -124,6 +124,14 @@ class ScheduledTaskService(TupleService):
 		else:
 			return None
 
+	def find_one_and_lock_nowait(self, task_id: int) -> Optional[ScheduledTask]:
+		return self.storage.find_one_and_lock_nowait(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='task_id'), right=task_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=0),
+			])
+		)
+
 	def find_unfinished_tasks(self) -> List[Dict[str, Any]]:
 		self.begin_transaction()
 		try:

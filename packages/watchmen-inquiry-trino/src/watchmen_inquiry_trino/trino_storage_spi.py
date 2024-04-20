@@ -155,11 +155,23 @@ class TrinoStorageSPI(TopicDataStorageSPI):
 		"""
 		raise InquiryTrinoException('Method[find_and_lock_by_id] does not support by trino storage.')
 
+	def find_and_lock_by_id_nowait(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
+		"""
+		not supported by trino
+		"""
+		raise InquiryTrinoException('Method[find_and_lock_by_id_nowait] does not support by trino storage.')
+
 	def find_one(self, finder: EntityFinder) -> Optional[Entity]:
 		"""
 		not supported by trino
 		"""
 		raise InquiryTrinoException('Method[find_one] does not support by trino storage.')
+
+	def find_one_and_lock_nowait(self, finder: EntityFinder) -> Optional[Entity]:
+		"""
+		not supported by trino
+		"""
+		raise InquiryTrinoException('Method[find_one_and_lock_nowait] does not support by trino storage.')
 
 	def find(self, finder: EntityFinder) -> EntityList:
 		"""
