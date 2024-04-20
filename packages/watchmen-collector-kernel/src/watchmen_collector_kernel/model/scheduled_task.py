@@ -9,7 +9,8 @@ from enum import Enum
 
 class TaskType(int, Enum):
 	DEFAULT = 1,
-	RUN_PIPELINE = 2
+	RUN_PIPELINE = 2,
+	GROUP = 3
 
 
 class Result(str, Enum):

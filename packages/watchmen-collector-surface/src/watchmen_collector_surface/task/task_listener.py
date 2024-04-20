@@ -77,7 +77,7 @@ class TaskListener:
 	def process_tasks(self):
 		unfinished_tasks = self.find_tasks_and_locked()
 		if unfinished_tasks:
-			ArrayHelper(unfinished_tasks).map(self.process_task)
+			ArrayHelper(unfinished_tasks).map(self.consume_task)
 
 	def process_task(self, task: ScheduledTask) -> ScheduledTask:
 		if self.is_dependence_tasks_finished(task):
@@ -98,11 +98,7 @@ class TaskListener:
 				elif unfinished_task.taskId == task.taskId:
 					task = self.consume_task(unfinished_task)
 				else:
-					status, processed_task = self.process_dependent_task(unfinished_task, self.consume_task)
-					if status == DependentTaskExecutionStatus.FINISHED:
-						continue
-					else:
-						return task
+					break
 		else:
 			return self.consume_task(task)
 
@@ -119,6 +115,9 @@ class TaskListener:
 			self.task_service.consume_task(task, pipeline_data)
 		elif task.type == TaskType.RUN_PIPELINE.value:
 			self.task_service.consume_task(task, run_pipeline)
+		elif task.type == TaskType.GROUP.value:
+			data = task.content.get("data")
+			ArrayHelper(data).each(lambda one: pipeline_data(task.topicCode, one, task.tenantId))
 
 	# noinspection PyMethodMayBeStatic
 	def truncated_string(self, long_string: str) -> str:

@@ -1,9 +1,10 @@
 import logging
 
-
 from traceback import format_exc
 from typing import List, Optional, Dict
 
+from watchmen_collector_kernel.service.lock_helper import get_resource_lock
+from watchmen_collector_kernel.service import try_lock_nowait, unlock
 from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, TriggerModel, \
 	CollectorModelConfig, TriggerEvent, TriggerModule, Status, ExecutionStatus, EventType
@@ -17,7 +18,6 @@ from watchmen_collector_surface.settings import ask_post_json_wait
 
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_utilities import ArrayHelper
-
 
 logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
@@ -111,7 +111,7 @@ class PostJsonService:
 					self.process_change_data_json_in_paralleled(trigger_event, model_config, trigger_model)
 				else:
 					if self.is_sequenced_trigger_model_record_to_json_finished(trigger_model):
-						self.process_change_data_json_in_sequenced(trigger_event, model_config, trigger_model)
+						self.process_change_data_json_in_grouped(trigger_event, model_config, trigger_model)
 					else:
 						logger.debug(f'sequenced model {trigger_model.modelName} not finish record to json yet')
 			else:
@@ -143,13 +143,15 @@ class PostJsonService:
 		try:
 			self.change_json_service.begin_transaction()
 			records = self.change_json_service.find_json_and_locked(model_trigger_id)
-			results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value)).map(lambda record: self.change_json_service.update(record)).to_list()
+			results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value)).map(
+				lambda record: self.change_json_service.update(record)).to_list()
 			self.change_json_service.commit_transaction()
 			return results
 		finally:
 			self.change_json_service.close_transaction()
 
-	def process_change_data_json_in_paralleled(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig, trigger_model: TriggerModel):
+	def process_change_data_json_in_paralleled(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
+	                                           trigger_model: TriggerModel):
 		jsons = self.find_json_and_locked(trigger_model.modelTriggerId)
 		for change_data_json in jsons:
 			if self.is_duplicated(change_data_json):
@@ -165,7 +167,68 @@ class PostJsonService:
 					change_data_json.result = format_exc()
 					self.update_result(change_data_json)
 
-	def process_change_data_json_in_sequenced(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig, trigger_model: TriggerModel):
+	def process_change_data_json_in_grouped(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
+	                                        trigger_model: TriggerModel):
+
+		def trigger_model_lock_resource_id(trigger_model: TriggerModel) -> str:
+			return f'trigger_model_{trigger_model.modelTriggerId}'
+
+		lock = get_resource_lock(self.snowflake_generator.next_id(),
+		                         trigger_model_lock_resource_id(trigger_model),
+		                         trigger_model.tenantId)
+		try:
+			if try_lock_nowait(self.competitive_lock_service, lock):
+				processed_list = []
+				change_data_jsons = self.change_json_service.find_json(trigger_model.modelTriggerId)
+				for change_data_json in change_data_jsons:
+					if change_data_json.changeJsonId in processed_list:
+						continue
+					grouped_change_data_jsons = self.change_json_service.find_by_object_id(change_data_json.modelName,
+					                                                                       change_data_json.objectId,
+					                                                                       change_data_json.modelTriggerId)
+					try:
+						self.post_json_group(trigger_event, model_config,
+						                     change_data_json.objectId,
+						                     grouped_change_data_jsons)
+						ArrayHelper(grouped_change_data_jsons).each(
+							lambda json_record: processed_list.append(json_record.changeJsonId)
+						)
+					except Exception as e:
+						logger.error(e, exc_info=True, stack_info=True)
+						change_data_json.isPosted = True
+						change_data_json.status = Status.FAIL.value
+						change_data_json.result = format_exc()
+						self.update_result(change_data_json)
+		finally:
+			processed_list = []
+			unlock(self.competitive_lock_service, lock)
+
+	def post_json_group(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig, object_id: str,
+	                    change_jsons: List[ChangeDataJson]) -> ScheduledTask:
+		task = self.get_grouped_scheduled_task(trigger_event, model_config, object_id, change_jsons)
+
+		def finished_change_json(change_json: ChangeDataJson):
+			change_json.isPosted = True
+			change_json.status = Status.SUCCESS.value
+			change_json.taskId = task.taskId
+			self.change_json_history_service.create(change_json)
+			# noinspection PyTypeChecker
+			self.change_json_service.delete(change_json.changeJsonId)
+
+		try:
+			self.scheduled_task_service.begin_transaction()
+			self.scheduled_task_service.create(task)
+			ArrayHelper(change_jsons).each(finished_change_json)
+			self.scheduled_task_service.commit_transaction()
+			return task
+		except Exception as e:
+			self.scheduled_task_service.rollback_transaction()
+			raise e
+		finally:
+			self.scheduled_task_service.close_transaction()
+
+	def process_change_data_json_in_sequenced(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
+	                                          trigger_model: TriggerModel):
 		jsons = self.find_json_and_locked(trigger_model.modelTriggerId)
 		for change_data_json in jsons:
 			if self.is_duplicated(change_data_json):
@@ -174,7 +237,8 @@ class PostJsonService:
 			else:
 				self.process_sequenced_json(trigger_event, model_config, change_data_json)
 
-	def process_sequenced_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig, change_data_json: ChangeDataJson):
+	def process_sequenced_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
+	                           change_data_json: ChangeDataJson):
 		current_change_json = change_data_json
 		change_jsons = self.change_json_service.find_by_object_id(current_change_json.modelName,
 		                                                          current_change_json.objectId,
@@ -287,7 +351,8 @@ class PostJsonService:
 		else:
 			return False
 
-	def post_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig, change_json: ChangeDataJson) -> ScheduledTask:
+	def post_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
+	              change_json: ChangeDataJson) -> ScheduledTask:
 		task = self.get_scheduled_task(trigger_event, model_config, change_json)
 		try:
 			self.scheduled_task_service.begin_transaction()
@@ -308,9 +373,11 @@ class PostJsonService:
 
 	def restore_json(self, change_data_json: ChangeDataJson) -> ScheduledTask:
 		# noinspection PyTypeChecker
-		return self.change_json_service.update_change_data_json(self.change_status(change_data_json, Status.INITIAL.value))
+		return self.change_json_service.update_change_data_json(
+			self.change_status(change_data_json, Status.INITIAL.value))
 
-	def get_scheduled_task(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig, change_json: ChangeDataJson) -> ScheduledTask:
+	def get_scheduled_task(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
+	                       change_json: ChangeDataJson) -> ScheduledTask:
 		return ScheduledTask(
 			taskId=self.snowflake_generator.next_id(),
 			resourceId=self.generate_resource_id(change_json),
@@ -329,8 +396,38 @@ class PostJsonService:
 			type=self.get_task_type(trigger_event)
 		)
 
+	def get_grouped_scheduled_task(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
+	                               object_id: str, change_jsons: List[ChangeDataJson]) -> ScheduledTask:
+
+		def get_grouped_content(change_jsons: List[ChangeDataJson]) -> Optional[Dict]:
+			content = ArrayHelper(change_jsons).map(lambda change_json: change_json.content).to_list()
+			return {"data": content}
+
+		def generate_grouped_resource_id(change_jsons: List[ChangeDataJson]) -> str:
+			change_json_ids = ArrayHelper(change_jsons).map(lambda change_json: str(change_json.changeJsonId)).to_list()
+			return "-".join(change_json_ids)
+
+		return ScheduledTask(
+			taskId=self.snowflake_generator.next_id(),
+			resourceId=self.snowflake_generator.next_id(),
+			topicCode=model_config.rawTopicCode,
+			content=get_grouped_content(change_jsons),
+			modelName=model_config.modelName,
+			objectId=object_id,
+			dependOn=[],
+			parentTaskId=[],
+			isFinished=False,
+			status=Status.INITIAL.value,
+			result=None,
+			tenantId=trigger_event.tenantId,
+			eventId=trigger_event.eventTriggerId,
+			pipelineId=self.get_pipeline_id(trigger_event),
+			type=3
+		)
+
 	# noinspection PyMethodMayBeStatic
-	def get_content(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig, change_json: ChangeDataJson) -> Optional[Dict]:
+	def get_content(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
+	                change_json: ChangeDataJson) -> Optional[Dict]:
 		if trigger_event.type == EventType.BY_PIPELINE.value:
 			if model_config.rawTopicCode.startswith("raw_"):
 				return change_json.content.get("data_")
