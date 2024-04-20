@@ -162,11 +162,23 @@ class StorageS3(TransactionalStorageSPI):
 		"""
 		raise UnexpectedStorageException('Method[find_and_lock_by_id] does not support by S3 storage.')
 
+	def find_and_lock_by_id_nowait(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
+		"""
+		not supported by S3
+		"""
+		raise UnexpectedStorageException('Method[find_and_lock_by_id_nowait] does not support by S3 storage.')
+
 	def find_one(self, finder: EntityFinder) -> Optional[Entity]:
 		"""
 		not supported by S3
 		"""
 		raise UnexpectedStorageException('Method[find_one] does not support by S3 storage.')
+
+	def find_one_and_lock_nowait(self, finder: EntityFinder) -> Optional[Entity]:
+		"""
+		not supported by S3
+		"""
+		raise UnexpectedStorageException('Method[find_one_and_lock_nowait] does not support by S3 storage.')
 
 	def find(self, finder: EntityFinder) -> EntityList:
 		objects = self.s3_client.get_objects_by_criteria(find_directory(finder.name),
