@@ -16,6 +16,7 @@ class CollectorSettings(BaseSettings):
 	PARTIAL_SIZE: int = 100
 	COLLECTOR_CONFIG_CACHE_ENABLED: bool = True
 	EXCEPTION_MAX_LENGTH = 3000  # character
+	GROUPED_TASK_DATA_SIZE_THRESHOLD = 100
 
 	class Config:
 		# secrets_dir = '/var/run'
@@ -70,3 +71,7 @@ def ask_collector_task_timeout() -> int:
 
 def ask_exception_max_length() -> int:
 	return collector_settings.EXCEPTION_MAX_LENGTH
+
+
+def ask_grouped_task_data_size_threshold() -> int:
+	return collector_settings.GROUPED_TASK_DATA_SIZE_THRESHOLD
