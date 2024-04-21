@@ -128,9 +128,9 @@ class TaskListener:
 		unfinished_tasks = self.find_tasks_and_locked()
 		remaining_tasks = ArrayHelper(unfinished_tasks).to_map(lambda one_task: one_task.taskId, lambda one_task: one_task)
 		for unfinished_task in unfinished_tasks:
+			del remaining_tasks[unfinished_task.taskId]
 			task_executor = get_task_executor(self.task_service, unfinished_task)
 			if task_executor.is_data_size_exceeds_threshold(unfinished_task):
-				del remaining_tasks[unfinished_task.taskId]
 				for task_id, task in remaining_tasks.items():
 					self.restore_task(task)
 				task_executor.process_scheduled_task(unfinished_task)
