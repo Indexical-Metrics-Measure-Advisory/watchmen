@@ -134,6 +134,7 @@ class TaskListener:
 				for task_id, task in remaining_tasks.items():
 					self.restore_task(task)
 				task_executor.process_scheduled_task(unfinished_task)
+				break
 			else:
 				task_executor.process_scheduled_task(unfinished_task)
 
