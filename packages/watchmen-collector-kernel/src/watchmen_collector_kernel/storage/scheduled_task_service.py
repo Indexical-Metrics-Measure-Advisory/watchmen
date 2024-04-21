@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List, Any, Dict
 
-from watchmen_collector_kernel.common import ask_partial_size, STATUS
+from watchmen_collector_kernel.common import ask_task_partial_size, STATUS
 from watchmen_utilities import ArrayHelper
 
 from watchmen_auth import PrincipalService
@@ -158,7 +158,7 @@ class ScheduledTaskService(TupleService):
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_finished'), right=False)
 				],
-				pageable=Pageable(pageNumber=1, pageSize=ask_partial_size())
+				pageable=Pageable(pageNumber=1, pageSize=ask_task_partial_size())
 			)).data
 		finally:
 			self.close_transaction()
@@ -171,7 +171,7 @@ class ScheduledTaskService(TupleService):
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=STATUS), right=0)
 				],
-				limit=limit if limit is not None else ask_partial_size()
+				limit=limit if limit is not None else ask_task_partial_size()
 			))
 
 	def is_existed(self, task: ScheduledTask) -> bool:
