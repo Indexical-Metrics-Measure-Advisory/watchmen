@@ -100,7 +100,7 @@ class ModelExecutor(ModelExecutorSPI):
 
 	def post_grouped_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig, object_id: str,
 	                      change_jsons: List[ChangeDataJson]):
-		pass
+		raise NotImplementedError('Method[post_grouped_json] does not implemented by ModelExecutor.')
 
 	def find_json_and_locked(self, model_trigger_id: int) -> List[ChangeDataJson]:
 		try:
@@ -246,7 +246,7 @@ class SequencedModelExecutor(ModelExecutor):
 
 	def post_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
 	              change_json: ChangeDataJson) -> ScheduledTask:
-		pass
+		raise NotImplementedError('Method[post_json] does not implemented by SequencedModelExecutor.')
 
 	def post_grouped_json(self,
 	                      trigger_event: TriggerEvent,
