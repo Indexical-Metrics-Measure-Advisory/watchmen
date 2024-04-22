@@ -49,9 +49,9 @@ def get_logger_level(level: LogLevel) -> int:
 def init_log():
 	settings = LoggerSettings()
 	logger = getLogger()
-	logger.setLevel(NOTSET)
 
 	logger_level = get_logger_level(settings.LOGGER_LEVEL)
+	logger.setLevel(logger_level)
 
 	# Add stdout handler, with level INFO
 	console = StreamHandler(stdout)
