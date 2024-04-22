@@ -39,6 +39,10 @@ class TaskService:
 			executed(task.topicCode, task.content, task.tenantId)
 		elif task.type == TaskType.RUN_PIPELINE.value:
 			executed(task.topicCode, task.content, task.tenantId, task.pipelineId)
+		elif task.type == TaskType.GROUP.value:
+			raw_data_list = task.content.get("data")
+			for raw_data in raw_data_list:
+				executed(task.topicCode, raw_data, task.tenantId)
 
 	def update_task_result(self, task: ScheduledTask, status: int, result=None) -> ScheduledTask:
 		try:
