@@ -257,7 +257,7 @@ class ScheduledTaskService(TupleService):
 				EntityCriteriaExpression(
 					left=ColumnNameLiteral(columnName='last_modified_at'),
 					operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=4)
 			]))
 		finally:
 			self.storage.close()
