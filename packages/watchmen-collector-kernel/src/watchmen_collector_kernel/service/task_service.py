@@ -60,6 +60,10 @@ class TaskService:
 		finally:
 			self.scheduled_task_service.close_transaction()
 
+	def pipelining_task(self, task: ScheduledTask, status: int) -> ScheduledTask:
+		task.status = status
+		return self.scheduled_task_service.update_task(task)
+
 	def finish_task(self, task: ScheduledTask, status: int, result=None) -> ScheduledTask:
 		try:
 			return self.update_task_result(task, status, result)
