@@ -1,6 +1,6 @@
 import logging
 from traceback import format_exc
-from typing import List
+from typing import List, Dict
 from abc import ABC, abstractmethod
 
 from watchmen_collector_kernel.service.task_service import TaskService
@@ -81,10 +81,6 @@ class GroupedTaskExecutor(DefaultTaskExecutor):
 		else:
 			return False
 
-	def executing_task(self,  task: ScheduledTask):
-		data = task.content.get("data")
-		ArrayHelper(data).each(lambda one: pipeline_data(task.topicCode, one, task.tenantId))
-
 
 def get_task_executor(task_service: TaskService, task: ScheduledTask) -> TaskExecutorSPI:
 	if task.type == TaskType.DEFAULT.value:
@@ -127,12 +123,16 @@ class TaskListener:
 	def process_tasks(self):
 		unfinished_tasks = self.find_tasks_and_locked()
 		remaining_tasks = ArrayHelper(unfinished_tasks).to_map(lambda one_task: one_task.taskId, lambda one_task: one_task)
+
+		def release_remaining_tasks():
+			for task_id, task in remaining_tasks.items():
+				self.restore_task(task)
+
 		for unfinished_task in unfinished_tasks:
 			del remaining_tasks[unfinished_task.taskId]
 			task_executor = get_task_executor(self.task_service, unfinished_task)
 			if task_executor.is_data_size_exceeds_threshold(unfinished_task):
-				for task_id, task in remaining_tasks.items():
-					self.restore_task(task)
+				release_remaining_tasks()
 				task_executor.process_scheduled_task(unfinished_task)
 				break
 			else:

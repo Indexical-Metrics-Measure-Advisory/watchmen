@@ -156,13 +156,13 @@ class QueuedPipelineContexts:
 		topic = schema.get_topic()
 		pipelines = get_pipeline_service(principal_service).find_by_topic_id(topic.topicId)
 		if len(pipelines) == 0:
-			logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
+			logger.info(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
 			return []
 
 		pipelines = ArrayHelper(pipelines) \
 			.filter(lambda x: self.should_run(trigger.triggerType, x)).to_list()
 		if len(pipelines) == 0:
-			logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
+			logger.info(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
 			return []
 
 		# to avoid the loop dependency
