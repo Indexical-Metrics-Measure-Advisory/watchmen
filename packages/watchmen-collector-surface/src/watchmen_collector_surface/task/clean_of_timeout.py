@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from logging import getLogger
 
-from watchmen_collector_kernel.model import Status, ChangeDataRecord, ChangeDataJson
+from watchmen_collector_kernel.model import Status, ChangeDataRecord, ChangeDataJson, ScheduledTask
 from watchmen_utilities import ArrayHelper
 
 from watchmen_collector_kernel.service import try_lock_nowait, get_resource_lock, unlock, get_task_service

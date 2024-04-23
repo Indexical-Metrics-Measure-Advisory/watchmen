@@ -1,6 +1,6 @@
 import logging
 from traceback import format_exc
-from typing import List
+from typing import List, Dict
 from abc import ABC, abstractmethod
 
 from watchmen_collector_kernel.service.task_service import TaskService
@@ -46,7 +46,6 @@ class DefaultTaskExecutor(TaskExecutorSPI):
 
 	def process_scheduled_task(self, task: ScheduledTask) -> ScheduledTask:
 		try:
-			self.task_service.pipelining_task(task, Status.PIPELINING.value)
 			self.executing_task(task)
 			return self.task_service.finish_task(task, Status.SUCCESS.value)
 		except Exception as e:
