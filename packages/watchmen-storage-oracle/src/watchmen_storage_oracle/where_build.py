@@ -178,9 +178,9 @@ def build_criteria_expression(tables: List[Table], expression: EntityCriteriaExp
 	built_left = build_literal(tables, expression.left)
 	op = expression.operator
 	if op == EntityCriteriaOperator.IS_EMPTY:
-		return or_(built_left.is_(None), func.concat(built_left, '') == '')
+		return built_left.is_(None)
 	elif op == EntityCriteriaOperator.IS_NOT_EMPTY:
-		return and_(built_left.is_not(None), func.concat(built_left, '') != '')
+		return built_left.is_not(None)
 	elif op == EntityCriteriaOperator.IS_BLANK:
 		return or_(built_left.is_(None), func.trim(built_left) == '')
 	elif op == EntityCriteriaOperator.IS_NOT_BLANK:
