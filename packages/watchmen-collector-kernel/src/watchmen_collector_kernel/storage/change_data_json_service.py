@@ -204,8 +204,7 @@ class ChangeDataJsonService(TupleService):
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
 					                         right=model_trigger_id)
-				],
-				sort=[EntitySortColumn(name='sequence', method=EntitySortMethod.ASC)]
+				]
 			))
 		finally:
 			self.storage.close()
