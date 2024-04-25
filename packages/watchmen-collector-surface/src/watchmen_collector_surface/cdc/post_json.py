@@ -215,6 +215,9 @@ class SequencedModelExecutor(ModelExecutor):
 		def trigger_model_lock_resource_id(trigger_model: TriggerModel) -> str:
 			return f'trigger_model_{trigger_model.modelTriggerId}'
 
+		def sort_grouped_change_data_jsons(another: ChangeDataJson, one: ChangeDataJson) -> int:
+			return another.sequence - one.sequence
+
 		lock = get_resource_lock(self.snowflake_generator.next_id(),
 		                         trigger_model_lock_resource_id(trigger_model),
 		                         trigger_model.tenantId)
@@ -225,13 +228,15 @@ class SequencedModelExecutor(ModelExecutor):
 				for change_data_json in change_data_jsons:
 					if change_data_json.changeJsonId in processed_list:
 						continue
-					grouped_change_data_jsons = self.change_json_service.find_by_object_id(change_data_json.modelName,
-					                                                                       change_data_json.objectId,
-					                                                                       change_data_json.modelTriggerId)
+
 					try:
+						grouped_change_data_jsons = self.change_json_service.find_by_object_id(change_data_json.modelName,
+						                                                                       change_data_json.objectId,
+						                                                                       change_data_json.modelTriggerId)
+						sorted_change_data_jsons = ArrayHelper(grouped_change_data_jsons).sort(sort_grouped_change_data_jsons).to_list()
 						self.post_grouped_json(trigger_event, model_config, change_data_json.objectId,
-						                       grouped_change_data_jsons)
-						ArrayHelper(grouped_change_data_jsons).each(
+						                       sorted_change_data_jsons)
+						ArrayHelper(sorted_change_data_jsons).each(
 							lambda json_record: processed_list.append(json_record.changeJsonId)
 						)
 					except Exception as e:
