@@ -36,9 +36,9 @@ class SecretType(str, Enum):
 
 class EngineParams(BaseModel):
 	host: str
-	port: str
+	port: str = None
 	username: str
-	password: str
+	password: str = None
 	name: str
 	params: List[DataSourceParam] = None
 

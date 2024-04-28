@@ -115,7 +115,7 @@ class NumericValueMeasureBucket(MeasureBucket, NumericSegmentsHolder):
 
 OtherCategorySegmentValue = Literal['&others']
 
-CategorySegmentValue = List[Union[str, OtherCategorySegmentValue]]
+CategorySegmentValue = List[str]
 
 
 class CategorySegment(BucketSegment):
