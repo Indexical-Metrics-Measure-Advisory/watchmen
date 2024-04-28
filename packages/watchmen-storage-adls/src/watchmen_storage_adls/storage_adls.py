@@ -105,7 +105,9 @@ class StorageAzureDataLake(TransactionalStorageSPI):
 		raise UnexpectedStorageException('Method[update_and_pull] does not support by Azure Data Lake Storage.')
 
 	def delete_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> int:
-		return self.service.delete_file(entity_id)
+		directory_name = find_directory(helper.name)
+		directory_client = self.service.get_directory_client(directory_name)
+		return self.service.delete_file(directory_client, entity_id)
 
 	def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
 		"""
@@ -151,7 +153,9 @@ class StorageAzureDataLake(TransactionalStorageSPI):
 		raise UnexpectedStorageException('Method[delete_and_pull] does not support by Azure Data Lake Storage.')
 
 	def find_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
-		entity = self.service.get_file(entity_id)
+		directory_name = find_directory(helper.name)
+		directory_client = self.service.get_directory_client(directory_name)
+		entity = self.service.get_file(directory_client, entity_id)
 		if entity is None:
 			return None
 		else:
