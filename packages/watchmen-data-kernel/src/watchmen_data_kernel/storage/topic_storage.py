@@ -50,6 +50,13 @@ def build_s3_storage(data_source: DataSource) -> Callable[[], TopicDataStorageSP
 	return lambda: configuration.create_topic_data_storage()
 
 
+def build_adls_storage(data_source: DataSource) -> Callable[[], TopicDataStorageSPI]:
+	from watchmen_storage_adls import StorageAzureDataLakeConfiguration, AzureDataLakeStorageParams
+	configuration = StorageAzureDataLakeConfiguration(
+		data_source, AzureDataLakeStorageParams())
+	return lambda: configuration.create_topic_data_storage()
+
+
 def build_topic_data_storage(data_source: DataSource) -> Callable[[], TopicDataStorageSPI]:
 	if data_source.dataSourceType == DataSourceType.MYSQL:
 		return build_mysql_storage(data_source)
@@ -65,6 +72,8 @@ def build_topic_data_storage(data_source: DataSource) -> Callable[[], TopicDataS
 		return build_oss_storage(data_source)
 	if data_source.dataSourceType == DataSourceType.S3:
 		return build_s3_storage(data_source)
+	if data_source.dataSourceType == DataSourceType.ADLS:
+		return build_adls_storage(data_source)
 
 	raise DataKernelException(
 		f'Topic data storage[id={data_source.dataSourceId}, name={data_source.name} type={data_source.dataSourceType}] '

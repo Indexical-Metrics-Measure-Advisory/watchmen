@@ -19,7 +19,8 @@ class DataSourceType(str, Enum):
 	MSSQL = 'mssql',
 	POSTGRESQL = 'postgresql',
 	OSS = 'oss',
-	S3 = 's3'
+	S3 = 's3',
+	ADLS = 'adls'  # Azure Data Lake Storage
 
 
 def construct_param(param: Optional[Union[dict, DataSourceParam]]) -> Optional[DataSourceParam]:
