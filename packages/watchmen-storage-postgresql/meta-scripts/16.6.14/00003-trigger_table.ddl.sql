@@ -1,0 +1,1 @@
+CREATE INDEX idx_trigger_table_model_trigger_id ON trigger_table(model_trigger_id);
