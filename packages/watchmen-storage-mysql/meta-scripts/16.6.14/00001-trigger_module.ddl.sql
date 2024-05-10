@@ -1,0 +1,1 @@
+ALTER TABLE trigger_module ADD INDEX idx_trigger_module_event_trigger_id(event_trigger_id);

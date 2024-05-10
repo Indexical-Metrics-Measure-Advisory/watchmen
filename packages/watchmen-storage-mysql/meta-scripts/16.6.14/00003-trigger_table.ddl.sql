@@ -1,0 +1,1 @@
+ALTER TABLE trigger_table ADD INDEX idx_trigger_table_model_trigger_id(model_trigger_id);
