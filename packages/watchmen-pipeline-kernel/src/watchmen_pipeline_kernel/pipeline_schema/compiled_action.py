@@ -675,7 +675,7 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 							f'{self.on_topic_message()}, by [{[statement.to_dict()]}].')
 					# found one matched, do update
 					updated_count = self.do_update_with_lock(
-						data[0], variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
+						locked_data, variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
 					if updated_count == 0:
 						raise PipelineKernelException(
 							f'Data not found on doing last try to update, '
