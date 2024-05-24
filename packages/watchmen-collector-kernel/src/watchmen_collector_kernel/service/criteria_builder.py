@@ -43,11 +43,14 @@ class CriteriaBuilder:
 				variable_name = condition_value.removeprefix(LEFT_BRACE).removesuffix(RIGHT_BRACE)
 				variable_value = self.variables.get(variable_name)
 				if isinstance(variable_value, str):
-					parsed, value = is_date(variable_value, ask_all_date_formats())
-					if parsed:
-						return value
-					else:
+					if variable_value.isdigit():
 						return variable_value
+					else:
+						parsed, value = is_date(variable_value, ask_all_date_formats())
+						if parsed:
+							return value
+						else:
+							return variable_value
 				else:
 					return variable_value
 			else:
