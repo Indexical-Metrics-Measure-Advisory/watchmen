@@ -56,9 +56,7 @@ class TopicStructureService:
 
 	# noinspection PyMethodMayBeStatic
 	def raise_exception(self, message: str, e: Optional[Exception] = None) -> None:
-		# if e is not None:
-		# 	logger.error(e, exc_info=True, stack_info=True)
-		raise DataKernelException(message)
+		raise DataKernelException(message) from e
 
 	def build_id_criteria(self, data: Dict[str, Any]) -> EntityCriteria:
 		data_entity_helper = self.get_data_entity_helper()
