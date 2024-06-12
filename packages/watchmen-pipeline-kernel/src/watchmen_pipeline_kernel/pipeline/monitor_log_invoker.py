@@ -32,16 +32,21 @@ def create_monitor_log_pipeline_invoker(
 ) -> Callable[[PipelineMonitorLog, bool], None]:
 
 	def is_logging_required(monitor_log: PipelineMonitorLog) -> bool:
-		if ask_pipeline_error_handle_monitor_log() and monitor_log.status == MonitorLogStatus.ERROR:
-			return True
+		if ask_pipeline_error_handle_monitor_log():
+			if monitor_log.status == MonitorLogStatus.ERROR:
+				return True
+			else:
+				return False
 
 		topic_service = get_topic_service(principal_service)
 		topic = topic_service.find_by_id(monitor_log.topicId)
-		if topic is not None:
-			if topic.kind != TopicKind.SYSTEM:
+		if topic is None:
+			return False
+		else:
+			if topic.kind == TopicKind.SYSTEM:
+				return False
+			else:
 				return True
-
-		return False
 
 	def handle_monitor_log(monitor_log: PipelineMonitorLog, asynchronized: bool) -> None:
 		if is_logging_required(monitor_log):
