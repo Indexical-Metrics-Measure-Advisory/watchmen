@@ -21,6 +21,7 @@ class PipelineKernelSettings(BaseSettings):
 	PIPELINE_UPDATE_RETRY_INTERVAL: int = 10  # retry interval in milliseconds
 	PIPELINE_UPDATE_RETRY_FORCE: bool = True  # enable force retry after all retries failed
 	PIPELINE_ASYNC_HANDLE_MONITOR_LOG: bool = True  # handle monitor log (might with pipelines) asynchronized
+	PIPELINE_ERROR_HANDLE_MONITOR_LOG: bool = False  # just handle error monitor log
 	QUERY_MONITOR_LOG: bool = False
 	PIPELINE_RECURSION_LIMIT: int = 900
 
@@ -101,3 +102,7 @@ def ask_query_monitor_log() -> bool:
 
 def ask_pipeline_recursion_limit() -> int:
 	return settings.PIPELINE_RECURSION_LIMIT
+
+
+def ask_pipeline_error_handle_monitor_log() -> bool:
+	return settings.PIPELINE_ERROR_HANDLE_MONITOR_LOG
