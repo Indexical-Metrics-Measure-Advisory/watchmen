@@ -303,7 +303,7 @@ class TopicDataService(TopicStructureService):
 		"""
 		data_entity_helper = self.get_data_entity_helper()
 		row = self.get_storage().find_and_lock_by_id(data_id, data_entity_helper.get_entity_id_helper())
-		entity = data_entity_helper.get_entity_shaper().deserialize(row)
+		entity = data_entity_helper.get_entity_shaper().deserialize(dict(row))
 		return entity
 
 	def find_distinct_values(
