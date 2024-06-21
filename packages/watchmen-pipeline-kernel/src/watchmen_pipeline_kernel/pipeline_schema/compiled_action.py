@@ -7,6 +7,8 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from time import sleep
 
+from sqlalchemy.exc import IntegrityError
+
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.external_writer import ask_external_writer_creator, ExternalWriter, \
 	ExternalWriterParams
@@ -537,7 +539,7 @@ class CompiledInsertion(CompiledWriteTopicAction):
 		self.schema.encrypt(data, principal_service)
 		try:
 			data = topic_data_service.insert(data)
-		except Exception as e:
+		except IntegrityError as e:
 			logger.error(e, exc_info=True, stack_info=True)
 			if allow_failure:
 				return False
