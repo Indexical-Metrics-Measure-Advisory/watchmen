@@ -302,7 +302,9 @@ class TopicDataService(TopicStructureService):
 		will find id criteria from given data
 		"""
 		data_entity_helper = self.get_data_entity_helper()
-		return self.get_storage().find_and_lock_by_id(data_id, data_entity_helper.get_entity_id_helper())
+		row = self.get_storage().find_and_lock_by_id(data_id, data_entity_helper.get_entity_id_helper())
+		entity = data_entity_helper.get_entity_shaper().deserialize(dict(row))
+		return entity
 
 	def find_distinct_values(
 			self, criteria: Optional[EntityCriteria], column_names: List[EntityColumnName],
