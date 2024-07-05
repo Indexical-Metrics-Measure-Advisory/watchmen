@@ -34,6 +34,7 @@ export const En = {
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'Search by bucket name.',
 		FIND_OBJECTIVE_PLACEHOLDER: 'Find by objective name, description',
 		FIND_CONVERGENCE_PLACEHOLDER: 'Find by convergence name, description',
+		FIND_DATA_STORY_PLACEHOLDER: 'Find by data story name, description',
 		OBJECTIVE_NAME_PLACEHOLDER: 'A human reading name for objective.',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: 'Objective description here...',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: 'Variable name.',
@@ -347,6 +348,7 @@ export const En = {
 			INDICATORS: 'Indicators',
 			OBJECTIVES: 'Objectives',
 			CONVERGENCES: 'Convergences',
+			STORY: 'Data Story',
 			SETTINGS: 'Settings',
 			LOGOUT: 'Logout'
 		},
@@ -602,6 +604,12 @@ export const En = {
 			TEST_VALUE_CLICK: 'Click to retrieve values',
 			TEST_VALUE_GET_NONE: 'No data retrieved from server side.'
 		},
+		STORY:{
+			DATA_STORY:"Data Story",
+			NEW_STORY_PREFIX: 'A New Data Story',
+			LIST_LABEL: 'Data Story',
+			EXISTING_STORY_PREFIX: 'An Existing',
+		},
 		CONVERGENCE: {
 			LIST_TITLE: 'Convergences',
 			LIST_CREATE_CONVERGENCE: 'Define Convergence',
@@ -677,6 +685,10 @@ export const En = {
 			NOTE_REQUIRED: 'Note is required for a token.'
 		}
 	},
+	// GPT_SETTINGS:{
+	// 	Microsoft:'Microsoft',
+	// 	OpenAI:'OpenAI'
+	// },
 	PARAM: {
 		FROM: 'From',
 		FROM_TOPIC: 'Topic',

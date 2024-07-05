@@ -7,7 +7,8 @@ import {
 	ICON_IDW,
 	ICON_LOGOUT,
 	ICON_SETTINGS,
-	ICON_SWITCH_WORKBENCH
+	ICON_SWITCH_WORKBENCH,
+	ICON_INDUSTRY
 } from '@/widgets/basic/constants';
 import {SideMenuItem} from '@/widgets/basic/side-menu/side-menu-item';
 import {SideMenuLogo} from '@/widgets/basic/side-menu/side-menu-logo';
@@ -85,6 +86,9 @@ export const ConsoleMenu = () => {
 		<SideMenuLogo title={Lang.CONSOLE.MENU.TITLE}/>
 		<SideMenuItem icon={ICON_HOME} label={Lang.CONSOLE.MENU.HOME} showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.CONSOLE_HOME}, location.pathname)}
+		              onClick={navigateTo(Router.CONSOLE_HOME)}/>
+		<SideMenuItem icon={ICON_INDUSTRY} label={Lang.CONSOLE.MENU.HOME} showTooltip={showTooltip}
+		              active={!!matchPath({path: Router.CONSOLE_DASHBOARD_ALL}, location.pathname)}
 		              onClick={navigateTo(Router.CONSOLE_HOME)}/>
 		<SideMenuItem icon={ICON_DASHBOARD} label={Lang.CONSOLE.MENU.DASHBOARDS} showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.CONSOLE_DASHBOARD_ALL}, location.pathname)}

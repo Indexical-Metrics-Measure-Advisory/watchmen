@@ -78,6 +78,7 @@ export const relativeToIDWIndicator = (path: Router): string => relativeTo(path,
 export const relativeToIDWObjective = (path: Router): string => relativeTo(path, Router.IDW_OBJECTIVE);
 export const relativeToIDWConvergence = (path: Router): string => relativeTo(path, Router.IDW_CONVERGENCE);
 export const relativeToShare = (path: Router): string => relativeTo(path, Router.SHARE);
+export const relativeToIDWStory = (path: Router): string => relativeTo(path, Router.IDW_STORY);
 
 export const asTopRoute = (path: Router, children: ReactNode) => <Route path={path} element={children}/>;
 const asRoute = (relative: (path: Router) => string) => {
@@ -97,6 +98,7 @@ export const asIDWRoute = (path: Router, children: ReactNode) => asRoute(relativ
 export const asIDWIndicatorRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDWIndicator)(path, children);
 export const asIDWObjectiveRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDWObjective)(path, children);
 export const asIDWConvergenceRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDWConvergence)(path, children);
+export const asIDWStoryRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDWStory)(path, children);
 export const asShareRoute = (path: Router, children: ReactNode) => asRoute(relativeToShare)(path, children);
 export const asFallbackNavigate = (path: Router) => <Route path="*" element={<Navigate to={path} replace={true}/>}/>;
 export const asFallbackRoute = (children: ReactNode) => <Route path="*" element={children}/>;
