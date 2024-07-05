@@ -11,6 +11,7 @@ import {TopicDescriptionInput} from './topic/topic-description-input';
 import {TopicKindInput} from './topic/topic-kind-input';
 import {TopicNameInput} from './topic/topic-name-input';
 import {TopicTypeInput} from './topic/topic-type-input';
+import {TopicLayerInput} from './topic/topic-layer-input';
 import {HoldByTopic} from './types';
 
 const TopicEditor = (props: {
@@ -25,6 +26,8 @@ const TopicEditor = (props: {
 		<TopicNameInput topic={topic}/>
 		<TuplePropertyLabel>Topic Kind:</TuplePropertyLabel>
 		<TopicKindInput topic={topic}/>
+		{/*<TuplePropertyLabel>Layer:</TuplePropertyLabel>*/}
+		{/*<TopicLayerInput topic={topic}/>*/}
 		<TuplePropertyLabel>Topic Type:</TuplePropertyLabel>
 		<TopicTypeInput topic={topic}/>
 		{isMultipleDataSourcesEnabled()

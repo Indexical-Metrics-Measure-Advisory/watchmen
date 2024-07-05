@@ -211,7 +211,20 @@ export const Apis = {
 	CONVERGENCE_GET: 'indicator/convergence?convergence_id=:convergenceId',
 	CONVERGENCE_CREATE: 'indicator/convergence',
 	CONVERGENCE_SAVE: 'indicator/convergence',
-	CONVERGENCE_VALUES: 'indicator/convergence/data'
+	CONVERGENCE_VALUES: 'indicator/convergence/data',
+
+	STORY_LIST_BY_NAME :'indicator/stories/name?query_name=:search',
+
+
+	AI_MODEL_LIST_BY_TENANT: 'ai_model/all',
+	AI_MODEL_GET: 'ai_model?model_id=:modelId',
+	// GPT_MODEL_CREATE: 'gpt-model',
+	AI_MODEL_SAVE: 'ai_model',
+	AI_MODEL_LIST_BY_NAME: 'ai_model/name?query_name=:search',
+
+
+	ASK_AI_GENERATE_TOPIC_FACTORS : 'ai/ask/generate/topic/factors',
+	ASK_AI_GENERATE_FACTOR_DESCRIPTION : 'ai/generate/factor/description',
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {

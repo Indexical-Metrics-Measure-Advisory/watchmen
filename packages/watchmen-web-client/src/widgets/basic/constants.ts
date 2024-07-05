@@ -67,7 +67,8 @@ import {
 	faLink,
 	faLock,
 	faLockOpen,
-	faLongArrowLeft, faLongArrowRight,
+	faLongArrowLeft,
+	faLongArrowRight,
 	faMagnifyingGlassChart,
 	faMicroscope,
 	faObjectGroup,
@@ -122,8 +123,10 @@ import {
 	faWind,
 	faWindowMaximize,
 	faWindowMinimize,
-	faWindowRestore
-} from '@fortawesome/free-solid-svg-icons';
+	faWindowRestore,
+	faIndustry,
+	faStoreAlt, faMagic, faWandMagic, faWandMagicSparkles,
+} from "@fortawesome/free-solid-svg-icons";
 
 export const TOOLTIP_Z_INDEX = 10000;
 export const DIALOG_Z_INDEX = 99989;
@@ -158,7 +161,7 @@ export const SIDE_MENU_RESIZE_HANDLE_WIDTH = 6;
 export const TOOLTIP_MAX_WIDTH = 320;
 export const TOOLTIP_CARET_OFFSET = 6;
 
-export const PIN_FAVORITE_HEIGHT = 'calc(var(--height) * 1.2 + 1px)';
+export const PIN_FAVORITE_HEIGHT = "calc(var(--height) * 1.2 + 1px)";
 
 export const CHART_SETTINGS_MIN_WIDTH = 350;
 export const CHART_SETTINGS_MAX_WIDTH = 500;
@@ -176,6 +179,7 @@ export const ICON_ADMIN = faTools;
 export const ICON_DQC = faCoins;
 export const ICON_IDW = faBusinessTime;
 export const ICON_HOME = faHome;
+export const ICON_INDUSTRY = faIndustry;
 export const ICON_LOGOUT = faPowerOff;
 
 export const ICON_USER_GROUP = faUsers;
@@ -328,4 +332,7 @@ export const ICON_VOLUME_NO_CHANGE = faArrowRightLong;
 export const ICON_VARIABLES = faSliders;
 
 // mock data
-export const MOCK_ACCOUNT_NAME = 'Dr. X';
+export const MOCK_ACCOUNT_NAME = "Dr. X";
+export const ICON_SHORE = faStoreAlt;
+export const ICON_MAGIC = faWandMagic
+export const ICON_MAGIC_SPARKLES = faWandMagicSparkles

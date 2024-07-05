@@ -4,6 +4,7 @@ import {Topic} from '@/services/data/tuples/topic-types';
 export enum TopicEventTypes {
 	TOPIC_NAME_CHANGED = 'topic-name-changed',
 	TOPIC_KIND_CHANGED = 'topic-kind-changed',
+	TOPIC_LAYER_CHANGED = 'topic-layer-changed',
 	TOPIC_TYPE_CHANGED = 'topic-type-changed',
 	TOPIC_DATA_SOURCE_CHANGED = 'topic-data-source-changed',
 	TOPIC_DESCRIPTION_CHANGED = 'topic-description-changed',
@@ -35,6 +36,10 @@ export interface TopicEventBus {
 	fire(type: TopicEventTypes.TOPIC_KIND_CHANGED, topic: Topic): this;
 	on(type: TopicEventTypes.TOPIC_KIND_CHANGED, listener: (topic: Topic) => void): this;
 	off(type: TopicEventTypes.TOPIC_KIND_CHANGED, listener: (topic: Topic) => void): this;
+
+	fire(type: TopicEventTypes.TOPIC_LAYER_CHANGED, topic: Topic): this;
+	on(type: TopicEventTypes.TOPIC_LAYER_CHANGED, listener: (topic: Topic) => void): this;
+	off(type: TopicEventTypes.TOPIC_LAYER_CHANGED, listener: (topic: Topic) => void): this;
 
 	fire(type: TopicEventTypes.TOPIC_TYPE_CHANGED, topic: Topic): this;
 	on(type: TopicEventTypes.TOPIC_TYPE_CHANGED, listener: (topic: Topic) => void): this;

@@ -43,6 +43,8 @@ export const TupleEdit = <T extends Tuple, HBT extends HoldByTuple>(props: {
 		};
 		const onTupleLoaded = (tuple: T, codes?: HBT) => {
 			fire(TupleEventTypes.CHANGE_TUPLE_STATE, TupleState.NONE);
+			console.log(tuple)
+			console.log(codes)
 			setState({tuple, codes});
 		};
 		const onHide = () => {
@@ -103,7 +105,7 @@ export const TupleEdit = <T extends Tuple, HBT extends HoldByTuple>(props: {
 
 	const onEditing = !!state.tuple && !isFakedUuid(state.tuple);
 	const title = onEditing ? <>{existingTupleLabelPrefix} {tupleLabel}</> : <>{newTupleLabelPrefix} {tupleLabel}</>;
-
+	console.log("edit !!",state)
 	return <TupleEditContainer visible={!!state.tuple}>
 		<TupleBackgroundImage tupleImage={tupleImage} tupleImagePosition={tupleImagePosition}/>
 		<TupleEditBody>
