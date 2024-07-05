@@ -31,6 +31,7 @@ table_pats = Table(
 table_tenants = Table(
 	'tenants', meta_data,
 	create_pk('tenant_id'),
+	create_bool('enable_ai', False),
 	create_str('name', 50, False),
 	*create_tuple_audit_columns(), create_optimistic_lock()
 )
@@ -72,6 +73,18 @@ table_users = Table(
 	create_bool('is_active'), create_json('group_ids'), create_str('role', 50),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
+
+table_ai_models= Table(
+	'ai_models', meta_data,
+	create_pk('model_id'),
+	create_str('model_name', 50, False), create_str('model_version', 50), create_str('model_token', 50),
+	create_bool('enable_monitor', False), create_str('llm_provider', 50),
+	create_str('base_url', 255), create_str('embedding_provider', 50),
+	create_str('base_embedding_url', 255), create_str('embedding_name', 50),
+	create_str('embedding_version', 50), create_str('embedding_token', 50),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+
 table_user_groups = Table(
 	'user_groups', meta_data,
 	create_pk('user_group_id'),
@@ -497,6 +510,7 @@ tables: Dict[str, Table] = {
 	# system
 	'pats': table_pats,
 	'tenants': table_tenants,
+	'ai_models': table_ai_models,
 	'external_writers': table_external_writers,
 	'plugins': table_plugins,
 	'data_sources': table_data_sources,
@@ -557,6 +571,7 @@ tables: Dict[str, Table] = {
 	'change_data_record_history': table_change_data_record_history,
 	'change_data_json': table_change_data_json,
 	'change_data_json_history': table_change_data_json_history
+
 }
 
 

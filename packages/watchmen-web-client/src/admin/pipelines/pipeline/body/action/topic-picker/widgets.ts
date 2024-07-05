@@ -5,7 +5,7 @@ import styled from 'styled-components';
 export const TopicFinderContainer = styled.div.attrs({'data-widget': 'topic-finder'})`
 	display               : grid;
 	position              : relative;
-	grid-template-columns : auto 1fr;
+	grid-template-columns : repeat(3, 200px) ;
 	//> div[data-widget=dropdown]:first-child:last-child {
 	//	border-radius : calc(var(--param-height) / 2);
 	//}

@@ -3,6 +3,7 @@ from typing import TypeVar
 TenantId = TypeVar('TenantId', bound=str)
 
 DataSourceId = TypeVar('DataSourceId', bound=str)
+AIModelId = TypeVar('AIModelId', bound=str)
 ExternalWriterId = TypeVar('ExternalWriterId', bound=str)
 PluginId = TypeVar('PluginId', bound=str)
 

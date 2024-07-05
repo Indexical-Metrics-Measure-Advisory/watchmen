@@ -287,6 +287,7 @@ export const VI = {
 			INDICATORS: 'Chỉ báo',
 			OBJECTIVES: 'Đối tượng',
 			SETTINGS: 'Cài đặt',
+			STORY: 'Câu chuyện',
 			LOGOUT: 'Đăng xuất'
 		},
 		ON_EDIT: 'Bạn đang sửa, tất cả thay đổi sẽ không được lưu lại nếu bị gián đoạn. Bạn có chắc chắn muốn tiếp tục?',

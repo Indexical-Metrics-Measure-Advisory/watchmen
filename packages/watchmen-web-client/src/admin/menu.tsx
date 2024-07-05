@@ -9,7 +9,7 @@ import {
 	ICON_EXTERNAL_WRITERS,
 	ICON_HOME,
 	ICON_IDW,
-	ICON_LOGOUT,
+	ICON_LOGOUT, ICON_MAGIC, ICON_MAGIC_SPARKLES,
 	ICON_MONITOR_LOGS,
 	ICON_PIPELINE,
 	ICON_PIPELINE_DEBUG,
@@ -130,6 +130,10 @@ export const AdminMenu = () => {
 		              active={!!matchPath({path: Router.ADMIN_PLUGINS}, location.pathname)}
 		              onClick={navigateTo(Router.ADMIN_PLUGINS)}
 		              visible={isSuperAdmin() && isPluginEnabled()}/>
+		<SideMenuItem icon={ICON_MAGIC_SPARKLES} label="AI Models" showTooltip={showTooltip}
+					  active={!!matchPath({path: Router.ADMIN_AI_MODEL}, location.pathname)}
+					  onClick={navigateTo(Router.ADMIN_AI_MODEL)}
+					  visible={isSuperAdmin()}/>
 		<SideMenuItem icon={ICON_USER} label="Users" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.ADMIN_USERS}, location.pathname)}
 		              onClick={navigateTo(Router.ADMIN_USERS)}/>

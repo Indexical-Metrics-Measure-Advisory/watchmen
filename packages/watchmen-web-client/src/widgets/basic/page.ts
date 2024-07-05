@@ -20,6 +20,12 @@ export const SettingsPage = styled(FixWidthPage)`
 	max-width : 1000px;
 `;
 
+export const GPTPage = styled(FixWidthPage)`
+	flex-grow      : 2;
+	display        : flex;
+	max-width : 1000px;
+`;
+
 export const FullWidthPage = styled.div.attrs({'data-widget': 'full-width-page'})`
 	flex-grow      : 1;
 	display        : flex;
