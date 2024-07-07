@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "~3.12"
 boto3 = "^1.24.20"
 watchmen-storage = { path = "../watchmen-storage", develop = true }
 

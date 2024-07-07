@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "~3.12"
 watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
 watchmen-rest = { path = "../watchmen-rest", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }

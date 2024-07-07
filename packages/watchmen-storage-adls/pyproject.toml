@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "~3.12"
 azure-storage-file-datalake = "^12.14.0"
 azure-identity = "^1.16.0"
 watchmen-storage = { path = "../watchmen-storage", develop = true }
