@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "~3.12"
 pycryptodome = "^3.14.1"
 watchmen-auth = { path = "../watchmen-auth", develop = true }
 watchmen-storage = { path = "../watchmen-storage", develop = true }

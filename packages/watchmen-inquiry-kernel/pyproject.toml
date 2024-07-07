@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "~3.12"
 watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
 watchmen-pipeline-kernel = { path = "../watchmen-pipeline-kernel", develop = true }
 watchmen-inquiry-trino = { path = "../watchmen-inquiry-trino", develop = true, optional = true }
