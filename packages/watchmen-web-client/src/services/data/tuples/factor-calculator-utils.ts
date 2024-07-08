@@ -1,4 +1,4 @@
-import { getCurrentTime } from "../utils";
+import {getCurrentTime} from '../utils';
 import {
 	AnyFactorType,
 	DeclaredVariables,
@@ -10,13 +10,13 @@ import {
 	ValueTypeOfParameter,
 	ValueTypes,
 	ValueTypesOfParameter,
-	VariablePredefineFunctions,
-} from "./factor-calculator-types";
-import { CompatibleTypes, Factor, FactorId, FactorType } from "./factor-types";
-import { isComputedParameter, isConstantParameter, isTopicFactorParameter } from "./parameter-utils";
-import { Topic, TopicId, TopicKind, TopicType, TopicLayer } from "./topic-types";
+	VariablePredefineFunctions
+} from './factor-calculator-types';
+import {CompatibleTypes, Factor, FactorId, FactorType} from './factor-types';
+import {isComputedParameter, isConstantParameter, isTopicFactorParameter} from './parameter-utils';
+import {Topic, TopicId, TopicKind, TopicLayer, TopicType} from './topic-types';
 
-export const createUnknownTopic = (topicId: TopicId, name: string = "Unknown Topic"): Topic => {
+export const createUnknownTopic = (topicId: TopicId, name: string = 'Unknown Topic'): Topic => {
 	return {
 		topicId,
 		name,
@@ -26,15 +26,15 @@ export const createUnknownTopic = (topicId: TopicId, name: string = "Unknown Top
 		factors: [] as Array<Factor>,
 		version: 1,
 		createdAt: getCurrentTime(),
-		lastModifiedAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };
-export const createUnknownFactor = (factorId: FactorId, name: string = "Unknown Factor"): Factor => {
+export const createUnknownFactor = (factorId: FactorId, name: string = 'Unknown Factor'): Factor => {
 	return {
 		factorId,
 		name,
 		type: FactorType.TEXT,
-		label: "",
+		label: ''
 	};
 };
 
@@ -56,7 +56,7 @@ export const findSelectedTopic = (
 			selectedTopic = extraTopic;
 		}
 	}
-	return { selected: selectedTopic, extra: extraTopic };
+	return {selected: selectedTopic, extra: extraTopic};
 };
 /**
  * find selected factor by given topic & factorId.
@@ -83,7 +83,7 @@ export const findSelectedFactor = (
 			selectedFactor = extraFactor;
 		}
 	}
-	return { selected: selectedFactor, extra: extraFactor };
+	return {selected: selectedFactor, extra: extraFactor};
 };
 
 /**
@@ -94,7 +94,7 @@ export const isFactorTypeCompatibleWith = (options: {
 	expectedTypes: ValueTypes;
 	reasons: (reason: ParameterInvalidReason) => void;
 }): boolean => {
-	const { factorType, expectedTypes, reasons } = options;
+	const {factorType, expectedTypes, reasons} = options;
 
 	if (expectedTypes.includes(AnyFactorType.ANY)) {
 		return true;
@@ -108,7 +108,7 @@ export const isFactorTypeCompatibleWith = (options: {
 	}
 
 	const passed = expectedTypes.some((expectedType) => {
-		const { includes = [], excludes = [] } = CompatibleTypes[expectedType as FactorType] || {};
+		const {includes = [], excludes = []} = CompatibleTypes[expectedType as FactorType] || {};
 		return (includes.length === 0 || includes.includes(factorType)) && !excludes.includes(factorType);
 	});
 
@@ -129,7 +129,7 @@ export const isComputeTypeValid = (options: {
 	expectedTypes: ValueTypes;
 	reasons: (reason: ParameterInvalidReason) => void;
 }): boolean => {
-	const { computeType, expectedTypes, reasons } = options;
+	const {computeType, expectedTypes, reasons} = options;
 
 	// delegate reason to compute type not matched
 	const delegate = () => reasons(ParameterInvalidReason.COMPUTE_RETURN_TYPE_NOT_MATCHED);
@@ -143,35 +143,35 @@ export const isComputeTypeValid = (options: {
 		case ParameterComputeType.MULTIPLY:
 		case ParameterComputeType.DIVIDE:
 		case ParameterComputeType.MODULUS:
-			return isFactorTypeCompatibleWith({ factorType: FactorType.NUMBER, expectedTypes, reasons: delegate });
+			return isFactorTypeCompatibleWith({factorType: FactorType.NUMBER, expectedTypes, reasons: delegate});
 		case ParameterComputeType.YEAR_OF:
-			return isFactorTypeCompatibleWith({ factorType: FactorType.YEAR, expectedTypes, reasons: delegate });
+			return isFactorTypeCompatibleWith({factorType: FactorType.YEAR, expectedTypes, reasons: delegate});
 		case ParameterComputeType.HALF_YEAR_OF:
-			return isFactorTypeCompatibleWith({ factorType: FactorType.HALF_YEAR, expectedTypes, reasons: delegate });
+			return isFactorTypeCompatibleWith({factorType: FactorType.HALF_YEAR, expectedTypes, reasons: delegate});
 		case ParameterComputeType.QUARTER_OF:
-			return isFactorTypeCompatibleWith({ factorType: FactorType.QUARTER, expectedTypes, reasons: delegate });
+			return isFactorTypeCompatibleWith({factorType: FactorType.QUARTER, expectedTypes, reasons: delegate});
 		case ParameterComputeType.MONTH_OF:
-			return isFactorTypeCompatibleWith({ factorType: FactorType.MONTH, expectedTypes, reasons: delegate });
+			return isFactorTypeCompatibleWith({factorType: FactorType.MONTH, expectedTypes, reasons: delegate});
 		case ParameterComputeType.WEEK_OF_YEAR:
 			return isFactorTypeCompatibleWith({
 				factorType: FactorType.WEEK_OF_YEAR,
 				expectedTypes,
-				reasons: delegate,
+				reasons: delegate
 			});
 		case ParameterComputeType.WEEK_OF_MONTH:
 			return isFactorTypeCompatibleWith({
 				factorType: FactorType.WEEK_OF_MONTH,
 				expectedTypes,
-				reasons: delegate,
+				reasons: delegate
 			});
 		case ParameterComputeType.DAY_OF_MONTH:
 			return isFactorTypeCompatibleWith({
 				factorType: FactorType.DAY_OF_MONTH,
 				expectedTypes,
-				reasons: delegate,
+				reasons: delegate
 			});
 		case ParameterComputeType.DAY_OF_WEEK:
-			return isFactorTypeCompatibleWith({ factorType: FactorType.DAY_OF_WEEK, expectedTypes, reasons: delegate });
+			return isFactorTypeCompatibleWith({factorType: FactorType.DAY_OF_WEEK, expectedTypes, reasons: delegate});
 		case ParameterComputeType.NONE:
 		default:
 			return true;
@@ -215,8 +215,8 @@ export const computeValidTypesForSubParameter = (
 const COMPARABLE_VALUE_TYPES = [
 	...new Set([
 		...(CompatibleTypes[FactorType.NUMBER].includes || []),
-		...(CompatibleTypes[FactorType.DATE].includes || []),
-	]),
+		...(CompatibleTypes[FactorType.DATE].includes || [])
+	])
 ];
 const OTHER_VALUE_TYPES = [AnyFactorType.ANY];
 export const computeValidTypesByExpressionOperator = (operator?: ParameterExpressionOperator): ValueTypes => {
@@ -237,7 +237,7 @@ const digByFactor = (factor: Factor | undefined, names: Array<string>, types: Va
 		topic: types.topic,
 		factor,
 		array: factor ? factor.type === FactorType.ARRAY : false,
-		type: factor ? (factor.type === FactorType.ARRAY ? FactorType.OBJECT : factor.type) : AnyFactorType.ERROR,
+		type: factor ? (factor.type === FactorType.ARRAY ? FactorType.OBJECT : factor.type) : AnyFactorType.ERROR
 	};
 	if (factor) {
 		// factor found
@@ -253,10 +253,10 @@ const digByParentType = (names: Array<string>, types: ValueTypeOfParameter): Val
 	const [first, ...rest] = names;
 	if (types.type !== FactorType.OBJECT) {
 		// no an object, cannot determine deeper
-		return [{ array: types.array, type: AnyFactorType.ERROR }];
+		return [{array: types.array, type: AnyFactorType.ERROR}];
 	} else if (!types.topic) {
 		// not from topic, cannot determine deeper
-		return [{ array: types.array, type: AnyFactorType.ERROR }];
+		return [{array: types.array, type: AnyFactorType.ERROR}];
 	} else if (!types.factor) {
 		// from topic directly
 		const factor: Factor | undefined = (types.topic.factors || []).find((f) => f.name === first);
@@ -277,58 +277,58 @@ export const isDateDiffConstant = (statement: string): { is: boolean; parsed?: P
 	const parsed = [
 		VariablePredefineFunctions.YEAR_DIFF,
 		VariablePredefineFunctions.MONTH_DIFF,
-		VariablePredefineFunctions.DAY_DIFF,
+		VariablePredefineFunctions.DAY_DIFF
 	]
 		.map((func: VariablePredefineFunctions) => {
-			const matched = (statement || "").trim().match(new RegExp(`^(${func})\\s*\\((.+),(.+)\\)$`));
+			const matched = (statement || '').trim().match(new RegExp(`^(${func})\\s*\\((.+),(.+)\\)$`));
 			if (matched) {
 				const [, f, p1, p2] = matched;
-				return { f: f as VariablePredefineFunctions, params: [p1.trim(), p2.trim()] };
+				return {f: f as VariablePredefineFunctions, params: [p1.trim(), p2.trim()]};
 			} else {
 				return false;
 			}
 		})
 		.filter((x) => x !== false);
 	if (parsed.length === 0) {
-		return { is: false };
+		return {is: false};
 	} else {
-		return { is: true, parsed: parsed[0] as ParsedVariablePredefineFunctions };
+		return {is: true, parsed: parsed[0] as ParsedVariablePredefineFunctions};
 	}
 };
 export const isMoveDateConstant = (statement: string): { is: boolean; parsed?: ParsedVariablePredefineFunctions } => {
 	const parsed = [VariablePredefineFunctions.MOVE_DATE]
 		.map((func: VariablePredefineFunctions) => {
-			const matched = (statement || "").trim().match(new RegExp(`^(${func})\\s*\\((.+),(.+)\\)$`));
+			const matched = (statement || '').trim().match(new RegExp(`^(${func})\\s*\\((.+),(.+)\\)$`));
 			if (matched) {
 				const [, f, p1, p2] = matched;
-				return { f: f as VariablePredefineFunctions, params: [p1.trim(), p2.trim()] };
+				return {f: f as VariablePredefineFunctions, params: [p1.trim(), p2.trim()]};
 			} else {
 				return false;
 			}
 		})
 		.filter((x) => x !== false);
 	if (parsed.length === 0) {
-		return { is: false };
+		return {is: false};
 	} else {
-		return { is: true, parsed: parsed[0] as ParsedVariablePredefineFunctions };
+		return {is: true, parsed: parsed[0] as ParsedVariablePredefineFunctions};
 	}
 };
 export const isDateFormatConstant = (statement: string): { is: boolean; parsed?: ParsedVariablePredefineFunctions } => {
 	const parsed = [VariablePredefineFunctions.DATE_FORMAT]
 		.map((func: VariablePredefineFunctions) => {
-			const matched = (statement || "").trim().match(new RegExp(`^(${func})\\s*\\((.+),(.+)\\)$`));
+			const matched = (statement || '').trim().match(new RegExp(`^(${func})\\s*\\((.+),(.+)\\)$`));
 			if (matched) {
 				const [, f, p1, p2] = matched;
-				return { f: f as VariablePredefineFunctions, params: [p1.trim(), p2.trim()] };
+				return {f: f as VariablePredefineFunctions, params: [p1.trim(), p2.trim()]};
 			} else {
 				return false;
 			}
 		})
 		.filter((x) => x !== false);
 	if (parsed.length === 0) {
-		return { is: false };
+		return {is: false};
 	} else {
-		return { is: true, parsed: parsed[0] as ParsedVariablePredefineFunctions };
+		return {is: true, parsed: parsed[0] as ParsedVariablePredefineFunctions};
 	}
 };
 /**
@@ -345,9 +345,7 @@ export const computeParameterTypes = (
 		// eslint-disable-next-line
 		const topic = topics.find((topic) => topic.topicId == parameter.topicId);
 		// eslint-disable-next-line
-		const factor: Factor | undefined = (topic?.factors || []).find(
-			(factor) => factor.factorId == parameter.factorId
-		);
+		const factor: Factor | undefined = (topic?.factors || []).find(factor => factor.factorId == parameter.factorId);
 		return [
 			{
 				topic,
@@ -355,8 +353,8 @@ export const computeParameterTypes = (
 				// treat unknown factor as not an array
 				array: factor ? factor.type === FactorType.ARRAY : false,
 				// treat unknown factor as object, since topic is an object anyway
-				type: factor ? (factor.type === FactorType.ARRAY ? FactorType.OBJECT : factor.type) : FactorType.OBJECT,
-			},
+				type: factor ? (factor.type === FactorType.ARRAY ? FactorType.OBJECT : factor.type) : FactorType.OBJECT
+			}
 		];
 	} else if (isComputedParameter(parameter)) {
 		switch (parameter.type) {
@@ -366,23 +364,23 @@ export const computeParameterTypes = (
 			case ParameterComputeType.DIVIDE:
 			case ParameterComputeType.MODULUS:
 				// return FACTOR_NUMBER_TYPES.map(type => ({collection: false, type}));
-				return [{ array: false, type: FactorType.NUMBER }];
+				return [{array: false, type: FactorType.NUMBER}];
 			case ParameterComputeType.YEAR_OF:
-				return [{ array: false, type: FactorType.YEAR }];
+				return [{array: false, type: FactorType.YEAR}];
 			case ParameterComputeType.HALF_YEAR_OF:
-				return [{ array: false, type: FactorType.HALF_YEAR }];
+				return [{array: false, type: FactorType.HALF_YEAR}];
 			case ParameterComputeType.QUARTER_OF:
-				return [{ array: false, type: FactorType.QUARTER }];
+				return [{array: false, type: FactorType.QUARTER}];
 			case ParameterComputeType.MONTH_OF:
-				return [{ array: false, type: FactorType.MONTH }];
+				return [{array: false, type: FactorType.MONTH}];
 			case ParameterComputeType.WEEK_OF_YEAR:
-				return [{ array: false, type: FactorType.WEEK_OF_YEAR }];
+				return [{array: false, type: FactorType.WEEK_OF_YEAR}];
 			case ParameterComputeType.WEEK_OF_MONTH:
-				return [{ array: false, type: FactorType.WEEK_OF_MONTH }];
+				return [{array: false, type: FactorType.WEEK_OF_MONTH}];
 			case ParameterComputeType.DAY_OF_MONTH:
-				return [{ array: false, type: FactorType.DAY_OF_MONTH }];
+				return [{array: false, type: FactorType.DAY_OF_MONTH}];
 			case ParameterComputeType.DAY_OF_WEEK:
-				return [{ array: false, type: FactorType.DAY_OF_WEEK }];
+				return [{array: false, type: FactorType.DAY_OF_WEEK}];
 			case ParameterComputeType.CASE_THEN:
 				return parameter.parameters
 					.filter((x) => !!x)
@@ -392,47 +390,47 @@ export const computeParameterTypes = (
 					.flat();
 			default:
 				// cannot determine compute type, treated as any type
-				return [{ array: false, type: AnyFactorType.ANY }];
+				return [{array: false, type: AnyFactorType.ANY}];
 		}
 	} else if (isConstantParameter(parameter)) {
-		const statement = parameter.value || "";
+		const statement = parameter.value || '';
 		let segments = statement.match(/([^{]*({[^}]+})?)/g);
 		if (segments == null) {
 			// cannot match, treated as any type
 			// actually never happens
-			return [{ array: false, type: AnyFactorType.ANY }];
+			return [{array: false, type: AnyFactorType.ANY}];
 		}
 
 		segments = segments.filter((x) => !!x);
 		if (segments.length > 1) {
 			// multiple segments, always concatenate to string
-			return [{ array: false, type: FactorType.TEXT }];
-		} else if (segments.length === 1 && segments[0].startsWith("{") && segments[0].endsWith("}")) {
+			return [{array: false, type: FactorType.TEXT}];
+		} else if (segments.length === 1 && segments[0].startsWith('{') && segments[0].endsWith('}')) {
 			// variable
 			const name = segments[0].substring(1, segments[0].length - 1).trim();
 			if (name === VariablePredefineFunctions.NEXT_SEQ) {
-				return [{ array: false, type: FactorType.SEQUENCE }];
+				return [{array: false, type: FactorType.SEQUENCE}];
 			} else if (name === VariablePredefineFunctions.NOW) {
-				return [{ array: false, type: FactorType.DATETIME }];
+				return [{array: false, type: FactorType.DATETIME}];
 			} else if (
 				name.endsWith(`.${VariablePredefineFunctions.COUNT}`) ||
 				name.endsWith(`.${VariablePredefineFunctions.LENGTH}`)
 			) {
-				return [{ array: false, type: FactorType.UNSIGNED }];
+				return [{array: false, type: FactorType.UNSIGNED}];
 			} else if (name.endsWith(`.${VariablePredefineFunctions.SUM}`)) {
-				return [{ array: false, type: FactorType.NUMBER }];
+				return [{array: false, type: FactorType.NUMBER}];
 			} else if (isDateDiffConstant(name).is) {
-				return [{ array: false, type: FactorType.NUMBER }];
+				return [{array: false, type: FactorType.NUMBER}];
 			} else if (isMoveDateConstant(name).is) {
-				return [{ array: false, type: FactorType.DATETIME }];
+				return [{array: false, type: FactorType.DATETIME}];
 			} else if (isDateFormatConstant(name).is) {
-				return [{ array: false, type: FactorType.TEXT }];
+				return [{array: false, type: FactorType.TEXT}];
 			}
-			const [first, ...rest] = name.split(".");
+			const [first, ...rest] = name.split('.');
 			let firstTypes: ValueTypesOfParameter;
 			if (first === VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA) {
 				// retrieve previous trigger data object
-				firstTypes = [{ topic: triggerTopic, array: false, type: FactorType.OBJECT }];
+				firstTypes = [{topic: triggerTopic, array: false, type: FactorType.OBJECT}];
 			} else {
 				// find in variables first
 				const variable = variables.find((v) => v.name === first);
@@ -451,8 +449,8 @@ export const computeParameterTypes = (
 								? factor.type === FactorType.ARRAY
 									? FactorType.OBJECT
 									: factor.type
-								: AnyFactorType.ERROR,
-						},
+								: AnyFactorType.ERROR
+						}
 					];
 				}
 			}
@@ -463,16 +461,16 @@ export const computeParameterTypes = (
 			}
 		} else {
 			// constant value, a string
-			return [{ array: false, type: FactorType.TEXT }];
+			return [{array: false, type: FactorType.TEXT}];
 		}
 	} else {
 		// cannot determine parameter type
-		return [{ array: false, type: AnyFactorType.ANY }];
+		return [{array: false, type: AnyFactorType.ANY}];
 	}
 };
 
 export const getFactorType = (factorOrType: Factor | FactorType): FactorType => {
-	if (typeof factorOrType === "string") {
+	if (typeof factorOrType === 'string') {
 		return factorOrType;
 	} else {
 		return (factorOrType as Factor).type;
@@ -484,7 +482,7 @@ export const isNumericFactor = (factorOrType: Factor | FactorType): boolean => {
 		FactorType.UNSIGNED,
 		FactorType.RESIDENTIAL_AREA,
 		FactorType.AGE,
-		FactorType.BIZ_SCALE,
+		FactorType.BIZ_SCALE
 	].includes(getFactorType(factorOrType));
 };
 export const isDateFactor = (factorOrType: Factor | FactorType): boolean => {
@@ -508,7 +506,7 @@ export const isEnumFactor = (factorOrType: Factor | FactorType): boolean => {
 		FactorType.OCCUPATION,
 		FactorType.RELIGION,
 		FactorType.NATIONALITY,
-		FactorType.BIZ_TRADE,
+		FactorType.BIZ_TRADE
 	].includes(getFactorType(factorOrType));
 };
 export const isIndicatorFactor = (factorOrType: Factor | FactorType) => {

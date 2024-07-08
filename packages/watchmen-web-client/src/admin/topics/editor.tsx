@@ -11,7 +11,6 @@ import {TopicDescriptionInput} from './topic/topic-description-input';
 import {TopicKindInput} from './topic/topic-kind-input';
 import {TopicNameInput} from './topic/topic-name-input';
 import {TopicTypeInput} from './topic/topic-type-input';
-import {TopicLayerInput} from './topic/topic-layer-input';
 import {HoldByTopic} from './types';
 
 const TopicEditor = (props: {
