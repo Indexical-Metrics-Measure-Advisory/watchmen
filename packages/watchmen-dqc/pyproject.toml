@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-dqc"
-version = "16.1.0"
+version = "17.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -10,10 +10,10 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "~3.12"
-pandas = "^1.4.2"
+pandas = "^1.5.3"
 ydata-profiling = "^4.8.3"
 numpy = "^1.26.4"
-APScheduler = "^3.9.1"
+APScheduler = "^3.10.4"
 watchmen-meta = { path = "../watchmen-meta", develop = true }
 watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
 watchmen-pipeline-kernel = { path = "../watchmen-pipeline-kernel", develop = true }
