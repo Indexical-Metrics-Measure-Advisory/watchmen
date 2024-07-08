@@ -1,4 +1,4 @@
-import {prettifyDateTimeToMinute} from '@/services/data/tuples/utils';
+import {QueryStory} from '@/services/data/tuples/query-story-types';
 import {ICON_CREATED_AT, ICON_LAST_MODIFIED_AT} from '@/widgets/basic/constants';
 import {TooltipAlignment} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
@@ -12,7 +12,6 @@ import {useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {QueryStory} from "@/services/data/tuples/query-story-types";
 
 const StoryCard = (props: { queryStory: QueryStory }) => {
 	const {queryStory} = props;
