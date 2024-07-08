@@ -60,6 +60,7 @@ import {
 	faHighlighter,
 	faHome,
 	faIgloo,
+	faIndustry,
 	faLaptopHouse,
 	faLayerGroup,
 	faLevelDownAlt,
@@ -100,6 +101,7 @@ import {
 	faStar,
 	faStarOfLife,
 	faStickyNote,
+	faStoreAlt,
 	faStream,
 	faSyncAlt,
 	faTable,
@@ -118,15 +120,15 @@ import {
 	faUpload,
 	faUser,
 	faUsers,
+	faWandMagic,
+	faWandMagicSparkles,
 	faWarehouse,
 	faWaveSquare,
 	faWind,
 	faWindowMaximize,
 	faWindowMinimize,
-	faWindowRestore,
-	faIndustry,
-	faStoreAlt, faMagic, faWandMagic, faWandMagicSparkles,
-} from "@fortawesome/free-solid-svg-icons";
+	faWindowRestore
+} from '@fortawesome/free-solid-svg-icons';
 
 export const TOOLTIP_Z_INDEX = 10000;
 export const DIALOG_Z_INDEX = 99989;
@@ -161,7 +163,7 @@ export const SIDE_MENU_RESIZE_HANDLE_WIDTH = 6;
 export const TOOLTIP_MAX_WIDTH = 320;
 export const TOOLTIP_CARET_OFFSET = 6;
 
-export const PIN_FAVORITE_HEIGHT = "calc(var(--height) * 1.2 + 1px)";
+export const PIN_FAVORITE_HEIGHT = 'calc(var(--height) * 1.2 + 1px)';
 
 export const CHART_SETTINGS_MIN_WIDTH = 350;
 export const CHART_SETTINGS_MAX_WIDTH = 500;
@@ -332,7 +334,7 @@ export const ICON_VOLUME_NO_CHANGE = faArrowRightLong;
 export const ICON_VARIABLES = faSliders;
 
 // mock data
-export const MOCK_ACCOUNT_NAME = "Dr. X";
+export const MOCK_ACCOUNT_NAME = 'Dr. X';
 export const ICON_SHORE = faStoreAlt;
-export const ICON_MAGIC = faWandMagic
-export const ICON_MAGIC_SPARKLES = faWandMagicSparkles
+export const ICON_MAGIC = faWandMagic;
+export const ICON_MAGIC_SPARKLES = faWandMagicSparkles;
