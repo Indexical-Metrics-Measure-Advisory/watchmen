@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-utilities"
-version = "16.1.0"
+version = "17.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -10,8 +10,8 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "~3.12"
-pydantic = "^1.9.0"
-python-json-logger = "^2.0.2"
+pydantic = "^1.10.17"
+python-json-logger = "^2.0.7"
 
 [tool.poetry.dev-dependencies]
 
