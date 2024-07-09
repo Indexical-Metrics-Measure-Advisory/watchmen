@@ -42,10 +42,6 @@ const GlobalStyle: any = createGlobalStyle<{ theme: Theme }>`
         ${({theme}) => writeThemeProperty(theme)}
         width: 100%;
 
-        div${process.env.REACT_APP_CHIANLIT_ROOT_SELECTOR} {
-            display: none;
-        }
-
         &[data-chainlit-enabled=true][data-chainlit-visible=true] {
             div${process.env.REACT_APP_CHIANLIT_ROOT_SELECTOR} {
                 display: block;

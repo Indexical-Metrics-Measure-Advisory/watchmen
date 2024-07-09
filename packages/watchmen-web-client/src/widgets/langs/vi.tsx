@@ -180,6 +180,7 @@ export const VI = {
 			SHARE: 'Chia sẻ',
 			ADD_REPORT: 'Thêm báo cáo',
 			ADD_SUBJECT: 'Thêm đối tượng',
+			COPILOT: 'Phi công phụ',
 			OPEN_SUBJECT: 'Mở đối tượng',
 			ADD_CONNECTED_SPACE: 'Kết nối không gian',
 			SWITCH_CONNECTED_SPACE: 'Tráo đổi không gian',

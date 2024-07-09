@@ -8,21 +8,21 @@ import {
 	isSystemTopic
 } from '@/services/data/tuples/topic-utils';
 import {DataQualityCacheData} from '@/services/local-persist/types';
-import React, {useState} from 'react';
-import {useDataQualityCacheData} from '../../cache/use-cache-data';
-import {Command} from '../../command/types';
-import {getTopicName} from '../../utils';
-import {useCliEventBus} from '../../widgets/cli/events/cli-event-bus';
-import {CliEventTypes} from '../../widgets/cli/events/cli-event-bus-types';
-import {ExecutionDelegate} from '../../widgets/cli/execution/execution-delegate';
 import {
+	CliEventTypes,
 	ExecutionCommandLineArgument,
 	ExecutionCommandLinePrimary,
+	ExecutionContent,
+	ExecutionDelegate,
 	ExecutionResultClickableItem,
 	ExecutionResultItemTable,
-	ExecutionResultNoData
-} from '../../widgets/cli/execution/widgets';
-import {ExecutionContent} from '../../widgets/cli/types';
+	ExecutionResultNoData,
+	useCliEventBus
+} from '@/widgets/chatbot';
+import {Command} from '@/widgets/chatbot';
+import React, {useState} from 'react';
+import {useDataQualityCacheData} from '../../cache/use-cache-data';
+import {getTopicName} from '../../utils';
 import {
 	buildViewTopicCommand,
 	CMD_ARGUMENT_AGGREGATE,

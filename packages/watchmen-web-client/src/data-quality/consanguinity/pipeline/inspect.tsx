@@ -1,18 +1,18 @@
 import {PipelineValidateResult, validatePipeline} from '@/services/data/pipeline/pipeline-validate';
+import {
+	CliEventTypes,
+	ExecutionCommandLineArgument,
+	ExecutionCommandLinePrimary,
+	ExecutionContent,
+	ExecutionDelegate,
+	ExecutionResultItemTable,
+	ExecutionResultNoData,
+	useCliEventBus
+} from '@/widgets/chatbot';
 import React, {useState} from 'react';
 import {DQCCacheData} from '../../cache/types';
 import {useDataQualityCacheData} from '../../cache/use-cache-data';
 import {getPipelineName} from '../../utils';
-import {useCliEventBus} from '../../widgets/cli/events/cli-event-bus';
-import {CliEventTypes} from '../../widgets/cli/events/cli-event-bus-types';
-import {ExecutionDelegate} from '../../widgets/cli/execution/execution-delegate';
-import {
-	ExecutionCommandLineArgument,
-	ExecutionCommandLinePrimary,
-	ExecutionResultItemTable,
-	ExecutionResultNoData
-} from '../../widgets/cli/execution/widgets';
-import {ExecutionContent} from '../../widgets/cli/types';
 import {InspectItem, InspectItems, InspectPipelineName, InspectResult} from './widgets';
 
 const PipelineIssues = (props: { inspects: Array<PipelineValidateResult> }) => {

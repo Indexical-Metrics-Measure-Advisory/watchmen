@@ -192,6 +192,7 @@ export const En = {
 			SHARE: 'Share',
 			ADD_REPORT: 'Add Report',
 			ADD_SUBJECT: 'Add Subject',
+			COPILOT: 'Copilot',
 			OPEN_SUBJECT: 'Open Subject',
 			ADD_CONNECTED_SPACE: 'Connect Space',
 			SWITCH_CONNECTED_SPACE: 'Switch Connected Space',
@@ -604,11 +605,11 @@ export const En = {
 			TEST_VALUE_CLICK: 'Click to retrieve values',
 			TEST_VALUE_GET_NONE: 'No data retrieved from server side.'
 		},
-		STORY:{
-			DATA_STORY:"Data Story",
+		STORY: {
+			DATA_STORY: 'Data Story',
 			NEW_STORY_PREFIX: 'A New Data Story',
 			LIST_LABEL: 'Data Story',
-			EXISTING_STORY_PREFIX: 'An Existing',
+			EXISTING_STORY_PREFIX: 'An Existing'
 		},
 		CONVERGENCE: {
 			LIST_TITLE: 'Convergences',
