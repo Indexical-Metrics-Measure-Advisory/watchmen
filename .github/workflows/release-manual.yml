@@ -12,7 +12,7 @@ on:
         description: Version
         required: true
         type: string
-        default: '16.0.27'
+        default: '17.0.0'
 
 jobs:
   prepare:
