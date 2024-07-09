@@ -192,6 +192,7 @@ export const Jp: LanguageDeclareType = {
 			SHARE: '共有',
 			ADD_REPORT: 'レポートを追加する',
 			ADD_SUBJECT: '主題を追加する',
+			COPILOT: 'コパイロット',
 			OPEN_SUBJECT: '主題を開く',
 			ADD_CONNECTED_SPACE: '連結空間に接続',
 			SWITCH_CONNECTED_SPACE: '接続された連結空間に切り替える',
