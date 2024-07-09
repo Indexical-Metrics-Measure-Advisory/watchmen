@@ -12,7 +12,7 @@ on:
         description: Version
         required: true
         type: string
-        default: '16.5.5'
+        default: '17.0.0'
 
 jobs:
   # publish web client image
