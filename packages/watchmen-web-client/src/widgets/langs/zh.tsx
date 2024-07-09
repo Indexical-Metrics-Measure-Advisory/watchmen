@@ -34,7 +34,7 @@ export const Zh: LanguageDeclareType = {
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: '根据分桶名称查找.',
 		FIND_OBJECTIVE_PLACEHOLDER: '根据目标名称, 描述查找.',
 		FIND_CONVERGENCE_PLACEHOLDER: '根据汇聚名称, 描述查找.',
-		FIND_DATA_STORY_PLACEHOLDER:'根据数据故事名称, 描述查找.',
+		FIND_DATA_STORY_PLACEHOLDER: '根据数据故事名称, 描述查找.',
 		OBJECTIVE_NAME_PLACEHOLDER: '请输入用于阅读的名称.',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '请输入目标描述...',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: '变量名.',
@@ -192,6 +192,7 @@ export const Zh: LanguageDeclareType = {
 			SHARE: '分享',
 			ADD_REPORT: '添加图表',
 			ADD_SUBJECT: '添加主题',
+			COPILOT: 'AI助手',
 			OPEN_SUBJECT: '打开主题',
 			ADD_CONNECTED_SPACE: '联接工作空间',
 			SWITCH_CONNECTED_SPACE: '切换已联接的工作空间',
@@ -353,11 +354,11 @@ export const Zh: LanguageDeclareType = {
 			STORY: '数据故事',
 			LOGOUT: '登出'
 		},
-		STORY:{
-			DATA_STORY:"数据故事",
+		STORY: {
+			DATA_STORY: '数据故事',
 			NEW_STORY_PREFIX: '新建数据故事',
 			LIST_LABEL: 'Data Story',
-			EXISTING_STORY_PREFIX: 'An Existing',
+			EXISTING_STORY_PREFIX: 'An Existing'
 		},
 		ON_EDIT: '正在编辑中, 所有未保存的数据都将丢失. 是否确定放弃编辑?',
 		STEP: '步骤',

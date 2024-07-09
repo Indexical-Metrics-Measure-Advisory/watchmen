@@ -1,6 +1,5 @@
+import {CMD_ARGUMENT_LIST, CMD_ARGUMENT_VIEW, ExecutionContent} from '@/widgets/chatbot';
 import React from 'react';
-import {CMD_ARGUMENT_LIST, CMD_ARGUMENT_VIEW} from '../../command';
-import {ExecutionContent} from '../../widgets/cli/types';
 import {CMD_TOPIC} from './commands';
 import {TopicFindExecution} from './find';
 import {TopicListExecution} from './list';

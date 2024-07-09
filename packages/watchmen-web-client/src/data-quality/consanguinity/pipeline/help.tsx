@@ -1,11 +1,12 @@
-import React from 'react';
-import {CommandPublishedBehaviorType, HelpCommand} from '../../command/types';
 import {
+	CommandPublishedBehaviorType,
+	HelpCommand,
 	HelpCommandDescription,
 	HelpCommandExample,
 	HelpCommandName,
 	LeadHelpCommandName
-} from '../../widgets/cli/execution/widgets';
+} from '@/widgets/chatbot';
+import React from 'react';
 import {PipelineBrief} from './brief';
 
 export const PipelineHelpCmd: HelpCommand = {
