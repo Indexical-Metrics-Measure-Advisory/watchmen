@@ -1193,6 +1193,8 @@ export const VI: LanguageDeclareType = {
 	COPILOT: {
 		YES: 'Chắc chắn, tiến lên.',
 		NO: 'Không.',
+		NOTED: 'Chú ý. Còn việc gì khác tôi có thể giúp bạn không?',
+		REPLY_ASKING_RECOMMENDATION: 'Chú ý. Vui lòng đợi trong khi tôi kiểm tra các tùy chọn được đề xuất.',
 		CONNECT_FAIL: 'Có vẻ như có vấn đề; Tôi không thể kết nối với máy chủ vào lúc này. Bạn có muốn thử lại không?',
 		CONNECTED_SPACE: {
 			GREETING_FIRST_SESSION: 'Xin chào! Tôi là trợ lý trí tuệ nhân tạo. Tôi có thể giúp bạn phân tích dữ liệu của không gian kết nối hiện tại. Vui lòng đợi trong khi tôi kiểm tra các tùy chọn được đề xuất.',

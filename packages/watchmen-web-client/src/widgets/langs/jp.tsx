@@ -1193,6 +1193,8 @@ export const Jp: LanguageDeclareType = {
 	COPILOT: {
 		YES: 'すぐにやってください。',
 		NO: 'いいえ。',
+		NOTED: '了解しました。他にお手伝いできることはありますでしょうか？',
+		REPLY_ASKING_RECOMMENDATION: '了解しました。推奨オプションをチェックしますので少々お待ちください。',
 		CONNECT_FAIL: 'サーバーに接続できませんでした。再試行しますか？',
 		CONNECTED_SPACE: {
 			GREETING_FIRST_SESSION: 'こんにちは！私はAIアシスタントです。現在接続されているスペースのデータを分析するのを手伝えます。推奨オプションをチェックしますので少々お待ちください。',
