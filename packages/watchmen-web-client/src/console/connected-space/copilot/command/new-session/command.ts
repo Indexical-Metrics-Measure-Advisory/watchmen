@@ -1,9 +1,10 @@
-import {TextReplyCommand} from '@/console/connected-space/copilot/command/text-reply-command';
-import {Command, CommandPublishedBehaviorType} from '@/widgets/chatbot';
+import {CommandPublishedBehaviorType} from '@/widgets/chatbot';
+import {TextReplyCommand} from '../text-reply-command';
 
 export const CMD_NEW_SESSION = '/new';
 
-export const NewSessionCmd: Command = {
+export type NewSessionCommand = TextReplyCommand;
+export const NewSessionCmd: NewSessionCommand = {
 	label: 'New Session',
 	command: CMD_NEW_SESSION,
 	reminder: 'Press "enter" to start a new session',
@@ -12,6 +13,6 @@ export const NewSessionCmd: Command = {
 	executableOnNoTrail: true
 };
 
-export const createFirstNewSessionCommand = (): TextReplyCommand => {
+export const createFirstNewSessionCommand = (): NewSessionCommand => {
 	return NewSessionCmd;
 };

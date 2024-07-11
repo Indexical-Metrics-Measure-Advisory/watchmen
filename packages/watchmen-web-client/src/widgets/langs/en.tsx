@@ -1193,10 +1193,12 @@ export const En = {
 	COPILOT: {
 		YES: 'Sure, go ahead.',
 		NO: 'No.',
+		NOTED: 'Noted. Is there anything else I can assist you with?',
+		REPLY_ASKING_RECOMMENDATION: 'Noted. Please wait while I check for any recommended options.',
 		CONNECT_FAIL: 'It looks like there is an issue; I\'m unable to connect to the server right now. Would you like to retry?',
 		CONNECTED_SPACE: {
 			GREETING_FIRST_SESSION: 'Hello! I\'m an AI assistant. I can help you analyze the data of the current connected space. Please wait while I check for any recommended options.',
-			GREETING_RESTART_SESSION: 'Alright, may I ask what I can help you with now? Perhaps you would like to review our recommended options again?',
+			GREETING_RESTART_SESSION: 'Alright, may I ask what I can help you with now? Perhaps you would like to review our recommended options again?'
 		}
 	}
 };
