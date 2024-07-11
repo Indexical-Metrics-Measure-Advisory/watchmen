@@ -42,12 +42,14 @@ export const CLIWrapper = (props: {
 	commands: Array<Command>;
 	helpCommand: Command;
 	execution: (props: { content: ExecutionContent }) => JSX.Element;
+	children?: ReactNode;
 }) => {
-	const {greeting, commands, helpCommand, execution} = props;
+	const {greeting, commands, helpCommand, execution, children} = props;
 
 	return <CliEventBusProvider>
 		<CLI greeting={greeting} commands={commands} helpCommand={helpCommand}
 		     executions={<Executions execution={execution}/>}/>
+		{children}
 	</CliEventBusProvider>;
 };
 export {matchCommand} from './utils';

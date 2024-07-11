@@ -349,7 +349,6 @@ export const Zh: LanguageDeclareType = {
 			INDICATORS: '指标',
 			OBJECTIVES: '目标',
 			CONVERGENCES: '汇聚',
-			// STORY: '数据故事',
 			SETTINGS: '设置',
 			STORY: '数据故事',
 			LOGOUT: '登出'
@@ -1190,5 +1189,14 @@ export const Zh: LanguageDeclareType = {
 		NONAME_TOPIC_FACTOR: '未命名数据因子',
 		NONAME_BUCKET: '未命名数据分桶',
 		NONAME_ENUM: '未命名枚举'
+	},
+	COPILOT: {
+		YES: '好的，请继续。',
+		NO: '不。',
+		CONNECT_FAIL: '看起来出现了问题，我现在无法连接到服务器。您想要重试吗？',
+		CONNECTED_SPACE: {
+			GREETING_FIRST_SESSION: '您好！我是AI助理。我可以帮助您分析当前连接空间的数据。请稍等，我来检查是否有推荐的选项。',
+			GREETING_RESTART_SESSION: '好的，请问现在我可以帮您做什么呢？或许您想再看看我们推荐的选项吗？'
+		}
 	}
 };

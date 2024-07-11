@@ -5,7 +5,7 @@ export const ExecutionContainer = styled.div.attrs({'data-widget': 'cli-executio
     display: grid;
     position: relative;
     grid-template-columns: 32px auto 1fr;
-    grid-template-rows: var(--tall-height) 1fr;
+    grid-template-rows: minmax(var(--tall-height), auto) 1fr;
     align-items: center;
 
     + div[data-widget=execution] {
@@ -17,7 +17,12 @@ export const ExecutionPrompt = styled.div.attrs({'data-widget': 'cli-execution-p
     display: flex;
     color: var(--warn-color);
     font-size: 1.1em;
+    align-self: start;
     justify-content: center;
+
+    > svg[data-icon=robot] {
+        color: var(--primary-color);
+    }
 `;
 const Flick = keyframes`
     0%, 100% {
@@ -39,12 +44,19 @@ export const ExecutionPromptFlicker = styled.div.attrs({'data-widget': 'cli-exec
 // noinspection CssUnresolvedCustomProperty,CssNoGenericFontName
 export const ExecutionCommandLine = styled.div.attrs({'data-widget': 'cli-execution-command-line'})`
     display: flex;
+    position: relative;
+    align-self: flex-start;
+    margin-top: -2px;
     font-family: var(--code-font-family);
     font-size: 1.1em;
     opacity: 0.9;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+
+    &:empty + div[data-widget=cli-execution-time] > span[data-widget=cli-execution-time-line] {
+        margin-left: 0;
+    }
 `;
 // noinspection CssUnresolvedCustomProperty
 export const ExecutionCommandLinePrimary = styled.span.attrs({'data-widget': 'cli-execution-command-line-primary'})`
@@ -54,14 +66,20 @@ export const ExecutionCommandLinePrimary = styled.span.attrs({'data-widget': 'cl
 export const ExecutionCommandLineArgument = styled.span.attrs({'data-widget': 'cli-execution-command-line-argument'})`
     margin-left: 0.5em;
 `;
+export const ExecutionCommandLineText = styled.span.attrs({'data-widget': 'cli-execution-command-line-text'})`
+    line-height: 1.4;
+    word-break: normal;
+    white-space: normal;
+`;
 // noinspection CssUnresolvedCustomProperty,CssNoGenericFontName
 export const ExecutionTimeContainer = styled.div.attrs({'data-widget': 'cli-execution-time'})`
     display: flex;
     position: relative;
+    align-self: start;
     align-items: center;
     font-family: var(--code-font-family);
     font-weight: var(--font-bold);
-    overflow: hidden;
+    //overflow: hidden;
 `;
 // noinspection CssUnresolvedCustomProperty
 export const ExecutionTimeLine = styled.span.attrs({'data-widget': 'cli-execution-time-line'})`
@@ -140,6 +158,92 @@ export const ExecutionLockButton = styled.span.attrs({'data-widget': 'cli-execut
 export const ExecutionResult = styled.div.attrs({'data-widget': 'cli-execution-result'})`
     grid-column: 2 / span 2;
     display: flex;
+    position: relative;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+
+    &[data-grab-width=false] {
+        grid-column: 2;
+        margin-top: -7px;
+    }
+`;
+export const ExecuteThinkingAnimation = keyframes`
+    100% {
+        transform: scale(2);
+    }
+`;
+// noinspection CssUnresolvedCustomProperty
+export const ExecuteThinkingContainer = styled.div.attrs({'data-widget': 'cli-execution-result-thinking'})`
+    //background-color: var(--main-color);
+    display: flex;
+    position: relative;
+    flex-basis: 100%;
+    align-items: center;
+    align-content: center;
+    overflow: hidden;
+
+    > span {
+        border-radius: 100%;
+        border: 3px solid var(--primary-color);
+        opacity: 0.5;
+        margin: 6px;
+
+        &:nth-child(1) {
+            animation: ${ExecuteThinkingAnimation} .6s ease-in-out alternate infinite;
+        }
+
+        &:nth-child(2) {
+            animation: ${ExecuteThinkingAnimation} .6s ease-in-out alternate .2s infinite;
+        }
+
+        :nth-child(3) {
+            animation: ${ExecuteThinkingAnimation} .6s ease-in-out alternate .4s infinite;
+        }
+    }
+`;
+export const ExecutionResultSegment = styled.div.attrs({'data-widget': 'cli-execution-result-segment'})`
+    display: flex;
+    position: relative;
+    flex-wrap: wrap;
+    flex-basis: 100%;
+`;
+// noinspection CssUnresolvedCustomProperty
+export const ExecutionResultItemText = styled.div.attrs({'data-widget': 'cli-execution-result-text'})`
+    display: flex;
+    align-items: flex-start;
+    word-break: normal;
+    white-space: pre;
+    min-height: var(--height);
+    padding: 4px 0;
+    line-height: 20px;
+
+    &:empty:before {
+        display: block;
+        position: relative;
+        content: ' ';
+    }
+`;
+// noinspection CssUnresolvedCustomProperty
+export const ExecutionResultItemLink = styled.div.attrs<{ vertical?: boolean }>(
+	({vertical}) => {
+		return {
+			'data-widget': 'cli-execution-result-link',
+			style: {
+				flexBasis: vertical ? '100%' : (void 0)
+			}
+		};
+	})<{ vertical?: boolean }>`
+    display: flex;
+    position: relative;
+    align-items: flex-start;
+	color: var(--primary-color);
+    word-break: normal;
+    white-space: pre;
+    min-height: var(--height);
+    padding: 4px 0;
+    line-height: 20px;
+    text-decoration: underline;
+    cursor: pointer;
 `;
 // noinspection CssUnresolvedCustomProperty
 export const ExecutionResultItemTable = styled.div.attrs({'data-widget': 'cli-execution-result-table'})`
