@@ -213,8 +213,7 @@ export const Apis = {
 	CONVERGENCE_SAVE: 'indicator/convergence',
 	CONVERGENCE_VALUES: 'indicator/convergence/data',
 
-	STORY_LIST_BY_NAME :'indicator/stories/name?query_name=:search',
-
+	STORY_LIST_BY_NAME: 'indicator/stories/name?query_name=:search',
 
 	AI_MODEL_LIST_BY_TENANT: 'ai_model/all',
 	AI_MODEL_GET: 'ai_model?model_id=:modelId',
@@ -222,9 +221,10 @@ export const Apis = {
 	AI_MODEL_SAVE: 'ai_model',
 	AI_MODEL_LIST_BY_NAME: 'ai_model/name?query_name=:search',
 
+	ASK_AI_GENERATE_TOPIC_FACTORS: 'ai/ask/generate/topic/factors',
+	ASK_AI_GENERATE_FACTOR_DESCRIPTION: 'ai/generate/factor/description',
 
-	ASK_AI_GENERATE_TOPIC_FACTORS : 'ai/ask/generate/topic/factors',
-	ASK_AI_GENERATE_FACTOR_DESCRIPTION : 'ai/generate/factor/description',
+	COPILOT_CREATE_CONNECTED_SPACE_SESSION: 'ai/connected-space/new-session'
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {

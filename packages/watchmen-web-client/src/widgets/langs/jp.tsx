@@ -34,7 +34,7 @@ export const Jp: LanguageDeclareType = {
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'バケット名に基づいて検索します。',
 		FIND_OBJECTIVE_PLACEHOLDER: '目標名 説明に基づいて検索します。',
 		FIND_CONVERGENCE_PLACEHOLDER: '収束名 説明に基づいて検索します。',
-		FIND_DATA_STORY_PLACEHOLDER:'',
+		FIND_DATA_STORY_PLACEHOLDER: '',
 		OBJECTIVE_NAME_PLACEHOLDER: '読むための名前を入力してください。',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '目標の説明を入力してください。',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: '変数名。',
@@ -353,11 +353,11 @@ export const Jp: LanguageDeclareType = {
 			SETTINGS: '設定',
 			LOGOUT: 'ログアウト'
 		},
-		STORY:{
-			DATA_STORY:"データストーリー",
+		STORY: {
+			DATA_STORY: 'データストーリー',
 			NEW_STORY_PREFIX: '新しいデータストーリー',
 			LIST_LABEL: 'Data Story',
-			EXISTING_STORY_PREFIX: 'An Existing',
+			EXISTING_STORY_PREFIX: 'An Existing'
 		},
 		ON_EDIT: '編集中、保存されていないデータはすべて失われます。編集を破棄しますか。',
 		STEP: 'ステップ',
@@ -1189,5 +1189,14 @@ export const Jp: LanguageDeclareType = {
 		NONAME_TOPIC_FACTOR: '名前のないファクター',
 		NONAME_BUCKET: '名前のないバケット',
 		NONAME_ENUM: '名前のない列挙'
+	},
+	COPILOT: {
+		YES: 'すぐにやってください。',
+		NO: 'いいえ。',
+		CONNECT_FAIL: 'サーバーに接続できませんでした。再試行しますか？',
+		CONNECTED_SPACE: {
+			GREETING_FIRST_SESSION: 'こんにちは！私はAIアシスタントです。現在接続されているスペースのデータを分析するのを手伝えます。推奨オプションをチェックしますので少々お待ちください。',
+			GREETING_RESTART_SESSION: 'わかりました。今、何をお手伝いできますか？もう一度おすすめの選択肢をご確認されたいですか？'
+		}
 	}
 };

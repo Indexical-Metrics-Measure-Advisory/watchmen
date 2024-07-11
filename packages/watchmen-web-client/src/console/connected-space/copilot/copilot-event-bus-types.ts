@@ -1,11 +1,18 @@
-import {Topic} from '@/services/data/tuples/topic-types';
-
 export enum CopilotEventTypes {
-	TOPIC_SELECTED = 'topic-selected',
+	NEW_SESSION = 'new-session',
+	CURRENT_SESSION = 'current-session'
 }
 
 export interface CopilotEventBus {
-	fire(type: CopilotEventTypes.TOPIC_SELECTED, topic: Topic): this;
-	on(type: CopilotEventTypes.TOPIC_SELECTED, listener: (topic: Topic) => void): this;
-	off(type: CopilotEventTypes.TOPIC_SELECTED, listener: (topic: Topic) => void): this;
+	fire(type: CopilotEventTypes.NEW_SESSION, newSessionId: string): this;
+
+	on(type: CopilotEventTypes.NEW_SESSION, listener: (newSessionId: string) => void): this;
+
+	off(type: CopilotEventTypes.NEW_SESSION, listener: (newSessionId: string) => void): this;
+
+	fire(type: CopilotEventTypes.CURRENT_SESSION, onReply: (sessionId?: string) => void): this;
+
+	on(type: CopilotEventTypes.CURRENT_SESSION, listener: (onReply: (sessionId?: string) => void) => void): this;
+
+	off(type: CopilotEventTypes.CURRENT_SESSION, listener: (onReply: (sessionId?: string) => void) => void): this;
 }

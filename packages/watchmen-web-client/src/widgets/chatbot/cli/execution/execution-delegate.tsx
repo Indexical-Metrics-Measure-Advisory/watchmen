@@ -1,9 +1,10 @@
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {ReactNode} from 'react';
-import {ICON_CMD_PROMPT, ICON_LOADING, ICON_LOCK, ICON_UNLOCK} from '../../../basic/constants';
+import {ICON_CMD_PROMPT, ICON_LOCK, ICON_ROBOT, ICON_UNLOCK} from '../../../basic/constants';
 import {useForceUpdate} from '../../../basic/utils';
 import {ExecutionContent} from '../types';
 import {
+	ExecuteThinkingContainer,
 	ExecutionCommandLine,
 	ExecutionContainer,
 	ExecutionLockButton,
@@ -37,27 +38,42 @@ const ExecutionOperators = (props: {
 	</ExecutionTimeContainer>;
 };
 
+export const ExecuteThinking = () => {
+	return <ExecuteThinkingContainer>
+		<span/>
+		<span/>
+		<span/>
+	</ExecuteThinkingContainer>;
+};
 export const ExecutionDelegate = (props: {
 	content: ExecutionContent;
-	commandLine: ReactNode;
+	commandLine?: ReactNode;
 	result?: ReactNode;
+	toBeContinue?: boolean;
 }) => {
-	const {content, commandLine, result} = props;
+	const {content, commandLine, result, toBeContinue = false} = props;
+
+	const renderResult = (grab: boolean) => {
+		if (result != null) {
+			return <ExecutionResult data-grab-width={grab}>
+				{result}
+				{toBeContinue ? <ExecuteThinking/> : null}
+			</ExecutionResult>;
+		} else {
+			return <ExecutionResult data-grab-width={grab}>
+				<ExecuteThinking/>
+			</ExecutionResult>;
+		}
+	};
 
 	return <ExecutionContainer>
 		<ExecutionPrompt>
-			<FontAwesomeIcon icon={ICON_CMD_PROMPT}/>
+			{commandLine != null ? <FontAwesomeIcon icon={ICON_CMD_PROMPT}/> : <FontAwesomeIcon icon={ICON_ROBOT}/>}
 		</ExecutionPrompt>
-		<ExecutionCommandLine>
-			{commandLine}
-		</ExecutionCommandLine>
+		{commandLine != null
+			? <ExecutionCommandLine>{commandLine}</ExecutionCommandLine>
+			: renderResult(false)}
 		<ExecutionOperators content={content}/>
-		{result
-			? <ExecutionResult>
-				{result}
-			</ExecutionResult>
-			: <ExecutionResult>
-				<FontAwesomeIcon icon={ICON_LOADING} spin={true}/>
-			</ExecutionResult>}
+		{commandLine != null ? renderResult(true) : null}
 	</ExecutionContainer>;
 };
