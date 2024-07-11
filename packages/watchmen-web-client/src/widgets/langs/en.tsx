@@ -686,10 +686,6 @@ export const En = {
 			NOTE_REQUIRED: 'Note is required for a token.'
 		}
 	},
-	// GPT_SETTINGS:{
-	// 	Microsoft:'Microsoft',
-	// 	OpenAI:'OpenAI'
-	// },
 	PARAM: {
 		FROM: 'From',
 		FROM_TOPIC: 'Topic',
@@ -1193,5 +1189,14 @@ export const En = {
 		NONAME_TOPIC_FACTOR: 'Noname Topic Factor',
 		NONAME_BUCKET: 'Noname Bucket',
 		NONAME_ENUM: 'Noname Enum'
+	},
+	COPILOT: {
+		YES: 'Sure, go ahead.',
+		NO: 'No.',
+		CONNECT_FAIL: 'It looks like there is an issue; I\'m unable to connect to the server right now. Would you like to retry?',
+		CONNECTED_SPACE: {
+			GREETING_FIRST_SESSION: 'Hello! I\'m an AI assistant. I can help you analyze the data of the current connected space. Please wait while I check for any recommended options.',
+			GREETING_RESTART_SESSION: 'Alright, may I ask what I can help you with now? Perhaps you would like to review our recommended options again?',
+		}
 	}
 };

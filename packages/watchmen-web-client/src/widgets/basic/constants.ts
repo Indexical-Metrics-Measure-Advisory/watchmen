@@ -338,3 +338,4 @@ export const MOCK_ACCOUNT_NAME = 'Dr. X';
 export const ICON_SHORE = faStoreAlt;
 export const ICON_MAGIC = faWandMagic;
 export const ICON_MAGIC_SPARKLES = faWandMagicSparkles;
+export const ICON_ROBOT = faRobot;
