@@ -1193,6 +1193,8 @@ export const Zh: LanguageDeclareType = {
 	COPILOT: {
 		YES: '好的，请继续。',
 		NO: '不。',
+		NOTED: '了解了。还有其他什么可以帮助您的吗？',
+		REPLY_ASKING_RECOMMENDATION: '了解了。请稍等，我来检查是否有推荐的选项。',
 		CONNECT_FAIL: '看起来出现了问题，我现在无法连接到服务器。您想要重试吗？',
 		CONNECTED_SPACE: {
 			GREETING_FIRST_SESSION: '您好！我是AI助理。我可以帮助您分析当前连接空间的数据。请稍等，我来检查是否有推荐的选项。',

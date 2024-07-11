@@ -1,31 +1,34 @@
-export enum CopilotAnswerType {
-	TEXT = 'text',
-	TEXT_WITH_OPTIONS = 'text-with-options'
+export enum CopilotAnswerItemType {
+	OPTION = 'option'
 }
 
-export interface CopilotAnswer {
-	type: CopilotAnswerType;
+export interface CopilotAnswerItem {
+	type: CopilotAnswerItemType;
 }
 
-export interface CopilotAnswerAtNewSession {
-	sessionId?: string;
-}
-
-export interface CopilotTextAnswer extends CopilotAnswer {
-	type: CopilotAnswerType.TEXT;
-	text: string;
-}
-
-export interface CopilotAnswerOption {
+export interface CopilotAnswerOption extends CopilotAnswerItem {
+	type: CopilotAnswerItemType.OPTION;
 	text: string;
 	token: string;
 	vertical?: boolean;
 }
 
-export interface CopilotTextWithOptionsAnswer extends CopilotAnswer {
-	type: CopilotAnswerType.TEXT_WITH_OPTIONS;
-	text: Array<string | CopilotAnswerOption>;
+export type CopilotAnswerItemTypes = string | CopilotAnswerItem | CopilotAnswerOption;
+
+export interface CopilotAnswer {
+	data: Array<CopilotAnswerItemTypes>;
 }
 
-export interface ConnectedSpaceCopilotSession extends CopilotTextWithOptionsAnswer, CopilotAnswerAtNewSession {
+export interface CopilotAnswerWithSession extends CopilotAnswer {
+	sessionId?: string;
+}
+
+export interface ConnectedSpaceCopilotSession extends CopilotAnswerWithSession {
+}
+
+export enum RecommendationType {
+	CONNECTED_SPACE = 'connected-space'
+}
+
+export interface Recommendation extends CopilotAnswerWithSession {
 }
