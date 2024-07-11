@@ -2,9 +2,9 @@ import {ConnectedSpaceCopilotSession, CopilotAnswerItemType} from '../types';
 
 export const mockStartConnectedSpaceCopilotSession = async (sessionId: string, withRecommendation: boolean): Promise<ConnectedSpaceCopilotSession> => {
 	return new Promise<ConnectedSpaceCopilotSession>(resolve => {
-		setTimeout(() => {
+		setTimeout(() => resolve((() => {
 			if (withRecommendation) {
-				resolve({
+				return {
 					sessionId,
 					data: [
 						'Here are some recommendations: ',
@@ -19,10 +19,10 @@ export const mockStartConnectedSpaceCopilotSession = async (sessionId: string, w
 						},
 						'If any of these interest you, you can click on the links to let me know, or just tell me your preferences directly.'
 					]
-				});
+				};
 			} else {
-				resolve({sessionId, data: []} as ConnectedSpaceCopilotSession);
+				return {sessionId, data: []} as ConnectedSpaceCopilotSession;
 			}
-		}, 3000);
+		})()), 3000);
 	});
 };
