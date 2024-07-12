@@ -1,9 +1,9 @@
 import {Apis, post} from '../data/apis';
 import {isMockService} from '../data/utils';
 import {mockAskRecommendation} from './mock/ask-recommendation';
-import {Recommendation, RecommendationType} from './types';
+import {CopilotAnswerWithSession, RecommendationType} from './types';
 
-export const askRecommendation = async (sessionId: string, type: RecommendationType): Promise<Recommendation> => {
+export const askRecommendation = async (sessionId: string, type: RecommendationType): Promise<CopilotAnswerWithSession> => {
 	if (isMockService()) {
 		return await mockAskRecommendation(sessionId, type);
 	} else {

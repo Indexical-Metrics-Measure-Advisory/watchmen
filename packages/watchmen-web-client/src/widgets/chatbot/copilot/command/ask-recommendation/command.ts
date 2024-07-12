@@ -2,7 +2,7 @@ import {CopilotAnswerWithSession} from '@/services/copilot/types';
 import {Command, CommandPublishedBehaviorType} from '../../../command';
 import {TextReplyCommand} from '../../types';
 
-export const CMD_ASK_RECOMMENDATION = '/recommendation';
+export const CMD_ASK_RECOMMENDATION = '/recommend';
 
 export interface AskRecommendationCommand extends TextReplyCommand {
 	greeting?: string;

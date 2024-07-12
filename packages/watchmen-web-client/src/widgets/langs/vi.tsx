@@ -1196,6 +1196,9 @@ export const VI: LanguageDeclareType = {
 		NOTED: 'Chú ý. Còn việc gì khác tôi có thể giúp bạn không?',
 		REPLY_ASKING_RECOMMENDATION: 'Chú ý. Vui lòng đợi trong khi tôi kiểm tra các tùy chọn được đề xuất.',
 		CONNECT_FAIL: 'Có vẻ như có vấn đề; Tôi không thể kết nối với máy chủ vào lúc này. Bạn có muốn thử lại không?',
+		ASK_RESTART_SESSION: 'Khởi động lại phiên mới.',
+		OPTION_PICKED: '',
+		OPTION_PICKED_NOTED: 'Chắc chắn rồi! Lựa chọn tuyệt vời. Xin hãy đợi trong khi tôi kiểm tra chi tiết.',
 		CONNECTED_SPACE: {
 			GREETING_FIRST_SESSION: 'Xin chào! Tôi là trợ lý trí tuệ nhân tạo. Tôi có thể giúp bạn phân tích dữ liệu của không gian kết nối hiện tại. Vui lòng đợi trong khi tôi kiểm tra các tùy chọn được đề xuất.',
 			GREETING_RESTART_SESSION: 'Dạ, cho em hỏi giúp anh/chị điều gì ạ? Có thể anh/chị muốn xem lại các lựa chọn mà chúng em đề xuất không ạ?'

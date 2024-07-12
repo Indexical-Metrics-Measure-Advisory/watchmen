@@ -1,9 +1,9 @@
 import {Apis, post} from '../data/apis';
 import {isMockService} from '../data/utils';
 import {mockStartConnectedSpaceCopilotSession} from './mock/connected-space';
-import {ConnectedSpaceCopilotSession} from './types';
+import {CopilotAnswerWithSession} from './types';
 
-export const startConnectedSpaceCopilotSession = async (sessionId: string, withRecommendation: boolean): Promise<ConnectedSpaceCopilotSession> => {
+export const startConnectedSpaceCopilotSession = async (sessionId: string, withRecommendation: boolean): Promise<CopilotAnswerWithSession> => {
 	if (isMockService()) {
 		return await mockStartConnectedSpaceCopilotSession(sessionId, withRecommendation);
 	} else {

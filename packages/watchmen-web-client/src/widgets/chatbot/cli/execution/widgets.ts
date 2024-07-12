@@ -228,22 +228,27 @@ export const ExecutionResultItemLink = styled.div.attrs<{ vertical?: boolean }>(
 	({vertical}) => {
 		return {
 			'data-widget': 'cli-execution-result-link',
-			style: {
-				flexBasis: vertical ? '100%' : (void 0)
-			}
+			'data-vertical': vertical
 		};
 	})<{ vertical?: boolean }>`
     display: flex;
     position: relative;
     align-items: flex-start;
-	color: var(--primary-color);
+    color: var(--primary-color);
     word-break: normal;
     white-space: pre;
     min-height: var(--height);
     padding: 4px 0;
     line-height: 20px;
     text-decoration: underline;
-    cursor: pointer;
+
+    &[data-vertical=true] {
+        flex-basis: 100%;
+
+        > span {
+            cursor: pointer;
+        }
+    }
 `;
 // noinspection CssUnresolvedCustomProperty
 export const ExecutionResultItemTable = styled.div.attrs({'data-widget': 'cli-execution-result-table'})`

@@ -22,9 +22,9 @@ export const ExecutionResultOfAnswer = (props: ExecutionResultOfAnswerProps) => 
 				const {text, token, vertical} = item as CopilotAnswerOption;
 				useVertical = useVertical || (vertical ?? false);
 				return <ExecutionResultItemLink vertical={useVertical}
-				                                onClick={onLinkClicked(item as CopilotAnswerOption)}
+				                                onClick={useVertical ? (void 0) : onLinkClicked(item as CopilotAnswerOption)}
 				                                key={`${token}-${index}`}>
-					{text}
+					{useVertical ? <span onClick={onLinkClicked(item as CopilotAnswerOption)}>{text}</span> : text}
 				</ExecutionResultItemLink>;
 			} else {
 				return <ExecutionResultItemText key={`${item}-${index}`}>

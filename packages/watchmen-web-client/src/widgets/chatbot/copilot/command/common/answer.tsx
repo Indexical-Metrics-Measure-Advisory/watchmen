@@ -2,6 +2,7 @@ import {CopilotAnswer, CopilotAnswerOption} from '@/services/copilot/types';
 import React, {ReactNode, useEffect, useState} from 'react';
 import {CliEventTypes, useCliEventBus} from '../../../cli';
 import {ExecutionResultOfAnswer} from '../../answer';
+import {createPickOptionCommand} from '../pick-option';
 
 export interface AnswerProps {
 	greeting?: ReactNode;
@@ -26,18 +27,18 @@ export const Answer = (props: AnswerProps) => {
 		});
 	});
 	useAnswered(afterAnswer!);
-	const onClick = async (option: CopilotAnswerOption) => {
+	const onOptionPicked = async (option: CopilotAnswerOption) => {
 		let handled = false;
 		if (handleOption != null) {
 			handled = await handleOption(option);
 		}
 		if (!handled) {
-			// TODO DEFAULT HANDLE OPTION LOGIC
+			fire(CliEventTypes.EXECUTE_COMMAND, [createPickOptionCommand(option)]);
 		}
 	};
 
 	return <>
 		{greeting}
-		<ExecutionResultOfAnswer answer={answer} onOptionPicked={onClick}/>
+		<ExecutionResultOfAnswer answer={answer} onOptionPicked={onOptionPicked}/>
 	</>;
 };

@@ -1,7 +1,7 @@
-import {CopilotAnswerItemType, Recommendation, RecommendationType} from '../types';
+import {CopilotAnswerItemType, CopilotAnswerWithSession, RecommendationType} from '../types';
 
-export const mockAskRecommendation = async (sessionId: string, type: RecommendationType): Promise<Recommendation> => {
-	return new Promise<Recommendation>(resolve => {
+export const mockAskRecommendation = async (sessionId: string, type: RecommendationType): Promise<CopilotAnswerWithSession> => {
+	return new Promise<CopilotAnswerWithSession>(resolve => {
 		setTimeout(() => resolve((() => {
 			switch (type) {
 				case RecommendationType.CONNECTED_SPACE:
