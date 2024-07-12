@@ -1,7 +1,7 @@
-import {ConnectedSpaceCopilotSession, CopilotAnswerItemType} from '../types';
+import {CopilotAnswerItemType, CopilotAnswerWithSession} from '../types';
 
-export const mockStartConnectedSpaceCopilotSession = async (sessionId: string, withRecommendation: boolean): Promise<ConnectedSpaceCopilotSession> => {
-	return new Promise<ConnectedSpaceCopilotSession>(resolve => {
+export const mockStartConnectedSpaceCopilotSession = async (sessionId: string, withRecommendation: boolean): Promise<CopilotAnswerWithSession> => {
+	return new Promise<CopilotAnswerWithSession>(resolve => {
 		setTimeout(() => resolve((() => {
 			if (withRecommendation) {
 				return {
@@ -21,7 +21,7 @@ export const mockStartConnectedSpaceCopilotSession = async (sessionId: string, w
 					]
 				};
 			} else {
-				return {sessionId, data: []} as ConnectedSpaceCopilotSession;
+				return {sessionId, data: []};
 			}
 		})()), 3000);
 	});

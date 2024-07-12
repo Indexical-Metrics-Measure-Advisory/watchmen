@@ -23,12 +23,6 @@ export interface CopilotAnswerWithSession extends CopilotAnswer {
 	sessionId?: string;
 }
 
-export interface ConnectedSpaceCopilotSession extends CopilotAnswerWithSession {
-}
-
 export enum RecommendationType {
 	CONNECTED_SPACE = 'connected-space'
-}
-
-export interface Recommendation extends CopilotAnswerWithSession {
 }
