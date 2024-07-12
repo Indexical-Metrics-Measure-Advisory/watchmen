@@ -4,7 +4,7 @@ import React, {ReactNode} from 'react';
 import {Lang} from '../../../../langs';
 import {CliEventTypes, useCliEventBus} from '../../../cli';
 import {CopilotConstants} from '../../constants';
-import {NotedCmd} from '../noted';
+import {NoCmd} from '../noted';
 import {RetryCommand} from '../types';
 import {Answer} from './answer';
 
@@ -23,7 +23,7 @@ export const ConnectFailed = (props: FailedToAnswerProps) => {
 			const {commands, argument} = await askRetryCommand();
 			fire(CliEventTypes.EXECUTE_COMMAND, commands, argument);
 		} else {
-			fire(CliEventTypes.EXECUTE_COMMAND, [NotedCmd]);
+			fire(CliEventTypes.EXECUTE_COMMAND, [NoCmd]);
 		}
 		return true;
 	};
