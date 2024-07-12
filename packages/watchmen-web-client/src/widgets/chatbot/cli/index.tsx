@@ -1,4 +1,4 @@
-import React, {ReactNode} from 'react';
+import React, {FC, ReactNode} from 'react';
 import {ClearCmd, Command} from '../command';
 import {Greeting} from '../greeting';
 import {CLITrailButtons} from './cli-trail-buttons';
@@ -12,12 +12,12 @@ import {Workbench} from './workbench';
 const CLI = (props: {
 	greeting: string;
 	commands: Array<Command>;
-	helpCommand: Command;
+	helpCommand?: Command;
 	executions: ((props: any) => ReactNode) | ReactNode
 }) => {
 	const {greeting, commands, helpCommand, executions} = props;
 
-	const availableCommands = [...commands, ClearCmd, helpCommand];
+	const availableCommands = [...commands, ClearCmd, helpCommand].filter(x => x != null) as Array<Command>;
 
 	return <CLIContainer>
 		<WorkingArea>
@@ -40,8 +40,8 @@ const CLI = (props: {
 export const CLIWrapper = (props: {
 	greeting: string;
 	commands: Array<Command>;
-	helpCommand: Command;
-	execution: (props: { content: ExecutionContent }) => JSX.Element;
+	helpCommand?: Command;
+	execution: ((props: { content: ExecutionContent }) => JSX.Element) | FC<{ content: ExecutionContent }>;
 	children?: ReactNode;
 }) => {
 	const {greeting, commands, helpCommand, execution, children} = props;

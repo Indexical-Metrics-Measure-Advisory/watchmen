@@ -1,9 +1,10 @@
 import {CopilotAnswerOption} from '@/services/copilot/types';
 import {Command, CommandPublishedBehaviorType} from '../../../command';
 
-export const CMD_PICK_OPTION = '/pick-option';
+export const CMD_PICK_OPTION = '/pick option';
 
-export interface PickOptionCommand extends Command, CopilotAnswerOption {
+export interface PickOptionCommand extends Command {
+	option: CopilotAnswerOption;
 }
 
 export const PickOptionCmd: Command = {
@@ -16,5 +17,5 @@ export const PickOptionCmd: Command = {
 };
 
 export const createPickOptionCommand = (option: CopilotAnswerOption): PickOptionCommand => {
-	return {...PickOptionCmd, ...option};
+	return {...PickOptionCmd, option};
 };

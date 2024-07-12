@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import {useEffect, useState} from 'react';
+import {FC, useEffect, useState} from 'react';
 import {v4} from 'uuid';
 import {Command} from '../../command';
 import {CliEventTypes, useCliEventBus} from '../events';
@@ -7,7 +7,7 @@ import {ExecutionContent} from '../types';
 import {ExecutionWaiter} from './execution-waiter';
 
 export const Executions = (props: {
-	execution: (props: { content: ExecutionContent }) => JSX.Element;
+	execution: ((props: { content: ExecutionContent }) => JSX.Element) | FC<{ content: ExecutionContent }>;
 }) => {
 	const {execution: Execution} = props;
 
