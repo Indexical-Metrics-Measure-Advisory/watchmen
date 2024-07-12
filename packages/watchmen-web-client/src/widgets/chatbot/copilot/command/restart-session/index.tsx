@@ -1,5 +1,10 @@
 import {ExecutionContent} from '../../../cli';
-import {isRestartSessionContent, RestartSessionExecution} from './execution';
+import {
+	DoRestartSessionExecution,
+	isDoRestartSessionContent,
+	isRestartSessionContent,
+	RestartSessionExecution
+} from './execution';
 
 export * from './command';
 export * from './execution';
@@ -9,6 +14,8 @@ export const RestartSessionRenderer = (props: { content: ExecutionContent }) => 
 
 	if (isRestartSessionContent(content)) {
 		return <RestartSessionExecution content={content}/>;
+	} else if (isDoRestartSessionContent(content)) {
+		return <DoRestartSessionExecution content={content}/>;
 	} else {
 		return null;
 	}
