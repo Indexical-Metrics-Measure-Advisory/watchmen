@@ -1,18 +1,44 @@
+import {askRecommendation} from '@/services/copilot/ask-recommendation';
+import {startConnectedSpaceCopilotSession} from '@/services/copilot/connected-space';
+import {RecommendationType} from '@/services/copilot/types';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
-import {CliEventTypes, CLIWrapper, useCliEventBus} from '@/widgets/chatbot';
+import {
+	CliEventTypes,
+	CLIWrapper,
+	CopilotEventBusProvider,
+	CopilotEventTypes,
+	createAskRecommendationCommand,
+	createFirstNewSessionCommand,
+	useCliEventBus,
+	useCopilotEventBus
+} from '@/widgets/chatbot';
+import {Lang} from '@/widgets/langs';
 import React, {Fragment, useEffect, useState} from 'react';
-import {createFirstNewSessionCommand} from './command';
 import {CONNECTED_SPACE_COMMANDS, CONNECTED_SPACE_HELP_COMMAND} from './commands';
-import {CopilotEventBusProvider, useCopilotEventBus} from './copilot-event-bus';
-import {CopilotEventTypes} from './copilot-event-bus-types';
 import {Execution} from './execution';
 import {CopilotHeader} from './header';
 
 const InitialCommand = () => {
 	const {fire} = useCliEventBus();
 	useEffect(() => {
-		fire(CliEventTypes.EXECUTE_COMMAND, [createFirstNewSessionCommand()]);
-	}, [fire]);
+		fire(CliEventTypes.EXECUTE_COMMAND, [
+			createFirstNewSessionCommand({
+				greeting: Lang.COPILOT.CONNECTED_SPACE.GREETING_FIRST_SESSION,
+				action: async (sessionId: string) => startConnectedSpaceCopilotSession(sessionId, true),
+				restartGreeting: Lang.COPILOT.CONNECTED_SPACE.GREETING_RESTART_SESSION,
+				askRestartCommand: async () => {
+					return {
+						commands: [createAskRecommendationCommand({
+							greeting: Lang.COPILOT.REPLY_ASKING_RECOMMENDATION,
+							action: async (sessionId: string) => askRecommendation(sessionId, RecommendationType.CONNECTED_SPACE)
+						})]
+					};
+				}
+			})
+		]);
+		// only once anyway
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	return <Fragment/>;
 };

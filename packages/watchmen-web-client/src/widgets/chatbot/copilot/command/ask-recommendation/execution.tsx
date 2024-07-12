@@ -1,19 +1,17 @@
-import {askRecommendation} from '@/services/copilot/ask-recommendation';
-import {Recommendation, RecommendationType} from '@/services/copilot/types';
+import {CopilotAnswerWithSession} from '@/services/copilot/types';
 import {isBlank, isNotBlank} from '@/services/utils';
-import {
-	ExecutionCommandLineText,
-	ExecutionContent,
-	ExecutionDelegate,
-	ExecutionResultItemText,
-	useCliEventBus
-} from '@/widgets/chatbot';
-import {useEventBus} from '@/widgets/events/event-bus';
-import {EventTypes} from '@/widgets/events/types';
-import {Lang} from '@/widgets/langs';
 import React, {useEffect, useState} from 'react';
 import {v4} from 'uuid';
+// noinspection ES6PreferShortImport
+import {useEventBus} from '../../../../events/event-bus';
+// noinspection ES6PreferShortImport
+import {EventTypes} from '../../../../events/types';
+// noinspection ES6PreferShortImport
+import {Lang} from '../../../../langs';
+import {ExecutionCommandLineText, ExecutionContent, ExecutionDelegate, ExecutionResultItemText} from '../../../cli';
+// noinspection ES6PreferShortImport
 import {useCopilotEventBus} from '../../copilot-event-bus';
+// noinspection ES6PreferShortImport
 import {CopilotEventTypes} from '../../copilot-event-bus-types';
 import {Answer, ConnectFailed} from '../common';
 import {AskRecommendationCommand, CMD_ASK_RECOMMENDATION} from './command';
@@ -29,18 +27,17 @@ export const AskRecommendationExecution = (props: { content: ExecutionContent })
 
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireCopilot} = useCopilotEventBus();
-	const {fire} = useCliEventBus();
 	const [result, setResult] = useState<{ content?: any, toBeContinue: boolean }>({toBeContinue: true});
 	useEffect(() => {
 		fireCopilot(CopilotEventTypes.CURRENT_SESSION, (currentSessionId?: string) => {
 			const sessionId = currentSessionId ?? v4();
 			const greeting = <ExecutionResultItemText>
-				{Lang.COPILOT.REPLY_ASKING_RECOMMENDATION}
+				{command.greeting ?? Lang.COPILOT.REPLY_ASKING_RECOMMENDATION}
 			</ExecutionResultItemText>;
 			setResult({content: greeting, toBeContinue: true});
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-				async () => await askRecommendation(sessionId, RecommendationType.CONNECTED_SPACE),
-				(answer: Recommendation) => {
+				async () => await command.action(sessionId),
+				(answer: CopilotAnswerWithSession) => {
 					const {sessionId: newSessionId} = answer;
 					if (sessionId !== newSessionId && isNotBlank(newSessionId)) {
 						// use the generated session id instead when session id is not given by replied data
@@ -53,17 +50,16 @@ export const AskRecommendationExecution = (props: { content: ExecutionContent })
 						toBeContinue: false
 					});
 				}, () => {
-					const retry = async () => {
-						// TODO RETRY ASK RECOMMENDATION
-					};
+					const askRetryCommand = async () => ({commands: [command]});
 					setResult({
-						content: <ConnectFailed greeting={greeting} retry={retry}/>,
+						content: <ConnectFailed greeting={greeting} askRetryCommand={askRetryCommand}/>,
 						toBeContinue: false
-
 					});
 				}, true);
 		});
-	}, [fireGlobal, fireCopilot, fire]);
+		// execute once anyway
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const cli = isBlank(command.replyTo)
 		? null

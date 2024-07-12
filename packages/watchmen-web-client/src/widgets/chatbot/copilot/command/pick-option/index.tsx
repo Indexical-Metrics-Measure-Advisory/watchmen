@@ -1,4 +1,4 @@
-import {ExecutionContent} from '@/widgets/chatbot';
+import {ExecutionContent} from '../../../cli';
 import {isPickOptionContent, PickOptionExecution} from './execution';
 
 export * from './command';

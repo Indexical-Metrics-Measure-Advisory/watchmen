@@ -1,4 +1,4 @@
-import {ExecutionContent} from '@/widgets/chatbot';
+import {ExecutionContent} from '../../../cli';
 import {isNotedContent, NotedExecution} from './execution';
 
 export * from './command';

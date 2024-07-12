@@ -1,6 +1,7 @@
 import {CopilotAnswer, CopilotAnswerOption} from '@/services/copilot/types';
-import {CliEventTypes, ExecutionResultOfAnswer, useCliEventBus} from '@/widgets/chatbot';
 import React, {ReactNode, useEffect, useState} from 'react';
+import {CliEventTypes, useCliEventBus} from '../../../cli';
+import {ExecutionResultOfAnswer} from '../../answer';
 
 export interface AnswerProps {
 	greeting?: ReactNode;

@@ -1,5 +1,10 @@
-import {ExecutionContent} from '@/widgets/chatbot';
-import {AskRecommendationRenderer, NewSessionRenderer, NotedRenderer, PickOptionRenderer} from './command';
+import {
+	AskRecommendationRenderer,
+	ExecutionContent,
+	NewSessionRenderer,
+	NotedRenderer,
+	PickOptionRenderer
+} from '@/widgets/chatbot';
 
 export const Execution = (props: { content: ExecutionContent }) => {
 	const {content} = props;

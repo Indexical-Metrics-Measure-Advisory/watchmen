@@ -1,5 +1,6 @@
-import {useCreateEventBus} from '@/widgets/events/use-create-event-bus';
 import React, {createContext, ReactNode, useContext} from 'react';
+import {useCreateEventBus} from '../../events/use-create-event-bus';
+// noinspection ES6PreferShortImport
 import {CopilotEventBus} from './copilot-event-bus-types';
 
 const Context = createContext<CopilotEventBus>({} as CopilotEventBus);

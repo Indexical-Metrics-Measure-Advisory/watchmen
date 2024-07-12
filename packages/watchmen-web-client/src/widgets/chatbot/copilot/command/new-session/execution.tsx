@@ -1,67 +1,86 @@
-import {startConnectedSpaceCopilotSession} from '@/services/copilot/connected-space';
 import {
-	ConnectedSpaceCopilotSession,
 	CopilotAnswer,
 	CopilotAnswerItemType,
-	CopilotAnswerOption
+	CopilotAnswerOption,
+	CopilotAnswerWithSession
 } from '@/services/copilot/types';
 import {isBlank, isNotBlank} from '@/services/utils';
+import React, {useEffect, useState} from 'react';
+import {v4} from 'uuid';
+// noinspection ES6PreferShortImport
+import {useEventBus} from '../../../../events/event-bus';
+// noinspection ES6PreferShortImport
+import {EventTypes} from '../../../../events/types';
+// noinspection ES6PreferShortImport
+import {Lang} from '../../../../langs';
 import {
 	CliEventTypes,
-	CopilotConstants,
 	ExecutionCommandLineText,
 	ExecutionContent,
 	ExecutionDelegate,
 	ExecutionResultItemText,
 	useCliEventBus
-} from '@/widgets/chatbot';
-import {useEventBus} from '@/widgets/events/event-bus';
-import {EventTypes} from '@/widgets/events/types';
-import {Lang} from '@/widgets/langs';
-import React, {useEffect, useState} from 'react';
-import {v4} from 'uuid';
+} from '../../../cli';
+import {CopilotConstants} from '../../constants';
+// noinspection ES6PreferShortImport
 import {useCopilotEventBus} from '../../copilot-event-bus';
+// noinspection ES6PreferShortImport
 import {CopilotEventTypes} from '../../copilot-event-bus-types';
-import {createAskRecommendationCommand} from '../ask-recommendation';
+// noinspection ES6PreferShortImport
 import {Answer, ConnectFailed} from '../common';
 import {NotedCmd} from '../noted';
+import {RetryCommand} from '../types';
 import {CMD_NEW_SESSION, NewSessionCommand} from './command';
 
 export const isNewSessionContent = (content: ExecutionContent): boolean => {
 	return content.commands[0].command === CMD_NEW_SESSION;
 };
 
-const RestartSession = () => {
+export interface RestartSessionProps {
+	greeting: string;
+	askRestartCommand?: () => Promise<RetryCommand>;
+}
+
+export const RestartSession = (props: RestartSessionProps) => {
+	const {greeting, askRestartCommand} = props;
+
 	const {fire} = useCliEventBus();
 	const handleOption = async (option: CopilotAnswerOption) => {
+		if (askRestartCommand == null) {
+			return true;
+		}
 		const {token} = option;
 		if (token === CopilotConstants.Yes) {
-			fire(CliEventTypes.EXECUTE_COMMAND, [createAskRecommendationCommand()]);
+			const {commands, argument} = await askRestartCommand();
+			fire(CliEventTypes.EXECUTE_COMMAND, commands, argument);
 		} else {
 			fire(CliEventTypes.EXECUTE_COMMAND, [NotedCmd]);
 		}
 		return true;
 	};
 	const answer: CopilotAnswer = {
-		data: [
-			{type: CopilotAnswerItemType.OPTION, text: Lang.COPILOT.YES, token: CopilotConstants.Yes},
-			'',
-			{type: CopilotAnswerItemType.OPTION, text: Lang.COPILOT.NO, token: CopilotConstants.No}
-		]
+		data: askRestartCommand == null
+			? []
+			: [
+				{type: CopilotAnswerItemType.OPTION, text: Lang.COPILOT.YES, token: CopilotConstants.Yes},
+				'',
+				{type: CopilotAnswerItemType.OPTION, text: Lang.COPILOT.NO, token: CopilotConstants.No}
+			]
 	};
-	return <Answer greeting={Lang.COPILOT.CONNECTED_SPACE.GREETING_RESTART_SESSION}
-	               answer={answer}
-	               handleOption={handleOption}/>;
+	return <Answer greeting={greeting} answer={answer} handleOption={handleOption}/>;
 };
 
-export const NewSessionExecution = (props: { content: ExecutionContent }) => {
+export interface NewSessionExecutionProps {
+	content: ExecutionContent;
+}
+
+export const NewSessionExecution = (props: NewSessionExecutionProps) => {
 	const {content} = props;
 	const {commands} = content;
 	const command = commands[0] as NewSessionCommand;
 
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireCopilot} = useCopilotEventBus();
-	const {fire} = useCliEventBus();
 	const [result, setResult] = useState<{ content?: any, toBeContinue: boolean }>({toBeContinue: true});
 	useEffect(() => {
 		fireCopilot(CopilotEventTypes.CURRENT_SESSION, (currentSessionId?: string) => {
@@ -69,18 +88,20 @@ export const NewSessionExecution = (props: { content: ExecutionContent }) => {
 			const sessionId = v4();
 			if (sessionExists) {
 				// start a new session
-				setResult({content: <RestartSession/>, toBeContinue: false});
+				setResult({
+					content: <RestartSession greeting={command.restartGreeting}
+					                         askRestartCommand={command.askRestartCommand}/>,
+					toBeContinue: false
+				});
 				// create this new session anyway
 				fireCopilot(CopilotEventTypes.NEW_SESSION, sessionId);
 			} else {
 				// first
-				const greeting = <ExecutionResultItemText>
-					{Lang.COPILOT.CONNECTED_SPACE.GREETING_FIRST_SESSION}
-				</ExecutionResultItemText>;
+				const greeting = <ExecutionResultItemText>{command.greeting}</ExecutionResultItemText>;
 				setResult({content: greeting, toBeContinue: true});
 				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-					async () => await startConnectedSpaceCopilotSession(sessionId, true),
-					(answer: ConnectedSpaceCopilotSession) => {
+					async () => await command.action(sessionId),
+					(answer: CopilotAnswerWithSession) => {
 						const {sessionId: newSessionId} = answer;
 						// use the generated session id instead when session id is not given by replied data
 						fireCopilot(CopilotEventTypes.NEW_SESSION, newSessionId || sessionId);
@@ -88,16 +109,17 @@ export const NewSessionExecution = (props: { content: ExecutionContent }) => {
 							content: <Answer greeting={greeting} answer={answer}/>, toBeContinue: false
 						});
 					}, () => {
-						const retry = async () => {
-							// TODO RETRY CREATE SESSION
-						};
+						const askRetryCommand = async () => ({commands: [command]});
 						setResult({
-							content: <ConnectFailed greeting={greeting} retry={retry}/>, toBeContinue: false
+							content: <ConnectFailed greeting={greeting} askRetryCommand={askRetryCommand}/>,
+							toBeContinue: false
 						});
 					}, true);
 			}
 		});
-	}, [fireGlobal, fireCopilot, fire]);
+		// execute once anyway
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const cli = isBlank(command.replyTo)
 		? null
