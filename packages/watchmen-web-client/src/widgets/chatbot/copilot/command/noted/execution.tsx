@@ -1,4 +1,7 @@
 import {isBlank} from '@/services/utils';
+import React, {useEffect, useState} from 'react';
+// noinspection ES6PreferShortImport
+import {Lang} from '../../../../langs';
 import {
 	CliEventTypes,
 	ExecutionCommandLineText,
@@ -6,9 +9,7 @@ import {
 	ExecutionDelegate,
 	ExecutionResultItemText,
 	useCliEventBus
-} from '@/widgets/chatbot';
-import {Lang} from '@/widgets/langs';
-import React, {useEffect, useState} from 'react';
+} from '../../../cli';
 import {CMD_NOTED, NotedCommand} from './command';
 
 export const isNotedContent = (content: ExecutionContent): boolean => {
@@ -24,13 +25,16 @@ export const NotedExecution = (props: { content: ExecutionContent }) => {
 	const [result, setResult] = useState<{ content?: any, toBeContinue: boolean }>({toBeContinue: true});
 	useEffect(() => {
 		setTimeout(() => {
-			const greeting =
-				<ExecutionResultItemText>{Lang.COPILOT.NOTED}</ExecutionResultItemText>;
-			setResult({content: greeting, toBeContinue: false});
+			setResult({
+				content: <ExecutionResultItemText>{command.greeting ?? Lang.COPILOT.NOTED}</ExecutionResultItemText>,
+				toBeContinue: false
+			});
 			fire(CliEventTypes.COMMAND_EXECUTED);
 			// waiting
 		}, 300 + Math.random() * 200);
-	}, [fire]);
+		// execute once anyway
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const cli = isBlank(command.replyTo)
 		? null

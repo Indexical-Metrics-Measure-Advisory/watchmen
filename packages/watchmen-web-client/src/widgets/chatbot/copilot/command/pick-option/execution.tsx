@@ -1,5 +1,5 @@
-import {ExecutionCommandLineText, ExecutionContent, ExecutionDelegate, useCliEventBus} from '@/widgets/chatbot';
 import React, {useEffect, useState} from 'react';
+import {ExecutionCommandLineText, ExecutionContent, ExecutionDelegate, useCliEventBus} from '../../../cli';
 import {CMD_PICK_OPTION, PickOptionCommand} from './command';
 
 export const isPickOptionContent = (content: ExecutionContent): boolean => {
@@ -12,7 +12,7 @@ export const PickOptionExecution = (props: { content: ExecutionContent }) => {
 	const command = commands[0] as PickOptionCommand;
 
 	const {fire} = useCliEventBus();
-	const [result, setResult] = useState<{ content?: any, toBeContinue: boolean }>({toBeContinue: true});
+	const [result] = useState<{ content?: any, toBeContinue: boolean }>({toBeContinue: true});
 	useEffect(() => {
 		// TODO HANDLE PICKED OPTION
 		// const greeting =

@@ -1,5 +1,5 @@
 import {CopilotAnswerOption} from '@/services/copilot/types';
-import {Command, CommandPublishedBehaviorType} from '@/widgets/chatbot';
+import {Command, CommandPublishedBehaviorType} from '../../../command';
 
 export const CMD_PICK_OPTION = '/pick-option';
 
