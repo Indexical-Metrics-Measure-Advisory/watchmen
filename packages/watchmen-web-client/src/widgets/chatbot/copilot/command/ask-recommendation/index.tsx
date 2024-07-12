@@ -1,5 +1,5 @@
-import {ExecutionContent} from '@/widgets/chatbot';
-import {isAskRecommendationContent, AskRecommendationExecution} from './execution';
+import {ExecutionContent} from '../../../cli';
+import {AskRecommendationExecution, isAskRecommendationContent} from './execution';
 
 export * from './command';
 export * from './execution';

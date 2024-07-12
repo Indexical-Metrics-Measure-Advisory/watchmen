@@ -1,23 +1,27 @@
-import {NotedCmd} from '@/console/connected-space/copilot/command';
-import {Answer} from '@/console/connected-space/copilot/command/common/answer';
 import {CopilotAnswer, CopilotAnswerItemType, CopilotAnswerOption} from '@/services/copilot/types';
-import {CliEventTypes, CopilotConstants, useCliEventBus} from '@/widgets/chatbot';
-import {Lang} from '@/widgets/langs';
 import React, {ReactNode} from 'react';
+// noinspection ES6PreferShortImport
+import {Lang} from '../../../../langs';
+import {CliEventTypes, useCliEventBus} from '../../../cli';
+import {CopilotConstants} from '../../constants';
+import {NotedCmd} from '../noted';
+import {RetryCommand} from '../types';
+import {Answer} from './answer';
 
 export interface FailedToAnswerProps {
 	greeting?: ReactNode;
-	retry: () => Promise<void>;
+	askRetryCommand: () => Promise<RetryCommand>;
 }
 
 export const ConnectFailed = (props: FailedToAnswerProps) => {
-	const {greeting, retry} = props;
+	const {greeting, askRetryCommand} = props;
 
 	const {fire} = useCliEventBus();
 	const handleOption = async (option: CopilotAnswerOption) => {
 		const {token} = option;
 		if (token === CopilotConstants.Yes) {
-			await retry();
+			const {commands, argument} = await askRetryCommand();
+			fire(CliEventTypes.EXECUTE_COMMAND, commands, argument);
 		} else {
 			fire(CliEventTypes.EXECUTE_COMMAND, [NotedCmd]);
 		}

@@ -1,4 +1,4 @@
-import {Command} from '@/widgets/chatbot';
+import {Command} from '../command';
 
 export interface TextReplyCommand extends Command {
 	/** text user key-in */
