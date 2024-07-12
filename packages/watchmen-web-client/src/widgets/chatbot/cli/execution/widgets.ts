@@ -249,6 +249,10 @@ export const ExecutionResultItemLink = styled.div.attrs<{ vertical?: boolean }>(
             cursor: pointer;
         }
     }
+
+    &[data-vertical=false] {
+        cursor: pointer;
+    }
 `;
 // noinspection CssUnresolvedCustomProperty
 export const ExecutionResultItemTable = styled.div.attrs({'data-widget': 'cli-execution-result-table'})`

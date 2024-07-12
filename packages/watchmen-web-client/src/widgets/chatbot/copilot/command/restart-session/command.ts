@@ -26,3 +26,27 @@ export const createRestartSessionCommand = (options: {
 
 	return {...RestartSessionCmd, greeting, askRestartCommand};
 };
+
+export const CMD_DO_RESTART_SESSION = '/do restart session';
+
+export interface DoRestartSessionCommand extends Command {
+	greeting: string;
+	askRestartCommand?: () => Promise<RetryCommand>;
+}
+
+export const createDoRestartSessionCommand = (options: {
+	greeting: string;
+	askRestartCommand?: DoRestartSessionCommand['askRestartCommand']
+}): DoRestartSessionCommand => {
+	const {greeting, askRestartCommand} = options;
+
+	return {
+		label: 'Do Restart Session',
+		command: CMD_DO_RESTART_SESSION,
+		reminder: '',
+		published: {type: CommandPublishedBehaviorType.CLEAR_ALL},
+		trails: [],
+		executableOnNoTrail: true,
+		greeting, askRestartCommand
+	};
+};

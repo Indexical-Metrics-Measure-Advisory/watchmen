@@ -1,11 +1,11 @@
 import {CopilotAnswer, CopilotAnswerItemType, CopilotAnswerOption} from '@/services/copilot/types';
-import React, {useEffect, useState} from 'react';
+import React, {Fragment, useEffect, useState} from 'react';
 import {v4} from 'uuid';
 // noinspection ES6PreferShortImport
 import {Lang} from '../../../../langs';
 import {
-	CliEventTypes, ExecutionCommandLinePrimary,
-	ExecutionCommandLineText,
+	CliEventTypes,
+	ExecutionCommandLinePrimary,
 	ExecutionContent,
 	ExecutionDelegate,
 	ExecutionResultItemText,
@@ -18,48 +18,17 @@ import {useCopilotEventBus} from '../../copilot-event-bus';
 import {CopilotEventTypes} from '../../copilot-event-bus-types';
 // noinspection ES6PreferShortImport
 import {Answer} from '../common';
-import {NotedCmd} from '../noted';
-import {RetryCommand} from '../types';
-import {CMD_RESTART_SESSION, RestartSessionCommand} from './command';
+import {NoCmd} from '../noted';
+import {
+	CMD_DO_RESTART_SESSION,
+	CMD_RESTART_SESSION,
+	createDoRestartSessionCommand,
+	DoRestartSessionCommand,
+	RestartSessionCommand
+} from './command';
 
 export const isRestartSessionContent = (content: ExecutionContent): boolean => {
 	return content.commands[0].command === CMD_RESTART_SESSION;
-};
-
-export interface RestartSessionProps {
-	greeting: string;
-	askRestartCommand?: () => Promise<RetryCommand>;
-}
-
-export const RestartSession = (props: RestartSessionProps) => {
-	const {greeting, askRestartCommand} = props;
-
-	const {fire} = useCliEventBus();
-	const handleOption = async (option: CopilotAnswerOption) => {
-		if (askRestartCommand == null) {
-			return true;
-		}
-		const {token} = option;
-		if (token === CopilotConstants.Yes) {
-			const {commands, argument} = await askRestartCommand();
-			fire(CliEventTypes.EXECUTE_COMMAND, commands, argument);
-		} else {
-			fire(CliEventTypes.EXECUTE_COMMAND, [NotedCmd]);
-		}
-		return true;
-	};
-	const answer: CopilotAnswer = {
-		data: askRestartCommand == null
-			? []
-			: [
-				{type: CopilotAnswerItemType.OPTION, text: Lang.COPILOT.YES, token: CopilotConstants.Yes},
-				'',
-				{type: CopilotAnswerItemType.OPTION, text: Lang.COPILOT.NO, token: CopilotConstants.No}
-			]
-	};
-
-	return <Answer greeting={<ExecutionResultItemText>{greeting}</ExecutionResultItemText>} answer={answer}
-	               handleOption={handleOption}/>;
 };
 
 export interface RestartSessionExecutionProps {
@@ -72,15 +41,15 @@ export const RestartSessionExecution = (props: RestartSessionExecutionProps) => 
 	const command = commands[0] as RestartSessionCommand;
 
 	const {fire: fireCopilot} = useCopilotEventBus();
+	const {fire} = useCliEventBus();
 	const [result, setResult] = useState<{ content?: any, toBeContinue: boolean }>({toBeContinue: true});
 	useEffect(() => {
 		const sessionId = v4();
 		// start a new session
-		setResult({
-			content: <RestartSession greeting={command.greeting}
-			                         askRestartCommand={command.askRestartCommand}/>,
-			toBeContinue: false
-		});
+		setResult({content: <Fragment/>, toBeContinue: false});
+		fire(CliEventTypes.EXECUTE_COMMAND, [createDoRestartSessionCommand({
+			greeting: command.greeting, askRestartCommand: command.askRestartCommand
+		})]);
 		// create this new session anyway
 		fireCopilot(CopilotEventTypes.NEW_SESSION, sessionId);
 		// execute once anyway
@@ -93,4 +62,56 @@ export const RestartSessionExecution = (props: RestartSessionExecutionProps) => 
 
 	return <ExecutionDelegate content={content} commandLine={cli} result={result.content}
 	                          toBeContinue={result.toBeContinue}/>;
+};
+
+export const isDoRestartSessionContent = (content: ExecutionContent): boolean => {
+	return content.commands[0].command === CMD_DO_RESTART_SESSION;
+};
+
+export interface DoRestartSessionExecutionProps {
+	content: ExecutionContent;
+}
+
+export const DoRestartSessionExecution = (props: DoRestartSessionExecutionProps) => {
+	const {content} = props;
+	const {commands} = content;
+	const command = commands[0] as DoRestartSessionCommand;
+
+	const {fire} = useCliEventBus();
+	const [result, setResult] = useState<{ content?: any, toBeContinue: boolean }>({toBeContinue: true});
+	useEffect(() => {
+		const handleOption = async (option: CopilotAnswerOption) => {
+			if (command.askRestartCommand == null) {
+				return true;
+			}
+			const {token} = option;
+			if (token === CopilotConstants.Yes) {
+				const {commands, argument} = await command.askRestartCommand();
+				fire(CliEventTypes.EXECUTE_COMMAND, commands, argument);
+			} else {
+				fire(CliEventTypes.EXECUTE_COMMAND, [NoCmd]);
+			}
+			return true;
+		};
+		const answer: CopilotAnswer = {
+			data: command.askRestartCommand == null
+				? []
+				: [
+					{type: CopilotAnswerItemType.OPTION, text: Lang.COPILOT.YES, token: CopilotConstants.Yes},
+					'',
+					{type: CopilotAnswerItemType.OPTION, text: Lang.COPILOT.NO, token: CopilotConstants.No}
+				]
+		};
+		// setResult({content: greeting, toBeContinue: true});
+		setResult({
+			content: <Answer greeting={<ExecutionResultItemText>{command.greeting}</ExecutionResultItemText>}
+			                 answer={answer}
+			                 handleOption={handleOption}/>,
+			toBeContinue: false
+		});
+		// execute once anyway
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	return <ExecutionDelegate content={content} result={result.content} toBeContinue={result.toBeContinue}/>;
 };
