@@ -18,7 +18,7 @@ import {useCopilotEventBus} from '../../copilot-event-bus';
 import {CopilotEventTypes} from '../../copilot-event-bus-types';
 // noinspection ES6PreferShortImport
 import {Answer} from '../common';
-import {NoCmd} from '../noted';
+import {createYesCommand, NoCmd} from '../noted';
 import {
 	CMD_DO_RESTART_SESSION,
 	CMD_RESTART_SESSION,
@@ -86,8 +86,7 @@ export const DoRestartSessionExecution = (props: DoRestartSessionExecutionProps)
 			}
 			const {token} = option;
 			if (token === CopilotConstants.Yes) {
-				const {commands, argument} = await command.askRestartCommand();
-				fire(CliEventTypes.EXECUTE_COMMAND, commands, argument);
+				fire(CliEventTypes.EXECUTE_COMMAND, [createYesCommand(command.askRestartCommand)]);
 			} else {
 				fire(CliEventTypes.EXECUTE_COMMAND, [NoCmd]);
 			}
