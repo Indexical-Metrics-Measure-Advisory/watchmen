@@ -19,3 +19,22 @@ export const PickOptionCmd: Command = {
 export const createPickOptionCommand = (option: CopilotAnswerOption): PickOptionCommand => {
 	return {...PickOptionCmd, option};
 };
+
+export const CMD_DO_PICK_OPTION = '/do pick option';
+
+export interface DoPickOptionCommand extends Command {
+	option: CopilotAnswerOption;
+}
+
+export const DoPickOptionCmd: Command = {
+	label: 'Do Pick Option',
+	command: CMD_DO_PICK_OPTION,
+	reminder: '',
+	published: {type: CommandPublishedBehaviorType.CLEAR_ALL},
+	trails: [],
+	executableOnNoTrail: true
+};
+
+export const createDoPickOptionCommand = (option: CopilotAnswerOption): DoPickOptionCommand => {
+	return {...DoPickOptionCmd, option};
+};

@@ -1197,7 +1197,6 @@ export const Jp: LanguageDeclareType = {
 		REPLY_ASKING_RECOMMENDATION: '了解しました。推奨オプションをチェックしますので少々お待ちください。',
 		CONNECT_FAIL: 'サーバーに接続できませんでした。再試行しますか？',
 		ASK_RESTART_SESSION: '新しいセッションを開始します。',
-		OPTION_PICKED: '',
 		OPTION_PICKED_NOTED: '申し訳ありませんが、そのオプションを完全に理解することができません。',
 		CONNECTED_SPACE: {
 			GREETING_FIRST_SESSION: 'こんにちは！私はAIアシスタントです。現在接続されているスペースのデータを分析するのを手伝えます。推奨オプションをチェックしますので少々お待ちください。',
