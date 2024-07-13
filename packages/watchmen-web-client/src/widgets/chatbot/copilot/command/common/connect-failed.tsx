@@ -4,7 +4,7 @@ import React, {ReactNode} from 'react';
 import {Lang} from '../../../../langs';
 import {CliEventTypes, useCliEventBus} from '../../../cli';
 import {CopilotConstants} from '../../constants';
-import {NoCmd} from '../noted';
+import {createYesCommand, NoCmd} from '../noted';
 import {RetryCommand} from '../types';
 import {Answer} from './answer';
 
@@ -20,8 +20,7 @@ export const ConnectFailed = (props: FailedToAnswerProps) => {
 	const handleOption = async (option: CopilotAnswerOption) => {
 		const {token} = option;
 		if (token === CopilotConstants.Yes) {
-			const {commands, argument} = await askRetryCommand();
-			fire(CliEventTypes.EXECUTE_COMMAND, commands, argument);
+			fire(CliEventTypes.EXECUTE_COMMAND, [createYesCommand(askRetryCommand)]);
 		} else {
 			fire(CliEventTypes.EXECUTE_COMMAND, [NoCmd]);
 		}

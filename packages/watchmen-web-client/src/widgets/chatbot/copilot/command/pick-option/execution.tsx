@@ -1,7 +1,7 @@
 import {askOptionDetails} from '@/services/copilot/ask-option-details';
 import {CopilotAnswerWithSession} from '@/services/copilot/types';
 import {isNotBlank} from '@/services/utils';
-import React, {useEffect, useState} from 'react';
+import React, {Fragment, useEffect, useState} from 'react';
 import {v4} from 'uuid';
 // noinspection ES6PreferShortImport
 import {useEventBus} from '../../../../events/event-bus';
@@ -9,19 +9,52 @@ import {useEventBus} from '../../../../events/event-bus';
 import {EventTypes} from '../../../../events/types';
 // noinspection ES6PreferShortImport
 import {Lang} from '../../../../langs';
-import {ExecutionCommandLinePrimary, ExecutionContent, ExecutionDelegate, ExecutionResultItemText} from '../../../cli';
+import {
+	CliEventTypes,
+	ExecutionCommandLinePrimary,
+	ExecutionContent,
+	ExecutionDelegate,
+	ExecutionResultItemText,
+	useCliEventBus
+} from '../../../cli';
 // noinspection ES6PreferShortImport
 import {useCopilotEventBus} from '../../copilot-event-bus';
 // noinspection ES6PreferShortImport
 import {CopilotEventTypes} from '../../copilot-event-bus-types';
 import {Answer, ConnectFailed} from '../common';
-import {CMD_PICK_OPTION, PickOptionCommand} from './command';
+import {CMD_DO_PICK_OPTION, CMD_PICK_OPTION, createDoPickOptionCommand, PickOptionCommand} from './command';
 
 export const isPickOptionContent = (content: ExecutionContent): boolean => {
 	return content.commands[0].command === CMD_PICK_OPTION;
 };
 
 export const PickOptionExecution = (props: { content: ExecutionContent }) => {
+	const {content} = props;
+	const {commands} = content;
+	const command = commands[0] as PickOptionCommand;
+
+	const {fire} = useCliEventBus();
+	const [result, setResult] = useState<{ content?: any, toBeContinue: boolean }>({toBeContinue: true});
+	useEffect(() => {
+		setResult({content: <Fragment/>, toBeContinue: false});
+		fire(CliEventTypes.COMMAND_EXECUTED);
+		fire(CliEventTypes.EXECUTE_COMMAND, [createDoPickOptionCommand(command.option)]);
+		// execute once anyway
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	const cli =
+		<ExecutionCommandLinePrimary>{command.option.text}</ExecutionCommandLinePrimary>;
+
+	return <ExecutionDelegate content={content} commandLine={cli} result={result.content}
+	                          toBeContinue={result.toBeContinue}/>;
+};
+
+export const isDoPickOptionContent = (content: ExecutionContent): boolean => {
+	return content.commands[0].command === CMD_DO_PICK_OPTION;
+};
+
+export const DoPickOptionExecution = (props: { content: ExecutionContent }) => {
 	const {content} = props;
 	const {commands} = content;
 	const command = commands[0] as PickOptionCommand;
@@ -60,9 +93,5 @@ export const PickOptionExecution = (props: { content: ExecutionContent }) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	const cli =
-		<ExecutionCommandLinePrimary>{Lang.COPILOT.OPTION_PICKED} "{command.option.text}".</ExecutionCommandLinePrimary>;
-
-	return <ExecutionDelegate content={content} commandLine={cli} result={result.content}
-	                          toBeContinue={result.toBeContinue}/>;
+	return <ExecutionDelegate content={content} result={result.content} toBeContinue={result.toBeContinue}/>;
 };
