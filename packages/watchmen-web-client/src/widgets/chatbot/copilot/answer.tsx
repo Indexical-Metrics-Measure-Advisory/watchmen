@@ -26,6 +26,16 @@ export const ExecutionResultOfAnswer = (props: ExecutionResultOfAnswerProps) => 
 				                                key={`${token}-${index}`}>
 					{useVertical ? <span onClick={onLinkClicked(item as CopilotAnswerOption)}>{text}</span> : text}
 				</ExecutionResultItemLink>;
+			} else if (item.type === CopilotAnswerItemType.MARKDOWN) {
+				useVertical = false;
+				return <ExecutionResultItemText key={`${item}-${index}`}>
+					Should be rendered as Markdown, not supported yet: {item}
+				</ExecutionResultItemText>;
+			} else if (item.type === CopilotAnswerItemType.SVG) {
+				useVertical = false;
+				return <ExecutionResultItemText key={`${item}-${index}`}>
+					Should be rendered as SVG, not supported yet: {item}
+				</ExecutionResultItemText>;
 			} else {
 				return <ExecutionResultItemText key={`${item}-${index}`}>
 					[{item.type}] not supported yet.

@@ -1,5 +1,5 @@
 export enum CopilotAnswerItemType {
-	OPTION = 'option'
+	OPTION = 'option', MARKDOWN = 'markdown', SVG = 'svg'
 }
 
 export interface CopilotAnswerItem {
@@ -13,7 +13,20 @@ export interface CopilotAnswerOption extends CopilotAnswerItem {
 	vertical?: boolean;
 }
 
-export type CopilotAnswerItemTypes = string | CopilotAnswerItem | CopilotAnswerOption;
+export interface CopilotAnswerMarkdown extends CopilotAnswerItem {
+	type: CopilotAnswerItemType.MARKDOWN;
+	content: string;
+}
+
+export interface CopilotAnswerSVG extends CopilotAnswerItem {
+	type: CopilotAnswerItemType.SVG;
+	content: string;
+}
+
+export type CopilotAnswerItemTypes = string | CopilotAnswerItem
+	| CopilotAnswerOption
+	| CopilotAnswerMarkdown
+	| CopilotAnswerSVG;
 
 export interface CopilotAnswer {
 	data: Array<CopilotAnswerItemTypes>;
