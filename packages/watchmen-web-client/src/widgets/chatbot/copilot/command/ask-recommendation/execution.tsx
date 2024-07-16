@@ -1,6 +1,6 @@
 import {CopilotAnswerWithSession} from '@/services/copilot/types';
 import {isBlank, isNotBlank} from '@/services/utils';
-import React, {useEffect, useState} from 'react';
+import React, {Fragment, useEffect, useState} from 'react';
 import {v4} from 'uuid';
 // noinspection ES6PreferShortImport
 import {useEventBus} from '../../../../events/event-bus';
@@ -8,22 +8,69 @@ import {useEventBus} from '../../../../events/event-bus';
 import {EventTypes} from '../../../../events/types';
 // noinspection ES6PreferShortImport
 import {Lang} from '../../../../langs';
-import {ExecutionCommandLineText, ExecutionContent, ExecutionDelegate, ExecutionResultItemText} from '../../../cli';
+import {
+	CliEventTypes,
+	ExecutionCommandLinePrimary,
+	ExecutionCommandLineText,
+	ExecutionContent,
+	ExecutionDelegate,
+	ExecutionResultItemText,
+	useCliEventBus
+} from '../../../cli';
 // noinspection ES6PreferShortImport
 import {useCopilotEventBus} from '../../copilot-event-bus';
 // noinspection ES6PreferShortImport
 import {CopilotEventTypes} from '../../copilot-event-bus-types';
 import {Answer, ConnectFailed} from '../common';
-import {AskRecommendationCommand, CMD_ASK_RECOMMENDATION} from './command';
+import {
+	AskRecommendationCommand,
+	CMD_ASK_RECOMMENDATION,
+	CMD_DO_ASK_RECOMMENDATION,
+	createDoAskRecommendationCommand,
+	DoAskRecommendationCommand
+} from './command';
 
 export const isAskRecommendationContent = (content: ExecutionContent): boolean => {
 	return content.commands[0].command === CMD_ASK_RECOMMENDATION;
 };
 
-export const AskRecommendationExecution = (props: { content: ExecutionContent }) => {
+export interface AskRecommendationExecutionProps {
+	content: ExecutionContent;
+}
+
+export const AskRecommendationExecution = (props: AskRecommendationExecutionProps) => {
 	const {content} = props;
 	const {commands} = content;
 	const command = commands[0] as AskRecommendationCommand;
+
+	const {fire} = useCliEventBus();
+	const [result, setResult] = useState<{ content?: any, toBeContinue: boolean }>({toBeContinue: true});
+	useEffect(() => {
+		// start a new session
+		setResult({content: <Fragment/>, toBeContinue: false});
+		fire(CliEventTypes.EXECUTE_COMMAND, [createDoAskRecommendationCommand({
+			greeting: command.greeting, action: command.action
+		})]);
+		// execute once anyway
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	const cli = <ExecutionCommandLinePrimary>
+		{Lang.COPILOT.ASK_RECOMMENDATION}
+	</ExecutionCommandLinePrimary>;
+
+	return <ExecutionDelegate content={content} commandLine={cli} result={result.content}
+	                          toBeContinue={result.toBeContinue}/>;
+};
+
+export const isDoAskRecommendationContent = (content: ExecutionContent): boolean => {
+	return content.commands[0].command === CMD_DO_ASK_RECOMMENDATION;
+};
+
+export const DoAskRecommendationExecution = (props: { content: ExecutionContent }) => {
+	const {content} = props;
+	const {commands} = content;
+	const command = commands[0] as DoAskRecommendationCommand;
 
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireCopilot} = useCopilotEventBus();

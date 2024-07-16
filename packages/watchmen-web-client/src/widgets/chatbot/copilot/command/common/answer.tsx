@@ -1,8 +1,8 @@
 import {CopilotAnswer, CopilotAnswerOption} from '@/services/copilot/types';
-import {FreeTextCmd} from '@/widgets/chatbot';
 import React, {ReactNode, useEffect, useState} from 'react';
 import {CliEventTypes, useCliEventBus} from '../../../cli';
 import {ExecutionResultOfAnswer} from '../../answer';
+import {FreeTextCmd} from '../free-text';
 import {createPickOptionCommand} from '../pick-option';
 
 export interface AnswerProps {
