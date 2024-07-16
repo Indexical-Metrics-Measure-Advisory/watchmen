@@ -2,7 +2,7 @@ import {FC} from 'react';
 import {ExecutionContent} from '../cli';
 import {
 	AskRecommendationRenderer,
-	FirstSessionRenderer,
+	FirstSessionRenderer, FreeTextRenderer,
 	NotedRenderer,
 	PickOptionRenderer,
 	RestartSessionRenderer
@@ -22,6 +22,7 @@ export const createExecutionRenderer = (Renderer?: FC<CopilotExecutionProps>) =>
 			<NotedRenderer content={content}/>
 			<PickOptionRenderer content={content}/>
 			<AskRecommendationRenderer content={content}/>
+			<FreeTextRenderer content={content}/>
 			{Renderer != null ? <Renderer content={content}/> : null}
 		</>;
 	};
