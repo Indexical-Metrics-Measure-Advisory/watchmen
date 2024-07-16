@@ -47,7 +47,7 @@ const AdminAIModels = () => {
                 ({tenants}) => fire(TupleEventTypes.TUPLE_CREATED, aiModel, {tenants}));
         };
         const onDoEditGptModel = async (queryAIModel: QueryAIModel) => {
-            console.log("test test")
+            // console.log("test test")
             fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
                 async () => await fetchGptModels(queryAIModel),
                 ({tuple, tenants}) => fire(TupleEventTypes.TUPLE_LOADED, tuple, {tenants}));
