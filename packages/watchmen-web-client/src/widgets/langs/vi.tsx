@@ -1194,6 +1194,7 @@ export const VI: LanguageDeclareType = {
 		YES: 'Chắc chắn, tiến lên.',
 		NO: 'Không.',
 		NOTED: 'Chú ý. Còn việc gì khác tôi có thể giúp bạn không?',
+		ASK_RECOMMENDATION: 'Cho tôi những đề xuất của bạn.',
 		REPLY_ASKING_RECOMMENDATION: 'Chú ý. Vui lòng đợi trong khi tôi kiểm tra các tùy chọn được đề xuất.',
 		CONNECT_FAIL: 'Có vẻ như có vấn đề; Tôi không thể kết nối với máy chủ vào lúc này. Bạn có muốn thử lại không?',
 		ASK_RESTART_SESSION: 'Khởi động lại phiên mới.',

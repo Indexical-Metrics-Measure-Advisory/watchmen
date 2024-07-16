@@ -1194,6 +1194,7 @@ export const Jp: LanguageDeclareType = {
 		YES: 'すぐにやってください。',
 		NO: 'いいえ。',
 		NOTED: '了解しました。他にお手伝いできることはありますでしょうか？',
+		ASK_RECOMMENDATION: 'お勧めを教えてください。',
 		REPLY_ASKING_RECOMMENDATION: '了解しました。推奨オプションをチェックしますので少々お待ちください。',
 		CONNECT_FAIL: 'サーバーに接続できませんでした。再試行しますか？',
 		ASK_RESTART_SESSION: '新しいセッションを開始します。',
