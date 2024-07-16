@@ -26,7 +26,7 @@ export const AIModelTenantInput = (props: { aiModel: AIModel, tenants: Array<Que
     });
 
 
-    console.log(aiModel.tenantId)
+    // console.log(aiModel.tenantId)
 
     return <TuplePropertyDropdown value={aiModel.tenantId} options={options} onChange={onTenantChange}/>;
 };

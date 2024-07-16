@@ -1,5 +1,5 @@
 import {CopilotAnswerWithSession} from '@/services/copilot/types';
-import {Command, CommandPublishedBehaviorType} from '../../../command';
+import {Command, CommandPublishedBehaviorBackward, CommandPublishedBehaviorType} from '../../../command';
 import {TextReplyCommand} from '../../types';
 
 export const CMD_DO_ASK_RECOMMENDATION = '/do ask recommendation';
@@ -39,7 +39,12 @@ export const AskRecommendationCmd: Command = {
 	command: CMD_ASK_RECOMMENDATION,
 	reminder: '',
 	published: {type: CommandPublishedBehaviorType.CLEAR_ALL},
-	trails: [],
+	trails: [{
+		// make sure command can be executed by tailing any text
+		label: '', command: '', reminder: '',
+		published: {type: CommandPublishedBehaviorType.BACKWARD, steps: 1} as CommandPublishedBehaviorBackward,
+		trails: [], executableOnNoTrail: true
+	}],
 	executableOnNoTrail: true
 };
 

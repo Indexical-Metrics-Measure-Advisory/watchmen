@@ -33,7 +33,7 @@ const TenantEditor = (props: { tenant: Tenant }) => {
 
     const getEnableAIValue = (tenant: Tenant) => {
 
-        console.log(tenant.enableAI)
+        // console.log(tenant.enableAI)
         if (tenant.enableAI === null) {
             return false;
         }

@@ -11,7 +11,6 @@ export const ExecutionWaiter = () => {
 	const [executing, setExecuting] = useState(false);
 	useEffect(() => {
 		const onExecuteCommand = () => {
-			console.log('execute command');
 			ref.current?.scrollIntoView({behavior: 'smooth'});
 			setExecuting(true);
 		};
@@ -22,7 +21,6 @@ export const ExecutionWaiter = () => {
 	}, [on, off]);
 	useEffect(() => {
 		const onCommandExecuted = () => {
-			console.log('command executed');
 			ref.current?.scrollIntoView({behavior: 'smooth'});
 			setExecuting(false);
 		};
