@@ -12,7 +12,6 @@ import {Lang} from '../../../../langs';
 import {
 	CliEventTypes,
 	ExecutionCommandLinePrimary,
-	ExecutionCommandLineText,
 	ExecutionContent,
 	ExecutionDelegate,
 	useCliEventBus
@@ -41,7 +40,7 @@ export const FreeTextExecution = (props: { content: ExecutionContent }) => {
 		fire(CliEventTypes.COMMAND_EXECUTED);
 		fire(CliEventTypes.EXECUTE_COMMAND, [createDoFreeTextCommand({
 			replyTo: text,
-			action: async (sessionId: string) => await freeChat(sessionId, text)
+			action: async (sessionId: string, token?: string) => await freeChat(sessionId, text, token)
 		})]);
 		// execute once anyway
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,9 +81,13 @@ export const DoFreeTextExecution = (props: { content: ExecutionContent }) => {
 						}
 						if (isNotBlank(answer.token)) {
 							setResult({
-								content: <ExecutionCommandLineText>{Lang.COPILOT.STILL_WORKING}</ExecutionCommandLineText>,
+								content: <Answer greeting={<Fragment/>}
+								                 answer={{data: [Lang.COPILOT.STILL_WORKING]}}
+								                 action={async () => {
+								                 }}/>,
 								toBeContinue: true
 							});
+							chat(answer.token);
 						} else {
 							setResult({
 								content: <Answer greeting={<Fragment/>} answer={answer}/>,
