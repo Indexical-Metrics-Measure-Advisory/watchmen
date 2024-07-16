@@ -1,5 +1,5 @@
 import {ExecutionContent} from '../../../cli';
-import {FreeTextExecution, isFreeTextContent} from './execution';
+import {DoFreeTextExecution, FreeTextExecution, isDoFreeTextContent, isFreeTextContent} from './execution';
 
 export * from './command';
 export * from './execution';
@@ -9,6 +9,8 @@ export const FreeTextRenderer = (props: { content: ExecutionContent }) => {
 
 	if (isFreeTextContent(content)) {
 		return <FreeTextExecution content={content}/>;
+	} else if (isDoFreeTextContent(content)) {
+		return <DoFreeTextExecution content={content}/>;
 	} else {
 		return null;
 	}

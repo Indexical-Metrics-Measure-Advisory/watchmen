@@ -1,4 +1,10 @@
-import {CopilotAnswer, CopilotAnswerItemType, CopilotAnswerOption} from '@/services/copilot/types';
+import {
+	CopilotAnswer,
+	CopilotAnswerItemType,
+	CopilotAnswerMarkdown,
+	CopilotAnswerOption,
+	CopilotAnswerSVG
+} from '@/services/copilot/types';
 import React, {isValidElement} from 'react';
 import {ExecutionResultItemLink, ExecutionResultItemText, ExecutionResultSegment} from '../cli/execution';
 
@@ -29,12 +35,12 @@ export const ExecutionResultOfAnswer = (props: ExecutionResultOfAnswerProps) => 
 			} else if (item.type === CopilotAnswerItemType.MARKDOWN) {
 				useVertical = false;
 				return <ExecutionResultItemText key={`${item}-${index}`}>
-					Should be rendered as Markdown, not supported yet: {item}
+					Should be rendered as Markdown, not supported yet: {(item as CopilotAnswerMarkdown).content}
 				</ExecutionResultItemText>;
 			} else if (item.type === CopilotAnswerItemType.SVG) {
 				useVertical = false;
 				return <ExecutionResultItemText key={`${item}-${index}`}>
-					Should be rendered as SVG, not supported yet: {item}
+					Should be rendered as SVG, not supported yet: {(item as CopilotAnswerSVG).content}
 				</ExecutionResultItemText>;
 			} else {
 				return <ExecutionResultItemText key={`${item}-${index}`}>

@@ -1,4 +1,6 @@
+import {CopilotAnswerWithSession} from '@/services/copilot/types';
 import {Command, CommandPublishedBehaviorBackward, CommandPublishedBehaviorType} from '../../../command';
+import {TextReplyCommand} from '../../types';
 
 export const CMD_FREE_TEXT = '/';
 
@@ -21,4 +23,29 @@ export const FreeTextCmd: FreeTextCommand = {
 	published: {type: CommandPublishedBehaviorType.KEEP},
 	trails: [FreeTextContentCmd],
 	executableOnNoTrail: false
+};
+
+export const CMD_DO_FREE_TEXT = '/do free text';
+
+export interface DoFreeTextCommand extends TextReplyCommand {
+	greeting?: string;
+	action: (sessionId: string) => Promise<CopilotAnswerWithSession>;
+}
+
+export const DoFreeTextCmd: Command = {
+	label: 'Do Free Text',
+	command: CMD_DO_FREE_TEXT,
+	reminder: '',
+	published: {type: CommandPublishedBehaviorType.CLEAR_ALL},
+	trails: [],
+	executableOnNoTrail: true
+};
+
+export const createDoFreeTextCommand = (options: {
+	replyTo?: string;
+	greeting?: string;
+	action: DoFreeTextCommand['action'];
+}): DoFreeTextCommand => {
+	const {greeting, action, replyTo} = options;
+	return {...DoFreeTextCmd, greeting, action, replyTo};
 };

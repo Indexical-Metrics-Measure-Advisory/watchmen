@@ -224,6 +224,7 @@ export const Apis = {
 	ASK_AI_GENERATE_TOPIC_FACTORS: 'ai/ask/generate/topic/factors',
 	ASK_AI_GENERATE_FACTOR_DESCRIPTION: 'ai/generate/factor/description',
 
+	COPILOT_FREE_CHAT: 'ai/free-chat',
 	COPILOT_ASK_RECOMMENDATION: 'ai/ask-recommendation',
 	COPILOT_ASK_OPTION_DETAILS: 'ai/ask-option-details',
 	COPILOT_CREATE_CONNECTED_SPACE_SESSION: 'ai/connected-space/new-session'

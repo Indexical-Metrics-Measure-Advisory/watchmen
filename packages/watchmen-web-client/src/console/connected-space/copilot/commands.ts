@@ -13,7 +13,7 @@ export const CONNECTED_SPACE_COMMANDS: Array<Command> = [
 	FreeTextCmd,
 	createAskRecommendationCommand({
 		greeting: Lang.COPILOT.REPLY_ASKING_RECOMMENDATION,
-		action: async (sessionId: string) => askRecommendation(sessionId, RecommendationType.CONNECTED_SPACE)
+		action: async (sessionId: string) => await askRecommendation(sessionId, RecommendationType.CONNECTED_SPACE)
 	}),
 	createRestartSessionCommand({
 		greeting: Lang.COPILOT.CONNECTED_SPACE.GREETING_RESTART_SESSION,
@@ -21,7 +21,7 @@ export const CONNECTED_SPACE_COMMANDS: Array<Command> = [
 			return {
 				commands: [createDoAskRecommendationCommand({
 					greeting: Lang.COPILOT.REPLY_ASKING_RECOMMENDATION,
-					action: async (sessionId: string) => askRecommendation(sessionId, RecommendationType.CONNECTED_SPACE)
+					action: async (sessionId: string) => await askRecommendation(sessionId, RecommendationType.CONNECTED_SPACE)
 				})]
 			};
 		}
