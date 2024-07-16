@@ -1196,6 +1196,7 @@ export const Jp: LanguageDeclareType = {
 		NOTED: '了解しました。他にお手伝いできることはありますでしょうか？',
 		ASK_RECOMMENDATION: 'お勧めを教えてください。',
 		REPLY_ASKING_RECOMMENDATION: '了解しました。推奨オプションをチェックしますので少々お待ちください。',
+		STILL_WORKING: 'まだ作業中です...',
 		CONNECT_FAIL: 'サーバーに接続できませんでした。再試行しますか？',
 		ASK_RESTART_SESSION: '新しいセッションを開始します。',
 		OPTION_PICKED_NOTED: '申し訳ありませんが、そのオプションを完全に理解することができません。',

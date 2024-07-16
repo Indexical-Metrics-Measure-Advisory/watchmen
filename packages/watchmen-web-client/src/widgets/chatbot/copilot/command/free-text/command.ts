@@ -1,4 +1,4 @@
-import {CopilotAnswerWithSession} from '@/services/copilot/types';
+import {OngoingCopilotAnswer} from '@/services/copilot/types';
 import {Command, CommandPublishedBehaviorBackward, CommandPublishedBehaviorType} from '../../../command';
 import {TextReplyCommand} from '../../types';
 
@@ -29,7 +29,7 @@ export const CMD_DO_FREE_TEXT = '/do free text';
 
 export interface DoFreeTextCommand extends TextReplyCommand {
 	greeting?: string;
-	action: (sessionId: string) => Promise<CopilotAnswerWithSession>;
+	action: (sessionId: string, token?: string) => Promise<OngoingCopilotAnswer>;
 }
 
 export const DoFreeTextCmd: Command = {
