@@ -1,4 +1,5 @@
 import {CopilotAnswer, CopilotAnswerOption} from '@/services/copilot/types';
+import {FreeTextCmd} from '@/widgets/chatbot';
 import React, {ReactNode, useEffect, useState} from 'react';
 import {CliEventTypes, useCliEventBus} from '../../../cli';
 import {ExecutionResultOfAnswer} from '../../answer';
@@ -14,7 +15,9 @@ export interface AnswerProps {
 const useAnswered = (action: () => Promise<void>) => {
 	useEffect(() => {
 		(async () => await action())();
-	}, [action]);
+		// execute once anyway
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 };
 
 export const Answer = (props: AnswerProps) => {
@@ -22,9 +25,14 @@ export const Answer = (props: AnswerProps) => {
 
 	const {fire} = useCliEventBus();
 	const [afterAnswer] = useState<AnswerProps['action']>(() => {
-		return props.action ?? (async () => {
-			fire(CliEventTypes.COMMAND_EXECUTED);
-		});
+		return async () => {
+			fire(CliEventTypes.SUGGEST_COMMAND, [FreeTextCmd]);
+			if (props.action != null) {
+				await props.action();
+			} else {
+				fire(CliEventTypes.COMMAND_EXECUTED);
+			}
+		};
 	});
 	useAnswered(afterAnswer!);
 	const onOptionPicked = async (option: CopilotAnswerOption) => {
