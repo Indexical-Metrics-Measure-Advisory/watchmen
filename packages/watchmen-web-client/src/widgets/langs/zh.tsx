@@ -1196,6 +1196,7 @@ export const Zh: LanguageDeclareType = {
 		NOTED: '了解了。还有其他什么可以帮助您的吗？',
 		ASK_RECOMMENDATION: '给我你的建议。',
 		REPLY_ASKING_RECOMMENDATION: '了解了。请稍等，我来检查是否有推荐的选项。',
+		STILL_WORKING: '还在努力中...',
 		CONNECT_FAIL: '看起来出现了问题，我现在无法连接到服务器。您想要重试吗？',
 		ASK_RESTART_SESSION: '重建会话.',
 		OPTION_PICKED_NOTED: '当然！非常好的选择。请稍等，我来查看详细信息。',

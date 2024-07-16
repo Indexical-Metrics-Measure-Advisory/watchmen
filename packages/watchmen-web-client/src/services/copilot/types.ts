@@ -36,6 +36,11 @@ export interface CopilotAnswerWithSession extends CopilotAnswer {
 	sessionId?: string;
 }
 
+export interface OngoingCopilotAnswer extends CopilotAnswerWithSession {
+	/** a token to retrieve answer from server side again */
+	token?: string;
+}
+
 export enum RecommendationType {
 	CONNECTED_SPACE = 'connected-space'
 }

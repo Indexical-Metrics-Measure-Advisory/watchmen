@@ -1,5 +1,5 @@
 import {freeChat} from '@/services/copilot/free-chat';
-import {CopilotAnswerWithSession} from '@/services/copilot/types';
+import {OngoingCopilotAnswer} from '@/services/copilot/types';
 import {isNotBlank} from '@/services/utils';
 import React, {Fragment, useEffect, useState} from 'react';
 import {v4} from 'uuid';
@@ -8,10 +8,11 @@ import {useEventBus} from '../../../../events/event-bus';
 // noinspection ES6PreferShortImport
 import {EventTypes} from '../../../../events/types';
 // noinspection ES6PreferShortImport
-// noinspection ES6PreferShortImport
+import {Lang} from '../../../../langs';
 import {
 	CliEventTypes,
 	ExecutionCommandLinePrimary,
+	ExecutionCommandLineText,
 	ExecutionContent,
 	ExecutionDelegate,
 	useCliEventBus
@@ -68,27 +69,37 @@ export const DoFreeTextExecution = (props: { content: ExecutionContent }) => {
 		fireCopilot(CopilotEventTypes.CURRENT_SESSION, (currentSessionId?: string) => {
 			const sessionId = currentSessionId ?? v4();
 			setResult({content: <Fragment/>, toBeContinue: true});
-			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-				async () => await command.action(sessionId),
-				(answer: CopilotAnswerWithSession) => {
-					const {sessionId: newSessionId} = answer;
-					if (sessionId !== newSessionId && isNotBlank(newSessionId)) {
-						// use the generated session id instead when session id is not given by replied data
-						fireCopilot(CopilotEventTypes.REPLACE_SESSION, newSessionId!);
-					} else {
-						fireCopilot(CopilotEventTypes.REPLACE_SESSION, sessionId);
-					}
-					setResult({
-						content: <Answer greeting={greeting} answer={answer}/>,
-						toBeContinue: false
-					});
-				}, () => {
-					const askRetryCommand = async () => ({commands: [command]});
-					setResult({
-						content: <ConnectFailed greeting={greeting} askRetryCommand={askRetryCommand}/>,
-						toBeContinue: false
-					});
-				}, true);
+			const chat = (token?: string) => {
+				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
+					async () => await command.action(sessionId, token),
+					(answer: OngoingCopilotAnswer) => {
+						const {sessionId: newSessionId} = answer;
+						if (sessionId !== newSessionId && isNotBlank(newSessionId)) {
+							// use the generated session id instead when session id is not given by replied data
+							fireCopilot(CopilotEventTypes.REPLACE_SESSION, newSessionId!);
+						} else {
+							fireCopilot(CopilotEventTypes.REPLACE_SESSION, sessionId);
+						}
+						if (isNotBlank(answer.token)) {
+							setResult({
+								content: <ExecutionCommandLineText>{Lang.COPILOT.STILL_WORKING}</ExecutionCommandLineText>,
+								toBeContinue: true
+							});
+						} else {
+							setResult({
+								content: <Answer greeting={<Fragment/>} answer={answer}/>,
+								toBeContinue: false
+							});
+						}
+					}, () => {
+						const askRetryCommand = async () => ({commands: [command]});
+						setResult({
+							content: <ConnectFailed greeting={<Fragment/>} askRetryCommand={askRetryCommand}/>,
+							toBeContinue: false
+						});
+					}, true);
+			};
+			chat();
 		});
 		// execute once anyway
 		// eslint-disable-next-line react-hooks/exhaustive-deps
