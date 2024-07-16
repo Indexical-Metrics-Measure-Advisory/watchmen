@@ -1196,6 +1196,7 @@ export const En = {
 		NOTED: 'Noted. Is there anything else I can assist you with?',
 		ASK_RECOMMENDATION: 'Give me your recommendations.',
 		REPLY_ASKING_RECOMMENDATION: 'Noted. Please wait while I check for any recommended options.',
+		STILL_WORKING: 'Still working on it...',
 		CONNECT_FAIL: 'It looks like there is an issue; I\'m unable to connect to the server right now. Would you like to retry?',
 		ASK_RESTART_SESSION: 'Restart a new session.',
 		OPTION_PICKED_NOTED: 'Certainly! Great choice. Please wait while I check the details.',
