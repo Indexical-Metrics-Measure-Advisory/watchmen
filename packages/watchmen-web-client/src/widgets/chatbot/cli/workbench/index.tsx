@@ -26,10 +26,12 @@ export const Workbench = (props: { commands: Array<Command> }) => {
 		const onSelectCommand = (command: Command) => {
 			if (isFirstCommand(command)) {
 				setPickedCommand([command]);
-				fire(CliEventTypes.WORKBENCH_CHANGED, [command], commandText);
+				setCommandText('');
+				setTimeout(() => fire(CliEventTypes.WORKBENCH_CHANGED, [command], commandText), 10);
 			} else {
 				setPickedCommand(pickedCommands => {
 					const commands = [...pickedCommands, command];
+					setCommandText('');
 					// cannot repaint another component when still in set state of this
 					setTimeout(() => fire(CliEventTypes.WORKBENCH_CHANGED, commands, commandText), 10);
 					return commands;
