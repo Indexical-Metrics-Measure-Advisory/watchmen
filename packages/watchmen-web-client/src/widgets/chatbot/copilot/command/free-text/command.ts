@@ -10,7 +10,7 @@ export interface FreeTextCommand extends Command {
 export const FreeTextContentCmd: Command = {
 	label: '',
 	command: '',
-	reminder: 'Start chatting by entering your message.',
+	reminder: 'Press "enter" to send.',
 	published: {type: CommandPublishedBehaviorType.BACKWARD, steps: 1} as CommandPublishedBehaviorBackward,
 	trails: [],
 	executableOnNoTrail: true
