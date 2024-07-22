@@ -1203,6 +1203,11 @@ export const En = {
 		CONNECTED_SPACE: {
 			GREETING_FIRST_SESSION: 'Hello! I\'m an AI assistant. I can help you analyze the data of the current connected space. Please wait while I check for any recommended options.',
 			GREETING_RESTART_SESSION: 'Alright, may I ask what I can help you with now? Perhaps you would like to review our recommended options again?'
+		},
+		DERIVED_OBJECTIVE: {
+			GREETING_FIRST_SESSION:'Hello! I\'m an AI assistant. I can help you analyze data of current objective. Please wait while I check for any recommended options.',
+			GREETING_RESTART_SESSION:'Alright, may I ask what I can help you with now? Perhaps you would like to review our recommended options again?'
 		}
+
 	}
 };

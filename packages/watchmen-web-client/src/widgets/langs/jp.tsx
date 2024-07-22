@@ -1203,6 +1203,10 @@ export const Jp: LanguageDeclareType = {
 		CONNECTED_SPACE: {
 			GREETING_FIRST_SESSION: 'こんにちは！私はAIアシスタントです。現在接続されているスペースのデータを分析するのを手伝えます。推奨オプションをチェックしますので少々お待ちください。',
 			GREETING_RESTART_SESSION: 'わかりました。今、何をお手伝いできますか？もう一度おすすめの選択肢をご確認されたいですか？'
+		},
+		DERIVED_OBJECTIVE: {
+			GREETING_FIRST_SESSION:'Hello! I\'m an AI assistant. I can help you analyze data of current objective. Please wait while I check for any recommended options.',
+			GREETING_RESTART_SESSION:'Alright, may I ask what I can help you with now? Perhaps you would like to review our recommended options again?'
 		}
 	}
 };

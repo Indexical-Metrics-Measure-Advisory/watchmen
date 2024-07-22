@@ -1203,6 +1203,10 @@ export const VI: LanguageDeclareType = {
 		CONNECTED_SPACE: {
 			GREETING_FIRST_SESSION: 'Xin chào! Tôi là trợ lý trí tuệ nhân tạo. Tôi có thể giúp bạn phân tích dữ liệu của không gian kết nối hiện tại. Vui lòng đợi trong khi tôi kiểm tra các tùy chọn được đề xuất.',
 			GREETING_RESTART_SESSION: 'Dạ, cho em hỏi giúp anh/chị điều gì ạ? Có thể anh/chị muốn xem lại các lựa chọn mà chúng em đề xuất không ạ?'
+		},
+		DERIVED_OBJECTIVE: {
+			GREETING_FIRST_SESSION:'Hello! I am an AI assistant. I can help you analyze data of the current connected space. Please wait while I check the recommended options',
+			GREETING_RESTART_SESSION:'Alright, may I ask what I can help you with now? Perhaps you would like to review our recommended options again?'
 		}
 	}
 };

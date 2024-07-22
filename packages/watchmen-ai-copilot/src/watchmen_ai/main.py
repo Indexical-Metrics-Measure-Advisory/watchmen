@@ -1,5 +1,5 @@
 from watchmen_ai.ai_server import ai_app
-from watchmen_ai.router import ai_router
+from watchmen_ai.router import ai_router, objective_chat_router, chat_router
 from watchmen_rest.system import health_router
 from watchmen_utilities import ArrayHelper
 
@@ -14,6 +14,8 @@ def startup():
 ArrayHelper([
 	# system
 	health_router.router,
-	ai_router.router
+	ai_router.router,
+	chat_router.router,
+	objective_chat_router.router
 
 ]).each(lambda x: app.include_router(x))

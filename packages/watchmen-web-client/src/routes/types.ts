@@ -48,6 +48,7 @@ export enum Router {
 	CONSOLE_CONNECTED_SPACE_SUBJECT_REPORT_EDIT = '/console/space/connected/:connectId/subject/:subjectId/report/:reportId',
 	CONSOLE_DERIVED_OBJECTIVE = '/console/objective/derived/:derivedObjectiveId',
 	CONSOLE_DERIVED_OBJECTIVE_ALL = '/console/objective/derived/:derivedObjectiveId/*',
+	CONSOLE_DERIVED_OBJECTIVE_COPILOT = '/console/objective/derived/:derivedObjectiveId/copilot',
 	CONSOLE_SETTINGS = '/console/settings',
 
 	DQC = '/dqc',

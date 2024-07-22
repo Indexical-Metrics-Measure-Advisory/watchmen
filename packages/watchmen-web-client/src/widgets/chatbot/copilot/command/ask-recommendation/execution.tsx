@@ -43,6 +43,7 @@ export const AskRecommendationExecution = (props: AskRecommendationExecutionProp
 	const {commands} = content;
 	const command = commands[0] as AskRecommendationCommand;
 
+
 	const {fire} = useCliEventBus();
 	const [result, setResult] = useState<{ content?: any, toBeContinue: boolean }>({toBeContinue: true});
 	useEffect(() => {
@@ -71,6 +72,8 @@ export const DoAskRecommendationExecution = (props: { content: ExecutionContent 
 	const {content} = props;
 	const {commands} = content;
 	const command = commands[0] as DoAskRecommendationCommand;
+
+	// console.log(content)
 
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireCopilot} = useCopilotEventBus();

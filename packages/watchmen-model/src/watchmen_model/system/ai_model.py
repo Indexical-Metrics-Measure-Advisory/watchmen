@@ -17,7 +17,7 @@ class ModelProvider(str, Enum):
     Ollama = 'Ollama'
 
 
-class AIModel(OptimisticLock, BaseModel):
+class AIModel(TenantBasedTuple, OptimisticLock, BaseModel):
     modelId: AIModelId = None
     enableMonitor: Optional[bool] = False
     llmProvider: ModelProvider = ModelProvider.Microsoft
@@ -30,4 +30,3 @@ class AIModel(OptimisticLock, BaseModel):
     embeddingName: Optional[str] = None
     embeddingVersion: Optional[str] = None
     embeddingToken: Optional[str] = None
-    tenantId:Optional[str] = None

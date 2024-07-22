@@ -1203,6 +1203,10 @@ export const Zh: LanguageDeclareType = {
 		CONNECTED_SPACE: {
 			GREETING_FIRST_SESSION: '您好！我是AI助理。我可以帮助您分析当前连接空间的数据。请稍等，我来检查是否有推荐的选项。',
 			GREETING_RESTART_SESSION: '好的，请问现在我可以帮您做什么呢？或许您想再看看我们推荐的选项吗？'
+		},
+		DERIVED_OBJECTIVE: {
+			GREETING_FIRST_SESSION:'您好！我是AI助理。我可以帮助您分析当前的目标分析。请稍等，我来检查是否有推荐的选项。',
+			GREETING_RESTART_SESSION:'好的，请问现在我可以帮您做什么呢？或许您想再看看我们推荐的选项吗？'
 		}
 	}
 };
