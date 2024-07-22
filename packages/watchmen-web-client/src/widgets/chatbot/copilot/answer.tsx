@@ -6,7 +6,12 @@ import {
 	CopilotAnswerSVG
 } from '@/services/copilot/types';
 import React, {isValidElement} from 'react';
-import {ExecutionResultItemLink, ExecutionResultItemText, ExecutionResultSegment} from '../cli/execution';
+import {
+	ExecutionResultItemLink,
+	ExecutionResultItemMarkdown,
+	ExecutionResultItemText,
+	ExecutionResultSegment
+} from '../cli/execution';
 
 export interface ExecutionResultOfAnswerProps {
 	answer: CopilotAnswer;
@@ -34,9 +39,8 @@ export const ExecutionResultOfAnswer = (props: ExecutionResultOfAnswerProps) => 
 				</ExecutionResultItemLink>;
 			} else if (item.type === CopilotAnswerItemType.MARKDOWN) {
 				useVertical = false;
-				return <ExecutionResultItemText key={`${item}-${index}`}>
-					Should be rendered as Markdown, not supported yet: {(item as CopilotAnswerMarkdown).content}
-				</ExecutionResultItemText>;
+				return <ExecutionResultItemMarkdown markdown={(item as CopilotAnswerMarkdown).content}
+				                                    key={`${item}-${index}`}/>;
 			} else if (item.type === CopilotAnswerItemType.SVG) {
 				useVertical = false;
 				return <ExecutionResultItemText key={`${item}-${index}`}>

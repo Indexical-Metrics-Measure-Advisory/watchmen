@@ -255,6 +255,20 @@ export const ExecutionResultItemLink = styled.div.attrs<{ vertical?: boolean }>(
     }
 `;
 // noinspection CssUnresolvedCustomProperty
+export const ExecutionResultItemMarkdownContainer = styled.div.attrs({'data-widget': 'cli-execution-result-markdown'})`
+    display: flex;
+    position: relative;
+    align-items: flex-start;
+    flex-basis: 100%;
+    min-height: var(--height);
+    padding: 4px 0;
+
+    > div.wmde-markdown {
+        background-color: transparent;
+        font-size: 1.1em;
+    }
+`;
+// noinspection CssUnresolvedCustomProperty
 export const ExecutionResultItemTable = styled.div.attrs({'data-widget': 'cli-execution-result-table'})`
     display: grid;
     grid-template-columns: repeat(3, 1fr);
