@@ -19,10 +19,16 @@ export const toConnectedSpace = (connectedSpaceId: ConnectedSpaceId) => {
 export const toConnectedSpaceCatalog = (connectedSpaceId: ConnectedSpaceId) => {
 	return Router.CONSOLE_CONNECTED_SPACE_CATALOG.replace(':connectId', connectedSpaceId);
 };
+export const toDerivedObjectiveCopilot = (derivedObjectiveId: DerivedObjectiveId) => {
+	return Router.CONSOLE_DERIVED_OBJECTIVE_COPILOT
+		.replace(':derivedObjectiveId', derivedObjectiveId)
+};
+
 export const toConnectedSpaceCopilot = (connectedSpaceId: ConnectedSpaceId) => {
 	return Router.CONSOLE_CONNECTED_SPACE_COPILOT
 		.replace(':connectId', connectedSpaceId)
 };
+
 export const toSubject = (connectedSpaceId: ConnectedSpaceId, subjectId: SubjectId) => {
 	return Router.CONSOLE_CONNECTED_SPACE_SUBJECT
 		.replace(':connectId', connectedSpaceId)
@@ -75,6 +81,7 @@ export const relativeToAdminToolbox = (path: Router): string => relativeTo(path,
 export const relativeToConsole = (path: Router): string => relativeTo(path, Router.CONSOLE);
 export const relativeToConsoleDashboard = (path: Router): string => relativeTo(path, Router.CONSOLE_DASHBOARD);
 export const relativeToConnectedSpace = (path: Router): string => relativeTo(path, Router.CONSOLE_CONNECTED_SPACE);
+export const relativeToDerivedObjective = (path: Router): string => relativeTo(path, Router.CONSOLE_DERIVED_OBJECTIVE);
 export const relativeToSubject = (path: Router): string => relativeTo(path, Router.CONSOLE_CONNECTED_SPACE_SUBJECT);
 export const relativeToDQC = (path: Router): string => relativeTo(path, Router.DQC);
 export const relativeToIDW = (path: Router): string => relativeTo(path, Router.IDW);
@@ -96,6 +103,7 @@ export const asAdminToolboxRoute = (path: Router, children: ReactNode) => asRout
 export const asConsoleRoute = (path: Router, children: ReactNode) => asRoute(relativeToConsole)(path, children);
 export const asConsoleDashboardRoute = (path: Router, children: ReactNode) => asRoute(relativeToConsoleDashboard)(path, children);
 export const asConnectedSpaceRoute = (path: Router, children: ReactNode) => asRoute(relativeToConnectedSpace)(path, children);
+export const asDerivedObjectiveRoute = (path: Router, children: ReactNode) => asRoute(relativeToDerivedObjective)(path, children);
 export const asSubjectRoute = (path: Router, children: ReactNode) => asRoute(relativeToSubject)(path, children);
 export const asDQCRoute = (path: Router, children: ReactNode) => asRoute(relativeToDQC)(path, children);
 export const asIDWRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDW)(path, children);

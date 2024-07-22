@@ -10,6 +10,7 @@ import {HeaderShareButton} from './header-share-button';
 import {HeaderSubscribeButton} from './header-subscribe-button';
 import {HeaderSwitchButton} from './header-switch-button';
 import {HeaderVariablesButton} from './header-variables-button';
+import {HeaderCopilotButton} from "@/console/derived-objective/header/header-copilot-button";
 
 export const HeaderButtons = (props: { derivedObjective: DerivedObjective }) => {
 		const {derivedObjective} = props;
@@ -18,6 +19,7 @@ export const HeaderButtons = (props: { derivedObjective: DerivedObjective }) => 
 			<HeaderFavoriteButton derivedObjective={derivedObjective}/>
 			<HeaderSubscribeButton derivedObjective={derivedObjective}/>
 			<HeaderShareButton derivedObjective={derivedObjective}/>
+			<HeaderCopilotButton derivedObjective={derivedObjective}/>
 			<HeaderPrintButton/>
 			<PageHeaderButtonSeparator/>
 			<HeaderVariablesButton/>

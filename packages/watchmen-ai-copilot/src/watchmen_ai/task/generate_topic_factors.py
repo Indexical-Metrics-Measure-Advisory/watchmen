@@ -17,6 +17,7 @@ format_json = """
 
 """
 
+
 class GenerateTopicFactorsAction(BaseAction):
 
     def run(self, nlp, lang_model: BaseLanguageModel):
@@ -24,15 +25,14 @@ class GenerateTopicFactorsAction(BaseAction):
          to best answer the question and only return json body"""
 
         user_prompt = """
-            
+
             please help to use below steps to give suggestion for domain factors 
                 1. suggest more than 10 domain factors for below domain name
                 2. convert factors to json  with  below format_instructions
-            
+
             INPUT:
-            {domain}     
-                   
-            
+            {domain}            
+
             OUTPUT:
             ```json
             {json_format}
@@ -48,7 +48,7 @@ class GenerateTopicFactorsAction(BaseAction):
 
         parser = JsonOutputParser(pydantic_object=Factor)
 
-        chain = prompt| lang_model | parser
+        chain = prompt | lang_model | parser
         res = chain.invoke({"domain": nlp, "json_format": format_json})
 
         return res

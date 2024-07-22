@@ -1,21 +1,24 @@
 from abc import ABC
 from langchain_core.language_models import BaseLanguageModel
-from typing import Dict
+from pydantic import BaseModel
+from typing import Dict, Optional, Any
 
 from langchain_core.runnables import RunnableConfig
+
+
+class TaskContext(BaseModel):
+    session_id: Optional[str] = None
 
 
 class BaseAction(ABC):
     """Base class for all actions"""
 
-
-
     # @abstractmethod
-    async def run(self, context: Dict,ai_model:BaseLanguageModel):
+    def run(self, data: Any, ai_model: BaseLanguageModel):
         """
         Run the action
         :param ai_model:
-        :param context:
+        :param data:
         :return:
         """
         pass

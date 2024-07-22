@@ -227,7 +227,9 @@ export const Apis = {
 	COPILOT_FREE_CHAT: 'ai/free-chat',
 	COPILOT_ASK_RECOMMENDATION: 'ai/ask-recommendation',
 	COPILOT_ASK_OPTION_DETAILS: 'ai/ask-option-details',
-	COPILOT_CREATE_CONNECTED_SPACE_SESSION: 'ai/connected-space/new-session'
+	COPILOT_CREATE_CONNECTED_SPACE_SESSION: 'ai/connected-space/new-session',
+	COPILOT_ASK_DERIVED_OBJECTIVE: 'ai/ask-derived-objective',
+	COPILOT_CREATE_DERIVED_OBJECTIVE_SESSION: 'ai/derived-objective/new-session'
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {

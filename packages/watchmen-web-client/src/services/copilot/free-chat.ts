@@ -12,6 +12,6 @@ export const freeChat = async (sessionId: string, replyTo: string, token?: strin
 			data: {sessionId, replyTo, token}
 		});
 
-		return {sessionId: data.sessionId, ...(data.answer ?? {})};
+		return data
 	}
 };
