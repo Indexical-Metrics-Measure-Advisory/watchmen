@@ -8,7 +8,7 @@ export const askRecommendation = async (sessionId: string, type: RecommendationT
 		return await mockAskRecommendation(sessionId, type);
 	} else {
 		const data = await post({
-			api: Apis.COPILOT_ASK_RECOMMENDATION,
+			api: Apis.COPILOT_ASK_DERIVED_OBJECTIVE,
 			data: {sessionId, type}
 		});
 

@@ -15,6 +15,7 @@ export const CopilotInitialCommand = (props: {
 	const {fire} = useCliEventBus();
 	useEffect(() => {
 		const {commands, argument} = askFirstCommand();
+
 		fire(CliEventTypes.EXECUTE_COMMAND, commands, argument);
 		// only once anyway
 		// eslint-disable-next-line react-hooks/exhaustive-deps

@@ -8,24 +8,24 @@ import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import {buildLastNOptions, buildTillOptions, findTimeFrameKindLabel} from '@/widgets/objective/options-utils';
 import {
-	computeChainFrame,
-	computeFrame,
-	computePreviousFrame,
-	guardKind,
-	guardTimeFrame,
-	lastN,
-	renderTimeFrame
+    computeChainFrame,
+    computeFrame,
+    computePreviousFrame,
+    guardKind,
+    guardTimeFrame,
+    lastN,
+    renderTimeFrame
 } from '@/widgets/objective/time-frame-utils';
 import React, {useEffect, useState} from 'react';
 import {useObjectiveEventBus} from '../../objective-event-bus';
 import {ObjectiveEventTypes} from '../../objective-event-bus-types';
 import {
-	CalculatedTimeFrameRow,
-	TimeFrameContainer,
-	TimeFrameLabel,
-	TimeFrameTitle,
-	TimeFrameValue,
-	TimeFrameVariablesRow
+    CalculatedTimeFrameRow,
+    TimeFrameContainer,
+    TimeFrameLabel,
+    TimeFrameTitle,
+    TimeFrameValue,
+    TimeFrameVariablesRow
 } from './widgets';
 
 export const TimeFrame = (props: { derivedObjective: DerivedObjective; }) => {

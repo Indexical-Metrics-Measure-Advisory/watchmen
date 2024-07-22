@@ -1,8 +1,21 @@
+
 import {AskAIGenerateFactorsResponse} from "@/services/data/ai/ask_ai_types";
-import {FactorType} from "@/services/data/tuples/factor-types";
+import {EnumId} from "@/services/data/tuples/enum-types";
+import {FactorEncryptMethod, FactorId, FactorIndexGroup, FactorType} from "@/services/data/tuples/factor-types";
 
 
-
+// factorId: FactorId;
+// name: string;
+// label: string;
+// type: FactorType;
+// enumId?: EnumId;
+// defaultValue?: string;
+// indexGroup?: FactorIndexGroup;
+// // will flatten to table column or not, only used in raw topic, and must be top level factor
+// flatten?: boolean;
+// encrypt?: FactorEncryptMethod;
+// precision?: string;
+// description?: string;
 
 const suggestionTopics: AskAIGenerateFactorsResponse = {
     tenantId: "tenantId",

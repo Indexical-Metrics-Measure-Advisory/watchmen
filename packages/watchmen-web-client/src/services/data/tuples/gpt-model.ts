@@ -31,12 +31,9 @@ export const saveGPTModel = async (gpt_model:AIModel):Promise<AIModel> => {
         return await fetchMockGptModel();
 
     } else {
-        const data  =  await post({api: Apis.AI_MODEL_SAVE, data: gpt_model});
-        gpt_model.modelId = data.modelId;
-        gpt_model.version = data.version;
-        gpt_model.lastModifiedAt = data.lastModifiedAt;
-        return gpt_model;
+        return await post({api: Apis.AI_MODEL_SAVE, data: gpt_model});
     }
+
 }
 
 export const listGptModels = async (options: {

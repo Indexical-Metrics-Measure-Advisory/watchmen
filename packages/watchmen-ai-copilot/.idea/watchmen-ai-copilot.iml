@@ -12,5 +12,11 @@
     <orderEntry type="module" module-name="watchmen-storage-mysql" />
     <orderEntry type="module" module-name="watchmen-storage-rds" />
     <orderEntry type="module" module-name="watchmen-meta" />
+    <orderEntry type="module" module-name="watchmen-indicator-kernel" />
+    <orderEntry type="module" module-name="watchmen-lineage" />
+    <orderEntry type="module" module-name="watchmen-storage" />
+    <orderEntry type="module" module-name="watchmen-inquiry-kernel" />
+    <orderEntry type="module" module-name="watchmen-auth" />
+    <orderEntry type="module" module-name="watchmen-pipeline-kernel" />
   </component>
 </module>

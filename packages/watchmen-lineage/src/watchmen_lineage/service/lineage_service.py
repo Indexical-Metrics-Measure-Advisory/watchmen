@@ -230,6 +230,7 @@ class LineageService(object):
 
 	@staticmethod
 	def __get_node(graphic: MultiDiGraph, node_id: str):
+		# print(node_id)
 		return graphic.nodes[node_id]
 
 	def graph_json(self, principal_service: PrincipalService):

@@ -1,8 +1,8 @@
 import {askObjectiveTargetBreakdownValues} from '@/services/data/tuples/derived-objective';
 import {
-	BreakdownTarget,
-	DerivedObjective,
-	ObjectiveTargetBreakdownValues
+    BreakdownTarget,
+    DerivedObjective,
+    ObjectiveTargetBreakdownValues
 } from '@/services/data/tuples/derived-objective-types';
 import {ObjectiveTarget} from '@/services/data/tuples/objective-types';
 import {useEventBus} from '@/widgets/events/event-bus';

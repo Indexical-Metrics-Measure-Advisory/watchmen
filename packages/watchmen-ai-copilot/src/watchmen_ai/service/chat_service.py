@@ -1,34 +1,12 @@
-
-
+from watchmen_ai.model.copilot_intent import CopilotIntent
+from watchmen_ai.model.index import ChatContext, ObjectiveIntent
 
 
 class ChatService:
-    pass
 
-    def create_session(self):
-        pass
+    def find_intent(self, message: str) -> CopilotIntent:
+        return CopilotIntent(intent=ObjectiveIntent.ask_data_for_business_target, tasks=["tasks"],
+                             intentDescription="intentDescription")
 
-
-
-    def delete_session(self):
-        pass
-
-
-
-    def save_session(self,session):
-        pass
-
-
-
-    def run_chat_task(self):
-        pass
-
-
-
-    def chat_on_action(self,message):
-        pass
-
-
-    
-
-
+    def find_chat_context(self, sessionId: str) -> ChatContext:
+        return ChatContext(sessionId="sessionId", context_type="objective", memory={})
