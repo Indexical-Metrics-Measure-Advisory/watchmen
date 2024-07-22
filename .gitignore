@@ -11,3 +11,14 @@ packages/watchmen-rest-doll/log/server.log.1
 packages/watchmen-webhook-server/.idea/modules.xml
 packages/watchmen-webhook-server/.idea/inspectionProfiles/Project_Default.xml
 packages/watchmen-webhook-server/.idea/inspectionProfiles/profiles_settings.xml
+packages/testChroma/.idea/inspectionProfiles/profiles_settings.xml
+packages/testChroma/.idea/misc.xml
+packages/testChroma/.idea/modules.xml
+packages/testChroma/.idea/testChroma.iml
+packages/testChroma/.idea/vcs.xml
+packages/testChroma/.idea/workspace.xml
+packages/testChroma/knowledge/test.json
+packages/testChroma/src/Daily-Production-Report-Agency.md
+packages/testChroma/src/index.py
+packages/testChroma/src/llm.py
+packages/testChroma/src/Number-Of-Underwriting-Employees.md
