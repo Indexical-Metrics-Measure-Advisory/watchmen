@@ -41,12 +41,6 @@ const GlobalStyle: any = createGlobalStyle<{ theme: Theme }>`
     html {
         ${({theme}) => writeThemeProperty(theme)}
         width: 100%;
-
-        &[data-chainlit-enabled=true][data-chainlit-visible=true] {
-            div${process.env.REACT_APP_CHIANLIT_ROOT_SELECTOR} {
-                display: block;
-            }
-        }
     }
 
     body {
@@ -148,6 +142,14 @@ export const ThemeWrapper = () => {
 			off(EventTypes.CHANGE_THEME, onThemeChange);
 		};
 	}, [on, off]);
+	useEffect(() => {
+		// for markdown theme
+		if ((theme.code ?? '').toLowerCase().includes('dark')) {
+			document.body.setAttribute('data-color-mode', 'dark');
+		} else {
+			document.body.setAttribute('data-color-mode', 'light');
+		}
+	}, [theme]);
 
 	// @ts-ignore
 	return <ThemeProvider theme={theme}>
