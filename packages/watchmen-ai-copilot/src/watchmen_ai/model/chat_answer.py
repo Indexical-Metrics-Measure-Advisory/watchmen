@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from typing import Optional, List, Any
 
 
-
 class CopilotAnswerItemType(str, Enum):
     OPTION = 'option',
     MARKDOWN = 'markdown'
@@ -30,13 +29,10 @@ class CopilotAnswerSVG(CopilotAnswerItem):
     type: Optional[CopilotAnswerItemType] = CopilotAnswerItemType.SVG
     content: Optional[str] = None
 
-#
-# CopilotAnswerItemTypes = Union[
-#     str, CopilotAnswerItem,CopilotAnswerSVG,CopilotAnswerMarkdown,CopilotAnswerOption]
-
 
 class CopilotAnswer(BaseModel):
     data: List[Any] = []
+
 
 class CopilotAnswerWithSession(CopilotAnswer):
     sessionId: Optional[str] = None
@@ -45,7 +41,6 @@ class CopilotAnswerWithSession(CopilotAnswer):
 class OngoingCopilotAnswer(CopilotAnswerWithSession):
     token: Optional[str] = None
 
+
 class RecommendationType(str, Enum):
     CONNECTED_SPACE = 'connected-space'
-
-

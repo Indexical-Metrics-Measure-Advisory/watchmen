@@ -4,6 +4,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
+from watchmen_ai.model.copilot_intent import CopilotTask
 from watchmen_model.admin import Topic, Factor
 
 
@@ -31,7 +32,8 @@ class ChatIntent(Enum):
     ask_question = "ask_question"
 
 
-class ObjectiveIntent(ChatIntent):
+class ObjectiveIntent(Enum):
+    recommend = "recommend"
     ask_data_for_business_target = "ask_data_for_business_target"
     find_lineage_for_business_target = "find_lineage_for_business_target"
     insight_for_business_target = "insight_for_business_target"
@@ -43,3 +45,10 @@ class ChatContext(BaseModel):
     context_type: str = None
     memory: dict = {}
 
+
+class  ChatTaskContext(BaseModel):
+    token: str = None
+    main_task: CopilotTask = None
+    current_status: str = None
+    parameters: dict = {}
+    confirm: bool = False
