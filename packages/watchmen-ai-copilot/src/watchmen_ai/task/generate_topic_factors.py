@@ -3,7 +3,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
 from watchmen_ai.llm.llm_builder import LlmModelBuilder
-from watchmen_ai.task.base_action import BaseAction
+from watchmen_ai.task.base_action import BaseAction, TaskContext
 from watchmen_model.admin import Factor
 
 format_json = """
@@ -16,6 +16,9 @@ format_json = """
 }
 
 """
+
+class AdminGenerateContext(TaskContext):
+    nlp : str
 
 
 class GenerateTopicFactorsAction(BaseAction):
