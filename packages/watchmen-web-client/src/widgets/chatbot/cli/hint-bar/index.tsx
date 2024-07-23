@@ -60,10 +60,7 @@ export const HintBar = (props: { commands: Array<Command> }) => {
 						// has argument, try to match
 						const matched: MatchedCommands = {commands: [], left: ''};
 						matchCommand({
-							matched,
-							startCommand: lastPicked,
-							commandText: (argument || '').trimLeft(),
-							greedy: true
+							matched, startCommand: lastPicked, commandText: (argument || '').trimStart(), greedy: true
 						});
 						if (!matched.left && matched.commands.length === 1 && matched.commands[0].executableOnNoTrail) {
 							executable = true;
