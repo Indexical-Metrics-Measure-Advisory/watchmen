@@ -1,19 +1,18 @@
-from typing import List, Dict, Any
+from enum import Enum
 
 from pydantic import BaseModel
-
-from watchmen_ai.model.index import ChatIntent
+from typing import List, Dict, Any
 
 
 class CopilotTask(BaseModel):
-    task: str
+    task_name: str = None
+    token: str = None
     description: str = None
     parameters: Dict[str, Any] = None
+    depends: List[str] = None
 
 
 class CopilotIntent(BaseModel):
-
-    intent: ChatIntent = None
-    tasks:List[str]   = []
+    intent: Enum = None
+    tasks: List[CopilotTask] = []
     intentDescription: str = None
-
