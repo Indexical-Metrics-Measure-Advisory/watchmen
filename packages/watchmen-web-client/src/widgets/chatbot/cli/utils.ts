@@ -14,7 +14,9 @@ const findNextQuote = (text: string, quote: string, startPosition: number): numb
 const matchFreeTextCommandUnderQuotes = (commandText: string, freeTextCommand: Command, quote: string): MatchedCommand => {
 	const index = findNextQuote(commandText, quote, 1);
 	if (index === -1) {
-		return {command: {...freeTextCommand, command: commandText.trim()}, left: ''};
+		// not a string quoted by given quote, free text not end, continue key in
+		return {left: commandText};
+		// return {command: {...freeTextCommand, command: commandText.trim()}, left: ''};
 	} else {
 		let realCommand = commandText.substring(0, index);
 		if (realCommand.startsWith(quote)) {
@@ -53,7 +55,7 @@ const findFirstCommand = (startCommand: Command, commandText: string, greedy: bo
 		if (found) {
 			return {
 				command: found,
-				left: found ? commandText.substring(found.command.length).trimLeft() : commandText
+				left: found ? commandText.substring(found.command.length).trimStart() : commandText
 			};
 		}
 		return matchFreeTextCommand(commandText, startCommand);
@@ -63,7 +65,7 @@ const findFirstCommand = (startCommand: Command, commandText: string, greedy: bo
 		if (found) {
 			return {
 				command: found,
-				left: found ? commandText.substring(found.command.length).trimLeft() : commandText
+				left: found ? commandText.substring(found.command.length).trimStart() : commandText
 			};
 		}
 		if (commandText.endsWith(' ')) {
@@ -76,10 +78,7 @@ const findFirstCommand = (startCommand: Command, commandText: string, greedy: bo
 	}
 };
 export const matchCommand = (options: {
-	matched: MatchedCommands;
-	startCommand: Command;
-	commandText: string;
-	greedy: boolean;
+	matched: MatchedCommands; startCommand: Command; commandText: string; greedy: boolean;
 }) => {
 	const {matched, startCommand, commandText, greedy} = options;
 
@@ -90,12 +89,7 @@ export const matchCommand = (options: {
 		const leftText = found.left;
 		if (leftText.trim().length !== 0 && found.command.trails.length !== 0) {
 			// there is text left and matched command has trails
-			matchCommand({
-				matched,
-				startCommand: found.command,
-				commandText: leftText,
-				greedy
-			});
+			matchCommand({matched, startCommand: found.command, commandText: leftText, greedy});
 		} else if (leftText.trim().length === 0) {
 			// no text left
 			matched.left = '';
@@ -110,15 +104,12 @@ export const matchCommand = (options: {
 };
 
 export const matchCommandText = (options: {
-	text: string;
-	greedy: boolean;
-	allCommands: Array<Command>;
-	pickedCommands: Array<Command>;
+	text: string; greedy: boolean; allCommands: Array<Command>; pickedCommands: Array<Command>;
 }) => {
 	const {text, greedy, allCommands, pickedCommands} = options;
 
 	let startCommand: Command;
-	if (text.trimLeft().startsWith('/')) {
+	if (text.trimStart().startsWith('/')) {
 		startCommand = {trails: allCommands} as Command;
 	} else if (pickedCommands.length === 0) {
 		startCommand = {trails: allCommands} as Command;
@@ -128,7 +119,7 @@ export const matchCommandText = (options: {
 
 	const matched: MatchedCommands = {commands: [], left: ''};
 	if (text.trim()) {
-		matchCommand({matched, startCommand, commandText: text.trimLeft(), greedy});
+		matchCommand({matched, startCommand, commandText: text.trimStart(), greedy});
 	}
 	return matched;
 };
