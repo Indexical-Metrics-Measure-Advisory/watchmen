@@ -1,13 +1,11 @@
 from typing import List, Optional
 
 from watchmen_meta.common import TupleService, TupleShaper
-from watchmen_model.common import DataPage, ExternalWriterId, Pageable, TenantId
+from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_model.common.tuple_ids import AIModelId
-from watchmen_model.system import ExternalWriter
 from watchmen_model.system.ai_model import AIModel
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
     EntityShaper
-from watchmen_utilities import get_current_time_in_seconds
 
 
 class AIModelShaper(EntityShaper):
@@ -73,7 +71,6 @@ class AIModelService(TupleService):
     def get_storable_id_column_name(self) -> str:
         return 'model_id'
 
-
     # noinspection DuplicatedCode
     def find_by_text(
             self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
@@ -102,3 +99,5 @@ class AIModelService(TupleService):
             ))
         finally:
             self.storage.close()
+
+

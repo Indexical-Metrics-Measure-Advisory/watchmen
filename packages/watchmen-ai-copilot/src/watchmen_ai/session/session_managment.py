@@ -1,4 +1,4 @@
-from watchmen_ai.model.index import ChatContext
+from watchmen_ai.model.index import ChatContext, ChatTaskContext
 
 
 class SessionManager:
@@ -14,3 +14,15 @@ class SessionManager:
 
     def find_memeory(self,session_id):
         return self.sessions[session_id].memory
+
+    def add_token_memory(self,session_id:str,token:str,data:ChatTaskContext):
+        self.sessions[session_id].memory[token] = data
+
+
+    def find_token_memory(self,session_id:str,token:str)->ChatTaskContext:
+        return self.sessions[session_id].memory[token]
+
+
+session_manager = SessionManager()
+def get_session_manager()->SessionManager:
+    return session_manager
