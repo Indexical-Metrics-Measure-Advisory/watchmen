@@ -12,6 +12,6 @@ export const askOptionDetails = async (sessionId: string, token: string): Promis
 			data: {sessionId, token}
 		});
 
-		return {sessionId: data.sessionId, ...(data.answer ?? {})};
+		return data
 	}
 };
