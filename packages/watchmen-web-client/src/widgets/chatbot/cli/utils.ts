@@ -28,16 +28,23 @@ const matchFreeTextCommandUnderQuotes = (commandText: string, freeTextCommand: C
 		};
 	}
 };
-const matchFreeTextCommand = (commandText: string, startCommand: Command): MatchedCommand => {
+const matchFreeTextCommand = (commandText: string, startCommand: Command, greedy: boolean): MatchedCommand => {
 	// only one free text command is defined, or not
 	const freeTextCommand = startCommand.trails.find(cmd => cmd.command === '');
 	if (freeTextCommand) {
+		if (greedy) {
+			// greedy then treat command text as command
+			return {command: {...freeTextCommand, command: commandText.trim()}, left: ''};
+		}
+		// otherwise check quote
 		if (commandText.startsWith('"')) {
 			return matchFreeTextCommandUnderQuotes(commandText, freeTextCommand, '"');
 		} else if (commandText.startsWith('\'')) {
 			return matchFreeTextCommandUnderQuotes(commandText, freeTextCommand, '"');
 		} else {
-			return {command: {...freeTextCommand, command: commandText.trim()}, left: ''};
+			// just let it be, continue key in
+			// return {command: {...freeTextCommand, command: commandText.trim()}, left: ''};
+			return {left: commandText};
 		}
 	} else {
 		return {left: commandText};
@@ -58,7 +65,7 @@ const findFirstCommand = (startCommand: Command, commandText: string, greedy: bo
 				left: found ? commandText.substring(found.command.length).trimStart() : commandText
 			};
 		}
-		return matchFreeTextCommand(commandText, startCommand);
+		return matchFreeTextCommand(commandText, startCommand, greedy);
 	} else {
 		// each command must follow a blank
 		const found = fixCommands.find(cmd => commandText.startsWith(`${cmd.command} `));
@@ -70,7 +77,7 @@ const findFirstCommand = (startCommand: Command, commandText: string, greedy: bo
 		}
 		if (commandText.endsWith(' ')) {
 			// last character is a space, free text command is open to match
-			return matchFreeTextCommand(commandText, startCommand);
+			return matchFreeTextCommand(commandText, startCommand, greedy);
 		} else {
 			// leave it as text
 			return {left: commandText};
