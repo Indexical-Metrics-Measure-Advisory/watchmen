@@ -31,7 +31,9 @@ export const Workbench = (props: { commands: Array<Command> }) => {
 			} else {
 				setPickedCommand(pickedCommands => {
 					const commands = [...pickedCommands, command];
-					setCommandText('');
+					if ((commandText ?? '').trimStart().startsWith('/')) {
+						setCommandText('');
+					}
 					// cannot repaint another component when still in set state of this
 					setTimeout(() => fire(CliEventTypes.WORKBENCH_CHANGED, commands, commandText), 10);
 					return commands;
@@ -107,15 +109,12 @@ export const Workbench = (props: { commands: Array<Command> }) => {
 		};
 		const onSendCommand = () => {
 			const matched = matchCommandText({
-				text: commandText.trimLeft(),
-				greedy: true,
-				pickedCommands,
-				allCommands: commands
+				text: commandText.trimStart(), greedy: true, pickedCommands, allCommands: commands
 			});
 			if (matched.left) {
 				// something not matched
 				if (matched.commands.length !== 0) {
-					if (commandText.trimLeft().startsWith('/')) {
+					if (commandText.trimStart().startsWith('/')) {
 						// replace picked commands
 						setPickedCommand(matched.commands);
 					} else {
@@ -131,7 +130,7 @@ export const Workbench = (props: { commands: Array<Command> }) => {
 
 			// exactly matched, no left text
 			let commandsWillSend: Array<Command>;
-			if (commandText.trimLeft().startsWith('/')) {
+			if (commandText.trimStart().startsWith('/')) {
 				// replace current picked command
 				commandsWillSend = matched.commands;
 			} else {
@@ -142,7 +141,7 @@ export const Workbench = (props: { commands: Array<Command> }) => {
 				// no valid command needs to be sent
 				return;
 			} else if (!commandsWillSend[commandsWillSend.length - 1].executableOnNoTrail) {
-				// the last command says it cannot be execute on no trail
+				// the last command says it cannot be executed on no trail
 				setPickedCommand([...pickedCommands, ...matched.commands]);
 				setCommandText('');
 				return;
@@ -172,7 +171,7 @@ export const Workbench = (props: { commands: Array<Command> }) => {
 		const matched = matchCommandText({text: value, greedy: false, pickedCommands, allCommands: commands});
 
 		if (matched.commands.length !== 0) {
-			if (value.trimLeft().startsWith('/')) {
+			if (value.trimStart().startsWith('/')) {
 				setPickedCommand(matched.commands);
 			} else {
 				setPickedCommand([...pickedCommands, ...matched.commands]);

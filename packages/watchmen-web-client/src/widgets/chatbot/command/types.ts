@@ -40,7 +40,7 @@ export interface Command {
 	/** is executable if no trail */
 	readonly executableOnNoTrail: boolean;
 
-	readonly published: CommandPublishedBehavior,
+	readonly published: CommandPublishedBehavior;
 }
 
 export interface HelpCommand extends Command {
