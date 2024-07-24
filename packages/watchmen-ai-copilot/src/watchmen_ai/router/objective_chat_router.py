@@ -25,10 +25,8 @@ def get_derived_objective_service(principal_service: PrincipalService) -> Derive
     return DerivedObjectiveService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-
-
-def get_greet_intent_configuration() -> CopilotIntent:
-    return CopilotTaskConfiguration().load_intent_configuration()
+def get_greet_intent_configuration(language: str = "en") -> CopilotIntent:
+    return CopilotTaskConfiguration().load_intent_configuration(language)
 
 
 def get_last_snapshot_service(principal_service: PrincipalService) -> LastSnapshotService:
@@ -45,28 +43,22 @@ class DerivedObjectiveChatReq(BaseModel):
     recommendation: bool
 
 
-def generate_greeting_for_create_new_session(sessionId: str, data: list) -> CopilotAnswerWithSession:
-    answer = CopilotAnswerWithSession(sessionId=sessionId, data=[])
-    answer.data.append("I can also help you with the following:")
-
-    option_1 = CopilotAnswerOption(text="Clearly present metrics", action="Clearly", vertical=True)
-    option_2 = CopilotAnswerOption(text="Offer actionable guidance", action="guidance")
-
-    answer.data.append(option_1)
-    answer.data.append(option_2)
-    return answer
 
 
-def mapping_task_to_option_with_vertical(copilot_task_list:List[CopilotTask],snowflakeGenerator:SnowflakeGenerator,language,session_id:str,session_manager:SessionManager)->List[CopilotAnswerOption]:
+
+def mapping_task_to_option_with_vertical(copilot_task_list: List[CopilotTask], snowflakeGenerator: SnowflakeGenerator,
+                                         language, session_id: str, session_manager: SessionManager) -> List[
+    CopilotAnswerOption]:
     option_list = []
     if copilot_task_list is None:
         return []
     else:
         token = str(snowflakeGenerator.next_id())
         first_task = copilot_task_list[0]
-        task_context  = ChatTaskContext(token=token,main_task=first_task,current_status="init",parameters={})
-        session_manager.add_token_memory(session_id,token,task_context)
-        first_option = CopilotAnswerOption(text=first_task.description, action=first_task.task_name, vertical=True,token= token)
+        task_context = ChatTaskContext(token=token, main_task=first_task, current_status="init", parameters={})
+        session_manager.add_token_memory(session_id, token, task_context)
+        first_option = CopilotAnswerOption(text=first_task.description, action=first_task.task_name, vertical=True,
+                                           token=token)
         option_list.append(first_option)
 
         for task in copilot_task_list[1:]:
@@ -75,13 +67,10 @@ def mapping_task_to_option_with_vertical(copilot_task_list:List[CopilotTask],sno
                                            )
 
             session_manager.add_token_memory(session_id, token, task_context)
-            option = CopilotAnswerOption(text=task.description, action=task.task_name, vertical=False,token= token)
+            option = CopilotAnswerOption(text=task.description, action=task.task_name, vertical=False, token=token)
             option_list.append(option)
 
         return option_list
-
-
-
 
 
 @router.post("/derived-objective/new-session", tags=[UserRole.CONSOLE], response_model=CopilotAnswerWithSession)
@@ -93,10 +82,12 @@ def chat_new_session_for_objective(derived_objective_req: DerivedObjectiveChatRe
 
     last_snapshot_service: LastSnapshotService = get_last_snapshot_service(principal_service)
 
-    def action_last_snopshot() -> Optional[LastSnapshot]:
+    def action_last_snapshot() -> Optional[LastSnapshot]:
         return last_snapshot_service.find_by_user_id(principal_service.get_user_id(), principal_service.get_tenant_id())
 
-    last_snapshot = trans(last_snapshot_service, action_last_snopshot)
+    last_snapshot = trans(last_snapshot_service, action_last_snapshot)
+
+    language = last_snapshot.language
 
     derived_objective_service = get_derived_objective_service(principal_service)
 
@@ -109,18 +100,13 @@ def chat_new_session_for_objective(derived_objective_req: DerivedObjectiveChatRe
                                                                                 memory={
                                                                                     "derived_objective": derived_objective}))
 
-    language = last_snapshot.language
-
     answer = CopilotAnswerWithSession(sessionId=derived_objective_req.sessionId, data=[])
 
-    greeting_intent:CopilotIntent = get_greet_intent_configuration()
-
+    greeting_intent: CopilotIntent = get_greet_intent_configuration(language)
     answer.data.append(greeting_intent.intentDescription)
-    
-    task_list = greeting_intent.tasks
-    option_list = mapping_task_to_option_with_vertical(task_list,derived_objective_service.snowflakeGenerator,language,session_id,session_manager)
+
+    option_list = mapping_task_to_option_with_vertical(greeting_intent.tasks,
+                                                       derived_objective_service.snowflakeGenerator, language,
+                                                       session_id, session_manager)
     answer.data.extend(option_list)
-
     return answer
-
-
