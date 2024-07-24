@@ -17,6 +17,7 @@ class CopilotAnswerOption(CopilotAnswerItem):
     type: Optional[CopilotAnswerItemType] = CopilotAnswerItemType.OPTION
     text: Optional[str] = None
     token: Optional[str] = None
+    action: Optional[str] = None
     vertical: Optional[bool] = None;
 
 

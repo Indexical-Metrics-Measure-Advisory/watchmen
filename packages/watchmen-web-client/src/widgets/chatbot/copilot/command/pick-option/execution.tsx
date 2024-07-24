@@ -59,6 +59,8 @@ export const DoPickOptionExecution = (props: { content: ExecutionContent }) => {
 	const {commands} = content;
 	const command = commands[0] as PickOptionCommand;
 
+	console.log(content)
+
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireCopilot} = useCopilotEventBus();
 	const [result, setResult] = useState<{ content?: any, toBeContinue: boolean }>({toBeContinue: true});
@@ -68,7 +70,7 @@ export const DoPickOptionExecution = (props: { content: ExecutionContent }) => {
 			const greeting = <ExecutionResultItemText>{Lang.COPILOT.OPTION_PICKED_NOTED}</ExecutionResultItemText>;
 			setResult({content: greeting, toBeContinue: true});
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-				async () => await askOptionDetails(sessionId, command.option.token),
+				async () => await askOptionDetails(sessionId, command.option.token,command.option.action),
 				(answer: CopilotAnswerWithSession) => {
 					const {sessionId: newSessionId} = answer;
 					if (sessionId !== newSessionId && isNotBlank(newSessionId)) {

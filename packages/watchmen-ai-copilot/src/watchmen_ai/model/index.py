@@ -44,11 +44,13 @@ class ChatContext(BaseModel):
     sessionId: str = None
     context_type: str = None
     memory: dict = {}
+    current_token:Optional[str] = None
 
 
 class  ChatTaskContext(BaseModel):
     token: str = None
     main_task: CopilotTask = None
     current_status: str = None
+    sub_tasks:List[str] = []
     parameters: dict = {}
     confirm: bool = False
