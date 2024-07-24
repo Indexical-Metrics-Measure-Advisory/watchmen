@@ -266,6 +266,7 @@ export const ExecutionResultItemMarkdownContainer = styled.div.attrs({'data-widg
     > div.wmde-markdown {
         background-color: transparent;
         font-size: 1.1em;
+        flex-grow: 1;
     }
 `;
 // noinspection CssUnresolvedCustomProperty
