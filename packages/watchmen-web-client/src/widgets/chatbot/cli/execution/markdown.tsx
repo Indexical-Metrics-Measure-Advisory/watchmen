@@ -28,9 +28,9 @@ const Code = (props: CodeProps) => {
 				.then(({svg, bindFunctions}) => {
 					container.innerHTML = svg;
 					const node = container.querySelector('svg');
-					if (((node?.style?.maxWidth) ?? '').trim().length !== 0) {
-						 node!.style!.maxWidth = '';
-					}
+					node?.style != null && (node.style.maxWidth = '');
+					node?.removeAttribute('width');
+					node?.removeAttribute('height');
 					if (bindFunctions) {
 						bindFunctions(container);
 					}
