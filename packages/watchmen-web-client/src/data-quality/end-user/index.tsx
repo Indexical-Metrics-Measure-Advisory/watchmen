@@ -16,6 +16,7 @@ const DataQualityEndUserIndex = () => {
 		<CLIWrapper greeting="This channel is for working on end user's console, spaces, reports, groups, users."
 		            commands={RULES_COMMANDS}
 		            helpCommand={RULES_HELP_COMMAND}
+		            executionGrabSpace={false}
 		            execution={Execution}/>
 	</FullWidthPage>;
 };

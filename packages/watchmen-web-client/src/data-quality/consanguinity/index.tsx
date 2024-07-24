@@ -16,6 +16,7 @@ const DataQualityConsanguinityIndex = () => {
 		<CLIWrapper greeting="This channel is for working on consanguinity."
 		            commands={CONSANGUINITY_COMMANDS}
 		            helpCommand={CONSANGUINITY_HELP_COMMAND}
+		            executionGrabSpace={false}
 		            execution={Execution}/>
 	</FullWidthPage>;
 };
