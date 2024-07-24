@@ -30,7 +30,7 @@ const writeThemeProperty = (theme: Theme) => {
 		}
 	});
 };
-// noinspection CssUnresolvedCustomProperty
+// noinspection CssUnresolvedCustomProperty,CssUnusedSymbol
 const GlobalStyle: any = createGlobalStyle<{ theme: Theme }>`
     *, *:before, *:after {
         margin: 0;
