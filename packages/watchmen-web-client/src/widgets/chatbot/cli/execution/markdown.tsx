@@ -82,7 +82,7 @@ export const ExecutionResultItemMarkdown = (props: { markdown: string }) => {
 	// 	}
 	// };
 
-	return <ExecutionResultItemMarkdownContainer data-fullscreen={fullScreen} ref={containerRef}>
+	return <ExecutionResultItemMarkdownContainer ref={containerRef}>
 		{/*<FullscreenButton ink={ButtonInk.PRIMARY} onClick={onRequestFullscreenClicked}>*/}
 		{/*	Fullscreen*/}
 		{/*</FullscreenButton>*/}
