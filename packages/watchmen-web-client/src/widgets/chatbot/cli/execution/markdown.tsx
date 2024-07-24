@@ -2,8 +2,7 @@ import MDEditor from '@uiw/react-md-editor';
 import mermaid from 'mermaid';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {getCodeString} from 'rehype-rewrite';
-import {ButtonInk} from '../../../basic/types';
-import {ExecutionResultItemMarkdownContainer, FullscreenButton} from './widgets';
+import {ExecutionResultItemMarkdownContainer} from './widgets';
 
 interface CodeProps {
 	inline: any;
@@ -64,24 +63,24 @@ export const ExecutionResultItemMarkdown = (props: { markdown: string }) => {
 
 	// noinspection TypeScriptValidateTypes
 	const containerRef = useRef<HTMLDivElement>(null);
-	const [fullScreen, setFullScreen] = useState(false);
-	useEffect(() => {
-		window.document.addEventListener('fullscreenchange', () => {
-			if (!window.document.fullscreenElement) {
-				setFullScreen(false);
-			}
-		});
-	}, []);
+	// const [fullScreen, setFullScreen] = useState(false);
+	// useEffect(() => {
+	// 	window.document.addEventListener('fullscreenchange', () => {
+	// 		if (!window.document.fullscreenElement) {
+	// 			setFullScreen(false);
+	// 		}
+	// 	});
+	// }, []);
 
-	const onRequestFullscreenClicked = () => {
-		if (fullScreen) {
-			window.document.exitFullscreen();
-			// setFullScreen(false);
-		} else {
-			containerRef.current?.requestFullscreen();
-			setFullScreen(true);
-		}
-	};
+	// const onRequestFullscreenClicked = () => {
+	// 	if (fullScreen) {
+	// 		window.document.exitFullscreen();
+	// 		// setFullScreen(false);
+	// 	} else {
+	// 		containerRef.current?.requestFullscreen();
+	// 		setFullScreen(true);
+	// 	}
+	// };
 
 	return <ExecutionResultItemMarkdownContainer data-fullscreen={fullScreen} ref={containerRef}>
 		{/*<FullscreenButton ink={ButtonInk.PRIMARY} onClick={onRequestFullscreenClicked}>*/}
