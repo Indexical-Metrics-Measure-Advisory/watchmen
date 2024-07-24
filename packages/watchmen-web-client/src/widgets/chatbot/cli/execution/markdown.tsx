@@ -4,8 +4,6 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {getCodeString} from 'rehype-rewrite';
 import {ExecutionResultItemMarkdownContainer} from './widgets';
 
-console.log(mermaid);
-
 interface CodeProps {
 	inline: any;
 	className: string;
@@ -22,13 +20,17 @@ const Code = (props: CodeProps) => {
 	const isMermaid = className && /^language-mermaid/.test(className.toLocaleLowerCase());
 	const code = children ? getCodeString(rest.node.children) : children[0] || '';
 
-	console.log(className, isMermaid, id.current, code);
+	// console.log(className, isMermaid, id.current, code);
 	useEffect(() => {
 		if (container && isMermaid && id.current && code) {
 			mermaid
 				.render(id.current, code)
 				.then(({svg, bindFunctions}) => {
 					container.innerHTML = svg;
+					const node = container.querySelector('svg');
+					if (((node?.style?.maxWidth) ?? '').trim().length !== 0) {
+						 node!.style!.maxWidth = '';
+					}
 					if (bindFunctions) {
 						bindFunctions(container);
 					}
