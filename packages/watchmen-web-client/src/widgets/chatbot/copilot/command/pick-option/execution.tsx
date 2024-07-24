@@ -59,8 +59,6 @@ export const DoPickOptionExecution = (props: { content: ExecutionContent }) => {
 	const {commands} = content;
 	const command = commands[0] as PickOptionCommand;
 
-	console.log(content)
-
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireCopilot} = useCopilotEventBus();
 	const [result, setResult] = useState<{ content?: any, toBeContinue: boolean }>({toBeContinue: true});

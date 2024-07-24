@@ -27,10 +27,10 @@ const Code = (props: CodeProps) => {
 				.render(id.current, code)
 				.then(({svg, bindFunctions}) => {
 					container.innerHTML = svg;
-					// const node = container.querySelector('svg');
-					// node?.style != null && (node.style.maxWidth = '');
-					// node?.removeAttribute('width');
-					// node?.removeAttribute('height');
+					const node = container.querySelector('svg');
+					node?.style != null && (node.style.maxWidth = '');
+					node?.removeAttribute('width');
+					node?.removeAttribute('height');
 					if (bindFunctions) {
 						bindFunctions(container);
 					}
