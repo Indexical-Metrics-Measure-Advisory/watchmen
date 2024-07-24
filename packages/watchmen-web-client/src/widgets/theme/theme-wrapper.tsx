@@ -15,18 +15,23 @@ const shouldIgnorePixel = (key: string) => ['fontDemiBold', 'fontBold', 'fontBol
 const convertToCssVariableName = (key: string) => {
 	return '--' + key.split('').map(ch => (ch >= 'A' && ch <= 'Z') ? `-${ch.toLowerCase()}` : ch).join('');
 };
+const convertToEnvVariableName = (cssVariableName: string) => {
+	return cssVariableName.substring(2).replace(/-/g, '_').toUpperCase();
+};
 const writeThemeProperty = (theme: Theme) => {
 	return Object.keys(theme).map(key => {
 		const name = convertToCssVariableName(key);
 		const value = (theme as any)[key];
+		const envName = convertToEnvVariableName(name);
+		const envValue = process.env[`REACT_APP_THEME_${theme.code}_${envName}`] ?? process.env[`REACT_APP_THEME_${envName}`];
 		if (typeof value === 'number') {
 			if (shouldIgnorePixel(key)) {
-				return `${name}: ${value};`;
+				return `${name}: ${envValue ?? value};`;
 			} else {
-				return `${name}: ${value}px;`;
+				return `${name}: ${envValue ?? value}px;`;
 			}
 		} else {
-			return `${name}: ${value};`;
+			return `${name}: ${envValue ?? value};`;
 		}
 	});
 };
