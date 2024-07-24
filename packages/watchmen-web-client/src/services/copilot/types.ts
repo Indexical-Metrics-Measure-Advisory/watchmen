@@ -10,6 +10,7 @@ export interface CopilotAnswerOption extends CopilotAnswerItem {
 	type: CopilotAnswerItemType.OPTION;
 	text: string;
 	token: string;
+	action:string;
 	vertical?: boolean;
 }
 
