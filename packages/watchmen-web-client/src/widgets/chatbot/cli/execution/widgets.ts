@@ -1,4 +1,5 @@
 import styled, {keyframes} from 'styled-components';
+import {Button} from '../../../basic/button';
 
 // noinspection CssUnresolvedCustomProperty
 export const ExecutionContainer = styled.div.attrs({'data-widget': 'cli-execution'})`
@@ -263,11 +264,33 @@ export const ExecutionResultItemMarkdownContainer = styled.div.attrs({'data-widg
     min-height: var(--height);
     padding: 4px 0;
 
+    &[data-fullscreen=true] {
+        overflow: scroll;
+    }
+
+    &:hover {
+        > button:first-child {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    }
+
     > div.wmde-markdown {
         background-color: transparent;
         font-size: 1.1em;
         flex-grow: 1;
     }
+`;
+// noinspection CssUnresolvedCustomProperty
+export const FullscreenButton = styled(Button)`
+    position: absolute;
+    right: 4px;
+    top: -28px;
+    z-index: 1;
+    border-radius: calc(var(--border-radius) * 3.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 300ms ease-in-out;
 `;
 // noinspection CssUnresolvedCustomProperty
 export const ExecutionResultItemTable = styled.div.attrs({'data-widget': 'cli-execution-result-table'})`

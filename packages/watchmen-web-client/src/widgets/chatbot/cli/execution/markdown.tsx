@@ -2,7 +2,8 @@ import MDEditor from '@uiw/react-md-editor';
 import mermaid from 'mermaid';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {getCodeString} from 'rehype-rewrite';
-import {ExecutionResultItemMarkdownContainer} from './widgets';
+import {ButtonInk} from '../../../basic/types';
+import {ExecutionResultItemMarkdownContainer, FullscreenButton} from './widgets';
 
 interface CodeProps {
 	inline: any;
@@ -61,7 +62,31 @@ const Code = (props: CodeProps) => {
 export const ExecutionResultItemMarkdown = (props: { markdown: string }) => {
 	const {markdown} = props;
 
-	return <ExecutionResultItemMarkdownContainer>
+	// noinspection TypeScriptValidateTypes
+	const containerRef = useRef<HTMLDivElement>(null);
+	const [fullScreen, setFullScreen] = useState(false);
+	useEffect(() => {
+		window.document.addEventListener('fullscreenchange', () => {
+			if (!window.document.fullscreenElement) {
+				setFullScreen(false);
+			}
+		});
+	}, []);
+
+	const onRequestFullscreenClicked = () => {
+		if (fullScreen) {
+			window.document.exitFullscreen();
+			// setFullScreen(false);
+		} else {
+			containerRef.current?.requestFullscreen();
+			setFullScreen(true);
+		}
+	};
+
+	return <ExecutionResultItemMarkdownContainer data-fullscreen={fullScreen} ref={containerRef}>
+		{/*<FullscreenButton ink={ButtonInk.PRIMARY} onClick={onRequestFullscreenClicked}>*/}
+		{/*	Fullscreen*/}
+		{/*</FullscreenButton>*/}
 		{/** @ts-ignore */}
 		<MDEditor.Markdown source={markdown} components={{code: Code}}/>
 	</ExecutionResultItemMarkdownContainer>;
