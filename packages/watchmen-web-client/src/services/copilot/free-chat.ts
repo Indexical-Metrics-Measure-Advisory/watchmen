@@ -4,6 +4,8 @@ import {mockFreeChat} from './mock/free-chat';
 import {OngoingCopilotAnswer} from './types';
 
 export const freeChat = async (sessionId: string, replyTo: string, token?: string): Promise<OngoingCopilotAnswer> => {
+	console.log(token)
+
 	if (isMockService()) {
 		return await mockFreeChat(sessionId, replyTo, token);
 	} else {
