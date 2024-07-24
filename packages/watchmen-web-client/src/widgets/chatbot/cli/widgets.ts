@@ -20,6 +20,10 @@ export const WorkingArea = styled.div.attrs({
     margin-right: calc(var(--margin) / -2);
     padding-right: calc(var(--margin) / 2);
     overflow-y: auto;
+
+    &[data-execution-grab-space=true] > div[data-widget=cli-execution] {
+        //grid-template-columns: 32px 1fr auto;
+    }
 `;
 // noinspection CssUnresolvedCustomProperty
 export const CommandArea = styled.div.attrs({'data-widget': 'cli-command-area'})`

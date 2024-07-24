@@ -22,6 +22,7 @@ export const Copilot = (props: { connectedSpace: ConnectedSpace }) => {
 	return <CopilotWrapper
 		header={<CopilotHeader connectedSpace={connectedSpace}/>}
 		greeting="This channel is for working on connected space."
+		executionGrabSpace={true}
 		commands={CONNECTED_SPACE_COMMANDS}
 		askFirstCommand={askFirstCommand}/>;
 };

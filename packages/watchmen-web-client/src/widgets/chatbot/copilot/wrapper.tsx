@@ -80,18 +80,22 @@ export interface CopilotWrapperProps {
 	greeting: string;
 	commands: Array<Command>;
 	helpCommand?: Command;
+	executionGrabSpace?: boolean;
 	executionRenderer?: FC<CopilotExecutionProps>;
 	askFirstCommand: () => { commands: Array<Command>, argument?: string };
 }
 
 export const CopilotWrapper = (props: CopilotWrapperProps) => {
-	const {header, greeting, commands, helpCommand, executionRenderer, askFirstCommand} = props;
+	const {
+		header, greeting, commands, helpCommand,
+		executionGrabSpace = false, executionRenderer, askFirstCommand
+	} = props;
 
 	return <CopilotEventBusProvider>
 		{header}
 		<CopilotSessionHolder/>
 		<CLIWrapper greeting={greeting} commands={commands} helpCommand={helpCommand}
-		            execution={createCopilotExecution(executionRenderer)}>
+		            executionGrabSpace={executionGrabSpace} execution={createCopilotExecution(executionRenderer)}>
 			<CopilotInitialCommand askFirstCommand={askFirstCommand}/>
 		</CLIWrapper>
 	</CopilotEventBusProvider>;
