@@ -55,6 +55,10 @@ const GlobalStyle: any = createGlobalStyle<{ theme: Theme }>`
         background-color: var(--bg-color);
         overflow-x: hidden;
         width: 100%;
+
+        > div[id^=did-] {
+            display: none;
+        }
     }
 
     a,
