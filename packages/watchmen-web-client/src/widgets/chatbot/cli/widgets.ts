@@ -22,7 +22,7 @@ export const WorkingArea = styled.div.attrs({
     overflow-y: auto;
 
     &[data-execution-grab-space=true] > div[data-widget=cli-execution] {
-        //grid-template-columns: 32px 1fr auto;
+        grid-template-columns: 32px 1fr auto;
     }
 `;
 // noinspection CssUnresolvedCustomProperty
