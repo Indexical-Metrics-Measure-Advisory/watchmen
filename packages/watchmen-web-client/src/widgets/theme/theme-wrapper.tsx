@@ -57,7 +57,10 @@ const GlobalStyle: any = createGlobalStyle<{ theme: Theme }>`
         width: 100%;
 
         > div[id^=did-] {
-            display: none;
+            position: absolute;
+            top: 100vh;
+            height: 0;
+            overflow: hidden;
         }
     }
 

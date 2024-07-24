@@ -26,10 +26,14 @@ export const mockAskOptionDetails = async (sessionId: string, token: string): Pr
 								type: CopilotAnswerItemType.MARKDOWN, content: `The following are some examples of the diagrams. 
 
 \`\`\`mermaid
-flowchart LR
-    x("hello")
-    y["world"]
-    x --> y
+flowchart TB
+    0("利益: 現在:336601.50,前回:336601.50,チェーン:336601.50")
+    1["運用収支: 現在:80000.00,前回:80000.00,チェーン:80000.00"]
+    2["保険料: 現在:263051.50,前回:263051.50,チェーン:263051.50"]
+    3["経費: 現在:450.00,前回:450.00,チェーン:450.00"]
+    4["責任準備金繰入: 現在:1500.00,前回:1500.00,チェーン:1500.00"]
+    5["保険金: 現在:4500.00,前回:4500.00,チェーン:4500.00"]
+    0 --> 1 & 2 & 3 & 4 & 5
 \`\`\`
 
 \`\`\`mermaid
