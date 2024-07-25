@@ -24,7 +24,7 @@ class DateParameterRecognition(BaseAction):
         assistant_system_message = """You are a  expert for below question \
                 t"""
         user_prompt = """
-                    Classify the user input :{input} into one of the following timeframes: this month, last month, last 6 months, this week, last week, yesterday, today, tomorrow.
+                    Classify the user date input value :{input} into one of the following timeframes: this month, last month, last 6 months, this week, last week, yesterday, today, tomorrow.
 
                     Provide the classification as a single word matching the timeframe. If no clear timeframe can be determined, output "unknown" .return only classification .
                     
@@ -32,6 +32,9 @@ class DateParameterRecognition(BaseAction):
                     User input: "Give me data from recent months"
                     Classification: last 6 months
                     
+                    User input: "Current month"
+                    Classification: this month
+            
                     User input: "Show me results for the past week"
                     Classification: last week
                     
@@ -52,7 +55,7 @@ class DateParameterRecognition(BaseAction):
         chain = prompt | ai_model | parser
         res = chain.invoke({"input": input_message, "format_instructions": format_instructions})
         result = res.replace("Classification: ", "").replace(".", "")
-        # print(result)
+        print(result)
         return result
 
     def describe(self):
@@ -61,4 +64,4 @@ class DateParameterRecognition(BaseAction):
 
 if __name__ == "__main__":
     action = DateParameterRecognition()
-    action.run("現在の月", AzureModelLoader().get_llm_model())
+    action.run("過去6か月", AzureModelLoader().get_llm_model())

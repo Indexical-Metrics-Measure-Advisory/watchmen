@@ -1,6 +1,6 @@
 from enum import Enum
 
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from pydantic import BaseModel
 
@@ -47,10 +47,10 @@ class ChatContext(BaseModel):
     current_token:Optional[str] = None
 
 
-class  ChatTaskContext(BaseModel):
+class ChatTaskContext(BaseModel):
     token: str = None
     main_task: CopilotTask = None
-    current_status: str = None
+    history:List[Any] = []
     sub_tasks:List[str] = []
     parameters: dict = {}
     confirm: bool = False
