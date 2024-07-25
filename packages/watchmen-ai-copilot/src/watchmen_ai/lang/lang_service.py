@@ -25,7 +25,7 @@ def message_for_jp(key: str) -> str:
     elif key == "no":
         return "いいえ"
     elif key == "node_name":
-        return "{name}: 現在:{current},前回:{previous},チェーン:{chain}"
+        return "{name}: {current}"
 
     return ""
 
@@ -52,7 +52,7 @@ def message_for_en(key):
     elif key =="rate":
         return "Please let me know the specific deviation rate you'd like to explore, and I'll be happy to assist you further."
     elif key=="node_name":
-        return "{name}: current:{current},previous:{previous},chain:{chain}"
+        return "{name}: current:{current}"
 
     return "Hello"
 

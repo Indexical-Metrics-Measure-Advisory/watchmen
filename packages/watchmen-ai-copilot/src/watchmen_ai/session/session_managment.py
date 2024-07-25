@@ -22,6 +22,10 @@ class SessionManager:
     def find_token_memory(self,session_id:str,token:str)->ChatTaskContext:
         return self.sessions[session_id].memory[token]
 
+
+    def delete_token_memory(self,session_id:str,token:str):
+        self.sessions[session_id].memory.pop(token,None)
+
     def get_session(self,session_id:str)->ChatContext:
         return self.sessions[session_id]
 
