@@ -4,13 +4,16 @@ from watchmen_ai.lang.lang_service import get_message_by_lang
 from watchmen_ai.llm.azure_model_loader import AzureModelLoader
 from watchmen_ai.markdown.document import MarkdownDocument
 from watchmen_ai.markdown.mermaid.flowchart import  flowchart
-from watchmen_ai.model.chat_answer import OngoingCopilotAnswer, CopilotAnswerMarkdown
+from watchmen_ai.model.chat_answer import OngoingCopilotAnswer, CopilotAnswerMarkdown, CopilotAnswerOption
 from watchmen_ai.model.copilot_intent import CopilotIntent, CopilotTask
 from watchmen_ai.model.index import ObjectiveIntent, ChatContext, ChatTaskContext
 from watchmen_ai.router.utils import build_yes_no_item
 from watchmen_ai.service.chat_service import ChatService
+from watchmen_ai.service.task_configuration import CopilotTaskConfiguration
 from watchmen_ai.session.session_managment import get_session_manager, SessionManager
+from watchmen_ai.task.confirm_message import ConfirmMessageGenerate
 from watchmen_ai.task.date_parameter_recognition import DateParameterRecognition
+from watchmen_ai.task.derived_objective_intent_recognition import ObjectiveIntentTaskRecognition
 from watchmen_indicator_kernel.data import get_objective_data_service, ObjectiveValues, ObjectiveTargetValues, \
     ObjectiveFactorValues
 from watchmen_lineage.model.lineage import LineageResult, ObjectiveLineage, RelationshipLineage, ObjectiveTargetLineage, \
@@ -19,6 +22,8 @@ from watchmen_lineage.model.lineage import LineageResult, ObjectiveLineage, Rela
 from watchmen_lineage.service.lineage_service import get_lineage_service
 from watchmen_model.indicator import DerivedObjective, Objective, ObjectiveTarget
 from watchmen_model.system.ai_model import AIModel
+
+TIME_RANGE = "time_range"
 
 
 def get_chat_service() -> ChatService:
@@ -57,10 +62,18 @@ def call_date_range_intent(message:str ,ai_model:AIModel,language:str="en") -> s
 
 
 
+def get_confirm_message(language, task_context):
+    try:
+        action = ConfirmMessageGenerate()
+        message = action.run((task_context.history, language),
+                             AzureModelLoader().get_llm_model())
+        return message
+    except Exception as e:
+        print(e)
+        return "confirm"
 
 
-
-def chat_on_objective(session_id:str,token:str,message, principal_service,ai_model:AIModel,language:str="en") -> OngoingCopilotAnswer:
+def chat_on_objective(session_id:str,token:str,message, principal_service,ai_model:AIModel,snowflakeGenerator,language:str="en") -> OngoingCopilotAnswer:
     session_manager:SessionManager = get_session_manager()
     chat_service = get_chat_service()
     chat_context :ChatContext = session_manager.get_session(session_id)
@@ -69,20 +82,21 @@ def chat_on_objective(session_id:str,token:str,message, principal_service,ai_mod
         task_context:ChatTaskContext = session_manager.find_token_memory(session_id, token)
         if task_context.sub_tasks:
             key = task_context.sub_tasks.pop()
-            if key == "time_range":
+            task_context.history.append({"question": key, "answer": message})
+            if key == TIME_RANGE:
                 result = call_date_range_intent(message,ai_model,language)
-                print(result)
                 task_context.parameters[key] = result
             else:
                 task_context.parameters[key] = message
-
 
             if task_context.sub_tasks:
                 depend = task_context.sub_tasks[-1]
                 answer = OngoingCopilotAnswer(sessionId=session_id, data=[get_message_by_lang(language,depend)])
                 return answer
             else:
-                answer = OngoingCopilotAnswer(sessionId=session_id, data=[get_message_by_lang(language,"confirm")])
+                message = get_confirm_message(language, task_context)
+
+                answer = OngoingCopilotAnswer(sessionId=session_id, data=[message])
                 task_context.confirm = True
                 options = build_yes_no_item(token,language)
                 for option in options:
@@ -90,15 +104,25 @@ def chat_on_objective(session_id:str,token:str,message, principal_service,ai_mod
                 # answer.data.append()
                 return answer
         else:
-            answer = OngoingCopilotAnswer(sessionId=session_id, data=[message])
-            # options = build_yes_no_item(token)
-            # for option in options:
-            #     answer.data.append(option)
+            answer = OngoingCopilotAnswer(sessionId=session_id, data=[])
+
+            intent_task:str = ObjectiveIntentTaskRecognition().run(message, AzureModelLoader().get_llm_model())
+            tasks = CopilotTaskConfiguration().load_tasks_configuration_for_derived_objective(language)
+            for task in tasks:
+                if task.task_name == intent_task:
+                    token =str(snowflakeGenerator.next_id())
+                    task_context = ChatTaskContext(token=token, main_task=task, current_status="init", parameters={})
+                    session_manager.add_token_memory(session_id, token, task_context)
+                    first_option = CopilotAnswerOption(text=task.description, action=task.task_name,
+                                                       vertical=True,
+                                                       token=token)
+                    # option_list.append(first_option)
+                    answer.data.append(first_option)
             return answer
 
     else:
         intent: ObjectiveIntent = chat_service.find_intent(message)
-        answer = OngoingCopilotAnswer(sessionId=session_id, data=[intent.intentDescription])
+        answer = OngoingCopilotAnswer(sessionId=session_id, data=[intent.value])
         return answer
 
 
@@ -120,7 +144,7 @@ def find_relationship_lineage_by_objective_id(lineage_result:LineageResult,targe
     return None
 
 
-def find_cid_for_target(objective_lineage:ObjectiveLineage,target_name:str) -> ObjectiveTargetLineage:
+def find_target(objective_lineage:ObjectiveLineage,target_name:str) -> ObjectiveTargetLineage:
     targets:List[ObjectiveTargetLineage] = objective_lineage.targets
     for target in targets:
         if target.name == target_name:
@@ -165,22 +189,24 @@ def find_factor_value_by_id(values:ObjectiveValues,uuid:str)->ObjectiveFactorVal
     return None
 
 
-def build_flowchat_by_lineage_result_and_values(lineage_result:LineageResult,values:ObjectiveValues,language) -> str:
-    flowchart.set_layout(flowchart.layout_topToBottom)
+def build_flowchat_by_lineage_result_and_values(lineage_result:LineageResult,values:ObjectiveValues,target,language) -> str:
+
     objective : ObjectiveLineage= lineage_result.objectives[0]
-    target_lineage = find_cid_for_target(objective,objective.name)
+    print("object:",objective.json())
+    print("target,",target)
+    target_lineage = find_target(objective,target.name)
     uuid = target_lineage.uuid
 
-
+    print(lineage_result.json())
 
     print("values",values.json())
     target_value = find_values_by_id(values,uuid)
     print("target_value",target_value)
 
-
+    flowchart.set_layout(flowchart.layout_topToBottom)
     target_cid_ = target_lineage.cid_
-    n1 = flowchart.add_node(build_node_name(objective.name,target_value.currentValue,target_value.previousValue,target_value.chainValue,language), shape=1)
-    a = flowchart.add_arrow(type=flowchart.arrowType_normalArrow)
+    n1 = flowchart.add_node(build_node_name(target.name,target_value.currentValue,target_value.previousValue,target_value.chainValue,language), shape=1)
+    a = flowchart.add_arrow(type=flowchart.arrowType_thickArrow)
 
 
 
@@ -192,20 +218,52 @@ def build_flowchat_by_lineage_result_and_values(lineage_result:LineageResult,val
         cid = from_relation.cid_
         if cid.startswith("OBJECTIVE-INDICATOR"):
             indicator:IndicatorLineage = find_indicator_by_cid(objective,cid)
+
+            node = None
             value = find_values_by_name(values,indicator.name)
             if value:
                 n = flowchart.add_node(build_node_name(indicator.name,value.currentValue,value.previousValue,value.chainValue,language))
-                node_list.append(n)
+                flowchart.link(n1, n, a)
+                node = n
             else:
                 factor_value = find_factor_value_by_id(values,indicator.uuid)
                 if factor_value:
                     n = flowchart.add_node(build_node_name(indicator.name,factor_value.currentValue,factor_value.previousValue,factor_value.chainValue,language))
-                    node_list.append(n)
+                    flowchart.link(n1, n, a)
+                    node = n
                 else:
                     n = flowchart.add_node(indicator.name)
-                    node_list.append(n)
+                    flowchart.link(n1, n, a)
+                    node = n
+            sub_target_lineage = find_target(objective, indicator.name)
+            if sub_target_lineage:
+                sub_relationships: RelationshipLineage = find_relationship_lineage_by_objective_id(lineage_result,
+                                                                                                   sub_target_lineage.cid_)
 
-    flowchart.link(n1, node_list, a)
+                for sub_from_relation in sub_relationships.from_:
+                    cid = sub_from_relation.cid_
+                    if cid.startswith("OBJECTIVE-INDICATOR"):
+                        indicator: IndicatorLineage = find_indicator_by_cid(objective, cid)
+                        sub_value = find_values_by_name(values, indicator.name)
+                        if sub_value:
+                            n = flowchart.add_node(
+                                build_node_name(indicator.name, sub_value.currentValue, sub_value.previousValue,
+                                                sub_value.chainValue, language))
+                            flowchart.link(node, n, a)
+                            # node_list.append(n)
+                        else:
+                            factor_value = find_factor_value_by_id(values, indicator.uuid)
+                            if factor_value:
+                                n = flowchart.add_node(build_node_name(indicator.name, factor_value.currentValue,
+                                                                       factor_value.previousValue,
+                                                                       factor_value.chainValue,
+                                                                       language))
+                                flowchart.link(node, n, a)
+                            else:
+                                n = flowchart.add_node(indicator.name)
+                                flowchart.link(node, n, a)
+
+    # flowchart.link(n1, node_list, a)
 
     text = flowchart.evaluate()
 
@@ -222,7 +280,9 @@ def build_summary_markdown_for_business_target(objective:Objective,target:str,pr
     markdown_answer = CopilotAnswerMarkdown()
     md = MarkdownDocument()
     md.append_heading(get_message_by_lang(language,"Summarize")+" {}".format(target),2)
+    print(target)
 
+    print(objective.json())
     target:ObjectiveTarget = find_target_by_name(objective,target)
 
 
@@ -238,14 +298,18 @@ def build_summary_markdown_for_business_target(objective:Objective,target:str,pr
     lineage_service.init_tenant_all_lineage_data(principal_service)
 
     #
-    lineage_result:LineageResult = lineage_service.find_lineage_by_objective_target(target.uuid, objective.objectiveId, principal_service)
+    lineage_result:LineageResult = lineage_service.find_lineage_by_objective(objective.objectiveId, principal_service)
 
 
-    chart = build_flowchat_by_lineage_result_and_values(lineage_result,values,language)
+    chart = build_flowchat_by_lineage_result_and_values(lineage_result,values,target,language)
     md.append_text(chart)
 
     markdown_answer.content = md.contents()
+
+
+
     return markdown_answer
+
 
 
 

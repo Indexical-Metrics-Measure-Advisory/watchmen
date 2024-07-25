@@ -16,7 +16,7 @@ class CopilotTaskConfiguration:
         return intent
 
     def load_tasks_configuration_for_derived_objective(self,language:str)->List[CopilotTask]:
-        tasks: List[CopilotTask] = [CopilotTask(task_name="Summarize",
+        tasks: List[CopilotTask] = [CopilotTask(task_name="summarize",
                                                 description=get_message_by_lang(language,"Summarize"), depends=["time_range","business_target"]),
                                     CopilotTask(task_name="query_metrics",
                                                 description=get_message_by_lang(language,"query_metrics"), depends=["time_range","business_target"]),

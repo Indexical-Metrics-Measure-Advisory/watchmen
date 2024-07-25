@@ -1,5 +1,5 @@
 from langchain_core.language_models import BaseLanguageModel
-from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel
 from typing import Any, List
@@ -8,43 +8,30 @@ from watchmen_ai.llm.azure_model_loader import AzureModelLoader
 from watchmen_ai.task.base_action import BaseAction
 
 format_instructions = """
-     intent_name:  "name of  analysis intent" ,
-     analysis_dimension: "Analysis Query Dimensions",
-     analysis_metrics: "Analysis Quantitative Indicators",
-     analysis_methods: "Analysis Methods for example , sum ,count ,avg .etc"
+     classification:  "" 
     """
 
 
-class DerivedObjectiveIntent(BaseModel):
-    objective_intent: str = None
-    analysis_dimension: List[str] = []
-    analysis_metrics: List[str] = []
-    analysis_methods: str = None
+class Parameter(BaseModel):
+    classification: str = None
 
 
-class GenerateDerivedObjectiveRecommend(BaseAction):
+class ObjectiveIntentTaskRecognition(BaseAction):
 
     def run(self, data: Any, ai_model: BaseLanguageModel):
-        targets: List[str] = data
+        input_message = data
 
-        assistant_system_message = """You are a insurance expert. \
-                 to best answer the question and only return json body"""
-
+        assistant_system_message = """You are a expert for below question \
+                t"""
         user_prompt = """
+                    Classify the user  input value :{input} into one of the following intent: 
+                    - summarize:Summarize Business Target
+                    - query_metrics:Query metrics YoY/MoM
+                    - exception_metrics:View data that deviates from the baseline
+                    
 
-                    please help to use below steps to generate recommend intents for derived objectives
-                        1. generate 4 intents base on below below business targets and actions
-                        2. convert intents to json  with  below format_instructions
+                    Provide the classification as a single word matching the intent. If no clear intent can be determined, output "unknown" and return only classification .
 
-                    targets:
-                    {targets}         
-                    actions:
-                    {actions}
-
-                    OUTPUT:
-                    ```json
-                    {json_format}
-                      ```
                     """
 
         prompt = ChatPromptTemplate.from_messages(
@@ -54,17 +41,17 @@ class GenerateDerivedObjectiveRecommend(BaseAction):
             ]
         )
 
-        parser = JsonOutputParser(pydantic_object=DerivedObjectiveIntent)
-
+        parser = StrOutputParser()
         chain = prompt | ai_model | parser
-        res = chain.invoke({"targets": targets,"actions":["概览目标","insight_for_business_target"] ,"json_format": format_instructions})
-        print(res)
-        return res
+        res = chain.invoke({"input": input_message, "format_instructions": format_instructions})
+        result = res.replace("Classification: ", "").replace(".", "")
+        print(result)
+        return result
 
     def describe(self):
-        return "Generate Derived Objective Recommend Intents"
+        return "This action is used to recognize the parameter from the input message"
 
 
 if __name__ == "__main__":
-    action = GenerateDerivedObjectiveRecommend()
-    action.run(["保険料単価","保有件数"], AzureModelLoader().get_llm_model())
+    action = ObjectiveIntentTaskRecognition()
+    action.run("前の月に基づいて、指標の利益をまとめてください。", AzureModelLoader().get_llm_model())
