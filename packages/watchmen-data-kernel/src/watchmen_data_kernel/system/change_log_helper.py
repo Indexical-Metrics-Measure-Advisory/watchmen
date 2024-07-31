@@ -1,3 +1,5 @@
+from watchmen_model.system import DataSourceType
+
 
 class ChangelogXml:
 	
@@ -16,10 +18,10 @@ class ChangelogXml:
 		self.change_sets = []
 
 	# noinspection PyMethodMayBeStatic
-	def generate_change_set(self, id_: str, path: str, dbms: str) -> str:
+	def generate_change_set(self, id_: str, path: str, dbms: DataSourceType) -> str:
 		change_set = f'''
 \t<changeSet author="watchmen" id="{id_}" runOnChange="true">
-\t\t<sqlFile dbms="{dbms}" encoding="utf8" endDelimiter=";"
+\t\t<sqlFile dbms="{dbms.value}" encoding="utf8" endDelimiter=";"
         path="{path}"
         relativeToChangelogFile="true"
         splitStatements="true"
@@ -28,7 +30,7 @@ class ChangelogXml:
 '''
 		return change_set
 
-	def build_change_file(self, file_name: str, datasource_type: str):
+	def build_change_file(self, file_name: str, datasource_type: DataSourceType):
 		if file_name.endswith('.ddl.sql'):
 			id_ = file_name.removesuffix('.ddl.sql')
 		elif file_name.endswith('.dml.sql'):
