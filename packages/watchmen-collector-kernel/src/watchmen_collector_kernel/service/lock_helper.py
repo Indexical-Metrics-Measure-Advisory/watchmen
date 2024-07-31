@@ -19,7 +19,7 @@ def try_lock_nowait(lock_service: CompetitiveLockService, lock: CompetitiveLock)
 
 def unlock(lock_service: CompetitiveLockService, lock: CompetitiveLock) -> bool:
 	lock_service.delete_by_id(lock.lockId)
-	return True ##TODO check exception
+	return True  # TODO check exception
 
 
 def get_resource_lock(lock_id: int, resource_id: Union[str, int], tenant_id: str) -> CompetitiveLock:
