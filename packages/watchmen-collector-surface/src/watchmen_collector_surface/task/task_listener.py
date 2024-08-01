@@ -1,4 +1,5 @@
 import logging
+import copy
 from traceback import format_exc
 from typing import List, Dict, Optional
 from abc import ABC, abstractmethod
@@ -121,7 +122,8 @@ class TaskListener:
 					change_json = self.get_change_data_json(change_json_id)
 					if change_json:
 						try:
-							self.process_sub_tasks(unfinished_task, change_json)
+							sub_task = copy.deepcopy(unfinished_task)
+							self.process_sub_tasks(sub_task, change_json)
 						finally:
 							self.update_change_json_result(change_json)
 							finished_json.append(change_json.changeJsonId)
