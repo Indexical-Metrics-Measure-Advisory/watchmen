@@ -44,12 +44,9 @@ class TaskService:
 			for raw_data in raw_data_list:
 				executed(task.topicCode, raw_data, task.tenantId)
 
-	def update_task_result(self, task: ScheduledTask, status: int, result=None) -> ScheduledTask:
+	def update_task_result(self, task: ScheduledTask) -> ScheduledTask:
 		try:
 			self.scheduled_task_service.begin_transaction()
-			task.isFinished = True
-			task.status = status
-			task.result = result
 			self.scheduled_task_history_service.create(task)
 			self.scheduled_task_service.delete(task.taskId)
 			self.scheduled_task_service.commit_transaction()
@@ -60,9 +57,9 @@ class TaskService:
 		finally:
 			self.scheduled_task_service.close_transaction()
 
-	def finish_task(self, task: ScheduledTask, status: int, result=None) -> ScheduledTask:
+	def finish_task(self, task: ScheduledTask) -> ScheduledTask:
 		try:
-			return self.update_task_result(task, status, result)
+			return self.update_task_result(task)
 		except IntegrityError:
 			self.delete_task(task)
 
