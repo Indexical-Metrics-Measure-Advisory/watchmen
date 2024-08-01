@@ -45,6 +45,7 @@ class ScheduledTask(TenantBasedTuple, BaseModel):
 	resourceId: str  # global unique, monotonous increase
 	topicCode: str
 	content: Dict
+	changeJsonIds: List[int]
 	modelName: str
 	objectId: str
 	dependOn: List[Dependence]
