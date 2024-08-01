@@ -127,11 +127,11 @@ class TaskListener:
 							finished_json.append(change_json.changeJsonId)
 
 				task = self.update_task_status(unfinished_task, Status.SUCCESS.value)
-				return self.handle_execution_result(task)
+				self.handle_execution_result(task)
 			except Exception as e:
 				logger.error(e, exc_info=True, stack_info=True)
 				task = self.update_task_status(unfinished_task, Status.FAIL.value, self.truncated_string(format_exc()))
-				return self.handle_execution_result(task)
+				self.handle_execution_result(task)
 			finally:
 				unfinished_json_ids = [change_json_id for change_json_id in unfinished_task.changeJsonIds if change_json_id not in finished_json]
 				for unfinished_json_id in unfinished_json_ids:
