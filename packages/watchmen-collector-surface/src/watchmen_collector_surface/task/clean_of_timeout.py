@@ -132,8 +132,14 @@ class CleanOfTimeout:
 	def clean_task(self):
 		query_time = datetime.now() - timedelta(seconds=self.task_timeout)
 		tasks = self.scheduled_task_service.find_timeout_task(query_time)
+
+		def set_task_timeout(task: ScheduledTask) -> ScheduledTask:
+			task.status = Status.FAIL.value
+			task.result = "timeout"
+			return task
+
 		ArrayHelper(tasks).map(
-			lambda task: self.task_service.finish_task(task, Status.FAIL.value, "timeout")
+			lambda task: self.task_service.finish_task(set_task_timeout(task))
 		)
 
 

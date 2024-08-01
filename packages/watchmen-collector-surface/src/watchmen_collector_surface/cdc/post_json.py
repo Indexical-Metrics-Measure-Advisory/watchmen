@@ -85,11 +85,9 @@ class ModelExecutor(ModelExecutorSPI):
 			self.scheduled_task_service.begin_transaction()
 			self.scheduled_task_service.create(task)
 			change_json.isPosted = True
-			change_json.status = Status.SUCCESS.value
+			change_json.status = Status.WAITING.value
 			change_json.taskId = task.taskId
-			self.change_json_history_service.create(change_json)
-			# noinspection PyTypeChecker
-			self.change_json_service.delete(change_json.changeJsonId)
+			self.change_json_service.update(change_json)
 			self.scheduled_task_service.commit_transaction()
 			return task
 		except Exception as e:
@@ -146,7 +144,8 @@ class ModelExecutor(ModelExecutorSPI):
 			taskId=self.snowflake_generator.next_id(),
 			resourceId=self.generate_resource_id(change_json),
 			topicCode=model_config.rawTopicCode,
-			content=self.get_content(trigger_event, model_config, change_json),
+			content=None,
+			changeJsonIds=[change_json.changeJsonId],
 			modelName=change_json.modelName,
 			objectId=change_json.objectId,
 			dependOn=change_json.dependOn,
@@ -262,12 +261,9 @@ class SequencedModelExecutor(ModelExecutor):
 
 		def finished_change_json(change_json: ChangeDataJson):
 			change_json.isPosted = True
-			change_json.status = Status.SUCCESS.value
+			change_json.status = Status.WAITING.value
 			change_json.taskId = task.taskId
-			self.change_json_history_service.create(change_json)
-			# noinspection PyTypeChecker
-			self.change_json_service.delete(change_json.changeJsonId)
-
+			self.change_json_service.update(change_json)
 		try:
 			self.scheduled_task_service.begin_transaction()
 			self.scheduled_task_service.create(task)
@@ -294,11 +290,16 @@ class SequencedModelExecutor(ModelExecutor):
 			content = ArrayHelper(change_jsons).map(lambda change_json: change_json.content).to_list()
 			return {"data": content}
 
+		def get_grouped_json_ids(change_jsons: List[ChangeDataJson]) -> Optional[List]:
+			ids = ArrayHelper(change_jsons).map(lambda change_json: change_json.changeJsonId).to_list()
+			return ids
+
 		return ScheduledTask(
 			taskId=self.snowflake_generator.next_id(),
 			resourceId=self.snowflake_generator.next_id(),
 			topicCode=model_config.rawTopicCode,
-			content=get_grouped_content(change_jsons),
+			content=None,
+			changeJsonIds=get_grouped_json_ids(change_jsons),
 			modelName=model_config.modelName,
 			objectId=object_id,
 			dependOn=[],
