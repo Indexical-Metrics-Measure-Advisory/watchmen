@@ -148,7 +148,7 @@ class TaskListener:
 	def process_sub_tasks(self, sub_task: ScheduledTask, change_data_json: ChangeDataJson):
 		def get_content(change_json: ChangeDataJson) -> Optional[Dict]:
 			if sub_task.type == TaskType.RUN_PIPELINE.value:
-				if "raw_" in change_json.content:
+				if "data_" in change_json.content:
 					return change_json.content.get("data_")
 				else:
 					return change_json.content
