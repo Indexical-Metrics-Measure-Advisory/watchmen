@@ -48,6 +48,12 @@ jobs:
         with:
           module-name: watchmen-storage
           target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-storage-adls]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-storage-adls
+        with:
+          module-name: watchmen-storage-adls
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-storage-mongodb]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-storage-mongodb
