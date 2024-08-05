@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-storage-postgresql"
-version = "16.6.0"
+version = "16.6.18"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -11,7 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.9"
 psycopg2-binary = "^2.9.3"
-watchmen-storage-rds = "16.6.0"
+watchmen-storage-rds = "16.6.18"
 
 [tool.poetry.dev-dependencies]
 
