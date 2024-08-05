@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "~3.12"
-watchmen-model = { path = "../watchmen-model", develop = true }
+watchmen-model = "17.0.0"
 
 [tool.poetry.dev-dependencies]
 

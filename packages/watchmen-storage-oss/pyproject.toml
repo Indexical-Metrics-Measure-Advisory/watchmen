@@ -11,7 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "~3.12"
 oss2 = "2.18.6"
-watchmen-storage = { path = "../watchmen-storage", develop = true }
+watchmen-storage = "17.0.0"
 
 [tool.poetry.dev-dependencies]
 

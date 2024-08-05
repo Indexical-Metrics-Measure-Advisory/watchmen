@@ -11,7 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "~3.12"
 trino = "^0.329.0"
-watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
+watchmen-data-kernel = "17.0.0"
 
 [tool.poetry.dev-dependencies]
 

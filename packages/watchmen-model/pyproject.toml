@@ -11,7 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "~3.12"
 pydantic = "^1.10.17"
-watchmen-utilities = { path = "../watchmen-utilities", develop = true }
+watchmen-utilities = "17.0.0"
 sqlparse = "^0.5.0"
 
 [tool.poetry.dev-dependencies]

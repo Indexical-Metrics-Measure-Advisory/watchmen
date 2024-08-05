@@ -11,7 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "~3.12"
 psycopg2-binary = "^2.9.9"
-watchmen-storage-rds = { path = "../watchmen-storage-rds", develop = true }
+watchmen-storage-rds = "17.0.0"
 
 [tool.poetry.dev-dependencies]
 
