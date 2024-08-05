@@ -97,6 +97,13 @@ jobs:
     uses: ./.github/workflows/create-release.yml
     with:
       tag: ${{ needs.compute-version.outputs.version }}
+  # publish web client image, both non-indicator and with-indicator
+  publish-web-client-image:
+    needs: [ compute-version, prepare, create-release-branch ]
+    uses: ./.github/workflows/image-publish-web-client.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
   # publish doll image, on mysql
   publish-doll-mysql-image:
     needs: [ compute-version, prepare, publish-web-client-image ]
