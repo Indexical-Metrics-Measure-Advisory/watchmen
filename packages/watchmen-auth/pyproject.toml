@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-auth"
-version = "17.0.0"
+version = "17.0.1"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "~3.12"
-watchmen-model = "17.0.0"
+watchmen-model = "17.0.1"
 
 [tool.poetry.dev-dependencies]
 
