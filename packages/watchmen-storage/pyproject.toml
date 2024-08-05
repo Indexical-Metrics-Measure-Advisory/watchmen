@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-storage"
-version = "17.0.0"
+version = "17.0.2"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -11,7 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "~3.12"
 boto3 = "^1.34.140"
-watchmen-model = "17.0.0"
+watchmen-model = "17.0.2"
 
 
 [tool.poetry.dev-dependencies]
