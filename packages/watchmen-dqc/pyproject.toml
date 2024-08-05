@@ -11,7 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "~3.12"
 pandas = "^1.5.3"
-ydata-profiling = "^4.8.3"
+ydata-profiling = "4.6.0"
 numpy = "^1.26.4"
 APScheduler = "^3.10.4"
 watchmen-meta = "17.0.0"
