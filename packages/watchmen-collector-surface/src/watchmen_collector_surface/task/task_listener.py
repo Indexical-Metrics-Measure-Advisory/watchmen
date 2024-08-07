@@ -136,7 +136,8 @@ class TaskListener:
 				unfinished_json_ids = [change_json_id for change_json_id in unfinished_task.changeJsonIds if change_json_id not in finished_json]
 				for unfinished_json_id in unfinished_json_ids:
 					unfinished_change_json = self.get_change_data_json(unfinished_json_id)
-					self.update_change_json_result(unfinished_change_json)
+					if unfinished_change_json:
+						self.update_change_json_result(unfinished_change_json)
 
 	# noinspection PyMethodMayBeStatic
 	def update_task_status(self, task: ScheduledTask, status: int, result: str = None) -> ScheduledTask:
