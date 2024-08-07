@@ -155,6 +155,7 @@ class ModelExecutor(ModelExecutorSPI):
 			result=None,
 			tenantId=change_json.tenantId,
 			eventId=change_json.eventTriggerId,
+			eventTriggerId=change_json.eventTriggerId,
 			pipelineId=self.get_pipeline_id(trigger_event),
 			type=self.get_task_type(trigger_event)
 		)
@@ -309,6 +310,7 @@ class SequencedModelExecutor(ModelExecutor):
 			result=None,
 			tenantId=trigger_event.tenantId,
 			eventId=trigger_event.eventTriggerId,
+			eventTriggerId=trigger_event.eventTriggerId,
 			pipelineId=self.get_pipeline_id(trigger_event),
 			type=3
 		)
