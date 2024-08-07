@@ -321,7 +321,7 @@ table_scheduled_task = Table(
 	create_json('depend_on'), create_json('parent_task_id'),
 	create_bool('is_finished', False),
 	create_int('status', False), create_json('result'),
-	create_str('event_id', 200, False),
+	create_str('event_id', 200, False), create_int('event_trigger_id', False),
 	create_str('pipeline_id', 50), create_int('type', False),
 	create_tenant_id(),
 	*create_tuple_audit_columns()
@@ -335,7 +335,7 @@ table_scheduled_task_history = Table(
 	create_json('depend_on'), create_json('parent_task_id'),
 	create_bool('is_finished', False),
 	create_int('status', False), create_json('result'),
-	create_str('event_id', 200, False),
+	create_str('event_id', 200, False), create_int('event_trigger_id', False),
 	create_str('pipeline_id', 50), create_int('type', False),
 	create_tenant_id(),
 	*create_tuple_audit_columns()

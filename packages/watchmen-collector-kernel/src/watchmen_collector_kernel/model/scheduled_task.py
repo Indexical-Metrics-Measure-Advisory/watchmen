@@ -54,6 +54,7 @@ class ScheduledTask(TenantBasedTuple, BaseModel):
 	status: int
 	result: Dict
 	eventId: str
+	eventTriggerId: int
 	pipelineId: str
 	type: int
 
