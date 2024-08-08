@@ -58,9 +58,18 @@ class GenerateTopicFactorsAction(BaseAction):
 
 
 if __name__ == "__main__":
-    action = GenerateTopicFactorsAction()
-    model = LlmModelBuilder.get_llm_model()
+    # action = GenerateTopicFactorsAction()
+    # model = LlmModelBuilder.get_llm_model()
+    #
+    # # model = get_gpt_4()
+    # action.run(
+    #     "Quotation", model)
 
-    # model = get_gpt_4()
-    action.run(
-        "Quotation", model)
+    print(4355 -2475 - 1373+30-240)
+
+    print(4355000000/8)
+    print(30000000/3)
+    print(2475000000/3)
+    print(1373000000/4)
+    print(240000000/3)
+

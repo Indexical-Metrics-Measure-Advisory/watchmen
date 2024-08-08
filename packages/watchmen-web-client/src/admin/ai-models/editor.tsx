@@ -7,9 +7,6 @@ import {HoldByAIModel} from "@/admin/ai-models/utils";
 const AIModelEditor = (props: { aiModel: AIModel ,tenants: Array<QueryTenantForHolder>;}) => {
     const {aiModel,tenants} = props;
 
-
-
-
     return <>
       <ModelSetting model={aiModel} tenants={tenants}/>
     </>

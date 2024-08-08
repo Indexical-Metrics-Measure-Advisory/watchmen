@@ -102,16 +102,16 @@ export const IndicatorMenu = () => {
 		              active={!!matchPath({path: Router.IDW_OBJECTIVE_ALL}, location.pathname)}
 		              onClick={navigateTo(Router.IDW_OBJECTIVE)}
 		              visible={isAdmin() && !isSuperAdmin()}/>
-		<SideMenuItem icon={ICON_CONVERGENCE} label={Lang.INDICATOR.MENU.CONVERGENCES}
-		              showTooltip={showTooltip}
-		              active={!!matchPath({path: Router.IDW_CONVERGENCE_ALL}, location.pathname)}
-		              onClick={navigateTo(Router.IDW_CONVERGENCE)}
-		              visible={isAdmin() && !isSuperAdmin()}/>
-		<SideMenuItem icon={ICON_SHORE} label={Lang.INDICATOR.MENU.STORY}
-		              showTooltip={showTooltip}
-		              active={!!matchPath({path: Router.IDW_STORY_ALL}, location.pathname)}
-		              onClick={navigateTo(Router.IDW_STORY)}
-		              visible={isAdmin() && !isSuperAdmin()}/>
+		{/*<SideMenuItem icon={ICON_CONVERGENCE} label={Lang.INDICATOR.MENU.CONVERGENCES}*/}
+		{/*              showTooltip={showTooltip}*/}
+		{/*              active={!!matchPath({path: Router.IDW_CONVERGENCE_ALL}, location.pathname)}*/}
+		{/*              onClick={navigateTo(Router.IDW_CONVERGENCE)}*/}
+		{/*              visible={isAdmin() && !isSuperAdmin()}/>*/}
+		{/*<SideMenuItem icon={ICON_SHORE} label={Lang.INDICATOR.MENU.STORY}*/}
+		{/*              showTooltip={showTooltip}*/}
+		{/*              active={!!matchPath({path: Router.IDW_STORY_ALL}, location.pathname)}*/}
+		{/*              onClick={navigateTo(Router.IDW_STORY)}*/}
+		{/*              visible={isAdmin() && !isSuperAdmin()}/>*/}
 		<SideMenuPlaceholder/>
 		<SideMenuSeparator width={menuWidth}/>
 		<SideMenuItem icon={ICON_SETTINGS} label={Lang.INDICATOR.MENU.SETTINGS} showTooltip={showTooltip}

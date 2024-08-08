@@ -78,7 +78,7 @@ export const DoPickOptionExecution = (props: { content: ExecutionContent }) => {
 						fireCopilot(CopilotEventTypes.REPLACE_SESSION, sessionId);
 					}
 					setResult({
-						content: <Answer greeting={greeting} answer={answer}/>,
+						content: <Answer answer={answer}/>,
 						toBeContinue: false
 					});
 				}, () => {

@@ -21,7 +21,7 @@ export const Copilot = (props: {  derivedObjective: DerivedObjective  }) => {
 	};
 	return <CopilotWrapper
 		header={<CopilotHeader derivedObjective={derivedObjective}/>}
-		greeting="This channel is for working on objective analysis."
+		greeting= {Lang.COPILOT.DERIVED_OBJECTIVE.HELLO}
 		executionGrabSpace={true}
 		commands={CONNECTED_DERIVED_OBJECTIVE_COMMANDS}
 		askFirstCommand={askFirstCommand}/>;

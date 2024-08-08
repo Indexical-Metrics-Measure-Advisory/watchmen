@@ -1193,6 +1193,7 @@ export const VI: LanguageDeclareType = {
 	COPILOT: {
 		YES: 'Chắc chắn, tiến lên.',
 		NO: 'Không.',
+		HELLO:"Xin chào ",
 		NOTED: 'Chú ý. Còn việc gì khác tôi có thể giúp bạn không?',
 		ASK_RECOMMENDATION: 'Cho tôi những đề xuất của bạn.',
 		REPLY_ASKING_RECOMMENDATION: 'Chú ý. Vui lòng đợi trong khi tôi kiểm tra các tùy chọn được đề xuất.',
@@ -1205,6 +1206,7 @@ export const VI: LanguageDeclareType = {
 			GREETING_RESTART_SESSION: 'Dạ, cho em hỏi giúp anh/chị điều gì ạ? Có thể anh/chị muốn xem lại các lựa chọn mà chúng em đề xuất không ạ?'
 		},
 		DERIVED_OBJECTIVE: {
+			HELLO: "This channel is for working on objective analysis.",
 			GREETING_FIRST_SESSION:'Hello! I am an AI assistant. I can help you analyze data of the current connected space. Please wait while I check the recommended options',
 			GREETING_RESTART_SESSION:'Alright, may I ask what I can help you with now? Perhaps you would like to review our recommended options again?'
 		}

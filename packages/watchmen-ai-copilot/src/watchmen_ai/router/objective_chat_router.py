@@ -5,7 +5,7 @@ from typing import Optional, List
 from watchmen_ai.model.chat_answer import CopilotAnswerWithSession, CopilotAnswerOption
 from watchmen_ai.model.copilot_intent import CopilotIntent, CopilotTask
 from watchmen_ai.model.index import ChatContext, ChatTaskContext
-from watchmen_ai.service.task_configuration import CopilotTaskConfiguration
+from watchmen_ai.intent.task_configuration import CopilotTaskConfiguration
 from watchmen_ai.session.session_managment import SessionManager, get_session_manager
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.meta import DerivedObjectiveService, ObjectiveService
