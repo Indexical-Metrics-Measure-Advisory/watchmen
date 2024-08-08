@@ -12,6 +12,7 @@ class CopilotTask(BaseModel):
     description: Optional[str] = None
     parameters: Optional[Dict[str, Any]] = None
     depends: Optional[List[str]] = None
+    withConfirm: Optional[bool] = False
 
 
 class CopilotIntent(BaseModel):

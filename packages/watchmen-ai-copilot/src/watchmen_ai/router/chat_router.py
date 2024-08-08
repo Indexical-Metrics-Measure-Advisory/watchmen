@@ -22,6 +22,10 @@ from watchmen_model.indicator import DerivedObjective
 from watchmen_model.system.ai_model import AIModel
 from watchmen_rest import get_console_principal
 
+SUBJECT = "subject"
+
+OBJECTIVE = "objective"
+
 router = APIRouter()
 
 
@@ -55,52 +59,31 @@ def get_chat_service() -> ChatService:
 @router.post("/free-chat", tags=[UserRole.CONSOLE], response_model=OngoingCopilotAnswer)
 def chat_on_action(free_chat_req: FreeChatRequest, principal_service: PrincipalService = Depends(
     get_console_principal)) -> OngoingCopilotAnswer:
-    chat_service = get_chat_service()
+    session_manager: SessionManager = get_session_manager()
+    # chat_service = get_chat_service()
     ai_service: AIModelService = get_ai_service(principal_service)
     ai_model: AIModel = ai_service.find_by_tenant(principal_service.tenantId)
+    chat_context: ChatContext = session_manager.get_session(free_chat_req.sessionId)
+    language = get_last_snapshot_language(principal_service)
 
-    chat_context: ChatContext = chat_service.find_chat_context(free_chat_req.sessionId)
-
-    last_snapshot = get_last_snapshot(principal_service)
-
-    language = last_snapshot.language
-
-    if chat_context is None:
-        return create_new_session(free_chat_req, principal_service)
-    elif chat_context.context_type == "objective":
+    if chat_context.context_type == OBJECTIVE:
         return chat_on_objective(free_chat_req.sessionId, free_chat_req.token, free_chat_req.replyTo, principal_service,
-                                 ai_model,ai_service.snowflakeGenerator, language)
+                                 ai_model, ai_service.snowflakeGenerator, language)
+
+    elif chat_context.context_type == SUBJECT:
+        pass  # TODO
     else:
         raise Exception("not support yet")
 
 
-def get_last_snapshot(principal_service):
+def get_last_snapshot_language(principal_service) -> str:
     last_snapshot_service: LastSnapshotService = get_last_snapshot_service(principal_service)
 
     def action_last_snapshot() -> Optional[LastSnapshot]:
         return last_snapshot_service.find_by_user_id(principal_service.get_user_id(), principal_service.get_tenant_id())
 
     last_snapshot = trans(last_snapshot_service, action_last_snapshot)
-    return last_snapshot
-
-
-def check_depends(depend_list: List[str], parameter_dict: Dict) -> (bool, str):
-    for depend in depend_list:
-        if depend not in parameter_dict:
-            return False, depend
-    return True, "pass"
-
-
-def peek_stack(stack):
-    if stack:
-        return stack[-1]
-
-
-def clear_task_context(task_context: ChatTaskContext):
-    task_context.sub_tasks = []
-    task_context.confirm = False
-    task_context.parameters = {}
-    task_context.history = []
+    return last_snapshot.language
 
 
 def process_objective_logic(ask_option_rq, chat_context, task_context, principal_service,
@@ -110,12 +93,9 @@ def process_objective_logic(ask_option_rq, chat_context, task_context, principal
         markdown_answer = build_summary_markdown_for_business_target(derived_objective.definition,
                                                                      task_context.parameters["business_target"],
                                                                      principal_service, language)
-        if task_context.confirm:
-            clear_task_context(task_context)
-            # session_manager.delete_token_memory(ask_option_rq.sessionId, ask_option_rq.token)
-            # rebuild_task_context()
-        else:
-            raise Exception("task_context status issue for confirm")
+
+        clear_task_context(task_context)
+        clear_chat_context(chat_context)
 
         return OngoingCopilotAnswer(sessionId=ask_option_rq.sessionId, data=[markdown_answer])
     else:
@@ -126,8 +106,6 @@ def process_objective_logic(ask_option_rq, chat_context, task_context, principal
 def ask_option_detail(ask_option_rq: AskOptionRq, principal_service: PrincipalService = Depends(
     get_console_principal)) -> OngoingCopilotAnswer:
     answer = OngoingCopilotAnswer(sessionId=ask_option_rq.sessionId)
-
-
 
     last_snapshot_service: LastSnapshotService = get_last_snapshot_service(principal_service)
 
@@ -143,7 +121,7 @@ def ask_option_detail(ask_option_rq: AskOptionRq, principal_service: PrincipalSe
     chat_context: ChatContext = session_manager.get_session(ask_option_rq.sessionId)
     chat_context.current_token = ask_option_rq.token
 
-    if task_context.confirm and chat_context.context_type == "objective":
+    if task_context.confirm and chat_context.context_type == OBJECTIVE:
         return process_objective_logic(ask_option_rq, chat_context, task_context, principal_service, language)
 
     task_context.history.append({"question": task_context.main_task.description})
@@ -154,10 +132,9 @@ def ask_option_detail(ask_option_rq: AskOptionRq, principal_service: PrincipalSe
         answer.data.append(get_message_by_lang(language, key))
         return answer
     else:
-        message = get_confirm_message(language, task_context)
 
         answer = OngoingCopilotAnswer(sessionId=ask_option_rq.sessionId,
-                                      data=[get_message_by_lang(language, message)])
+                                      data=[get_message_by_lang(language, "confirm")])
         task_context.confirm = True
         options = build_yes_no_item(ask_option_rq.token, language)
         for option in options:
@@ -181,3 +158,26 @@ def create_new_session(free_chat_req: FreeChatRequest, principal_service: Princi
 
     answer = OngoingCopilotAnswer(sessionId="new_", data=["session is not find, create new session"])
     return answer
+
+
+def check_depends(depend_list: List[str], parameter_dict: Dict) -> (bool, str):
+    for depend in depend_list:
+        if depend not in parameter_dict:
+            return False, depend
+    return True, "pass"
+
+
+def peek_stack(stack):
+    if stack:
+        return stack[-1]
+
+
+def clear_task_context(task_context: ChatTaskContext):
+    task_context.sub_tasks = []
+    task_context.confirm = False
+    task_context.parameters = {}
+    task_context.history = []
+
+
+def clear_chat_context(chat_context: ChatContext):
+    chat_context.current_token = None

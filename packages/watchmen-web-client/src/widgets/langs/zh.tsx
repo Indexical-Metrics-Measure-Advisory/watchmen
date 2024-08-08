@@ -1193,6 +1193,7 @@ export const Zh: LanguageDeclareType = {
 	COPILOT: {
 		YES: '好的，请继续。',
 		NO: '不。',
+		HELLO:"您好 ",
 		NOTED: '了解了。还有其他什么可以帮助您的吗？',
 		ASK_RECOMMENDATION: '给我你的建议。',
 		REPLY_ASKING_RECOMMENDATION: '了解了。请稍等，我来检查是否有推荐的选项。',
@@ -1205,6 +1206,7 @@ export const Zh: LanguageDeclareType = {
 			GREETING_RESTART_SESSION: '好的，请问现在我可以帮您做什么呢？或许您想再看看我们推荐的选项吗？'
 		},
 		DERIVED_OBJECTIVE: {
+			HELLO: "这个频道用于进行目标分析",
 			GREETING_FIRST_SESSION:'您好！我是AI助理。我可以帮助您分析当前的目标分析。请稍等，我来检查是否有推荐的选项。',
 			GREETING_RESTART_SESSION:'好的，请问现在我可以帮您做什么呢？或许您想再看看我们推荐的选项吗？'
 		}

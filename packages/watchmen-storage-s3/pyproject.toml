@@ -10,8 +10,8 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-boto3 = "^1.24.20"
 watchmen-storage = { path = "../watchmen-storage", develop = true }
+boto3 = "^1.34.156"
 
 [tool.poetry.dev-dependencies]
 

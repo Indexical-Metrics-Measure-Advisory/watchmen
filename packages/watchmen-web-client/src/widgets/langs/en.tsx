@@ -1193,6 +1193,7 @@ export const En = {
 	COPILOT: {
 		YES: 'Sure, go ahead.',
 		NO: 'No.',
+		HELLO:"Hello",
 		NOTED: 'Noted. Is there anything else I can assist you with?',
 		ASK_RECOMMENDATION: 'Give me your recommendations.',
 		REPLY_ASKING_RECOMMENDATION: 'Noted. Please wait while I check for any recommended options.',
@@ -1205,6 +1206,7 @@ export const En = {
 			GREETING_RESTART_SESSION: 'Alright, may I ask what I can help you with now? Perhaps you would like to review our recommended options again?'
 		},
 		DERIVED_OBJECTIVE: {
+			HELLO :"This channel is for working on objective analysis.",
 			GREETING_FIRST_SESSION:'Hello! I\'m an AI assistant. I can help you analyze data of current objective. Please wait while I check for any recommended options.',
 			GREETING_RESTART_SESSION:'Alright, may I ask what I can help you with now? Perhaps you would like to review our recommended options again?'
 		}

@@ -9,4 +9,4 @@ class ChatService:
                              intentDescription="intentDescription")
 
     def find_chat_context(self, sessionId: str) -> ChatContext:
-        return ChatContext(sessionId="sessionId", context_type="objective", memory={})
+        return ChatContext(sessionId=sessionId, context_type="objective", memory={})
