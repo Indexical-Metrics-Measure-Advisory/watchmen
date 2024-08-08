@@ -29,6 +29,13 @@ class ObjectiveIntentTaskRecognition(BaseAction):
                     - query_metrics:Query metrics YoY/MoM
                     - exception_metrics:View data that deviates from the baseline
                     
+                    example:
+                    - input: "先月と比べて大きく変化したところを教えてください。"
+                      output: "exception_metrics"     
+                      
+                    - input: "ビジネスの状況を教えて下さい" 
+                      output : "summarize"           
+
 
                     Provide the classification as a single word matching the intent. If no clear intent can be determined, output "unknown" and return only classification .
 
@@ -54,4 +61,4 @@ class ObjectiveIntentTaskRecognition(BaseAction):
 
 if __name__ == "__main__":
     action = ObjectiveIntentTaskRecognition()
-    action.run("前の月に基づいて、指標の利益をまとめてください。", AzureModelLoader().get_llm_model())
+    action.run("先月と比べて大きく変化したところを教えて", AzureModelLoader().get_llm_model())

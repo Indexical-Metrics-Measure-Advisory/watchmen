@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-boto3 = "1.24.45"
+boto3 = "^1.24.45"
 watchmen-model = { path = "../watchmen-model", develop = true }
 
 

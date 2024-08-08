@@ -108,6 +108,7 @@ const AdminAIModels = () => {
                            searchPlaceholder="Search by ai model name, zone name, etc."
                            tupleLabel="AI Model" tupleImage={DataSourceBackground} tupleImagePosition="left 80px"
                            renderEditor={renderEditor}
+                           newTupleLabelPrefix="New" existingTupleLabelPrefix=""
                            renderCard={renderCard} getKeyOfTuple={getKeyOfAIModel}
     />;
 };

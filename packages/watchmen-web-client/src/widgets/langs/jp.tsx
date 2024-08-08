@@ -1193,6 +1193,7 @@ export const Jp: LanguageDeclareType = {
 	COPILOT: {
 		YES: 'すぐにやってください。',
 		NO: 'いいえ。',
+		HELLO:"こんにちは ",
 		NOTED: '了解しました。他にお手伝いできることはありますでしょうか？',
 		ASK_RECOMMENDATION: 'お勧めを教えてください。',
 		REPLY_ASKING_RECOMMENDATION: '了解しました。推奨オプションをチェックしますので少々お待ちください。',
@@ -1205,6 +1206,7 @@ export const Jp: LanguageDeclareType = {
 			GREETING_RESTART_SESSION: 'わかりました。今、何をお手伝いできますか？もう一度おすすめの選択肢をご確認されたいですか？'
 		},
 		DERIVED_OBJECTIVE: {
+			HELLO:"このチャンネルは、客観的な分析を行うためのものです",
 			GREETING_FIRST_SESSION:'こんにちは！私はあなたのAIアシスタントです。',
 			GREETING_RESTART_SESSION:'Alright, may I ask what I can help you with now? Perhaps you would like to review our recommended options again?'
 		}

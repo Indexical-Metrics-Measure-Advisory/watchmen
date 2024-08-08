@@ -197,7 +197,7 @@ const HelpDialog = (props: { text?: string }) => {
 				})}
 		</HelpDialogSearchResults>
 		<HelpDialogButtons>
-			<HelpDialogVersionLabel>Watchmen Web Client, Ver. {process.env.REACT_APP_VERSION}</HelpDialogVersionLabel>
+			<HelpDialogVersionLabel>DataMO Web Client, Ver. {process.env.REACT_APP_VERSION}</HelpDialogVersionLabel>
 			<HelpDialogCloseButton ink={ButtonInk.PRIMARY} onClick={onCloseClicked}>
 				{Lang.ACTIONS.CLOSE}
 			</HelpDialogCloseButton>
