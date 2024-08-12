@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from copy import deepcopy
+from copy import deepcopy, copy
+import dill
 from typing import Any, Dict, List, Optional, Tuple
 
 from watchmen_model.admin import Factor, FactorType, Topic
@@ -94,3 +95,9 @@ class PipelineVariables:
 		backed.variables_from = deepcopy(self.variables_from)
 		backed.variables = self.variables
 		return backed
+
+	def shallow_clone(self) -> PipelineVariables:
+		cloned = PipelineVariables(self.previousData, self.currentData, self.topic)
+		cloned.variables_from = copy(self.variables_from)
+		cloned.variables = copy(self.variables)
+		return cloned

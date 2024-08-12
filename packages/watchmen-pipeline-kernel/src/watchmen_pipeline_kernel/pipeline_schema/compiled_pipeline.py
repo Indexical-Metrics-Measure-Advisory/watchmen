@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from copy import deepcopy
+from copy import deepcopy, copy
 from logging import getLogger
 from traceback import format_exc
 from typing import Any, Callable, Dict, List, Optional
@@ -64,8 +64,8 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 			traceId=trace_id, dataId=data_id,
 			pipelineId=self.pipeline.pipelineId, topicId=trigger_topic_id,
 			status=MonitorLogStatus.DONE, startTime=now(), spentInMills=0, error=None,
-			oldValue=deepcopy(previous_data) if previous_data is not None else None,
-			newValue=deepcopy(current_data) if current_data is not None else None,
+			oldValue=copy(previous_data) if previous_data is not None else None,
+			newValue=copy(current_data) if current_data is not None else None,
 			prerequisite=True,
 			prerequisiteDefinedAs=self.prerequisiteDefinedAs(),
 			stages=[]
