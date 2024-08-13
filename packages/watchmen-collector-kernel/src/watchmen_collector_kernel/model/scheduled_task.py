@@ -53,7 +53,7 @@ class ScheduledTask(TenantBasedTuple, BaseModel):
 	isFinished: bool
 	status: int
 	result: Dict
-	eventId: str
+	eventId: str  # Deprecated
 	eventTriggerId: int
 	pipelineId: str
 	type: int
