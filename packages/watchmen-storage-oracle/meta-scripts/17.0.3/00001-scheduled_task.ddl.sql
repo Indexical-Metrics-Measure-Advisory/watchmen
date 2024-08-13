@@ -1,4 +1,4 @@
-ALTER TABLE scheduled_task ADD COLUMN event_trigger_id DECIMAL(20) NOT NULL;
+ALTER TABLE scheduled_task ADD event_trigger_id NUMBER(20) NOT NULL;
 
 DROP INDEX idx_task_event_id;
 DROP INDEX idx_task_model_name_event_id;
