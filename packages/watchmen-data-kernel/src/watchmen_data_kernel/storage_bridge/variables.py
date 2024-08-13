@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from copy import deepcopy, copy
-import dill
 from typing import Any, Dict, List, Optional, Tuple
 
 from watchmen_model.admin import Factor, FactorType, Topic
