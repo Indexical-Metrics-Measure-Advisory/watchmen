@@ -90,8 +90,8 @@ class PipelineVariables:
 		"""
 		not cloned, assume it will not be changed
 		"""
-		backed = PipelineVariables(None, self.previousData, self.topic)
-		backed.variables_from = deepcopy(self.variables_from)
+		backed = PipelineVariables(self.previousData, self.previousData, self.topic)
+		backed.variables_from = copy(self.variables_from)
 		backed.variables = self.variables
 		return backed
 
