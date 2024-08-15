@@ -42,6 +42,7 @@ class VariablePredefineFunctions(str, Enum):
 	NEXT_SEQ = '&nextSeq',
 	COUNT = '&count',
 	LENGTH = '&length',
+	JOIN = '&join',
 	SUM = '&sum',
 	FROM_PREVIOUS_TRIGGER_DATA = '&old',
 
