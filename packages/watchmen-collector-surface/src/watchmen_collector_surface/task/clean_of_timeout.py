@@ -161,8 +161,9 @@ class CleanOfTimeout:
 						self.change_data_json_service.close_transaction()
 
 		for task in tasks:
-			clean_change_json_with_task(task)
 			self.task_service.finish_task(set_task_timeout(task))
+			clean_change_json_with_task(task)
+
 
 
 def init_clean():
