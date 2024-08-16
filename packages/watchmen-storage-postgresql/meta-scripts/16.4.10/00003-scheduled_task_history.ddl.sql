@@ -11,9 +11,9 @@ CREATE TABLE scheduled_task_history
 	is_finished         SMALLINT         NOT NULL,
 	result              JSON,
     tenant_id           VARCHAR(50)      NOT NULL,
-    created_at          DATE             NOT NULL,
+    created_at          TIMESTAMP        NOT NULL,
     created_by          VARCHAR(50)      NOT NULL,
-    last_modified_at    DATE             NOT NULL,
+    last_modified_at    TIMESTAMP        NOT NULL,
     last_modified_by    VARCHAR(50)      NOT NULL,
     CONSTRAINT pk_scheduled_task_history PRIMARY KEY (task_id)
 );
