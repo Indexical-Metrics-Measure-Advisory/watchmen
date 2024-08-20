@@ -101,43 +101,51 @@ class TaskListener:
 
 	def process_tasks(self):
 		unfinished_tasks = self.find_tasks_and_locked()
-		remaining_tasks = ArrayHelper(unfinished_tasks).to_map(lambda one_task: one_task.taskId,
-		                                                       lambda one_task: one_task)
+		remaining_tasks = ArrayHelper(unfinished_tasks).to_map(lambda task: task.taskId,
+		                                                       lambda task: task)
 
 		def release_remaining_tasks():
-			for task_id, task in remaining_tasks.items():
-				self.restore_task(task)
+			for task_id, remaining_task in remaining_tasks.items():
+				self.restore_task(remaining_task)
+			remaining_tasks.clear()
 
 		for unfinished_task in unfinished_tasks:
-
 			del remaining_tasks[unfinished_task.taskId]
 
 			if len(unfinished_task.changeJsonIds) > self.data_size_threshold:
 				release_remaining_tasks()
+				self.process_task_with_change_data_json(unfinished_task)
+				break
+			else:
+				self.process_task_with_change_data_json(unfinished_task)
 
-			finished_json = []
+	def process_task_with_change_data_json(self, unfinished_task: ScheduledTask):
+		try:
+			finished_json_ids = []
+			for change_json_id in unfinished_task.changeJsonIds:
+				change_json = self.get_change_data_json(change_json_id)
+				if change_json:
+					self.process_sub_tasks(unfinished_task, change_json)
+					self.update_change_json_result(change_json, Status.SUCCESS.value)
+					finished_json_ids.append(change_json.changeJsonId)
+
+			finished_task = self.update_task_status(unfinished_task, Status.SUCCESS.value)
+			self.handle_execution_result(finished_task)
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+			finished_task = self.update_task_status(unfinished_task, Status.FAIL.value, self.truncated_string(format_exc()))
+			self.handle_execution_result(finished_task)
+			unfinished_json_ids = [change_json_id for change_json_id in unfinished_task.changeJsonIds if change_json_id not in finished_json_ids]
+			self.handle_unfinished_change_json(unfinished_json_ids)
+
+	def handle_unfinished_change_json(self, unfinished_change_json_ids: List):
+		for unfinished_json_id in unfinished_change_json_ids:
 			try:
-				for change_json_id in unfinished_task.changeJsonIds:
-					change_json = self.get_change_data_json(change_json_id)
-					if change_json:
-						try:
-							self.process_sub_tasks(unfinished_task, change_json)
-						finally:
-							self.update_change_json_result(change_json)
-							finished_json.append(change_json.changeJsonId)
-
-				task = self.update_task_status(unfinished_task, Status.SUCCESS.value)
-				self.handle_execution_result(task)
+				unfinished_change_json = self.get_change_data_json(unfinished_json_id)
+				if unfinished_change_json:
+					self.update_change_json_result(unfinished_change_json, Status.FAIL.value)
 			except Exception as e:
 				logger.error(e, exc_info=True, stack_info=True)
-				task = self.update_task_status(unfinished_task, Status.FAIL.value, self.truncated_string(format_exc()))
-				self.handle_execution_result(task)
-			finally:
-				unfinished_json_ids = [change_json_id for change_json_id in unfinished_task.changeJsonIds if change_json_id not in finished_json]
-				for unfinished_json_id in unfinished_json_ids:
-					unfinished_change_json = self.get_change_data_json(unfinished_json_id)
-					if unfinished_change_json:
-						self.update_change_json_result(unfinished_change_json)
 
 	# noinspection PyMethodMayBeStatic
 	def update_task_status(self, task: ScheduledTask, status: int, result: str = None) -> ScheduledTask:
@@ -189,10 +197,10 @@ class TaskListener:
 		return self.task_service.finish_task(task)
 
 	# noinspection PyTypeChecker
-	def update_change_json_result(self, change_json: ChangeDataJson):
+	def update_change_json_result(self, change_json: ChangeDataJson, status: int):
 		try:
 			self.change_json_history_service.begin_transaction()
-			change_json.status = Status.SUCCESS.value
+			change_json.status = status
 			self.change_json_history_service.create(change_json)
 			self.change_json_service.delete(change_json.changeJsonId)
 			self.change_json_history_service.commit_transaction()
