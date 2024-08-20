@@ -265,6 +265,7 @@ class SequencedModelExecutor(ModelExecutor):
 			change_json.status = Status.WAITING.value
 			change_json.taskId = task.taskId
 			self.change_json_service.update(change_json)
+
 		try:
 			self.scheduled_task_service.begin_transaction()
 			self.scheduled_task_service.create(task)
