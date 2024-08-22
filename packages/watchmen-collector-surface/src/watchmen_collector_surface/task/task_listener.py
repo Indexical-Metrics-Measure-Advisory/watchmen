@@ -125,9 +125,12 @@ class TaskListener:
 			for change_json_id in unfinished_task.changeJsonIds:
 				change_json = self.get_change_data_json(change_json_id)
 				if change_json:
-					self.process_sub_tasks(unfinished_task, change_json)
-					self.update_change_json_result(change_json, Status.SUCCESS.value)
-					finished_json_ids.append(change_json.changeJsonId)
+					if self.is_duplicated(change_json):
+						self.delete_change_json(change_json)
+					else:
+						self.process_sub_tasks(unfinished_task, change_json)
+						self.update_change_json_result(change_json, Status.SUCCESS.value)
+						finished_json_ids.append(change_json.changeJsonId)
 
 			finished_task = self.update_task_status(unfinished_task, Status.SUCCESS.value)
 			self.handle_execution_result(finished_task)
@@ -137,6 +140,13 @@ class TaskListener:
 			self.handle_execution_result(finished_task)
 			unfinished_json_ids = [change_json_id for change_json_id in unfinished_task.changeJsonIds if change_json_id not in finished_json_ids]
 			self.handle_unfinished_change_json(unfinished_json_ids)
+
+	def is_duplicated(self, change_data_json: ChangeDataJson) -> bool:
+		existed_json = self.change_json_history_service.find_by_resource_id(change_data_json.resourceId)
+		if existed_json:
+			return True
+		else:
+			return False
 
 	def handle_unfinished_change_json(self, unfinished_change_json_ids: List):
 		for unfinished_json_id in unfinished_change_json_ids:
@@ -168,6 +178,7 @@ class TaskListener:
 		task_executor = get_task_executor(self.task_service, sub_task)
 		task_executor.process_scheduled_task(sub_task)
 
+	# noinspection PyTypeChecker
 	def get_change_data_json(self, change_json_id: int) -> ChangeDataJson:
 		return self.change_json_service.find_json_by_id(change_json_id)
 
@@ -204,6 +215,18 @@ class TaskListener:
 			self.change_json_history_service.create(change_json)
 			self.change_json_service.delete(change_json.changeJsonId)
 			self.change_json_history_service.commit_transaction()
+		except Exception as e:
+			self.change_json_history_service.rollback_transaction()
+			raise e
+		finally:
+			self.change_json_history_service.close_transaction()
+
+	# noinspection PyTypeChecker
+	def delete_change_json(self, change_json: ChangeDataJson):
+		try:
+			self.change_json_service.begin_transaction()
+			self.change_json_service.delete(change_json.changeJsonId)
+			self.change_json_service.commit_transaction()
 		except Exception as e:
 			self.scheduled_task_service.rollback_transaction()
 			raise e
