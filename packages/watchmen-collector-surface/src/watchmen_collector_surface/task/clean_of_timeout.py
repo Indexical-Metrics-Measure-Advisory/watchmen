@@ -165,6 +165,5 @@ class CleanOfTimeout:
 			clean_change_json_with_task(task)
 
 
-
 def init_clean():
 	CleanOfTimeout().create_thread()
