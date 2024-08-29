@@ -30,8 +30,13 @@ class CompiledUnit(CompiledSingleUnit):
 		"""
 		loop_variable_name = self.loopVariableName
 		if self.hasLoop:
-			# note variables CANNOT be passed from inside of loop, which means even variables are changed in loop,
-			# the next loop will not be impacted, and also will not impact steps followed
+			# Note variables SHOULD NOT be passed from inside of loop.
+			# So using deep copy can guarantee the immutability of variables.
+			# However, when the variable size is large, deep copy can have a significant performance overhead.
+			# The current solution is use shallow copy, which means variables can be changed in loop,
+			# the next loop will be impacted, and also will impact steps followed.
+			# For further optimization, consider the actual usage scenarios, determine copy type by the user,
+			# and provide further restrictions and management of variable on the platform
 			def clone_variables(replaced: Any) -> PipelineVariables:
 				cloned = variables.shallow_clone()
 				cloned.put(loop_variable_name, replaced)

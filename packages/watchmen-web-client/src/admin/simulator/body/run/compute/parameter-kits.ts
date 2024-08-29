@@ -217,6 +217,8 @@ const computeVariable = (options: {
 					return sum + (v * 1);
 				}
 			}, 0);
+        } else if (part === VariablePredefineFunctions.JOIN && Array.isArray(value)) {
+            return Array.from(new Set(value)).join(',');
 		} else if (part === VariablePredefineFunctions.LENGTH && typeof value === 'string') {
 			return value.length;
 		} else if (typeof value === 'object') {
