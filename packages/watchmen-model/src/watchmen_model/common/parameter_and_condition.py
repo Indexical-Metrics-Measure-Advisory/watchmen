@@ -42,8 +42,8 @@ class VariablePredefineFunctions(str, Enum):
 	NEXT_SEQ = '&nextSeq',
 	COUNT = '&count',
 	LENGTH = '&length',
-	JOIN = '&join',
 	SUM = '&sum',
+	JOIN = '&join',
 	FROM_PREVIOUS_TRIGGER_DATA = '&old',
 
 	DAY_DIFF = '&dayDiff',
