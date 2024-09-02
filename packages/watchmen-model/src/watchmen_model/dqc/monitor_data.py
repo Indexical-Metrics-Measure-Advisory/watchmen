@@ -1,23 +1,23 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from watchmen_utilities import ExtendedBaseModel
 
 from watchmen_model.common import DataModel, FactorId, TopicId
 from .monitor_rule import MonitorRuleCode
 
 
-class MonitorRuleLog(DataModel, BaseModel):
-	ruleCode: MonitorRuleCode = None
+class MonitorRuleLog(DataModel, ExtendedBaseModel):
+	ruleCode: Optional[MonitorRuleCode] = None
 	topicId: Optional[TopicId] = None
 	factorId: Optional[FactorId] = None
-	count: int = None
-	lastOccurredTime: datetime = None
+	count: Optional[int] = None
+	lastOccurredTime: Optional[datetime] = None
 
 
-class MonitorRuleLogCriteria(DataModel, BaseModel):
-	startDate: str = None
-	endDate: str = None
-	ruleCode: MonitorRuleCode = None
-	topicId: TopicId = None
-	factorId: FactorId = None
+class MonitorRuleLogCriteria(DataModel, ExtendedBaseModel):
+	startDate: Optional[str] = None
+	endDate: Optional[str] = None
+	ruleCode: Optional[MonitorRuleCode] = None
+	topicId: Optional[TopicId] = None
+	factorId: Optional[FactorId] = None

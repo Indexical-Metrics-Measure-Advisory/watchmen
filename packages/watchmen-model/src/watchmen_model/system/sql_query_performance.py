@@ -1,19 +1,19 @@
 
 from datetime import datetime
+from decimal import Decimal
+from typing import Optional
 
-from pydantic import BaseModel
-from pydantic.types import Decimal
-
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import Storable
 
 
-class SQLQueryPerformance(Storable,BaseModel):
-	id:str = None
-	queryText:str = None
-	querySpent:Decimal = None
-	queryDate:datetime = None
-	resultCount:int = None
-	queryParse:dict = None
+class SQLQueryPerformance(Storable, ExtendedBaseModel):
+	id: Optional[str] = None
+	queryText: Optional[str] = None
+	querySpent: Optional[Decimal] = None
+	queryDate: Optional[datetime] = None
+	resultCount: Optional[int] = None
+	queryParse: Optional[dict] = None
 
 #
 # import sqlparse

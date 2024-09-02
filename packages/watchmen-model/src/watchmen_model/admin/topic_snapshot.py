@@ -2,8 +2,7 @@ from datetime import date, datetime
 from enum import Enum
 from typing import Optional, TypeVar
 
-from pydantic import BaseModel
-
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import construct_parameter_joint, OptimisticLock, ParameterJoint, PipelineId, Storable, \
 	TenantBasedTuple, TenantId, TopicId, UserId
 
@@ -17,18 +16,18 @@ class TopicSnapshotFrequency(str, Enum):
 	MONTHLY = 'monthly'
 
 
-class TopicSnapshotScheduler(TenantBasedTuple, OptimisticLock, BaseModel):
-	schedulerId: TopicSnapshotSchedulerId = None
-	topicId: TopicId = None
-	targetTopicName: str = None
-	targetTopicId: TopicId = None
-	pipelineId: PipelineId = None
+class TopicSnapshotScheduler(TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+	schedulerId: Optional[TopicSnapshotSchedulerId] = None
+	topicId: Optional[TopicId] = None
+	targetTopicName: Optional[str] = None
+	targetTopicId: Optional[TopicId] = None
+	pipelineId: Optional[PipelineId] = None
 	frequency: TopicSnapshotFrequency = TopicSnapshotFrequency.DAILY
 	filter: Optional[ParameterJoint] = None
 	# only for weekly
-	weekday: Optional[str]
+	weekday: Optional[str] = None
 	# only for monthly
-	day: Optional[str]
+	day: Optional[str] = None
 	hour: Optional[int] = None
 	minute: Optional[int] = None
 	enabled: bool = True

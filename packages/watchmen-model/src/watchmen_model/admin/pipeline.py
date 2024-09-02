@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
+from watchmen_utilities import ExtendedBaseModel
 
 from watchmen_model.common import construct_parameter_joint, OptimisticLock, PipelineId, \
 	PipelineStageId, PipelineUnitId, TenantBasedTuple, TopicId
@@ -61,11 +61,11 @@ def construct_actions(actions: Optional[list] = None) -> Optional[List[PipelineA
 		return ArrayHelper(actions).map(lambda x: construct_action(x)).to_list()
 
 
-class PipelineUnit(Conditional, BaseModel):
-	unitId: PipelineUnitId = None
-	name: str = None
-	loopVariableName: str = None
-	do: List[PipelineAction] = []
+class PipelineUnit(Conditional, ExtendedBaseModel):
+	unitId: Optional[PipelineUnitId] = None
+	name: Optional[str] = None
+	loopVariableName: Optional[str] = None
+	do: Optional[List[PipelineAction]] = []
 
 	def __setattr__(self, name, value):
 		if name == 'do':
@@ -92,10 +92,10 @@ def construct_units(units: Optional[list] = None) -> Optional[List[PipelineUnit]
 		return ArrayHelper(units).map(lambda x: construct_unit(x)).to_list()
 
 
-class PipelineStage(Conditional, BaseModel):
-	stageId: PipelineStageId = None
-	name: str = None
-	units: List[PipelineUnit] = []
+class PipelineStage(Conditional, ExtendedBaseModel):
+	stageId: Optional[PipelineStageId] = None
+	name: Optional[str] = None
+	units: Optional[List[PipelineUnit]] = []
 
 	def __setattr__(self, name, value):
 		if name == 'units':
@@ -129,14 +129,14 @@ def construct_stages(stages: Optional[list] = None) -> Optional[List[PipelineSta
 		return ArrayHelper(stages).map(lambda x: construct_stage(x)).to_list()
 
 
-class Pipeline(Conditional, TenantBasedTuple, OptimisticLock, BaseModel):
-	pipelineId: PipelineId = None
-	topicId: TopicId = None
-	name: str = None
-	type: PipelineTriggerType = None
-	stages: List[PipelineStage] = []
-	enabled: bool = None
-	validated: bool = None
+class Pipeline(Conditional, TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+	pipelineId: Optional[PipelineId] = None
+	topicId: Optional[TopicId] = None
+	name: Optional[str] = None
+	type: Optional[PipelineTriggerType] = None
+	stages: Optional[List[PipelineStage]] = []
+	enabled: Optional[bool] = None
+	validated: Optional[bool] = None
 
 	def __setattr__(self, name, value):
 		if name == 'stages':

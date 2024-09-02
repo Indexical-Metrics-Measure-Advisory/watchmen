@@ -1,12 +1,10 @@
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
-
 from watchmen_model.common import Auditable, ConnectedSpaceId, construct_parameter, construct_parameter_conditions, \
 	construct_parameter_joint, DataModel, FactorId, LastVisit, Pageable, Parameter, ParameterCondition, \
 	ParameterJoint, SubjectDatasetColumnId, SubjectId, TopicId, UserBasedTuple
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 
 
 class SubjectJoinType(str, Enum):
@@ -15,11 +13,11 @@ class SubjectJoinType(str, Enum):
 	INNER = 'inner',
 
 
-class SubjectDatasetJoin(DataModel, BaseModel):
-	topicId: TopicId = None
-	factorId: FactorId = None
-	secondaryTopicId: TopicId = None
-	secondaryFactorId: FactorId = None
+class SubjectDatasetJoin(DataModel, ExtendedBaseModel):
+	topicId: Optional[TopicId] = None
+	factorId: Optional[FactorId] = None
+	secondaryTopicId: Optional[TopicId] = None
+	secondaryFactorId: Optional[FactorId] = None
 	type: SubjectJoinType = SubjectJoinType.INNER
 
 
@@ -49,7 +47,7 @@ class SubjectColumnFormat(str, Enum):
 	USE_GROUP_6 = '#,##0.000000',
 
 
-class SubjectDataSetColumnRenderer(DataModel, BaseModel):
+class SubjectDataSetColumnRenderer(DataModel, ExtendedBaseModel):
 	alignment: SubjectColumnAlignment
 	format: SubjectColumnFormat
 	highlightNegative: bool
@@ -65,12 +63,12 @@ def construct_renderer(
 		return SubjectDataSetColumnRenderer(**renderer)
 
 
-class SubjectDatasetColumn(DataModel, BaseModel):
-	columnId: SubjectDatasetColumnId = None
-	parameter: Parameter
-	alias: str = None
-	arithmetic: SubjectColumnArithmetic = None
-	renderer: SubjectDataSetColumnRenderer = None
+class SubjectDatasetColumn(DataModel, ExtendedBaseModel):
+	columnId: Optional[SubjectDatasetColumnId] = None
+	parameter: Optional[Parameter] = None
+	alias: Optional[str] = None
+	arithmetic: Optional[SubjectColumnArithmetic] = None
+	renderer: Optional[SubjectDataSetColumnRenderer] = None
 	# recalculated column based on other columns
 	# source of this column must be referred to other column, via columnId or alias
 	# if column is declared as recalculate, arithmetic will be ignored
@@ -122,9 +120,9 @@ class AvoidFastApiError:
 	filters: ParameterJoint
 
 
-class SubjectDataset(DataModel, AvoidFastApiError, BaseModel):
-	columns: List[SubjectDatasetColumn] = []
-	joins: List[SubjectDatasetJoin] = []
+class SubjectDataset(DataModel, AvoidFastApiError, ExtendedBaseModel):
+	columns: Optional[List[SubjectDatasetColumn]] = []
+	joins: Optional[List[SubjectDatasetJoin]] = []
 
 	def __setattr__(self, name, value):
 		if name == 'filters':
@@ -146,12 +144,12 @@ def construct_dataset(dataset: Optional[dict] = None) -> Optional[SubjectDataset
 		return SubjectDataset(**dataset)
 
 
-class Subject(UserBasedTuple, Auditable, LastVisit, BaseModel):
-	subjectId: SubjectId = None
-	name: str = None
-	connectId: ConnectedSpaceId = None
+class Subject(UserBasedTuple, Auditable, LastVisit, ExtendedBaseModel):
+	subjectId: Optional[SubjectId] = None
+	name: Optional[str] = None
+	connectId: Optional[ConnectedSpaceId] = None
 	autoRefreshInterval: Optional[int] = 0
-	dataset: SubjectDataset = None
+	dataset: Optional[SubjectDataset] = None
 
 	def __setattr__(self, name, value):
 		if name == 'dataset':
@@ -170,11 +168,11 @@ class SubjectDatasetCriteriaIndicatorArithmetic(str, Enum):
 	MINIMUM = 'min'
 
 
-class SubjectDatasetCriteriaIndicator(BaseModel):
-	name: str = None
-	columnId:str = None
-	arithmetic: SubjectDatasetCriteriaIndicatorArithmetic = None
-	alias: str = None
+class SubjectDatasetCriteriaIndicator(ExtendedBaseModel):
+	name: Optional[str] = None
+	columnId: Optional[str] = None
+	arithmetic: Optional[SubjectDatasetCriteriaIndicatorArithmetic] = None
+	alias: Optional[str] = None
 
 
 def construct_criteria_indicator(

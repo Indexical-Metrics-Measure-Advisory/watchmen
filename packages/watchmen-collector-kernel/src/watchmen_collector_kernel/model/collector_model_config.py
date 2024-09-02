@@ -1,14 +1,14 @@
-from typing import List
+from typing import List, Optional
 from watchmen_model.common import TenantBasedTuple, OptimisticLock
-from pydantic import BaseModel
+from watchmen_utilities import ExtendedBaseModel
 
 
-class CollectorModelConfig(TenantBasedTuple, OptimisticLock, BaseModel):
-	modelId: str
-	modelName: str
-	moduleId: str
-	dependOn: List[str]
+class CollectorModelConfig(TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+	modelId: Optional[str] = None
+	modelName: Optional[str] = None
+	moduleId: Optional[str] = None
+	dependOn: Optional[List[str]] = None
 	priority: int = 0
-	rawTopicCode: str
-	isParalleled: bool
+	rawTopicCode: Optional[str] = None
+	isParalleled: Optional[bool] = None
 

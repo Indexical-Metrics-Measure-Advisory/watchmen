@@ -1,12 +1,13 @@
 from logging import getLogger
+from typing import Optional
 
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 
 logger = getLogger(__name__)
 
 
-class IndicatorKernelSettings(BaseSettings):
-	PLUGIN_HOST: str = None
+class IndicatorKernelSettings(ExtendedBaseSettings):
+	PLUGIN_HOST: Optional[str] = None
 
 
 settings = IndicatorKernelSettings()

@@ -1,8 +1,7 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
-from pydantic import BaseModel
-
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import OptimisticLock, PluginId, TenantBasedTuple
 
 
@@ -15,13 +14,13 @@ class PluginApplyTo(str, Enum):
 	ACHIEVEMENT = 'achievement'
 
 
-class Plugin(TenantBasedTuple, OptimisticLock, BaseModel):
-	pluginId: PluginId = None
-	pluginCode: str = None
-	name: str = None
-	type: PluginType = None
-	applyTo: PluginApplyTo = None
+class Plugin(TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+	pluginId: Optional[PluginId] = None
+	pluginCode: Optional[str] = None
+	name: Optional[str] = None
+	type: Optional[PluginType] = None
+	applyTo: Optional[PluginApplyTo] = None
 	# value is parameter name
-	params: List[str] = None
+	params: Optional[List[str]] = None
 	# value is result name
-	results: List[str] = None
+	results: Optional[List[str]] = None

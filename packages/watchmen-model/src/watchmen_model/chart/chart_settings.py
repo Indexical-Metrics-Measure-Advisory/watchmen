@@ -1,6 +1,6 @@
-from typing import Any
+from typing import Any, Optional
 
-from pydantic import BaseModel
+from watchmen_utilities import ExtendedBaseModel
 
 from .chart_basic_structure import ChartTruncation, ChartTruncationHolder
 from .chart_basic_style import ChartBorder
@@ -8,9 +8,9 @@ from .chart_enums import PredefinedChartColorSeries
 from .chart_types import ChartColor
 
 
-class ChartSettings(ChartTruncationHolder, BaseModel):
-	border: ChartBorder = None
-	backgroundColor: ChartColor = None
+class ChartSettings(ChartTruncationHolder, ExtendedBaseModel):
+	border: Optional[ChartBorder] = None
+	backgroundColor: Optional[ChartColor] = None
 
 	colorSeries: PredefinedChartColorSeries = PredefinedChartColorSeries.REGULAR
 

@@ -1,11 +1,11 @@
 from logging import getLogger
 
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 
 logger = getLogger(__name__)
 
 
-class StorageRDSSettings(BaseSettings):
+class StorageRDSSettings(ExtendedBaseSettings):
 	DETECT_RDS_CONNECTION_LEAK: bool = False
 	PRINT_RDS_CONNECTION_LEAK_INTERVAL: int = 300
 	RDS_CONNECTION_LEAK_TIME_IN_SECONDS: int = 1

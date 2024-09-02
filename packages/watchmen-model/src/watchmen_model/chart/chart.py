@@ -1,17 +1,16 @@
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel
-
 from watchmen_model.common import DataModel
+from watchmen_utilities import ExtendedBaseModel
 from .chart_basic_style import ChartBorder, ChartBorderStyle, ChartFont
 from .chart_settings import ChartSettings
 from .chart_types import ChartColor, ChartType
 
 
-class Chart(DataModel, BaseModel):
+class Chart(DataModel, ExtendedBaseModel):
 	type: ChartType = ChartType.COUNT
-	settings: ChartSettings = None
+	settings: Optional[ChartSettings] = None
 
 	def __setattr__(self, name, value):
 		if name == 'settings':
@@ -29,32 +28,32 @@ class Chart(DataModel, BaseModel):
 
 
 class EChartsBorderHolder(DataModel):
-	border: ChartBorder = None
+	border: Optional[ChartBorder] = None
 
 
 class EChartsBorderOmitRadius(DataModel):
-	color: ChartColor = None
-	style: ChartBorderStyle = None
-	width: float = None
+	color: Optional[ChartColor] = None
+	style: Optional[ChartBorderStyle] = None
+	width: Optional[float] = None
 
 
 class EChartsBorderHolderNoRadius(DataModel):
-	border: EChartsBorderOmitRadius = None
+	border: Optional[EChartsBorderOmitRadius] = None
 
 
 class EChartsFontHolder(DataModel):
-	font: ChartFont = None
+	font: Optional[ChartFont] = None
 
 
 class EChartsPosition(DataModel):
-	top: float = None
-	right: float = None
-	left: float = None
-	bottom: float = None
+	top: Optional[float] = None
+	right: Optional[float] = None
+	left: Optional[float] = None
+	bottom: Optional[float] = None
 
 
 class EChartsPositionHolder(DataModel):
-	position: EChartsPosition = None
+	position: Optional[EChartsPosition] = None
 
 
 class EChartsHorizontalAlignment(str, Enum):
@@ -72,24 +71,24 @@ class EChartsVerticalAlignment(str, Enum):
 
 
 class EChartsAlignmentHolder(DataModel):
-	horizontalAlign: EChartsHorizontalAlignment = None
-	verticalAlign: EChartsVerticalAlignment = None
+	horizontalAlign: Optional[EChartsHorizontalAlignment] = None
+	verticalAlign: Optional[EChartsVerticalAlignment] = None
 
 
-class EChartsTitleText(EChartsFontHolder, BaseModel):
-	text: str = None
+class EChartsTitleText(EChartsFontHolder, ExtendedBaseModel):
+	text: Optional[str] = None
 
 
-class EChartsTitle(EChartsBorderHolder, EChartsPositionHolder, EChartsAlignmentHolder, BaseModel):
-	text: EChartsTitleText = None
-	subtext: EChartsTitleText = None
-	backgroundColor: ChartColor = None
-	padding: float = None
-	itemGap: float = None
+class EChartsTitle(EChartsBorderHolder, EChartsPositionHolder, EChartsAlignmentHolder, ExtendedBaseModel):
+	text: Optional[EChartsTitleText] = None
+	subtext: Optional[EChartsTitleText] = None
+	backgroundColor: Optional[ChartColor] = None
+	padding: Optional[float] = None
+	itemGap: Optional[float] = None
 
 
-class EChartsTitleHolder(DataModel, BaseModel):
-	title: EChartsTitle = None
+class EChartsTitleHolder(DataModel, ExtendedBaseModel):
+	title: Optional[EChartsTitle] = None
 
 
 class EChartsLegendOrient(str, Enum):
@@ -114,7 +113,7 @@ class EChartsGrid(EChartsBorderHolderNoRadius, EChartsPositionHolder):
 	backgroundColor: ChartColor = None
 
 
-class EChartsGridPositionOnly(EChartsPositionHolder, BaseModel):
+class EChartsGridPositionOnly(EChartsPositionHolder, ExtendedBaseModel):
 	pass
 
 
@@ -245,7 +244,7 @@ class EChartsYAxis(EChartsAxisSplitLineHolder, EChartsAxisMinorSplitLineHolder):
 
 
 class EChartsYAxisHolder(DataModel):
-	yaxis: EChartsYAxis = None
+	yaxis: Optional[EChartsYAxis] = None
 
 
 class EChartsToolboxOrient(str, Enum):
@@ -254,22 +253,22 @@ class EChartsToolboxOrient(str, Enum):
 
 
 class EChartsToolbox(EChartsPositionHolder):
-	show: bool = None
-	orient: EChartsToolboxOrient = None
+	show: Optional[bool] = None
+	orient: Optional[EChartsToolboxOrient] = None
 
 
 class EChartsToolboxHolder(DataModel):
-	toolbox: EChartsToolbox = None
+	toolbox: Optional[EChartsToolbox] = None
 
 
 EchartsScriptsVars = Dict[str, str]
 
 
 class EchartsScriptHolder(DataModel):
-	script: str = None
+	script: Optional[str] = None
 	# noinspection SpellCheckingInspection
-	scriptVarsDefs: str = None
-	scriptVars: EchartsScriptsVars = None
+	scriptVarsDefs: Optional[str] = None
+	scriptVars: Optional[EchartsScriptsVars] = None
 
 
 class ItemType(str, Enum):
@@ -283,56 +282,56 @@ class ItemType(str, Enum):
 
 
 class DefItem(DataModel):
-	type: ItemType = None
-	label: str = None
+	type: Optional[ItemType] = None
+	label: Optional[str] = None
 
 
 class SectionItem(DefItem):
-	type: ItemType.SECTION = ItemType.SECTION
+	type: ItemType = ItemType.SECTION
 
 
 class InputItem(DefItem):
-	key: str = None
+	key: Optional[str] = None
 
 
 class NumberItem(InputItem):
-	type: ItemType.NUMBER = ItemType.NUMBER
-	placeholder: str = None
-	unit: str = None
-	defaultValue: float = None
+	type: ItemType = ItemType.NUMBER
+	placeholder: Optional[str] = None
+	unit: Optional[str] = None
+	defaultValue: Optional[float] = None
 
 
 class PercentageItem(InputItem):
-	type: ItemType.PERCENTAGE = ItemType.PERCENTAGE
-	placeholder: str = None
-	defaultValue: float = None
+	type: ItemType = ItemType.PERCENTAGE
+	placeholder: Optional[str] = None
+	defaultValue: Optional[float] = None
 
 
 class BooleanItem(InputItem):
-	type: ItemType.BOOLEAN = ItemType.BOOLEAN
-	defaultValue: bool = None
+	type: ItemType = ItemType.BOOLEAN
+	defaultValue: Optional[bool] = None
 
 
 class TextItem(InputItem):
-	type: ItemType.TEXT = ItemType.TEXT
-	placeholder: str = None
-	defaultValue: str = None
+	type: ItemType = ItemType.TEXT
+	placeholder: Optional[str] = None
+	defaultValue: Optional[str] = None
 
 
 class ColorItem(InputItem):
-	type: ItemType.COLOR = ItemType.COLOR
-	defaultValue: ChartColor = None
+	type: ItemType = ItemType.COLOR
+	defaultValue: Optional[ChartColor] = None
 
 
 class DropdownItemOption(DataModel):
 	value: Union[str, int, float, bool] = None
-	label: str = None
+	label: Optional[str] = None
 
 
 class DropdownItem(InputItem):
-	type: ItemType.DROPDOWN = ItemType.DROPDOWN
-	placeholder: str = None
-	options: List[DropdownItemOption] = []
+	type: ItemType = ItemType.DROPDOWN
+	placeholder: Optional[str] = None
+	options: Optional[List[DropdownItemOption]] = []
 	defaultValue: Any = None
 
 
@@ -340,18 +339,18 @@ class EChartsSettings(ChartSettings, EChartsTitleHolder):
 	pass
 
 
-class CountChartSettingsText(DataModel, BaseModel):
-	font: ChartFont = None
-	formatUseGrouping: bool = None
+class CountChartSettingsText(DataModel, ExtendedBaseModel):
+	font: Optional[ChartFont] = None
+	formatUseGrouping: Optional[bool] = None
 
 
 class CountChartSettings(EChartsSettings):
-	countText: CountChartSettingsText = None
+	countText: Optional[CountChartSettingsText] = None
 
 
 class CountChart(Chart):
 	type: ChartType = ChartType.COUNT
-	settings: CountChartSettings = None
+	settings: Optional[CountChartSettings] = None
 
 
 class BarLabelPosition(str, Enum):
@@ -370,47 +369,47 @@ class BarLabelPosition(str, Enum):
 	INSIDE_BOTTOM_RIGHT = 'insideBottomRight'
 
 
-class BarChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlignmentHolder, BaseModel):
-	show: bool = None
-	backgroundColor: ChartColor = None
-	position: BarLabelPosition = None
-	rotate: float = None
-	gap: float = None
-	padding: float = None
-	formatUseGrouping: bool = None
-	formatUsePercentage: bool = None
-	valueAsPercentage: bool = None
-	fractionDigits: int = None
+class BarChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlignmentHolder, ExtendedBaseModel):
+	show: Optional[bool] = None
+	backgroundColor: Optional[ChartColor] = None
+	position: Optional[BarLabelPosition] = None
+	rotate: Optional[float] = None
+	gap: Optional[float] = None
+	padding: Optional[float] = None
+	formatUseGrouping: Optional[bool] = None
+	formatUsePercentage: Optional[bool] = None
+	valueAsPercentage: Optional[bool] = None
+	fractionDigits: Optional[int] = None
 
 
-class BarChartSettingsSeries(DataModel, BaseModel):
-	transformAxis: bool = None
+class BarChartSettingsSeries(DataModel, ExtendedBaseModel):
+	transformAxis: Optional[bool] = None
 
 
 class BarChartSettings(EChartsSettings, EChartsLegendHolder, EChartsGridHolder, EChartsXAxisHolder, EChartsYAxisHolder):
-	series: BarChartSettingsSeries = None
-	label: BarChartSettingsLabel = None
-	decal: bool = None
+	series: Optional[BarChartSettingsSeries] = None
+	label: Optional[BarChartSettingsLabel] = None
+	decal: Optional[bool] = None
 
 
 class BarChart(Chart):
 	type: ChartType = ChartType.BAR
-	settings: BarChartSettings = None
+	settings: Optional[BarChartSettings] = None
 
 
 class LineChartSettingsSeries(BarChartSettingsSeries):
-	smooth: bool = None
+	smooth: Optional[bool] = None
 
 
 class LineChartSettings(
 	EChartsSettings, EChartsLegendHolder, EChartsGridHolder, EChartsXAxisHolder, EChartsYAxisHolder):
-	series: LineChartSettingsSeries = None
-	label: BarChartSettingsLabel = None
+	series: Optional[LineChartSettingsSeries] = None
+	label: Optional[BarChartSettingsLabel] = None
 
 
 class LineChart(Chart):
 	type: ChartType = ChartType.LINE
-	settings: LineChartSettings = None
+	settings: Optional[LineChartSettings] = None
 
 
 class ScatterChartSettings(
@@ -420,7 +419,7 @@ class ScatterChartSettings(
 
 class ScatterChart(Chart):
 	type: ChartType = ChartType.SCATTER
-	settings: ScatterChartSettings = None
+	settings: Optional[ScatterChartSettings] = None
 
 
 class PieRoseType(str, Enum):
@@ -442,39 +441,39 @@ class PieLabelAlignTo(str, Enum):
 
 
 # noinspection DuplicatedCode
-class PieChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlignmentHolder, BaseModel):
-	show: bool = None
-	backgroundColor: ChartColor = None
-	position: PieLabelPosition = None
-	alignTo: PieLabelAlignTo = None
-	rotate: float = None
-	gap: float = None
-	padding: float = None
-	formatUseGrouping: bool = None
-	formatUsePercentage: bool = None
-	valueAsPercentage: bool = None
-	fractionDigits: int = None
+class PieChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlignmentHolder, ExtendedBaseModel):
+	show: Optional[bool] = None
+	backgroundColor: Optional[ChartColor] = None
+	position: Optional[PieLabelPosition] = None
+	alignTo: Optional[PieLabelAlignTo] = None
+	rotate: Optional[float] = None
+	gap: Optional[float] = None
+	padding: Optional[float] = None
+	formatUseGrouping: Optional[bool] = None
+	formatUsePercentage: Optional[bool] = None
+	valueAsPercentage: Optional[bool] = None
+	fractionDigits: Optional[int] = None
 
 
-class PieChartSettingsSeries(EChartsBorderHolder, BaseModel):
-	centerX: float = None
-	centerY: float = None
-	insideRadius: float = None
-	outsideRadius: float = None
-	roseType: PieRoseType = None
-	showPercentage: bool = None
+class PieChartSettingsSeries(EChartsBorderHolder, ExtendedBaseModel):
+	centerX: Optional[float] = None
+	centerY: Optional[float] = None
+	insideRadius: Optional[float] = None
+	outsideRadius: Optional[float] = None
+	roseType: Optional[PieRoseType] = None
+	showPercentage: Optional[bool] = None
 
 
 class PieChartSettings(EChartsSettings, EChartsLegendHolder):
-	series: PieChartSettingsSeries = None
-	grid: EChartsGridPositionOnly = None
-	label: PieChartSettingsLabel = None
-	decal: bool = None
+	series: Optional[PieChartSettingsSeries] = None
+	grid: Optional[EChartsGridPositionOnly] = None
+	label: Optional[PieChartSettingsLabel] = None
+	decal: Optional[bool] = None
 
 
 class PieChart(Chart):
 	type: ChartType = ChartType.PIE
-	settings: PieChartSettings = None
+	settings: Optional[PieChartSettings] = None
 
 
 class DoughnutChartSettings(PieChartSettings):
@@ -483,7 +482,7 @@ class DoughnutChartSettings(PieChartSettings):
 
 class DoughnutChart(Chart):
 	type: ChartType = ChartType.DOUGHNUT
-	settings: DoughnutChartSettings = None
+	settings: Optional[DoughnutChartSettings] = None
 
 
 class NightingaleChartSettings(PieChartSettings):
@@ -492,23 +491,23 @@ class NightingaleChartSettings(PieChartSettings):
 
 class NightingaleChart(Chart):
 	type: ChartType = ChartType.NIGHTINGALE
-	settings: NightingaleChartSettings = None
+	settings: Optional[NightingaleChartSettings] = None
 
 
-class SunburstChartSettingsSeries(EChartsBorderHolder, BaseModel):
-	centerX: float = None
-	centerY: float = None
-	insideRadius: float = None
-	outsideRadius: float = None
+class SunburstChartSettingsSeries(EChartsBorderHolder, ExtendedBaseModel):
+	centerX: Optional[float] = None
+	centerY: Optional[float] = None
+	insideRadius: Optional[float] = None
+	outsideRadius: Optional[float] = None
 
 
 class SunburstChartSettings(PieChartSettings):
-	series: SunburstChartSettingsSeries = None
+	series: Optional[SunburstChartSettingsSeries] = None
 
 
 class SunburstChart(Chart):
 	type: ChartType = ChartType.SUNBURST
-	settings: SunburstChartSettings = None
+	settings: Optional[SunburstChartSettings] = None
 
 
 class TreeLayout(str, Enum):
@@ -523,34 +522,34 @@ class TreeOrient(str, Enum):
 	BOTTOM_TOP = 'BT'
 
 
-class TreeChartSettingsSeries(DataModel, BaseModel):
-	layout: TreeLayout = None
-	orient: TreeOrient = None
-	roam: bool = None
+class TreeChartSettingsSeries(DataModel, ExtendedBaseModel):
+	layout: Optional[TreeLayout] = None
+	orient: Optional[TreeOrient] = None
+	roam: Optional[bool] = None
 
 
 class TreeChartSettings(EChartsSettings):
-	series: TreeChartSettingsSeries = None
-	grid: EChartsGridPositionOnly = None
+	series: Optional[TreeChartSettingsSeries] = None
+	grid: Optional[EChartsGridPositionOnly] = None
 
 
 class TreeChart(Chart):
 	type: ChartType = ChartType.TREE
-	settings: TreeChartSettings = None
+	settings: Optional[TreeChartSettings] = None
 
 
-class TreemapChartSettingsSeries(DataModel, BaseModel):
-	roam: bool = None
+class TreemapChartSettingsSeries(DataModel, ExtendedBaseModel):
+	roam: Optional[bool] = None
 
 
 class TreemapChartSettings(EChartsSettings):
-	series: TreemapChartSettingsSeries = None
-	grid: EChartsGridPositionOnly = None
+	series: Optional[TreemapChartSettingsSeries] = None
+	grid: Optional[EChartsGridPositionOnly] = None
 
 
 class TreemapChart(Chart):
 	type: ChartType = ChartType.TREEMAP
-	settings: TreemapChartSettings = None
+	settings: Optional[TreemapChartSettings] = None
 
 
 class MapChartRegion(str, Enum):
@@ -561,18 +560,18 @@ class MapChartRegion(str, Enum):
 	USA_L1 = 'usa-l1'
 
 
-class MapChartSettingsSeries(DataModel, BaseModel):
-	region: MapChartRegion = None
+class MapChartSettingsSeries(DataModel, ExtendedBaseModel):
+	region: Optional[MapChartRegion] = None
 
 
 class MapChartSettings(EChartsSettings):
-	series: MapChartSettingsSeries = None
-	grid: EChartsGridPositionOnly = None
+	series: Optional[MapChartSettingsSeries] = None
+	grid: Optional[EChartsGridPositionOnly] = None
 
 
 class MapChart(Chart):
 	type: ChartType = ChartType.MAP
-	settings: MapChartSettings = None
+	settings: Optional[MapChartSettings] = None
 
 
 class CustomizedChartSettings(EChartsSettings, EchartsScriptHolder):
@@ -581,7 +580,7 @@ class CustomizedChartSettings(EChartsSettings, EchartsScriptHolder):
 
 class CustomizedChart(Chart):
 	type: ChartType = ChartType.CUSTOMIZED
-	settings: CustomizedChartSettings = None
+	settings: Optional[CustomizedChartSettings] = None
 
 
 def construct_settings(

@@ -1,5 +1,5 @@
 from logging import getLogger
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 from watchmen_model.common import SettingsModel
 
 
@@ -19,7 +19,7 @@ class S3CollectorSettings(SettingsModel):
 	clean_task_interval: int = 3600
 
 
-class CollectorSurfaceSettings(BaseSettings):
+class CollectorSurfaceSettings(ExtendedBaseSettings):
 	TASK_LISTENER_ON: bool = False
 
 	S3_COLLECTOR: bool = False
@@ -42,12 +42,6 @@ class CollectorSurfaceSettings(BaseSettings):
 	POST_JSON_WAIT: int = 3
 	TASK_SCHEDULE_WAIT: int = 3
 	MONITOR_EVENT_WAIT: int = 60
-
-	class Config:
-		# secrets_dir = '/var/run'
-		env_file = '.env'
-		env_file_encoding = 'utf-8'
-		case_sensitive = True
 
 
 settings = CollectorSurfaceSettings()

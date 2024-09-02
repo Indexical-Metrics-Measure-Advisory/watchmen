@@ -3,9 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
-
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 from .model import DataModel
 from .tuple_ids import FactorId, TopicId
 
@@ -21,8 +19,8 @@ class AvoidFastApiError:
 	on: Optional[ParameterJoint] = None
 
 
-class Parameter(DataModel, AvoidFastApiError, BaseModel):
-	kind: ParameterKind = None
+class Parameter(DataModel, AvoidFastApiError, ExtendedBaseModel):
+	kind: Optional[ParameterKind] = None
 	conditional: bool = False
 
 	def __setattr__(self, name, value):
@@ -33,9 +31,9 @@ class Parameter(DataModel, AvoidFastApiError, BaseModel):
 
 
 class TopicFactorParameter(Parameter):
-	kind: ParameterKind.TOPIC = ParameterKind.TOPIC
-	topicId: TopicId = None
-	factorId: FactorId = None
+	kind: ParameterKind = ParameterKind.TOPIC
+	topicId: Optional[TopicId] = None
+	factorId: Optional[FactorId] = None
 
 
 class VariablePredefineFunctions(str, Enum):
@@ -55,8 +53,8 @@ class VariablePredefineFunctions(str, Enum):
 
 
 class ConstantParameter(Parameter):
-	kind: ParameterKind.CONSTANT = ParameterKind.CONSTANT
-	value: str = None
+	kind: ParameterKind = ParameterKind.CONSTANT
+	value: Optional[str] = None
 
 
 class ParameterComputeType(str, Enum):
@@ -79,9 +77,9 @@ class ParameterComputeType(str, Enum):
 
 # noinspection DuplicatedCode
 class ComputedParameter(Parameter):
-	kind: ParameterKind.COMPUTED = ParameterKind.COMPUTED
+	kind: ParameterKind = ParameterKind.COMPUTED
 	type: ParameterComputeType = ParameterComputeType.NONE
-	parameters: List[Parameter] = []
+	parameters: Optional[List[Parameter]] = []
 
 	def __setattr__(self, name, value):
 		if name == 'parameters':
@@ -90,7 +88,7 @@ class ComputedParameter(Parameter):
 			super().__setattr__(name, value)
 
 
-class ParameterCondition(DataModel, BaseModel):
+class ParameterCondition(DataModel, ExtendedBaseModel):
 	pass
 
 
@@ -99,9 +97,9 @@ class ParameterJointType(str, Enum):
 	OR = 'or'
 
 
-class ParameterJoint(ParameterCondition, BaseModel):
+class ParameterJoint(ParameterCondition, ExtendedBaseModel):
 	jointType: ParameterJointType = ParameterJointType.AND
-	filters: List[ParameterCondition] = []
+	filters: Optional[List[ParameterCondition]] = []
 
 	def __setattr__(self, name, value):
 		if name == 'filters':
@@ -124,10 +122,10 @@ class ParameterExpressionOperator(str, Enum):
 	NOT_IN = 'not-in',
 
 
-class ParameterExpression(ParameterCondition, BaseModel):
-	left: Parameter = None
+class ParameterExpression(ParameterCondition, ExtendedBaseModel):
+	left: Optional[Parameter] = None
 	operator: ParameterExpressionOperator = ParameterExpressionOperator.EQUALS
-	right: Parameter = None
+	right: Optional[Parameter] = None
 
 	def __setattr__(self, name, value):
 		if name == 'left' or name == 'right':

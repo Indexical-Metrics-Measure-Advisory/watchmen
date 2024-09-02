@@ -1,7 +1,7 @@
 from enum import Enum
+from typing import Optional
 
-from pydantic import BaseModel
-
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import EnumId, FactorId, Storable
 
 
@@ -116,15 +116,15 @@ class FactorEncryptMethod(str, Enum):
 	MASK_MONTH_DAY = 'MASK-MONTH-DAY'
 
 
-class Factor(Storable, BaseModel):
-	factorId: FactorId = None
-	type: FactorType = None
-	name: str = None
-	enumId: EnumId = None
-	label: str = None
-	description: str = None
-	defaultValue: str = None
-	flatten: bool = False
-	indexGroup: FactorIndexGroup = None
-	encrypt: FactorEncryptMethod = None
-	precision: str = None
+class Factor(Storable, ExtendedBaseModel):
+	factorId: Optional[FactorId] = None
+	type: Optional[FactorType] = None
+	name: Optional[str] = None
+	enumId: Optional[EnumId] = None
+	label: Optional[str] = None
+	description: Optional[str] = None
+	defaultValue: Optional[str] = None
+	flatten: Optional[bool] = False
+	indexGroup: Optional[FactorIndexGroup] = None
+	encrypt: Optional[FactorEncryptMethod] = None
+	precision: Optional[str] = None

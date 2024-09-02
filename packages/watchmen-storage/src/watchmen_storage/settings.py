@@ -1,10 +1,10 @@
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 from logging import getLogger
 
 logger = getLogger(__name__)
 
 
-class StorageSettings(BaseSettings):
+class StorageSettings(ExtendedBaseSettings):
 	DECIMAL_INTEGRAL_DIGITS: int = 24
 	DECIMAL_FRACTION_DIGITS: int = 8
 	DISABLE_COMPILED_CACHE: bool = False
@@ -12,12 +12,6 @@ class StorageSettings(BaseSettings):
 	S3_BUCKET_AUTH_IAM_ENABLE: bool = False
 
 	SQL_ANALYZER_ON: bool = True
-	
-	class Config:
-		# secrets_dir = '/var/run'
-		env_file = '.env'
-		env_file_encoding = 'utf-8'
-		case_sensitive = True
 
 
 storage_settings = StorageSettings()

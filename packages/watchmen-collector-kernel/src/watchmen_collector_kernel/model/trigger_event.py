@@ -1,9 +1,9 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from watchmen_model.common import TenantBasedTuple
-from pydantic import BaseModel
+from watchmen_utilities import ExtendedBaseModel
 
 
 class EventType(int, Enum):
@@ -13,14 +13,14 @@ class EventType(int, Enum):
 	BY_PIPELINE = 4
 
 
-class TriggerEvent(TenantBasedTuple, BaseModel):
-	eventTriggerId: int
-	startTime: datetime
-	endTime: datetime
+class TriggerEvent(TenantBasedTuple, ExtendedBaseModel):
+	eventTriggerId: Optional[int] = None
+	startTime: Optional[datetime] = None
+	endTime: Optional[datetime] = None
 	isFinished: bool = False
-	status: int
-	type: int
-	tableName: str
-	records: List[Dict] = []
-	pipelineId: str
+	status: Optional[int] = None
+	type: Optional[int] = None
+	tableName: Optional[str] = None
+	records: Optional[List[Dict]] = []
+	pipelineId: Optional[str] = None
 

@@ -1,14 +1,14 @@
 from logging import getLogger
 from typing import List, Tuple
 
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 
 from watchmen_utilities import ArrayHelper
 
 logger = getLogger(__name__)
 
 
-class KernelSettings(BaseSettings):
+class KernelSettings(ExtendedBaseSettings):
 	STORAGE_ECHO: bool = False
 
 	FULL_DATETIME_FORMATS: List[str] = [
@@ -41,12 +41,6 @@ class KernelSettings(BaseSettings):
 	SYNC_TOPIC_TO_STORAGE: bool = False  # sync topic change to storage entity
 	REPLACE_TOPIC_TO_STORAGE: bool = False  # force replace existing topic entity (drop and recreate)
 	TRINO: bool = True  # trino
-
-	class Config:
-		# secrets_dir = '/var/run'
-		env_file = '.env'
-		env_file_encoding = 'utf-8'
-		case_sensitive = True
 
 
 settings = KernelSettings()
