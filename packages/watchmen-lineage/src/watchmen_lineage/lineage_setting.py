@@ -1,11 +1,11 @@
 from logging import getLogger
 
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 
 logger = getLogger(__name__)
 
 
-class LineageSettings(BaseSettings):
+class LineageSettings(ExtendedBaseSettings):
 	LINEAGE_FLAG: bool = False
 	IS_CACHE_LINEAGE_GRAPH: bool = False
 	SYSTEM_TOPIC_LINEAGE: bool = False

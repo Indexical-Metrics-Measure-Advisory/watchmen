@@ -1,13 +1,13 @@
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Optional
 
-from pydantic import BaseModel
+from watchmen_utilities import ExtendedBaseModel
 
 from .model import DataModel
 
 
-class Pageable(DataModel, BaseModel):
-	pageNumber: int = None
-	pageSize: int = None
+class Pageable(DataModel, ExtendedBaseModel):
+	pageNumber: Optional[int] = None
+	pageSize: Optional[int] = None
 
 
 PageDataCell = Any
@@ -22,6 +22,6 @@ class DataPage(Pageable):
 	"""
 	PageDataSet
 	"""
-	data: list = []
-	itemCount: int = None
-	pageCount: int = None
+	data: Optional[list] = []
+	itemCount: Optional[int] = None
+	pageCount: Optional[int] = None

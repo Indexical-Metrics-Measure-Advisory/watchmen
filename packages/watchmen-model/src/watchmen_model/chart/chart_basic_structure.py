@@ -1,7 +1,7 @@
 from enum import Enum
+from typing import Optional
 
-from pydantic import BaseModel
-
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import DataModel
 
 
@@ -11,10 +11,10 @@ class ChartTruncationType(str, Enum):
 	BOTTOM = 'bottom'
 
 
-class ChartTruncation(DataModel, BaseModel):
+class ChartTruncation(DataModel, ExtendedBaseModel):
 	type: ChartTruncationType = ChartTruncationType.NONE
 	count: int = 20
 
 
-class ChartTruncationHolder(DataModel, BaseModel):
-	truncation: ChartTruncation = None
+class ChartTruncationHolder(DataModel, ExtendedBaseModel):
+	truncation: Optional[ChartTruncation] = None

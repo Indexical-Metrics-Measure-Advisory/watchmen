@@ -1,10 +1,10 @@
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 from logging import getLogger
 
 logger = getLogger(__name__)
 
 
-class CollectorSettings(BaseSettings):
+class CollectorSettings(ExtendedBaseSettings):
 	CLEAN_OF_TIMEOUT_INTERVAL: int = 300
 	LOCK_TIMEOUT: int = 1800
 	TRIGGER_EVENT_LOCK_TIMEOUT = 300
@@ -18,12 +18,6 @@ class CollectorSettings(BaseSettings):
 	EXCEPTION_MAX_LENGTH = 5000  # character
 	GROUPED_TASK_DATA_SIZE_THRESHOLD = 100
 	TASK_PARTIAL_SIZE: int = 100
-
-	class Config:
-		# secrets_dir = '/var/run'
-		env_file = '.env'
-		env_file_encoding = 'utf-8'
-		case_sensitive = True
 
 
 collector_settings = CollectorSettings()

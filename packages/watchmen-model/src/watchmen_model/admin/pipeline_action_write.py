@@ -1,16 +1,16 @@
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
+from watchmen_utilities import ExtendedBaseModel
 
 from watchmen_model.common import construct_parameter, construct_parameter_joint, FactorId, Parameter
 from watchmen_utilities import ArrayHelper
 from .pipeline_action import AggregateArithmeticHolder, FindBy, PipelineAction, ToFactor, ToTopic, WriteTopicActionType
 
 
-class MappingFactor(AggregateArithmeticHolder, BaseModel):
-	source: Parameter = None
-	factorId: FactorId = None
+class MappingFactor(AggregateArithmeticHolder, ExtendedBaseModel):
+	source: Optional[Parameter] = None
+	factorId: Optional[FactorId] = None
 
 	def __setattr__(self, name, value):
 		if name == 'source':

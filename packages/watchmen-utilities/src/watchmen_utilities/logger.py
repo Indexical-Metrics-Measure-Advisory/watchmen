@@ -2,7 +2,7 @@ from enum import Enum
 from logging import DEBUG, ERROR, FATAL, Formatter, getLogger, handlers, INFO, NOTSET, StreamHandler, WARNING
 from sys import stdout
 
-from pydantic import BaseSettings
+from .pydantic_helper import ExtendedBaseSettings
 from pythonjsonlogger.jsonlogger import JsonFormatter
 
 
@@ -14,7 +14,7 @@ class LogLevel(str, Enum):
 	DEBUG = 'DEBUG'
 
 
-class LoggerSettings(BaseSettings):
+class LoggerSettings(ExtendedBaseSettings):
 	LOGGER_LEVEL: LogLevel = LogLevel.ERROR
 	LOGGER_TO_FILE: bool = False
 	LOGGER_FILE: str = 'temp/rotating.log'
@@ -24,11 +24,6 @@ class LoggerSettings(BaseSettings):
 	LOGGER_JSON_FORMAT: bool = False
 	# noinspection SpellCheckingInspection
 	LOGGER_FORMAT: str = '%(asctime)s - %(process)d - %(threadName)s - %(name)s - %(levelname)s - %(message)s'
-
-	class Config:
-		env_file = '.env'
-		env_file_encoding = 'utf-8'
-		case_sensitive = True
 
 
 def get_logger_level(level: LogLevel) -> int:

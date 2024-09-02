@@ -153,7 +153,7 @@ class ObjectiveFormulaOperator(str, Enum):
 
 # noinspection DuplicatedCode
 class ComputedObjectiveParameter(ObjectiveParameter):
-	kind: ObjectiveParameterType.COMPUTED = ObjectiveParameterType.COMPUTED
+	kind: ObjectiveParameterType = ObjectiveParameterType.COMPUTED
 	operator: ObjectiveFormulaOperator = ObjectiveFormulaOperator.NONE
 	parameters: List[ObjectiveParameter] = []
 
@@ -342,7 +342,7 @@ class ObjectiveFactor(DataModel, BaseModel):
 
 
 class ObjectiveFactorOnIndicator(ObjectiveFactor):
-	kind: ObjectiveFactorKind.INDICATOR = ObjectiveFactorKind.INDICATOR
+	kind: ObjectiveFactorKind = ObjectiveFactorKind.INDICATOR
 	indicatorId: Optional[IndicatorId] = None
 	conditional: bool = False
 	# objective variables are available in constant value

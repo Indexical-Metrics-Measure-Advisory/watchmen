@@ -36,11 +36,11 @@ class SecretType(str, Enum):
 
 class EngineParams(BaseModel):
 	host: str
-	port: str = None
+	port: Optional[str] = None
 	username: str
-	password: str = None
+	password: Optional[str] = None
 	name: str
-	params: List[DataSourceParam] = None
+	params: Optional[List[DataSourceParam]] = None
 
 
 def redress_url(value: str) -> str:

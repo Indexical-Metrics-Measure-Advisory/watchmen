@@ -1,15 +1,12 @@
 from typing import Dict, List, Optional, Union
-
-from pydantic import BaseModel
-
 from .condition import Condition, construct_conditions, construct_condition
 from watchmen_model.common import TenantBasedTuple, Storable, OptimisticLock
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 
 
-class JoinCondition(Storable, BaseModel):
-	parentKey: Condition = None
-	childKey: Condition = None
+class JoinCondition(Storable, ExtendedBaseModel):
+	parentKey: Optional[Condition] = None
+	childKey: Optional[Condition] = None
 
 	def __setattr__(self, name, value):
 		if name == 'parentKey':
@@ -18,17 +15,17 @@ class JoinCondition(Storable, BaseModel):
 			super().__setattr__(name, construct_condition(value))
 
 
-class Dependence(Storable, BaseModel):
-	modelName: str
-	objectKey: str  # the dependent column
+class Dependence(Storable, ExtendedBaseModel):
+	modelName: Optional[str] = None
+	objectKey: Optional[str] = None  # the dependent column
 
 
-class JsonColumn(Storable, BaseModel):
-	columnName: str = None
-	ignoredPath: List[str] = None
-	needFlatten: bool = None
-	flattenPath: List[str] = None
-	jsonPath: List[str] = None
+class JsonColumn(Storable, ExtendedBaseModel):
+	columnName: Optional[str] = None
+	ignoredPath: Optional[List[str]] = None
+	needFlatten: Optional[bool] = None
+	flattenPath: Optional[List[str]] = None
+	jsonPath: Optional[List[str]] = None
 
 
 def construct_json_column(json_column: Union[JsonColumn, Dict]) -> Optional[JsonColumn]:
@@ -77,23 +74,23 @@ def construct_depend_on(depend_on: Optional[List[Union[Dependence, Dict]]]) -> O
 		return ArrayHelper(depend_on).map(lambda x: construct_dependence(x)).to_list()
 
 
-class CollectorTableConfig(TenantBasedTuple, OptimisticLock, BaseModel):
-	configId: str = None
-	name: str = None
-	tableName: str = None
-	primaryKey: List[str] = None
-	objectKey: str = None
-	sequenceKey: str = None
-	modelName: str = None
-	parentName: str = None
-	label: str = None
-	joinKeys: List[JoinCondition] = None
-	dependOn: List[Dependence] = []
-	auditColumn: str = None
-	ignoredColumns: List[str] = None
-	jsonColumns: List[JsonColumn] = None
-	conditions: List[Condition] = []
-	dataSourceId: str = None
+class CollectorTableConfig(TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+	configId: Optional[str] = None
+	name: Optional[str] = None
+	tableName: Optional[str] = None
+	primaryKey: Optional[List[str]] = None
+	objectKey: Optional[str] = None
+	sequenceKey: Optional[str] = None
+	modelName: Optional[str] = None
+	parentName: Optional[str] = None
+	label: Optional[str] = None
+	joinKeys: Optional[List[JoinCondition]] = None
+	dependOn: Optional[List[Dependence]] = []
+	auditColumn: Optional[str] = None
+	ignoredColumns: Optional[List[str]] = None
+	jsonColumns: Optional[List[JsonColumn]] = None
+	conditions: Optional[List[Condition]] = []
+	dataSourceId: Optional[str] = None
 	isList: bool = False
 	triggered: bool = False
 

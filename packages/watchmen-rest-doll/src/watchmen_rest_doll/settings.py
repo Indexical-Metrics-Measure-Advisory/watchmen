@@ -15,7 +15,7 @@ class DollSettings(RestSettings):
 	CREATE_PIPELINE_MONITOR_TOPICS_ON_TENANT_CREATE: bool = True
 	CREATE_DQC_TOPICS_ON_TENANT_CREATE: bool = False  # enable it when dqc is on
 
-	HIDE_DATASOURCE_PWD = True # hide datasource pwd on api
+	HIDE_DATASOURCE_PWD: bool = True  # hide datasource pwd on api
 
 	SSO_ON: bool = False
 	SSO_PROVIDER: SSOTypes = SSOTypes.SAML2

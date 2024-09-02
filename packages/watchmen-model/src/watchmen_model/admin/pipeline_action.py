@@ -1,7 +1,7 @@
 from enum import Enum
-from typing import Union
+from typing import Union, Optional
 
-from pydantic import BaseModel
+from watchmen_utilities import ExtendedBaseModel
 
 from watchmen_model.common import DataModel, FactorId, ParameterJoint, PipelineActionId, TopicId
 
@@ -35,9 +35,9 @@ class DeleteTopicActionType(str, Enum):
 PipelineActionType = Union[WriteTopicActionType, ReadTopicActionType, DeleteTopicActionType, SystemActionType]
 
 
-class PipelineAction(DataModel, BaseModel):
-	actionId: PipelineActionId = None
-	type: PipelineActionType = None
+class PipelineAction(DataModel, ExtendedBaseModel):
+	actionId: Optional[PipelineActionId] = None
+	type: Optional[PipelineActionType] = None
 
 
 class MemoryWriter(PipelineAction):

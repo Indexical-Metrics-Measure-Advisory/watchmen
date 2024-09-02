@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
-
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import DataModel, GraphicPosition, GraphicRect, PipelineGraphicId, TopicId, UserBasedTuple
 from watchmen_utilities import ArrayHelper
 
@@ -25,10 +24,10 @@ def construct_position(rect: Optional[Union[dict, GraphicPosition]]) -> Optional
 		return GraphicPosition(**rect)
 
 
-class TopicRect(DataModel, BaseModel):
-	coordinate: GraphicPosition = None
-	frame: GraphicRect = None
-	name: GraphicPosition = None
+class TopicRect(DataModel, ExtendedBaseModel):
+	coordinate: Optional[GraphicPosition] = None
+	frame: Optional[GraphicRect] = None
+	name: Optional[GraphicPosition] = None
 
 	def __setattr__(self, name, value):
 		if name == 'frame':
@@ -50,9 +49,9 @@ def construct_topic_rect(rect: Optional[Union[dict, TopicRect]]) -> Optional[Top
 		return TopicRect(**rect)
 
 
-class TopicGraphic(DataModel, BaseModel):
-	topicId: TopicId = None
-	rect: TopicRect = None
+class TopicGraphic(DataModel, ExtendedBaseModel):
+	topicId: Optional[TopicId] = None
+	rect: Optional[TopicRect] = None
 
 	def __setattr__(self, name, value):
 		if name == 'rect':
@@ -77,12 +76,12 @@ def construct_topics(topics: List[Union[dict, TopicGraphic]]) -> List[TopicGraph
 	return ArrayHelper(topics).map(lambda x: construct_topic(x)).to_list()
 
 
-class PipelineGraphic(UserBasedTuple, BaseModel):
-	pipelineGraphId: PipelineGraphicId = None
-	name: str = None
-	topics: List[TopicGraphic] = []
-	createdAt: datetime = None
-	lastModifiedAt: datetime = None
+class PipelineGraphic(UserBasedTuple, ExtendedBaseModel):
+	pipelineGraphId: Optional[PipelineGraphicId] = None
+	name: Optional[str] = None
+	topics: Optional[List[TopicGraphic]] = []
+	createdAt: Optional[datetime] = None
+	lastModifiedAt: Optional[datetime] = None
 
 	def __setattr__(self, name, value):
 		if name == 'topics':
