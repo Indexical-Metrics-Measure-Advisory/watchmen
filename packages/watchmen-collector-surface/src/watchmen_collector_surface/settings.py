@@ -23,8 +23,8 @@ class CollectorSurfaceSettings(ExtendedBaseSettings):
 	TASK_LISTENER_ON: bool = False
 
 	S3_COLLECTOR: bool = False
-	S3_COLLECTOR_ACCESS_KEY_ID: str = None
-	S3_COLLECTOR_SECRET_ACCESS_KEY: str = None
+	S3_COLLECTOR_ACCESS_KEY_ID: str = ''
+	S3_COLLECTOR_SECRET_ACCESS_KEY: str = ''
 	S3_COLLECTOR_BUCKET_NAME: str = ''
 	S3_COLLECTOR_REGION: str = ''
 	S3_COLLECTOR_TOKEN: str = ''
