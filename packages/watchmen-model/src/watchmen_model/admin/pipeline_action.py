@@ -45,11 +45,11 @@ class MemoryWriter(PipelineAction):
 
 
 class FromTopic(PipelineAction):
-	topicId: TopicId = None
+	topicId: Optional[TopicId] = None
 
 
 class FromFactor(FromTopic):
-	factorId: FactorId = None
+	factorId: Optional[FactorId] = None
 
 
 class ToTopic(PipelineAction):

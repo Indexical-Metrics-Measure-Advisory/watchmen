@@ -37,7 +37,7 @@ class AccumulateMode(str, Enum):
 
 
 class WriteTopicAction(ToTopic):
-	type: WriteTopicActionType = None
+	type: Optional[WriteTopicActionType] = None
 	accumulateMode: AccumulateMode = AccumulateMode.STANDARD
 
 
