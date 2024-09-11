@@ -2495,7 +2495,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "[\n    {{SPACE_ID}}\n]",
+									"raw": "[\n    \"{{SPACE_ID}}\"\n]",
 									"options": {
 										"raw": {
 											"language": "json"
