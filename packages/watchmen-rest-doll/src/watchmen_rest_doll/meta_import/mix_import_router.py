@@ -44,6 +44,27 @@ class MixImportDataRequest(ExtendedBaseModel):
 	buckets: Optional[List[Bucket]] = []
 	monitorRules: Optional[List[MonitorRule]] = None
 	importType: Optional[MixedImportType] = None
+	
+	def __setattr__(self, name, value):
+		if name == 'topics':
+			super().__setattr__(name, construct_topics(value))
+		else:
+			super().__setattr__(name, value)
+
+
+def construct_topic(topic: Optional[Union[dict, Topic]]) -> Optional[Topic]:
+	if topic is None:
+		return None
+	elif isinstance(topic, Topic):
+		return topic
+	else:
+		return Topic(**topic)
+
+
+def construct_topics(topics: List[Union[dict, Topic]]) -> List[Topic]:
+	if topics is None:
+		return []
+	return ArrayHelper(topics).map(lambda x: construct_topic(x)).to_list()
 
 
 class ImportDataResult(ExtendedBaseModel):
