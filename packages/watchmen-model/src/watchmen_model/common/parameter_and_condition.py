@@ -118,7 +118,7 @@ class ParameterExpressionOperator(str, Enum):
 	NOT_IN = 'not-in',
 
 
-class ParameterExpression(ParameterCondition, ExtendedBaseModel):
+class ParameterExpression(ParameterCondition):
 	left: Optional[Parameter] = None
 	operator: ParameterExpressionOperator = ParameterExpressionOperator.EQUALS
 	right: Optional[Parameter] = None
