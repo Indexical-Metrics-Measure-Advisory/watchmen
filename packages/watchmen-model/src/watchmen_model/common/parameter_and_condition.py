@@ -84,7 +84,7 @@ class ComputedParameter(Parameter):
 			super().__setattr__(name, value)
 
 
-class ParameterCondition(DataModel, ExtendedBaseModel):
+class ParameterCondition(ExtendedBaseModel):
 	pass
 
 
@@ -93,7 +93,7 @@ class ParameterJointType(str, Enum):
 	OR = 'or'
 
 
-class ParameterJoint(ParameterCondition, ExtendedBaseModel):
+class ParameterJoint(ParameterCondition):
 	jointType: ParameterJointType = ParameterJointType.AND
 	filters: Optional[List[ParameterCondition]] = []
 
