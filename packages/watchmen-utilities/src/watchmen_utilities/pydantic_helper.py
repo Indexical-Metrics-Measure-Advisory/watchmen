@@ -1,11 +1,14 @@
+from logging import getLogger
 from typing import Any, Dict
 
 from pydantic import BaseModel, ConfigDict
 from pydantic_settings import BaseSettings
 import warnings
 
+logger = getLogger(__name__)
 
-warnings.filterwarnings('ignore', category=UserWarning)
+
+# warnings.filterwarnings('ignore', category=UserWarning)
 
 
 class ExtendedBaseModel(BaseModel):
@@ -27,6 +30,7 @@ class ExtendedBaseModel(BaseModel):
 		return self.dict()
 	
 	def model_dump(self, **kwargs) -> dict[str, Any]:
+		logger.info(self.__dict__)
 		return super().model_dump(serialize_as_any=True, **kwargs)
 	
 	def model_dump_json(self, **kwargs) -> str:
