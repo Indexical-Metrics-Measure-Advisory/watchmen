@@ -30,7 +30,7 @@ class CopyToMemoryAction(MemoryWriter):
 	copy something to memory variable
 	"""
 	type: SystemActionType = SystemActionType.COPY_TO_MEMORY
-	source: Parameter = None
+	source: Optional[Parameter] = None
 
 	def __setattr__(self, name, value):
 		if name == 'source':
