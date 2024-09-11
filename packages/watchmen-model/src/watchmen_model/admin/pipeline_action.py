@@ -41,7 +41,7 @@ class PipelineAction(ExtendedBaseModel):
 
 
 class MemoryWriter(PipelineAction):
-	variableName: str = None
+	variableName: Optional[str] = None
 
 
 class FromTopic(PipelineAction):
@@ -53,15 +53,15 @@ class FromFactor(FromTopic):
 
 
 class ToTopic(PipelineAction):
-	topicId: TopicId = None
+	topicId: Optional[TopicId] = None
 
 
 class ToFactor(ToTopic):
-	factorId: FactorId = None
+	factorId: Optional[FactorId] = None
 
 
 class FindBy(PipelineAction):
-	by: ParameterJoint = None
+	by: Optional[ParameterJoint] = None
 
 
 class AggregateArithmetic(str, Enum):
@@ -71,5 +71,5 @@ class AggregateArithmetic(str, Enum):
 	AVG = 'avg'
 
 
-class AggregateArithmeticHolder(DataModel):
-	arithmetic: AggregateArithmetic = None
+class AggregateArithmeticHolder(ExtendedBaseModel):
+	arithmetic: Optional[AggregateArithmetic] = None
