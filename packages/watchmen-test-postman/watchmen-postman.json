@@ -2004,7 +2004,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "[\n    {{USER_GROUP_ID}}\n]",
+									"raw": "[\n    \"{{USER_GROUP_ID}}\"\n]",
 									"options": {
 										"raw": {
 											"language": "json"
