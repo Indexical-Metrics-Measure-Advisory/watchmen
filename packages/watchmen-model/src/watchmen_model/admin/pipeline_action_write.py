@@ -92,7 +92,7 @@ class MergeRowAction(WriteTopicAction, MappingRow, FindBy):
 
 class WriteFactorAction(ToFactor, WriteTopicAction, FindBy, AggregateArithmeticHolder):
 	type: WriteTopicActionType = WriteTopicActionType.WRITE_FACTOR
-	source: Parameter = None
+	source: Optional[Parameter] = None
 
 	def __setattr__(self, name, value):
 		if name == 'mapping':
