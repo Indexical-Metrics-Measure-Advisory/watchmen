@@ -61,7 +61,7 @@ def construct_actions(actions: Optional[list] = None) -> Optional[List[PipelineA
 		return ArrayHelper(actions).map(lambda x: construct_action(x)).to_list()
 
 
-class PipelineUnit(Conditional, ExtendedBaseModel):
+class PipelineUnit(Conditional):
 	unitId: Optional[PipelineUnitId] = None
 	name: Optional[str] = None
 	loopVariableName: Optional[str] = None
@@ -92,7 +92,7 @@ def construct_units(units: Optional[list] = None) -> Optional[List[PipelineUnit]
 		return ArrayHelper(units).map(lambda x: construct_unit(x)).to_list()
 
 
-class PipelineStage(Conditional, ExtendedBaseModel):
+class PipelineStage(Conditional):
 	stageId: Optional[PipelineStageId] = None
 	name: Optional[str] = None
 	units: Optional[List[PipelineUnit]] = []
