@@ -18,24 +18,6 @@ class TableConfigService:
 	def __init__(self, principal_service: PrincipalService):
 		self.principalService = principal_service
 
-	def find_by_table_name(self, table_name: str, tenant_id: str) -> Optional[CollectorTableConfig]:
-		config = CollectorCacheService.table_config().get_config_by_table_name(table_name, tenant_id)
-		if config is not None:
-			return config
-
-		storage_service = get_collector_table_config_service(
-			ask_meta_storage(), ask_snowflake_generator(), self.principalService
-		)
-		table_config: CollectorTableConfig = storage_service.find_by_table_name(table_name, tenant_id)
-		if table_config is None:
-			table_config = self.find_by_topic_name(table_name, tenant_id)
-
-		if table_config is None:
-			return None
-
-		CollectorCacheService.table_config().put_config_by_table_name(table_config)
-		return table_config
-
 	def find_by_name(self, name: str, tenant_id: str) -> Optional[CollectorTableConfig]:
 		config = CollectorCacheService.table_config().get_config_by_name(name, tenant_id)
 		if config is not None:
@@ -45,6 +27,9 @@ class TableConfigService:
 			ask_meta_storage(), ask_snowflake_generator(), self.principalService
 		)
 		table_config: CollectorTableConfig = storage_service.find_by_name(name, tenant_id)
+		if table_config is None:
+			table_config = self.find_by_topic_name(name, tenant_id)
+
 		if table_config is None:
 			return None
 
@@ -77,15 +62,19 @@ class TableConfigService:
 	def get_topic_name_by_table_name(self, table_name: str) -> str:
 		return table_name.removeprefix("topic_")
 
-	def find_by_topic_name(self, table_name: str, tenant_id: str) -> Optional[CollectorTableConfig]:
-		topic_name = self.get_topic_name_by_table_name(table_name)
+	# noinspection PyMethodMayBeStatic
+	def get_table_name_by_topic_name(self, topic_name: str) -> str:
+		return "topic_" + topic_name
+
+	def find_by_topic_name(self, name: str, tenant_id: str) -> Optional[CollectorTableConfig]:
+		topic_name = name
 		schema = TopicService(self.principalService).find_schema_by_name(topic_name, tenant_id)
 		now = get_current_time_in_seconds()
 		if schema:
 			return CollectorTableConfig(
 				configId=self.fake_config_id(schema.topic.topicId),
 				name=topic_name,
-				tableName=table_name,
+				tableName=self.get_table_name_by_topic_name(name),
 				primaryKey=["id_"],
 				objectKey="id_",
 				sequenceKey=None,

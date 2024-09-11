@@ -1,9 +1,10 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
 
-from watchmen_model.common import TenantBasedTuple
-from watchmen_utilities import ExtendedBaseModel
+from .condition import Condition, construct_conditions
+from watchmen_model.common import TenantBasedTuple, DataModel
+from watchmen_utilities import ExtendedBaseModel, ArrayHelper
 
 
 class EventType(int, Enum):
@@ -11,6 +12,17 @@ class EventType(int, Enum):
 	BY_TABLE = 2,
 	BY_RECORD = 3,
 	BY_PIPELINE = 4
+
+
+class QueryParam(DataModel, ExtendedBaseModel):
+	name: str
+	filter: List[Condition]
+
+	def __setattr__(self, name, value):
+		if name == 'filter':
+			super().__setattr__(name, construct_conditions(value))
+		else:
+			super().__setattr__(name, value)
 
 
 class TriggerEvent(TenantBasedTuple, ExtendedBaseModel):
@@ -23,4 +35,26 @@ class TriggerEvent(TenantBasedTuple, ExtendedBaseModel):
 	tableName: Optional[str] = None
 	records: Optional[List[Dict]] = []
 	pipelineId: Optional[str] = None
+	params: Optional[List[QueryParam]] = None
 
+	def __setattr__(self, name, value):
+		if name == 'params':
+			super().__setattr__(name, construct_params(value))
+		else:
+			super().__setattr__(name, value)
+
+
+def construct_params(params: Optional[List[Union[dict, QueryParam]]]) -> Optional[List[QueryParam]]:
+	if params is None:
+		return None
+	else:
+		return ArrayHelper(params).map(lambda x: construct_param(x)).to_list()
+
+
+def construct_param(param: Optional[Union[dict, QueryParam]]) -> Optional[QueryParam]:
+	if param is None:
+		return None
+	elif isinstance(param, QueryParam):
+		return param
+	else:
+		return QueryParam(**param)

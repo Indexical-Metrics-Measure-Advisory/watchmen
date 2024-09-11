@@ -132,7 +132,7 @@ def new_trigger_table(table_name: str,
 
 
 def get_trigger_table(model_trigger: TriggerModel, table_config: CollectorTableConfig) -> TriggerTable:
-	return new_trigger_table(table_config.tableName,
+	return new_trigger_table(table_config.name,
 	                         table_config.modelName,
 	                         model_trigger.modelTriggerId,
 	                         model_trigger.moduleTriggerId,

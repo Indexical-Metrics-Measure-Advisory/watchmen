@@ -98,7 +98,7 @@ class RecordToJsonService:
 				self.finalize(change_data_record)
 
 	def finalize(self, change_data_record: ChangeDataRecord):
-		config = self.table_config_service.find_by_table_name(change_data_record.tableName, change_data_record.tenantId)
+		config = self.table_config_service.find_by_name(change_data_record.tableName, change_data_record.tenantId)
 		ask_source_extractor(config).delete_one_by_primary_keys(change_data_record.dataId)
 
 	def update_result(self, change_data_record: ChangeDataRecord, result: str) -> None:
@@ -126,7 +126,7 @@ class RecordToJsonService:
 			self.change_record_service.close_transaction()
 
 	def process_record(self, change_data_record: ChangeDataRecord) -> None:
-		config = self.table_config_service.find_by_table_name(change_data_record.tableName, change_data_record.tenantId)
+		config = self.table_config_service.find_by_name(change_data_record.tableName, change_data_record.tenantId)
 		root_config, root_data, record = self.find_root(config, change_data_record)
 		if self.is_duplicated(record):
 			record.isMerged = True

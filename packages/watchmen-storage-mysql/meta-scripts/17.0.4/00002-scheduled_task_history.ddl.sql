@@ -1,0 +1,1 @@
+ALTER TABLE scheduled_task_history ADD INDEX idx_task_history_event_trigger_id(event_trigger_id);

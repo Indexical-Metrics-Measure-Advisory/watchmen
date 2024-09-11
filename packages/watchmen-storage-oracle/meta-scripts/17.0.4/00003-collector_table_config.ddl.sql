@@ -1,0 +1,1 @@
+DROP INDEX u_collector_table_config_2;
