@@ -35,7 +35,7 @@ class DeleteTopicActionType(str, Enum):
 PipelineActionType = Union[WriteTopicActionType, ReadTopicActionType, DeleteTopicActionType, SystemActionType]
 
 
-class PipelineAction(DataModel, ExtendedBaseModel):
+class PipelineAction(ExtendedBaseModel):
 	actionId: Optional[PipelineActionId] = None
 	type: Optional[PipelineActionType] = None
 

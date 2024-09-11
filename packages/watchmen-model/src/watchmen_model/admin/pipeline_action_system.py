@@ -13,7 +13,7 @@ class AlarmActionSeverity(str, Enum):
 
 
 class AlarmAction(PipelineAction, Conditional):
-	type: SystemActionType.ALARM = SystemActionType.ALARM
+	type: SystemActionType = SystemActionType.ALARM
 	severity: AlarmActionSeverity = AlarmActionSeverity.MEDIUM
 	message: str = None
 
