@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from pydantic import BaseModel, ConfigDict, model_serializer
+from pydantic import BaseModel, ConfigDict
 from pydantic_settings import BaseSettings
 import warnings
 

@@ -1,7 +1,6 @@
 from typing import List, Optional, Tuple
 
 from fastapi import APIRouter, Body, Depends
-from pydantic import BaseModel
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
@@ -13,7 +12,7 @@ from watchmen_rest import get_admin_principal, get_console_principal, get_super_
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, ExtendedBaseModel
 
 router = APIRouter()
 
@@ -171,7 +170,7 @@ async def find_all_enums(principal_service: PrincipalService = Depends(get_admin
 	return trans_readonly(enum_service, action)
 
 
-class ImportEnumItems(BaseModel):
+class ImportEnumItems(ExtendedBaseModel):
 	enumId: Optional[EnumId] = None
 	name: Optional[str] = None
 	items: List[EnumItem]

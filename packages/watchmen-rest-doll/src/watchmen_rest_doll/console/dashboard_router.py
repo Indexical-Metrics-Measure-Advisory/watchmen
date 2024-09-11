@@ -2,7 +2,6 @@ from logging import getLogger
 from typing import Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
@@ -18,7 +17,7 @@ from watchmen_rest import get_admin_principal, get_console_principal, get_princi
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, ExtendedBaseModel
 from .connected_space_router import ConnectedSpaceWithSubjects, SubjectWithReports
 
 router = APIRouter()
@@ -62,8 +61,8 @@ async def find_my_dashboards(
 	return trans_readonly(dashboard_service, action)
 
 
-class StandaloneDashboard(BaseModel):
-	dashboard: Dashboard = None
+class StandaloneDashboard(ExtendedBaseModel):
+	dashboard: Optional[Dashboard] = None
 	connectedSpaces: List[ConnectedSpaceWithSubjects] = []
 
 

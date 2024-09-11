@@ -5,7 +5,7 @@ from typing import Optional, List, Dict, Any, Callable
 from pydantic import BaseModel
 
 from watchmen_model.system import DataSource, DataSourceParam
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, is_blank, ExtendedBaseModel
 from .secrets_manager import SecretsManger
 from .storage_spi import StorageSPI, TopicDataStorageSPI
 from watchmen_utilities import is_not_blank
@@ -34,12 +34,12 @@ class SecretType(str, Enum):
 	AZURE = 'azure'
 
 
-class EngineParams(BaseModel):
-	host: str
+class EngineParams(ExtendedBaseModel):
+	host: Optional[str] = None
 	port: Optional[str] = None
-	username: str
+	username: Optional[str] = None
 	password: Optional[str] = None
-	name: str
+	name: Optional[str] = None
 	params: Optional[List[DataSourceParam]] = None
 
 

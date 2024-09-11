@@ -1,29 +1,27 @@
 from __future__ import annotations
 
 from typing import List, Optional
-
-from pydantic import BaseModel
-
 from watchmen_auth import PrincipalService
 from watchmen_model.indicator import Convergence
+from watchmen_utilities import ExtendedBaseModel
 
 
-class ConvergenceAxisSegment(BaseModel):
-	name: str
-	segments: Optional[List[ConvergenceAxisSegment]]
+class ConvergenceAxisSegment(ExtendedBaseModel):
+	name: Optional[str] = None
+	segments: Optional[List[ConvergenceAxisSegment]] = None
 
 
-class ConvergenceCellValue(BaseModel):
-	row: int
-	col: int
-	value: Optional[str]
-	failed: bool
+class ConvergenceCellValue(ExtendedBaseModel):
+	row: Optional[int] = None
+	col: Optional[int] = None
+	value: Optional[str] = None
+	failed: Optional[bool] = None
 
 
-class ConvergenceData(BaseModel):
-	xAxis: List[ConvergenceAxisSegment]
-	yAxis: List[ConvergenceAxisSegment]
-	values: List[ConvergenceCellValue]
+class ConvergenceData(ExtendedBaseModel):
+	xAxis: Optional[List[ConvergenceAxisSegment]] = None
+	yAxis: Optional[List[ConvergenceAxisSegment]] = None
+	values: Optional[List[ConvergenceCellValue]] = None
 
 
 class ConvergenceDataService:

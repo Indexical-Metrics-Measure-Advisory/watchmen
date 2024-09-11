@@ -2,7 +2,6 @@ from enum import Enum
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.meta import BucketService, IndicatorService
@@ -25,7 +24,7 @@ from watchmen_rest_doll.admin.pipeline_router import post_save_pipeline
 from watchmen_rest_doll.admin.topic_router import post_save_topic
 from watchmen_rest_doll.console.connected_space_router import ConnectedSpaceWithSubjects, SubjectWithReports
 from watchmen_rest_doll.util import trans
-from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, ExtendedBaseModel
 
 router = APIRouter()
 
@@ -36,18 +35,18 @@ class MixedImportType(str, Enum):
 	FORCE_NEW = 'force-new'
 
 
-class MixImportDataRequest(BaseModel):
+class MixImportDataRequest(ExtendedBaseModel):
 	topics: Optional[List[Topic]] = []
 	pipelines: Optional[List[Pipeline]] = []
 	spaces: Optional[List[Space]] = []
 	connectedSpaces: Optional[List[ConnectedSpaceWithSubjects]] = []
 	indicators: Optional[List[Indicator]] = []
 	buckets: Optional[List[Bucket]] = []
-	monitorRules: Optional[List[MonitorRule]]
-	importType: MixedImportType = None
+	monitorRules: Optional[List[MonitorRule]] = None
+	importType: Optional[MixedImportType] = None
 
 
-class ImportDataResult(BaseModel):
+class ImportDataResult(ExtendedBaseModel):
 	name: Optional[str] = None
 	reason: Optional[str] = None
 	passed: bool = True
@@ -89,8 +88,8 @@ class MonitorRuleImportDataResult(ImportDataResult):
 	monitorRuleId: Optional[MonitorRuleId] = None
 
 
-class MixImportDataResponse(BaseModel):
-	passed: bool = None
+class MixImportDataResponse(ExtendedBaseModel):
+	passed: Optional[bool] = None
 	topics: List[TopicImportDataResult] = []
 	pipelines: List[PipelineImportDataResult] = []
 	spaces: List[SpaceImportDataResult] = []

@@ -2,9 +2,6 @@ from abc import abstractmethod
 from decimal import Decimal
 from enum import Enum
 from typing import Dict, List, Optional, Union
-
-from pydantic import BaseModel
-
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_indicator_kernel.data.objective_factor.objective_criteria_service import ObjectiveCriteriaService
@@ -17,20 +14,20 @@ from watchmen_model.indicator import Bucket, BucketType, CategorySegment, Catego
 	IndicatorAggregateArithmetic, MeasureMethod, NumericSegmentsHolder, NumericValueSegment, Objective, \
 	ObjectiveFactorOnIndicator, OtherCategorySegmentValue, RangeBucketValueIncluding
 from watchmen_model.indicator.derived_objective import BreakdownDimension, BreakdownTarget
-from watchmen_utilities import ArrayHelper, is_decimal
+from watchmen_utilities import ArrayHelper, is_decimal, ExtendedBaseModel
 from ..utils import ask_bucket
 from ..utils.time_frame import TimeFrame
 
 
-class ObjectiveTargetBreakdownValueRow(BaseModel):
+class ObjectiveTargetBreakdownValueRow(ExtendedBaseModel):
 	dimensions: List = []
 	currentValue: Optional[Decimal] = None
 	previousValue: Optional[Decimal] = None
 	chainValue: Optional[Decimal] = None
 
 
-class ObjectiveTargetBreakdownValues(BaseModel):
-	breakdownUuid: str = None
+class ObjectiveTargetBreakdownValues(ExtendedBaseModel):
+	breakdownUuid: Optional[str] = None
 	data: List[ObjectiveTargetBreakdownValueRow] = []
 	failed: bool = False
 

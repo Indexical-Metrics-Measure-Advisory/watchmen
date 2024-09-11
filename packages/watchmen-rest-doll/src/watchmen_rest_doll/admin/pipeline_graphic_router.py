@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
@@ -15,7 +14,8 @@ from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_not_blank
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_not_blank, \
+	ExtendedBaseModel
 
 router = APIRouter()
 
@@ -108,14 +108,14 @@ async def delete_pipeline_graphic_by_id(
 	trans(pipeline_graphic_service, action)
 
 
-class UpdatedGraphicRequest(BaseModel):
-	at: str = None
-	existingGraphicIds: List[PipelineGraphicId] = None
+class UpdatedGraphicRequest(ExtendedBaseModel):
+	at: str = Optional[None]
+	existingGraphicIds: Optional[List[PipelineGraphicId]] = None
 
 
-class UpdatedGraphicResponse(BaseModel):
-	updated: List[PipelineGraphic] = None
-	removed: List[PipelineGraphicId] = None
+class UpdatedGraphicResponse(ExtendedBaseModel):
+	updated: Optional[List[PipelineGraphic]] = None
+	removed: Optional[List[PipelineGraphicId]] = None
 
 
 @router.post('/pipeline/graphics/updated', tags=[UserRole.ADMIN], response_model=UpdatedGraphicResponse)

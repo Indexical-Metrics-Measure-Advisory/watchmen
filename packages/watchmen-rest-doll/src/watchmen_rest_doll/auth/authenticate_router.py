@@ -4,7 +4,6 @@ from typing import Optional, Union
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel
 from starlette.requests import Request
 
 from watchmen_auth import AuthenticationScheme, PrincipalService
@@ -19,12 +18,13 @@ from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params,
 	ask_sso_enabled
 from watchmen_rest_doll.settings import SSOTypes
 from watchmen_rest_doll.util import verify_password
+from watchmen_utilities import ExtendedBaseModel
 
 router = APIRouter()
 logger = getLogger(__name__)
 
 
-class LoginConfiguration(BaseModel):
+class LoginConfiguration(ExtendedBaseModel):
 	method: Union[str, SSOTypes] = SSOTypes.DOLL,
 	url: Optional[str] = None
 

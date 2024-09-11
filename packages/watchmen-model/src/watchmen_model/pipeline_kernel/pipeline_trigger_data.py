@@ -1,39 +1,38 @@
 from enum import Enum
-from typing import Any, Dict, TypeVar
-
-from pydantic import BaseModel
+from typing import Any, Dict, TypeVar, Optional
 
 from watchmen_model.admin import PipelineTriggerType
 from watchmen_model.common import TenantId
+from watchmen_utilities import ExtendedBaseModel
 
 PipelineTriggerTraceId = TypeVar('PipelineTriggerTraceId', bound=str)
 
 
-class PipelineTriggerData(BaseModel):
+class PipelineTriggerData(ExtendedBaseModel):
 	# topic name
-	code: str = None
+	code: Optional[str] = None
 	# current data
-	data: Dict[str, Any] = None
+	data: Optional[Dict[str, Any]] = None
 	triggerType: PipelineTriggerType = PipelineTriggerType.INSERT
 	# pass tenant id when use super admin
-	tenantId: TenantId = None
+	tenantId: Optional[TenantId] = None
 	# user given trace id, typically leave it as none
-	traceId: PipelineTriggerTraceId = None
+	traceId: Optional[PipelineTriggerTraceId] = None
 
 
 class PipelineTriggerDataWithPAT(PipelineTriggerData):
-	pat: str
+	pat: Optional[str] = None
 
 
-class PipelineTriggerResult(BaseModel):
+class PipelineTriggerResult(ExtendedBaseModel):
 	received: bool = True
-	traceId: PipelineTriggerTraceId
+	traceId: Optional[PipelineTriggerTraceId] = None
 	"""
 	id of trigger data, 
 	type must be str since length of value beyonds the limitation of serialization of javascript json number
 	"""
-	internalDataId: str
-	logId:str = None
+	internalDataId: str = ''
+	logId: Optional[str] = None
 
 
 class TopicDataColumnNames(str, Enum):

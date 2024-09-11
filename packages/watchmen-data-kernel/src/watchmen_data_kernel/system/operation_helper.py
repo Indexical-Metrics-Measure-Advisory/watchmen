@@ -1,5 +1,4 @@
 from __future__ import annotations
-from pydantic import BaseModel
 from enum import Enum
 from typing import List, Any, Optional
 from io import BytesIO, StringIO
@@ -16,7 +15,7 @@ from watchmen_model.admin import Topic
 
 from watchmen_storage_rds import ScriptBuilder
 
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 from .change_log_helper import ChangelogXml
 
 
@@ -28,20 +27,20 @@ class TupleType(str, Enum):
 	REPORTS = "reports"
 
 
-class SqlScriptFile(BaseModel):
-	name: str
-	content: str
-	data_source_type: DataSourceType
+class SqlScriptFile(ExtendedBaseModel):
+	name: Optional[str] = None
+	content: Optional[str] = None
+	data_source_type: DataSourceType = None
 
 
-class ChangeLogFile(BaseModel):
-	name: str
-	content: str
+class ChangeLogFile(ExtendedBaseModel):
+	name: Optional[str] = None
+	content: Optional[str] = None
 
 
-class PackageZipFile(BaseModel):
-	name: str
-	content: Any
+class PackageZipFile(ExtendedBaseModel):
+	name: Optional[str] = None
+	content: Any = None
 
 
 TUPLE_SEQUENCE = {
