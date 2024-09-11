@@ -2961,7 +2961,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "[\n    {{TOPIC_ID}}\n]",
+									"raw": "[\n    \"{{TOPIC_ID}}\"\n]",
 									"options": {
 										"raw": {
 											"language": "json"
