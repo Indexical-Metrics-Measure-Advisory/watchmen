@@ -8,7 +8,7 @@ from watchmen_utilities import ArrayHelper
 from .pipeline_action import AggregateArithmeticHolder, FindBy, PipelineAction, ToFactor, ToTopic, WriteTopicActionType
 
 
-class MappingFactor(AggregateArithmeticHolder, ExtendedBaseModel):
+class MappingFactor(AggregateArithmeticHolder):
 	source: Optional[Parameter] = None
 	factorId: Optional[FactorId] = None
 
