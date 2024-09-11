@@ -4,13 +4,14 @@ import hmac
 import json
 from datetime import datetime
 from logging import getLogger
-from typing import List
+from typing import List, Optional
 
 import requests
 from pydantic import BaseModel
 
 from watchmen_model.webhook.notification_defination import NotificationType, NotificationDefinition, NotificationParam
 from watchmen_model.webhook.subscription_event import SubscriptionEvent
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_webhook_server import NotifyService
 from watchmen_webhook_server.integration.utils.screen_shot_builder import screenshot_page
 
@@ -23,12 +24,12 @@ ACCESS_TOKEN_PATH = "auth/v3/tenant_access_token/internal"
 logger = getLogger(__name__)
 
 
-class FeishuConfig(BaseModel):
+class FeishuConfig(ExtendedBaseModel):
 	feishuHost: str = 'https://open.feishu.cn/open-apis/'
-	feishuAppId: str = None
-	feishuAppSecret: str = None
-	feishuBot: str = None
-	feishuBotSecret: str = None
+	feishuAppId: Optional[str] = None
+	feishuAppSecret: Optional[str] = None
+	feishuBot: Optional[str] = None
+	feishuBotSecret: Optional[str] = None
 
 
 def gen_sign(timestamp, secret):

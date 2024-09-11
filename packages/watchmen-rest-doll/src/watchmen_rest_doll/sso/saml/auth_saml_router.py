@@ -1,23 +1,24 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
+from typing import Optional
 
 from watchmen_model.system import Token
 from watchmen_rest.util import raise_401, raise_404
 from watchmen_rest_doll.doll import ask_saml2_enabled, ask_saml2_settings
+from watchmen_utilities import ExtendedBaseModel
 from .saml_helper import build_token, find_user, get_user_name_in_saml_body, verify_signature
 
 router = APIRouter()
 
 
-class TokenExchange(BaseModel):
-	data: str = None
-	algorithm: str = None
-	signature: str = None
-	relayState: str = None
+class TokenExchange(ExtendedBaseModel):
+	data: Optional[str] = None
+	algorithm: Optional[str] = None
+	signature: Optional[str] = None
+	relayState: Optional[str] = None
 
 
 class SamlToken(Token):
-	accountName: str = None
+	accountName: Optional[str] = None
 
 
 @router.post('/token/exchange-saml', tags=['authenticate'])

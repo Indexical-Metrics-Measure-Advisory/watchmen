@@ -4,12 +4,11 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate
 from logging import getLogger
-from typing import List
-
-from pydantic import BaseModel
+from typing import List, Optional
 
 from watchmen_model.webhook.notification_defination import NotificationType, NotificationDefinition, NotificationParam
 from watchmen_model.webhook.subscription_event import SubscriptionEvent
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_webhook_server import NotifyService
 from watchmen_webhook_server.integration.utils.html_body_builder import build_body
 from watchmen_webhook_server.integration.utils.screen_shot_builder import screenshot_page
@@ -20,14 +19,14 @@ COMMASPACE = ', '
 logger = getLogger(__name__)
 
 
-class EmailConfiguration(BaseModel):
-	server: str = None
-	type: str = None
-	send_from: str = None
-	send_to: str = None
-	subject: str = None
-	ssl: int = None
-	password: str = None
+class EmailConfiguration(ExtendedBaseModel):
+	server: Optional[str] = None
+	type: Optional[str] = None
+	send_from: Optional[str] = None
+	send_to: Optional[str] = None
+	subject: Optional[str] = None
+	ssl: Optional[int] = None
+	password: Optional[str] = None
 
 
 def build_email_configuration(params: List[NotificationParam]) -> EmailConfiguration:
