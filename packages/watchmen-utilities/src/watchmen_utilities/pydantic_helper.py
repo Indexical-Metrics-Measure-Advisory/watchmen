@@ -20,7 +20,6 @@ class ExtendedBaseModel(BaseModel):
 			self.__setattr__(key, value)
 
 	def __setattr__(self, name, value):
-		super().__setattr__(name, value)
 		self.__dict__[name] = value
 
 	def __getattr__(self, name) -> Any:
