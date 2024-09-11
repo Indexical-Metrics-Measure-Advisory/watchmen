@@ -1,16 +1,30 @@
 from typing import List, Dict, Any, Optional
 
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.model import TriggerEvent
+from watchmen_collector_kernel.model import TriggerEvent, QueryParam
 from watchmen_meta.common import TupleShaper, TupleService
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, EventTriggerId
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	EntityStraightValuesFinder, EntityCriteriaExpression, ColumnNameLiteral, \
 	EntityStraightColumn, EntitySortColumn, EntitySortMethod
+from watchmen_utilities import ArrayHelper
 
 
 class TriggerEventShaper(EntityShaper):
+
+	@staticmethod
+	def serialize_param(param: Optional[QueryParam]) -> dict:
+		if isinstance(param, dict):
+			return param
+		else:
+			return param.to_dict()
+
+	@staticmethod
+	def serialize_params(params: Optional[List[QueryParam]]) -> Optional[list]:
+		if params is None:
+			return None
+		return ArrayHelper(params).map(lambda x: TriggerEventShaper.serialize_param(x)).to_list()
 
 	def serialize(self, entity: TriggerEvent) -> EntityRow:
 		return TupleShaper.serialize_tenant_based(entity, {
@@ -22,7 +36,8 @@ class TriggerEventShaper(EntityShaper):
 			'type': entity.type,
 			'table_name': entity.tableName,
 			'records': entity.records,
-			'pipeline_id': entity.pipelineId
+			'pipeline_id': entity.pipelineId,
+			'params': TriggerEventShaper.serialize_params(entity.params)
 		})
 
 	def deserialize(self, row: EntityRow) -> TriggerEvent:
@@ -36,7 +51,8 @@ class TriggerEventShaper(EntityShaper):
 			type=row.get('type'),
 			tableName=row.get('table_name'),
 			records=row.get('records'),
-			pipelineId=row.get('pipeline_id')
+			pipelineId=row.get('pipeline_id'),
+			params=row.get('params')
 		))
 
 

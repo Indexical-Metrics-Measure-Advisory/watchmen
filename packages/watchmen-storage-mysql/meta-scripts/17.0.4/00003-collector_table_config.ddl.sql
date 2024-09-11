@@ -1,0 +1,1 @@
+ALTER TABLE collector_table_config DROP INDEX unique_table_name;

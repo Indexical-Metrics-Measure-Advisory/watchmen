@@ -14,14 +14,10 @@ class ParameterKind(str, Enum):
 	COMPUTED = 'computed'
 
 
-# noinspection DuplicatedCode
-class AvoidFastApiError:
-	on: Optional[ParameterJoint] = None
-
-
-class Parameter(DataModel, AvoidFastApiError, ExtendedBaseModel):
+class Parameter(ExtendedBaseModel):
 	kind: Optional[ParameterKind] = None
 	conditional: bool = False
+	on: Optional[ParameterJoint] = None
 
 	def __setattr__(self, name, value):
 		if name == 'on':
