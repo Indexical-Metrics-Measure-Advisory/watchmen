@@ -3618,7 +3618,8 @@
 											"    pm.environment.set(\"PIPELINE_GRAPH_ID\", data.pipelineGraphId);",
 											"});"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -3637,7 +3638,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"name\": \"Test_Pipeline_Graphics\",\n    \"topics\": [\n        {\n            \"topicId\": 1,\n            \"rect\": {\n                \"coordinate\": {\n                    \"x\": 1,\n                    \"y\": 1\n                },\n                \"frame\": {\n                    \"x\": 1,\n                    \"y\": 1,\n                    \"width\": 10,\n                    \"height\": 10\n                },\n                \"name\": {\n                    \"x\": 2,\n                    \"y\": 2\n                }\n            }\n        }\n    ]\n}",
+									"raw": "{\n    \"name\": \"Test_Pipeline_Graphics\",\n    \"topics\": [\n        {\n            \"topicId\": \"1\",\n            \"rect\": {\n                \"coordinate\": {\n                    \"x\": 1,\n                    \"y\": 1\n                },\n                \"frame\": {\n                    \"x\": 1,\n                    \"y\": 1,\n                    \"width\": 10,\n                    \"height\": 10\n                },\n                \"name\": {\n                    \"x\": 2,\n                    \"y\": 2\n                }\n            }\n        }\n    ]\n}",
 									"options": {
 										"raw": {
 											"language": "json"
