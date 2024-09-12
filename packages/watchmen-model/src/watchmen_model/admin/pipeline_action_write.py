@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import List, Optional, Union
 
-from watchmen_utilities import ExtendedBaseModel
 
 from watchmen_model.common import construct_parameter, construct_parameter_joint, FactorId, Parameter
 from watchmen_utilities import ArrayHelper

@@ -13,7 +13,7 @@ class UserRole(str, Enum):
 	SUPER_ADMIN = 'superadmin'
 
 
-class User(TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+class User(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	userId: Optional[UserId] = None
 	name: Optional[str] = None
 	nickName: Optional[str] = None

@@ -1,6 +1,5 @@
 from typing import Any, Optional
 
-from watchmen_utilities import ExtendedBaseModel
 
 from .chart_basic_structure import ChartTruncation, ChartTruncationHolder
 from .chart_basic_style import ChartBorder
@@ -8,7 +7,7 @@ from .chart_enums import PredefinedChartColorSeries
 from .chart_types import ChartColor
 
 
-class ChartSettings(ChartTruncationHolder, ExtendedBaseModel):
+class ChartSettings(ChartTruncationHolder):
 	border: Optional[ChartBorder] = None
 	backgroundColor: Optional[ChartColor] = None
 

@@ -14,7 +14,7 @@ class PluginApplyTo(str, Enum):
 	ACHIEVEMENT = 'achievement'
 
 
-class Plugin(TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+class Plugin(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	pluginId: Optional[PluginId] = None
 	pluginCode: Optional[str] = None
 	name: Optional[str] = None

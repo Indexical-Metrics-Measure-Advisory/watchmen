@@ -5,7 +5,7 @@ from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import Auditable, ConnectedSpaceId, LastVisit, SpaceId, UserBasedTuple
 
 
-class ConnectedSpace(UserBasedTuple, Auditable, LastVisit, ExtendedBaseModel):
+class ConnectedSpace(ExtendedBaseModel, UserBasedTuple, Auditable, LastVisit):
 	connectId: Optional[ConnectedSpaceId] = None
 	spaceId: Optional[SpaceId] = None
 	name: Optional[str] = None

@@ -1,5 +1,5 @@
 from datetime import date, datetime, time
-from typing import List, Union
+from typing import List, Union, Optional
 
 from watchmen_utilities import ExtendedBaseModel
 
@@ -9,5 +9,5 @@ DataResultSet = List[DataResultSetRow]
 
 
 class DataResult(ExtendedBaseModel):
-	columns: List[str]
-	data: DataResultSet
+	columns: Optional[List[str]] = None
+	data: Optional[DataResultSet] = None

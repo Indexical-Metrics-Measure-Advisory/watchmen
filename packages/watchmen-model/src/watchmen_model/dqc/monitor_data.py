@@ -3,11 +3,11 @@ from typing import Optional
 
 from watchmen_utilities import ExtendedBaseModel
 
-from watchmen_model.common import DataModel, FactorId, TopicId
+from watchmen_model.common import FactorId, TopicId
 from .monitor_rule import MonitorRuleCode
 
 
-class MonitorRuleLog(DataModel, ExtendedBaseModel):
+class MonitorRuleLog(ExtendedBaseModel):
 	ruleCode: Optional[MonitorRuleCode] = None
 	topicId: Optional[TopicId] = None
 	factorId: Optional[FactorId] = None
@@ -15,7 +15,7 @@ class MonitorRuleLog(DataModel, ExtendedBaseModel):
 	lastOccurredTime: Optional[datetime] = None
 
 
-class MonitorRuleLogCriteria(DataModel, ExtendedBaseModel):
+class MonitorRuleLogCriteria(ExtendedBaseModel):
 	startDate: Optional[str] = None
 	endDate: Optional[str] = None
 	ruleCode: Optional[MonitorRuleCode] = None

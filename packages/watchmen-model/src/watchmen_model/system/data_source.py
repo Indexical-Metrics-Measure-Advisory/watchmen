@@ -1,11 +1,11 @@
 from enum import Enum
 from typing import List, Optional, Union
 
-from watchmen_model.common import DataModel, DataSourceId, OptimisticLock, TenantBasedTuple
+from watchmen_model.common import DataSourceId, OptimisticLock, TenantBasedTuple
 from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 
 
-class DataSourceParam(DataModel, ExtendedBaseModel):
+class DataSourceParam(ExtendedBaseModel):
 	name: Optional[str] = None
 	value: Optional[str] = None
 
@@ -37,7 +37,7 @@ def construct_params(params: Optional[list] = None) -> Optional[List[DataSourceP
 		return ArrayHelper(params).map(lambda x: construct_param(x)).to_list()
 
 
-class DataSource(TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+class DataSource(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	dataSourceId: Optional[DataSourceId] = None
 	dataSourceCode: Optional[str] = None
 	dataSourceType: Optional[DataSourceType] = None

@@ -8,7 +8,7 @@ from .chart_settings import ChartSettings
 from .chart_types import ChartColor, ChartType
 
 
-class Chart(DataModel, ExtendedBaseModel):
+class Chart(ExtendedBaseModel):
 	type: ChartType = ChartType.COUNT
 	settings: Optional[ChartSettings] = None
 
@@ -75,11 +75,11 @@ class EChartsAlignmentHolder(DataModel):
 	verticalAlign: Optional[EChartsVerticalAlignment] = None
 
 
-class EChartsTitleText(EChartsFontHolder, ExtendedBaseModel):
+class EChartsTitleText(ExtendedBaseModel, EChartsFontHolder):
 	text: Optional[str] = None
 
 
-class EChartsTitle(EChartsBorderHolder, EChartsPositionHolder, EChartsAlignmentHolder, ExtendedBaseModel):
+class EChartsTitle(ExtendedBaseModel, EChartsBorderHolder, EChartsPositionHolder, EChartsAlignmentHolder):
 	text: Optional[EChartsTitleText] = None
 	subtext: Optional[EChartsTitleText] = None
 	backgroundColor: Optional[ChartColor] = None
@@ -87,7 +87,7 @@ class EChartsTitle(EChartsBorderHolder, EChartsPositionHolder, EChartsAlignmentH
 	itemGap: Optional[float] = None
 
 
-class EChartsTitleHolder(DataModel, ExtendedBaseModel):
+class EChartsTitleHolder(ExtendedBaseModel):
 	title: Optional[EChartsTitle] = None
 
 
@@ -113,7 +113,7 @@ class EChartsGrid(EChartsBorderHolderNoRadius, EChartsPositionHolder):
 	backgroundColor: ChartColor = None
 
 
-class EChartsGridPositionOnly(EChartsPositionHolder, ExtendedBaseModel):
+class EChartsGridPositionOnly(ExtendedBaseModel, EChartsPositionHolder):
 	pass
 
 
@@ -339,7 +339,7 @@ class EChartsSettings(ChartSettings, EChartsTitleHolder):
 	pass
 
 
-class CountChartSettingsText(DataModel, ExtendedBaseModel):
+class CountChartSettingsText(ExtendedBaseModel):
 	font: Optional[ChartFont] = None
 	formatUseGrouping: Optional[bool] = None
 
@@ -369,7 +369,7 @@ class BarLabelPosition(str, Enum):
 	INSIDE_BOTTOM_RIGHT = 'insideBottomRight'
 
 
-class BarChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlignmentHolder, ExtendedBaseModel):
+class BarChartSettingsLabel(ExtendedBaseModel, EChartsBorderHolder, EChartsFontHolder, EChartsAlignmentHolder):
 	show: Optional[bool] = None
 	backgroundColor: Optional[ChartColor] = None
 	position: Optional[BarLabelPosition] = None
@@ -382,7 +382,7 @@ class BarChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlign
 	fractionDigits: Optional[int] = None
 
 
-class BarChartSettingsSeries(DataModel, ExtendedBaseModel):
+class BarChartSettingsSeries(ExtendedBaseModel):
 	transformAxis: Optional[bool] = None
 
 
@@ -441,7 +441,7 @@ class PieLabelAlignTo(str, Enum):
 
 
 # noinspection DuplicatedCode
-class PieChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlignmentHolder, ExtendedBaseModel):
+class PieChartSettingsLabel(ExtendedBaseModel, EChartsBorderHolder, EChartsFontHolder, EChartsAlignmentHolder):
 	show: Optional[bool] = None
 	backgroundColor: Optional[ChartColor] = None
 	position: Optional[PieLabelPosition] = None
@@ -455,7 +455,7 @@ class PieChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlign
 	fractionDigits: Optional[int] = None
 
 
-class PieChartSettingsSeries(EChartsBorderHolder, ExtendedBaseModel):
+class PieChartSettingsSeries(ExtendedBaseModel, EChartsBorderHolder):
 	centerX: Optional[float] = None
 	centerY: Optional[float] = None
 	insideRadius: Optional[float] = None
@@ -494,7 +494,7 @@ class NightingaleChart(Chart):
 	settings: Optional[NightingaleChartSettings] = None
 
 
-class SunburstChartSettingsSeries(EChartsBorderHolder, ExtendedBaseModel):
+class SunburstChartSettingsSeries(ExtendedBaseModel, EChartsBorderHolder):
 	centerX: Optional[float] = None
 	centerY: Optional[float] = None
 	insideRadius: Optional[float] = None
@@ -522,7 +522,7 @@ class TreeOrient(str, Enum):
 	BOTTOM_TOP = 'BT'
 
 
-class TreeChartSettingsSeries(DataModel, ExtendedBaseModel):
+class TreeChartSettingsSeries(ExtendedBaseModel):
 	layout: Optional[TreeLayout] = None
 	orient: Optional[TreeOrient] = None
 	roam: Optional[bool] = None
@@ -538,7 +538,7 @@ class TreeChart(Chart):
 	settings: Optional[TreeChartSettings] = None
 
 
-class TreemapChartSettingsSeries(DataModel, ExtendedBaseModel):
+class TreemapChartSettingsSeries(ExtendedBaseModel):
 	roam: Optional[bool] = None
 
 
@@ -560,7 +560,7 @@ class MapChartRegion(str, Enum):
 	USA_L1 = 'usa-l1'
 
 
-class MapChartSettingsSeries(DataModel, ExtendedBaseModel):
+class MapChartSettingsSeries(ExtendedBaseModel):
 	region: Optional[MapChartRegion] = None
 
 

@@ -2,12 +2,12 @@ from watchmen_utilities import ExtendedBaseModel
 from .model import DataModel
 
 
-class GraphicPosition(DataModel, ExtendedBaseModel):
+class GraphicPosition(ExtendedBaseModel):
 	x: float = 0
 	y: float = 0
 
 
-class GraphicSize(DataModel, ExtendedBaseModel):
+class GraphicSize(ExtendedBaseModel):
 	width: float = 0
 	height: float = 0
 

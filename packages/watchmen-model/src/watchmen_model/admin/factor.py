@@ -116,7 +116,7 @@ class FactorEncryptMethod(str, Enum):
 	MASK_MONTH_DAY = 'MASK-MONTH-DAY'
 
 
-class Factor(Storable, ExtendedBaseModel):
+class Factor(ExtendedBaseModel, Storable):
 	factorId: Optional[FactorId] = None
 	type: Optional[FactorType] = None
 	name: Optional[str] = None

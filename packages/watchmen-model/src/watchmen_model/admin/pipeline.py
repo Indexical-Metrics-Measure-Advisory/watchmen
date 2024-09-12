@@ -129,7 +129,7 @@ def construct_stages(stages: Optional[list] = None) -> Optional[List[PipelineSta
 		return ArrayHelper(stages).map(lambda x: construct_stage(x)).to_list()
 
 
-class Pipeline(Conditional, TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+class Pipeline(Conditional, TenantBasedTuple, OptimisticLock):
 	pipelineId: Optional[PipelineId] = None
 	topicId: Optional[TopicId] = None
 	name: Optional[str] = None

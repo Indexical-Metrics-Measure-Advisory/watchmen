@@ -5,7 +5,7 @@ from watchmen_model.common import ConvergenceId, ObjectiveId, OptimisticLock, Sp
 	UserId
 
 
-class UserGroup(TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+class UserGroup(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	userGroupId: Optional[UserGroupId] = None
 	name: Optional[str] = None
 	description: Optional[str] = None

@@ -11,10 +11,10 @@ class ChartTruncationType(str, Enum):
 	BOTTOM = 'bottom'
 
 
-class ChartTruncation(DataModel, ExtendedBaseModel):
+class ChartTruncation(ExtendedBaseModel, DataModel):
 	type: ChartTruncationType = ChartTruncationType.NONE
 	count: int = 20
 
 
-class ChartTruncationHolder(DataModel, ExtendedBaseModel):
+class ChartTruncationHolder(ExtendedBaseModel, DataModel):
 	truncation: Optional[ChartTruncation] = None

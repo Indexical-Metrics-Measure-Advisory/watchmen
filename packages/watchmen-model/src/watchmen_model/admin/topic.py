@@ -38,7 +38,7 @@ def construct_factors(factors: Optional[List[Union[Factor, Dict]]]) -> Optional[
 		return ArrayHelper(factors).map(lambda x: construct_factor(x)).to_list()
 
 
-class Topic(TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+class Topic(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	topicId: Optional[TopicId] = None
 	name: Optional[str] = None
 	type: TopicType = TopicType.DISTINCT

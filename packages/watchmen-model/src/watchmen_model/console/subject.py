@@ -13,7 +13,7 @@ class SubjectJoinType(str, Enum):
 	INNER = 'inner',
 
 
-class SubjectDatasetJoin(DataModel, ExtendedBaseModel):
+class SubjectDatasetJoin(ExtendedBaseModel):
 	topicId: Optional[TopicId] = None
 	factorId: Optional[FactorId] = None
 	secondaryTopicId: Optional[TopicId] = None
@@ -47,7 +47,7 @@ class SubjectColumnFormat(str, Enum):
 	USE_GROUP_6 = '#,##0.000000',
 
 
-class SubjectDataSetColumnRenderer(DataModel, ExtendedBaseModel):
+class SubjectDataSetColumnRenderer(ExtendedBaseModel):
 	alignment: SubjectColumnAlignment
 	format: SubjectColumnFormat
 	highlightNegative: bool

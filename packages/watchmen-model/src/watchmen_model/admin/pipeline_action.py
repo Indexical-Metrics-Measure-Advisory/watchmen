@@ -3,7 +3,7 @@ from typing import Union, Optional
 
 from watchmen_utilities import ExtendedBaseModel
 
-from watchmen_model.common import DataModel, FactorId, ParameterJoint, PipelineActionId, TopicId
+from watchmen_model.common import FactorId, ParameterJoint, PipelineActionId, TopicId
 
 
 class SystemActionType(str, Enum):

@@ -4,7 +4,6 @@ from enum import Enum
 from typing import List, Optional, Union
 
 from watchmen_utilities import ArrayHelper, ExtendedBaseModel
-from .model import DataModel
 from .tuple_ids import FactorId, TopicId
 
 
