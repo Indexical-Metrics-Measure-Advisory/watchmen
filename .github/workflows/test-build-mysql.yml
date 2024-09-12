@@ -1,21 +1,21 @@
 name: Test Build Mysql
 
-#on:
-#  schedule:
-#    - cron: "0 0 * * *"
-#  push:
-#    branches:
-#      - main
-#    paths-ignore:
-#      - 'packages/watchmen-test-postman/**'
-#      - 'packages/watchmen-web-client/**'
-#      - 'packages/watchmen-storage-mongodb/**'
-#      - 'packages/watchmen-storage-mssql/**'
-#      - 'packages/watchmen-storage-oracle/**'
-#      - 'packages/watchmen-storage-postgresql/**'
-#      - 'packages/watchmen-storage-s3/**'
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'packages/watchmen-test-postman/**'
+      - 'packages/watchmen-web-client/**'
+      - 'packages/watchmen-storage-mongodb/**'
+      - 'packages/watchmen-storage-mssql/**'
+      - 'packages/watchmen-storage-oracle/**'
+      - 'packages/watchmen-storage-postgresql/**'
+      - 'packages/watchmen-storage-s3/**'
 
-on: workflow_dispatch
+#on: workflow_dispatch
 
 jobs:
   test-api:

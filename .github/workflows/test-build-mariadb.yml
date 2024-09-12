@@ -83,7 +83,7 @@ jobs:
           REPLACE_TOPIC_TO_STORAGE: TRUE
           PIPELINE_ELASTIC_SEARCH_EXTERNAL_WRITER: TRUE
           META_STORAGE_ECHO: FALSE
-          PIPELINE_PARALLEL_ACTIONS_IN_LOOP_UNIT: True
+          PIPELINE_PARALLEL_ACTIONS_IN_LOOP_UNIT: False
           USE_STORAGE_DIRECTLY: TRUE
         run: |
           poetry config virtualenvs.create false
@@ -104,13 +104,13 @@ jobs:
         run: |
           newman run ./packages/watchmen-test-postman/watchmen-postman.json -e ./packages/watchmen-test-postman/mysql.json --bail -r cli,htmlextra --reporter-htmlextra-export testResults/htmlreport.html --delay-request 1000
       - name: Output the run details
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: RunReports
           path: testResults
       - name: Output the doll details
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: DollServerOput
