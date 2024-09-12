@@ -3,11 +3,9 @@ from __future__ import annotations
 from enum import Enum
 from typing import List, Optional, TypeVar, Union
 
-from pydantic import BaseModel
-
 from watchmen_model.common import BucketId, DataModel, FactorId, IndicatorId, ObjectiveFactorId, ObjectiveId, \
 	ObjectiveTargetId, OptimisticLock, SubjectDatasetColumnId, TenantBasedTuple, UserGroupId
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 
 ObjectiveFactorName = TypeVar('ObjectiveFactorName', bound=str)
 
@@ -93,14 +91,10 @@ class ObjectiveParameterType(str, Enum):
 	TIME_FRAME = 'time-frame'
 
 
-# noinspection DuplicatedCode
-class AvoidFastApiError:
-	on: Optional[ObjectiveParameterJoint] = None
-
-
-class ObjectiveParameter(DataModel, AvoidFastApiError, BaseModel):
+class ObjectiveParameter(ExtendedBaseModel):
 	kind: ObjectiveParameterType = None
 	conditional: bool = False
+	on: Optional[ObjectiveParameterJoint] = None
 
 	def __setattr__(self, name, value):
 		if name == 'on':
@@ -174,7 +168,7 @@ class TimeFrameObjectiveParameter(ObjectiveParameter):
 	kind: ObjectiveParameterType.TIME_FRAME = ObjectiveParameterType.TIME_FRAME
 
 
-class ObjectiveParameterCondition(DataModel, BaseModel):
+class ObjectiveParameterCondition(ExtendedBaseModel):
 	pass
 
 
@@ -241,7 +235,7 @@ class ObjectiveTimeFrameTill(str, Enum):
 	SPECIFIED = 'specified'
 
 
-class ObjectiveTimeFrame(DataModel, BaseModel):
+class ObjectiveTimeFrame(ExtendedBaseModel):
 	# is target in time frame, normally is
 	kind: Optional[ObjectiveTimeFrameKind] = None
 	# only available if kind is LAST_N-* types, should be a positive value
@@ -271,8 +265,8 @@ def construct_asis(
 		return ComputedObjectiveParameter(**asis)
 
 
-class ObjectiveTarget(DataModel, BaseModel):
-	uuid: ObjectiveTargetId = None
+class ObjectiveTarget(ExtendedBaseModel):
+	uuid: Optional[ObjectiveTargetId] = None
 
 	name: Optional[str] = None
 	# to be value, should be a numeric value, a percentage value
@@ -299,9 +293,9 @@ class ObjectiveVariableKind(str, Enum):
 	RANGE = 'range'
 
 
-class ObjectiveVariable(DataModel, BaseModel):
-	name: str
-	kind: ObjectiveVariableKind = None
+class ObjectiveVariable(ExtendedBaseModel):
+	name: Optional[str] = None
+	kind: Optional[ObjectiveVariableKind] = None
 
 
 class ObjectiveVariableOnValue(ObjectiveVariable):
@@ -328,10 +322,10 @@ class ObjectiveFactorKind(str, Enum):
 	COMPUTED = 'computed'
 
 
-class ObjectiveFactor(DataModel, BaseModel):
-	uuid: ObjectiveFactorId = None
-	kind: ObjectiveFactorKind = None
-	name: ObjectiveFactorName = None
+class ObjectiveFactor(ExtendedBaseModel):
+	uuid: Optional[ObjectiveFactorId] = None
+	kind: Optional[ObjectiveFactorKind] = None
+	name: Optional[ObjectiveFactorName] = None
 	formula: Optional[ComputedObjectiveParameter] = None
 
 	def __setattr__(self, name, value):
@@ -434,15 +428,15 @@ def construct_factors(factors: Optional[list] = None) -> Optional[List[Objective
 		return ArrayHelper(factors).map(lambda x: construct_factor(x)).to_list()
 
 
-class Objective(TenantBasedTuple, OptimisticLock, BaseModel):
-	objectiveId: ObjectiveId = None
-	name: str = None
-	description: str = None
-	timeFrame: ObjectiveTimeFrame = None
+class Objective(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
+	objectiveId: Optional[ObjectiveId] = None
+	name: Optional[str] = None
+	description: Optional[str] = None
+	timeFrame: Optional[ObjectiveTimeFrame] = None
 	targets: List[ObjectiveTarget] = []
 	variables: List[ObjectiveVariable] = []
 	factors: List[ObjectiveFactor] = []
-	groupIds: List[UserGroupId] = None
+	groupIds: Optional[List[UserGroupId]] = None
 
 	def __setattr__(self, name, value):
 		if name == 'timeFrame':

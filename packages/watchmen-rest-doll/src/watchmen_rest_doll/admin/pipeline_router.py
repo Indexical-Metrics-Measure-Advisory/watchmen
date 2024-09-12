@@ -29,7 +29,7 @@ def get_pipeline_index_service(pipeline_service: PipelineService) -> PipelineInd
 	return PipelineIndexService(pipeline_service.storage, pipeline_service.snowflakeGenerator)
 
 
-@router.get('/pipeline', tags=[UserRole.ADMIN], response_model=Pipeline)
+@router.get('/pipeline', tags=[UserRole.ADMIN], response_model=None)
 async def load_pipeline_by_id(
 		pipeline_id: Optional[PipelineId],
 		principal_service: PrincipalService = Depends(get_admin_principal)
@@ -113,7 +113,7 @@ def ask_save_pipeline_action(
 	return action
 
 
-@router.post('/pipeline', tags=[UserRole.ADMIN], response_model=Pipeline)
+@router.post('/pipeline', tags=[UserRole.ADMIN], response_model=None)
 async def save_pipeline(
 		pipeline: Pipeline, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Pipeline:
@@ -187,7 +187,7 @@ async def update_pipeline_enabled_by_id(
 	trans(pipeline_service, action)
 
 
-@router.get('/pipeline/all', tags=[UserRole.ADMIN], response_model=List[Pipeline])
+@router.get('/pipeline/all', tags=[UserRole.ADMIN], response_model=None)
 async def find_all_pipelines(principal_service: PrincipalService = Depends(get_admin_principal)) -> List[Pipeline]:
 	pipeline_service = get_pipeline_service(principal_service)
 
@@ -203,7 +203,7 @@ class LastModified(ExtendedBaseModel):
 
 
 # noinspection DuplicatedCode
-@router.post('/pipeline/updated', tags=[UserRole.ADMIN], response_model=List[Pipeline])
+@router.post('/pipeline/updated', tags=[UserRole.ADMIN], response_model=None)
 async def find_updated_pipelines(
 		lastModified: LastModified, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> List[Pipeline]:
@@ -234,7 +234,7 @@ def post_delete_pipeline(pipeline_id: PipelineId, pipeline_service: PipelineServ
 	CacheService.pipeline().remove(pipeline_id)
 
 
-@router.delete('/pipeline', tags=[UserRole.SUPER_ADMIN], response_model=Pipeline)
+@router.delete('/pipeline', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_pipeline_by_id_by_super_admin(
 		pipeline_id: Optional[PipelineId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

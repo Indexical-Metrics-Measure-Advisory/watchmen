@@ -29,7 +29,7 @@ class LoginConfiguration(ExtendedBaseModel):
 	url: Optional[str] = None
 
 
-@router.get('/auth/config', tags=['authenticate'], response_model=LoginConfiguration)
+@router.get('/auth/config', tags=['authenticate'], response_model=None)
 async def load_login_config(request: Request) -> LoginConfiguration:
 	if ask_sso_enabled() and ask_saml2_enabled():
 		from watchmen_rest_doll.sso.saml.saml_helper import prepare_from_fastapi_request
@@ -59,7 +59,7 @@ def authenticate(username, password) -> User:
 		raise_401('Incorrect username or password.')
 
 
-@router.post('/login', response_model=Token, tags=['authenticate'])
+@router.post('/login', response_model=None, tags=['authenticate'])
 async def login_by_user_pwd(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
 	"""
 	OAuth2 compatible token login, get an access token for future requests
@@ -79,7 +79,7 @@ async def login_by_user_pwd(form_data: OAuth2PasswordRequestForm = Depends()) ->
 	)
 
 
-@router.get('/token/validate/jwt', response_model=User, tags=['authenticate'])
+@router.get('/token/validate/jwt', response_model=None, tags=['authenticate'])
 async def validate_jwt_token(token: str) -> User:
 	"""
 	Validate given token, returns user of this token when validated
@@ -87,7 +87,7 @@ async def validate_jwt_token(token: str) -> User:
 	return retrieve_authentication_manager().authenticate(AuthenticationScheme.JWT.value, token)
 
 
-@router.get('/token/exchange-user', response_model=User, tags=['authenticate'])
+@router.get('/token/exchange-user', response_model=None, tags=['authenticate'])
 async def exchange_user(principal_service: PrincipalService = Depends(get_any_principal)) -> Optional[User]:
 	"""
 	returns current principal

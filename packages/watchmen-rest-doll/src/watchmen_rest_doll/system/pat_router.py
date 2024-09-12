@@ -34,7 +34,7 @@ class ClientPat(ExtendedBaseModel):
 	note: Optional[str] = None
 
 
-@router.post('/pat/create', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=ClientPat)
+@router.post('/pat/create', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def create_pat(
 		params: PatCreationParams = Body(...),
 		principal_service: PrincipalService = Depends(get_any_principal)) -> ClientPat:
@@ -57,7 +57,7 @@ async def create_pat(
 	return trans(pat_service, action)
 
 
-@router.get('/pat/list', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[ClientPat])
+@router.get('/pat/list', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def find_my_pats(principal_service: PrincipalService = Depends(get_any_principal)) -> List[ClientPat]:
 	pat_service = get_pat_service(principal_service)
 

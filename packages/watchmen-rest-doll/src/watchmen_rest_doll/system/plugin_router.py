@@ -22,7 +22,7 @@ def get_plugin_service(principal_service: PrincipalService) -> PluginService:
 	return PluginService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.get('/plugin', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=Plugin)
+@router.get('/plugin', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def load_plugin_by_id(
 		plugin_id: Optional[PluginId] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
@@ -45,7 +45,7 @@ async def load_plugin_by_id(
 	return trans_readonly(plugin_service, action)
 
 
-@router.post('/plugin', tags=[UserRole.SUPER_ADMIN], response_model=Plugin)
+@router.post('/plugin', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def save_plugin(
 		plugin: Plugin, principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> Plugin:
@@ -71,7 +71,7 @@ class QueryPluginDataPage(DataPage):
 
 
 @router.post(
-	'/plugin/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=QueryPluginDataPage)
+	'/plugin/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def find_plugins_by_name(
 		query_name: Optional[str] = None, pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
@@ -95,7 +95,7 @@ async def find_plugins_by_name(
 	return page
 
 
-@router.get("/plugin/all", tags=[UserRole.ADMIN], response_model=List[Plugin])
+@router.get("/plugin/all", tags=[UserRole.ADMIN], response_model=None)
 async def find_all_plugins(
 		principal_service: PrincipalService = Depends(get_any_admin_principal)) -> List[Plugin]:
 	tenant_id = None
@@ -110,7 +110,7 @@ async def find_all_plugins(
 	return attach_tenant_name(trans_readonly(plugin_service, action), principal_service)
 
 
-@router.get("/plugin/achievement", tags=[UserRole.ADMIN], response_model=List[Plugin])
+@router.get("/plugin/achievement", tags=[UserRole.ADMIN], response_model=None)
 async def find_all_achievement_plugins(
 		principal_service: PrincipalService = Depends(get_any_admin_principal)) -> List[Plugin]:
 	tenant_id = None
@@ -125,7 +125,7 @@ async def find_all_achievement_plugins(
 	return attach_tenant_name(trans_readonly(plugin_service, action), principal_service)
 
 
-@router.delete('/plugin', tags=[UserRole.SUPER_ADMIN], response_model=Plugin)
+@router.delete('/plugin', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_plugin_by_id(
 		plugin_id: Optional[PluginId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

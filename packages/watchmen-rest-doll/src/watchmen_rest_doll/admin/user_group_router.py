@@ -42,7 +42,7 @@ def get_convergence_service(user_group_service: UserGroupService) -> Convergence
 		user_group_service.storage, user_group_service.snowflakeGenerator, user_group_service.principalService)
 
 
-@router.get('/user_group', tags=[UserRole.ADMIN], response_model=UserGroup)
+@router.get('/user_group', tags=[UserRole.ADMIN], response_model=None)
 async def load_user_group_by_id(
 		user_group_id: Optional[UserGroupId] = None, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> UserGroup:
@@ -390,7 +390,7 @@ def ask_save_user_group_action(
 	return action
 
 
-@router.post('/user_group', tags=[UserRole.ADMIN], response_model=UserGroup)
+@router.post('/user_group', tags=[UserRole.ADMIN], response_model=None)
 async def save_user_group(
 		user_group: UserGroup, principal_service: PrincipalService = Depends(get_admin_principal)) -> UserGroup:
 	validate_tenant_id(user_group, principal_service)
@@ -403,7 +403,7 @@ class QueryUserGroupDataPage(DataPage):
 	data: List[UserGroup]
 
 
-@router.post('/user_group/name', tags=[UserRole.ADMIN], response_model=QueryUserGroupDataPage)
+@router.post('/user_group/name', tags=[UserRole.ADMIN], response_model=None)
 async def find_user_groups_page_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_admin_principal)
@@ -422,7 +422,7 @@ async def find_user_groups_page_by_name(
 	return trans_readonly(user_group_service, action)
 
 
-@router.get('/user_group/list/name', tags=[UserRole.ADMIN], response_model=List[UserGroup])
+@router.get('/user_group/list/name', tags=[UserRole.ADMIN], response_model=None)
 async def find_user_groups_by_name(
 		query_name: Optional[str], principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> List[UserGroup]:
@@ -440,7 +440,7 @@ async def find_user_groups_by_name(
 	return trans_readonly(user_group_service, action)
 
 
-@router.post('/user_group/ids', tags=[UserRole.ADMIN], response_model=List[UserGroup])
+@router.post('/user_group/ids', tags=[UserRole.ADMIN], response_model=None)
 async def find_user_groups_by_ids(
 		user_group_ids: List[UserGroupId], principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> List[UserGroup]:
@@ -456,7 +456,7 @@ async def find_user_groups_by_ids(
 	return trans_readonly(user_group_service, action)
 
 
-@router.delete('/user_group', tags=[UserRole.SUPER_ADMIN], response_model=UserGroup)
+@router.delete('/user_group', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_user_group_by_id_by_super_admin(
 		user_group_id: Optional[UserGroupId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

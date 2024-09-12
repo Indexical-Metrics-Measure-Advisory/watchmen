@@ -24,7 +24,7 @@ def get_pipeline_graphic_service(principal_service: PrincipalService) -> Pipelin
 	return PipelineGraphicService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.get('/pipeline/graphics', tags=[UserRole.ADMIN], response_model=List[PipelineGraphic])
+@router.get('/pipeline/graphics', tags=[UserRole.ADMIN], response_model=None)
 async def find_my_pipeline_graphics(
 		principal_service: PrincipalService = Depends(get_admin_principal)) -> List[PipelineGraphic]:
 	"""
@@ -40,7 +40,7 @@ async def find_my_pipeline_graphics(
 	return trans_readonly(pipeline_graphic_service, action)
 
 
-@router.post('/pipeline/graphics', tags=[UserRole.ADMIN], response_model=PipelineGraphic)
+@router.post('/pipeline/graphics', tags=[UserRole.ADMIN], response_model=None)
 async def save_pipeline_graphic(
 		pipeline_graphic: PipelineGraphic, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> PipelineGraphic:
@@ -118,7 +118,7 @@ class UpdatedGraphicResponse(ExtendedBaseModel):
 	removed: Optional[List[PipelineGraphicId]] = None
 
 
-@router.post('/pipeline/graphics/updated', tags=[UserRole.ADMIN], response_model=UpdatedGraphicResponse)
+@router.post('/pipeline/graphics/updated', tags=[UserRole.ADMIN], response_model=None)
 async def find_updated_and_removed_pipeline_graphics(
 		asked: UpdatedGraphicRequest, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> UpdatedGraphicResponse:
@@ -151,7 +151,7 @@ async def find_updated_and_removed_pipeline_graphics(
 	return trans_readonly(pipeline_graphic_service, action)
 
 
-@router.delete('/pipeline/graphics', tags=[UserRole.SUPER_ADMIN], response_model=PipelineGraphic)
+@router.delete('/pipeline/graphics', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_pipeline_graphic_by_id_by_super_admin(
 		pipeline_graphic_id: Optional[PipelineGraphicId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
