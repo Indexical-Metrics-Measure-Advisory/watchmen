@@ -20,7 +20,7 @@ def get_monitor_rule_service(principal_service: PrincipalService) -> MonitorRule
 	return MonitorRuleService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.get('/dqc/monitor/rules', tags=[UserRole.ADMIN], response_model=List[MonitorRule])
+@router.get('/dqc/monitor/rules', tags=[UserRole.ADMIN], response_model=None)
 async def find_monitor_rules(
 		grade: Optional[MonitorRuleGrade] = None, topic_id: Optional[TopicId] = None,
 		principal_service: PrincipalService = Depends(get_admin_principal)
@@ -42,7 +42,7 @@ async def find_monitor_rules(
 	return trans_readonly(monitor_rule_service, action)
 
 
-@router.post('/dqc/monitor/rules', tags=[UserRole.ADMIN], response_model=List[MonitorRule])
+@router.post('/dqc/monitor/rules', tags=[UserRole.ADMIN], response_model=None)
 async def save_monitor_rules(
 		rules: List[MonitorRule], principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> List[MonitorRule]:

@@ -29,7 +29,7 @@ def clear_pwd(user: User):
 	del user.password
 
 
-@router.get('/user', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
+@router.get('/user', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def load_user_by_id(
 		user_id: Optional[UserId] = None,
 		principal_service: PrincipalService = Depends(get_any_principal)
@@ -195,7 +195,7 @@ def ask_save_user_action(
 	return action
 
 
-@router.post('/user', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
+@router.post('/user', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def save_user(user: User, principal_service: PrincipalService = Depends(get_any_admin_principal)) -> User:
 	validate_tenant_id(user, principal_service)
 	user_service = get_user_service(principal_service)
@@ -207,7 +207,7 @@ class QueryUserDataPage(DataPage):
 	data: List[User]
 
 
-@router.post('/user/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=QueryUserDataPage)
+@router.post('/user/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def find_users_page_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
@@ -230,7 +230,7 @@ async def find_users_page_by_name(
 	return trans_readonly(user_service, action)
 
 
-@router.get('/user/list/name', tags=[UserRole.ADMIN], response_model=List[User])
+@router.get('/user/list/name', tags=[UserRole.ADMIN], response_model=None)
 async def find_users_by_name(
 		query_name: Optional[str], principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> List[User]:
@@ -250,7 +250,7 @@ async def find_users_by_name(
 	return trans_readonly(user_service, action)
 
 
-@router.post('/user/ids', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[User])
+@router.post('/user/ids', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def find_users_by_ids(
 		user_ids: List[UserId], principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> List[User]:
@@ -270,7 +270,7 @@ async def find_users_by_ids(
 	return trans_readonly(user_service, action)
 
 
-@router.delete('/user', tags=[UserRole.SUPER_ADMIN], response_model=User)
+@router.delete('/user', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_user_by_id_by_super_admin(
 		user_id: Optional[UserId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

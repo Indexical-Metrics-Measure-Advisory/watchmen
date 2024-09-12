@@ -1,15 +1,14 @@
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
 
-from watchmen_model.common import ConnectedSpaceId, DataModel, GraphicRect, SubjectId, TopicId, UserBasedTuple
-from watchmen_utilities import ArrayHelper
+from watchmen_model.common import ConnectedSpaceId, GraphicRect, SubjectId, TopicId, UserBasedTuple
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 from .utils import construct_rect
 
 
-class TopicGraphic(DataModel, BaseModel):
-	topicId: TopicId = None
-	rect: GraphicRect = None
+class TopicGraphic(ExtendedBaseModel):
+	topicId: Optional[TopicId] = None
+	rect: Optional[GraphicRect] = None
 
 	def __setattr__(self, name, value):
 		if name == 'rect':
@@ -18,9 +17,9 @@ class TopicGraphic(DataModel, BaseModel):
 			super().__setattr__(name, value)
 
 
-class SubjectGraphic(DataModel, BaseModel):
-	subjectId: SubjectId = None
-	rect: GraphicRect = None
+class SubjectGraphic(ExtendedBaseModel):
+	subjectId: Optional[SubjectId] = None
+	rect: Optional[GraphicRect] = None
 
 	def __setattr__(self, name, value):
 		if name == 'rect':
@@ -60,7 +59,7 @@ def construct_subjects(subjects: List[Union[dict, SubjectGraphic]]) -> List[Subj
 	return ArrayHelper(subjects).map(lambda x: construct_subject(x)).to_list()
 
 
-class ConnectedSpaceGraphic(UserBasedTuple, BaseModel):
+class ConnectedSpaceGraphic(ExtendedBaseModel, UserBasedTuple):
 	connectId: ConnectedSpaceId = None
 	topics: List[TopicGraphic] = None
 	subjects: List[SubjectGraphic] = None

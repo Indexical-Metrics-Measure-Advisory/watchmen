@@ -47,7 +47,7 @@ def get_last_snapshot_service(dashboard_service: DashboardService) -> LastSnapsh
 	return LastSnapshotService(dashboard_service.storage, dashboard_service.principalService)
 
 
-@router.get('/dashboard/list', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Dashboard])
+@router.get('/dashboard/list', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_my_dashboards(
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[Dashboard]:

@@ -1,10 +1,9 @@
 from typing import Optional, Union
 
-from pydantic import BaseModel
-
 from watchmen_model.common import UserBasedTuple, Auditable, LastVisit
 from watchmen_model.common.tuple_ids import ObjectiveReportId, DerivedObjectiveReportId
 from watchmen_model.indicator.objective_report import ObjectiveReport
+from watchmen_utilities import ExtendedBaseModel
 
 
 def construct_objective_report(definition: Optional[Union[dict, ObjectiveReport]]) -> Optional[ObjectiveReport]:
@@ -16,12 +15,13 @@ def construct_objective_report(definition: Optional[Union[dict, ObjectiveReport]
 		# noinspection PyArgumentList
 		return ObjectiveReport(**definition)
 
-class DerivedObjectiveReport(UserBasedTuple, Auditable, LastVisit, BaseModel):
-	derivedObjectiveReportId: DerivedObjectiveReportId = None
-	name: str = None
-	description: str = None
-	objectiveReportId: ObjectiveReportId
-	definition: ObjectiveReport
+
+class DerivedObjectiveReport(ExtendedBaseModel, UserBasedTuple, Auditable, LastVisit):
+	derivedObjectiveReportId: Optional[DerivedObjectiveReportId] = None
+	name: Optional[str] = None
+	description: Optional[str] = None
+	objectiveReportId: Optional[ObjectiveReportId] = None
+	definition: Optional[ObjectiveReport] = None
 
 	def __setattr__(self, name, value):
 		if name == 'definition':

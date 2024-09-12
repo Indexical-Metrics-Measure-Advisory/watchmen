@@ -9,7 +9,7 @@ from watchmen_model.admin import DeleteTopicActionType, PipelineActionType, Read
 	WriteTopicActionType
 from watchmen_model.common import DataModel, Pageable, PipelineActionId, PipelineId, PipelineStageId, PipelineUnitId, \
 	TenantId, TopicId
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 from .pipeline_trigger_data import PipelineTriggerTraceId
 
 
@@ -19,15 +19,15 @@ class MonitorLogStatus(str, Enum):
 	ERROR = 'ERROR',  # exception occurred
 
 
-class StandardMonitorLog(DataModel, BaseModel):
-	status: MonitorLogStatus
+class StandardMonitorLog(ExtendedBaseModel):
+	status: Optional[MonitorLogStatus] = None
 	startTime: Optional[datetime] = None  # keep none when step is ignored
 	spentInMills: Optional[int] = 0  # keep 0 when step is ignored
-	error: Optional[str]  # if status is ERROR
+	error: Optional[str] = None  # if status is ERROR
 
 
 class ConditionalMonitorLog(StandardMonitorLog):
-	prerequisite: bool  # result of prerequisite, True when it is not defined
+	prerequisite: Optional[bool] = None  # result of prerequisite, True when it is not defined
 	prerequisiteDefinedAs: Optional[Any] = None  # definition of prerequisite
 
 
@@ -197,15 +197,15 @@ PipelineMonitorLogId = TypeVar('PipelineMonitorLogId', bound=str)
 
 
 class PipelineMonitorLog(ConditionalMonitorLog):
-	uid: PipelineMonitorLogId
-	traceId: PipelineTriggerTraceId
-	pipelineId: PipelineId
-	topicId: TopicId
-	dataId: int
-	oldValue: Any
-	newValue: Any
-	data_: Any
-	stages: List[MonitorLogStage]
+	uid: Optional[PipelineMonitorLogId] = None
+	traceId: Optional[PipelineTriggerTraceId] = None
+	pipelineId: Optional[PipelineId] = None
+	topicId: Optional[TopicId] = None
+	dataId: Optional[int] = None
+	oldValue: Any = None
+	newValue: Any = None
+	data_: Any = None
+	stages: Optional[List[MonitorLogStage]] = None
 
 	def __setattr__(self, name, value):
 		if name == 'stages':

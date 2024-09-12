@@ -1,8 +1,6 @@
 from enum import Enum
-
-from pydantic import BaseModel
-
 from watchmen_model.common import AchievementPluginTaskId, Auditable, PluginId, UserBasedTuple
+from watchmen_utilities import ExtendedBaseModel
 
 
 class AchievementPluginTaskStatus(str, Enum):
@@ -12,7 +10,7 @@ class AchievementPluginTaskStatus(str, Enum):
 	FAILED = 'failed'
 
 
-class AchievementPluginTask(UserBasedTuple, Auditable, BaseModel):
+class AchievementPluginTask(ExtendedBaseModel, UserBasedTuple, Auditable):
 	achievementTaskId: AchievementPluginTaskId = None
 	# TODO REFACTOR-OBJECTIVE ACHIEVEMENT IS DROPPED
 	# achievementId: AchievementId = None

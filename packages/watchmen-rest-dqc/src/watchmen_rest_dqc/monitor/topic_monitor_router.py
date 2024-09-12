@@ -51,7 +51,7 @@ def ask_principal_service(principal_service: PrincipalService, tenant_id: Option
 		))
 
 
-@router.post('/dqc/monitor/result', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[MonitorRuleLog])
+@router.post('/dqc/monitor/result', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def query_monitor_result(
 		criteria: MonitorRuleLogCriteria,
 		tenant_id: Optional[TenantId] = None,
