@@ -95,7 +95,7 @@ class ParameterJointType(str, Enum):
 
 class ParameterJoint(ParameterCondition):
 	jointType: ParameterJointType = ParameterJointType.AND
-	filters: Optional[List[ParameterCondition]] = None
+	filters: Optional[List[ParameterCondition]] = []
 
 	def __setattr__(self, name, value):
 		if name == 'filters':
