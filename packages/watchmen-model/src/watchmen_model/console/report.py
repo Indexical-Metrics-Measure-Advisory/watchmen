@@ -21,13 +21,13 @@ class ReportIndicatorArithmetic(str, Enum):
 	MINIMUM = 'min'
 
 
-class ReportIndicator(DataModel, ExtendedBaseModel):
+class ReportIndicator(ExtendedBaseModel):
 	columnId: Optional[SubjectDatasetColumnId] = None
 	name: Optional[str] = None
 	arithmetic: ReportIndicatorArithmetic = ReportIndicatorArithmetic.NONE
 
 
-class ReportDimension(DataModel, ExtendedBaseModel):
+class ReportDimension(ExtendedBaseModel):
 	columnId: Optional[SubjectDatasetColumnId] = None
 	name: Optional[str] = None
 

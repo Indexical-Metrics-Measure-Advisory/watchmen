@@ -5,7 +5,7 @@ from .chart_enums import ChartBorderStyle, ChartFontStyle, ChartFontWeight
 from .chart_types import ChartColor
 
 
-class ChartFont(DataModel, ExtendedBaseModel):
+class ChartFont(ExtendedBaseModel):
 	family: Optional[str] = None
 	size: Optional[float] = None
 	color: Optional[ChartColor] = None
@@ -13,7 +13,7 @@ class ChartFont(DataModel, ExtendedBaseModel):
 	weight: Optional[ChartFontWeight] = None
 
 
-class ChartBorder(DataModel, ExtendedBaseModel):
+class ChartBorder(ExtendedBaseModel):
 	color: Optional[ChartColor] = None
 	style: Optional[ChartBorderStyle] = None
 	width: Optional[float] = None

@@ -7,7 +7,7 @@ from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import Storable
 
 
-class SQLQueryPerformance(Storable, ExtendedBaseModel):
+class SQLQueryPerformance(ExtendedBaseModel, Storable):
 	id: Optional[str] = None
 	queryText: Optional[str] = None
 	querySpent: Optional[Decimal] = None

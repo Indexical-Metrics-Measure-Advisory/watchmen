@@ -6,14 +6,10 @@ from watchmen_model.common import construct_parameter_joint, DataModel, Optimist
 from watchmen_utilities import ArrayHelper
 
 
-# noinspection PyRedundantParentheses,DuplicatedCode
-class AvoidFastApiError:
-	joint: ParameterJoint = None
-
-
-class SpaceFilter(DataModel, AvoidFastApiError, ExtendedBaseModel):
+class SpaceFilter(ExtendedBaseModel):
 	topicId: Optional[TopicId] = None
 	enabled: bool = False
+	joint: ParameterJoint = None
 
 	def __setattr__(self, name, value):
 		if name == 'joint':
@@ -39,7 +35,7 @@ def construct_filters(filters: Optional[list] = None) -> Optional[List[SpaceFilt
 		return ArrayHelper(filters).map(lambda x: construct_filter(x)).to_list()
 
 
-class Space(TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+class Space(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	spaceId: Optional[SpaceId] = None
 	name: Optional[str] = None
 	description: Optional[str] = None

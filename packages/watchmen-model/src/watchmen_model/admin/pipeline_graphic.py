@@ -24,7 +24,7 @@ def construct_position(rect: Optional[Union[dict, GraphicPosition]]) -> Optional
 		return GraphicPosition(**rect)
 
 
-class TopicRect(DataModel, ExtendedBaseModel):
+class TopicRect(ExtendedBaseModel):
 	coordinate: Optional[GraphicPosition] = None
 	frame: Optional[GraphicRect] = None
 	name: Optional[GraphicPosition] = None
@@ -49,7 +49,7 @@ def construct_topic_rect(rect: Optional[Union[dict, TopicRect]]) -> Optional[Top
 		return TopicRect(**rect)
 
 
-class TopicGraphic(DataModel, ExtendedBaseModel):
+class TopicGraphic(ExtendedBaseModel):
 	topicId: Optional[TopicId] = None
 	rect: Optional[TopicRect] = None
 
@@ -76,7 +76,7 @@ def construct_topics(topics: List[Union[dict, TopicGraphic]]) -> List[TopicGraph
 	return ArrayHelper(topics).map(lambda x: construct_topic(x)).to_list()
 
 
-class PipelineGraphic(UserBasedTuple, ExtendedBaseModel):
+class PipelineGraphic(ExtendedBaseModel, UserBasedTuple):
 	pipelineGraphId: Optional[PipelineGraphicId] = None
 	name: Optional[str] = None
 	topics: Optional[List[TopicGraphic]] = []

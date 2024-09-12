@@ -13,7 +13,7 @@ class Token(ExtendedBaseModel):
 	tenantId: Optional[TenantId] = None
 
 
-class PersonalAccessToken(UserBasedTuple, ExtendedBaseModel):
+class PersonalAccessToken(ExtendedBaseModel, UserBasedTuple):
 	patId: Optional[PatId] = None
 	token: Optional[str] = None
 	username: Optional[str] = None

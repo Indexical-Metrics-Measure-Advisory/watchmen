@@ -9,7 +9,7 @@ class ExternalWriterType(str, Enum):
 	ELASTIC_SEARCH_WRITER = 'elastic-search-writer'
 
 
-class ExternalWriter(TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+class ExternalWriter(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	writerId: Optional[ExternalWriterId] = None
 	writerCode: Optional[str] = None
 	name: Optional[str] = None

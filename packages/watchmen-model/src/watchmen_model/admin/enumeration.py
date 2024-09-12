@@ -6,7 +6,7 @@ from watchmen_model.common import EnumId, EnumItemId, OptimisticLock, Storable, 
 from watchmen_utilities import ArrayHelper
 
 
-class EnumItem(Storable, ExtendedBaseModel):
+class EnumItem(ExtendedBaseModel, Storable):
 	itemId: Optional[EnumItemId] = None
 	code: Optional[str] = None
 	label: Optional[str] = None
@@ -32,7 +32,7 @@ def construct_items(items: Optional[List[Union[EnumItem, Dict]]]) -> Optional[Li
 		return ArrayHelper(items).map(lambda x: construct_item(x)).to_list()
 
 
-class Enum(TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+class Enum(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	enumId: Optional[EnumId] = None
 	name: Optional[str] = None
 	description: Optional[str] = None

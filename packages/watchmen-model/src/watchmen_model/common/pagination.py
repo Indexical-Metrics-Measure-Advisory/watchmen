@@ -5,7 +5,7 @@ from watchmen_utilities import ExtendedBaseModel
 from .model import DataModel
 
 
-class Pageable(DataModel, ExtendedBaseModel):
+class Pageable(ExtendedBaseModel):
 	pageNumber: Optional[int] = None
 	pageSize: Optional[int] = None
 

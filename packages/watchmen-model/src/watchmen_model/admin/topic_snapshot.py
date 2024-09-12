@@ -16,7 +16,7 @@ class TopicSnapshotFrequency(str, Enum):
 	MONTHLY = 'monthly'
 
 
-class TopicSnapshotScheduler(TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
+class TopicSnapshotScheduler(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	schedulerId: Optional[TopicSnapshotSchedulerId] = None
 	topicId: Optional[TopicId] = None
 	targetTopicName: Optional[str] = None

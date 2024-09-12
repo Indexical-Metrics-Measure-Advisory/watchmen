@@ -6,7 +6,7 @@ from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import Storable, TenantId, UserId
 
 
-class KeyStore(Storable, ExtendedBaseModel):
+class KeyStore(ExtendedBaseModel, Storable):
 	tenantId: Optional[TenantId] = None
 	keyType: Optional[str] = None
 	params: Optional[Dict[str, Any]] = None
