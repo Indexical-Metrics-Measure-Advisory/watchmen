@@ -1,6 +1,8 @@
 from typing import Any, Dict, List, Union, Optional
 
-from watchmen_utilities import ExtendedBaseModel
+from pydantic import field_serializer
+
+from watchmen_utilities import ExtendedBaseModel, ArrayHelper
 
 from .model import DataModel
 
@@ -25,3 +27,7 @@ class DataPage(Pageable):
 	data: Optional[list] = []
 	itemCount: Optional[int] = None
 	pageCount: Optional[int] = None
+
+	@field_serializer('data')
+	def serialize_data(self, data: list, _info):
+		return ArrayHelper(data).map(lambda row: row.to_dict()).to_list()
