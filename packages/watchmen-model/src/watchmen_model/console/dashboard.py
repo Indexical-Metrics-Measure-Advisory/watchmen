@@ -56,10 +56,10 @@ def construct_paragraphs(paragraphs: List[Union[dict, DashboardParagraph]]) -> L
 
 
 class Dashboard(ExtendedBaseModel, UserBasedTuple, Auditable, LastVisit):
-	dashboardId: DashboardId = None
-	name: str = None
-	reports: List[DashboardReport] = None
-	paragraphs: List[DashboardParagraph] = None
+	dashboardId: Optional[DashboardId] = None
+	name: Optional[str] = None
+	reports: Optional[List[DashboardReport]] = None
+	paragraphs: Optional[List[DashboardParagraph]] = None
 	autoRefreshInterval: Optional[int] = None
 
 	def __setattr__(self, name, value):

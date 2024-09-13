@@ -19,10 +19,9 @@ class Chart(ExtendedBaseModel):
 			else:
 				super().__setattr__(name, value)
 		elif name == 'type':
+			super().__setattr__(name, value)
 			if self.settings is not None:
-				super().__setattr__(name, construct_settings(self.settings, value))
-			else:
-				super().__setattr__(name, value)
+				super().__setattr__('settings', construct_settings(self.settings, value))
 		else:
 			super().__setattr__(name, value)
 

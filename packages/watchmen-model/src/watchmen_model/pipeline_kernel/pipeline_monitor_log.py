@@ -166,9 +166,9 @@ def construct_units(units: Optional[list] = None) -> Optional[List[MonitorLogUni
 
 
 class MonitorLogStage(ConditionalMonitorLog):
-	stageId: PipelineStageId
-	name: str
-	units: List[MonitorLogUnit]
+	stageId: Optional[PipelineStageId] = None
+	name: Optional[str] = None
+	units: Optional[List[MonitorLogUnit]] = None
 
 	def __setattr__(self, name, value):
 		if name == 'units':
