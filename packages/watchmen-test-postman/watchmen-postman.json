@@ -4139,7 +4139,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{URL_PREFIX}}/topic/list/name?query_name=pipeline_monitor_error_log&exclude_types=",
+									"raw": "{{URL_PREFIX}}/topic/list/name?query_name=pipeline_monitor_error_log&exclude_types=meta",
 									"host": [
 										"{{URL_PREFIX}}"
 									],
@@ -4155,7 +4155,7 @@
 										},
 										{
 											"key": "exclude_types",
-											"value": ""
+											"value": "meta"
 										}
 									]
 								}
