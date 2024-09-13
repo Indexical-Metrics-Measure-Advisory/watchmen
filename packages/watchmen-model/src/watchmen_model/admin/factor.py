@@ -79,6 +79,7 @@ class FactorType(str, Enum):
 
 
 class FactorIndexGroup(str, Enum):
+	EMPTY = ''
 	INDEX_1 = 'i-1',
 	INDEX_2 = 'i-2',
 	INDEX_3 = 'i-3',
