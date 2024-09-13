@@ -38,6 +38,7 @@ class SubjectColumnAlignment(str, Enum):
 
 
 class SubjectColumnFormat(str, Enum):
+	NONE = 'none'
 	USE_GROUP = '#,##0',
 	USE_GROUP_1 = '#,##0.0',
 	USE_GROUP_2 = '#,##0.00',
@@ -48,9 +49,9 @@ class SubjectColumnFormat(str, Enum):
 
 
 class SubjectDataSetColumnRenderer(ExtendedBaseModel):
-	alignment: SubjectColumnAlignment
-	format: SubjectColumnFormat
-	highlightNegative: bool
+	alignment: Optional[SubjectColumnAlignment] = None
+	format: Optional[SubjectColumnFormat] = None
+	highlightNegative: Optional[bool] = None
 
 
 def construct_renderer(
