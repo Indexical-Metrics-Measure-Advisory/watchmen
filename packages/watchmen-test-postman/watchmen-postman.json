@@ -4103,6 +4103,18 @@
 								"url": "{{URL_PREFIX}}/topic"
 							},
 							"response": []
+						},
+						{
+							"name": "New Request",
+							"id": "82141e77-503f-4cd9-acce-4a19ac0c7d31",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
 						}
 					],
 					"id": "190de5b4-4005-4815-b56e-dab1f1732762"
