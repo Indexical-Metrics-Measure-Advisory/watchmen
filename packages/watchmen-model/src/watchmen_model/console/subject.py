@@ -64,9 +64,9 @@ def construct_renderer(
 		return SubjectDataSetColumnRenderer(**renderer)
 
 
-class SubjectDatasetColumn(DataModel, ExtendedBaseModel):
+class SubjectDatasetColumn(ExtendedBaseModel):
 	columnId: Optional[SubjectDatasetColumnId] = None
-	parameter: Optional[Parameter] = None
+	parameter: Optional[Parameter] = []
 	alias: Optional[str] = None
 	arithmetic: Optional[SubjectColumnArithmetic] = None
 	renderer: Optional[SubjectDataSetColumnRenderer] = None
@@ -117,13 +117,10 @@ def construct_joins(joins: Optional[list] = None) -> Optional[List[SubjectDatase
 		return ArrayHelper(joins).map(lambda x: construct_join(x)).to_list()
 
 
-class AvoidFastApiError:
-	filters: ParameterJoint
-
-
-class SubjectDataset(DataModel, AvoidFastApiError, ExtendedBaseModel):
+class SubjectDataset(ExtendedBaseModel):
 	columns: Optional[List[SubjectDatasetColumn]] = []
 	joins: Optional[List[SubjectDatasetJoin]] = []
+	filters: Optional[ParameterJoint] = None
 
 	def __setattr__(self, name, value):
 		if name == 'filters':
