@@ -19,9 +19,10 @@ class ChartSettings(ChartTruncationHolder):
 
 	def __setattr__(self, name, value):
 		if name == 'truncation':
-			if isinstance(value, ChartTruncation):
-				super().__setattr__(name, value)
-			else:
-				super().__setattr__(name, ChartTruncation(**value))
+			if value is not None:
+				if isinstance(value, ChartTruncation):
+					super().__setattr__(name, value)
+				else:
+					super().__setattr__(name, ChartTruncation(**value))
 		else:
 			super().__setattr__(name, self.handle_attr(name, value))

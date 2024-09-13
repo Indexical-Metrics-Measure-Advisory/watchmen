@@ -140,12 +140,7 @@ def construct_dimensions(dimensions: List[Union[dict, ReportDimension]]) -> List
 	return ArrayHelper(dimensions).map(lambda x: construct_dimension(x)).to_list()
 
 
-# noinspection PyRedundantParentheses
-class AvoidFastApiError:
-	filters: ParameterJoint = None
-
-
-class Report(UserBasedTuple, Auditable, LastVisit, AvoidFastApiError, ExtendedBaseModel):
+class Report(ExtendedBaseModel, UserBasedTuple, Auditable, LastVisit):
 	reportId: Optional[ReportId] = None
 	name: Optional[str] = None
 	subjectId: Optional[SubjectId] = None
@@ -156,10 +151,11 @@ class Report(UserBasedTuple, Auditable, LastVisit, AvoidFastApiError, ExtendedBa
 	description: Optional[str] = None
 	rect: Optional[GraphicRect] = None
 	chart: Optional[Chart] = None
-	simulating: bool = False
+	simulating: Optional[bool] = False
 	simulateData: Optional[DataResultSet] = None
 	# base64
 	simulateThumbnail: Optional[str] = None
+	filters: Optional[ParameterJoint] = None
 
 	def __setattr__(self, name, value):
 		if name == 'filters':

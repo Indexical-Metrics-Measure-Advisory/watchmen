@@ -9,4 +9,4 @@ class ConnectedSpace(ExtendedBaseModel, UserBasedTuple, Auditable, LastVisit):
 	connectId: Optional[ConnectedSpaceId] = None
 	spaceId: Optional[SpaceId] = None
 	name: Optional[str] = None
-	isTemplate: bool = False
+	isTemplate: Optional[bool] = False
