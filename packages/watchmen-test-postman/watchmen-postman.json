@@ -4105,8 +4105,20 @@
 							"response": []
 						},
 						{
-							"name": "New Request",
+							"name": "TOPIC PIPELINE MONITOR ERROR FIND BY NAME",
 							"id": "82141e77-503f-4cd9-acce-4a19ac0c7d31",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "New Request",
+							"id": "ed9a358c-a99e-4395-8454-5d792a4259e3",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
