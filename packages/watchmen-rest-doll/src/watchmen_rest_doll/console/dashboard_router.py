@@ -237,7 +237,7 @@ def ask_save_dashboard_action(
 	return action
 
 
-@router.post('/dashboard', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Dashboard)
+@router.post('/dashboard', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def save_dashboard(
 		dashboard: Dashboard, principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Dashboard:
@@ -246,7 +246,7 @@ async def save_dashboard(
 	return trans(dashboard_service, lambda: action(dashboard))
 
 
-@router.get('/dashboard/shared', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=StandaloneDashboard)
+@router.get('/dashboard/shared', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def load_shared_dashboard(dashboard_id: Optional[DashboardId], token: Optional[str]) -> StandaloneDashboard:
 	"""
 	load shared dashboard
@@ -320,7 +320,7 @@ async def delete_dashboard_by_id(
 	trans(dashboard_service, action)
 
 
-@router.delete('/dashboard', tags=[UserRole.SUPER_ADMIN], response_model=Dashboard)
+@router.delete('/dashboard', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_dashboard_by_id_by_super_admin(
 		dashboard_id: Optional[DashboardId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
