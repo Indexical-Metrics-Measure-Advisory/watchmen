@@ -103,7 +103,7 @@ class EChartsLegend(EChartsBorderHolder, EChartsPositionHolder, EChartsFontHolde
 
 
 class EChartsLegendHolder(DataModel):
-	legend: EChartsLegend = None
+	legend: Optional[EChartsLegend] = None
 
 
 class EChartsGrid(EChartsBorderHolderNoRadius, EChartsPositionHolder):
@@ -117,7 +117,7 @@ class EChartsGridPositionOnly(ExtendedBaseModel, EChartsPositionHolder):
 
 
 class EChartsGridHolder(DataModel):
-	grid: EChartsGrid = None
+	grid: Optional[EChartsGrid] = None
 
 
 class EChartsAxisSplitLineStyle(str, Enum):
@@ -191,7 +191,7 @@ class EChartsXAxis(EChartsAxisSplitLineHolder, EChartsAxisMinorSplitLineHolder):
 
 class EChartsXAxisHolder(DataModel):
 	# noinspection SpellCheckingInspection
-	xaxis: EChartsXAxis = None
+	xaxis: Optional[EChartsXAxis] = None
 
 
 class EChartsYAxisPosition(str, Enum):
