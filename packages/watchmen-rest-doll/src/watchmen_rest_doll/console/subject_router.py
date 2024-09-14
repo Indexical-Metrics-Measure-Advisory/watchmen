@@ -167,7 +167,7 @@ class SubjectWithReports(Subject):
 	reports: List[Report] = []
 
 
-@router.delete('/subject', tags=[UserRole.SUPER_ADMIN], response_model=SubjectWithReports)
+@router.delete('/subject', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_subject_by_id_by_super_admin(
 		subject_id: Optional[SubjectId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

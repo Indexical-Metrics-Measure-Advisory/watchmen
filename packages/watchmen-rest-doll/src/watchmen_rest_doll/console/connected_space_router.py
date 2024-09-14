@@ -210,7 +210,7 @@ def copy_to_connected_space(
 
 
 @router.get(
-	'/connected_space/connect', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=ConnectedSpaceWithSubjects)
+	'/connected_space/connect', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def connect_as_connected_space(
 		space_id: Optional[SpaceId], name: Optional[str], template_ids: Optional[str],
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -294,7 +294,7 @@ def load_subjects_and_reports(
 
 
 @router.get(
-	'/connected_space/list', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[ConnectedSpaceWithSubjects])
+	'/connected_space/list', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_my_connected_spaces(
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[ConnectedSpaceWithSubjects]:

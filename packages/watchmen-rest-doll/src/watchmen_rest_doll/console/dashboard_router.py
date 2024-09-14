@@ -158,7 +158,7 @@ def load_standalone_dashboard(
 	)
 
 
-@router.get('/dashboard/admin', tags=[UserRole.ADMIN], response_model=StandaloneDashboard)
+@router.get('/dashboard/admin', tags=[UserRole.ADMIN], response_model=None)
 async def load_admin_dashboard(
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> StandaloneDashboard:
