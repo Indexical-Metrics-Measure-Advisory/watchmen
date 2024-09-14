@@ -9,7 +9,7 @@ from watchmen_model.indicator import ObjectiveFactor, Objective, ObjectiveTarget
 from watchmen_utilities import ExtendedBaseModel
 
 
-class LineageType(Enum):
+class LineageType(str, Enum):
 	TOPIC = "TOPIC"
 	FACTOR = "FACTOR"
 	PIPELINE = "PIPELINE"
@@ -23,7 +23,7 @@ class LineageType(Enum):
 	OBJECTIVE_INDICATOR = "OBJECTIVE-INDICATOR"
 
 
-class TypeOfAnalysis(Enum):
+class TypeOfAnalysis(str, Enum):
 	Measure = "Measure"
 	Dimension = "Dimension"
 	TimeDimension = "TimeDimension"
@@ -36,7 +36,7 @@ class RelationDirection(str, Enum):
 	OUT = "OUT"
 
 
-class RelationType(Enum):
+class RelationType(str, Enum):
 	Direct = "Direct"
 	Computed = "Computed"
 	ReadAndWrite = "ReadAndWrite"
@@ -48,13 +48,13 @@ class RelationType(Enum):
 
 class RelationTypeHolders(ExtendedBaseModel):
 	type: Optional[RelationType] = None
-	arithmetic: str = None
+	arithmetic: Optional[str] = None
 
 
 class LineageNode(ExtendedBaseModel):
 	name: Optional[str] = None
 	nodeId: Optional[str] = None
-	attributes: Dict = {}
+	attributes: Optional[Dict] = {}
 	inCount: Optional[int] = None
 	outCount: Optional[int] = None
 

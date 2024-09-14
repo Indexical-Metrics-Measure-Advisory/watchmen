@@ -51,7 +51,7 @@ def ask_super_admin() -> PrincipalService:
 	return PrincipalService(User(
 		userId=settings.SUPER_ADMIN_USER_ID,
 		name=settings.SUPER_ADMIN_USER_NAME,
-		nickname=settings.SUPER_ADMIN_USER_NICKNAME,
+		nickName=settings.SUPER_ADMIN_USER_NICKNAME,
 		isActive=True,
 		groupIds=[],
 		tenantId=settings.SUPER_ADMIN_TENANT_ID,

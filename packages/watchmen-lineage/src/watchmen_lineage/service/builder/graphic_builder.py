@@ -16,7 +16,7 @@ def add_topic_facet_node(graphic: MultiDiGraph, topic_facet: TopicFacet):
 
 def add_factor_facet_node(graphic: MultiDiGraph, factor_facet: TopicFactorFacet):
 	# facet_id = build_node_id(factor_facet)
-	graphic.add_node(build_node_id(factor_facet), factor_type=factor_facet.nodeType.value, name=factor_facet.name)
+	graphic.add_node(build_node_id(factor_facet), factor_type=factor_facet.nodeType, name=factor_facet.name)
 	return graphic
 
 
@@ -24,7 +24,7 @@ def add_edge_topic_factor(graphic: MultiDiGraph, topic_facet: TopicFacet, topic_
 	topic_node_id = build_node_id(topic_facet)
 	factor_node_id = build_node_id(topic_factor_facet)
 	if not graphic.has_edge(topic_node_id, factor_node_id):
-		graphic.add_edge(topic_node_id, factor_node_id, type=LineageType.TOPIC.value)
+		graphic.add_edge(topic_node_id, factor_node_id, type=LineageType.TOPIC)
 	return graphic
 
 

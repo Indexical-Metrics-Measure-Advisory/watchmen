@@ -1,3 +1,4 @@
+from enum import Enum
 from logging import getLogger
 from typing import Any, Dict
 
@@ -12,7 +13,7 @@ warnings.filterwarnings('ignore', category=UserWarning)
 
 
 class ExtendedBaseModel(BaseModel):
-	model_config = ConfigDict(arbitrary_types_allowed=True, use_enum_values=True)
+	model_config = ConfigDict(arbitrary_types_allowed=True)
 	
 	def __init__(self, **data: Any):
 		super().__init__(**data)

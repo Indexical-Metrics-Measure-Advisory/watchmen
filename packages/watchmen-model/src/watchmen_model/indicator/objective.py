@@ -239,11 +239,11 @@ class ObjectiveTimeFrame(ExtendedBaseModel):
 	# is target in time frame, normally is
 	kind: Optional[ObjectiveTimeFrameKind] = None
 	# only available if kind is LAST_N-* types, should be a positive value
-	lastN: str = None
+	lastN: Optional[str] = None
 	# time frame is cut off till when
 	till: Optional[ObjectiveTimeFrameTill] = None
 	# specify the till time when till is SPECIFIED
-	specifiedTill: str = None
+	specifiedTill: Optional[str] = None
 
 
 class ObjectiveTargetBetterSide(str, Enum):
