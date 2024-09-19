@@ -28,6 +28,7 @@ class DataPage(Pageable):
 	itemCount: Optional[int] = None
 	pageCount: Optional[int] = None
 
+	# Avoid error serializing to JSON: ValueError: Circular reference detected (id repeated)
 	@field_serializer('data')
 	def serialize_data(self, data: list, _info):
 		return ArrayHelper(data).map(lambda row: row.to_dict()).to_list()
