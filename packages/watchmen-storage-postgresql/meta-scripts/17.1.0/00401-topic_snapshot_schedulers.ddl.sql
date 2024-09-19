@@ -1,0 +1,3 @@
+ALTER TABLE snapshot_schedulers ALTER COLUMN version TYPE INTEGER USING version::INTEGER;
+ALTER TABLE snapshot_schedulers ALTER COLUMN hour TYPE SMALLINT USING hour::SMALLINT;
+ALTER TABLE snapshot_schedulers ALTER COLUMN minute TYPE SMALLINT USING minute::SMALLINT;

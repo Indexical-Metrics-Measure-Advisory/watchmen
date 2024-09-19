@@ -1,0 +1,1 @@
+ALTER TABLE objectives ALTER COLUMN version TYPE INTEGER USING version::INTEGER;
