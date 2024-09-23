@@ -204,15 +204,11 @@ class PipelineMonitorLog(ConditionalMonitorLog):
 	dataId: Optional[int] = None
 	oldValue: Any = None
 	newValue: Any = None
-	data_: Any = None
 	stages: Optional[List[MonitorLogStage]] = None
 
 	def __setattr__(self, name, value):
 		if name == 'stages':
 			super().__setattr__(name, construct_stages(value))
-		elif name == 'data_':
-			self.oldValue = value.get('oldValue', None)
-			self.newValue = value.get('newValue', None)
 		else:
 			super().__setattr__(name, value)
 
