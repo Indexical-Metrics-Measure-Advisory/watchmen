@@ -1,0 +1,1 @@
+ALTER TABLE snapshot_job_locks ALTER COLUMN row_count BIGINT;

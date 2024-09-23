@@ -1,0 +1,1 @@
+ALTER TABLE external_writers ALTER COLUMN version INTEGER;

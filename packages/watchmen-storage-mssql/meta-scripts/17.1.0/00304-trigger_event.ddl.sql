@@ -1,0 +1,1 @@
+ALTER TABLE trigger_event ALTER COLUMN event_trigger_id BIGINT;
