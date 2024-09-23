@@ -1,0 +1,1 @@
+ALTER TABLE pipelines ALTER COLUMN version INTEGER;

@@ -1,0 +1,1 @@
+ALTER TABLE spaces ALTER COLUMN version INTEGER;
