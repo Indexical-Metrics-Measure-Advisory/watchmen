@@ -31,7 +31,7 @@ jobs:
       - name: Create database
         run: |
           sudo apt-get update && sudo apt-get install -y mssql-tools
-          sleep 20
+          sleep 60 &
           /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1,1433 -U SA -P 'yourStrong(!)Password' -Q 'CREATE DATABASE watchmen'
       - name: Run db meta script
         run: |
