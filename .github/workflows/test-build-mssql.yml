@@ -26,12 +26,13 @@ jobs:
           SA_PASSWORD: ${{env.DB_PASSWORD}}
           options: --name=mssql --health-cmd="/opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U SA -P 'yourStrong(!)Password' -Q 'SELECT 1'" --health-interval=10s --health-timeout=10s --health-retries=5
     steps:
+      - name: Sleep for 60 seconds
+        run: sleep 60
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Create database
         run: |
           sudo apt-get update && sudo apt-get install -y mssql-tools
-          sleep 60 &
           /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1,1433 -U SA -P 'yourStrong(!)Password' -Q 'CREATE DATABASE watchmen'
       - name: Run db meta script
         run: |
