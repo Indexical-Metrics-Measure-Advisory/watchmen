@@ -13,7 +13,8 @@ warnings.filterwarnings('ignore', category=UserWarning)
 
 
 class ExtendedBaseModel(BaseModel):
-	model_config = ConfigDict(arbitrary_types_allowed=True)
+	model_config = ConfigDict(arbitrary_types_allowed=True,
+	                          use_enum_values=True)
 	
 	def __init__(self, **data: Any):
 		super().__init__(**data)
@@ -35,6 +36,19 @@ class ExtendedBaseModel(BaseModel):
 	
 	def model_dump_json(self, **kwargs) -> str:
 		return super().model_dump_json(serialize_as_any=True, **kwargs)
+	
+	def set_enum_field(self, name: str, value: Any, _class_: Any):
+		if isinstance(value, _class_):
+			self.__dict__[name] = value
+		elif isinstance(value, (str, int)):
+			try:
+				self.__dict__[name] = _class_(value)
+			except ValueError:
+				raise ValueError(
+					f"Invalid value for {name}: {value}. Must be an instance of {_class_} enum.")
+		else:
+			raise ValueError(
+				f"Invalid value for {name}: {value}. Must be an instance of {_class_} enum.")
 
 
 class ExtendedBaseSettings(BaseSettings):
