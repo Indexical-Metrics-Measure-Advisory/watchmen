@@ -32,6 +32,12 @@ class SqlScriptFile(ExtendedBaseModel):
 	content: Optional[str] = None
 	data_source_type: DataSourceType = None
 
+	def __setattr__(self, name, value):
+		if name == 'data_source_type':
+			super().set_enum_field(name, value, DataSourceType)
+		else:
+			super().__setattr__(name, value)
+
 
 class ChangeLogFile(ExtendedBaseModel):
 	name: Optional[str] = None
