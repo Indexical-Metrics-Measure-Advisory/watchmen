@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from logging import getLogger
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple, Dict
 
 from jose import JWTError
 from jose.jwt import decode, encode
@@ -8,7 +8,8 @@ from jsonschema.exceptions import ValidationError
 from starlette.requests import Request
 
 from watchmen_auth import AuthenticationDetails, AuthenticationManager, AuthenticationProvider, AuthenticationScheme, \
-	AuthFailOn401, AuthFailOn403, authorize, authorize_token, PrincipalService
+	AuthFailOn401, AuthFailOn403, authorize, authorize_token, PrincipalService, ask_tenant_name_http_header_key, \
+	ask_user_name_http_header_key, ask_external_auth_on
 from watchmen_model.admin import User, UserRole
 from watchmen_utilities import ArrayHelper, is_not_blank
 from .settings import RestSettings
@@ -72,6 +73,65 @@ class PATAuthenticationProvider(AuthenticationProvider):
 			raise AuthFailOn401('Unauthorized visit.')
 
 
+def validate_access_token(token: str, user_info_url: str) -> Dict:
+	import requests
+	headers = {
+		"Authorization": f"Bearer {token}",
+		"Accept": "application/json"
+	}
+	response = requests.get(user_info_url, headers=headers)
+	if response.status_code == 200:
+		payload = response.json()
+		return payload
+	else:
+		raise AuthFailOn401('Unauthorized visit.')
+	
+	
+class OIDCAuthenticationProvider(AuthenticationProvider):
+	def __init__(self,
+	             user_info_url: str,
+	             user_subject_key: str,
+	             find_user_by_name: Callable[[str], Optional[User]]):
+		self.user_info_url = user_info_url
+		self.user_subject_key = user_subject_key
+		self.find_user_by_name = find_user_by_name
+		
+	def accept(self, details: AuthenticationDetails) -> bool:
+		return is_not_blank(details.scheme) and details.scheme.lower() == AuthenticationScheme.JWT.value.lower()
+
+	def authenticate(self, details: AuthenticationDetails) -> Optional[User]:
+		try:
+			token = details.token
+			payload = validate_access_token(token, self.user_info_url)
+			username = payload[self.user_subject_key]
+			return self.find_user_by_name(username)
+		except AuthFailOn401 as e:
+			logger.error(e, exc_info=True, stack_info=True)
+			return None
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+			raise AuthFailOn401('Unauthorized visit.')
+
+
+class ExternalAuthenticationProvider(AuthenticationProvider):
+	def __init__(self, find_user_by_name: Callable[[str], Optional[User]]):
+		self.find_user_by_name = find_user_by_name
+	
+	def accept(self, details: AuthenticationDetails) -> bool:
+		return is_not_blank(details.scheme) and details.scheme.lower() == AuthenticationScheme.EXT.value.lower()
+	
+	def authenticate(self, details: AuthenticationDetails) -> Optional[User]:
+		token = details.token
+		try:
+			return self.find_user_by_name(token)
+		except AuthFailOn401 as e:
+			logger.error(e, exc_info=True, stack_info=True)
+			return None
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+			raise AuthFailOn401('Unauthorized visit.')
+
+	
 def build_authentication_manager(
 		settings: RestSettings,
 		find_user_by_name: Callable[[str], Optional[User]],
@@ -81,10 +141,16 @@ def build_authentication_manager(
 	authentication_manager = AuthenticationManager()
 	authentication_manager.register_provider(
 		JWTAuthenticationProvider(settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM, find_user_by_name)
-	).register_provider(PATAuthenticationProvider(find_user_by_pat))
+	).register_provider(
+		PATAuthenticationProvider(find_user_by_pat)
+	).register_provider(
+		OIDCAuthenticationProvider(settings.OIDC_USER_INFO_ENDPOINT, settings.OIDC_USER_SUBJECT_KEY, find_user_by_name)
+	).register_provider(
+		ExternalAuthenticationProvider(find_user_by_name)
+	)
 
 	ArrayHelper(authentication_providers) \
-		.reduce(lambda x: authentication_manager.register_provider(x), authentication_manager)
+		.reduce(lambda x, y: x.register_provider(y), authentication_manager)
 
 	return authentication_manager
 
@@ -98,6 +164,16 @@ def parse_token(request: Request) -> Tuple[str, str]:
 		scheme, _, param = authorization.partition(" ")
 		token = param
 		return scheme, token
+
+
+def parse_header(request: Request) -> Tuple[str, str]:
+	user_name_http_header_key = ask_user_name_http_header_key()
+	user_name = request.headers.get(user_name_http_header_key)
+
+	if not user_name:
+		raise AuthFailOn401('Unauthorized caused by user not found.')
+	else:
+		return 'external', user_name
 
 
 def get_principal_by_jwt(
@@ -115,7 +191,10 @@ def get_principal_by(
 ) -> Callable[[Request], PrincipalService]:
 	def get_principal(request: Request) -> PrincipalService:
 		try:
-			scheme, token = parse_token(request)
+			if ask_external_auth_on():
+				scheme, token = parse_header(request)
+			else:
+				scheme, token = parse_token(request)
 			return authorize(authentication_manager, roles)(scheme, token)
 		except AuthFailOn401:
 			raise_401('Unauthorized visit.')
@@ -123,7 +202,7 @@ def get_principal_by(
 			raise_403()
 
 	return get_principal
-
+	
 
 def get_any_principal_by(authentication_manager: AuthenticationManager) -> Callable[[Request], PrincipalService]:
 	"""
