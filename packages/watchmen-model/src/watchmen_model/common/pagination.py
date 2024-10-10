@@ -4,8 +4,7 @@ from pydantic import field_serializer
 
 from watchmen_utilities import ExtendedBaseModel, ArrayHelper
 
-from .model import DataModel
-
+from .model import DataModel, copy_x
 
 class Pageable(ExtendedBaseModel):
 	pageNumber: Optional[int] = None
@@ -31,4 +30,8 @@ class DataPage(Pageable):
 	# Avoid error serializing to JSON: ValueError: Circular reference detected (id repeated)
 	@field_serializer('data')
 	def serialize_data(self, data: list, _info):
-		return ArrayHelper(data).map(lambda row: row.to_dict()).to_list()
+		return ArrayHelper(data).map(lambda row: copy_x(row)).to_list()
+
+
+def serialize_row(row: Any):
+	return copy_x(row)
