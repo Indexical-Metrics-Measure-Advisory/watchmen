@@ -41,8 +41,8 @@ def construct_factors(factors: Optional[List[Union[Factor, Dict]]]) -> Optional[
 class Topic(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	topicId: Optional[TopicId] = None
 	name: Optional[str] = None
-	type: TopicType = TopicType.DISTINCT
-	kind: TopicKind = TopicKind.BUSINESS
+	type: Optional[TopicType] = TopicType.DISTINCT
+	kind: Optional[TopicKind] = TopicKind.BUSINESS
 	dataSourceId: Optional[DataSourceId] = None
 	factors: Optional[List[Factor]] = []
 	description: Optional[str] = None
