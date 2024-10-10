@@ -14,6 +14,7 @@ logger = getLogger(__name__)
 class AuthenticationScheme(str, Enum):
 	JWT = 'Bearer',
 	PAT = 'pat'
+	EXT = 'external'
 
 
 class AuthenticationDetails:

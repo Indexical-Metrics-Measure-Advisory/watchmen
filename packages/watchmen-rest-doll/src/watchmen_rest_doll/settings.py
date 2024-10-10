@@ -6,6 +6,7 @@ from watchmen_rest import RestSettings
 class SSOTypes(str, Enum):
 	SAML2 = 'saml2'
 	DOLL = "doll"
+	OIDC = "oidc"
 
 
 class DollSettings(RestSettings):
@@ -31,3 +32,4 @@ class DollSettings(RestSettings):
 	SAML_SP_X509CERT: str = ''
 
 	COLLECTOR_ON: bool = False
+	

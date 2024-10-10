@@ -15,7 +15,7 @@ from watchmen_model.system import Token
 from watchmen_rest import create_jwt_token, get_any_principal, retrieve_authentication_manager
 from watchmen_rest.util import raise_401
 from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, ask_saml2_enabled, ask_saml2_settings, \
-	ask_sso_enabled
+	ask_sso_enabled, ask_oidc_enabled, ask_oidc_settings
 from watchmen_rest_doll.settings import SSOTypes
 from watchmen_rest_doll.util import verify_password
 from watchmen_utilities import ExtendedBaseModel
@@ -40,6 +40,11 @@ async def load_login_config(request: Request) -> LoginConfiguration:
 		auth = OneLogin_Saml2_Auth(req, ask_saml2_settings())
 		callback_url = auth.login()
 		return LoginConfiguration(method=SSOTypes.SAML2, url=callback_url)
+	elif ask_sso_enabled() and ask_oidc_enabled():
+		from watchmen_rest_doll.sso.oidc import OIDCAuth
+		oidc_auth = OIDCAuth(ask_oidc_settings())
+		login_url = oidc_auth.get_sso_login_url()
+		return LoginConfiguration(method=SSOTypes.OIDC, url=login_url)
 	else:
 		return LoginConfiguration(method=SSOTypes.DOLL)
 

@@ -5,6 +5,7 @@ export const Apis = {
 	LOGIN_CONFIG: 'auth/config',
 	LOGIN: 'login',
 	EXCHANGE_SAML2_TOKEN: 'token/exchange-saml',
+	EXCHANGE_OIDC_TOKEN: 'token/exchange-oidc',
 
 	// admin only
 	// update date apis

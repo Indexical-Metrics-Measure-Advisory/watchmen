@@ -28,3 +28,13 @@ class RestSettings(ExtendedBaseSettings):
 
 	PROMETHEUS: bool = False
 	PROMETHEUS_CONTEXT: str = '/metrics'
+	
+	# OIDC
+	OIDC_CODE_KEY: str = "code"
+	OIDC_TOKEN_ENDPOINT: str = ""
+	OIDC_TOKEN_KEY: str = "access_token"
+	OIDC_USE_ACCESS_TOKEN: bool = False
+	OIDC_USER_INFO_ENDPOINT: str = ""
+	OIDC_USER_SUBJECT_KEY: str = "sub"
+	OIDC_LOGIN_URL: str = ""
+	OIDC_LOGIN_PARAMS: str = ""
