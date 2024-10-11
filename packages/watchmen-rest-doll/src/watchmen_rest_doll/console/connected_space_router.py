@@ -316,7 +316,7 @@ async def find_my_connected_spaces(
 	return trans(connected_space_service, action)
 
 
-@router.get('/connected_space/template', tags=[UserRole.ADMIN], response_model=Subject)
+@router.get('/connected_space/template', tags=[UserRole.ADMIN], response_model=None)
 async def updated_connected_space_as_template(
 		connect_id: Optional[ConnectedSpaceId], is_template: Optional[bool],
 		principal_service: PrincipalService = Depends(get_console_principal)
