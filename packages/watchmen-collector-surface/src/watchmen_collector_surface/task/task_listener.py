@@ -136,10 +136,10 @@ class TaskListener:
 			self.handle_execution_result(finished_task)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-			finished_task = self.update_task_status(unfinished_task, Status.FAIL.value, self.truncated_string(format_exc()))
-			self.handle_execution_result(finished_task)
 			unfinished_json_ids = [change_json_id for change_json_id in unfinished_task.changeJsonIds if change_json_id not in finished_json_ids]
 			self.handle_unfinished_change_json(unfinished_json_ids)
+			finished_task = self.update_task_status(unfinished_task, Status.FAIL.value, self.truncated_string(format_exc()))
+			self.handle_execution_result(finished_task)
 
 	def is_duplicated(self, change_data_json: ChangeDataJson) -> bool:
 		existed_json = self.change_json_history_service.find_by_resource_id(change_data_json.resourceId)
