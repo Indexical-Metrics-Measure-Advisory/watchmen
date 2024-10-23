@@ -414,7 +414,7 @@ class TemplateConnectedSpace(ExtendedBaseModel):
 
 @router.get(
 	'/connected_space/template/list', tags=[UserRole.CONSOLE, UserRole.ADMIN],
-	response_model=List[TemplateConnectedSpace])
+	response_model=None)
 async def find_all_template_connected_spaces(
 		space_id: Optional[SpaceId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[TemplateConnectedSpace]:
@@ -450,7 +450,7 @@ async def find_all_template_connected_spaces(
 	return trans_readonly(connected_space_service, action)
 
 
-@router.get('/connected_space/export', tags=[UserRole.ADMIN], response_model=List[ConnectedSpaceWithSubjects])
+@router.get('/connected_space/export', tags=[UserRole.ADMIN], response_model=None)
 async def find_template_connected_spaces_for_export(
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> List[ConnectedSpaceWithSubjects]:
@@ -470,7 +470,7 @@ async def find_template_connected_spaces_for_export(
 	return trans_readonly(connected_space_service, action)
 
 
-@router.delete('/connected_space', tags=[UserRole.SUPER_ADMIN], response_model=ConnectedSpaceWithSubjects)
+@router.delete('/connected_space', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_connected_space_by_id_by_super_admin(
 		connect_id: Optional[ConnectedSpaceId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
@@ -543,10 +543,10 @@ def add_column_type_to_subjects(subjects: List[Subject], principal_service) -> L
 	return ArrayHelper(subject_list_with_type).map(lambda x: add_dataset_column_type(x, principal_service)).to_list()
 
 
-@router.get('/connected_space/template/subjects', tags=[UserRole.ADMIN], response_model=List[Subject])
+@router.get('/connected_space/template/subjects', tags=[UserRole.ADMIN], response_model=None)
 async def find_template_subjects_by_id(
 		principal_service: PrincipalService = Depends(
-			get_admin_principal)):
+			get_admin_principal)) -> List[Subject]:
 	connected_space_service = get_connected_space_service(principal_service)
 
 	def action() -> List[Subject]:
