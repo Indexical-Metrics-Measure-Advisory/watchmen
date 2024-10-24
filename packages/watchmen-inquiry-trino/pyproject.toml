@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-inquiry-trino"
-version = "17.0.0"
+version = "17.1.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -11,7 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "~3.12"
 trino = "^0.329.0"
-watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
+watchmen-data-kernel = "17.1.0"
 
 [tool.poetry.dev-dependencies]
 

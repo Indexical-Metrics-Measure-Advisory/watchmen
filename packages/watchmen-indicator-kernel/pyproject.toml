@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-indicator-kernel"
-version = "17.0.0"
+version = "17.1.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -10,15 +10,15 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "~3.12"
-watchmen-inquiry-kernel = { path = "../watchmen-inquiry-kernel", develop = true }
-watchmen-inquiry-trino = { path = "../watchmen-inquiry-trino", develop = true, optional = true }
-watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
-watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
-watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
-watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
-watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
-watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true, optional = true }
-watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true, optional = true }
+watchmen-inquiry-kernel = "17.1.0"
+watchmen-inquiry-trino = { version = "17.1.0", optional = true }
+watchmen-storage-mysql = { version = "17.1.0", optional = true }
+watchmen-storage-oracle = { version = "17.1.0", optional = true }
+watchmen-storage-mongodb = { version = "17.1.0", optional = true }
+watchmen-storage-mssql = { version = "17.1.0", optional = true }
+watchmen-storage-postgresql = { version = "17.1.0", optional = true }
+watchmen-storage-oss = { version = "17.1.0", optional = true }
+watchmen-storage-s3 = { version = "17.1.0", optional = true }
 
 [tool.poetry.dev-dependencies]
 
