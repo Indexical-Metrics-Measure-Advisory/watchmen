@@ -1,0 +1,71 @@
+{
+  "type": "AdaptiveCard",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "Feedback Form",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "Input.Text",
+      "id": "name",
+      "placeholder": "Enter your name",
+      "label": "Name"
+    },
+    {
+      "type": "Input.Text",
+      "id": "email",
+      "placeholder": "Enter your email",
+      "style": "email",
+      "label": "Email"
+    },
+    {
+      "type": "Input.ChoiceSet",
+      "id": "rating",
+      "style": "expanded",
+      "isMultiSelect": false,
+      "label": "How would you rate our service?",
+      "choices": [
+        {
+          "title": "Excellent",
+          "value": "5"
+        },
+        {
+          "title": "Good",
+          "value": "4"
+        },
+        {
+          "title": "Average",
+          "value": "3"
+        },
+        {
+          "title": "Poor",
+          "value": "2"
+        },
+        {
+          "title": "Very Poor",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "type": "Input.Text",
+      "id": "feedback",
+      "placeholder": "Enter your feedback",
+      "label": "Feedback",
+      "isMultiline": true
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Submit",
+      "title": "Submit Feedback",
+      "data": {
+        "action": "submitFeedback"
+      }
+    }
+  ]
+}
