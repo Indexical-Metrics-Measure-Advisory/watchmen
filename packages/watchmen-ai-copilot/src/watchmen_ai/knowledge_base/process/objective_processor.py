@@ -7,7 +7,7 @@ from watchmen_ai.model.graph.graph_models import WatchmenProperty, WatchmenNode,
 from watchmen_ai.utils.graph_utils import get_next_child, get_list_content, generate_uuid, GraphNodeType, \
     find_list_between_indices, find_node_by_type_level_and_content, MarkdownType, WatchmenGraphWrapper, lowercase, \
     GraphEdgeType, build_graph_dict, build_node_key_by_param, build_property_key_by_param, \
-    build_edge_key_by_param, convert_dict_to_wrapper
+    build_edge_key_by_param, convert_dict_to_wrapper, find_node_by_start_and_level
 from watchmen_model.common import TenantId
 from watchmen_model.common.tuple_ids import DocumentId
 
@@ -79,6 +79,27 @@ def check_excited_wrapper(excited_wrapper: WatchmenGraphWrapper):
     return excited_wrapper
 
 
+def find_objectives(markdown_children: List):
+    objectives = []
+    for index, child in enumerate(markdown_children):
+        objective_node = find_node_by_start_and_level(child, "Objective:", 2)
+        if objective_node:
+            objectives.append({"index": index, "node": objective_node})
+    return objectives
+
+
+def build_objective_node(objective_markdown):
+    objective_name = objective_markdown.get("node_name")
+
+    objective_content = get_list_content(objective_markdown.get(CHILDREN))
+    
+    print(objective_content)
+
+
+    return build_node(objective_markdown.get("node_name"), GraphNodeType.Objective, objective_markdown.get("node_name"))
+
+
+
 def process_objective_graph(markdown_json: json, tenant_id: TenantId, document_id: DocumentId,
                             excited_wrapper: WatchmenGraphWrapper) -> WatchmenGraphWrapper:
     wrapper = check_excited_wrapper(excited_wrapper)
@@ -89,32 +110,47 @@ def process_objective_graph(markdown_json: json, tenant_id: TenantId, document_i
     markdown_children = get_all_document_nodes(markdown_json)
 
     root_node = build_root_node(document_id, markdown_children, tenant_id, node_dict)
+
+
     # find meta info for document
 
-    meta_info = find_meta_info(markdown_children)
-    # TODO : implement this
-    meta_info_with_keywords = process_key_words(meta_info)
-    root_node.nodeProperties = meta_info
+    # meta_info = find_meta_info(markdown_children)
+    # # TODO : implement this
+    # meta_info_with_keywords = process_key_words(meta_info)
+    # root_node.nodeProperties = meta_info
 
     # build properties node for meta info and add edge
 
-    for meta_info_key, meta_info_value in meta_info.items():
-        watchmen_property = build_property_node(root_node.nodeId, meta_info_key, meta_info_value, tenant_id,
-                                                document_id, properties_dict)
+    # for meta_info_key, meta_info_value in meta_info.items():
+    #     watchmen_property = build_property_node(root_node.nodeId, meta_info_key, meta_info_value, tenant_id,
+    #                                             document_id, properties_dict)
 
         # wrapper.properties.append(watchmen_property)
 
     # find all objectives in the markdown_body
-    objective_markdown_node, start_index = find_objective(markdown_children)
+    objectives_nodes = find_objectives(markdown_children)
+
+    print(objectives_nodes)
+
+    for objective_node in objectives_nodes:
+
+        build_objective_node(objective_node)
+
+
+
+
+
 
     context_markdown_node, end_index = find_context(markdown_children)
 
-    context_list = get_list_content(get_next_child(markdown_children, end_index).get(CHILDREN))
 
-    for audience in context_list:
-        context_node = build_audience_node(audience, tenant_id, document_id, node_dict)
-        build_edge_node(GraphEdgeType.audience, root_node.nodeId, context_node.nodeId, tenant_id, document_id,
-                        edge_dict)
+
+    # context_list = get_list_content(get_next_child(markdown_children, end_index).get(CHILDREN))
+    # TODO
+    # for audience in context_list:
+    #     context_node = build_audience_node(audience, tenant_id, document_id, node_dict)
+    #     build_edge_node(GraphEdgeType.audience, root_node.nodeId, context_node.nodeId, tenant_id, document_id,
+    #                     edge_dict)
 
     # add audience node and edge
 
