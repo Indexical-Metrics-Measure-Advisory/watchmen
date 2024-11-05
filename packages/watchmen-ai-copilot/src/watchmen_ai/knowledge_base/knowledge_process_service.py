@@ -129,29 +129,42 @@ class KnowledgeProcessService:
         print("knowledge graph")
 
 
+    def sync_insert_data_to_knowledge_graph(self, graph_wrapper: WatchmenGraphWrapper, principal_service: PrincipalService):
+        knowledge_graph_inserted.send(graph_wrapper)
+
+
 if __name__ == '__main__':
     knowledge_process_service = KnowledgeProcessService()
-    document_set = knowledge_process_service.load_document_dataset(
-        "The-Increase-or-Decrease-Percentage-of-Purchasing-Trend.md", ask_super_admin())
+    # document_set = knowledge_process_service.load_document_dataset(
+    #     "How Incentive Programs Improve Business Performance", ask_super_admin())
+    #
+    # wrapper: WatchmenGraphWrapper = knowledge_process_service.load_graph_wrapper(
+    #     "How Incentive Programs Improve Business Performance", KnowledgeType.OBJECTIVE, ask_super_admin())
+    #
+    #
+    # knowledge_process_service.sync_insert_data_to_knowledge_graph(wrapper, ask_super_admin())
+    #
+    # # knowledge_process_service.merge_knowledge_graph(document_set.documentContent.decode("utf-8"),
+    # #                                                 KnowledgeType.OBJECTIVE, wrapper, document_set.documentId,
+    # #                                                 ask_super_admin())
 
-    wrapper: WatchmenGraphWrapper = knowledge_process_service.load_graph_wrapper(
-        "The-Increase-or-Decrease-Percentage-of-Purchasing-Trend.md", KnowledgeType.OBJECTIVE, ask_super_admin())
 
-    knowledge_process_service.merge_knowledge_graph(document_set.documentContent.decode("utf-8"),
-                                                    KnowledgeType.OBJECTIVE, wrapper, document_set.documentId,
-                                                    ask_super_admin())
+    #
+    with open("../../../test/How Incentive Programs Improve Business Performance.md", 'r') as fin:
+        markdown = fin.read()
+
+        markdown = fin.read()
+        #
+
+        document_set: DatasetDocument = knowledge_process_service.save_document_dataset(
+                 "How Incentive Programs Improve Business Performance.md", "Objecitive", markdown, ask_super_admin())
+
+        #
+        knowledge_process_service.process_markdown(markdown, KnowledgeType.OBJECTIVE, document_set.documentId,
+                                                   ask_super_admin())
+
 
     print("done")
-    #
-    # with open("../../../test/The-Increase-or-Decrease-Percentage-of-Purchasing-Trend.md", 'r') as fin:
-    #     markdown = fin.read()
-    #     #
-    #
-    #     document_set: DatasetDocument = knowledge_process_service.save_document_dataset(
-    #              "The-Increase-or-Decrease-Percentage-of-Purchasing-Trend.md", "Objecitive", markdown, ask_super_admin())
-    #
-    #     #
-    #     knowledge_process_service.process_markdown(markdown, KnowledgeType.OBJECTIVE, document_set.documentId,
-    #                                                ask_super_admin())
+
 
     #

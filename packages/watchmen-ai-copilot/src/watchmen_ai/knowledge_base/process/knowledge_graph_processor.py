@@ -44,6 +44,8 @@ class KnowledgeGraphProcessor:
 
         markdown_json: json = self._convert_markdown_to_json(markdown_body)
 
+        print(markdown_json)
+
         graph_processor = self.__find_graph_processor(knowledge_type)
         if graph_processor:
             return graph_processor(markdown_json, tenant_id, document_id, source_wrapper)
@@ -52,6 +54,6 @@ class KnowledgeGraphProcessor:
 
 
 if __name__ == '__main__':
-    with open("../../../../test/The-Increase-or-Decrease-Percentage-of-Purchasing-Trend.md", 'r') as fin:
+    with open("../../../../test/How Incentive Programs Improve Business Performance.md", 'r') as fin:
         markdown = fin.read()
         print(KnowledgeGraphProcessor().extract_knowledge_graph(markdown, KnowledgeType.OBJECTIVE))

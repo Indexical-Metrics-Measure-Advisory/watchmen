@@ -80,6 +80,12 @@ def find_node_by_type_level_and_content(children, type, level, content) -> Tuple
     return None, None
 
 
+def find_node_by_start_and_level(child, start, level) -> Tuple:
+    if child.get("type") == "Heading" and child.get("level") == level:
+        if child.get("children")[0].get("content").startswith(start):
+            return child
+
+
 def compare_node(node1: WatchmenNode, node2: WatchmenNode):
     return node1.nodeLabel == node2.nodeLabel
 

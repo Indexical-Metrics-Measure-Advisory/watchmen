@@ -72,8 +72,11 @@ class LanceDBService:
 
 lancedb_service = LanceDBService(father_path + "/knowledge_vector")
 
+
+
 #
-# if __name__ == "__main__":
+if __name__ == "__main__":
+    lancedb_service.search_by_label("sales trend of the last 3 months", "Objective")
 #     # lancedb_service.init_table()
 #
 #     actuals = lancedb_service.search_("Why are the sales of specific products declining")
