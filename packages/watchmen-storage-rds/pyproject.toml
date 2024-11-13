@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "~3.12"
-SQLAlchemy = "1.4.52"
+SQLAlchemy = "~2.0.35"
 watchmen-storage = { path = "../watchmen-storage", develop = true }
 
 [tool.poetry.dev-dependencies]
