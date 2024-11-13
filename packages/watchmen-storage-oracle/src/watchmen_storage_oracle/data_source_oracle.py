@@ -37,8 +37,7 @@ class OracleDataSourceHelper(DataSourceHelper):
 			redress_url_by_cxoracle(url),
 			echo=params.echo,
 			future=True,
-			pool_recycle=params.poolRecycle,
-			encoding='utf-8'
+			pool_recycle=params.poolRecycle
 		)
 
 	@staticmethod
