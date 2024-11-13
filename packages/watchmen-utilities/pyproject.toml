@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "~3.12"
-pydantic = "^2.9.0b2"
+pydantic = "^2.9.2"
 pydantic-settings = "^2.4.0"
 python-json-logger = "^2.0.7"
 

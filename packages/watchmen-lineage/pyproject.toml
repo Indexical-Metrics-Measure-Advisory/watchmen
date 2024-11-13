@@ -16,7 +16,7 @@ watchmen-inquiry-surface = { path = "../watchmen-inquiry-surface", develop = tru
 watchmen-inquiry-trino = { path = "../watchmen-inquiry-trino", develop = true, optional = true }
 watchmen-indicator-surface = { path = "../watchmen-indicator-surface", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
-networkx = "^2.8.8"
+networkx = "^3.4.2"
 
 
 [build-system]
