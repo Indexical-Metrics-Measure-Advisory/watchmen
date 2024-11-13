@@ -10,9 +10,9 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "~3.12"
-pandas = "^1.5.3"
+pandas = "^2.2.3"
 # ydata-profiling = "4.6.0"
-numpy = "^1.26.4"
+numpy = "^2.1.0"
 APScheduler = "^3.10.4"
 watchmen-meta = { path = "../watchmen-meta", develop = true }
 watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }

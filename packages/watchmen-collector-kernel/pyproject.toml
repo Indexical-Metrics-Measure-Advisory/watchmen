@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "~3.12"
-numpy = "^1.26.4"
+numpy = "^2.1.0"
 watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true}
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }

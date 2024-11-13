@@ -11,7 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "~3.12"
 passlib = "^1.7.4"
-bcrypt = "^3.2.2"
+bcrypt = "^4.2.0"
 python-multipart = "^0.0.9"
 watchmen-lineage = { path = "../watchmen-lineage", develop = true }
 watchmen-data-surface = { path = "../watchmen-data-surface", develop = true }
