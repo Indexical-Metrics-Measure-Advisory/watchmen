@@ -112,8 +112,7 @@ class ConnectedSpaceService(UserBasedTupleService):
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_template'), right=False)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
 			]
 		))
 
