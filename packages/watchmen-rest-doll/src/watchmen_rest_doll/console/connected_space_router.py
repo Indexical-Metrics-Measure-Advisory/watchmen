@@ -560,3 +560,21 @@ async def find_template_subjects_by_id(
 
 	subjects = trans(connected_space_service, action)
 	return add_column_type_to_subjects(subjects, principal_service)
+
+
+@router.get('/connected_space/subjects', tags=[UserRole.ADMIN], response_model=None)
+async def find_template_subjects_by_id(
+		principal_service: PrincipalService = Depends(
+			get_admin_principal)) -> List[Subject]:
+	connected_space_service = get_connected_space_service(principal_service)
+
+	def action() -> List[Subject]:
+		connected_spaces: List[ConnectedSpace] = connected_space_service.find_all(principal_service.get_tenant_id())
+		subject_service: SubjectService = get_subject_service(connected_space_service)
+		return ArrayHelper(connected_spaces) \
+			.map(lambda x: subject_service.find_by_connect_id(x.connectId)) \
+			.flatten() \
+			.to_list()
+
+	subjects = trans(connected_space_service, action)
+	return add_column_type_to_subjects(subjects, principal_service)
