@@ -337,7 +337,7 @@ def evaluate(toFile: bool = False, clear: bool = True) -> str:
     Parameters:
     -----------
     toFile: Optional, bool
-            Write the code to file, named 'output.md'\n
+            Write the code to upload_file, named 'output.md'\n
             Default value: False
     clear: Optional, bool
             Clear the code after calling the function
