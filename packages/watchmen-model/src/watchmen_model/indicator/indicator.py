@@ -89,9 +89,9 @@ class Indicator(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	category3: Optional[str] = None
 	description: Optional[str] = None
 	# effective only when factorId is appointed
-	valueBuckets: List[BucketId] = []
+	valueBuckets: Optional[List[BucketId]] = []
 	# noinspection SpellCheckingInspection
-	relevants: List[RelevantIndicator] = []
+	relevants: Optional[List[RelevantIndicator]] = []
 	filter: Optional[IndicatorFilter] = None
 
 	def __setattr__(self, name, value):

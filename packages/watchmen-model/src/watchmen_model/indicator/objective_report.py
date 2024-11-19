@@ -86,7 +86,7 @@ def construct_variables(variables: Optional[list] = None) -> Optional[List[Objec
 		return ArrayHelper(variables).map(lambda x: construct_variable(x)).to_list()
 
 
-class ObjectiveReport(UserBasedTuple, Auditable, LastVisit, ExtendedBaseModel):
+class ObjectiveReport(ExtendedBaseModel,UserBasedTuple, Auditable, LastVisit ):
 	objectiveReportId: ObjectiveReportId = None
 	name: str = None
 	variables: List[ObjectiveVariable] = []

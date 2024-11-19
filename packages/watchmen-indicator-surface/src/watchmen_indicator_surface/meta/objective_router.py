@@ -32,7 +32,7 @@ def get_user_group_service(objective_service: ObjectiveService) -> UserGroupServ
 		objective_service.storage, objective_service.snowflakeGenerator, objective_service.principalService)
 
 
-@router.get('/indicator/objective/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Objective])
+@router.get('/indicator/objective/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_objectives_by_name(
 		query_name: Optional[str], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[Objective]:
@@ -74,7 +74,7 @@ async def find_objectives_by_name(
 	return trans_readonly(objective_service, action)
 
 
-@router.get('/indicator/objective/list/name', tags=[UserRole.ADMIN], response_model=List[Objective])
+@router.get('/indicator/objective/list/name', tags=[UserRole.ADMIN], response_model=None)
 async def find_objectives_by_name(
 		query_name: Optional[str], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[Objective]:
@@ -96,7 +96,7 @@ class QueryObjectiveDataPage(DataPage):
 	data: List[Objective]
 
 
-@router.post('/indicator/objective/name', tags=[UserRole.ADMIN], response_model=QueryObjectiveDataPage)
+@router.post('/indicator/objective/name', tags=[UserRole.ADMIN], response_model=None)
 async def find_objectives_page_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_admin_principal)) -> QueryObjectiveDataPage:
@@ -114,7 +114,7 @@ async def find_objectives_page_by_name(
 	return trans_readonly(objective_service, action)
 
 
-@router.post('/indicator/objective/ids', tags=[UserRole.ADMIN], response_model=List[Objective])
+@router.post('/indicator/objective/ids', tags=[UserRole.ADMIN], response_model=None)
 async def find_objectives_by_ids(
 		objective_ids: List[ObjectiveId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[Objective]:
@@ -130,7 +130,7 @@ async def find_objectives_by_ids(
 	return trans_readonly(objective_service, action)
 
 
-@router.get('/indicator/objective', tags=[UserRole.ADMIN], response_model=Objective)
+@router.get('/indicator/objective', tags=[UserRole.ADMIN], response_model=None)
 async def load_objective_by_id(
 		objective_id: Optional[ObjectiveId], principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Objective:

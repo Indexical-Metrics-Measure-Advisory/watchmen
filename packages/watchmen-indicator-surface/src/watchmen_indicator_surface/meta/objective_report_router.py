@@ -20,7 +20,7 @@ def get_objective_report_service(principal_service: PrincipalService) -> Objecti
 	return ObjectiveReportService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.post('/indicator/objective/report', tags=[UserRole.ADMIN], response_model=ObjectiveReport)
+@router.post('/indicator/objective/report', tags=[UserRole.ADMIN], response_model=None)
 async def save_objective_report(
 		objective_report: ObjectiveReport,
 		principal_service: PrincipalService = Depends(get_admin_principal)) -> ObjectiveReport:
@@ -50,7 +50,7 @@ async def save_objective_report(
 	return trans(objective_report_service, lambda: action(objective_report))
 
 
-@router.get('/indicator/objective/report/name', tags=[UserRole.ADMIN], response_model=List[ObjectiveReport])
+@router.get('/indicator/objective/report/name', tags=[UserRole.ADMIN], response_model=None)
 async def find_objectives_by_name(
 		query_name: Optional[str], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[ObjectiveReport]:

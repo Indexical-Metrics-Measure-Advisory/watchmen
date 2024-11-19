@@ -38,7 +38,7 @@ def get_user_service(derived_objective_service: DerivedObjectiveService) -> User
 
 @router.get(
 	'/indicator/derived-objective/report/connect', tags=[UserRole.CONSOLE, UserRole.ADMIN],
-	response_model=DerivedObjectiveReport)
+	response_model=None)
 async def connect_as_derived_objective_report(
 		objective_report_id: Optional[ObjectiveId], name: Optional[str],
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -71,7 +71,7 @@ async def connect_as_derived_objective_report(
 
 
 @router.post('/indicator/derived-objective-report', tags=[UserRole.CONSOLE, UserRole.ADMIN],
-             response_model=DerivedObjectiveReport)
+             response_model=None)
 async def save_derived_objective_report(
 		derived_objective_report: DerivedObjectiveReport,
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -109,7 +109,7 @@ async def save_derived_objective_report(
 
 @router.get(
 	'/indicator/derived-objective-report/list', tags=[UserRole.CONSOLE, UserRole.ADMIN],
-	response_model=List[DerivedObjectiveReport])
+	response_model=None)
 async def find_my_derived_objective_reports(
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[DerivedObjectiveReport]:
