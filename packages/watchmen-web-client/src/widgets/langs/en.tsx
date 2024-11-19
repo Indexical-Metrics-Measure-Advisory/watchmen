@@ -34,7 +34,6 @@ export const En = {
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'Search by bucket name.',
 		FIND_OBJECTIVE_PLACEHOLDER: 'Find by objective name, description',
 		FIND_CONVERGENCE_PLACEHOLDER: 'Find by convergence name, description',
-		FIND_DATA_STORY_PLACEHOLDER: 'Find by data story name, description',
 		OBJECTIVE_NAME_PLACEHOLDER: 'A human reading name for objective.',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: 'Objective description here...',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: 'Variable name.',
@@ -192,7 +191,6 @@ export const En = {
 			SHARE: 'Share',
 			ADD_REPORT: 'Add Report',
 			ADD_SUBJECT: 'Add Subject',
-			COPILOT: 'Copilot',
 			OPEN_SUBJECT: 'Open Subject',
 			ADD_CONNECTED_SPACE: 'Connect Space',
 			SWITCH_CONNECTED_SPACE: 'Switch Connected Space',
@@ -349,7 +347,6 @@ export const En = {
 			INDICATORS: 'Indicators',
 			OBJECTIVES: 'Objectives',
 			CONVERGENCES: 'Convergences',
-			STORY: 'Data Story',
 			SETTINGS: 'Settings',
 			LOGOUT: 'Logout'
 		},
@@ -604,12 +601,6 @@ export const En = {
 			TEST_FACTOR: 'Value',
 			TEST_VALUE_CLICK: 'Click to retrieve values',
 			TEST_VALUE_GET_NONE: 'No data retrieved from server side.'
-		},
-		STORY: {
-			DATA_STORY: 'Data Story',
-			NEW_STORY_PREFIX: 'A New Data Story',
-			LIST_LABEL: 'Data Story',
-			EXISTING_STORY_PREFIX: 'An Existing'
 		},
 		CONVERGENCE: {
 			LIST_TITLE: 'Convergences',
@@ -1189,27 +1180,5 @@ export const En = {
 		NONAME_TOPIC_FACTOR: 'Noname Topic Factor',
 		NONAME_BUCKET: 'Noname Bucket',
 		NONAME_ENUM: 'Noname Enum'
-	},
-	COPILOT: {
-		YES: 'Sure, go ahead.',
-		NO: 'No.',
-		HELLO:"Hello",
-		NOTED: 'Noted. Is there anything else I can assist you with?',
-		ASK_RECOMMENDATION: 'Give me your recommendations.',
-		REPLY_ASKING_RECOMMENDATION: 'Noted. Please wait while I check for any recommended options.',
-		STILL_WORKING: 'Still working on it...',
-		CONNECT_FAIL: 'It looks like there is an issue; I\'m unable to connect to the server right now. Would you like to retry?',
-		ASK_RESTART_SESSION: 'Restart a new session.',
-		OPTION_PICKED_NOTED: 'Certainly! Great choice. Please wait while I check the details.',
-		CONNECTED_SPACE: {
-			GREETING_FIRST_SESSION: 'Hello! I\'m an AI assistant. I can help you analyze the data of the current connected space. Please wait while I check for any recommended options.',
-			GREETING_RESTART_SESSION: 'Alright, may I ask what I can help you with now? Perhaps you would like to review our recommended options again?'
-		},
-		DERIVED_OBJECTIVE: {
-			HELLO :"This channel is for working on objective analysis.",
-			GREETING_FIRST_SESSION:'Hello! I\'m an AI assistant. I can help you analyze data of current objective. Please wait while I check for any recommended options.',
-			GREETING_RESTART_SESSION:'Alright, may I ask what I can help you with now? Perhaps you would like to review our recommended options again?'
-		}
-
 	}
 };

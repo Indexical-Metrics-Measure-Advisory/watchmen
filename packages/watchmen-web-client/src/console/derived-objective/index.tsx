@@ -10,7 +10,7 @@ import React, {useEffect, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import {useConsoleEventBus} from '../console-event-bus';
 import {ConsoleEventTypes} from '../console-event-bus-types';
-import {DerivedObjectivePageRouter} from "@/console/derived-objective/page-router";
+import {DerivedObjectivePage} from './derived-objective';
 
 const ConsoleDerivedObjectiveIndex = () => {
 	const {derivedObjectiveId} = useParams<{ derivedObjectiveId: DerivedObjectiveId }>();
@@ -68,8 +68,8 @@ const ConsoleDerivedObjectiveIndex = () => {
 	}
 
 	return <FullWidthPage>
-			<DerivedObjectivePageRouter derivedObjective={derivedObjective}/>
-		</FullWidthPage>;
+		<DerivedObjectivePage derivedObjective={derivedObjective}/>
+	</FullWidthPage>;
 };
 
 export default ConsoleDerivedObjectiveIndex;

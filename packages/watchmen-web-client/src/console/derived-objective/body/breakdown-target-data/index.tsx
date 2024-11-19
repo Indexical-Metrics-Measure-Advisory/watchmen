@@ -1,7 +1,7 @@
 import {
-    BreakdownTarget,
-    DerivedObjective,
-    ObjectiveTargetBreakdownValues
+	BreakdownTarget,
+	DerivedObjective,
+	ObjectiveTargetBreakdownValues
 } from '@/services/data/tuples/derived-objective-types';
 import {ObjectiveTarget} from '@/services/data/tuples/objective-types';
 import {Lang} from '@/widgets/langs';
@@ -15,11 +15,11 @@ import {Column} from './types';
 import {buildColumns} from './utils';
 import {ValuesHandler} from './values-holder';
 import {
-    BreakdownTargetDataContainer,
-    BreakdownTargetDataNoDimension,
-    BreakdownTargetDataTable,
-    BreakdownTargetDataTableHeader,
-    BreakdownTargetDataTableHeaderCell
+	BreakdownTargetDataContainer,
+	BreakdownTargetDataNoDimension,
+	BreakdownTargetDataTable,
+	BreakdownTargetDataTableHeader,
+	BreakdownTargetDataTableHeaderCell
 } from './widgets';
 
 export const BreakdownTargetData = (props: {

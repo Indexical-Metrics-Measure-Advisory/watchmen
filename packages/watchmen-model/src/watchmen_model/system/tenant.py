@@ -1,12 +1,8 @@
 from typing import Optional
-
-
-from pydantic import BaseModel
-
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import OptimisticLock, TenantId, Tuple
 
 
-class Tenant(Tuple, OptimisticLock, BaseModel):
-	tenantId: TenantId = None
-	name: str = None
-	enableAI: bool = False
+class Tenant(ExtendedBaseModel, Tuple, OptimisticLock):
+	tenantId: Optional[TenantId] = None
+	name: Optional[str] = None

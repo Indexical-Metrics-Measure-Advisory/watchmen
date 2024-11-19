@@ -17,7 +17,6 @@ import {Lang} from '@/widgets/langs';
 import React, {useEffect, useState} from 'react';
 import {Routes, useNavigate, useParams} from 'react-router-dom';
 import {Catalog} from './catalog';
-import {Copilot} from './copilot';
 import {ReportView} from './report-view';
 import {SubjectView} from './subject-view';
 
@@ -66,8 +65,6 @@ export const PageRouter = (props: { connectedSpace: ConnectedSpace }) => {
 			Router.CONSOLE_CONNECTED_SPACE_SUBJECT_REPORT_EDIT, <ReportRouter connectedSpace={connectedSpace}/>)}
 		{asConnectedSpaceRoute(
 			Router.CONSOLE_CONNECTED_SPACE_SUBJECT_ALL, <SubjectView connectedSpace={connectedSpace}/>)}
-		{asConnectedSpaceRoute(
-			Router.CONSOLE_CONNECTED_SPACE_COPILOT, <Copilot connectedSpace={connectedSpace}/>)}
 		{asConnectedSpaceRoute(
 			Router.CONSOLE_CONNECTED_SPACE_CATALOG, <Catalog connectedSpace={connectedSpace}/>)}
 		{asFallbackNavigate(toConnectedSpaceCatalog(connectedSpace.connectId) as Router)}

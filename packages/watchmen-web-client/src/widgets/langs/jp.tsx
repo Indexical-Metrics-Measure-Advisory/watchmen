@@ -34,7 +34,6 @@ export const Jp: LanguageDeclareType = {
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'バケット名に基づいて検索します。',
 		FIND_OBJECTIVE_PLACEHOLDER: '目標名 説明に基づいて検索します。',
 		FIND_CONVERGENCE_PLACEHOLDER: '収束名 説明に基づいて検索します。',
-		FIND_DATA_STORY_PLACEHOLDER: '',
 		OBJECTIVE_NAME_PLACEHOLDER: '読むための名前を入力してください。',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '目標の説明を入力してください。',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: '変数名。',
@@ -122,7 +121,7 @@ export const Jp: LanguageDeclareType = {
 			REPORT_NOT_FOUND: '該当レポートが見つかりません。'
 		},
 		MENU: {
-			TITLE: 'DataMOコンソール',
+			TITLE: 'Watchmenコンソール',
 			HOME: 'ホーム',
 			DASHBOARDS: 'ダッシュボード',
 			FAVORITE: 'お気に入りを表示する',
@@ -192,7 +191,6 @@ export const Jp: LanguageDeclareType = {
 			SHARE: '共有',
 			ADD_REPORT: 'レポートを追加する',
 			ADD_SUBJECT: '主題を追加する',
-			COPILOT: 'コパイロット',
 			OPEN_SUBJECT: '主題を開く',
 			ADD_CONNECTED_SPACE: '連結空間に接続',
 			SWITCH_CONNECTED_SPACE: '接続された連結空間に切り替える',
@@ -344,20 +342,13 @@ export const Jp: LanguageDeclareType = {
 	},
 	INDICATOR: {
 		MENU: {
-			TITLE: 'DataMO指標',
+			TITLE: 'Watchmen指標',
 			BUCKETS: 'バケット',
 			INDICATORS: '指標',
-			CONVERGENCES: '収束',
 			OBJECTIVES: '目標',
-			STORY: 'ストーリー',
+			CONVERGENCES: '収束',
 			SETTINGS: '設定',
 			LOGOUT: 'ログアウト'
-		},
-		STORY: {
-			DATA_STORY: 'データストーリー',
-			NEW_STORY_PREFIX: '新しいデータストーリー',
-			LIST_LABEL: 'Data Story',
-			EXISTING_STORY_PREFIX: 'An Existing'
 		},
 		ON_EDIT: '編集中、保存されていないデータはすべて失われます。編集を破棄しますか。',
 		STEP: 'ステップ',
@@ -1189,26 +1180,5 @@ export const Jp: LanguageDeclareType = {
 		NONAME_TOPIC_FACTOR: '名前のないファクター',
 		NONAME_BUCKET: '名前のないバケット',
 		NONAME_ENUM: '名前のない列挙'
-	},
-	COPILOT: {
-		YES: 'すぐにやってください。',
-		NO: 'いいえ。',
-		HELLO:"こんにちは ",
-		NOTED: '了解しました。他にお手伝いできることはありますでしょうか？',
-		ASK_RECOMMENDATION: 'お勧めを教えてください。',
-		REPLY_ASKING_RECOMMENDATION: '了解しました。推奨オプションをチェックしますので少々お待ちください。',
-		STILL_WORKING: 'まだ作業中です...',
-		CONNECT_FAIL: 'サーバーに接続できませんでした。再試行しますか？',
-		ASK_RESTART_SESSION: '新しいセッションを開始します。',
-		OPTION_PICKED_NOTED: '申し訳ありませんが、そのオプションを完全に理解することができません。',
-		CONNECTED_SPACE: {
-			GREETING_FIRST_SESSION: 'こんにちは！私はAIアシスタントです。現在接続されているスペースのデータを分析するのを手伝えます。推奨オプションをチェックしますので少々お待ちください。',
-			GREETING_RESTART_SESSION: 'わかりました。今、何をお手伝いできますか？もう一度おすすめの選択肢をご確認されたいですか？'
-		},
-		DERIVED_OBJECTIVE: {
-			HELLO:"このチャンネルは、客観的な分析を行うためのものです",
-			GREETING_FIRST_SESSION:'こんにちは！私はあなたのAIアシスタントです。',
-			GREETING_RESTART_SESSION:'Alright, may I ask what I can help you with now? Perhaps you would like to review our recommended options again?'
-		}
 	}
 };

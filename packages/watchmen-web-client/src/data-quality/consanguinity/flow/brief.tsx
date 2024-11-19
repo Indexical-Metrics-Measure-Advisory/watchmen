@@ -1,6 +1,8 @@
-import {CliEventTypes, HelpCommandDescription, HelpCommandName, useCliEventBus} from '@/widgets/chatbot';
 import React from 'react';
-import {CONSANGUINITY_HELP_COMMAND} from '../commands';
+import {useCliEventBus} from '../../widgets/cli/events/cli-event-bus';
+import {CliEventTypes} from '../../widgets/cli/events/cli-event-bus-types';
+import {HelpCommandDescription, HelpCommandName} from '../../widgets/cli/execution/widgets';
+import {CONSANGUINITY_HELP_COMMAND} from '../index';
 import {FlowHelpCmd} from './help';
 
 export const FlowBrief = () => {

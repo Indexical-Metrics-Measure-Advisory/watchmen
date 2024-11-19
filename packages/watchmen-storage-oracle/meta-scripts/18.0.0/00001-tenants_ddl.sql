@@ -1,1 +1,0 @@
-ALTER TABLE tenants ADD enable_ai NUMBER(1) NOT NULL DEFAULT 0;

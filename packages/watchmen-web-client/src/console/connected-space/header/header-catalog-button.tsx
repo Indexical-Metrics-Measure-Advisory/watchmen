@@ -1,7 +1,7 @@
 import {Router} from '@/routes/types';
 import {toConnectedSpaceCatalog} from '@/routes/utils';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
-import {ICON_BACK} from '@/widgets/basic/constants';
+import {ICON_CONNECTED_SPACE_CATALOG} from '@/widgets/basic/constants';
 import {PageHeaderButton} from '@/widgets/basic/page-header-buttons';
 import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
@@ -27,6 +27,6 @@ export const HeaderCatalogButton = (props: { connectedSpace: ConnectedSpace }) =
 	return <PageHeaderButton tooltip={Lang.CONSOLE.CONNECTED_SPACE.CATALOG}
 	                         ink={isCatalogNow(location) ? ButtonInk.PRIMARY : (void 0)}
 	                         onClick={onCatalogClicked}>
-		<FontAwesomeIcon icon={ICON_BACK} style={{transform: 'rotateY(180deg)'}}/>
+		<FontAwesomeIcon icon={ICON_CONNECTED_SPACE_CATALOG}/>
 	</PageHeaderButton>;
 };

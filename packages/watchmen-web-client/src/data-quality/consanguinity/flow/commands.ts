@@ -1,4 +1,4 @@
-import {Command, CommandPublishedBehaviorType} from '@/widgets/chatbot';
+import {Command, CommandPublishedBehaviorType} from '../../command/types';
 
 export const CMD_FLOW = '/flow';
 

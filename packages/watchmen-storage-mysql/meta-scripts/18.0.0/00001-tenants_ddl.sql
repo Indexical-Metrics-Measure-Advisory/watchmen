@@ -1,1 +1,0 @@
-ALTER TABLE tenants ADD enable_ai TINYINT(1) NOT NULL DEFAULT 0;

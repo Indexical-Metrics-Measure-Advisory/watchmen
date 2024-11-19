@@ -60,7 +60,6 @@ import {
 	faHighlighter,
 	faHome,
 	faIgloo,
-	faIndustry,
 	faLaptopHouse,
 	faLayerGroup,
 	faLevelDownAlt,
@@ -68,8 +67,7 @@ import {
 	faLink,
 	faLock,
 	faLockOpen,
-	faLongArrowLeft,
-	faLongArrowRight,
+	faLongArrowLeft, faLongArrowRight,
 	faMagnifyingGlassChart,
 	faMicroscope,
 	faObjectGroup,
@@ -101,7 +99,6 @@ import {
 	faStar,
 	faStarOfLife,
 	faStickyNote,
-	faStoreAlt,
 	faStream,
 	faSyncAlt,
 	faTable,
@@ -120,8 +117,6 @@ import {
 	faUpload,
 	faUser,
 	faUsers,
-	faWandMagic,
-	faWandMagicSparkles,
 	faWarehouse,
 	faWaveSquare,
 	faWind,
@@ -181,7 +176,6 @@ export const ICON_ADMIN = faTools;
 export const ICON_DQC = faCoins;
 export const ICON_IDW = faBusinessTime;
 export const ICON_HOME = faHome;
-export const ICON_INDUSTRY = faIndustry;
 export const ICON_LOGOUT = faPowerOff;
 
 export const ICON_USER_GROUP = faUsers;
@@ -335,7 +329,3 @@ export const ICON_VARIABLES = faSliders;
 
 // mock data
 export const MOCK_ACCOUNT_NAME = 'Dr. X';
-export const ICON_SHORE = faStoreAlt;
-export const ICON_MAGIC = faWandMagic;
-export const ICON_MAGIC_SPARKLES = faWandMagicSparkles;
-export const ICON_ROBOT = faRobot;

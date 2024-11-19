@@ -2,14 +2,14 @@ from fastapi import APIRouter, Depends
 
 from watchmen_auth import PrincipalService
 from watchmen_lineage.model.lineage import LineageResult
-from watchmen_lineage.service.lineage_service import LineageService, get_lineage_service
+from watchmen_lineage.service.lineage_service import LineageService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import ObjectiveTargetId, ObjectiveId
 from watchmen_rest import get_admin_principal
 
 router = APIRouter()
 
-lineage_service = get_lineage_service()
+lineage_service = LineageService()
 
 
 @router.post('/linegae/rebuild', tags=[UserRole.ADMIN], response_model=None)

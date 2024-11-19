@@ -1,8 +1,8 @@
 import {
-    BreakdownDimension,
-    BreakdownDimensionType,
-    BreakdownTarget,
-    DerivedObjective
+	BreakdownDimension,
+	BreakdownDimensionType,
+	BreakdownTarget,
+	DerivedObjective
 } from '@/services/data/tuples/derived-objective-types';
 import {ObjectiveTarget} from '@/services/data/tuples/objective-types';
 import {isNotBlank} from '@/services/utils';

@@ -143,6 +143,7 @@ class ObjectiveLineageBuilder(LineageBuilder):
 			                                                                    parentId=objective.objectiveId,
 			                                                                    name=objective_factor.name)
 			graphic_builder.add_objective_factor_facet(graphic, objective_factor_facet)
+
 			self.__process_objective_factor(graphic, objective_factor, objective_facet, principal_service)
 
 	def __process_objective_factor(self, graphic, objective_factor: ObjectiveFactor, objective_facet: ObjectiveFacet,
@@ -164,9 +165,6 @@ class ObjectiveLineageBuilder(LineageBuilder):
 			elif isinstance(facet, ObjectiveTargetFacet) or isinstance(facet, ObjectiveFactorFacet):
 				graphic_builder.add_edge_with_source_and_target(graphic, objective_factor_facet, facet,
 				                                                RelationType.Direct, LineageType.OBJECTIVE_TARGET)
-
-
-
 			#
 			# elif :
 			# 	graphic_builder.add_edge_with_source_and_target(graphic, objective_factor_facet, facet,
@@ -175,9 +173,6 @@ class ObjectiveLineageBuilder(LineageBuilder):
 		elif objective_factor.kind == ObjectiveFactorKind.COMPUTED:
 			objective_factor_facet = ObjectiveFactorFacet(nodeId=objective_factor.uuid,
 			                                              parentId=objective_facet.nodeId, name=objective_factor.name)
-			if facet:
-				graphic_builder.add_edge_with_source_and_target(graphic, objective_factor_facet, facet,
-																RelationType.Direct, LineageType.OBJECTIVE_TARGET)
 			for objective_parameter in objective_factor.formula.parameters:
 				self.__process_objective_parameter(graphic, objective_parameter, objective_facet,
 				                                   principal_service, objective_factor_facet)

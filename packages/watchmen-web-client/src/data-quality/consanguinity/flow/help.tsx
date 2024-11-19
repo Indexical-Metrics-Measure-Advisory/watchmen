@@ -1,12 +1,11 @@
+import React from 'react';
+import {CommandPublishedBehaviorType, HelpCommand} from '../../command/types';
 import {
-	CommandPublishedBehaviorType,
-	HelpCommand,
 	HelpCommandDescription,
 	HelpCommandExample,
 	HelpCommandName,
 	LeadHelpCommandName
-} from '@/widgets/chatbot';
-import React from 'react';
+} from '../../widgets/cli/execution/widgets';
 import {FlowBrief} from './brief';
 
 export const FlowHelpCmd: HelpCommand = {

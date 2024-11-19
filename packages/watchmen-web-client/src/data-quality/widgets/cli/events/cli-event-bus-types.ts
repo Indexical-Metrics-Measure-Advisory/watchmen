@@ -1,5 +1,4 @@
-import {Command} from "@/widgets/chatbot";
-
+import {Command} from '../../../command/types';
 
 export enum CliEventTypes {
 	SELECT_COMMAND = 'select-command',

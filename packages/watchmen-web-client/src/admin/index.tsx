@@ -25,7 +25,6 @@ import {TopicProfileEventBusProvider} from './topic-profile/topic-profile-event-
 import AdminTopics from './topics';
 import AdminUserGroups from './user-groups';
 import AdminUsers from './users';
-import AdminAIModelsIndex from "./ai-models";
 
 const AdminContainer = styled.div.attrs({'data-widget': 'admin'})`
 	display : flex;
@@ -72,7 +71,6 @@ const AdminIndex = () => {
 					? <Routes>
 						{asRoute(Router.ADMIN_USERS, <AdminUsers/>)}
 						{asRoute(Router.ADMIN_TENANTS, <AdminTenants/>)}
-						{asRoute(Router.ADMIN_AI_MODEL,<AdminAIModelsIndex/>)}
 						{isMultipleDataSourcesEnabled()
 							? asRoute(Router.ADMIN_DATA_SOURCES, <AdminDataSources/>) : null}
 						{isWriteExternalEnabled()

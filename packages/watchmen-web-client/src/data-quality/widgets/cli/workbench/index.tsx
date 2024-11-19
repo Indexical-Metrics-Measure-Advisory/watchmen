@@ -1,21 +1,10 @@
 import React, {ChangeEvent, KeyboardEvent, useEffect, useRef, useState} from 'react';
-
-
+import {isClearCommand, isClearScreenCommand, isFirstCommand, isHelpCommand} from '../../../command';
+import {Command, CommandPublishedBehaviorBackward, CommandPublishedBehaviorType} from '../../../command/types';
+import {useCliEventBus} from '../events/cli-event-bus';
 import {CliEventTypes} from '../events/cli-event-bus-types';
 import {matchCommandText} from '../utils';
-import {
-	Command,
-	CommandPublishedBehaviorBackward,
-	CommandPublishedBehaviorType, isClearCommand, isClearScreenCommand,
-	isFirstCommand, isHelpCommand,
-	useCliEventBus
-} from "@/widgets/chatbot";
-import {
-	PickedCommand,
-	PickedCommands,
-	WorkbenchContainer,
-	WorkbenchInput
-} from "@/widgets/chatbot/cli/workbench/widgets";
+import {PickedCommand, PickedCommands, WorkbenchContainer, WorkbenchInput} from './widgets';
 
 const DEFAULT_PLACEHOLDER = 'Send a command...';
 

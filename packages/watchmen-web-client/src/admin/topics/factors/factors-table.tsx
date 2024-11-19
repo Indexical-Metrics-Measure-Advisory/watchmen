@@ -8,7 +8,6 @@ import {FactorsTableHeader} from './factors-table-header';
 import {ImportMetaDataButton} from './import-meta-data-button';
 import {ParseFlattenPipelinesButton} from './parse-flatten-pipelines-button';
 import {FactorsTableContainer, FactorsTableFooter} from './widgets';
-import {AIModelButton} from "@/admin/topics/factors/ai_button";
 
 export const FactorsTable = (props: { topic: Topic, enums: Array<QueryEnumForHolder> }) => {
 	const {topic, enums} = props;
@@ -21,7 +20,6 @@ export const FactorsTable = (props: { topic: Topic, enums: Array<QueryEnumForHol
 			<ParseFlattenPipelinesButton topic={topic}/>
 			<ImportMetaDataButton topic={topic}/>
 			<FactorsImportButton topic={topic}/>
-			<AIModelButton topic={topic}/>
 		</FactorsTableFooter>
 	</FactorsTableContainer>;
 };

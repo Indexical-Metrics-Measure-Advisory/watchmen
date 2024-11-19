@@ -10,7 +10,6 @@ import IndicatorIndicatorIndex from './indicator';
 import {IndicatorMenu} from './menu';
 import IndicatorObjectiveIndex from './objective';
 import IndicatorSettingsIndex from './settings';
-import StoryIndex from "@/indicator/story";
 
 const IndicatorContainer = styled.div.attrs({'data-widget': 'indicator'})`
 	display : flex;
@@ -54,7 +53,6 @@ const IndicatorIndex = () => {
 			{asRoute(Router.IDW_INDICATOR_ALL, <IndicatorIndicatorIndex/>)}
 			{asRoute(Router.IDW_OBJECTIVE_ALL, <IndicatorObjectiveIndex/>)}
 			{asRoute(Router.IDW_CONVERGENCE_ALL, <IndicatorConvergenceIndex/>)}
-			{asRoute(Router.IDW_STORY_ALL, <StoryIndex/>)}
 			{asRoute(Router.IDW_SETTINGS, <IndicatorSettingsIndex/>)}
 			{asFallbackNavigate(Router.IDW_INDICATOR)}
 		</Routes>

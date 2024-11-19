@@ -8,7 +8,7 @@ from watchmen_model.common import TopicId
 from watchmen_storage import SNOWFLAKE_WORKER_ID_TABLE, UnexpectedStorageException
 from .table_defs_helper import create_bool, create_date, create_datetime, create_description, create_int, create_json, \
 	create_last_visit_time, create_medium_text, create_optimistic_lock, create_pk, create_str, create_tenant_id, \
-	create_tuple_audit_columns, create_tuple_id_column, create_user_id, meta_data, create_blob
+	create_tuple_audit_columns, create_tuple_id_column, create_user_id, meta_data
 from .topic_table_generate import build_by_aggregation, build_by_raw, build_by_regular
 
 # snowflake workers
@@ -31,7 +31,6 @@ table_pats = Table(
 table_tenants = Table(
 	'tenants', meta_data,
 	create_pk('tenant_id'),
-	create_bool('enable_ai', False),
 	create_str('name', 50, False),
 	*create_tuple_audit_columns(), create_optimistic_lock()
 )
@@ -73,18 +72,6 @@ table_users = Table(
 	create_bool('is_active'), create_json('group_ids'), create_str('role', 50),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
-
-table_ai_models= Table(
-	'ai_models', meta_data,
-	create_pk('model_id'),
-	create_str('model_name', 50, False), create_str('model_version', 50), create_str('model_token', 50),
-	create_bool('enable_monitor', False), create_str('llm_provider', 50),
-	create_str('base_url', 255), create_str('embedding_provider', 50),
-	create_str('base_embedding_url', 255), create_str('embedding_name', 50),
-	create_str('embedding_version', 50), create_str('embedding_token', 50),
-	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
-)
-
 table_user_groups = Table(
 	'user_groups', meta_data,
 	create_pk('user_group_id'),
@@ -506,50 +493,6 @@ table_subscription_event_locks = Table(
 	create_datetime('created_at', False)
 )
 
-
-table_graph_nodes = Table(
-	'graph_nodes', meta_data,
-	create_pk('node_id'),
-	create_tuple_id_column('document_id', False),
-	create_str('label', 50, False),
-	create_str('name', 50, True),
-	create_json('properties'),
-	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
-)
-
-table_graph_edges = Table(
-	'graph_edges', meta_data,
-	create_pk('edge_id'),
-	create_tuple_id_column('document_id', False),
-	create_tuple_id_column('source_node_id', False), create_tuple_id_column('target_node_id', False),
-	create_str('label', 50, True),
-	create_str('name', 50, True),
-	create_json('properties'),
-	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
-)
-
-table_graph_properties = Table(
-	'graph_properties', meta_data,
-	create_pk('property_id'),
-	create_tuple_id_column('document_id', False),
-	create_tuple_id_column('node_id', True), create_tuple_id_column('edge_id', True),
-	create_str('name', 50, False), create_str('value', 255),
-	create_str('type', 50, True),
-	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
-)
-
-table_document_datasets = Table(
-	'document_datasets', meta_data,
-	create_pk('document_id'),
-	create_str('document_name', 50, False), create_str('document_type', 50, False),
-	create_blob('document_content',  False),
-	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
-)
-
-
-
-
-
 # noinspection DuplicatedCode
 tables: Dict[str, Table] = {
 	# snowflake workers
@@ -557,7 +500,6 @@ tables: Dict[str, Table] = {
 	# system
 	'pats': table_pats,
 	'tenants': table_tenants,
-	'ai_models': table_ai_models,
 	'external_writers': table_external_writers,
 	'plugins': table_plugins,
 	'data_sources': table_data_sources,
@@ -617,12 +559,7 @@ tables: Dict[str, Table] = {
 	'change_data_record': table_change_data_record,
 	'change_data_record_history': table_change_data_record_history,
 	'change_data_json': table_change_data_json,
-	'change_data_json_history': table_change_data_json_history,
-	'graph_nodes': table_graph_nodes,
-	'graph_edges': table_graph_edges,
-	'graph_properties': table_graph_properties,
-	'document_datasets': table_document_datasets
-
+	'change_data_json_history': table_change_data_json_history
 }
 
 

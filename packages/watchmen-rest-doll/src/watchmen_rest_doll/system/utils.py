@@ -22,6 +22,3 @@ def attach_tenant_name(
 		data_list: Union[List[Plugin], List[DataSource], List[ExternalWriter]],
 		principal_service: PrincipalService):
 	return ArrayHelper(data_list).map(lambda x: attach_name(x, principal_service)).to_list()
-
-
-

@@ -10,9 +10,6 @@ import {useActionEventBus} from '../action-event-bus';
 import {ActionEventTypes} from '../action-event-bus-types';
 import {IncorrectOptionLabel, PrefillButton, TopicDropdown, TopicFinderContainer} from './widgets';
 
-
-
-
 export const TopicPicker = (props: {
 	action: FromTopic | ToTopic;
 	topics: Array<Topic>;
@@ -58,13 +55,9 @@ export const TopicPicker = (props: {
 		<TopicDropdown value={selectedTopic} options={topicOptions} onChange={onTopicChange}
 		               please="Topic?"/>
 		{prefillMappingFactors != null
-			? <><PrefillButton ink={ButtonInk.PRIMARY} onClick={prefillMappingFactors}>
+			? <PrefillButton ink={ButtonInk.PRIMARY} onClick={prefillMappingFactors}>
 				Prefill Mapping Factors
 			</PrefillButton>
-				<PrefillButton ink={ButtonInk.PRIMARY} onClick={prefillMappingFactors}>
-					Ask AI: Mapping Factors</PrefillButton>
-
-			</>
 			: null}
 	</TopicFinderContainer>;
 };

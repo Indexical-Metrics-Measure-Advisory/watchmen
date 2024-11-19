@@ -1,6 +1,6 @@
 from typing import Any, List, Type, Union  # noqa
 
-from sqlalchemy import Boolean, Column, Date, DateTime, Integer, JSON, MetaData, String, Text, LargeBinary
+from sqlalchemy import Boolean, Column, Date, DateTime, Integer, JSON, MetaData, String, Text
 
 from .ext_types import ClobToJson
 
@@ -21,8 +21,6 @@ def create_str(name: str, length: int, nullable: bool = True) -> Column:
 def create_bool(name: str, nullable: bool = True) -> Column:
 	return Column(name, Boolean, nullable=nullable)
 
-def create_blob(name: str, nullable: bool = True) -> Column:
-	return Column(name, LargeBinary, nullable=nullable)
 
 def create_int(name: str, nullable: bool = True) -> Column:
 	return Column(name, Integer, nullable=nullable)

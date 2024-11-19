@@ -1,4 +1,5 @@
-import {ExecutionContent, HelpExecution, isHelpExecution} from '@/widgets/chatbot';
+import {HelpExecution, isHelpExecution} from '../widgets/cli/execution/help';
+import {ExecutionContent} from '../widgets/cli/types';
 import {FlowExecution, isFlowExecution} from './flow';
 import {GraphExecution, isGraphExecution} from './graph';
 import {isPipelineExecution, PipelineExecution} from './pipeline';

@@ -81,7 +81,7 @@ class LineageService(object):
 		return self.__get_lineage(factor_facet, RelationDirection.IN, tenant_node_graph)
 
 	def find_lineage_by_objective_target(self, objective_target_id: ObjectiveTargetId, objective_id: ObjectiveId,
-	                                     principal_service: PrincipalService)->LineageResult:
+	                                     principal_service: PrincipalService):
 		objective_target_facet: ObjectiveTargetFacet = ObjectiveTargetFacet(nodeId=objective_target_id,
 		                                                                    parentId=objective_id)
 		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
@@ -230,7 +230,6 @@ class LineageService(object):
 
 	@staticmethod
 	def __get_node(graphic: MultiDiGraph, node_id: str):
-		# print(node_id)
 		return graphic.nodes[node_id]
 
 	def graph_json(self, principal_service: PrincipalService):
@@ -294,10 +293,3 @@ class LineageService(object):
 			self.find_indicators_with_same_deeper_parent(graph, source_node, parent_node, siblings)
 
 		return siblings
-
-
-
-lineage_service = LineageService()
-
-def get_lineage_service():
-	return lineage_service

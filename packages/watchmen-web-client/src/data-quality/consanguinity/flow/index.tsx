@@ -1,17 +1,17 @@
-import {
-	CliEventTypes, Command,
-	ExecutionCommandLineArgument,
-	ExecutionCommandLinePrimary,
-	ExecutionContent,
-	ExecutionDelegate,
-	ExecutionResultItemTable,
-	ExecutionResultNoData,
-	GraphDiagram,
-	useCliEventBus
-} from '@/widgets/chatbot';
 import React, {useState} from 'react';
 import {DQCCacheData} from '../../cache/types';
 import {useDataQualityCacheData} from '../../cache/use-cache-data';
+import {useCliEventBus} from '../../widgets/cli/events/cli-event-bus';
+import {CliEventTypes} from '../../widgets/cli/events/cli-event-bus-types';
+import {ExecutionDelegate} from '../../widgets/cli/execution/execution-delegate';
+import {
+	ExecutionCommandLineArgument,
+	ExecutionCommandLinePrimary,
+	ExecutionResultItemTable,
+	ExecutionResultNoData
+} from '../../widgets/cli/execution/widgets';
+import {GraphDiagram} from '../../widgets/cli/graph';
+import {ExecutionContent} from '../../widgets/cli/types';
 import {CMD_ARGUMENT_START, CMD_ARGUMENT_STOP, CMD_FLOW} from './commands';
 import {compute} from './utils';
 
@@ -67,7 +67,7 @@ export const FlowExecution = (props: { content: ExecutionContent }) => {
 	return <ExecutionDelegate content={content}
 	                          commandLine={<>
 		                          <ExecutionCommandLinePrimary>/flow</ExecutionCommandLinePrimary>
-		                          {args.map((argument: Command, index: number) => {
+		                          {args.map((argument, index) => {
 			                          if (index === 1 || index === 3) {
 				                          return <ExecutionCommandLineArgument
 					                          key={index}>"{argument.command}"</ExecutionCommandLineArgument>;

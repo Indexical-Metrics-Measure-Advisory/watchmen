@@ -6,7 +6,6 @@ export enum Router {
 	OIDC_CALLBACK = 'oidc/callback',
 
 	ADMIN = '/admin',
-	GPT_SETTING = '/admin/gpt',
 	ADMIN_ALL = '/admin/*',
 	ADMIN_HOME = '/admin/home',
 	ADMIN_TOPICS = '/admin/topics',
@@ -30,7 +29,6 @@ export enum Router {
 	ADMIN_TOOLBOX_ALL = '/admin/toolbox/*',
 	ADMIN_TOOLBOX_TOPIC_SNAPSHOT = '/admin/toolbox/topic-snapshot',
 	ADMIN_TOOLBOX_PIPELINE_TRIGGER = '/admin/toolbox/pipeline-trigger',
-	ADMIN_AI_MODEL = '/admin/ai-models',
 
 	CONSOLE = '/console',
 	CONSOLE_ALL = '/console/*',
@@ -41,7 +39,6 @@ export enum Router {
 	CONSOLE_CONNECTED_SPACE = '/console/space/connected/:connectId',
 	CONSOLE_CONNECTED_SPACE_ALL = '/console/space/connected/:connectId/*',
 	CONSOLE_CONNECTED_SPACE_CATALOG = '/console/space/connected/:connectId/catalog',
-	CONSOLE_CONNECTED_SPACE_COPILOT = '/console/space/connected/:connectId/copilot',
 	CONSOLE_CONNECTED_SPACE_SUBJECT = '/console/space/connected/:connectId/subject/:subjectId',
 	CONSOLE_CONNECTED_SPACE_SUBJECT_ALL = '/console/space/connected/:connectId/subject/:subjectId/*',
 	CONSOLE_CONNECTED_SPACE_SUBJECT_DEF = '/console/space/connected/:connectId/subject/:subjectId/def',
@@ -50,7 +47,6 @@ export enum Router {
 	CONSOLE_CONNECTED_SPACE_SUBJECT_REPORT_EDIT = '/console/space/connected/:connectId/subject/:subjectId/report/:reportId',
 	CONSOLE_DERIVED_OBJECTIVE = '/console/objective/derived/:derivedObjectiveId',
 	CONSOLE_DERIVED_OBJECTIVE_ALL = '/console/objective/derived/:derivedObjectiveId/*',
-	CONSOLE_DERIVED_OBJECTIVE_COPILOT = '/console/objective/derived/:derivedObjectiveId/copilot',
 	CONSOLE_SETTINGS = '/console/settings',
 
 	DQC = '/dqc',
@@ -75,13 +71,10 @@ export enum Router {
 	IDW_CONVERGENCE = '/idw/convergence',
 	IDW_CONVERGENCE_ALL = '/idw/convergence/*',
 	IDW_CONVERGENCE_EDIT = '/idw/convergence/edit',
-	IDW_STORY_ALL = '/idw/story/*',
-	IDW_STORY = '/idw/story',
-	IDW_STORY_EDIT = '/idw/story/edit',
 	IDW_SETTINGS = '/idw/settings',
 
 	SHARE = '/share',
 	SHARE_ALL = '/share/*',
 	SHARE_DASHBOARD = '/share/dashboard/:dashboardId/:token',
-	SHARE_DERIVED_OBJECTIVE = '/share/objective/derived/:derivedObjectiveId/:token',
+	SHARE_DERIVED_OBJECTIVE = '/share/objective/derived/:derivedObjectiveId/:token'
 }

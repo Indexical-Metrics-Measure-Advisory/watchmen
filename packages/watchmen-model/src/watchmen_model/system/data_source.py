@@ -21,7 +21,6 @@ class DataSourceType(str, Enum):
 	ADLS = 'adls'  # Azure Data Lake Storage
 
 
-
 def construct_param(param: Optional[Union[dict, DataSourceParam]]) -> Optional[DataSourceParam]:
 	if param is None:
 		return None

@@ -25,7 +25,6 @@ const createTenant = (): Tenant => {
 	return {
 		tenantId: generateUuid(), name: '',
 		version: 1,
-		enableAI: false,
 		createdAt: getCurrentTime(),
 		lastModifiedAt: getCurrentTime()
 	};
@@ -43,7 +42,6 @@ const AdminTenants = () => {
 	useEffect(() => {
 		const onDoCreateTenant = () => {
 			fire(TupleEventTypes.TUPLE_CREATED, createTenant());
-
 		};
 		const onDoEditTenant = async (queryTenant: QueryTenant) => {
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
@@ -56,7 +54,6 @@ const AdminTenants = () => {
 				(page: TuplePage<QueryTuple>) => fire(TupleEventTypes.TUPLE_SEARCHED, page, searchText));
 		};
 		const onSaveTenant = async (tenant: Tenant, onSaved: (tenant: Tenant, saved: boolean) => void) => {
-			console.log(tenant);
 			if (!tenant.name || !tenant.name.trim()) {
 				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Zone name is required.</AlertLabel>, () => {
 					onSaved(tenant, false);
@@ -78,7 +75,7 @@ const AdminTenants = () => {
 			off(TupleEventTypes.DO_SEARCH_TUPLE, onDoSearchTenant);
 			off(TupleEventTypes.SAVE_TUPLE, onSaveTenant);
 		};
-	}, [fireGlobal, on, off, fire]);
+	}, [on, off, fire, fireGlobal]);
 	useHelp(HELP_KEYS.ADMIN_TENANT);
 
 	return <TupleWorkbench title="Data Zones"

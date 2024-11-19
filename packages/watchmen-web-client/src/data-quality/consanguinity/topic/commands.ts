@@ -1,11 +1,6 @@
 import {Topic} from '@/services/data/tuples/topic-types';
-import {
-	CMD_ARGUMENT_LIST,
-	CMD_ARGUMENT_VIEW,
-	Command,
-	CommandPublishedBehaviorBackward,
-	CommandPublishedBehaviorType
-} from '@/widgets/chatbot';
+import {CMD_ARGUMENT_LIST, CMD_ARGUMENT_VIEW} from '../../command';
+import {Command, CommandPublishedBehaviorBackward, CommandPublishedBehaviorType} from '../../command/types';
 import {getTopicName} from '../../utils';
 
 export const CMD_TOPIC = '/topic';

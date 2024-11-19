@@ -1,7 +1,6 @@
 import styled from 'styled-components';
-import {ExecutionResultClickableItem, ExecutionResultItem} from '@/widgets/chatbot';
+import {ExecutionResultClickableItem, ExecutionResultItem} from '../../widgets/cli/execution/widgets';
 
-// noinspection CssUnresolvedCustomProperty
 export const TopicName = styled.div`
 	display: flex;
 	align-items: center;
@@ -11,7 +10,6 @@ export const TopicName = styled.div`
 	font-weight: var(--font-boldest);
 `;
 
-// noinspection CssUnresolvedCustomProperty
 export const PipelineGroup = styled.div`
 	display: flex;
 	align-items: center;
@@ -23,7 +21,7 @@ export const PipelineGroup = styled.div`
 export const PipelineName = styled(ExecutionResultClickableItem)`
 	grid-column: 2;
 `;
-// noinspection CssUnresolvedCustomProperty
+
 export const NotUsedFactorsGroup = styled.div`
 	display: flex;
 	align-items: center;

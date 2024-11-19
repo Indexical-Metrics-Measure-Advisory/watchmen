@@ -1,5 +1,6 @@
-import {CMD_ARGUMENT_INSPECT, CMD_ARGUMENT_LIST, CMD_ARGUMENT_VIEW, ExecutionContent} from '@/widgets/chatbot';
 import React from 'react';
+import {CMD_ARGUMENT_INSPECT, CMD_ARGUMENT_LIST, CMD_ARGUMENT_VIEW} from '../../command';
+import {ExecutionContent} from '../../widgets/cli/types';
 import {CMD_PIPELINE} from './commands';
 import {PipelineFindExecution} from './find';
 import {PipelineInspectExecution} from './inspect';
