@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List, Any, Dict
 
-from watchmen_collector_kernel.common import ask_partial_size, STATUS
+from watchmen_collector_kernel.common import ask_task_partial_size, STATUS
 from watchmen_utilities import ArrayHelper
 
 from watchmen_auth import PrincipalService
@@ -22,6 +22,7 @@ class ScheduledTaskShaper(EntityShaper):
 			'resource_id': entity.resourceId,
 			'topic_code': entity.topicCode,
 			'content': entity.content,
+			'change_json_ids': entity.changeJsonIds,
 			'model_name': entity.modelName,
 			'object_id': entity.objectId,
 			'depend_on': ArrayHelper(entity.dependOn).map(lambda x: x.to_dict()).to_list(),
@@ -31,6 +32,7 @@ class ScheduledTaskShaper(EntityShaper):
 			'status': entity.status,
 			'result': entity.result,
 			'event_id': entity.eventId,
+			'event_trigger_id': entity.eventTriggerId,
 			'pipeline_id': entity.pipelineId,
 			'type': entity.type
 		})
@@ -42,6 +44,7 @@ class ScheduledTaskShaper(EntityShaper):
 			resourceId=row.get('resource_id'),
 			topicCode=row.get('topic_code'),
 			content=row.get('content'),
+			changeJsonIds=row.get('change_json_ids'),
 			modelName=row.get('model_name'),
 			objectId=row.get('object_id'),
 			dependOn=row.get('depend_on'),
@@ -51,6 +54,7 @@ class ScheduledTaskShaper(EntityShaper):
 			status=row.get('status'),
 			result=row.get('result'),
 			eventId=row.get('event_id'),
+			eventTriggerId=row.get('event_trigger_id'),
 			pipelineId=row.get('pipeline_id'),
 			type=row.get('type')
 		))
@@ -124,6 +128,14 @@ class ScheduledTaskService(TupleService):
 		else:
 			return None
 
+	def find_one_and_lock_nowait(self, task_id: int) -> Optional[ScheduledTask]:
+		return self.storage.find_one_and_lock_nowait(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='task_id'), right=task_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=0),
+			])
+		)
+
 	def find_unfinished_tasks(self) -> List[Dict[str, Any]]:
 		self.begin_transaction()
 		try:
@@ -150,7 +162,7 @@ class ScheduledTaskService(TupleService):
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_finished'), right=False)
 				],
-				pageable=Pageable(pageNumber=1, pageSize=ask_partial_size())
+				pageable=Pageable(pageNumber=1, pageSize=ask_task_partial_size())
 			)).data
 		finally:
 			self.close_transaction()
@@ -163,7 +175,7 @@ class ScheduledTaskService(TupleService):
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=STATUS), right=0)
 				],
-				limit=limit if limit is not None else ask_partial_size()
+				limit=limit if limit is not None else ask_task_partial_size()
 			))
 
 	def is_existed(self, task: ScheduledTask) -> bool:
@@ -195,7 +207,7 @@ class ScheduledTaskService(TupleService):
 		finally:
 			self.close_transaction()
 
-	def find_model_dependent_tasks(self, model_name: str, object_id: str, event_id: str, tenant_id: str) -> List[ScheduledTask]:
+	def find_model_dependent_tasks(self, model_name: str, object_id: str, event_trigger_id: int, tenant_id: str) -> List[ScheduledTask]:
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker
@@ -205,11 +217,12 @@ class ScheduledTaskService(TupleService):
 					                         right=model_name),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'),
 					                         right=object_id),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_id'),
-					                         right=event_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
+					                         right=event_trigger_id),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
 					                         right=tenant_id)
-				]
+				],
+				sort=[EntitySortColumn(name='task_id', method=EntitySortMethod.ASC)]
 			))
 		finally:
 			self.close_transaction()
@@ -236,7 +249,7 @@ class ScheduledTaskService(TupleService):
 	def count_scheduled_task(self, event_trigger_id: int) -> int:
 		return self.storage.count(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_id'),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
 				                         right=event_trigger_id)
 			]
 		))
@@ -253,7 +266,7 @@ class ScheduledTaskService(TupleService):
 		finally:
 			self.storage.close()
 
-	def is_model_finished(self, model_name: str, event_id: str) -> bool:
+	def is_model_finished(self, model_name: str, event_trigger_id: int) -> bool:
 		try:
 			self.begin_transaction()
 			results = self.storage.find_limited(
@@ -262,7 +275,7 @@ class ScheduledTaskService(TupleService):
 					shaper=self.get_entity_shaper(),
 					criteria=[
 						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
-						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_id'), right=event_id)
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)
 					],
 					limit=1
 				)
@@ -278,7 +291,7 @@ class ScheduledTaskService(TupleService):
 		finally:
 			self.close_transaction()
 
-	def is_event_finished(self, event_id: str) -> bool:
+	def is_event_finished(self, event_trigger_id: int) -> bool:
 		try:
 			self.begin_transaction()
 			results = self.storage.find_limited(
@@ -286,7 +299,7 @@ class ScheduledTaskService(TupleService):
 					name=self.get_entity_name(),
 					shaper=self.get_entity_shaper(),
 					criteria=[
-						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_id'), right=event_id)
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)
 					],
 					limit=1
 				)

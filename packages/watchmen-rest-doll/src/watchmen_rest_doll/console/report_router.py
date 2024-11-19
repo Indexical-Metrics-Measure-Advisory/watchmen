@@ -73,7 +73,7 @@ def ask_save_report_action(
 	return action
 
 
-@router.post('/report', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Report)
+@router.post('/report', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def save_report(
 		report: Report, principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Report:
@@ -86,7 +86,7 @@ class QueryReportDataPage(DataPage):
 	data: List[Report]
 
 
-@router.post('/report/name', tags=[UserRole.ADMIN], response_model=QueryReportDataPage)
+@router.post('/report/name', tags=[UserRole.ADMIN], response_model=None)
 async def find_reports_page_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -129,7 +129,7 @@ async def delete_report_by_id(
 	trans(report_service, action)
 
 
-@router.delete('/report', tags=[UserRole.SUPER_ADMIN], response_model=Report)
+@router.delete('/report', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_report_by_id_by_super_admin(
 		report_id: Optional[ReportId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

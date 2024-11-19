@@ -5,8 +5,10 @@ def now() -> datetime:
 	return datetime.now().replace(tzinfo=None)
 
 
-def spent_ms(start: datetime, end: datetime = now()) -> int:
+def spent_ms(start: datetime, end: datetime = None) -> int:
 	"""
 	diff in milliseconds from now
 	"""
-	return int((end - start).microseconds / 1000)
+	if end is None:
+		end = now()
+	return int((end - start).seconds * 1000 + (end - start).microseconds / 1000)

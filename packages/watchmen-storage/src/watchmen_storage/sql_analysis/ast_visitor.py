@@ -1,71 +1,70 @@
 from typing import Tuple, Optional
-
-from pydantic import BaseModel
 from sqlparse.sql import Case, Comparison, Function, Identifier, IdentifierList, Parenthesis, Token, Where
+from watchmen_utilities import ExtendedBaseModel
 
 
-class SqlContext(BaseModel):
-	status: str = None
-	sub_status: str = None
-	table: list = []
-	group_by: list = []
-	joins: list = []
-	where: list = []
+class SqlContext(ExtendedBaseModel):
+	status: Optional[str] = None
+	sub_status: Optional[str] = None
+	table: Optional[list] = []
+	group_by: Optional[list] = []
+	joins: Optional[list] = []
+	where: Optional[list] = []
 	columns: dict = {"level_0": [], "level_1": [], "level_2": []}
-	function: list = []
+	function: Optional[list] = []
 	level: int = -1
 
 
-class SqlColumn(BaseModel):
+class SqlColumn(ExtendedBaseModel):
 	"""
 	Represents a column in a sql select statement
 	"""
-	name: str = None
-	alias: str = None
-	function: list = None
-	table: str = None
+	name: Optional[str] = None
+	alias: Optional[str] = None
+	function: Optional[list] = None
+	table: Optional[str] = None
 
 
-class JoinColumn(BaseModel):
+class JoinColumn(ExtendedBaseModel):
 	"""
 	Represents a column in a sql join statement
 	"""
-	left: str = None
-	leftTable: str = None
-	operator: str = None
-	right: str = None
-	rightTable: str = None
+	left: Optional[str] = None
+	leftTable: Optional[str] = None
+	operator: Optional[str] = None
+	right: Optional[str] = None
+	rightTable: Optional[str] = None
 
 
-class JoinTable(BaseModel):
-	name: str = None
-	alias: str = None
-	join_column: str = None
+class JoinTable(ExtendedBaseModel):
+	name: Optional[str] = None
+	alias: Optional[str] = None
+	join_column: Optional[str] = None
 
 
-class GroupByColumn(BaseModel):
-	name: str = None
-	alias: str = None
-	table: str = None
+class GroupByColumn(ExtendedBaseModel):
+	name: Optional[str] = None
+	alias: Optional[str] = None
+	table: Optional[str] = None
 
 
-class WhereColumn(BaseModel):
-	name: str = None
-	alias: str = None
-	table: str = None
-	operator: str = None
-	value: str = None
+class WhereColumn(ExtendedBaseModel):
+	name: Optional[str] = None
+	alias: Optional[str] = None
+	table: Optional[str] = None
+	operator: Optional[str] = None
+	value: Optional[str] = None
 
 
-class QueryPerformance(BaseModel):
-	topic_dimensions: str = None
-	column_dimensions: str = None
-	execution_time: int = None
-	data_volume: int = None
-	join_dimensions: str = None
-	where_dimensions: str = None
-	group_by_dimensions: str = None
-	sql: str = None
+class QueryPerformance(ExtendedBaseModel):
+	topic_dimensions: Optional[str] = None
+	column_dimensions: Optional[str] = None
+	execution_time: Optional[str] = None
+	data_volume: Optional[str] = None
+	join_dimensions:  Optional[str] = None
+	where_dimensions:  Optional[str] = None
+	group_by_dimensions:  Optional[str] = None
+	sql:  Optional[str] = None
 
 
 def build_function(name):

@@ -1,9 +1,9 @@
 from enum import Enum
-
-from pydantic import BaseModel
+from typing import Optional
 
 from watchmen_model.admin import UserRole
 from watchmen_model.common import EventDefinitionId, OptimisticLock, Tuple
+from watchmen_utilities import ExtendedBaseModel
 
 
 class EventType(str, Enum):
@@ -16,10 +16,10 @@ class EventSource(str, Enum):
 	OBJECTIVE_ANALYSIS = "objective_analysis"
 
 
-class EventDefinition(Tuple, OptimisticLock, BaseModel):
-	eventDefinitionId: EventDefinitionId = None
-	eventCode: str = None
-	eventName: str = None
-	eventType: EventType = None
-	eventSource: EventSource = None
-	role: UserRole = None
+class EventDefinition(ExtendedBaseModel, Tuple, OptimisticLock):
+	eventDefinitionId: Optional[EventDefinitionId] = None
+	eventCode: Optional[str] = None
+	eventName: Optional[str] = None
+	eventType: Optional[EventType] = None
+	eventSource: Optional[EventSource] = None
+	role: Optional[UserRole] = None

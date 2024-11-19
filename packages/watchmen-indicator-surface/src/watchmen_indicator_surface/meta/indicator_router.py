@@ -30,7 +30,7 @@ def get_user_service(indicator_service: IndicatorService) -> UserService:
 		indicator_service.storage, indicator_service.snowflakeGenerator, indicator_service.principalService)
 
 
-@router.get('/indicator/indicator/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Indicator])
+@router.get('/indicator/indicator/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_indicators_by_name(
 		query_name: Optional[str], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[Indicator]:
@@ -52,7 +52,7 @@ class QueryIndicatorDataPage(DataPage):
 	data: List[Indicator]
 
 
-@router.post('/indicator/indicator/name', tags=[UserRole.ADMIN], response_model=QueryIndicatorDataPage)
+@router.post('/indicator/indicator/name', tags=[UserRole.ADMIN], response_model=None)
 async def find_indicators_page_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_admin_principal)) -> QueryIndicatorDataPage:
@@ -70,7 +70,7 @@ async def find_indicators_page_by_name(
 	return trans_readonly(indicator_service, action)
 
 
-@router.get('/indicator/indicator/all', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Indicator])
+@router.get('/indicator/indicator/all', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_all_indicators(principal_service: PrincipalService = Depends(get_console_principal)) -> List[Indicator]:
 	indicator_service = get_indicator_service(principal_service)
 
@@ -81,7 +81,7 @@ async def find_all_indicators(principal_service: PrincipalService = Depends(get_
 	return trans_readonly(indicator_service, action)
 
 
-@router.get('/indicator/indicator', tags=[UserRole.ADMIN], response_model=Indicator)
+@router.get('/indicator/indicator', tags=[UserRole.ADMIN], response_model=None)
 async def load_indicator_by_id(
 		indicator_id: Optional[IndicatorId], principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Indicator:
@@ -104,7 +104,7 @@ async def load_indicator_by_id(
 	return trans_readonly(indicator_service, action)
 
 
-@router.post('/indicator/indicator', tags=[UserRole.ADMIN], response_model=Indicator)
+@router.post('/indicator/indicator', tags=[UserRole.ADMIN], response_model=None)
 async def save_indicator(
 		indicator: Indicator, principal_service: PrincipalService = Depends(get_admin_principal)) -> Indicator:
 	validate_tenant_id(indicator, principal_service)
@@ -131,7 +131,7 @@ async def save_indicator(
 	return trans(indicator_service, lambda: action(indicator))
 
 
-@router.get('/indicator/indicator/relevant', tags=[UserRole.ADMIN], response_model=List[Indicator])
+@router.get('/indicator/indicator/relevant', tags=[UserRole.ADMIN], response_model=None)
 async def find_relevant_indicators(
 		indicator_id: Optional[IndicatorId], principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> List[Indicator]:
@@ -156,7 +156,7 @@ async def find_relevant_indicators(
 	return trans_readonly(indicator_service, action)
 
 
-@router.post('/indicator/indicator/category/available', tags=[UserRole.ADMIN], response_model=List[str])
+@router.post('/indicator/indicator/category/available', tags=[UserRole.ADMIN], response_model=None)
 async def load_indicator_category(
 		prefix: List[str], principal_service: PrincipalService = Depends(get_admin_principal)) -> List[str]:
 	indicator_service = get_indicator_service(principal_service)
@@ -168,7 +168,7 @@ async def load_indicator_category(
 	return trans_readonly(indicator_service, action)
 
 
-@router.get('/indicator/indicator/export', tags=[UserRole.ADMIN], response_model=List[Indicator])
+@router.get('/indicator/indicator/export', tags=[UserRole.ADMIN], response_model=None)
 async def find_buckets_for_export(
 		principal_service: PrincipalService = Depends(get_admin_principal)) -> List[Indicator]:
 	indicator_service = get_indicator_service(principal_service)
@@ -180,7 +180,7 @@ async def find_buckets_for_export(
 	return trans_readonly(indicator_service, action)
 
 
-@router.delete('/indicator/indicator', tags=[UserRole.SUPER_ADMIN], response_model=Indicator)
+@router.delete('/indicator/indicator', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_indicator_by_id_by_super_admin(
 		indicator_id: Optional[IndicatorId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

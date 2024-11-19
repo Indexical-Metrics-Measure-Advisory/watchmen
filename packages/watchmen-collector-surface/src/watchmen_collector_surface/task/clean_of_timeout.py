@@ -12,7 +12,7 @@ from watchmen_collector_kernel.common import ask_clean_of_timeout_interval, ask_
 	ask_clean_up_lock_timeout, ask_trigger_event_lock_timeout, ask_extract_table_lock_timeout, \
 	ask_s3_connector_lock_timeout, ask_collector_task_timeout
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
-	get_change_data_json_service, get_scheduled_task_service
+	get_change_data_json_service, get_scheduled_task_service, get_change_data_json_history_service
 
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 
@@ -34,6 +34,9 @@ class CleanOfTimeout:
 		self.change_data_json_service = get_change_data_json_service(self.storage,
 		                                                             self.snowflake_generator,
 		                                                             self.principal_service)
+		self.change_data_json_history_service = get_change_data_json_history_service(self.storage,
+		                                                                             self.snowflake_generator,
+		                                                                             self.principal_service)
 		self.scheduled_task_service = get_scheduled_task_service(self.storage,
 		                                                         self.snowflake_generator,
 		                                                         self.principal_service)
@@ -130,11 +133,36 @@ class CleanOfTimeout:
 		)
 
 	def clean_task(self):
-		query_time = datetime.now() - timedelta(seconds=self.timeout)
+		query_time = datetime.now() - timedelta(seconds=self.task_timeout)
 		tasks = self.scheduled_task_service.find_timeout_task(query_time)
-		ArrayHelper(tasks).map(
-			lambda task: self.task_service.finish_task(task, Status.FAIL.value, "timeout")
-		)
+
+		def set_task_timeout(task: ScheduledTask) -> ScheduledTask:
+			task.status = Status.FAIL.value
+			task.result = "timeout"
+			return task
+
+		# noinspection PyTypeChecker
+		def clean_change_json_with_task(task: ScheduledTask):
+			for change_json_id in task.changeJsonIds:
+				change_data_json = self.change_data_json_service.find_json_by_id(change_json_id)
+				if change_data_json:
+					try:
+						self.change_data_json_service.begin_transaction()
+						change_data_json.status = Status.FAIL.value
+						change_data_json.result = "timeout"
+						self.change_data_json_history_service.create(change_data_json)
+						# noinspection PyTypeChecker
+						self.change_data_json_service.delete(change_data_json.changeJsonId)
+						self.change_data_json_service.commit_transaction()
+					except Exception as e:
+						self.change_data_json_service.rollback_transaction()
+						raise e
+					finally:
+						self.change_data_json_service.close_transaction()
+
+		for task in tasks:
+			self.task_service.finish_task(set_task_timeout(task))
+			clean_change_json_with_task(task)
 
 
 def init_clean():

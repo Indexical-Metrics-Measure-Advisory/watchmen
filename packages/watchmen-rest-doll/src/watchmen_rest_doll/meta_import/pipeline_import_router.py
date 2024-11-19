@@ -19,7 +19,7 @@ def get_pipeline_service(principal_service: PrincipalService) -> PipelineService
 	return PipelineService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.post('/pipeline/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[Pipeline])
+@router.post('/pipeline/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def import_pipelines(
 		pipelines: List[Pipeline], principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> List[Pipeline]:

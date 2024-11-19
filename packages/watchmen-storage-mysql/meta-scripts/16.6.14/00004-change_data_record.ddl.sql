@@ -1,0 +1,2 @@
+ALTER TABLE change_data_record ADD INDEX idx_record_module_trigger_id(module_trigger_id);
+ALTER TABLE change_data_record ADD INDEX idx_record_model_trigger_id(model_trigger_id);

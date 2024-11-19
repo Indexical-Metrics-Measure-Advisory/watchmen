@@ -13,7 +13,7 @@ from watchmen_utilities import is_blank
 router = APIRouter()
 
 
-@router.get('/topic/synonym/factors', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[Factor])
+@router.get('/topic/synonym/factors', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def load_topic_by_id(
 		name: Optional[str] = None,
 		data_source_id: Optional[DataSourceId] = None,

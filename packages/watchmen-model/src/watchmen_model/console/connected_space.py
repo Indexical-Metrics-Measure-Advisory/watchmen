@@ -1,10 +1,12 @@
-from pydantic import BaseModel
+from typing import Optional
+
+from watchmen_utilities import ExtendedBaseModel
 
 from watchmen_model.common import Auditable, ConnectedSpaceId, LastVisit, SpaceId, UserBasedTuple
 
 
-class ConnectedSpace(UserBasedTuple, Auditable, LastVisit, BaseModel):
-	connectId: ConnectedSpaceId = None
-	spaceId: SpaceId = None
-	name: str = None
-	isTemplate: bool = False
+class ConnectedSpace(ExtendedBaseModel, UserBasedTuple, Auditable, LastVisit):
+	connectId: Optional[ConnectedSpaceId] = None
+	spaceId: Optional[SpaceId] = None
+	name: Optional[str] = None
+	isTemplate: Optional[bool] = False

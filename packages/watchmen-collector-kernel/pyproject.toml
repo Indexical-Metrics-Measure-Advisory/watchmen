@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-collector-kernel"
-version = "16.1.0"
+version = "17.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -9,8 +9,8 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-numpy = "^1.23.3"
+python = "~3.12"
+numpy = "^2.1.0"
 watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true}
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }

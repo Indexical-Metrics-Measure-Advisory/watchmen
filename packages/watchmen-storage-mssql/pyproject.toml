@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-storage-mssql"
-version = "16.1.0"
+version = "17.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -9,8 +9,8 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-pyodbc = "^4.0.32"
+python = "~3.12"
+pyodbc = "^5.1.0"
 watchmen-storage-rds = { path = "../watchmen-storage-rds", develop = true }
 
 [tool.poetry.dev-dependencies]

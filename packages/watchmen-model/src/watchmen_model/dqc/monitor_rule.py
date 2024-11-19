@@ -1,8 +1,7 @@
 from enum import Enum
 from typing import Optional, TypeVar, Union
 
-from pydantic import BaseModel
-
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import DataModel, FactorId, TenantBasedTuple, TopicId
 
 MonitorRuleId = TypeVar('MonitorRuleId', bound=str)
@@ -78,16 +77,16 @@ class MonitorRuleCompareOperator(str, Enum):
 	GREATER_THAN_EQUAL = 'gte'
 
 
-class MonitorRuleParameters(DataModel, BaseModel):
-	statisticalInterval: MonitorRuleStatisticalInterval = None
-	coverageRate: int = None
-	aggregation: int = None
-	quantile: int = None
-	length: int = None
-	max: int = None
-	min: int = None
-	regexp: str = None
-	compareOperator: MonitorRuleCompareOperator = None
+class MonitorRuleParameters(DataModel, ExtendedBaseModel):
+	statisticalInterval: Optional[MonitorRuleStatisticalInterval] = None
+	coverageRate: Optional[int] = None
+	aggregation: Optional[int] = None
+	quantile: Optional[int] = None
+	length: Optional[int] = None
+	max: Optional[int] = None
+	min: Optional[int] = None
+	regexp: Optional[str] = None
+	compareOperator: Optional[MonitorRuleCompareOperator] = None
 	topicId: Optional[TopicId] = None
 	factorId: Optional[FactorId] = None
 
@@ -101,14 +100,14 @@ def construct_params(params: Optional[Union[dict, MonitorRuleParameters]]) -> Op
 		return MonitorRuleParameters(**params)
 
 
-class MonitorRule(TenantBasedTuple, BaseModel):
-	ruleId: MonitorRuleId = None
-	code: MonitorRuleCode = None
-	grade: MonitorRuleGrade = None
-	severity: MonitorRuleSeverity = None
-	topicId: TopicId = None
+class MonitorRule(TenantBasedTuple, ExtendedBaseModel):
+	ruleId: Optional[MonitorRuleId] = None
+	code: Optional[MonitorRuleCode] = None
+	grade: Optional[MonitorRuleGrade] = None
+	severity: Optional[MonitorRuleSeverity] = None
+	topicId: Optional[TopicId] = None
 	factorId: Optional[FactorId] = None
-	params: MonitorRuleParameters = None
+	params: Optional[MonitorRuleParameters] = None
 	enabled: bool = False
 
 	def __setattr__(self, name, value):

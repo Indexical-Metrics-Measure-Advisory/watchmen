@@ -32,7 +32,7 @@ def build_empty_favorite(tenant_id: TenantId, user_id: UserId):
 	)
 
 
-@router.get('/favorite', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=Favorite)
+@router.get('/favorite', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def load_my_favorite(principal_service: PrincipalService = Depends(get_any_principal)) -> Favorite:
 	favorite_service = get_favorite_service(principal_service)
 
@@ -52,7 +52,7 @@ async def load_my_favorite(principal_service: PrincipalService = Depends(get_any
 	return trans_with_fail_over(favorite_service, action, fail_over)
 
 
-@router.post('/favorite', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=Favorite)
+@router.post('/favorite', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def save_my_favorite(
 		favorite: Favorite, principal_service: PrincipalService = Depends(get_any_principal)
 ) -> Favorite:
@@ -77,7 +77,7 @@ async def save_my_favorite(
 	return trans(favorite_service, action)
 
 
-@router.delete('/favorite', tags=[UserRole.SUPER_ADMIN], response_model=Favorite)
+@router.delete('/favorite', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_favorite_by_id(
 		user_id: Optional[UserId],
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

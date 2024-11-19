@@ -1,12 +1,11 @@
 from typing import Set
-
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 
 DEV = "dev"
 PROD = "production"
 
 
-class RestSettings(BaseSettings):
+class RestSettings(ExtendedBaseSettings):
 	"""
 	REST settings will not construct by itself, it should be inherited and constructed by inheriting one
 	"""
@@ -29,9 +28,13 @@ class RestSettings(BaseSettings):
 
 	PROMETHEUS: bool = False
 	PROMETHEUS_CONTEXT: str = '/metrics'
-
-	class Config:
-		# secrets_dir = '/var/run'
-		env_file = '.env'
-		env_file_encoding = 'utf-8'
-		case_sensitive = True
+	
+	# OIDC
+	OIDC_CODE_KEY: str = "code"
+	OIDC_TOKEN_ENDPOINT: str = ""
+	OIDC_TOKEN_KEY: str = "access_token"
+	OIDC_USE_ACCESS_TOKEN: bool = False
+	OIDC_USER_INFO_ENDPOINT: str = ""
+	OIDC_USER_SUBJECT_KEY: str = "sub"
+	OIDC_LOGIN_URL: str = ""
+	OIDC_LOGIN_PARAMS: str = ""

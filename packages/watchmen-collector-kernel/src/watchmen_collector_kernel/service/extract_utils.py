@@ -38,7 +38,7 @@ def build_audit_column_criteria(audit_column_name: str, start_time: datetime, en
 	return [
 		EntityCriteriaExpression(
 			left=ColumnNameLiteral(columnName=audit_column_name),
-			operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+			operator=EntityCriteriaOperator.GREATER_THAN,
 			right=start_time),
 		EntityCriteriaExpression(
 			left=ColumnNameLiteral(columnName=audit_column_name),

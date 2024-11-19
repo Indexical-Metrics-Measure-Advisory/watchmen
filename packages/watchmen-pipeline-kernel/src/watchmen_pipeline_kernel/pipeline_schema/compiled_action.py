@@ -7,6 +7,8 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from time import sleep
 
+from sqlalchemy.exc import IntegrityError
+
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.external_writer import ask_external_writer_creator, ExternalWriter, \
 	ExternalWriterParams
@@ -537,7 +539,7 @@ class CompiledInsertion(CompiledWriteTopicAction):
 		self.schema.encrypt(data, principal_service)
 		try:
 			data = topic_data_service.insert(data)
-		except Exception as e:
+		except IntegrityError as e:
 			logger.error(e, exc_info=True, stack_info=True)
 			if allow_failure:
 				return False
@@ -675,7 +677,7 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 							f'{self.on_topic_message()}, by [{[statement.to_dict()]}].')
 					# found one matched, do update
 					updated_count = self.do_update_with_lock(
-						data[0], variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
+						locked_data, variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
 					if updated_count == 0:
 						raise PipelineKernelException(
 							f'Data not found on doing last try to update, '

@@ -329,11 +329,12 @@ table_scheduled_task = Table(
 	'scheduled_task', meta_data,
 	create_pk('task_id', Integer), create_str('resource_id', 500),
 	create_str('topic_code', 50), create_json('content'),
+	create_json('change_json_ids'),
 	create_str('model_name', 20), create_str('object_id', 100),
 	create_json('depend_on'), create_json('parent_task_id'),
-	create_int('is_finished', False),
+	create_bool('is_finished', False),
 	create_int('status', False), create_json('result'),
-	create_str('event_id', 200, False),
+	create_str('event_id', 200, False), create_int('event_trigger_id', False),
 	create_str('pipeline_id', 50), create_int('type', False),
 	create_tenant_id(),
 	*create_tuple_audit_columns()
@@ -342,11 +343,12 @@ table_scheduled_task_history = Table(
 	'scheduled_task_history', meta_data,
 	create_pk('task_id', Integer), create_str('resource_id', 500),
 	create_str('topic_code', 50), create_json('content'),
+	create_json('change_json_ids'),
 	create_str('model_name', 20), create_str('object_id', 100),
 	create_json('depend_on'), create_json('parent_task_id'),
-	create_int('is_finished', False),
+	create_bool('is_finished', False),
 	create_int('status', False), create_json('result'),
-	create_str('event_id', 200, False),
+	create_str('event_id', 200, False), create_int('event_trigger_id', False),
 	create_str('pipeline_id', 50), create_int('type', False),
 	create_tenant_id(),
 	*create_tuple_audit_columns()
@@ -363,7 +365,7 @@ table_collector_model_config = Table(
 	create_pk('model_id'), create_str('model_name', 50),
 	create_str('module_id', 50),
 	create_json('depend_on'), create_str('raw_topic_code', 50),
-	create_int('is_paralleled'), create_int('priority', False),
+	create_bool('is_paralleled'), create_int('priority', False),
 	create_tenant_id(), *create_tuple_audit_columns(),
 	create_optimistic_lock()
 )
@@ -374,10 +376,10 @@ table_collector_table_config = Table(
 	create_str('sequence_key', 50),
 	create_str('model_name', 50), create_str('parent_name', 50), create_json('join_keys'),
 	create_json('conditions'), create_str('label', 50),
-	create_json('depend_on'), create_int('triggered'),
+	create_json('depend_on'), create_bool('triggered'),
 	create_str('audit_column', 50), create_str('data_source_id', 50),
 	create_json('ignored_columns'),
-	create_json('json_columns'), create_int('is_list'),
+	create_json('json_columns'), create_bool('is_list'),
 	create_tenant_id(), *create_tuple_audit_columns(),
 	create_optimistic_lock()
 )
@@ -385,16 +387,17 @@ table_trigger_event = Table(
 	'trigger_event', meta_data,
 	create_pk('event_trigger_id', Integer),
 	create_date('start_time'), create_date('end_time'),
-	create_int('is_finished', False), create_int('status', False),
+	create_bool('is_finished', False), create_int('status', False),
 	create_int('type', False),
 	create_str('table_name', 50), create_json('records'), create_str('pipeline_id', 50),
+	create_json('params'),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_trigger_module = Table(
 	'trigger_module', meta_data,
 	create_pk('module_trigger_id', Integer),
 	create_str('module_name', 50), create_int('priority', False),
-	create_int('is_finished', False),
+	create_bool('is_finished', False),
 	create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
@@ -402,7 +405,7 @@ table_trigger_model = Table(
 	'trigger_model', meta_data,
 	create_pk('model_trigger_id', Integer),
 	create_str('model_name', 50), create_int('priority', False),
-	create_int('is_finished', False),
+	create_bool('is_finished', False),
 	create_int('module_trigger_id', False),
 	create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
@@ -411,7 +414,7 @@ table_trigger_table = Table(
 	'trigger_table', meta_data,
 	create_pk('table_trigger_id', Integer), create_str('table_name', 50),
 	create_str('model_name', 50), create_int('data_count'),
-	create_int('is_extracted', False),
+	create_bool('is_extracted', False),
 	create_int('model_trigger_id', False),
 	create_int('module_trigger_id', False),
 	create_int('event_trigger_id', False),
@@ -421,7 +424,7 @@ table_change_data_record = Table(
 	'change_data_record', meta_data,
 	create_pk('change_record_id', Integer), create_str('model_name', 50), create_str('table_name', 50),
 	create_json('data_id'), create_str('root_table_name', 50), create_json('root_data_id'),
-	create_int('is_merged', False), create_int('status', False), create_json('result'),
+	create_bool('is_merged', False), create_int('status', False), create_json('result'),
 	create_int('table_trigger_id', False), create_int('model_trigger_id', False),
 	create_int('module_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
@@ -430,7 +433,7 @@ table_change_data_record_history = Table(
 	'change_data_record_history', meta_data,
 	create_pk('change_record_id', Integer), create_str('model_name', 50), create_str('table_name', 50),
 	create_json('data_id'), create_str('root_table_name', 50), create_json('root_data_id'),
-	create_int('is_merged', False), create_int('status', False), create_json('result'),
+	create_bool('is_merged', False), create_int('status', False), create_json('result'),
 	create_int('table_trigger_id', False), create_int('model_trigger_id', False),
 	create_int('module_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
@@ -440,7 +443,7 @@ table_change_data_json = Table(
 	create_pk('change_json_id', Integer), create_str('resource_id', 100),
 	create_str('model_name', 50), create_str('object_id', 50), create_int('sequence', True),
 	create_str('table_name', 50), create_json('data_id'),
-	create_json('content'), create_json('depend_on'), create_int('is_posted', False), create_int('task_id', True),
+	create_json('content'), create_json('depend_on'), create_bool('is_posted', False), create_int('task_id', True),
 	create_int('status', False), create_json('result'),
 	create_int('table_trigger_id', False), create_int('model_trigger_id', False),
 	create_int('module_trigger_id', False), create_int('event_trigger_id', False),
@@ -451,7 +454,7 @@ table_change_data_json_history = Table(
 	create_pk('change_json_id', Integer), create_str('resource_id', 100),
 	create_str('model_name', 50), create_str('object_id', 50), create_int('sequence', True),
 	create_str('table_name', 50), create_json('data_id'),
-	create_json('content'), create_json('depend_on'), create_int('is_posted', False), create_int('task_id', True),
+	create_json('content'), create_json('depend_on'), create_bool('is_posted', False), create_int('task_id', True),
 	create_int('status', False), create_json('result'),
 	create_int('table_trigger_id', False), create_int('model_trigger_id', False),
 	create_int('module_trigger_id', False), create_int('event_trigger_id', False),

@@ -1,13 +1,14 @@
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Optional
 
-from pydantic import BaseModel
+from pydantic import field_serializer
 
-from .model import DataModel
+from watchmen_utilities import ExtendedBaseModel, ArrayHelper
 
+from .model import DataModel, copy_x
 
-class Pageable(DataModel, BaseModel):
-	pageNumber: int = None
-	pageSize: int = None
+class Pageable(ExtendedBaseModel):
+	pageNumber: Optional[int] = None
+	pageSize: Optional[int] = None
 
 
 PageDataCell = Any
@@ -22,6 +23,15 @@ class DataPage(Pageable):
 	"""
 	PageDataSet
 	"""
-	data: list = []
-	itemCount: int = None
-	pageCount: int = None
+	data: Optional[list] = []
+	itemCount: Optional[int] = None
+	pageCount: Optional[int] = None
+
+	# Avoid error serializing to JSON: ValueError: Circular reference detected (id repeated)
+	@field_serializer('data')
+	def serialize_data(self, data: list, _info):
+		return ArrayHelper(data).map(lambda row: copy_x(row)).to_list()
+
+
+def serialize_row(row: Any):
+	return copy_x(row)

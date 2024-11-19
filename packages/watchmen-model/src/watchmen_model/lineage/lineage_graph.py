@@ -1,26 +1,19 @@
-from typing import Dict
-
-from pydantic import BaseModel
-
+from typing import Dict, Optional
 from watchmen_model.common import TenantId
-from watchmen_model.system import tenant
+from watchmen_utilities import ExtendedBaseModel
 
 
-class LineageGraphs(BaseModel):
-	directed:bool = None
-	multigraph:bool = None
-	graph:Dict = {}
-	tenantId : TenantId = None
+class LineageGraphs(ExtendedBaseModel):
+	directed: Optional[bool] = None
+	multigraph: Optional[bool] = None
+	graph: Dict = {}
+	tenantId: Optional[TenantId] = None
 
 
-class LineageNodes(BaseModel):
-	id:str = None
-	name:str = None
-	pass
+class LineageNodes(ExtendedBaseModel):
+	id: Optional[str] = None
+	name: Optional[str] = None
 
 
-class LineageLinks(BaseModel):
-
-
-
+class LineageLinks(ExtendedBaseModel):
 	pass

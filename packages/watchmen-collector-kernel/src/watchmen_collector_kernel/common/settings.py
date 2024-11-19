@@ -1,27 +1,23 @@
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 from logging import getLogger
 
 logger = getLogger(__name__)
 
 
-class CollectorSettings(BaseSettings):
+class CollectorSettings(ExtendedBaseSettings):
 	CLEAN_OF_TIMEOUT_INTERVAL: int = 300
 	LOCK_TIMEOUT: int = 1800
-	TRIGGER_EVENT_LOCK_TIMEOUT = 300
-	EXTRACT_TABLE_LOCK_TIMEOUT = 7200
-	CLEAN_UP_LOCK_TIMEOUT = 300
+	TRIGGER_EVENT_LOCK_TIMEOUT: int = 300
+	EXTRACT_TABLE_LOCK_TIMEOUT: int = 7200
+	CLEAN_UP_LOCK_TIMEOUT: int = 300
 	COLLECTOR_TIMEOUT: int = 600
 	COLLECTOR_TASK_TIMEOUT: int = 900
-	S3_CONNECTOR_LOCK_TIMEOUT = 300
+	S3_CONNECTOR_LOCK_TIMEOUT: int = 300
 	PARTIAL_SIZE: int = 100
 	COLLECTOR_CONFIG_CACHE_ENABLED: bool = True
-	EXCEPTION_MAX_LENGTH = 1000  # character
-
-	class Config:
-		# secrets_dir = '/var/run'
-		env_file = '.env'
-		env_file_encoding = 'utf-8'
-		case_sensitive = True
+	EXCEPTION_MAX_LENGTH: int = 5000  # character
+	GROUPED_TASK_DATA_SIZE_THRESHOLD: int = 100
+	TASK_PARTIAL_SIZE: int = 100
 
 
 collector_settings = CollectorSettings()
@@ -70,3 +66,11 @@ def ask_collector_task_timeout() -> int:
 
 def ask_exception_max_length() -> int:
 	return collector_settings.EXCEPTION_MAX_LENGTH
+
+
+def ask_grouped_task_data_size_threshold() -> int:
+	return collector_settings.GROUPED_TASK_DATA_SIZE_THRESHOLD
+
+
+def ask_task_partial_size() -> int:
+	return collector_settings.TASK_PARTIAL_SIZE

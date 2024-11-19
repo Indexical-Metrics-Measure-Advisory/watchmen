@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-meta"
-version = "16.1.0"
+version = "17.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -9,8 +9,8 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-pycryptodome = "^3.14.1"
+python = "~3.12"
+pycryptodome = "^3.20.0"
 watchmen-auth = { path = "../watchmen-auth", develop = true }
 watchmen-storage = { path = "../watchmen-storage", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }

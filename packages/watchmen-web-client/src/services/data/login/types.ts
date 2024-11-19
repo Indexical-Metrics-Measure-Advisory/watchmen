@@ -15,7 +15,8 @@ export interface LoginResponse {
 
 export enum LoginMethod {
 	DOLL = 'doll',
-	SAML2 = 'saml2'
+	SAML2 = 'saml2',
+	OIDC = 'oidc'
 }
 
 export interface LoginConfig {
@@ -30,6 +31,13 @@ export interface Saml2LoginRequest {
 	signature: string;
 	algorithm: string;
 	relayState: string;
+}
+
+export interface OidcLoginRequest {
+	// has value only on mock process
+	mockUserName?: string;
+	code: string | null;
+	params: string | null;
 }
 
 export interface SSOLoginResponse extends LoginResponse {

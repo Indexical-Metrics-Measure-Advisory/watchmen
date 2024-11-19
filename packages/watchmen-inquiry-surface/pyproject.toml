@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-inquiry-surface"
-version = "16.1.0"
+version = "17.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "~3.12"
 watchmen-inquiry-kernel = { path = "../watchmen-inquiry-kernel", develop = true }
 watchmen-rest = { path = "../watchmen-rest", develop = true }
 watchmen-inquiry-trino = { path = "../watchmen-inquiry-trino", develop = true, optional = true }

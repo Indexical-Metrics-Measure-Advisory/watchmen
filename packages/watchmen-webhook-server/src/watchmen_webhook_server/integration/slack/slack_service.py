@@ -1,11 +1,12 @@
 from logging import getLogger
-from typing import List
+from typing import List, Optional
 
 import requests
 from pydantic import BaseModel
 
 from watchmen_model.webhook.notification_defination import NotificationDefinition, NotificationType, NotificationParam
 from watchmen_model.webhook.subscription_event import SubscriptionEvent
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_webhook_server import NotifyService
 from watchmen_webhook_server.integration.utils.screen_shot_builder import screenshot_page
 
@@ -14,10 +15,10 @@ FILE_UPLOAD = "files.upload"
 logger = getLogger(__name__)
 
 
-class SlackConfiguration(BaseModel):
-	channelId: str = None
+class SlackConfiguration(ExtendedBaseModel):
+	channelId: Optional[str] = None
 	host: str = "https://slack.com/api/"
-	token: str = None
+	token: Optional[str] = None
 
 
 def get_slack_configuration(params: List[NotificationParam]):

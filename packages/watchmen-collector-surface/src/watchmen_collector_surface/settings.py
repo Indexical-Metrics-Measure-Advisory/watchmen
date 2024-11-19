@@ -1,5 +1,5 @@
 from logging import getLogger
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 from watchmen_model.common import SettingsModel
 
 
@@ -19,18 +19,18 @@ class S3CollectorSettings(SettingsModel):
 	clean_task_interval: int = 3600
 
 
-class CollectorSurfaceSettings(BaseSettings):
+class CollectorSurfaceSettings(ExtendedBaseSettings):
 	TASK_LISTENER_ON: bool = False
 
 	S3_COLLECTOR: bool = False
-	S3_COLLECTOR_ACCESS_KEY_ID: str = None
-	S3_COLLECTOR_SECRET_ACCESS_KEY: str = None
+	S3_COLLECTOR_ACCESS_KEY_ID: str = ''
+	S3_COLLECTOR_SECRET_ACCESS_KEY: str = ''
 	S3_COLLECTOR_BUCKET_NAME: str = ''
 	S3_COLLECTOR_REGION: str = ''
 	S3_COLLECTOR_TOKEN: str = ''
 	S3_COLLECTOR_TENANT: int = 0
-	S3_COLLECTOR_CONSUME_PREFIX = ''
-	S3_COLLECTOR_DEAD_PREFIX = ''
+	S3_COLLECTOR_CONSUME_PREFIX: str = ''
+	S3_COLLECTOR_DEAD_PREFIX: str = ''
 	S3_COLLECTOR_MAX_KEYS: int = 10
 	S3_COLLECTOR_CLEAN_TASK_INTERVAL: int = 3600
 	S3_COLLECTOR_WAIT: int = 5
@@ -42,12 +42,6 @@ class CollectorSurfaceSettings(BaseSettings):
 	POST_JSON_WAIT: int = 3
 	TASK_SCHEDULE_WAIT: int = 3
 	MONITOR_EVENT_WAIT: int = 60
-
-	class Config:
-		# secrets_dir = '/var/run'
-		env_file = '.env'
-		env_file_encoding = 'utf-8'
-		case_sensitive = True
 
 
 settings = CollectorSurfaceSettings()

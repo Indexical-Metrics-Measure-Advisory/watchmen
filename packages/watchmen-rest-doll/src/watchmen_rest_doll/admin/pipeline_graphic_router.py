@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
@@ -15,7 +14,8 @@ from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_not_blank
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_not_blank, \
+	ExtendedBaseModel
 
 router = APIRouter()
 
@@ -24,7 +24,7 @@ def get_pipeline_graphic_service(principal_service: PrincipalService) -> Pipelin
 	return PipelineGraphicService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.get('/pipeline/graphics', tags=[UserRole.ADMIN], response_model=List[PipelineGraphic])
+@router.get('/pipeline/graphics', tags=[UserRole.ADMIN], response_model=None)
 async def find_my_pipeline_graphics(
 		principal_service: PrincipalService = Depends(get_admin_principal)) -> List[PipelineGraphic]:
 	"""
@@ -40,7 +40,7 @@ async def find_my_pipeline_graphics(
 	return trans_readonly(pipeline_graphic_service, action)
 
 
-@router.post('/pipeline/graphics', tags=[UserRole.ADMIN], response_model=PipelineGraphic)
+@router.post('/pipeline/graphics', tags=[UserRole.ADMIN], response_model=None)
 async def save_pipeline_graphic(
 		pipeline_graphic: PipelineGraphic, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> PipelineGraphic:
@@ -108,17 +108,17 @@ async def delete_pipeline_graphic_by_id(
 	trans(pipeline_graphic_service, action)
 
 
-class UpdatedGraphicRequest(BaseModel):
-	at: str = None
-	existingGraphicIds: List[PipelineGraphicId] = None
+class UpdatedGraphicRequest(ExtendedBaseModel):
+	at: str = Optional[None]
+	existingGraphicIds: Optional[List[PipelineGraphicId]] = None
 
 
-class UpdatedGraphicResponse(BaseModel):
-	updated: List[PipelineGraphic] = None
-	removed: List[PipelineGraphicId] = None
+class UpdatedGraphicResponse(ExtendedBaseModel):
+	updated: Optional[List[PipelineGraphic]] = None
+	removed: Optional[List[PipelineGraphicId]] = None
 
 
-@router.post('/pipeline/graphics/updated', tags=[UserRole.ADMIN], response_model=UpdatedGraphicResponse)
+@router.post('/pipeline/graphics/updated', tags=[UserRole.ADMIN], response_model=None)
 async def find_updated_and_removed_pipeline_graphics(
 		asked: UpdatedGraphicRequest, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> UpdatedGraphicResponse:
@@ -151,7 +151,7 @@ async def find_updated_and_removed_pipeline_graphics(
 	return trans_readonly(pipeline_graphic_service, action)
 
 
-@router.delete('/pipeline/graphics', tags=[UserRole.SUPER_ADMIN], response_model=PipelineGraphic)
+@router.delete('/pipeline/graphics', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_pipeline_graphic_by_id_by_super_admin(
 		pipeline_graphic_id: Optional[PipelineGraphicId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "watchmen-storage-adls"
+version = "17.0.0"
+description = ""
+authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
+license = "MIT"
+packages = [
+    { include = "watchmen_storage_adls", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "~3.12"
+azure-storage-file-datalake = "^12.14.0"
+azure-identity = "^1.16.0"
+watchmen-storage = { path = "../watchmen-storage", develop = true }
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

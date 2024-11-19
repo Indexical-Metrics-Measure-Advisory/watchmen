@@ -3,7 +3,7 @@ from json import loads
 from logging import getLogger
 from typing import Any, Dict, List, Optional
 
-from pandas_profiling import ProfileReport
+# from pandas_profiling import ProfileReport
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import DataKernelException
@@ -89,6 +89,10 @@ class TopicProfileService:
 			return None
 		else:
 			logger.info(f'memory_usage {data_frame.memory_usage(deep=True).sum()} bytes')
+			# Need Refactor
+			return None
+			# noinspection PyUnreachableCode
+			"""
 			profile = ProfileReport(data_frame, title=f'{schema.get_topic().name} data profile report', minimal=True)
 			json_data = profile.to_json()
 			json_constants_map = {
@@ -97,3 +101,4 @@ class TopicProfileService:
 				'NaN': None,
 			}
 			return loads(json_data, parse_constant=lambda x: json_constants_map[x])
+			"""

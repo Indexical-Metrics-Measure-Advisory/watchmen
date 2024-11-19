@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Callable, Optional, Tuple
 
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 
 from watchmen_auth import PrincipalService
 from watchmen_model.admin import User, UserRole
@@ -14,7 +14,7 @@ from .exception import InitialMetaAppException
 logger = getLogger(__name__)
 
 
-class MetaSettings(BaseSettings):
+class MetaSettings(ExtendedBaseSettings):
 	SUPER_ADMIN_TENANT_ID: TenantId = '1'
 	SUPER_ADMIN_USER_ID: UserId = '1'
 	SUPER_ADMIN_USER_NAME: str = 'imma-super'
@@ -40,13 +40,7 @@ class MetaSettings(BaseSettings):
 	DATASOURCE_AES_IV: str = 'J@NcRfUjXn2r5u8x'  # AES iv of data source pwd encryption
 
 	ENGINE_INDEX: bool = True
-	PACKAGE_VERSION_DEFAULT_VALUE = '50.0.0'
-
-	class Config:
-		# secrets_dir = '/var/run'
-		env_file = '.env'
-		env_file_encoding = 'utf-8'
-		case_sensitive = True
+	PACKAGE_VERSION_DEFAULT_VALUE: str = '50.0.0'
 
 
 settings = MetaSettings()
@@ -57,7 +51,7 @@ def ask_super_admin() -> PrincipalService:
 	return PrincipalService(User(
 		userId=settings.SUPER_ADMIN_USER_ID,
 		name=settings.SUPER_ADMIN_USER_NAME,
-		nickname=settings.SUPER_ADMIN_USER_NICKNAME,
+		nickName=settings.SUPER_ADMIN_USER_NICKNAME,
 		isActive=True,
 		groupIds=[],
 		tenantId=settings.SUPER_ADMIN_TENANT_ID,

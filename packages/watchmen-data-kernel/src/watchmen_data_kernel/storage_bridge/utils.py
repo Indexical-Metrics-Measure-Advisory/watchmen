@@ -39,6 +39,13 @@ def get_value_from(
 				return len(str(data))
 			else:
 				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
+		elif current_name == VariablePredefineFunctions.JOIN:
+			if isinstance(data, str):
+				return data
+			elif isinstance(data, list):
+				return ','.join(map(str, set(data)))
+			else:
+				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
 		elif current_name == VariablePredefineFunctions.SUM:
 			if isinstance(data, list):
 				def to_decimal(value: Any) -> Decimal:

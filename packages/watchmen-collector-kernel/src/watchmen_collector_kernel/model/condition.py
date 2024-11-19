@@ -4,14 +4,12 @@ from datetime import date, datetime
 from enum import Enum
 from typing import Optional, List, Union, Dict
 
-from pydantic import BaseModel
 from watchmen_storage import EntityCriteriaOperator
-
 from watchmen_model.common import DataModel
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 
 
-class Condition(DataModel, BaseModel):
+class Condition(DataModel, ExtendedBaseModel):
 	pass
 
 
@@ -28,7 +26,7 @@ class ConditionJointConjunction(str, Enum):
 
 class ConditionJoint(Condition):
 	conjunction: ConditionJointConjunction = ConditionJointConjunction.AND
-	children: List[Condition]
+	children: Optional[List[Condition]] = None
 
 	def __setattr__(self, name, value):
 		if name == 'children':

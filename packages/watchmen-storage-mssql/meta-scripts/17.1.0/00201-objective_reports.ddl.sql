@@ -1,0 +1,1 @@
+ALTER TABLE objectives_reports ALTER COLUMN version INTEGER;

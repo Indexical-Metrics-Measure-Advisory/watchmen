@@ -35,7 +35,7 @@ def build_empty_last_snapshot(tenant_id: TenantId, user_id: UserId):
 
 
 @router.get(
-	'/last_snapshot', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=LastSnapshot)
+	'/last_snapshot', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def load_my_last_snapshot(principal_service: PrincipalService = Depends(get_any_principal)) -> LastSnapshot:
 	last_snapshot_service = get_last_snapshot_service(principal_service)
 
@@ -57,7 +57,7 @@ async def load_my_last_snapshot(principal_service: PrincipalService = Depends(ge
 
 
 @router.post(
-	'/last_snapshot', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=LastSnapshot)
+	'/last_snapshot', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def save_my_last_snapshot(
 		last_snapshot: LastSnapshot, principal_service: PrincipalService = Depends(get_any_principal)
 ) -> LastSnapshot:
@@ -80,7 +80,7 @@ async def save_my_last_snapshot(
 	return trans(last_snapshot_service, action)
 
 
-@router.delete('/last_snapshot', tags=[UserRole.SUPER_ADMIN], response_model=LastSnapshot)
+@router.delete('/last_snapshot', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_last_snapshot_by_id(
 		user_id: Optional[UserId],
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

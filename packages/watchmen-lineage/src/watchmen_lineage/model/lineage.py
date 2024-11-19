@@ -1,16 +1,15 @@
 from enum import Enum
 from typing import List, Dict, Optional
 
-from pydantic import BaseModel
-
 from watchmen_model.admin import FactorType, Topic, Factor
 from watchmen_model.common import TopicId, SubjectId, DashboardId, PipelineId, PipelineStageId, PipelineUnitId, \
 	PipelineActionId, FactorId, Parameter, ObjectiveFactorId, ObjectiveId
 from watchmen_model.console import Subject, SubjectDataset, SubjectDatasetColumn
 from watchmen_model.indicator import ObjectiveFactor, Objective, ObjectiveTarget, Indicator
+from watchmen_utilities import ExtendedBaseModel
 
 
-class LineageType(Enum):
+class LineageType(str, Enum):
 	TOPIC = "TOPIC"
 	FACTOR = "FACTOR"
 	PIPELINE = "PIPELINE"
@@ -24,7 +23,7 @@ class LineageType(Enum):
 	OBJECTIVE_INDICATOR = "OBJECTIVE-INDICATOR"
 
 
-class TypeOfAnalysis(Enum):
+class TypeOfAnalysis(str, Enum):
 	Measure = "Measure"
 	Dimension = "Dimension"
 	TimeDimension = "TimeDimension"
@@ -37,7 +36,7 @@ class RelationDirection(str, Enum):
 	OUT = "OUT"
 
 
-class RelationType(Enum):
+class RelationType(str, Enum):
 	Direct = "Direct"
 	Computed = "Computed"
 	ReadAndWrite = "ReadAndWrite"
@@ -47,54 +46,54 @@ class RelationType(Enum):
 	ConstantsReference = "ConstantsReference"
 
 
-class RelationTypeHolders(BaseModel):
-	type: RelationType = None
-	arithmetic: str = None
+class RelationTypeHolders(ExtendedBaseModel):
+	type: Optional[RelationType] = None
+	arithmetic: Optional[str] = None
 
 
-class LineageNode(BaseModel):
-	name: str = None
-	nodeId: str = None
-	attributes: Dict = {}
-	inCount: int = None
-	outCount: int = None
+class LineageNode(ExtendedBaseModel):
+	name: Optional[str] = None
+	nodeId: Optional[str] = None
+	attributes: Optional[Dict] = {}
+	inCount: Optional[int] = None
+	outCount: Optional[int] = None
 
 
 # class Config:
 # 	arbitrary_types_allowed = True
 
 
-class LineageRelation(BaseModel):
-	sourceId: str = None
-	targetId: str = None
-	relationType: RelationType = None
-	subNode: LineageNode = None
-	attributes: Dict = None
+class LineageRelation(ExtendedBaseModel):
+	sourceId: Optional[str] = None
+	targetId: Optional[str] = None
+	relationType: Optional[RelationType] = None
+	subNode: Optional[LineageNode] = None
+	attributes: Optional[Dict] = None
 
 
 # direction: RelationDirection = None
 
 
-class ReadFactorHolder(BaseModel):
-	factorId: FactorId = None
-	topicId: TopicId = None
+class ReadFactorHolder(ExtendedBaseModel):
+	factorId: Optional[FactorId] = None
+	topicId: Optional[TopicId] = None
 
 
-class ReadTopicHolder(BaseModel):
-	topicId: TopicId = None
+class ReadTopicHolder(ExtendedBaseModel):
+	topicId: Optional[TopicId] = None
 
 
-class ReadFromMemoryHolder(BaseModel):
-	parameter: Parameter
+class ReadFromMemoryHolder(ExtendedBaseModel):
+	parameter: Optional[Parameter] = None
 
 
 class PipelineFacet(LineageNode):
 	lineageType: LineageType = LineageType.PIPELINE
 	relations: List[LineageRelation] = []
-	pipelineId: PipelineId = None
-	stageId: PipelineStageId = None
-	unitId: PipelineUnitId = None
-	actionId: PipelineActionId = None
+	pipelineId: Optional[PipelineId] = None
+	stageId: Optional[PipelineStageId] = None
+	unitId: Optional[PipelineUnitId] = None
+	actionId: Optional[PipelineActionId] = None
 	readRowContext: Dict[str, ReadTopicHolder] = {}
 	readFactorContext: Dict[str, ReadFactorHolder] = {}
 	readFromMemoryContext: Dict[str, ReadFromMemoryHolder] = {}
@@ -116,23 +115,23 @@ class TopicFacet(LineageNode):
 
 
 class TopicFactorFacet(LineageNode):
-	parentId: TopicId = None
-	nodeType: FactorType = None
+	parentId: Optional[TopicId] = None
+	nodeType: Optional[FactorType] = None
 	typesOfAnalysis: Optional[TypeOfAnalysis] = None
 	lineageType: LineageType = LineageType.FACTOR
 	relations: List[LineageRelation] = []
 
 
 class DatasetColumnFacet(LineageNode):
-	parentId: SubjectId = None
+	parentId: Optional[SubjectId] = None
 	typesOfAnalysis: Optional[TypeOfAnalysis] = None
-	nodeType: FactorType = None
+	nodeType: Optional[FactorType] = None
 	lineageType: LineageType = LineageType.SUBJECT
 	relations: List[LineageRelation] = []
 
 
-class SubjectTopicHolder(BaseModel):
-	topic: Topic = None
+class SubjectTopicHolder(ExtendedBaseModel):
+	topic: Optional[Topic] = None
 
 
 class SubjectFacet(LineageNode):
@@ -149,7 +148,7 @@ class SubjectFacet(LineageNode):
 
 
 class ReportFacet(LineageNode):
-	parentId: DashboardId = None
+	parentId: Optional[DashboardId] = None
 	lineageType: LineageType = LineageType.REPORT
 	relations: List[LineageRelation] = []
 
@@ -172,18 +171,18 @@ class ObjectiveFacet(LineageNode):
 
 class ObjectiveTargetFacet(LineageNode):
 	lineageType: LineageType = LineageType.OBJECTIVE_TARGET
-	parentId: ObjectiveId = None
+	parentId: Optional[ObjectiveId] = None
 	relations: List[LineageRelation] = []
 
 
 class ObjectiveFactorFacet(LineageNode):
 	lineageType: LineageType = LineageType.OBJECTIVE_INDICATOR
-	parentId: ObjectiveId = None
+	parentId: Optional[ObjectiveId] = None
 	relations: List[LineageRelation] = []
 
 
-class CidModel(BaseModel):
-	cid_: str = None
+class CidModel(ExtendedBaseModel):
+	cid_: Optional[str] = None
 
 
 class ObjectiveTargetLineage(ObjectiveTarget, CidModel):
@@ -216,7 +215,7 @@ class SubjectDatasetLineage(SubjectDataset):
 
 
 class SubjectLineage(Subject):
-	dataset: SubjectDatasetLineage = None
+	dataset: Optional[SubjectDatasetLineage] = None
 
 
 class IndicatorLineage(Indicator, CidModel):
@@ -227,10 +226,10 @@ class IndicatorLineage(Indicator, CidModel):
 # 	type:str = None
 class RelationshipLineage(CidModel):
 	from_: List = []
-	type: str = None
+	type: Optional[str] = None
 
 
-class LineageResult(BaseModel):
+class LineageResult(ExtendedBaseModel):
 	relations: List[RelationshipLineage] = []
 	objectives: List[ObjectiveLineage] = []
 	topics: List[TopicLineage] = []

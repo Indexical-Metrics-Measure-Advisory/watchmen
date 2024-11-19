@@ -1,0 +1,1 @@
+CREATE INDEX idx_trigger_model_module_trigger_id ON trigger_model(module_trigger_id);

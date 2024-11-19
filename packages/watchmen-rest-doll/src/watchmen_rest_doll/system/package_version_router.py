@@ -16,7 +16,7 @@ from watchmen_rest_doll.util import trans
 router = APIRouter()
 
 
-@router.post('/package_version', tags=[UserRole.ADMIN], response_model=PackageVersion)
+@router.post('/package_version', tags=[UserRole.ADMIN], response_model=None)
 async def save_package_version(
 		package_version: PackageVersion, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> PackageVersion:

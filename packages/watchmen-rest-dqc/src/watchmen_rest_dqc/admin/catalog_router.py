@@ -26,7 +26,7 @@ def get_topic_service(catalog_service: CatalogService) -> TopicService:
 	return TopicService(catalog_service.storage, catalog_service.snowflakeGenerator, catalog_service.principalService)
 
 
-@router.get('/dqc/catalog', tags=[UserRole.ADMIN], response_model=Catalog)
+@router.get('/dqc/catalog', tags=[UserRole.ADMIN], response_model=None)
 async def load_catalog_by_id(
 		catalog_id: Optional[CatalogId] = None, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Catalog:
@@ -90,7 +90,7 @@ def ask_save_catalog_action(
 	return action
 
 
-@router.post('/dqc/catalog', tags=[UserRole.ADMIN], response_model=Catalog)
+@router.post('/dqc/catalog', tags=[UserRole.ADMIN], response_model=None)
 async def save_catalog(
 		catalog: Catalog, principal_service: PrincipalService = Depends(get_admin_principal)) -> Catalog:
 	validate_tenant_id(catalog, principal_service)
@@ -99,7 +99,7 @@ async def save_catalog(
 	return trans(catalog_service, lambda: action(catalog))
 
 
-@router.post('/dqc/catalog/criteria', tags=[UserRole.ADMIN], response_model=List[Catalog])
+@router.post('/dqc/catalog/criteria', tags=[UserRole.ADMIN], response_model=None)
 async def query_catalog(
 		criteria: CatalogCriteria, principal_service: PrincipalService = Depends(get_admin_principal)) -> List[Catalog]:
 	catalog_service = get_catalog_service(principal_service)
@@ -133,7 +133,7 @@ async def delete_dashboard_by_id(
 	trans(catalog_service, action)
 
 
-@router.delete('/dqc/catalog', tags=[UserRole.SUPER_ADMIN], response_model=Catalog)
+@router.delete('/dqc/catalog', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_catalog_by_id_by_super_admin(
 		catalog_id: Optional[CatalogId] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)

@@ -4,8 +4,6 @@ from logging import getLogger
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from math import ceil, floor
-from pydantic import BaseModel
-
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_data_kernel.storage_bridge import parse_parameter_in_memory, PipelineVariables
@@ -16,25 +14,25 @@ from watchmen_model.indicator import ComputedObjectiveParameter, ConstantObjecti
 	ObjectiveParameterExpressionOperator, ObjectiveParameterJoint, ObjectiveParameterJointType, ObjectiveTarget, \
 	ObjectiveVariableKind, ObjectiveVariableOnValue, ReferObjectiveParameter
 from watchmen_utilities import ArrayHelper, get_day_of_month, get_day_of_week, get_half_year, get_month, get_quarter, \
-	get_week_of_month, get_week_of_year, get_year, is_blank, is_date, is_decimal, is_not_blank
+	get_week_of_month, get_week_of_year, get_year, is_blank, is_date, is_decimal, is_not_blank, ExtendedBaseModel
 from ..objective_factor import get_objective_factor_data_service
 from ..utils import as_time_frame, compute_chain_frame, compute_previous_frame, compute_time_frame, TimeFrame
 
 logger = getLogger(__name__)
 
 
-class ObjectiveTargetValues(BaseModel):
-	uuid: ObjectiveTargetId
-	target: ObjectiveTarget
+class ObjectiveTargetValues(ExtendedBaseModel):
+	uuid: Optional[ObjectiveTargetId] = None
+	target: Optional[ObjectiveTarget] = None
 	currentValue: Optional[Decimal] = None
 	previousValue: Optional[Decimal] = None
 	chainValue: Optional[Decimal] = None
 	failed: bool = False
 
 
-class TempObjectiveFactorValues(BaseModel):
-	uuid: ObjectiveFactorId
-	factor: ObjectiveFactor
+class TempObjectiveFactorValues(ExtendedBaseModel):
+	uuid: Optional[ObjectiveFactorId] = None
+	factor: Optional[ObjectiveFactor] = None
 	currentValue: Optional[Decimal] = None
 	previousValue: Optional[Decimal] = None
 	chainValue: Optional[Decimal] = None
@@ -43,24 +41,24 @@ class TempObjectiveFactorValues(BaseModel):
 	chainAsked: bool = False
 
 
-class ObjectiveFactorValues(BaseModel):
-	uuid: ObjectiveFactorId = None
+class ObjectiveFactorValues(ExtendedBaseModel):
+	uuid: Optional[ObjectiveFactorId] = None
 	currentValue: Optional[Decimal] = None
 	previousValue: Optional[Decimal] = None
 	chainValue: Optional[Decimal] = None
 	failed: bool = False
 
 
-class ObjectiveValues(BaseModel):
-	targets: List[ObjectiveTargetValues]
-	factors: List[ObjectiveFactorValues]
+class ObjectiveValues(ExtendedBaseModel):
+	targets: Optional[List[ObjectiveTargetValues]] = None
+	factors: Optional[List[ObjectiveFactorValues]] = None
 
 
-class SortableObjectiveFactor(BaseModel):
-	factor: ObjectiveFactor
-	depends: List[ObjectiveFactorId]
-	allDepends: List[ObjectiveFactorId]
-	invalid: bool
+class SortableObjectiveFactor(ExtendedBaseModel):
+	factor: Optional[ObjectiveFactor] = None
+	depends: Optional[List[ObjectiveFactorId]] = None
+	allDepends: Optional[List[ObjectiveFactorId]] = None
+	invalid: Optional[bool] = None
 
 
 class ObjectiveDataService:

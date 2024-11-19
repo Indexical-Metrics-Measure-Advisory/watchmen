@@ -86,8 +86,7 @@ def trigger_event_by_table(trigger_event: TriggerEvent):
 	                                                          trigger_event_service.snowflakeGenerator,
 	                                                          trigger_event_service.principalService)
 
-	table_config = table_config_service.find_by_table_name_and_tenant_id(trigger_event.tableName,
-	                                                                     trigger_event.tenantId)
+	table_config = table_config_service.find_by_name(trigger_event.tableName, trigger_event.tenantId)
 	model_config = model_config_service.find_by_name(table_config.modelName, table_config.tenantId)
 
 	module_config = module_config_service.find_by_module_id(model_config.moduleId)
@@ -140,8 +139,7 @@ def trigger_event_by_records(trigger_event: TriggerEvent):
 	                                                          trigger_event_service.snowflakeGenerator,
 	                                                          trigger_event_service.principalService)
 
-	table_config = table_config_service.find_by_table_name_and_tenant_id(trigger_event.tableName,
-	                                                                     trigger_event.tenantId)
+	table_config = table_config_service.find_by_name(trigger_event.tableName, trigger_event.tenantId)
 	model_config = model_config_service.find_by_name(table_config.modelName, table_config.tenantId)
 	module_config = module_config_service.find_by_module_id(model_config.moduleId)
 
@@ -276,7 +274,7 @@ def trigger_event_by_pipeline(trigger_event: TriggerEvent):
 	model_config_service = get_model_config_service(principal_service)
 	table_config_service = get_table_config_service(principal_service)
 
-	table_config = table_config_service.find_by_table_name(trigger_event.tableName, trigger_event.tenantId)
+	table_config = table_config_service.find_by_name(trigger_event.tableName, trigger_event.tenantId)
 	model_config = model_config_service.find_by_name(table_config.modelName, trigger_event.tenantId)
 	module_config = module_config_service.find_by_module_id(model_config.moduleId, trigger_event.tenantId)
 

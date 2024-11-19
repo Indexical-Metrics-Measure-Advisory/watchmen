@@ -16,37 +16,37 @@ class DollApp(RestApp):
 	def get_settings(self) -> DollSettings:
 		# noinspection PyTypeChecker
 		return self.settings
-
+	
 	def build_find_user_by_name(self) -> Callable[[str], Optional[User]]:
 		"""
 		autonomous transaction
 		"""
 		return build_find_user_by_name()
-
+	
 	def build_find_user_by_pat(self) -> Callable[[str], Optional[User]]:
 		"""
 		autonomous transaction
 		"""
 		return build_find_user_by_pat()
-
+	
 	def is_tuple_delete_enabled(self) -> bool:
 		return self.get_settings().TUPLE_DELETABLE
-
+	
 	def ask_create_pipeline_monitor_topics_on_tenant_create(self) -> bool:
 		return self.get_settings().CREATE_PIPELINE_MONITOR_TOPICS_ON_TENANT_CREATE
-
+	
 	def ask_create_dqc_topics_on_tenant_create(self) -> bool:
 		return self.get_settings().CREATE_DQC_TOPICS_ON_TENANT_CREATE
-
+	
 	def ask_hide_datasource_pwd_enabled(self) -> bool:
 		return self.get_settings().HIDE_DATASOURCE_PWD
-
+	
 	def ask_sso_enabled(self) -> bool:
 		return self.get_settings().SSO_ON
-
+	
 	def ask_saml2_enabled(self) -> bool:
 		return ask_sso_enabled() and self.get_settings().SSO_PROVIDER == SSOTypes.SAML2
-
+	
 	def ask_saml2_settings(self) -> Dict[str, Any]:
 		settings = self.get_settings()
 		return {
@@ -69,24 +69,27 @@ class DollApp(RestApp):
 				'x509cert': settings.SAML_IDP_X509CERT
 			},
 		}
-
+	
+	def ask_oidc_enabled(self) -> bool:
+		return ask_sso_enabled() and self.get_settings().SSO_PROVIDER == SSOTypes.OIDC
+	
 	def post_construct(self, app: FastAPI) -> None:
 		pass
-
+	
 	# noinspection PyMethodMayBeStatic
 	def init_pipeline_surface(self) -> None:
 		pipeline_surface.init()
-
+	
 	def ask_collector_enabled(self) -> bool:
 		return self.get_settings().COLLECTOR_ON
-
+	
 	# noinspection PyMethodMayBeStatic
 	def init_collector_surface(self) -> None:
 		if self.ask_collector_enabled():
 			from watchmen_collector_surface import collector_surface
 			collector_surface.init()
 		pass
-
+	
 	def on_startup(self, app: FastAPI) -> None:
 		self.init_pipeline_surface()
 		self.init_collector_surface()
@@ -129,6 +132,14 @@ def ask_saml2_enabled() -> bool:
 
 def ask_saml2_settings() -> Dict:
 	return doll.ask_saml2_settings()
+
+
+def ask_oidc_enabled() -> bool:
+	return doll.ask_oidc_enabled()
+
+
+def ask_oidc_settings() -> DollSettings:
+	return doll.get_settings()
 
 
 def ask_collector_enabled() -> bool:

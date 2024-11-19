@@ -1,19 +1,19 @@
 from typing import Dict, List, Optional, Union
 
-from pydantic import BaseModel
+from watchmen_utilities import ExtendedBaseModel
 
 from watchmen_model.common import EnumId, EnumItemId, OptimisticLock, Storable, TenantBasedTuple, TenantId
 from watchmen_utilities import ArrayHelper
 
 
-class EnumItem(Storable, BaseModel):
-	itemId: EnumItemId = None
-	code: str = None
-	label: str = None
-	parentCode: str = None
-	replaceCode: str = None
-	enumId: EnumId = None
-	tenantId: TenantId = None
+class EnumItem(ExtendedBaseModel, Storable):
+	itemId: Optional[EnumItemId] = None
+	code: Optional[str] = None
+	label: Optional[str] = None
+	parentCode: Optional[str] = None
+	replaceCode: Optional[str] = None
+	enumId: Optional[EnumId] = None
+	tenantId: Optional[TenantId] = None
 
 
 def construct_item(item: Union[EnumItem, Dict]) -> Optional[EnumItem]:
@@ -32,12 +32,12 @@ def construct_items(items: Optional[List[Union[EnumItem, Dict]]]) -> Optional[Li
 		return ArrayHelper(items).map(lambda x: construct_item(x)).to_list()
 
 
-class Enum(TenantBasedTuple, OptimisticLock, BaseModel):
-	enumId: EnumId = None
-	name: str = None
-	description: str = None
-	parentEnumId: EnumId = None
-	items: List[EnumItem] = []
+class Enum(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
+	enumId: Optional[EnumId] = None
+	name: Optional[str] = None
+	description: Optional[str] = None
+	parentEnumId: Optional[EnumId] = None
+	items: Optional[List[EnumItem]] = []
 
 	def __setattr__(self, name, value):
 		if name == 'items':

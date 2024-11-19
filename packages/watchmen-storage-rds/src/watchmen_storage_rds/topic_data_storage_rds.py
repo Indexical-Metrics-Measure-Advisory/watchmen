@@ -304,7 +304,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 			return ArrayHelper(table_columns).map_with_index(lambda x, index: build_column(x, index)).to_list()
 
 		sub_query = base_statement.subquery()
-		statement = select(build_columns()).select_from(sub_query)
+		statement = select(*build_columns()).select_from(sub_query)
 		return statement
 
 	def build_fake_aggregation_statement(
@@ -315,7 +315,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		aggregated, aggregate_columns = self.fake_aggregate_columns(table_columns)
 		if aggregated:
 			sub_query = base_statement.subquery()
-			statement = select(self.build_free_aggregate_columns(aggregate_columns, 'column')).select_from(sub_query)
+			statement = select(*self.build_free_aggregate_columns(aggregate_columns, 'column')).select_from(sub_query)
 			_, statement = self.build_aggregate_group_by(aggregate_columns, statement)
 			return statement
 		else:
@@ -388,7 +388,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		"""
 		# build base query
 		select_from, tables = self.build_free_joins(aggregator.joins)
-		statement = select(self.build_free_columns(aggregator.columns, tables)).select_from(select_from)
+		statement = select(*self.build_free_columns(aggregator.columns, tables)).select_from(select_from)
 		statement = self.build_criteria_for_statement(tables, statement, aggregator.criteria)
 		# build aggregate query
 		statement = self.build_fake_aggregation_statement(aggregator.columns, statement)
@@ -397,7 +397,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		sub_query = statement.subquery()
 		# build high-order aggregate query
 		aggregate_columns = aggregator.highOrderAggregateColumns
-		statement = select(self.build_free_aggregate_columns(aggregate_columns)).select_from(sub_query)
+		statement = select(*self.build_free_aggregate_columns(aggregate_columns)).select_from(sub_query)
 		# obviously, table is not existing. fake a table of sub query selection to build high order criteria
 		statement = self.build_criteria_for_statement([], statement, aggregator.highOrderCriteria)
 		return self.build_aggregate_group_by(aggregate_columns, statement)
@@ -406,7 +406,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 	def build_free_find_statement(self, finder: FreeFinder) -> SQLAlchemyStatement:
 		# build base query
 		select_from, tables = self.build_free_joins(finder.joins)
-		data_statement = select(self.build_free_columns(finder.columns, tables)).select_from(select_from)
+		data_statement = select(*self.build_free_columns(finder.columns, tables)).select_from(select_from)
 		data_statement = self.build_criteria_for_statement(tables, data_statement, finder.criteria)
 		# build aggregate query
 		data_statement = self.build_fake_aggregation_statement(finder.columns, data_statement)

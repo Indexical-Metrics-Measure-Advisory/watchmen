@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-function-aws"
-version = "16.3.0"
+version = "17.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -9,12 +9,12 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "~3.12"
 aws-cdk-lib = "2.0.0"
 constructs = "^10.0.0"
 boto3 = "1.24.11"
-watchmen-pipeline-surface = "16.3.0"
-watchmen-storage-mysql = "16.3.0"
+watchmen-pipeline-surface = "17.0.0"
+watchmen-storage-mysql = "17.0.0"
 
 
 

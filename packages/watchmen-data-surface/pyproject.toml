@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-data-surface"
-version = "16.1.0"
+version = "17.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "~3.12"
 watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
 watchmen-rest = { path = "../watchmen-rest", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }

@@ -1,7 +1,6 @@
 from typing import List, Optional, Tuple
 
 from fastapi import APIRouter, Body, Depends
-from pydantic import BaseModel
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
@@ -13,7 +12,7 @@ from watchmen_rest import get_admin_principal, get_console_principal, get_super_
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, ExtendedBaseModel
 
 router = APIRouter()
 
@@ -30,7 +29,7 @@ def get_topic_service(enum_service: EnumService) -> TopicService:
 	return TopicService(enum_service.storage, enum_service.snowflakeGenerator, enum_service.principalService)
 
 
-@router.get('/enum', tags=[UserRole.ADMIN], response_model=Enum)
+@router.get('/enum', tags=[UserRole.ADMIN], response_model=None)
 async def load_enum_by_id(
 		enum_id: Optional[EnumId] = None, principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Enum:
@@ -70,7 +69,7 @@ def create_enum_item(enum_item_service: EnumItemService, enum_item: EnumItem, an
 	enum_item_service.create(enum_item)
 
 
-@router.post('/enum', tags=[UserRole.ADMIN], response_model=Enum)
+@router.post('/enum', tags=[UserRole.ADMIN], response_model=None)
 async def save_enum(
 		an_enum: Enum, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Enum:
@@ -110,7 +109,7 @@ class QueryEnumDataPage(DataPage):
 	data: List[Enum]
 
 
-@router.post('/enum/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=QueryEnumDataPage)
+@router.post('/enum/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_enums_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -132,7 +131,7 @@ async def find_enums_by_name(
 	return trans_readonly(enum_service, action)
 
 
-@router.get('/enum/list/topic', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Enum])
+@router.get('/enum/list/topic', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_enums_by_topic(
 		topic_id: Optional[TopicId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[Enum]:
@@ -157,7 +156,7 @@ async def find_enums_by_topic(
 	return trans_readonly(enum_service, action)
 
 
-@router.get('/enum/all', tags=[UserRole.ADMIN], response_model=List[Enum])
+@router.get('/enum/all', tags=[UserRole.ADMIN], response_model=None)
 async def find_all_enums(principal_service: PrincipalService = Depends(get_admin_principal)) -> List[Enum]:
 	"""
 	no enumeration items included, only enumeration itself
@@ -171,7 +170,7 @@ async def find_all_enums(principal_service: PrincipalService = Depends(get_admin
 	return trans_readonly(enum_service, action)
 
 
-class ImportEnumItems(BaseModel):
+class ImportEnumItems(ExtendedBaseModel):
 	enumId: Optional[EnumId] = None
 	name: Optional[str] = None
 	items: List[EnumItem]
@@ -228,7 +227,7 @@ async def items_import(
 	return trans(enum_service, action)
 
 
-@router.delete('/enum', tags=[UserRole.SUPER_ADMIN], response_model=Enum)
+@router.delete('/enum', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_enum_by_id_by_super_admin(
 		enum_id: Optional[EnumId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

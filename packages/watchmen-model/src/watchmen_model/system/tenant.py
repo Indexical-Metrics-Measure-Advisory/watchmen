@@ -1,5 +1,6 @@
 from typing import Optional
 
+
 from pydantic import BaseModel
 
 from watchmen_model.common import OptimisticLock, TenantId, Tuple

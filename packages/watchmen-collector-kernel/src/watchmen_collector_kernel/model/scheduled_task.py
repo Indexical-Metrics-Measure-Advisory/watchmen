@@ -1,15 +1,15 @@
 from typing import Dict, List, Optional, Union
 
-from watchmen_utilities import ArrayHelper
-
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 from watchmen_model.common import TenantBasedTuple, ScheduledTaskId, Storable
-from pydantic import BaseModel
+
 from enum import Enum
 
 
 class TaskType(int, Enum):
 	DEFAULT = 1,
-	RUN_PIPELINE = 2
+	RUN_PIPELINE = 2,
+	GROUP = 3
 
 
 class Result(str, Enum):
@@ -18,7 +18,7 @@ class Result(str, Enum):
 	PROCESS_TASK_FAILED = "PROCESS_TASK_FAILED"
 
 
-class Dependence(Storable, BaseModel):
+class Dependence(Storable, ExtendedBaseModel):
 	modelName: str
 	objectId: str
 
@@ -39,21 +39,23 @@ def construct_depend_on(depend_on: Optional[List[Union[Dependence, Dict]]]) -> O
 		return ArrayHelper(depend_on).map(lambda x: construct_dependence(x)).to_list()
 
 
-class ScheduledTask(TenantBasedTuple, BaseModel):
-	taskId: ScheduledTaskId
-	resourceId: str  # global unique, monotonous increase
-	topicCode: str
-	content: Dict
-	modelName: str
-	objectId: str
-	dependOn: List[Dependence]
-	parentTaskId: List[int]
-	isFinished: bool
-	status: int
-	result: Dict
-	eventId: str
-	pipelineId: str
-	type: int
+class ScheduledTask(TenantBasedTuple, ExtendedBaseModel):
+	taskId: Optional[ScheduledTaskId] = None
+	resourceId:  Optional[str] = None  # global unique, monotonous increase
+	topicCode:  Optional[str] = None
+	content:  Optional[Dict] = None
+	changeJsonIds:  Optional[List[int]] = None
+	modelName:  Optional[str] = None
+	objectId:  Optional[str] = None
+	dependOn:  Optional[List[Dependence]] = None
+	parentTaskId:  Optional[List[int]] = None
+	isFinished:  Optional[bool] = None
+	status:  Optional[int] = None
+	result:  Optional[Dict] = None
+	eventId:  Optional[str] = None  # Deprecated
+	eventTriggerId:  Optional[int] = None
+	pipelineId:  Optional[str] = None
+	type:  Optional[int] = None
 
 	def __setattr__(self, name, value):
 		if name == 'dependOn':

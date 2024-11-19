@@ -4,7 +4,6 @@ from typing import Optional, Union
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel
 from starlette.requests import Request
 
 from watchmen_auth import AuthenticationScheme, PrincipalService
@@ -16,20 +15,21 @@ from watchmen_model.system import Token
 from watchmen_rest import create_jwt_token, get_any_principal, retrieve_authentication_manager
 from watchmen_rest.util import raise_401
 from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, ask_saml2_enabled, ask_saml2_settings, \
-	ask_sso_enabled
+	ask_sso_enabled, ask_oidc_enabled, ask_oidc_settings
 from watchmen_rest_doll.settings import SSOTypes
 from watchmen_rest_doll.util import verify_password
+from watchmen_utilities import ExtendedBaseModel
 
 router = APIRouter()
 logger = getLogger(__name__)
 
 
-class LoginConfiguration(BaseModel):
+class LoginConfiguration(ExtendedBaseModel):
 	method: Union[str, SSOTypes] = SSOTypes.DOLL,
 	url: Optional[str] = None
 
 
-@router.get('/auth/config', tags=['authenticate'], response_model=LoginConfiguration)
+@router.get('/auth/config', tags=['authenticate'], response_model=None)
 async def load_login_config(request: Request) -> LoginConfiguration:
 	if ask_sso_enabled() and ask_saml2_enabled():
 		from watchmen_rest_doll.sso.saml.saml_helper import prepare_from_fastapi_request
@@ -40,6 +40,11 @@ async def load_login_config(request: Request) -> LoginConfiguration:
 		auth = OneLogin_Saml2_Auth(req, ask_saml2_settings())
 		callback_url = auth.login()
 		return LoginConfiguration(method=SSOTypes.SAML2, url=callback_url)
+	elif ask_sso_enabled() and ask_oidc_enabled():
+		from watchmen_rest_doll.sso.oidc import OIDCAuth
+		oidc_auth = OIDCAuth(ask_oidc_settings())
+		login_url = oidc_auth.get_sso_login_url()
+		return LoginConfiguration(method=SSOTypes.OIDC, url=login_url)
 	else:
 		return LoginConfiguration(method=SSOTypes.DOLL)
 
@@ -59,7 +64,7 @@ def authenticate(username, password) -> User:
 		raise_401('Incorrect username or password.')
 
 
-@router.post('/login', response_model=Token, tags=['authenticate'])
+@router.post('/login', response_model=None, tags=['authenticate'])
 async def login_by_user_pwd(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
 	"""
 	OAuth2 compatible token login, get an access token for future requests
@@ -79,7 +84,7 @@ async def login_by_user_pwd(form_data: OAuth2PasswordRequestForm = Depends()) ->
 	)
 
 
-@router.get('/token/validate/jwt', response_model=User, tags=['authenticate'])
+@router.get('/token/validate/jwt', response_model=None, tags=['authenticate'])
 async def validate_jwt_token(token: str) -> User:
 	"""
 	Validate given token, returns user of this token when validated
@@ -87,7 +92,7 @@ async def validate_jwt_token(token: str) -> User:
 	return retrieve_authentication_manager().authenticate(AuthenticationScheme.JWT.value, token)
 
 
-@router.get('/token/exchange-user', response_model=User, tags=['authenticate'])
+@router.get('/token/exchange-user', response_model=None, tags=['authenticate'])
 async def exchange_user(principal_service: PrincipalService = Depends(get_any_principal)) -> Optional[User]:
 	"""
 	returns current principal

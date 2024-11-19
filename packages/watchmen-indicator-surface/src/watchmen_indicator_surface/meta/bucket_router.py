@@ -1,7 +1,6 @@
 from typing import List, Optional, Tuple
 
 from fastapi import APIRouter, Body, Depends
-from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.meta import BucketService
@@ -13,7 +12,7 @@ from watchmen_model.common import BucketId, DataPage, EnumId, Pageable, TenantId
 from watchmen_model.indicator import Bucket, MeasureMethod
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
-from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, ExtendedBaseModel
 
 router = APIRouter()
 
@@ -110,13 +109,13 @@ async def find_buckets_by_numeric_value(
 	return trans_readonly(bucket_service, action)
 
 
-class QueryByBucketMethod(BaseModel):
-	method: MeasureMethod = None
+class QueryByBucketMethod(ExtendedBaseModel):
+	method: Optional[MeasureMethod] = None
 	enumId: Optional[EnumId] = None
 
 
-class QueryByBucket(BaseModel):
-	methods: List[QueryByBucketMethod]
+class QueryByBucket(ExtendedBaseModel):
+	methods: List[QueryByBucketMethod] = None
 
 
 @router.post("/indicator/bucket/methods", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Bucket])

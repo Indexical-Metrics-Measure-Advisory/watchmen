@@ -2,7 +2,6 @@ from logging import getLogger
 from typing import Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
@@ -18,7 +17,7 @@ from watchmen_rest import get_admin_principal, get_console_principal, get_princi
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, ExtendedBaseModel
 from .connected_space_router import ConnectedSpaceWithSubjects, SubjectWithReports
 
 router = APIRouter()
@@ -48,7 +47,7 @@ def get_last_snapshot_service(dashboard_service: DashboardService) -> LastSnapsh
 	return LastSnapshotService(dashboard_service.storage, dashboard_service.principalService)
 
 
-@router.get('/dashboard/list', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Dashboard])
+@router.get('/dashboard/list', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_my_dashboards(
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[Dashboard]:
@@ -62,8 +61,8 @@ async def find_my_dashboards(
 	return trans_readonly(dashboard_service, action)
 
 
-class StandaloneDashboard(BaseModel):
-	dashboard: Dashboard = None
+class StandaloneDashboard(ExtendedBaseModel):
+	dashboard: Optional[Dashboard] = None
 	connectedSpaces: List[ConnectedSpaceWithSubjects] = []
 
 
@@ -159,7 +158,7 @@ def load_standalone_dashboard(
 	)
 
 
-@router.get('/dashboard/admin', tags=[UserRole.ADMIN], response_model=StandaloneDashboard)
+@router.get('/dashboard/admin', tags=[UserRole.ADMIN], response_model=None)
 async def load_admin_dashboard(
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> StandaloneDashboard:
@@ -238,7 +237,7 @@ def ask_save_dashboard_action(
 	return action
 
 
-@router.post('/dashboard', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Dashboard)
+@router.post('/dashboard', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def save_dashboard(
 		dashboard: Dashboard, principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Dashboard:
@@ -247,7 +246,7 @@ async def save_dashboard(
 	return trans(dashboard_service, lambda: action(dashboard))
 
 
-@router.get('/dashboard/shared', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=StandaloneDashboard)
+@router.get('/dashboard/shared', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def load_shared_dashboard(dashboard_id: Optional[DashboardId], token: Optional[str]) -> StandaloneDashboard:
 	"""
 	load shared dashboard
@@ -321,7 +320,7 @@ async def delete_dashboard_by_id(
 	trans(dashboard_service, action)
 
 
-@router.delete('/dashboard', tags=[UserRole.SUPER_ADMIN], response_model=Dashboard)
+@router.delete('/dashboard', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_dashboard_by_id_by_super_admin(
 		dashboard_id: Optional[DashboardId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

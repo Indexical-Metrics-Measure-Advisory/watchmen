@@ -1,0 +1,1 @@
+ALTER TABLE scheduled_task_history ADD event_trigger_id NUMBER(20) NOT NULL;

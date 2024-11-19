@@ -1,16 +1,15 @@
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
 
 from watchmen_model.common import construct_parameter, construct_parameter_joint, FactorId, Parameter
 from watchmen_utilities import ArrayHelper
 from .pipeline_action import AggregateArithmeticHolder, FindBy, PipelineAction, ToFactor, ToTopic, WriteTopicActionType
 
 
-class MappingFactor(AggregateArithmeticHolder, BaseModel):
-	source: Parameter = None
-	factorId: FactorId = None
+class MappingFactor(AggregateArithmeticHolder):
+	source: Optional[Parameter] = None
+	factorId: Optional[FactorId] = None
 
 	def __setattr__(self, name, value):
 		if name == 'source':
@@ -37,7 +36,7 @@ class AccumulateMode(str, Enum):
 
 
 class WriteTopicAction(ToTopic):
-	type: WriteTopicActionType = None
+	type: Optional[WriteTopicActionType] = None
 	accumulateMode: AccumulateMode = AccumulateMode.STANDARD
 
 
@@ -92,7 +91,7 @@ class MergeRowAction(WriteTopicAction, MappingRow, FindBy):
 
 class WriteFactorAction(ToFactor, WriteTopicAction, FindBy, AggregateArithmeticHolder):
 	type: WriteTopicActionType = WriteTopicActionType.WRITE_FACTOR
-	source: Parameter = None
+	source: Optional[Parameter] = None
 
 	def __setattr__(self, name, value):
 		if name == 'mapping':

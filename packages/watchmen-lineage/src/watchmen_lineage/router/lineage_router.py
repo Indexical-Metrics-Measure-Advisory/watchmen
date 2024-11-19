@@ -12,22 +12,22 @@ router = APIRouter()
 lineage_service = get_lineage_service()
 
 
-@router.post('/linegae/rebuild', tags=[UserRole.ADMIN])
+@router.post('/linegae/rebuild', tags=[UserRole.ADMIN], response_model=None)
 def rebuild_lineage_by_tenant(principal_service: PrincipalService = Depends(get_admin_principal)):
 	lineage_service.init_tenant_all_lineage_data(principal_service)
 
 
 # find lineage by objective target
 
-@router.get("/indicator/objective/target/consanguinity", tags=[UserRole.ADMIN], response_model=LineageResult)
+@router.get("/indicator/objective/target/consanguinity", tags=[UserRole.ADMIN], response_model=None)
 def find_lineage_by_objective_target(target_id: ObjectiveTargetId, objective_id: ObjectiveId,
-                                     principal_service: PrincipalService = Depends(get_admin_principal)):
+                                     principal_service: PrincipalService = Depends(get_admin_principal)) -> LineageResult:
 	lineage_service.init_tenant_all_lineage_data(principal_service)
 	return lineage_service.find_lineage_by_objective_target(target_id, objective_id, principal_service)
 
 
-@router.get("/indicator/objective/consanguinity", tags=[UserRole.ADMIN], response_model=LineageResult)
+@router.get("/indicator/objective/consanguinity", tags=[UserRole.ADMIN], response_model=None)
 def find_lineage_by_objective(objective_id: ObjectiveId,
-                              principal_service: PrincipalService = Depends(get_admin_principal)):
+                              principal_service: PrincipalService = Depends(get_admin_principal)) -> LineageResult:
 	lineage_service.init_tenant_all_lineage_data(principal_service)
 	return lineage_service.find_lineage_by_objective(objective_id, principal_service)

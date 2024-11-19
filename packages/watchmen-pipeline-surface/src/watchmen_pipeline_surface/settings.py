@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 
 from watchmen_utilities import is_blank
 from .connectors import KafkaSettings, RabbitmqSettings
@@ -8,7 +8,7 @@ from .connectors import KafkaSettings, RabbitmqSettings
 logger = getLogger(__name__)
 
 
-class PipelineSurfaceSettings(BaseSettings):
+class PipelineSurfaceSettings(ExtendedBaseSettings):
 	RABBITMQ_CONNECTOR: bool = False
 	RABBITMQ_HOST: str = ''
 	RABBITMQ_PORT: str = '5672'
@@ -22,12 +22,6 @@ class PipelineSurfaceSettings(BaseSettings):
 	KAFKA_CONNECTOR: bool = False
 	KAFKA_BOOTSTRAP_SERVER: str = 'localhost:9092'
 	KAFKA_TOPICS: str = ''
-
-	class Config:
-		# secrets_dir = '/var/run'
-		env_file = '.env'
-		env_file_encoding = 'utf-8'
-		case_sensitive = True
 
 
 settings = PipelineSurfaceSettings()

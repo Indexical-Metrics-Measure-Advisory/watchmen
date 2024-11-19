@@ -1,7 +1,6 @@
 from enum import Enum
-from typing import List
-
-from pydantic import BaseModel
+from typing import List, Optional
+from watchmen_utilities import ExtendedBaseModel
 
 
 class MethodType(str, Enum):
@@ -9,9 +8,9 @@ class MethodType(str, Enum):
 	Factor = "factor"
 
 
-class AstMethod(BaseModel):
-	type: MethodType = None
-	value: str = None
+class AstMethod(ExtendedBaseModel):
+	type: Optional[MethodType] = None
+	value: Optional[str] = None
 
 
 class ConstantType(str, Enum):
@@ -19,22 +18,22 @@ class ConstantType(str, Enum):
 	FUNC = "function"
 
 
-class FuncParameter(BaseModel):
-	paramType: str = None
-	value: List = []
-	method: str = None
+class FuncParameter(ExtendedBaseModel):
+	paramType: Optional[str] = None
+	value: Optional[List] = []
+	method: Optional[str] = None
 
 
-class FuncAst(BaseModel):
-	name: str = None
+class FuncAst(ExtendedBaseModel):
+	name: Optional[str] = None
 	params: List = []
-	method: str = None
+	method: Optional[str] = None
 
 
-class ConstantAST(BaseModel):
-	constantType: ConstantType = None
-	params: List = []
-	funcAst: FuncAst = None
+class ConstantAST(ExtendedBaseModel):
+	constantType: Optional[ConstantType] = None
+	params: Optional[List] = []
+	funcAst: Optional[FuncAst] = None
 
 
 class ASTObject(str, Enum):

@@ -22,7 +22,7 @@ def get_connected_space_graphic_service(principal_service: PrincipalService) -> 
 
 
 @router.get(
-	'/connected_space/graphics', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[ConnectedSpaceGraphic])
+	'/connected_space/graphics', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_my_connected_space_graphics(
 		principal_service: PrincipalService = Depends(get_console_principal)) -> List[ConnectedSpaceGraphic]:
 	"""

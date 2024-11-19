@@ -22,7 +22,7 @@ def get_external_writer_service(principal_service: PrincipalService) -> External
 	return ExternalWriterService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.get('/external_writer', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=ExternalWriter)
+@router.get('/external_writer', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def load_external_writer_by_id(
 		writer_id: Optional[ExternalWriterId] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
@@ -45,7 +45,7 @@ async def load_external_writer_by_id(
 	return trans_readonly(external_writer_service, action)
 
 
-@router.post('/external_writer', tags=[UserRole.SUPER_ADMIN], response_model=ExternalWriter)
+@router.post('/external_writer', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def save_external_writer(
 		external_writer: ExternalWriter, principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> ExternalWriter:
@@ -71,7 +71,7 @@ class QueryExternalWriterDataPage(DataPage):
 
 
 @router.post(
-	'/external_writer/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=QueryExternalWriterDataPage)
+	'/external_writer/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def find_external_writers_by_name(
 		query_name: Optional[str] = None, pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
@@ -96,7 +96,7 @@ async def find_external_writers_by_name(
 
 
 @router.get(
-	"/external_writer/all", tags=[UserRole.ADMIN], response_model=List[ExternalWriter])
+	"/external_writer/all", tags=[UserRole.ADMIN], response_model=None)
 async def find_all_external_writers(
 		principal_service: PrincipalService = Depends(get_any_admin_principal)) -> List[ExternalWriter]:
 	tenant_id = None
@@ -111,7 +111,7 @@ async def find_all_external_writers(
 	return attach_tenant_name(trans_readonly(external_writer_service, action), principal_service)
 
 
-@router.delete('/external_writer', tags=[UserRole.SUPER_ADMIN], response_model=ExternalWriter)
+@router.delete('/external_writer', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_external_writer_by_id(
 		writer_id: Optional[ExternalWriterId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

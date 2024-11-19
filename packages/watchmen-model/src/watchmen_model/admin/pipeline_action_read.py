@@ -1,9 +1,11 @@
+from typing import Optional
+
 from watchmen_model.common import construct_parameter_joint
 from .pipeline_action import AggregateArithmeticHolder, FindBy, FromFactor, FromTopic, MemoryWriter, ReadTopicActionType
 
 
 class ReadTopicAction(FromTopic, MemoryWriter, FindBy):
-	type: ReadTopicActionType
+	type: Optional[ReadTopicActionType] = None
 
 	def __setattr__(self, name, value):
 		if name == 'by':

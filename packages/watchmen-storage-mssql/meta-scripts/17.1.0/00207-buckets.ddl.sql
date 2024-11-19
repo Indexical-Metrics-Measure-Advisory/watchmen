@@ -1,0 +1,1 @@
+ALTER TABLE buckets ALTER COLUMN version INTEGER;

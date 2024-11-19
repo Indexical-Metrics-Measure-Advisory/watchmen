@@ -1,11 +1,9 @@
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
-
 from watchmen_model.common import BucketId, ConvergenceId, ConvergenceTargetId, ConvergenceTargetVariableMappingId, \
 	ConvergenceVariableId, DataModel, ObjectiveId, ObjectiveTargetId, OptimisticLock, TenantBasedTuple, UserGroupId
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 
 
 class ConvergenceVariableType(str, Enum):
@@ -19,11 +17,11 @@ class ConvergenceVariableAxis(str, Enum):
 	Y = 'y'
 
 
-class ConvergenceVariable(DataModel, BaseModel):
-	uuid: ConvergenceVariableId = None
-	type: ConvergenceVariableType = None
-	name: str = None
-	axis: ConvergenceVariableAxis = None
+class ConvergenceVariable(ExtendedBaseModel):
+	uuid: Optional[ConvergenceVariableId] = None
+	type: Optional[ConvergenceVariableType] = None
+	name: Optional[str] = None
+	axis: Optional[ConvergenceVariableAxis] = None
 
 
 class ConvergenceTimeFrameVariableKind(str, Enum):
@@ -35,9 +33,9 @@ class ConvergenceTimeFrameVariableKind(str, Enum):
 	DAY = 'day'
 
 
-class TimeFrameConvergenceVariableValue(DataModel, BaseModel):
-	start: str = None
-	end: str = None
+class TimeFrameConvergenceVariableValue(ExtendedBaseModel):
+	start: Optional[str] = None
+	end: Optional[str] = None
 
 
 def construct_timeframe_variable_value(
@@ -88,11 +86,11 @@ class ConvergenceFreeWalkVariable(ConvergenceVariable):
 CONVERGENCE_TARGET_VARIABLE_MAPPING_IGNORED = '#'
 
 
-class ConvergenceTargetVariableMapping(DataModel, BaseModel):
-	uuid: ConvergenceTargetVariableMappingId = None
-	objectiveVariableName: str = None
+class ConvergenceTargetVariableMapping(ExtendedBaseModel):
+	uuid: Optional[ConvergenceTargetVariableMappingId] = None
+	objectiveVariableName: Optional[str] = None
 	#CONVERGENCE_TARGET_VARIABLE_MAPPING_IGNORED
-	variableId: ConvergenceVariableId = None
+	variableId: Optional[ConvergenceVariableId] = None
 
 
 def construct_target_mapping(target: Optional[Union[dict, ConvergenceTargetVariableMapping]]) -> Optional[
@@ -113,16 +111,16 @@ def construct_target_mappings(targets: Optional[list] = None) -> Optional[List[C
 		return ArrayHelper(targets).map(lambda x: construct_target_mapping(x)).to_list()
 
 
-class ConvergenceTarget(DataModel, BaseModel):
-	uuid: ConvergenceTargetId = None
-	objectiveId: ObjectiveId = None
-	targetId: ObjectiveTargetId = None
-	useTimeFrame: bool = None
+class ConvergenceTarget(ExtendedBaseModel):
+	uuid: Optional[ConvergenceTargetId] = None
+	objectiveId:  Optional[ObjectiveId] = None
+	targetId:  Optional[ObjectiveTargetId] = None
+	useTimeFrame:  Optional[bool] = None
 	mapping: List[ConvergenceTargetVariableMapping] = []
 	# starts from 0
-	row: int = None
+	row:  Optional[int] = None
 	# starts from 0
-	col: int = None
+	col:  Optional[int] = None
 
 	def __setattr__(self, name, value):
 		if name == 'mapping':
@@ -172,13 +170,13 @@ def construct_variables(variables: Optional[list] = None) -> Optional[List[Conve
 		return ArrayHelper(variables).map(lambda x: construct_variable(x)).to_list()
 
 
-class Convergence(TenantBasedTuple, OptimisticLock, BaseModel):
-	convergenceId: ConvergenceId = None
-	name: str = None
-	description: str = None
+class Convergence(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
+	convergenceId: Optional[ConvergenceId] = None
+	name: Optional[str] = None
+	description: Optional[str] = None
 	variables: List[ConvergenceVariable] = []
 	targets: List[ConvergenceTarget] = []
-	groupIds: List[UserGroupId] = None
+	groupIds: Optional[List[UserGroupId]] = None
 
 	def __setattr__(self, name, value):
 		if name == 'targets':

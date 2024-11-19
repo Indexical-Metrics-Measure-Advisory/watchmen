@@ -1,6 +1,9 @@
+from logging import getLogger
 from typing import Any, Callable
 
 from watchmen_model.admin import PipelineAction
+
+logger = getLogger(__name__)
 
 ActionDefinedAs = Callable[[], Any]
 

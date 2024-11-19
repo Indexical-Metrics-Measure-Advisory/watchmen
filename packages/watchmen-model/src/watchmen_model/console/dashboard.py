@@ -1,17 +1,15 @@
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
-
 from watchmen_model.common import Auditable, DashboardId, DataModel, GraphicRect, LastVisit, ReportId, UserBasedTuple
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 from .report import construct_funnels, ReportFunnel
 from .utils import construct_rect
 
 
-class DashboardReport(DataModel, BaseModel):
-	reportId: ReportId = None
-	funnels: List[ReportFunnel] = None
-	rect: GraphicRect = None
+class DashboardReport(ExtendedBaseModel):
+	reportId: Optional[ReportId] = None
+	funnels: Optional[List[ReportFunnel]] = None
+	rect: Optional[GraphicRect] = None
 
 	def __setattr__(self, name, value):
 		if name == 'funnels':
@@ -22,9 +20,9 @@ class DashboardReport(DataModel, BaseModel):
 			super().__setattr__(name, value)
 
 
-class DashboardParagraph(DataModel, BaseModel):
-	content: str = None
-	rect: GraphicRect = None
+class DashboardParagraph(ExtendedBaseModel):
+	content: Optional[str] = None
+	rect: Optional[GraphicRect] = None
 
 
 def construct_report(report: Optional[Union[dict, DashboardReport]]) -> Optional[DashboardReport]:
@@ -57,11 +55,11 @@ def construct_paragraphs(paragraphs: List[Union[dict, DashboardParagraph]]) -> L
 	return ArrayHelper(paragraphs).map(lambda x: construct_paragraph(x)).to_list()
 
 
-class Dashboard(UserBasedTuple, Auditable, LastVisit, BaseModel):
-	dashboardId: DashboardId = None
-	name: str = None
-	reports: List[DashboardReport] = None
-	paragraphs: List[DashboardParagraph] = None
+class Dashboard(ExtendedBaseModel, UserBasedTuple, Auditable, LastVisit):
+	dashboardId: Optional[DashboardId] = None
+	name: Optional[str] = None
+	reports: Optional[List[DashboardReport]] = None
+	paragraphs: Optional[List[DashboardParagraph]] = None
 	autoRefreshInterval: Optional[int] = None
 
 	def __setattr__(self, name, value):

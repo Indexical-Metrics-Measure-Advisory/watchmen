@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-lineage"
-version = "16.1.0"
+version = "17.0.0"
 description = ""
 authors = ["luke0623 <luke0623@outlook.com>"]
 readme = "README.md"
@@ -9,14 +9,14 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "~3.12"
 watchmen-data-surface = { path = "../watchmen-data-surface", develop = true }
 watchmen-pipeline-surface = { path = "../watchmen-pipeline-surface", develop = true }
 watchmen-inquiry-surface = { path = "../watchmen-inquiry-surface", develop = true }
 watchmen-inquiry-trino = { path = "../watchmen-inquiry-trino", develop = true, optional = true }
 watchmen-indicator-surface = { path = "../watchmen-indicator-surface", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
-networkx = "^2.8.8"
+networkx = "^3.4.2"
 
 
 [build-system]

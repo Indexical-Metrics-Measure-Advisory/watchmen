@@ -37,7 +37,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.9'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Setup poetry
         run: |
@@ -55,6 +55,11 @@ jobs:
           poetry publish --build
       - name: Package [watchmen-storage] and publish to Pypi
         working-directory: ./packages/watchmen-storage
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          poetry publish --build
+      - name: Package [watchmen-storage-adls] and publish to Pypi
+        working-directory: ./packages/watchmen-storage-adls
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
           poetry publish --build

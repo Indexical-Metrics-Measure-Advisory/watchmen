@@ -28,7 +28,7 @@ def clear_pwd(data_source: DataSource):
 		data_source.password = None
 
 
-@router.get('/datasource', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=DataSource)
+@router.get('/datasource', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def load_data_source_by_id(
 		data_source_id: Optional[DataSourceId] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
@@ -52,7 +52,7 @@ async def load_data_source_by_id(
 	return trans_readonly(data_source_service, action)
 
 
-@router.post('/datasource', tags=[UserRole.SUPER_ADMIN], response_model=DataSource)
+@router.post('/datasource', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def save_data_source(
 		data_source: DataSource, principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> DataSource:
@@ -82,7 +82,7 @@ class QueryDataSourceDataPage(DataPage):
 	data: List[DataSource]
 
 
-@router.post('/datasource/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=QueryDataSourceDataPage)
+@router.post('/datasource/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def find_data_sources_by_name(
 		query_name: Optional[str] = None, pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
@@ -107,7 +107,7 @@ async def find_data_sources_by_name(
 	return page
 
 
-@router.get('/datasource/all', tags=[UserRole.ADMIN], response_model=List[DataSource])
+@router.get('/datasource/all', tags=[UserRole.ADMIN], response_model=None)
 async def find_all_data_sources(
 		principal_service: PrincipalService = Depends(get_any_admin_principal)) -> List[DataSource]:
 	data_source_service = get_data_source_service(principal_service)
@@ -122,7 +122,7 @@ async def find_all_data_sources(
 	return ArrayHelper(data_source_list).each(clear_pwd).to_list()
 
 
-@router.delete('/datasource', tags=[UserRole.SUPER_ADMIN], response_model=DataSource)
+@router.delete('/datasource', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_data_source_by_id_by_super_admin(
 		data_source_id: Optional[DataSourceId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

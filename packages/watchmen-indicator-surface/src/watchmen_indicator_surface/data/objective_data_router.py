@@ -4,7 +4,6 @@ from logging import getLogger
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.data import as_time_frame, compute_chain_frame, compute_previous_frame, \
@@ -21,16 +20,16 @@ from watchmen_model.indicator.derived_objective import BreakdownTarget
 from watchmen_model.indicator.objective_report import CellTarget, ObjectiveReport
 from watchmen_rest import get_admin_principal
 from watchmen_rest.util import raise_400, raise_403
-from watchmen_utilities import is_blank
+from watchmen_utilities import is_blank, ExtendedBaseModel
 
 logger = getLogger(__name__)
 router = APIRouter()
 
 
-class ObjectiveBreakdownRequest(BaseModel):
-	objective: Objective = None
-	breakdown: BreakdownTarget = None
-	target: ObjectiveTarget = None
+class ObjectiveBreakdownRequest(ExtendedBaseModel):
+	objective: Optional[Objective] = None
+	breakdown: Optional[BreakdownTarget] = None
+	target: Optional[ObjectiveTarget] = None
 
 
 class BreakdownValueType(str, Enum):
@@ -57,7 +56,7 @@ async def load_objective_data(
 	return objective_data_service.ask_values()
 
 
-class ObjectiveFactorValue(BaseModel):
+class ObjectiveFactorValue(ExtendedBaseModel):
 	value: Optional[Decimal] = None
 
 

@@ -1,0 +1,2 @@
+CREATE INDEX idx_record_module_trigger_id ON change_data_record(module_trigger_id);
+CREATE INDEX idx_record_model_trigger_id ON change_data_record(model_trigger_id);

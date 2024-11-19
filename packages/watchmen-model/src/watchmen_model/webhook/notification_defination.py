@@ -1,15 +1,13 @@
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
-
-from watchmen_model.common import DataModel, NotificationDefinitionId, OptimisticLock, TenantBasedTuple, UserId
-from watchmen_utilities import ArrayHelper
+from watchmen_model.common import NotificationDefinitionId, OptimisticLock, TenantBasedTuple, UserId
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 
 
-class NotificationParam(DataModel, BaseModel):
-	name: str = None
-	value: str = None
+class NotificationParam(ExtendedBaseModel):
+	name: Optional[str] = None
+	value: Optional[str] = None
 
 
 class NotificationType(str, Enum):
@@ -35,11 +33,11 @@ def construct_params(params: Optional[list] = None) -> Optional[List[Notificatio
 		return ArrayHelper(params).map(lambda x: construct_param(x)).to_list()
 
 
-class NotificationDefinition(TenantBasedTuple, OptimisticLock, BaseModel):
-	notificationId: NotificationDefinitionId = None
-	type: NotificationType = None
+class NotificationDefinition(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
+	notificationId: Optional[NotificationDefinitionId] = None
+	type: Optional[NotificationType] = None
 	params: List[NotificationParam] = []
-	userId: UserId = None
+	userId: Optional[UserId] = None
 
 	def __setattr__(self, name, value):
 		if name == 'params':

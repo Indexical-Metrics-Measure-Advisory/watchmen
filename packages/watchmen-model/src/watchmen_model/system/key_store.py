@@ -1,14 +1,14 @@
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
-from pydantic import BaseModel
+from watchmen_utilities import ExtendedBaseModel
 
 from watchmen_model.common import Storable, TenantId, UserId
 
 
-class KeyStore(Storable, BaseModel):
-	tenantId: TenantId = None
-	keyType: str = None
-	params: Dict[str, Any] = None
-	createdAt: datetime = None
-	createdBy: UserId = None
+class KeyStore(ExtendedBaseModel, Storable):
+	tenantId: Optional[TenantId] = None
+	keyType: Optional[str] = None
+	params: Optional[Dict[str, Any]] = None
+	createdAt: Optional[datetime] = None
+	createdBy: Optional[UserId] = None

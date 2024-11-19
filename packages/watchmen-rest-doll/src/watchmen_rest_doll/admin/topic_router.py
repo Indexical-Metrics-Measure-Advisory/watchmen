@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Callable, List, Optional, Tuple
 
 from fastapi import APIRouter, Body, Depends
-from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
@@ -21,7 +20,7 @@ from watchmen_rest import get_admin_principal, get_console_principal, get_super_
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail
-from watchmen_utilities import ArrayHelper, is_blank, is_date, is_not_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_date, is_not_blank, ExtendedBaseModel
 from .pipeline_router import ask_save_pipeline_action
 
 router = APIRouter()
@@ -48,15 +47,15 @@ def get_pipeline_service(topic_service: TopicService) -> PipelineService:
 	return PipelineService(topic_service.storage, topic_service.snowflakeGenerator, topic_service.principalService)
 
 
-@router.get('/topic', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Topic)
+@router.get('/topic', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def load_topic_by_id(
 		topic_id: Optional[TopicId] = None, principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Topic:
 	if is_blank(topic_id):
 		raise_400('Topic id is required.')
-
+	
 	topic_service = get_topic_service(principal_service)
-
+	
 	def action() -> Topic:
 		# noinspection PyTypeChecker
 		topic: Topic = topic_service.find_by_id(topic_id)
@@ -66,7 +65,7 @@ async def load_topic_by_id(
 		if topic.tenantId != principal_service.get_tenant_id():
 			raise_404()
 		return topic
-
+	
 	return trans_readonly(topic_service, action)
 
 
@@ -89,7 +88,7 @@ def sync_topic_structure(
 		topic: Topic, original_topic: Optional[Topic], principal_service: PrincipalService) -> Callable[[], None]:
 	def tail() -> None:
 		sync_topic_structure_storage(topic, original_topic, principal_service)
-
+	
 	return tail
 
 
@@ -102,9 +101,9 @@ def handle_scheduler(
 	if is_blank(target_topic_id):
 		# incorrect scheduler, ignored
 		return None
-
+	
 	should_save_scheduler = False
-
+	
 	target_topic: Optional[Topic] = topic_service.find_by_id(target_topic_id)
 	if target_topic is None:
 		# create target topic when not found
@@ -116,7 +115,7 @@ def handle_scheduler(
 		# rebuild target topic
 		target_topic = rebuild_snapshot_target_topic(target_topic, source_topic)
 		target_topic, target_topic_tail = ask_save_topic_action(topic_service, principal_service)(target_topic)
-
+	
 	pipeline_service = get_pipeline_service(topic_service)
 	pipeline_id = scheduler.pipelineId
 	if is_blank(pipeline_id):
@@ -137,17 +136,17 @@ def handle_scheduler(
 			# rebuild pipeline
 			pipeline = rebuild_snapshot_pipeline(pipeline, task_topic, target_topic)
 			ask_save_pipeline_action(pipeline_service, principal_service)(pipeline)
-
+	
 	if should_save_scheduler:
 		scheduler_service.update(scheduler)
-
+	
 	return target_topic_tail
 
 
 def combine_tail_actions(tails: List[Callable[[], None]]) -> Callable[[], None]:
 	def tail() -> None:
 		ArrayHelper(tails).each(lambda x: x())
-
+	
 	return tail
 
 
@@ -168,11 +167,11 @@ def ask_save_topic_action(
 			if existing_topic is not None:
 				if existing_topic.tenantId != topic.tenantId:
 					raise_403()
-
+			
 			redress_factor_ids(topic, topic_service)
 			# noinspection PyTypeChecker
 			topic: Topic = topic_service.update(topic)
-
+			
 			if handle_snapshots:
 				scheduler_service = get_snapshot_scheduler_service(topic_service)
 				schedulers = scheduler_service.find_by_topic(topic.topicId)
@@ -200,15 +199,15 @@ def ask_save_topic_action(
 					tail = sync_topic_structure(topic, existing_topic, principal_service)
 			else:
 				tail = sync_topic_structure(topic, existing_topic, principal_service)
-
+		
 		post_save_topic(topic, topic_service)
-
+		
 		return topic, tail
-
+	
 	return action
 
 
-@router.post('/topic', tags=[UserRole.ADMIN], response_model=Topic)
+@router.post('/topic', tags=[UserRole.ADMIN], response_model=None)
 async def save_topic(
 		topic: Topic, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Topic:
@@ -222,13 +221,13 @@ class QueryTopicDataPage(DataPage):
 	data: List[Topic]
 
 
-@router.post('/topic/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=QueryTopicDataPage)
+@router.post('/topic/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_topics_page_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> QueryTopicDataPage:
 	topic_service = get_topic_service(principal_service)
-
+	
 	def action() -> QueryTopicDataPage:
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		if is_blank(query_name):
@@ -237,7 +236,7 @@ async def find_topics_page_by_name(
 		else:
 			# noinspection PyTypeChecker
 			return topic_service.find_page_by_text(query_name, tenant_id, pageable)
-
+	
 	return trans_readonly(topic_service, action)
 
 
@@ -261,13 +260,13 @@ def to_exclude_types(exclude_types: Optional[str]) -> List[TopicType]:
 			.to_list()
 
 
-@router.get('/topic/list/name', tags=[UserRole.ADMIN], response_model=List[Topic])
+@router.get('/topic/list/name', tags=[UserRole.ADMIN], response_model=None)
 async def find_topics_by_name(
 		query_name: Optional[str], exclude_types: Optional[str],
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[Topic]:
 	topic_service = get_topic_service(principal_service)
-
+	
 	def action() -> List[Topic]:
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		if is_blank(query_name):
@@ -276,45 +275,45 @@ async def find_topics_by_name(
 		else:
 			# noinspection PyTypeChecker
 			return topic_service.find_by_name(query_name, to_exclude_types(exclude_types), tenant_id)
-
+	
 	return trans_readonly(topic_service, action)
 
 
-@router.post('/topic/ids', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Topic])
+@router.post('/topic/ids', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_topics_by_ids(
 		topic_ids: List[TopicId],
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[Topic]:
 	if len(topic_ids) == 0:
 		return []
-
+	
 	topic_service = get_topic_service(principal_service)
-
+	
 	def action() -> List[Topic]:
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		return topic_service.find_by_ids(topic_ids, tenant_id)
-
+	
 	return trans_readonly(topic_service, action)
 
 
-@router.get('/topic/all', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Topic])
+@router.get('/topic/all', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_all_topics(principal_service: PrincipalService = Depends(get_console_principal)) -> List[Topic]:
 	tenant_id = principal_service.get_tenant_id()
-
+	
 	topic_service = get_topic_service(principal_service)
-
+	
 	def action() -> List[Topic]:
 		return topic_service.find_all(tenant_id)
-
+	
 	return trans_readonly(topic_service, action)
 
 
-class LastModified(BaseModel):
-	at: str = None
+class LastModified(ExtendedBaseModel):
+	at: Optional[str] = None
 
 
 # noinspection DuplicatedCode
-@router.post('/topic/updated', tags=[UserRole.ADMIN], response_model=List[Topic])
+@router.post('/topic/updated', tags=[UserRole.ADMIN], response_model=None)
 async def find_updated_topics(
 		lastModified: LastModified, principal_service: PrincipalService = Depends(get_admin_principal)) -> List[Topic]:
 	if lastModified is None or is_blank(lastModified.at):
@@ -326,12 +325,12 @@ async def find_updated_topics(
 		last_modified_at = datetime(
 			year=last_modified_at.year, month=last_modified_at.month, day=last_modified_at.day,
 			hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
-
+	
 	topic_service = get_topic_service(principal_service)
-
+	
 	def action() -> List[Topic]:
 		return topic_service.find_modified_after(last_modified_at, principal_service.get_tenant_id())
-
+	
 	return trans_readonly(topic_service, action)
 
 
@@ -344,19 +343,19 @@ def post_delete_topic(topic_id: TopicId, topic_service: TopicService) -> None:
 	CacheService.topic().remove(topic_id)
 
 
-@router.delete('/topic', tags=[UserRole.SUPER_ADMIN], response_model=Topic)
+@router.delete('/topic', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_topic_by_id_by_super_admin(
 		topic_id: Optional[TopicId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> Topic:
 	if not ask_tuple_delete_enabled():
 		raise_404('Not Found')
-
+	
 	if is_blank(topic_id):
 		raise_400('Topic id is required.')
-
+	
 	topic_service = get_topic_service(principal_service)
-
+	
 	def action() -> Topic:
 		# noinspection PyTypeChecker
 		topic: Topic = topic_service.delete(topic_id)
@@ -364,20 +363,19 @@ async def delete_topic_by_id_by_super_admin(
 			raise_404()
 		post_delete_topic(topic.topicId, topic_service)
 		return topic
-
+	
 	return trans(topic_service, action)
 
 
-@router.get("/topic/index/rebuild",tags=[UserRole.ADMIN])
+@router.get("/topic/index/rebuild", tags=[UserRole.ADMIN])
 async def rebuild_topics_index(principal_service: PrincipalService = Depends(get_admin_principal)):
 	topic_service = get_topic_service(principal_service)
 	index_service = get_topic_index_service(topic_service)
+	
 	def action():
-		topic_list:List[Topic] = topic_service.find_all(principal_service.get_tenant_id())
+		topic_list: List[Topic] = topic_service.find_all(principal_service.get_tenant_id())
 		for topic in topic_list:
 			if topic.kind == TopicKind.BUSINESS:
 				index_service.build_index(topic)
-
+	
 	trans(topic_service, action)
-
-

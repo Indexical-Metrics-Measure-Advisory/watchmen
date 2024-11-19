@@ -160,6 +160,11 @@ const LoginIndex = () => {
 		// redirect to saml2 server
 		window.location.replace(config.url!);
 		return <Fragment/>;
+	} else if (config.method === LoginMethod.OIDC) {
+		// redirect to oidc server
+		window.location.replace(config.url!);
+		return <Fragment/>;
+
 	} else {
 		return <RegularLogin/>;
 	}
