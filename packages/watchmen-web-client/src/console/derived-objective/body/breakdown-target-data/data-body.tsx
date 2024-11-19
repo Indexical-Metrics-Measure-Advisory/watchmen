@@ -1,7 +1,7 @@
 import {
-	BreakdownTarget,
-	DerivedObjective,
-	ObjectiveTargetBreakdownValues
+    BreakdownTarget,
+    DerivedObjective,
+    ObjectiveTargetBreakdownValues
 } from '@/services/data/tuples/derived-objective-types';
 import {ObjectiveTarget, ObjectiveTargetBetterSide} from '@/services/data/tuples/objective-types';
 import {Lang} from '@/widgets/langs';

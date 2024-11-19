@@ -10,7 +10,8 @@ import {
 	ICON_LOGOUT,
 	ICON_OBJECTIVE,
 	ICON_SETTINGS,
-	ICON_SWITCH_WORKBENCH
+	ICON_SWITCH_WORKBENCH,
+	ICON_SHORE
 } from '@/widgets/basic/constants';
 import {SideMenuItem} from '@/widgets/basic/side-menu/side-menu-item';
 import {SideMenuLogo} from '@/widgets/basic/side-menu/side-menu-logo';
@@ -90,6 +91,7 @@ export const IndicatorMenu = () => {
 		              active={!!matchPath({path: Router.IDW_BUCKETS}, location.pathname)}
 		              onClick={navigateTo(Router.IDW_BUCKETS)}
 		              visible={isAdmin() && !isSuperAdmin()}/>
+		
 		<SideMenuItem icon={ICON_INDICATOR} label={Lang.INDICATOR.MENU.INDICATORS}
 		              showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.IDW_INDICATOR_ALL}, location.pathname)}
@@ -100,11 +102,16 @@ export const IndicatorMenu = () => {
 		              active={!!matchPath({path: Router.IDW_OBJECTIVE_ALL}, location.pathname)}
 		              onClick={navigateTo(Router.IDW_OBJECTIVE)}
 		              visible={isAdmin() && !isSuperAdmin()}/>
-		<SideMenuItem icon={ICON_CONVERGENCE} label={Lang.INDICATOR.MENU.CONVERGENCES}
-		              showTooltip={showTooltip}
-		              active={!!matchPath({path: Router.IDW_CONVERGENCE_ALL}, location.pathname)}
-		              onClick={navigateTo(Router.IDW_CONVERGENCE)}
-		              visible={isAdmin() && !isSuperAdmin()}/>
+		{/*<SideMenuItem icon={ICON_CONVERGENCE} label={Lang.INDICATOR.MENU.CONVERGENCES}*/}
+		{/*              showTooltip={showTooltip}*/}
+		{/*              active={!!matchPath({path: Router.IDW_CONVERGENCE_ALL}, location.pathname)}*/}
+		{/*              onClick={navigateTo(Router.IDW_CONVERGENCE)}*/}
+		{/*              visible={isAdmin() && !isSuperAdmin()}/>*/}
+		{/*<SideMenuItem icon={ICON_SHORE} label={Lang.INDICATOR.MENU.STORY}*/}
+		{/*              showTooltip={showTooltip}*/}
+		{/*              active={!!matchPath({path: Router.IDW_STORY_ALL}, location.pathname)}*/}
+		{/*              onClick={navigateTo(Router.IDW_STORY)}*/}
+		{/*              visible={isAdmin() && !isSuperAdmin()}/>*/}
 		<SideMenuPlaceholder/>
 		<SideMenuSeparator width={menuWidth}/>
 		<SideMenuItem icon={ICON_SETTINGS} label={Lang.INDICATOR.MENU.SETTINGS} showTooltip={showTooltip}

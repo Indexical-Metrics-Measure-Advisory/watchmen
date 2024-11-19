@@ -15,84 +15,109 @@ const shouldIgnorePixel = (key: string) => ['fontDemiBold', 'fontBold', 'fontBol
 const convertToCssVariableName = (key: string) => {
 	return '--' + key.split('').map(ch => (ch >= 'A' && ch <= 'Z') ? `-${ch.toLowerCase()}` : ch).join('');
 };
+const convertToEnvVariableName = (cssVariableName: string) => {
+	return cssVariableName.substring(2).replace(/-/g, '_').toUpperCase();
+};
 const writeThemeProperty = (theme: Theme) => {
 	return Object.keys(theme).map(key => {
 		const name = convertToCssVariableName(key);
 		const value = (theme as any)[key];
+		const envName = convertToEnvVariableName(name);
+		const envValue = process.env[`REACT_APP_THEME_${theme.code}_${envName}`] ?? process.env[`REACT_APP_THEME_${envName}`];
 		if (typeof value === 'number') {
 			if (shouldIgnorePixel(key)) {
-				return `${name}: ${value};`;
+				return `${name}: ${envValue ?? value};`;
 			} else {
-				return `${name}: ${value}px;`;
+				return `${name}: ${envValue ?? value}px;`;
 			}
 		} else {
-			return `${name}: ${value};`;
+			return `${name}: ${envValue ?? value};`;
 		}
 	});
 };
+// noinspection CssUnresolvedCustomProperty,CssUnusedSymbol
 const GlobalStyle: any = createGlobalStyle<{ theme: Theme }>`
-	*, *:before, *:after {
-		margin     : 0;
-		padding    : 0;
-		box-sizing : border-box;
-	}
-	html {
-		${({theme}) => writeThemeProperty(theme)}
-		width : 100%;
-	}
-	body {
-		margin                  : 0;
-		font-family             : var(--font-family);
-		font-size               : var(--font-size);
-		color                   : var(--font-color);
-		-webkit-font-smoothing  : antialiased;
-		-moz-osx-font-smoothing : grayscale;
-		position                : relative;
-		background-color        : var(--bg-color);
-		overflow-x              : hidden;
-		width                   : 100%;
-	}
-	a,
-	a:visited {
-		color : var(--font-color);
-	}
-	input::placeholder,
-	textarea::placeholder {
-		color : var(--placeholder-color);
-	}
-	code {
-		font-family : var(--code-font-family);
-	}
-	main[data-v-scroll],
-	div[data-v-scroll],
-	div[data-h-scroll],
-	textarea[data-v-scroll],
-	textarea[data-h-scroll] {
-		&::-webkit-scrollbar {
-			background-color : transparent;
-		}
-		&::-webkit-scrollbar-track {
-			background-color : var(--scrollbar-bg-color);
-			border-radius    : 2px;
-		}
-		&::-webkit-scrollbar-thumb {
-			background-color : var(--scrollbar-thumb-bg-color);
-			border-radius    : 2px;
-		}
-	}
-	div[data-h-scroll],
-	textarea[data-h-scroll] {
-		&::-webkit-scrollbar {
-			height : 8px;
-		}
-	}
-	main[data-v-scroll],
-	div[data-v-scroll],
-	textarea[data-v-scroll] {
-		&::-webkit-scrollbar {
-			width : 4px;
-		}
-	}
+    *, *:before, *:after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    html {
+        ${({theme}) => writeThemeProperty(theme)}
+        width: 100%;
+    }
+
+    body {
+        margin: 0;
+        /* noinspection CssNoGenericFontName */
+        font-family: var(--font-family);
+        font-size: var(--font-size);
+        color: var(--font-color);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        position: relative;
+        background-color: var(--bg-color);
+        overflow-x: hidden;
+        width: 100%;
+
+        > div[id^=did-] {
+            position: absolute;
+            top: 100vh;
+            height: 0;
+            overflow: hidden;
+        }
+    }
+
+    a,
+    a:visited {
+        color: var(--font-color);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        color: var(--placeholder-color);
+    }
+
+    code {
+        /* noinspection CssNoGenericFontName */
+        font-family: var(--code-font-family);
+    }
+
+    main[data-v-scroll],
+    div[data-v-scroll],
+    div[data-h-scroll],
+    textarea[data-v-scroll],
+    textarea[data-h-scroll] {
+        &::-webkit-scrollbar {
+            background-color: transparent;
+        }
+
+        &::-webkit-scrollbar-track {
+            background-color: var(--scrollbar-bg-color);
+            border-radius: 2px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: var(--scrollbar-thumb-bg-color);
+            border-radius: 2px;
+        }
+    }
+
+    div[data-h-scroll],
+    textarea[data-h-scroll] {
+        &::-webkit-scrollbar {
+            height: 8px;
+        }
+    }
+
+    main[data-v-scroll],
+    div[data-v-scroll],
+    textarea[data-v-scroll] {
+        &::-webkit-scrollbar {
+            width: 4px;
+        }
+    }
 `;
 
 const THEMES: Record<string, Theme> = {
@@ -129,6 +154,14 @@ export const ThemeWrapper = () => {
 			off(EventTypes.CHANGE_THEME, onThemeChange);
 		};
 	}, [on, off]);
+	useEffect(() => {
+		// for markdown theme
+		if ((theme.code ?? '').toLowerCase().includes('dark')) {
+			document.body.setAttribute('data-color-mode', 'dark');
+		} else {
+			document.body.setAttribute('data-color-mode', 'light');
+		}
+	}, [theme]);
 
 	// @ts-ignore
 	return <ThemeProvider theme={theme}>

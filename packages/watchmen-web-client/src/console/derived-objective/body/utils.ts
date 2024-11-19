@@ -1,17 +1,17 @@
 import {
-	isCategoryMeasureBucket,
-	isEnumMeasureBucket,
-	isNumericValueBucket,
-	isNumericValueMeasureBucket
+    isCategoryMeasureBucket,
+    isEnumMeasureBucket,
+    isNumericValueBucket,
+    isNumericValueMeasureBucket
 } from '@/services/data/tuples/bucket-utils';
 import {BreakdownDimensionType, BreakdownTarget} from '@/services/data/tuples/derived-objective-types';
 import {Factor, FactorId, FactorType} from '@/services/data/tuples/factor-types';
 import {Indicator, MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {
-	findTopicAndFactor,
-	isTimePeriodMeasure,
-	translateComputeTypeToFactorType,
-	tryToTransformToMeasures
+    findTopicAndFactor,
+    isTimePeriodMeasure,
+    translateComputeTypeToFactorType,
+    tryToTransformToMeasures
 } from '@/services/data/tuples/indicator-utils';
 import {ObjectiveTargetId} from '@/services/data/tuples/objective-types';
 import {isComputedParameter, isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';

@@ -1,4 +1,4 @@
-import {Command, CommandPublishedBehaviorType} from '../../command/types';
+import {Command, CommandPublishedBehaviorType} from '@/widgets/chatbot';
 
 export const CMD_GRAPH = '/graph';
 

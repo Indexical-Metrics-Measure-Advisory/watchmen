@@ -19,6 +19,16 @@ export const toConnectedSpace = (connectedSpaceId: ConnectedSpaceId) => {
 export const toConnectedSpaceCatalog = (connectedSpaceId: ConnectedSpaceId) => {
 	return Router.CONSOLE_CONNECTED_SPACE_CATALOG.replace(':connectId', connectedSpaceId);
 };
+export const toDerivedObjectiveCopilot = (derivedObjectiveId: DerivedObjectiveId) => {
+	return Router.CONSOLE_DERIVED_OBJECTIVE_COPILOT
+		.replace(':derivedObjectiveId', derivedObjectiveId)
+};
+
+export const toConnectedSpaceCopilot = (connectedSpaceId: ConnectedSpaceId) => {
+	return Router.CONSOLE_CONNECTED_SPACE_COPILOT
+		.replace(':connectId', connectedSpaceId)
+};
+
 export const toSubject = (connectedSpaceId: ConnectedSpaceId, subjectId: SubjectId) => {
 	return Router.CONSOLE_CONNECTED_SPACE_SUBJECT
 		.replace(':connectId', connectedSpaceId)
@@ -71,6 +81,7 @@ export const relativeToAdminToolbox = (path: Router): string => relativeTo(path,
 export const relativeToConsole = (path: Router): string => relativeTo(path, Router.CONSOLE);
 export const relativeToConsoleDashboard = (path: Router): string => relativeTo(path, Router.CONSOLE_DASHBOARD);
 export const relativeToConnectedSpace = (path: Router): string => relativeTo(path, Router.CONSOLE_CONNECTED_SPACE);
+export const relativeToDerivedObjective = (path: Router): string => relativeTo(path, Router.CONSOLE_DERIVED_OBJECTIVE);
 export const relativeToSubject = (path: Router): string => relativeTo(path, Router.CONSOLE_CONNECTED_SPACE_SUBJECT);
 export const relativeToDQC = (path: Router): string => relativeTo(path, Router.DQC);
 export const relativeToIDW = (path: Router): string => relativeTo(path, Router.IDW);
@@ -78,6 +89,7 @@ export const relativeToIDWIndicator = (path: Router): string => relativeTo(path,
 export const relativeToIDWObjective = (path: Router): string => relativeTo(path, Router.IDW_OBJECTIVE);
 export const relativeToIDWConvergence = (path: Router): string => relativeTo(path, Router.IDW_CONVERGENCE);
 export const relativeToShare = (path: Router): string => relativeTo(path, Router.SHARE);
+export const relativeToIDWStory = (path: Router): string => relativeTo(path, Router.IDW_STORY);
 
 export const asTopRoute = (path: Router, children: ReactNode) => <Route path={path} element={children}/>;
 const asRoute = (relative: (path: Router) => string) => {
@@ -91,12 +103,14 @@ export const asAdminToolboxRoute = (path: Router, children: ReactNode) => asRout
 export const asConsoleRoute = (path: Router, children: ReactNode) => asRoute(relativeToConsole)(path, children);
 export const asConsoleDashboardRoute = (path: Router, children: ReactNode) => asRoute(relativeToConsoleDashboard)(path, children);
 export const asConnectedSpaceRoute = (path: Router, children: ReactNode) => asRoute(relativeToConnectedSpace)(path, children);
+export const asDerivedObjectiveRoute = (path: Router, children: ReactNode) => asRoute(relativeToDerivedObjective)(path, children);
 export const asSubjectRoute = (path: Router, children: ReactNode) => asRoute(relativeToSubject)(path, children);
 export const asDQCRoute = (path: Router, children: ReactNode) => asRoute(relativeToDQC)(path, children);
 export const asIDWRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDW)(path, children);
 export const asIDWIndicatorRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDWIndicator)(path, children);
 export const asIDWObjectiveRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDWObjective)(path, children);
 export const asIDWConvergenceRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDWConvergence)(path, children);
+export const asIDWStoryRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDWStory)(path, children);
 export const asShareRoute = (path: Router, children: ReactNode) => asRoute(relativeToShare)(path, children);
 export const asFallbackNavigate = (path: Router) => <Route path="*" element={<Navigate to={path} replace={true}/>}/>;
 export const asFallbackRoute = (children: ReactNode) => <Route path="*" element={children}/>;

@@ -52,6 +52,7 @@ export enum HELP_KEYS {
 	IDW_INDICATOR = 'indicator',
 	IDW_OBJECTIVE = 'objective',
 	IDW_CONVERGENCE = 'convergence',
+	IDW_STORY = 'story',
 	SETTINGS = 'settings'
 }
 
@@ -196,7 +197,7 @@ const HelpDialog = (props: { text?: string }) => {
 				})}
 		</HelpDialogSearchResults>
 		<HelpDialogButtons>
-			<HelpDialogVersionLabel>Watchmen Web Client, Ver. {process.env.REACT_APP_VERSION}</HelpDialogVersionLabel>
+			<HelpDialogVersionLabel>DataMO Web Client, Ver. {process.env.REACT_APP_VERSION}</HelpDialogVersionLabel>
 			<HelpDialogCloseButton ink={ButtonInk.PRIMARY} onClick={onCloseClicked}>
 				{Lang.ACTIONS.CLOSE}
 			</HelpDialogCloseButton>

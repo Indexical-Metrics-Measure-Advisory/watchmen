@@ -1,9 +1,7 @@
 import {FullWidthPage} from '@/widgets/basic/page';
 import {FullWidthPageHeaderContainer, PageTitle} from '@/widgets/basic/page-header';
+import {CLIWrapper, Command, createHelpCmd} from '@/widgets/chatbot';
 import React from 'react';
-import {createHelpCmd} from '../command';
-import {Command} from '../command/types';
-import {CLIWrapper} from '../widgets/cli';
 import {Execution} from './execution';
 
 export const RULES_COMMANDS: Array<Command> = [];
@@ -18,6 +16,7 @@ const DataQualityEndUserIndex = () => {
 		<CLIWrapper greeting="This channel is for working on end user's console, spaces, reports, groups, users."
 		            commands={RULES_COMMANDS}
 		            helpCommand={RULES_HELP_COMMAND}
+		            executionGrabSpace={false}
 		            execution={Execution}/>
 	</FullWidthPage>;
 };
