@@ -37,7 +37,7 @@ def get_user_service(derived_objective_service: DerivedObjectiveService) -> User
 
 
 @router.get(
-	'/indicator/derived-objective/connect', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DerivedObjective)
+	'/indicator/derived-objective/connect', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def connect_as_derived_objective(
 		objective_id: Optional[ObjectiveId], name: Optional[str],
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -67,7 +67,7 @@ async def connect_as_derived_objective(
 	return trans(derived_objective_service, action)
 
 
-@router.post('/indicator/derived-objective', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DerivedObjective)
+@router.post('/indicator/derived-objective', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def save_derived_objective(
 		derived_objective: DerivedObjective, principal_service: PrincipalService = Depends(get_console_principal)
 ) -> DerivedObjective:
@@ -101,7 +101,7 @@ async def save_derived_objective(
 
 
 @router.get(
-	'/indicator/derived-objective/list', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[DerivedObjective])
+	'/indicator/derived-objective/list', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_my_derived_objectives(
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[DerivedObjective]:
@@ -169,7 +169,7 @@ async def delete_derived_objective_by_id(
 	trans(derived_objective_service, action)
 
 
-@router.delete('/indicator/derived-objective', tags=[UserRole.SUPER_ADMIN], response_model=DerivedObjective)
+@router.delete('/indicator/derived-objective', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_derived_objective_by_id_by_super_admin(
 		derived_objective_id: Optional[DerivedObjectiveId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
@@ -195,7 +195,7 @@ async def delete_derived_objective_by_id_by_super_admin(
 
 
 @router.get('/indicator/derived-objective/shared', tags=[UserRole.CONSOLE, UserRole.ADMIN],
-            response_model=DerivedObjective)
+            response_model=None)
 def load_share_derived_objective_by_id_and_token(derived_objective_id: DerivedObjectiveId,
                                                  token: str) -> DerivedObjective:
 	principal_service: PrincipalService = get_principal_by_jwt(

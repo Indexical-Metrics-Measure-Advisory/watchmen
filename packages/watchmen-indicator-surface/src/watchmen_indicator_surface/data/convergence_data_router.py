@@ -22,7 +22,7 @@ def get_convergence_service(principal_service: PrincipalService) -> ConvergenceS
 	return ConvergenceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.post('/indicator/convergence/data', tags=[UserRole.ADMIN], response_model=ConvergenceData)
+@router.post('/indicator/convergence/data', tags=[UserRole.ADMIN], response_model=None)
 async def load_convergence_data(
 		convergence_id: Optional[ConvergenceId] = None,
 		principal_service: PrincipalService = Depends(get_admin_principal)) -> ConvergenceData:

@@ -4,6 +4,7 @@ from logging import getLogger
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.data import as_time_frame, compute_chain_frame, compute_previous_frame, \
@@ -26,7 +27,7 @@ logger = getLogger(__name__)
 router = APIRouter()
 
 
-class ObjectiveBreakdownRequest(ExtendedBaseModel):
+class ObjectiveBreakdownRequest(BaseModel):
 	objective: Optional[Objective] = None
 	breakdown: Optional[BreakdownTarget] = None
 	target: Optional[ObjectiveTarget] = None
@@ -46,7 +47,7 @@ def get_objective_service(principal_service: PrincipalService) -> ObjectiveServi
 	return ObjectiveService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.post('/indicator/objective/data', tags=[UserRole.ADMIN], response_model=ObjectiveValues)
+@router.post('/indicator/objective/data', tags=[UserRole.ADMIN], response_model=None)
 async def load_objective_data(
 		objective: Objective, principal_service: PrincipalService = Depends(get_admin_principal)) -> ObjectiveValues:
 	if objective.tenantId != principal_service.get_tenant_id():
@@ -60,7 +61,7 @@ class ObjectiveFactorValue(ExtendedBaseModel):
 	value: Optional[Decimal] = None
 
 
-@router.post('/indicator/objective/factor/data', tags=[UserRole.ADMIN], response_model=ObjectiveFactorValue)
+@router.post('/indicator/objective/factor/data', tags=[UserRole.ADMIN], response_model=None)
 async def load_objective_factor_data(
 		objective: Objective, factor: ObjectiveFactorOnIndicator,
 		principal_service: PrincipalService = Depends(get_admin_principal)) -> ObjectiveFactorValue:
@@ -98,7 +99,7 @@ def __find_objective_factor(objective, objective_factor_id):
 
 @router.post(
 	"/indicator/derived-objective/breakdown/data", tags=[UserRole.ADMIN],
-	response_model=Optional[ObjectiveTargetBreakdownValues])
+	response_model=None)
 async def load_objective_target_breakdown_values(
 		breakdown_request: ObjectiveBreakdownRequest,
 		principal_service: PrincipalService = Depends(get_admin_principal)) -> Optional[ObjectiveTargetBreakdownValues]:
