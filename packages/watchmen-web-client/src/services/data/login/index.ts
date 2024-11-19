@@ -1,4 +1,4 @@
-import {isSaml2MockEnabled} from '@/feature-switch';
+import {isSaml2MockEnabled, isOidcMockEnabled} from '@/feature-switch';
 import {Router} from '@/routes/types';
 import {getWebContext} from '@/routes/utils';
 import {findToken, saveTokenIntoSession} from '../account';
@@ -8,7 +8,7 @@ import {UserRole} from '../tuples/user-types';
 // import { generateUuid } from "../tuples/utils";
 // import { Token } from "../types";
 import {doFetch, getServiceHost, isMockService} from '../utils';
-import {Account, LoginConfig, LoginMethod, LoginResponse, Saml2LoginRequest, SSOLoginResponse} from './types';
+import {Account, LoginConfig, LoginMethod, LoginResponse, Saml2LoginRequest, OidcLoginRequest, SSOLoginResponse} from './types';
 
 const isAdmin = (loginResult: any) => {
 	return loginResult.role === UserRole.ADMIN || loginResult.role === UserRole.SUPER_ADMIN;
@@ -52,10 +52,20 @@ const getSaml2MockUrl = (): string => {
 	return `${protocol}//${host}${getWebContext()}${Router.MOCK_SAML2_LOGIN}`;
 };
 
+
+const getOidcMockUrl = (): string => {
+	const protocol = window.location.protocol;
+	const host = window.location.host;
+
+	return `${protocol}//${host}${getWebContext()}${Router.MOCK_OIDC_LOGIN}`;
+};
+
 export const askLoginConfig = async (): Promise<LoginConfig> => {
 	if (isMockService()) {
 		if (isSaml2MockEnabled()) {
 			return {method: LoginMethod.SAML2, url: getSaml2MockUrl()};
+		} else if (isOidcMockEnabled()) {
+			return {method: LoginMethod.OIDC, url: getOidcMockUrl()};
 		} else {
 			return {method: LoginMethod.DOLL};
 		}
@@ -115,4 +125,43 @@ export const exchangeOnSaml2 = async (request: Saml2LoginRequest): Promise<SSOLo
 export const askShareToken = (): string => {
 	const token = findToken();
 	return token ? token : '';
+};
+
+
+export const getOidcCallbackUrl = (): string => {
+	const protocol = window.location.protocol;
+	const host = window.location.host;
+
+	return `${protocol}//${host}${getWebContext()}${Router.OIDC_CALLBACK}`;
+};
+
+export const exchangeOnOidc = async (request: OidcLoginRequest): Promise<SSOLoginResponse> => {
+	if (isMockService()) {
+		const mocked = await mockLogin({name: request.mockUserName});
+		return {
+			...mocked,
+			accountName: request.mockUserName
+		};
+	} else {
+		try {
+			delete request.mockUserName;
+			const response = await post({api: Apis.EXCHANGE_OIDC_TOKEN, data: request});
+			saveTokenIntoSession(response.accessToken ?? response.access_token);
+			return {
+				pass: true,
+				accountName: response.accountName,
+				admin: isAdmin(response),
+				super: isSuperAdmin(response),
+				tenantId: response.tenantId
+			};
+		} catch (error) {
+			return {
+				pass: false,
+				accountName: '',
+				admin: false,
+				super: false,
+				tenantId: ''
+			}
+		}
+	}
 };

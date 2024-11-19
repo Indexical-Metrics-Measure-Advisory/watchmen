@@ -46,7 +46,7 @@ class QueryTopicSnapshotSchedulerDataPage(DataPage):
 
 @router.post(
 	'/topic/snapshot/scheduler/list', tags=[UserRole.ADMIN],
-	response_model=QueryTopicSnapshotSchedulerDataPage)
+	response_model=None)
 async def find_schedulers_page_by_topic_and_frequency(
 		criteria: TopicSnapshotSchedulerCriteria = Body(...),
 		principal_service: PrincipalService = Depends(get_admin_principal)
@@ -195,7 +195,7 @@ def ask_save_scheduler_action(
 	return action
 
 
-@router.post('/topic/snapshot/scheduler', tags=[UserRole.ADMIN], response_model=TopicSnapshotScheduler)
+@router.post('/topic/snapshot/scheduler', tags=[UserRole.ADMIN], response_model=None)
 async def save_scheduler(
 		scheduler: TopicSnapshotScheduler, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> TopicSnapshotScheduler:
@@ -205,7 +205,7 @@ async def save_scheduler(
 	return trans_with_tail(scheduler_service, lambda: action(scheduler))
 
 
-@router.delete('/topic/snapshot/scheduler', tags=[UserRole.SUPER_ADMIN], response_model=TopicSnapshotScheduler)
+@router.delete('/topic/snapshot/scheduler', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_scheduler(
 		scheduler_id: Optional[TopicSnapshotSchedulerId],
 		principal_service: PrincipalService = Depends(get_admin_principal)

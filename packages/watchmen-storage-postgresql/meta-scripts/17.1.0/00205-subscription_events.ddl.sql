@@ -1,0 +1,1 @@
+ALTER TABLE subscription_events ALTER COLUMN version TYPE INTEGER USING version::INTEGER;

@@ -1,11 +1,9 @@
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
-
 from watchmen_model.common import BucketId, construct_parameter_joint, DataModel, FactorId, IndicatorId, \
 	OptimisticLock, ParameterJoint, SubjectDatasetColumnId, SubjectId, TenantBasedTuple, TopicId
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 
 
 class IndicatorAggregateArithmetic(str, Enum):
@@ -27,9 +25,9 @@ class RelevantIndicatorType(str, Enum):
 	RELEVANT_CAUSES_THIS = 'relevant-causes-this'
 
 
-class RelevantIndicator(DataModel, BaseModel):
-	indicatorId: IndicatorId = None
-	type: RelevantIndicatorType = None
+class RelevantIndicator(ExtendedBaseModel):
+	indicatorId: Optional[IndicatorId] = None
+	type: Optional[RelevantIndicatorType] = None
 
 
 def construct_relevant(relevant: Optional[Union[dict, RelevantIndicator]]) -> Optional[RelevantIndicator]:
@@ -54,13 +52,9 @@ class IndicatorBaseOn(str, Enum):
 	SUBJECT = 'subject'
 
 
-# noinspection PyRedundantParentheses,DuplicatedCode
-class AvoidFastApiError:
-	joint: ParameterJoint = None
-
-
-class IndicatorFilter(DataModel, AvoidFastApiError, BaseModel):
+class IndicatorFilter(ExtendedBaseModel):
 	enabled: bool = False
+	joint: ParameterJoint = None
 
 	def __setattr__(self, name, value):
 		if name == 'joint':
@@ -79,26 +73,26 @@ def construct_filter(a_filter: Optional[Union[dict, IndicatorFilter]]) -> Option
 		return IndicatorFilter(**a_filter)
 
 
-class Indicator(TenantBasedTuple, OptimisticLock, BaseModel):
-	indicatorId: IndicatorId = None
-	name: str = None
+class Indicator(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
+	indicatorId: Optional[IndicatorId] = None
+	name: Optional[str] = None
 	# when indicator is on topic
-	topicOrSubjectId: Union[TopicId, SubjectId] = None
+	topicOrSubjectId: Optional[Union[TopicId, SubjectId]] = None
 	# is a count indicator when factor is not declared
 	# it is columnId when base one a subject
-	factorId: Union[FactorId, SubjectDatasetColumnId] = None
+	factorId: Optional[Union[FactorId, SubjectDatasetColumnId]] = None
 	# only count can be applied when factor id is not declared
-	aggregateArithmetic: IndicatorAggregateArithmetic = None
-	baseOn: IndicatorBaseOn = None
-	category1: str = None
-	category2: str = None
-	category3: str = None
-	description: str = None
+	aggregateArithmetic: Optional[IndicatorAggregateArithmetic] = None
+	baseOn: Optional[IndicatorBaseOn] = None
+	category1: Optional[str] = None
+	category2: Optional[str] = None
+	category3: Optional[str] = None
+	description: Optional[str] = None
 	# effective only when factorId is appointed
 	valueBuckets: List[BucketId] = []
 	# noinspection SpellCheckingInspection
 	relevants: List[RelevantIndicator] = []
-	filter: IndicatorFilter = None
+	filter: Optional[IndicatorFilter] = None
 
 	def __setattr__(self, name, value):
 		if name == 'relevants':

@@ -1,4 +1,4 @@
-import {isDataQualityCenterEnabled, isSaml2MockEnabled} from '@/feature-switch';
+import {isDataQualityCenterEnabled, isSaml2MockEnabled, isOidcMockEnabled} from '@/feature-switch';
 import {findAccount, isAdmin, isSuperAdmin} from '@/services/data/account';
 import {removeSSOTriggerURL, saveCurrentURL} from '@/services/data/login';
 import {RemoteRequest} from '@/widgets/remote-request';
@@ -10,6 +10,8 @@ import {asFallbackNavigate, asTopRoute} from './utils';
 const Login = lazy(() => import(/* webpackChunkName: "login" */ '../login'));
 const Saml2Login = lazy(() => import(/* webpackChunkName: "login-saml2" */ '../login/saml2'));
 const Saml2Callback = lazy(() => import(/* webpackChunkName: "login-saml2" */ '../login/saml2-callback'));
+const OidcLogin = lazy(() => import(/* webpackChunkName: "login-oidc" */ '../login/oidc'));
+const OidcCallback = lazy(() => import(/* webpackChunkName: "login-oidc" */ '../login/oidc-callback'));
 const Admin = lazy(() => import(/* webpackChunkName: "admin" */ '../admin'));
 const DataQuality = lazy(() => import(/* webpackChunkName: "data-quality" */ '../data-quality'));
 const Indicator = lazy(() => import(/* webpackChunkName: "indicator" */ '../indicator'));
@@ -25,6 +27,8 @@ export const InternalRoutes = () => {
 			{asTopRoute(Router.LOGIN, <Login/>)}
 			{isSaml2MockEnabled() ? asTopRoute(Router.MOCK_SAML2_LOGIN, <Saml2Login/>) : null}
 			{asTopRoute(Router.SAML2_CALLBACK, <Saml2Callback/>)}
+			{isOidcMockEnabled() ? asTopRoute(Router.MOCK_OIDC_LOGIN, <OidcLogin/>) : null}
+			{asTopRoute(Router.OIDC_CALLBACK, <OidcCallback/>)}
 			{asTopRoute(Router.SHARE_ALL, <Share/>)}
 			{asFallbackNavigate(Router.LOGIN)}
 		</Routes>;

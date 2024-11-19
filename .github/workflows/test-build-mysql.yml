@@ -15,7 +15,7 @@ on:
       - 'packages/watchmen-storage-postgresql/**'
       - 'packages/watchmen-storage-s3/**'
 
-# on: workflow_dispatch
+#on: workflow_dispatch
 
 jobs:
   test-api:
@@ -37,7 +37,7 @@ jobs:
       REPLACE_TOPIC_TO_STORAGE: TRUE
       PIPELINE_ELASTIC_SEARCH_EXTERNAL_WRITER: TRUE
       META_STORAGE_ECHO: FALSE
-      PIPELINE_PARALLEL_ACTIONS_IN_LOOP_UNIT: True
+      PIPELINE_PARALLEL_ACTIONS_IN_LOOP_UNIT: False
       USE_STORAGE_DIRECTLY: TRUE
       LOGGER_LEVEL: INFO
       LOGGER_TO_FILE: TRUE
@@ -98,7 +98,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.9'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Setup poetry
         run: |
@@ -117,7 +117,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 20
       - name: Install newman
         run: |
           npm install -g newman
@@ -128,13 +128,13 @@ jobs:
         run: |
           newman run ./packages/watchmen-test-postman/watchmen-postman.json -e ./packages/watchmen-test-postman/mysql.json --bail -r cli,htmlextra --reporter-htmlextra-export testResults/htmlreport.html --delay-request 1000
       - name: Output the run details
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: RunReports
           path: testResults
       - name: Output the doll details
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: DollServerOput

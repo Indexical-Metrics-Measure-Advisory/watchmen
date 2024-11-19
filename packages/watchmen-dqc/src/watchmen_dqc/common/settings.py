@@ -1,12 +1,12 @@
 from logging import getLogger
 from typing import Tuple
 
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 
 logger = getLogger(__name__)
 
 
-class DqcSettings(BaseSettings):
+class DqcSettings(ExtendedBaseSettings):
 	MONITOR_JOBS: bool = False
 	MONITOR_JOB_TRIGGER: str = "cron"
 	MONITOR_JOB_DAILY_DAY_OF_WEEK: str = "mon-sun"

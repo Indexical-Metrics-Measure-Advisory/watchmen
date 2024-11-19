@@ -1,0 +1,1 @@
+ALTER TABLE plugins ALTER COLUMN version INTEGER;

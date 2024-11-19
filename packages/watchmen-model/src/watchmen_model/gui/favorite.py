@@ -1,11 +1,11 @@
-from typing import List
+from typing import List, Optional
 
-from pydantic import BaseModel
+from watchmen_utilities import ExtendedBaseModel
 
 from watchmen_model.common import ConnectedSpaceId, DashboardId, DerivedObjectiveId, LastVisit, UserBasedTuple
 
 
-class Favorite(UserBasedTuple, LastVisit, BaseModel):
-	connectedSpaceIds: List[ConnectedSpaceId] = []
-	dashboardIds: List[DashboardId] = []
-	derivedObjectiveIds: List[DerivedObjectiveId] = []
+class Favorite(ExtendedBaseModel, UserBasedTuple, LastVisit):
+	connectedSpaceIds: Optional[List[ConnectedSpaceId]] = []
+	dashboardIds: Optional[List[DashboardId]] = []
+	derivedObjectiveIds: Optional[List[DerivedObjectiveId]] = []

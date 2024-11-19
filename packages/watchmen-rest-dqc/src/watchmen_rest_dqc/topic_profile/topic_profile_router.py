@@ -15,7 +15,7 @@ from watchmen_utilities import get_current_time_in_seconds, is_blank, is_date
 router = APIRouter()
 
 
-@router.get('/dqc/topic/profile', tags=[UserRole.ADMIN], response_model=Optional[TopicProfile])
+@router.get('/dqc/topic/profile', tags=[UserRole.ADMIN], response_model=None)
 async def find_topic_profile(
 		topic_id: Optional[TopicId] = None, date: Optional[str] = None,
 		principal_service: PrincipalService = Depends(get_admin_principal)

@@ -1,20 +1,20 @@
-from pydantic import BaseModel
-
+from typing import Optional
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import DataModel
 from .chart_enums import ChartBorderStyle, ChartFontStyle, ChartFontWeight
 from .chart_types import ChartColor
 
 
-class ChartFont(DataModel, BaseModel):
-	family: str = None
-	size: float = None
-	color: ChartColor = None
-	style: ChartFontStyle = None
-	weight: ChartFontWeight = None
+class ChartFont(ExtendedBaseModel):
+	family: Optional[str] = None
+	size: Optional[float] = None
+	color: Optional[ChartColor] = None
+	style: Optional[ChartFontStyle] = None
+	weight: Optional[ChartFontWeight] = None
 
 
-class ChartBorder(DataModel, BaseModel):
-	color: ChartColor = None
-	style: ChartBorderStyle = None
-	width: float = None
-	radius: float = None
+class ChartBorder(ExtendedBaseModel):
+	color: Optional[ChartColor] = None
+	style: Optional[ChartBorderStyle] = None
+	width: Optional[float] = None
+	radius: Optional[float] = None

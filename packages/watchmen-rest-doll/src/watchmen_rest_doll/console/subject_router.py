@@ -73,7 +73,7 @@ def ask_save_subject_action(
 	return action
 
 
-@router.get('/subject', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Subject)
+@router.get('/subject', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def load_subject_by_(
 		subject_id: Optional[SubjectId],
 		principal_service: PrincipalService = Depends(get_console_principal)) -> Subject:
@@ -98,7 +98,7 @@ async def load_subject_by_(
 	return trans_readonly(subject_service, action)
 
 
-@router.post('/subject', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Subject)
+@router.post('/subject', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def save_subject(
 		subject: Subject, principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Subject:
@@ -167,7 +167,7 @@ class SubjectWithReports(Subject):
 	reports: List[Report] = []
 
 
-@router.delete('/subject', tags=[UserRole.SUPER_ADMIN], response_model=SubjectWithReports)
+@router.delete('/subject', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_subject_by_id_by_super_admin(
 		subject_id: Optional[SubjectId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

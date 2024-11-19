@@ -6,8 +6,8 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import PipelineTriggerType, TopicKind
-from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineTriggerTraceId
-from watchmen_pipeline_kernel.common import PipelineKernelException
+from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineTriggerTraceId, MonitorLogStatus
+from watchmen_pipeline_kernel.common import PipelineKernelException, ask_pipeline_error_handle_monitor_log
 from watchmen_utilities import run
 from .pipeline_trigger import PipelineTrigger
 
@@ -30,16 +30,26 @@ def find_topic_schema(name: str, principal_service: PrincipalService) -> TopicSc
 def create_monitor_log_pipeline_invoker(
 		trace_id: PipelineTriggerTraceId, principal_service: PrincipalService
 ) -> Callable[[PipelineMonitorLog, bool], None]:
-	def handle_monitor_log(monitor_log: PipelineMonitorLog, asynchronized: bool) -> None:
-		# trigger pipeline or log by monitor log
-		# find the trigger topic
-		topic_id = monitor_log.topicId
+
+	def is_logging_required(monitor_log: PipelineMonitorLog) -> bool:
+		if ask_pipeline_error_handle_monitor_log():
+			if monitor_log.status == MonitorLogStatus.ERROR:
+				return True
+			else:
+				return False
+
 		topic_service = get_topic_service(principal_service)
-		topic = topic_service.find_by_id(topic_id)
-		if topic is None or topic.kind == TopicKind.SYSTEM:
-			# will not trigger monitor log pipelines again
-			logger.info(monitor_log)
+		topic = topic_service.find_by_id(monitor_log.topicId)
+		if topic is None:
+			return False
 		else:
+			if topic.kind == TopicKind.SYSTEM:
+				return False
+			else:
+				return True
+
+	def handle_monitor_log(monitor_log: PipelineMonitorLog, asynchronized: bool) -> None:
+		if is_logging_required(monitor_log):
 			schema = find_topic_schema('raw_pipeline_monitor_log', principal_service)
 			trigger = PipelineTrigger(
 				trigger_topic_schema=schema,

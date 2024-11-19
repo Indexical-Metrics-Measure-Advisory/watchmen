@@ -1,10 +1,8 @@
 from enum import Enum
 from typing import Any, List, Literal, Optional, Union
 
-from pydantic import BaseModel
-
 from watchmen_model.common import BucketId, DataModel, EnumId, OptimisticLock, TenantBasedTuple
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 from .measure_method import MeasureMethod
 
 
@@ -20,8 +18,8 @@ class RangeBucketValueIncluding(str, Enum):
 	INCLUDE_MAX = "include-max"
 
 
-class BucketSegment(DataModel, BaseModel):
-	name: str = None
+class BucketSegment(ExtendedBaseModel):
+	name: Optional[str] = None
 	value: Any = None
 
 
@@ -46,12 +44,12 @@ def construct_bucket_segments(
 	return ArrayHelper(subjects).map(lambda x: construct_bucket_segment(x, bucket_type)).to_list()
 
 
-class Bucket(TenantBasedTuple, OptimisticLock, BaseModel):
-	bucketId: BucketId = None
-	name: str = None
-	type: BucketType = None
-	segments: List[BucketSegment] = None
-	description: str = None
+class Bucket(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
+	bucketId: Optional[BucketId] = None
+	name: Optional[str] = None
+	type: Optional[BucketType] = None
+	segments: Optional[List[BucketSegment]] = None
+	description: Optional[str] = None
 
 	def __setattr__(self, name, value):
 		if name == 'segments':
@@ -68,9 +66,9 @@ class Bucket(TenantBasedTuple, OptimisticLock, BaseModel):
 			super().__setattr__(name, value)
 
 
-class NumericSegmentValue(DataModel, BaseModel):
-	min: str = None
-	max: str = None
+class NumericSegmentValue(ExtendedBaseModel):
+	min: Optional[str] = None
+	max: Optional[str] = None
 
 
 def construct_numeric_segment_value(
@@ -115,7 +113,7 @@ class NumericValueMeasureBucket(MeasureBucket, NumericSegmentsHolder):
 
 OtherCategorySegmentValue = Literal['&others']
 
-CategorySegmentValue = List[Union[str, OtherCategorySegmentValue]]
+CategorySegmentValue = List[str]
 
 
 class CategorySegment(BucketSegment):

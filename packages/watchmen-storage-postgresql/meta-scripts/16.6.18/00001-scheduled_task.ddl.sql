@@ -1,0 +1,1 @@
+ALTER TABLE scheduled_task ADD change_json_ids JSON NULL;

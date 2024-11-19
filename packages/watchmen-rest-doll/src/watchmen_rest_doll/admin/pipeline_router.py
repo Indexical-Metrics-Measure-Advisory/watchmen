@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Callable, List, Optional
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
@@ -17,7 +16,7 @@ from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import ArrayHelper, is_blank, is_date
+from watchmen_utilities import ArrayHelper, is_blank, is_date, ExtendedBaseModel
 
 router = APIRouter()
 
@@ -30,7 +29,7 @@ def get_pipeline_index_service(pipeline_service: PipelineService) -> PipelineInd
 	return PipelineIndexService(pipeline_service.storage, pipeline_service.snowflakeGenerator)
 
 
-@router.get('/pipeline', tags=[UserRole.ADMIN], response_model=Pipeline)
+@router.get('/pipeline', tags=[UserRole.ADMIN], response_model=None)
 async def load_pipeline_by_id(
 		pipeline_id: Optional[PipelineId],
 		principal_service: PrincipalService = Depends(get_admin_principal)
@@ -114,7 +113,7 @@ def ask_save_pipeline_action(
 	return action
 
 
-@router.post('/pipeline', tags=[UserRole.ADMIN], response_model=Pipeline)
+@router.post('/pipeline', tags=[UserRole.ADMIN], response_model=None)
 async def save_pipeline(
 		pipeline: Pipeline, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Pipeline:
@@ -188,7 +187,7 @@ async def update_pipeline_enabled_by_id(
 	trans(pipeline_service, action)
 
 
-@router.get('/pipeline/all', tags=[UserRole.ADMIN], response_model=List[Pipeline])
+@router.get('/pipeline/all', tags=[UserRole.ADMIN], response_model=None)
 async def find_all_pipelines(principal_service: PrincipalService = Depends(get_admin_principal)) -> List[Pipeline]:
 	pipeline_service = get_pipeline_service(principal_service)
 
@@ -199,12 +198,12 @@ async def find_all_pipelines(principal_service: PrincipalService = Depends(get_a
 	return trans_readonly(pipeline_service, action)
 
 
-class LastModified(BaseModel):
-	at: str = None
+class LastModified(ExtendedBaseModel):
+	at: Optional[str] = None
 
 
 # noinspection DuplicatedCode
-@router.post('/pipeline/updated', tags=[UserRole.ADMIN], response_model=List[Pipeline])
+@router.post('/pipeline/updated', tags=[UserRole.ADMIN], response_model=None)
 async def find_updated_pipelines(
 		lastModified: LastModified, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> List[Pipeline]:
@@ -235,7 +234,7 @@ def post_delete_pipeline(pipeline_id: PipelineId, pipeline_service: PipelineServ
 	CacheService.pipeline().remove(pipeline_id)
 
 
-@router.delete('/pipeline', tags=[UserRole.SUPER_ADMIN], response_model=Pipeline)
+@router.delete('/pipeline', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_pipeline_by_id_by_super_admin(
 		pipeline_id: Optional[PipelineId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

@@ -36,7 +36,7 @@ def get_subscription_event_lock_service(principal_service: PrincipalService) -> 
 	return SubscriptionEventLockService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.get('/notification/user', tags=[UserRole.ADMIN, UserRole.CONSOLE], response_model=List[NotificationDefinition])
+@router.get('/notification/user', tags=[UserRole.ADMIN, UserRole.CONSOLE], response_model=None)
 def load_notifications_by_user_id(user_id: Optional[UserId] = None,
                                   principal_service: PrincipalService = Depends(get_any_principal)) -> List[
 	NotificationDefinition]:

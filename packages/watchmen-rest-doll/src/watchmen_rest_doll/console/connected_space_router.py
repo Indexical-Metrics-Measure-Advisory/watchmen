@@ -1,7 +1,6 @@
 from typing import Dict, List, Optional, Union
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
@@ -17,7 +16,7 @@ from watchmen_rest import get_admin_principal, get_console_principal, get_super_
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_not_blank
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_not_blank, ExtendedBaseModel
 
 router = APIRouter()
 
@@ -211,7 +210,7 @@ def copy_to_connected_space(
 
 
 @router.get(
-	'/connected_space/connect', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=ConnectedSpaceWithSubjects)
+	'/connected_space/connect', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def connect_as_connected_space(
 		space_id: Optional[SpaceId], name: Optional[str], template_ids: Optional[str],
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -295,7 +294,7 @@ def load_subjects_and_reports(
 
 
 @router.get(
-	'/connected_space/list', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[ConnectedSpaceWithSubjects])
+	'/connected_space/list', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_my_connected_spaces(
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[ConnectedSpaceWithSubjects]:
@@ -317,7 +316,7 @@ async def find_my_connected_spaces(
 	return trans(connected_space_service, action)
 
 
-@router.get('/connected_space/template', tags=[UserRole.ADMIN], response_model=Subject)
+@router.get('/connected_space/template', tags=[UserRole.ADMIN], response_model=None)
 async def updated_connected_space_as_template(
 		connect_id: Optional[ConnectedSpaceId], is_template: Optional[bool],
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -407,15 +406,15 @@ async def delete_connected_space_by_id(
 	trans(connected_space_service, action)
 
 
-class TemplateConnectedSpace(BaseModel):
-	connectId: ConnectedSpaceId = None
-	name: str = None
-	createdBy: str = None
+class TemplateConnectedSpace(ExtendedBaseModel):
+	connectId: Optional[ConnectedSpaceId] = None
+	name: Optional[str] = None
+	createdBy: Optional[str] = None
 
 
 @router.get(
 	'/connected_space/template/list', tags=[UserRole.CONSOLE, UserRole.ADMIN],
-	response_model=List[TemplateConnectedSpace])
+	response_model=None)
 async def find_all_template_connected_spaces(
 		space_id: Optional[SpaceId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[TemplateConnectedSpace]:
@@ -451,7 +450,7 @@ async def find_all_template_connected_spaces(
 	return trans_readonly(connected_space_service, action)
 
 
-@router.get('/connected_space/export', tags=[UserRole.ADMIN], response_model=List[ConnectedSpaceWithSubjects])
+@router.get('/connected_space/export', tags=[UserRole.ADMIN], response_model=None)
 async def find_template_connected_spaces_for_export(
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> List[ConnectedSpaceWithSubjects]:
@@ -471,7 +470,7 @@ async def find_template_connected_spaces_for_export(
 	return trans_readonly(connected_space_service, action)
 
 
-@router.delete('/connected_space', tags=[UserRole.SUPER_ADMIN], response_model=ConnectedSpaceWithSubjects)
+@router.delete('/connected_space', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_connected_space_by_id_by_super_admin(
 		connect_id: Optional[ConnectedSpaceId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
@@ -544,15 +543,33 @@ def add_column_type_to_subjects(subjects: List[Subject], principal_service) -> L
 	return ArrayHelper(subject_list_with_type).map(lambda x: add_dataset_column_type(x, principal_service)).to_list()
 
 
-@router.get('/connected_space/template/subjects', tags=[UserRole.ADMIN], response_model=List[Subject])
+@router.get('/connected_space/template/subjects', tags=[UserRole.ADMIN], response_model=None)
 async def find_template_subjects_by_id(
 		principal_service: PrincipalService = Depends(
-			get_admin_principal)):
+			get_admin_principal)) -> List[Subject]:
 	connected_space_service = get_connected_space_service(principal_service)
 
 	def action() -> List[Subject]:
 		connected_spaces: List[ConnectedSpace] = connected_space_service.find_templates_by_user_id(
 			principal_service.get_user_id(), principal_service.get_tenant_id())
+		subject_service: SubjectService = get_subject_service(connected_space_service)
+		return ArrayHelper(connected_spaces) \
+			.map(lambda x: subject_service.find_by_connect_id(x.connectId)) \
+			.flatten() \
+			.to_list()
+
+	subjects = trans(connected_space_service, action)
+	return add_column_type_to_subjects(subjects, principal_service)
+
+
+@router.get('/connected_space/subjects', tags=[UserRole.ADMIN], response_model=None)
+async def find_template_subjects_by_id(
+		principal_service: PrincipalService = Depends(
+			get_admin_principal)) -> List[Subject]:
+	connected_space_service = get_connected_space_service(principal_service)
+
+	def action() -> List[Subject]:
+		connected_spaces: List[ConnectedSpace] = connected_space_service.find_all(principal_service.get_tenant_id())
 		subject_service: SubjectService = get_subject_service(connected_space_service)
 		return ArrayHelper(connected_spaces) \
 			.map(lambda x: subject_service.find_by_connect_id(x.connectId)) \

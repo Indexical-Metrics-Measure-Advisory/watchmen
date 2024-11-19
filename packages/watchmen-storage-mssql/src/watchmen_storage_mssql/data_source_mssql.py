@@ -35,8 +35,7 @@ class MSSQLDataSourceHelper(DataSourceHelper):
 			echo=params.echo,
 			future=True,
 			pool_recycle=params.poolRecycle,
-			json_serializer=serialize_to_json,
-			encoding='utf-8'
+			json_serializer=serialize_to_json
 		)
 
 	@staticmethod

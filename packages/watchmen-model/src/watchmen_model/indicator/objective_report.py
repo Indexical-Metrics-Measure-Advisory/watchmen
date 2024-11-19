@@ -1,28 +1,27 @@
 from typing import Dict, List, Optional, Union
 
 from _decimal import Decimal
-from pydantic import BaseModel
 
 from watchmen_model.common import Auditable, LastVisit, UserBasedTuple
 from watchmen_model.common.tuple_ids import ObjectiveReportId
 from watchmen_model.indicator import ObjectiveTarget, ObjectiveTimeFrame, ObjectiveVariable, ObjectiveVariableKind, \
 	ObjectiveVariableOnBucket, ObjectiveVariableOnRange, ObjectiveVariableOnValue
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 
 
-class Variable(BaseModel):
-	name: str = None
-	value: str = None
+class Variable(ExtendedBaseModel):
+	name: Optional[str] = None
+	value: Optional[str] = None
 
 
-class CellValue(BaseModel):
-	currentValue: Decimal = None
-	previousValue: Decimal = None
+class CellValue(ExtendedBaseModel):
+	currentValue: Optional[Decimal] = None
+	previousValue: Optional[Decimal] = None
 	chainValue: Decimal = None
 	failed: bool = False
 
 
-class CellTarget(BaseModel):
+class CellTarget(ExtendedBaseModel):
 	name: str = None
 	row: str = None
 	cell: str = None
@@ -87,7 +86,7 @@ def construct_variables(variables: Optional[list] = None) -> Optional[List[Objec
 		return ArrayHelper(variables).map(lambda x: construct_variable(x)).to_list()
 
 
-class ObjectiveReport(UserBasedTuple, Auditable, LastVisit, BaseModel):
+class ObjectiveReport(UserBasedTuple, Auditable, LastVisit, ExtendedBaseModel):
 	objectiveReportId: ObjectiveReportId = None
 	name: str = None
 	variables: List[ObjectiveVariable] = []

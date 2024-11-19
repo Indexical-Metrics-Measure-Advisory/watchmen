@@ -67,7 +67,6 @@ def trans_with_tail(
 		return returned
 
 
-
 def trans_readonly(storage_service: StorageService, action: Callable[[], TransReturned]) -> TransReturned:
 	storage_service.begin_transaction()
 	try:

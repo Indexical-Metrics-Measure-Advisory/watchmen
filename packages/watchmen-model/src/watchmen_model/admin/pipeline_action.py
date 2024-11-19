@@ -1,9 +1,9 @@
 from enum import Enum
-from typing import Union
+from typing import Union, Optional
 
-from pydantic import BaseModel
+from watchmen_utilities import ExtendedBaseModel
 
-from watchmen_model.common import DataModel, FactorId, ParameterJoint, PipelineActionId, TopicId
+from watchmen_model.common import FactorId, ParameterJoint, PipelineActionId, TopicId
 
 
 class SystemActionType(str, Enum):
@@ -35,33 +35,33 @@ class DeleteTopicActionType(str, Enum):
 PipelineActionType = Union[WriteTopicActionType, ReadTopicActionType, DeleteTopicActionType, SystemActionType]
 
 
-class PipelineAction(DataModel, BaseModel):
-	actionId: PipelineActionId = None
-	type: PipelineActionType = None
+class PipelineAction(ExtendedBaseModel):
+	actionId: Optional[PipelineActionId] = None
+	type: Optional[PipelineActionType] = None
 
 
 class MemoryWriter(PipelineAction):
-	variableName: str = None
+	variableName: Optional[str] = None
 
 
 class FromTopic(PipelineAction):
-	topicId: TopicId = None
+	topicId: Optional[TopicId] = None
 
 
 class FromFactor(FromTopic):
-	factorId: FactorId = None
+	factorId: Optional[FactorId] = None
 
 
 class ToTopic(PipelineAction):
-	topicId: TopicId = None
+	topicId: Optional[TopicId] = None
 
 
 class ToFactor(ToTopic):
-	factorId: FactorId = None
+	factorId: Optional[FactorId] = None
 
 
 class FindBy(PipelineAction):
-	by: ParameterJoint = None
+	by: Optional[ParameterJoint] = None
 
 
 class AggregateArithmetic(str, Enum):
@@ -71,5 +71,5 @@ class AggregateArithmetic(str, Enum):
 	AVG = 'avg'
 
 
-class AggregateArithmeticHolder(DataModel):
-	arithmetic: AggregateArithmetic = None
+class AggregateArithmeticHolder(ExtendedBaseModel):
+	arithmetic: Optional[AggregateArithmetic] = None

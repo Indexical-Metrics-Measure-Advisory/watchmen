@@ -282,8 +282,33 @@ class StorageRDS(TransactionalStorageSPI):
 		else:
 			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{helper}].')
 
+	def find_and_lock_by_id_nowait(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
+		table = self.find_table(helper.name)
+		statement = select(table).with_for_update(nowait=True)
+		statement = self.build_criteria_for_statement([table], statement, [
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName=helper.idColumnName), right=entity_id)
+		])
+		data = self.connection.execute(statement).mappings().all()
+		if len(data) == 0:
+			return None
+		elif len(data) == 1:
+			return data[0]
+		else:
+			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{helper}].')
+
 	def find_one(self, finder: EntityFinder) -> Optional[Entity]:
 		data = self.find(finder)
+		if len(data) == 0:
+			return None
+		elif len(data) == 1:
+			return data[0]
+		else:
+			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
+
+	def find_one_and_lock_nowait(self, finder: EntityFinder) -> Optional[Entity]:
+		table = self.find_table(finder.name)
+		statement = select(table).with_for_update(nowait=True)
+		data = self.find_on_statement_by_finder(table, statement, finder)
 		if len(data) == 0:
 			return None
 		elif len(data) == 1:

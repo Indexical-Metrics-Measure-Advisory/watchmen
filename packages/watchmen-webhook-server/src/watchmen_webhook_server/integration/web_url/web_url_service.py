@@ -12,21 +12,21 @@ from watchmen_model.common import UserId
 from watchmen_model.webhook.event_defination import EventSource
 from watchmen_model.webhook.notification_defination import NotificationType, NotificationDefinition, NotificationParam
 from watchmen_model.webhook.subscription_event import SubscriptionEvent
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 from watchmen_webhook_server import NotifyService, build_data_Loader
 from watchmen_webhook_server.integration.notify_service import get_user_service
 
 logger = getLogger(__name__)
 
 
-class WebUrlParams(BaseModel):
-	url: str = None
-	headers: Dict[str, str] = None
+class WebUrlParams(ExtendedBaseModel):
+	url: Optional[str] = None
+	headers: Optional[Dict[str, str]] = None
 
 
-class WebUrlData(BaseModel):
-	eventSource: EventSource
-	data: Dict = None
+class WebUrlData(ExtendedBaseModel):
+	eventSource: Optional[EventSource] = None
+	data: Optional[Dict] = None
 
 
 def call_webhook_url(data, web_url_params: WebUrlParams) -> bool:

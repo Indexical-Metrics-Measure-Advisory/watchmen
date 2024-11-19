@@ -33,7 +33,7 @@ def get_topic_service(space_service: SpaceService) -> TopicService:
 	return TopicService(space_service.storage, space_service.snowflakeGenerator, space_service.principalService)
 
 
-@router.get('/space', tags=[UserRole.ADMIN], response_model=Space)
+@router.get('/space', tags=[UserRole.ADMIN], response_model=None)
 async def load_space_by_id(
 		space_id: Optional[SpaceId] = None, principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Space:
@@ -187,7 +187,7 @@ def ask_save_space_action(space_service: SpaceService, principal_service: Princi
 	return action
 
 
-@router.post('/space', tags=[UserRole.ADMIN], response_model=Space)
+@router.post('/space', tags=[UserRole.ADMIN], response_model=None)
 async def save_space(
 		space: Space, principal_service: PrincipalService = Depends(get_admin_principal)) -> Space:
 	validate_tenant_id(space, principal_service)
@@ -200,7 +200,7 @@ class QuerySpaceDataPage(DataPage):
 	data: List[Space]
 
 
-@router.post('/space/name', tags=[UserRole.ADMIN], response_model=QuerySpaceDataPage)
+@router.post('/space/name', tags=[UserRole.ADMIN], response_model=None)
 async def find_spaces_page_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -219,7 +219,7 @@ async def find_spaces_page_by_name(
 	return trans_readonly(space_service, action)
 
 
-@router.get('/space/list/name', tags=[UserRole.ADMIN], response_model=List[Space])
+@router.get('/space/list/name', tags=[UserRole.ADMIN], response_model=None)
 async def find_spaces_by_name(
 		query_name: Optional[str], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[Space]:
@@ -237,7 +237,7 @@ async def find_spaces_by_name(
 	return trans_readonly(space_service, action)
 
 
-@router.get('/space/available', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Space])
+@router.get('/space/available', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_available_spaces(principal_service: PrincipalService = Depends(get_console_principal)) -> List[Space]:
 	space_service = get_space_service(principal_service)
 
@@ -271,7 +271,7 @@ async def find_available_spaces(principal_service: PrincipalService = Depends(ge
 	return trans_readonly(space_service, action)
 
 
-@router.post('/space/ids', tags=[UserRole.ADMIN], response_model=List[Space])
+@router.post('/space/ids', tags=[UserRole.ADMIN], response_model=None)
 async def find_spaces_by_ids(
 		space_ids: List[SpaceId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[Space]:
@@ -287,7 +287,7 @@ async def find_spaces_by_ids(
 	return trans_readonly(space_service, action)
 
 
-@router.get('/space/export', tags=[UserRole.ADMIN], response_model=List[Space])
+@router.get('/space/export', tags=[UserRole.ADMIN], response_model=None)
 async def find_spaces_for_export(principal_service: PrincipalService = Depends(get_admin_principal)):
 	space_service = get_space_service(principal_service)
 
@@ -298,7 +298,7 @@ async def find_spaces_for_export(principal_service: PrincipalService = Depends(g
 	return trans_readonly(space_service, action)
 
 
-@router.delete('/space', tags=[UserRole.SUPER_ADMIN], response_model=Space)
+@router.delete('/space', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_space_by_id_by_super_admin(
 		space_id: Optional[SpaceId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

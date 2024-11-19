@@ -36,7 +36,7 @@ def get_pipeline_service(tenant_service: TenantService) -> PipelineService:
 	return PipelineService(tenant_service.storage, tenant_service.snowflakeGenerator, tenant_service.principalService)
 
 
-@router.get('/tenant', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=Tenant)
+@router.get('/tenant', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def load_tenant_by_id(
 		tenant_id: Optional[TenantId] = None,
 		principal_service: PrincipalService = Depends(get_any_principal)
@@ -79,7 +79,7 @@ def create_topics_and_pipelines(
 		pipeline_create(pipeline)
 
 
-@router.post('/tenant', tags=[UserRole.SUPER_ADMIN], response_model=Tenant)
+@router.post('/tenant', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def save_tenant(
 		tenant: Tenant, principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> Tenant:
@@ -120,7 +120,7 @@ class QueryTenantDataPage(DataPage):
 	data: List[Tenant]
 
 
-@router.post('/tenant/name', tags=[UserRole.SUPER_ADMIN], response_model=QueryTenantDataPage)
+@router.post('/tenant/name', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def find_tenants_by_name(
 		query_name: Optional[str] = None, pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
@@ -138,7 +138,7 @@ async def find_tenants_by_name(
 	return trans_readonly(tenant_service, action)
 
 
-@router.delete('/tenant', tags=[UserRole.SUPER_ADMIN], response_model=Tenant)
+@router.delete('/tenant', tags=[UserRole.SUPER_ADMIN], response_model=None)
 async def delete_tenant_by_id_by_super_admin(
 		tenant_id: Optional[TenantId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)

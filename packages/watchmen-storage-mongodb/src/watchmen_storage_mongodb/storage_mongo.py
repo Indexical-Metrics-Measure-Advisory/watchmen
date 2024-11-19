@@ -277,6 +277,12 @@ class StorageMongoDB(TransactionalStorageSPI):
 		"""
 		return self.find_by_id(entity_id, helper)
 
+	def find_and_lock_by_id_nowait(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
+		"""
+		there is no pessimistic lock in mongodb, use find_by_id instead
+		"""
+		return self.find_by_id(entity_id, helper)
+
 	def find_one(self, finder: EntityFinder) -> Optional[Entity]:
 		data = self.find(finder)
 		if len(data) == 0:
@@ -285,6 +291,12 @@ class StorageMongoDB(TransactionalStorageSPI):
 			return data[0]
 		else:
 			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
+
+	def find_one_and_lock_nowait(self, finder: EntityFinder) -> Optional[Entity]:
+		"""
+		there is no pessimistic lock in mongodb, use find_one instead
+		"""
+		return self.find_one(finder)
 
 	def find(self, finder: EntityFinder) -> EntityList:
 		document = self.find_document(finder.name)

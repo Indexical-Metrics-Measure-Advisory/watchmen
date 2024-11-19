@@ -2,7 +2,7 @@ from enum import Enum
 from logging import getLogger
 from typing import Optional, Tuple
 
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 
 logger = getLogger(__name__)
 
@@ -16,19 +16,13 @@ class AuthenticationType(str, Enum):
 	HEADER = "header"
 
 
-class KernelSettings(BaseSettings):
+class KernelSettings(ExtendedBaseSettings):
 	TRINO_HOST: str = '127.0.0.1'
 	TRINO_PORT: int = 5678
 	TRINO_USER: str = 'admin'
 	TRINO_PASSWORD: Optional[str] = None
 	TRINO_NEED_AUTH: bool = False
 	TRINO_AUTH_TYPE: str = AuthenticationType.PASSWORD
-
-	class Config:
-		# secrets_dir = '/var/run'
-		env_file = '.env'
-		env_file_encoding = 'utf-8'
-		case_sensitive = True
 
 
 settings = KernelSettings()

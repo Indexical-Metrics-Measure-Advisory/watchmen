@@ -1,20 +1,15 @@
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
-
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import construct_parameter_joint, DataModel, OptimisticLock, ParameterJoint, SpaceId, \
 	TenantBasedTuple, TopicId, UserGroupId
 from watchmen_utilities import ArrayHelper
 
 
-# noinspection PyRedundantParentheses,DuplicatedCode
-class AvoidFastApiError:
-	joint: ParameterJoint = None
-
-
-class SpaceFilter(DataModel, AvoidFastApiError, BaseModel):
-	topicId: TopicId = None
+class SpaceFilter(ExtendedBaseModel):
+	topicId: Optional[TopicId] = None
 	enabled: bool = False
+	joint: ParameterJoint = None
 
 	def __setattr__(self, name, value):
 		if name == 'joint':
@@ -40,13 +35,13 @@ def construct_filters(filters: Optional[list] = None) -> Optional[List[SpaceFilt
 		return ArrayHelper(filters).map(lambda x: construct_filter(x)).to_list()
 
 
-class Space(TenantBasedTuple, OptimisticLock, BaseModel):
-	spaceId: SpaceId = None
-	name: str = None
-	description: str = None
-	topicIds: List[TopicId] = None
-	groupIds: List[UserGroupId] = None
-	filters: List[SpaceFilter] = None
+class Space(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
+	spaceId: Optional[SpaceId] = None
+	name: Optional[str] = None
+	description: Optional[str] = None
+	topicIds: Optional[List[TopicId]] = None
+	groupIds: Optional[List[UserGroupId]] = None
+	filters: Optional[List[SpaceFilter]] = None
 
 	def __setattr__(self, name, value):
 		if name == 'filters':

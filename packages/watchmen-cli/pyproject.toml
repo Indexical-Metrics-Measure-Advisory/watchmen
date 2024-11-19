@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-cli"
-version = "16.1.0"
+version = "17.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -9,9 +9,9 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-fire = "^0.4.0"
-requests = "^2.27.1"
+python = "~3.12"
+fire = "^0.6.0"
+requests = "^2.32.3"
 watchmen-utilities = { path = "../watchmen-utilities", develop = true }
 
 [tool.poetry.dev-dependencies]

@@ -1,18 +1,12 @@
 from logging import getLogger
 
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 
 logger = getLogger(__name__)
 
 
-class DataSurfaceSettings(BaseSettings):
+class DataSurfaceSettings(ExtendedBaseSettings):
 	TRUNCATE_TOPIC_DATA: bool = True
-
-	class Config:
-		# secrets_dir = '/var/run'
-		env_file = '.env'
-		env_file_encoding = 'utf-8'
-		case_sensitive = True
 
 
 settings = DataSurfaceSettings()

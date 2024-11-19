@@ -1,8 +1,7 @@
 from enum import Enum
 from typing import Dict, List, Optional, Union
 
-from pydantic import BaseModel
-
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import DataSourceId, OptimisticLock, TenantBasedTuple, TopicId
 from watchmen_utilities import ArrayHelper
 from .factor import Factor
@@ -39,14 +38,14 @@ def construct_factors(factors: Optional[List[Union[Factor, Dict]]]) -> Optional[
 		return ArrayHelper(factors).map(lambda x: construct_factor(x)).to_list()
 
 
-class Topic(TenantBasedTuple, OptimisticLock, BaseModel):
-	topicId: TopicId = None
-	name: str = None
-	type: TopicType = TopicType.DISTINCT
-	kind: TopicKind = TopicKind.BUSINESS
-	dataSourceId: DataSourceId = None
-	factors: List[Factor] = []
-	description: str = None
+class Topic(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
+	topicId: Optional[TopicId] = None
+	name: Optional[str] = None
+	type: Optional[TopicType] = TopicType.DISTINCT
+	kind: Optional[TopicKind] = TopicKind.BUSINESS
+	dataSourceId: Optional[DataSourceId] = None
+	factors: Optional[List[Factor]] = []
+	description: Optional[str] = None
 
 	def __setattr__(self, name, value):
 		if name == 'factors':

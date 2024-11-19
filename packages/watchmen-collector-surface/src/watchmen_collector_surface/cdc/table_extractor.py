@@ -5,7 +5,7 @@ from typing import Tuple, Dict, List, Any
 import numpy as np
 
 from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, TriggerTable, \
-	Condition, Status
+	Condition, Status, CollectorTableConfig
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, CriteriaBuilder, \
 	build_audit_column_criteria, get_table_config_service, ask_source_extractor
 from watchmen_collector_kernel.service.extract_utils import cal_array2d_diff, build_data_id, get_data_id
@@ -16,7 +16,6 @@ from watchmen_collector_surface.settings import ask_table_extract_wait
 from watchmen_meta.common import ask_super_admin, ask_snowflake_generator, ask_meta_storage
 from watchmen_storage import EntityCriteria
 from watchmen_utilities import ArrayHelper
-
 
 logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
@@ -86,20 +85,9 @@ class TableExtractor:
 					if self.is_extracted(trigger):
 						continue
 					else:
-						config = self.table_config_service.find_by_table_name(trigger.tableName, trigger.tenantId)
+						config = self.table_config_service.find_by_name(trigger.tableName, trigger.tenantId)
 						trigger_event = self.trigger_event_service.find_event_by_id(trigger.eventTriggerId)
-
-						def prepare_query_criteria(variables_: Dict,
-						                           conditions: List[Condition]) -> EntityCriteria:
-							return CriteriaBuilder(variables_).build_criteria(conditions)
-
-						start_time, end_time = self.get_time_window(trigger_event)
-						criteria = build_audit_column_criteria(config.auditColumn, start_time, end_time)
-						variables = {
-							'start_time': start_time,
-							'end_time': end_time
-						}
-						criteria.extend(prepare_query_criteria(variables, config.conditions))
+						criteria = self.get_criteria(trigger_event, config)
 						source_records = ask_source_extractor(config).find_primary_keys_by_criteria(
 							criteria
 						)
@@ -175,3 +163,27 @@ class TableExtractor:
 			ArrayHelper(existed_records).map(lambda existed_record: list(existed_record.values())[:]).to_list()
 		)
 		return cal_array2d_diff(source_array, existed_array).tolist()
+
+	def get_criteria(self, trigger_event: TriggerEvent, table_config: CollectorTableConfig) -> List:
+		criteria = []
+		variables = {}
+
+		def prepare_query_criteria(variables_: Dict, conditions: List[Condition]) -> EntityCriteria:
+			return CriteriaBuilder(variables_).build_criteria(conditions)
+
+		if table_config.auditColumn:
+			start_time, end_time = self.get_time_window(trigger_event)
+			if start_time and end_time:
+				criteria.extend(build_audit_column_criteria(table_config.auditColumn, start_time, end_time))
+				variables["start_time"] = start_time
+				variables["end_time"] = end_time
+
+		if table_config.conditions:
+			criteria.extend(prepare_query_criteria(variables, table_config.conditions))
+
+		if trigger_event.params:
+			for param in trigger_event.params:
+				if param.name == table_config.name:
+					criteria.extend(prepare_query_criteria(variables, param.filter))
+
+		return criteria

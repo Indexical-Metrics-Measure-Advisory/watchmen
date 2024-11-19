@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-collector-surface"
-version = "16.1.0"
+version = "17.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "~3.12"
 watchmen-collector-kernel = { path = "../watchmen-collector-kernel", develop = true }
 watchmen-pipeline-kernel = { path = "../watchmen-pipeline-kernel", develop = true }
 watchmen-rest = { path = "../watchmen-rest", develop = true }

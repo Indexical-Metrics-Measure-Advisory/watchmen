@@ -419,6 +419,8 @@ export const computeParameterTypes = (
 				return [{array: false, type: FactorType.UNSIGNED}];
 			} else if (name.endsWith(`.${VariablePredefineFunctions.SUM}`)) {
 				return [{array: false, type: FactorType.NUMBER}];
+            } else if (name.endsWith(`.${VariablePredefineFunctions.JOIN}`)) {
+                return [{array: false, type: FactorType.TEXT}];
 			} else if (isDateDiffConstant(name).is) {
 				return [{array: false, type: FactorType.NUMBER}];
 			} else if (isMoveDateConstant(name).is) {

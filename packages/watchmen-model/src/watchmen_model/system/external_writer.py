@@ -1,7 +1,6 @@
 from enum import Enum
-
-from pydantic import BaseModel
-
+from typing import Optional
+from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import ExternalWriterId, OptimisticLock, TenantBasedTuple
 
 
@@ -10,11 +9,11 @@ class ExternalWriterType(str, Enum):
 	ELASTIC_SEARCH_WRITER = 'elastic-search-writer'
 
 
-class ExternalWriter(TenantBasedTuple, OptimisticLock, BaseModel):
-	writerId: ExternalWriterId = None
-	writerCode: str = None
-	name: str = None
+class ExternalWriter(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
+	writerId: Optional[ExternalWriterId] = None
+	writerCode: Optional[str] = None
+	name: Optional[str] = None
 	type: ExternalWriterType = ExternalWriterType.STANDARD_WRITER
 	# personal access token
-	pat: str = None
-	url: str = None
+	pat: Optional[str] = None
+	url: Optional[str] = None

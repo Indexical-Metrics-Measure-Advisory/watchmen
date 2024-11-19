@@ -9,9 +9,9 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-PyMySQL = "^1.0.2"
-cryptography = "^36.0.2"
+python = "~3.12"
+PyMySQL = "^1.1.1"
+cryptography = "^42.0.8"
 watchmen-storage-rds = { path = "../watchmen-storage-rds", develop = true }
 
 [tool.poetry.dev-dependencies]

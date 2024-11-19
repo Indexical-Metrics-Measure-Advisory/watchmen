@@ -144,6 +144,23 @@ class ChangeDataJsonService(TupleService):
 				limit=limit if limit is not None else ask_partial_size()
 			))
 
+	def find_json(self, model_trigger_id: int, limit: int = None) -> List:
+		try:
+			self.begin_transaction()
+			return self.storage.find_limited(
+				EntityLimitedFinder(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName=STATUS), right=0),
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName=MODEL_TRIGGER_ID),
+						                         right=model_trigger_id)
+					],
+					limit=limit if limit is not None else ask_partial_size()
+				))
+		finally:
+			self.close_transaction()
+
 	def is_existed(self, change_json: ChangeDataJson) -> bool:
 		self.begin_transaction()
 		try:
@@ -187,8 +204,7 @@ class ChangeDataJsonService(TupleService):
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
 					                         right=model_trigger_id)
-				],
-				sort=[EntitySortColumn(name='sequence', method=EntitySortMethod.ASC)]
+				]
 			))
 		finally:
 			self.storage.close()

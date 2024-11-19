@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from copy import deepcopy
+from copy import deepcopy, copy
 from logging import getLogger
 from traceback import format_exc
 from typing import Any, Callable, Dict, List, Optional
@@ -64,8 +64,8 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 			traceId=trace_id, dataId=data_id,
 			pipelineId=self.pipeline.pipelineId, topicId=trigger_topic_id,
 			status=MonitorLogStatus.DONE, startTime=now(), spentInMills=0, error=None,
-			oldValue=deepcopy(previous_data) if previous_data is not None else None,
-			newValue=deepcopy(current_data) if current_data is not None else None,
+			oldValue=copy(previous_data) if previous_data is not None else None,
+			newValue=copy(current_data) if current_data is not None else None,
 			prerequisite=True,
 			prerequisiteDefinedAs=self.prerequisiteDefinedAs(),
 			stages=[]
@@ -156,13 +156,13 @@ class QueuedPipelineContexts:
 		topic = schema.get_topic()
 		pipelines = get_pipeline_service(principal_service).find_by_topic_id(topic.topicId)
 		if len(pipelines) == 0:
-			logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
+			logger.debug(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
 			return []
 
 		pipelines = ArrayHelper(pipelines) \
 			.filter(lambda x: self.should_run(trigger.triggerType, x)).to_list()
 		if len(pipelines) == 0:
-			logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
+			logger.debug(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
 			return []
 
 		# to avoid the loop dependency

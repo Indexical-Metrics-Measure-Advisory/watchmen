@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 from watchmen_model.common import construct_parameter, construct_parameter_joint, ExternalWriterId, Parameter
 from .conditional import Conditional
@@ -13,9 +14,9 @@ class AlarmActionSeverity(str, Enum):
 
 
 class AlarmAction(PipelineAction, Conditional):
-	type: SystemActionType.ALARM = SystemActionType.ALARM
+	type: SystemActionType = SystemActionType.ALARM
 	severity: AlarmActionSeverity = AlarmActionSeverity.MEDIUM
-	message: str = None
+	message: Optional[str] = None
 
 	def __setattr__(self, name, value):
 		if name == 'on':
@@ -29,7 +30,7 @@ class CopyToMemoryAction(MemoryWriter):
 	copy something to memory variable
 	"""
 	type: SystemActionType = SystemActionType.COPY_TO_MEMORY
-	source: Parameter = None
+	source: Optional[Parameter] = None
 
 	def __setattr__(self, name, value):
 		if name == 'source':
@@ -40,5 +41,5 @@ class CopyToMemoryAction(MemoryWriter):
 
 class WriteToExternalAction(PipelineAction):
 	type: SystemActionType = SystemActionType.WRITE_TO_EXTERNAL
-	externalWriterId: ExternalWriterId = None
-	eventCode: str = None
+	externalWriterId: Optional[ExternalWriterId] = None
+	eventCode: Optional[str] = None

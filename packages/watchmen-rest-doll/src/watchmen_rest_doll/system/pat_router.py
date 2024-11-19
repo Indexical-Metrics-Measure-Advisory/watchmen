@@ -3,7 +3,6 @@ from secrets import token_urlsafe
 from typing import List, Optional
 
 from fastapi import APIRouter, Body, Depends
-from pydantic import BaseModel
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
@@ -15,7 +14,7 @@ from watchmen_model.system import PersonalAccessToken
 from watchmen_rest import get_any_principal
 from watchmen_rest.util import raise_400
 from watchmen_rest_doll.util import trans
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, ExtendedBaseModel
 
 router = APIRouter()
 
@@ -24,18 +23,18 @@ def get_pat_service(principal_service: PrincipalService) -> PatService:
 	return PatService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-class PatCreationParams(BaseModel):
+class PatCreationParams(ExtendedBaseModel):
 	note: Optional[str] = None
 	expired: Optional[date] = None
 
 
-class ClientPat(BaseModel):
-	patId: PatId
-	token: str
-	note: str
+class ClientPat(ExtendedBaseModel):
+	patId: Optional[PatId] = None
+	token: Optional[str] = None
+	note: Optional[str] = None
 
 
-@router.post('/pat/create', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=ClientPat)
+@router.post('/pat/create', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def create_pat(
 		params: PatCreationParams = Body(...),
 		principal_service: PrincipalService = Depends(get_any_principal)) -> ClientPat:
@@ -58,7 +57,7 @@ async def create_pat(
 	return trans(pat_service, action)
 
 
-@router.get('/pat/list', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[ClientPat])
+@router.get('/pat/list', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
 async def find_my_pats(principal_service: PrincipalService = Depends(get_any_principal)) -> List[ClientPat]:
 	pat_service = get_pat_service(principal_service)
 

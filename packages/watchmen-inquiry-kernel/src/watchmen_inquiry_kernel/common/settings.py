@@ -1,19 +1,13 @@
 from logging import getLogger
 
-from pydantic import BaseSettings
+from watchmen_utilities import ExtendedBaseSettings
 
 logger = getLogger(__name__)
 
 
-class KernelSettings(BaseSettings):
+class KernelSettings(ExtendedBaseSettings):
 	USE_STORAGE_DIRECTLY: bool = True  # use storage directly when all topics in subject are from one data source
 	TRINO: bool = True  # trino
-
-	class Config:
-		# secrets_dir = '/var/run'
-		env_file = '.env'
-		env_file_encoding = 'utf-8'
-		case_sensitive = True
 
 
 settings = KernelSettings()

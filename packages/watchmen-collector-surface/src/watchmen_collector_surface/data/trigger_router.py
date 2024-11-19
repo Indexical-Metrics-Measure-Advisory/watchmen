@@ -16,7 +16,7 @@ router = APIRouter()
 
 
 @router.post('/collector/trigger/event', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
-             response_model=TriggerEvent)
+             response_model=None)
 async def save_event_trigger(
 		event: TriggerEvent, principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> TriggerEvent:
