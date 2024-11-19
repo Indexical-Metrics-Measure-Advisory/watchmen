@@ -3,7 +3,7 @@ from watchmen_ai.knowledge_base.process.knowledge_graph_processor import Knowled
 from watchmen_ai.meta.document_service import KnowledgeDocumentService
 from watchmen_ai.meta.graph_service import KnowledgeGraphNodeService, KnowledgeGraphEdgeService, \
     KnowledgeGraphPropertyService
-from watchmen_ai.model.dataset_document import DatasetDocument
+from watchmen_ai.model.document import DatasetDocument
 from watchmen_ai.model.knowledge_base import KnowledgeType
 from watchmen_ai.utils.graph_utils import WatchmenGraphWrapper, generate_uuid
 from watchmen_auth import PrincipalService

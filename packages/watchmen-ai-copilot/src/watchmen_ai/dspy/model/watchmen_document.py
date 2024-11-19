@@ -1,5 +1,5 @@
 from pydantic import BaseModel
 
 
-class UploadFile(BaseModel):
+class WatchmenDocument(BaseModel):
     pass
