@@ -1,3 +1,4 @@
+import {HeaderCopilotButton} from '@/console/connected-space/catalog/header/header-copilot-button';
 import {isAdmin} from '@/services/data/account';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
 import {PageHeaderButtons, PageHeaderButtonSeparator} from '@/widgets/basic/page-header-buttons';
@@ -18,6 +19,7 @@ export const CatalogHeaderButtons = (props: { connectedSpace: ConnectedSpace }) 
 		return <PageHeaderButtons>
 			<HeaderCatalogButton connectedSpace={connectedSpace}/>
 			<HeaderAddSubjectButton connectedSpace={connectedSpace}/>
+			<HeaderCopilotButton connectedSpace={connectedSpace}/>
 			<PageHeaderButtonSeparator/>
 			<HeaderFavoriteButton connectedSpace={connectedSpace}/>
 			{admin ? <HeaderTemplateButton connectedSpace={connectedSpace}/> : null}

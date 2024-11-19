@@ -25,6 +25,8 @@ const TopicEditor = (props: {
 		<TopicNameInput topic={topic}/>
 		<TuplePropertyLabel>Topic Kind:</TuplePropertyLabel>
 		<TopicKindInput topic={topic}/>
+		{/*<TuplePropertyLabel>Layer:</TuplePropertyLabel>*/}
+		{/*<TopicLayerInput topic={topic}/>*/}
 		<TuplePropertyLabel>Topic Type:</TuplePropertyLabel>
 		<TopicTypeInput topic={topic}/>
 		{isMultipleDataSourcesEnabled()

@@ -10,6 +10,7 @@ import {
 	ICON_HOME,
 	ICON_IDW,
 	ICON_LOGOUT,
+	ICON_MAGIC_SPARKLES,
 	ICON_MONITOR_LOGS,
 	ICON_PIPELINE,
 	ICON_PIPELINE_DEBUG,
@@ -42,29 +43,32 @@ import React from 'react';
 import {matchPath, useLocation} from 'react-router-dom';
 import styled from 'styled-components';
 
+// noinspection CssUnresolvedCustomProperty
 const AdminMenuContainer = styled.div.attrs<{ width: number }>(({width}) => {
 	return {
 		'data-widget': 'admin-menu',
 		style: {width}
 	};
 })<{ width: number }>`
-	display          : flex;
-	position         : relative;
-	flex-direction   : column;
-	align-items      : flex-start;
-	min-width        : var(--console-menu-width);
-	height           : 100vh;
-	top              : 0;
-	left             : 0;
-	border-right     : var(--border);
-	background-color : var(--invert-color);
-	overflow         : hidden;
-	+ main {
-		max-width : ${({width}) => `calc(100vw - ${width}px)`};
-		div[data-widget="full-width-page"] {
-			max-width : ${({width}) => `calc(100vw - ${width}px)`};
-		}
-	}
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: var(--console-menu-width);
+    height: 100vh;
+    top: 0;
+    left: 0;
+    border-right: var(--border);
+    background-color: var(--invert-color);
+    overflow: hidden;
+
+    + main {
+        max-width: ${({width}) => `calc(100vw - ${width}px)`};
+
+        div[data-widget="full-width-page"] {
+            max-width: ${({width}) => `calc(100vw - ${width}px)`};
+        }
+    }
 `;
 
 export const AdminMenu = () => {
@@ -84,7 +88,7 @@ export const AdminMenu = () => {
 	}
 
 	return <AdminMenuContainer width={menuWidth}>
-		<SideMenuLogo title="Watchmen Admin"/>
+		<SideMenuLogo title="DataMO Admin"/>
 		<SideMenuItem icon={ICON_HOME} label="Home" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.ADMIN_HOME}, location.pathname)}
 		              onClick={navigateTo(Router.ADMIN_HOME)}
@@ -130,6 +134,10 @@ export const AdminMenu = () => {
 		              active={!!matchPath({path: Router.ADMIN_PLUGINS}, location.pathname)}
 		              onClick={navigateTo(Router.ADMIN_PLUGINS)}
 		              visible={isSuperAdmin() && isPluginEnabled()}/>
+		<SideMenuItem icon={ICON_MAGIC_SPARKLES} label="AI Models" showTooltip={showTooltip}
+		              active={!!matchPath({path: Router.ADMIN_AI_MODEL}, location.pathname)}
+		              onClick={navigateTo(Router.ADMIN_AI_MODEL)}
+		              visible={isSuperAdmin()}/>
 		<SideMenuItem icon={ICON_USER} label="Users" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.ADMIN_USERS}, location.pathname)}
 		              onClick={navigateTo(Router.ADMIN_USERS)}/>

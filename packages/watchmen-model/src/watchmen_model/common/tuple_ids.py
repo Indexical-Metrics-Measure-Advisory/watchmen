@@ -1,8 +1,14 @@
 from typing import TypeVar
 
 TenantId = TypeVar('TenantId', bound=str)
+DocumentId = TypeVar('DocumentId', bound=str)
+GraphNodeId = TypeVar('GraphNodeId', bound=str)
+GraphEdgeId = TypeVar('GraphEdgeId', bound=str)
+GraphPropertyId = TypeVar('GraphPropertyId', bound=str)
+
 
 DataSourceId = TypeVar('DataSourceId', bound=str)
+AIModelId = TypeVar('AIModelId', bound=str)
 ExternalWriterId = TypeVar('ExternalWriterId', bound=str)
 PluginId = TypeVar('PluginId', bound=str)
 
