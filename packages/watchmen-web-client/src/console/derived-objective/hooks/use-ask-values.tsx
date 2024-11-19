@@ -1,9 +1,9 @@
 import {
-	ObjectiveFactor,
-	ObjectiveFactorValues,
-	ObjectiveTarget,
-	ObjectiveTargetValues,
-	ObjectiveValues
+    ObjectiveFactor,
+    ObjectiveFactorValues,
+    ObjectiveTarget,
+    ObjectiveTargetValues,
+    ObjectiveValues
 } from '@/services/data/tuples/objective-types';
 import {useEffect, useState} from 'react';
 import {useObjectiveEventBus} from '../objective-event-bus';

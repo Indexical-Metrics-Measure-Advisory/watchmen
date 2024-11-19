@@ -34,6 +34,7 @@ export const Zh: LanguageDeclareType = {
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: '根据分桶名称查找.',
 		FIND_OBJECTIVE_PLACEHOLDER: '根据目标名称, 描述查找.',
 		FIND_CONVERGENCE_PLACEHOLDER: '根据汇聚名称, 描述查找.',
+		FIND_DATA_STORY_PLACEHOLDER: '根据数据故事名称, 描述查找.',
 		OBJECTIVE_NAME_PLACEHOLDER: '请输入用于阅读的名称.',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '请输入目标描述...',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: '变量名.',
@@ -191,6 +192,7 @@ export const Zh: LanguageDeclareType = {
 			SHARE: '分享',
 			ADD_REPORT: '添加图表',
 			ADD_SUBJECT: '添加主题',
+			COPILOT: 'AI助手',
 			OPEN_SUBJECT: '打开主题',
 			ADD_CONNECTED_SPACE: '联接工作空间',
 			SWITCH_CONNECTED_SPACE: '切换已联接的工作空间',
@@ -348,7 +350,14 @@ export const Zh: LanguageDeclareType = {
 			OBJECTIVES: '目标',
 			CONVERGENCES: '汇聚',
 			SETTINGS: '设置',
+			STORY: '数据故事',
 			LOGOUT: '登出'
+		},
+		STORY: {
+			DATA_STORY: '数据故事',
+			NEW_STORY_PREFIX: '新建数据故事',
+			LIST_LABEL: 'Data Story',
+			EXISTING_STORY_PREFIX: 'An Existing'
 		},
 		ON_EDIT: '正在编辑中, 所有未保存的数据都将丢失. 是否确定放弃编辑?',
 		STEP: '步骤',
@@ -1180,5 +1189,26 @@ export const Zh: LanguageDeclareType = {
 		NONAME_TOPIC_FACTOR: '未命名数据因子',
 		NONAME_BUCKET: '未命名数据分桶',
 		NONAME_ENUM: '未命名枚举'
+	},
+	COPILOT: {
+		YES: '好的，请继续。',
+		NO: '不。',
+		HELLO:"您好 ",
+		NOTED: '了解了。还有其他什么可以帮助您的吗？',
+		ASK_RECOMMENDATION: '给我你的建议。',
+		REPLY_ASKING_RECOMMENDATION: '了解了。请稍等，我来检查是否有推荐的选项。',
+		STILL_WORKING: '还在努力中...',
+		CONNECT_FAIL: '看起来出现了问题，我现在无法连接到服务器。您想要重试吗？',
+		ASK_RESTART_SESSION: '重建会话.',
+		OPTION_PICKED_NOTED: '当然！非常好的选择。请稍等，我来查看详细信息。',
+		CONNECTED_SPACE: {
+			GREETING_FIRST_SESSION: '您好！我是AI助理。我可以帮助您分析当前连接空间的数据。请稍等，我来检查是否有推荐的选项。',
+			GREETING_RESTART_SESSION: '好的，请问现在我可以帮您做什么呢？或许您想再看看我们推荐的选项吗？'
+		},
+		DERIVED_OBJECTIVE: {
+			HELLO: "这个频道用于进行目标分析",
+			GREETING_FIRST_SESSION:'您好！我是AI助理。我可以帮助您分析当前的目标分析。请稍等，我来检查是否有推荐的选项。',
+			GREETING_RESTART_SESSION:'好的，请问现在我可以帮您做什么呢？或许您想再看看我们推荐的选项吗？'
+		}
 	}
 };

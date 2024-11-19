@@ -14,13 +14,14 @@ import {
 } from './factor-calculator-types';
 import {CompatibleTypes, Factor, FactorId, FactorType} from './factor-types';
 import {isComputedParameter, isConstantParameter, isTopicFactorParameter} from './parameter-utils';
-import {Topic, TopicId, TopicKind, TopicType} from './topic-types';
+import {Topic, TopicId, TopicKind, TopicLayer, TopicType} from './topic-types';
 
 export const createUnknownTopic = (topicId: TopicId, name: string = 'Unknown Topic'): Topic => {
 	return {
 		topicId,
 		name,
 		kind: TopicKind.SYSTEM,
+		layer: TopicLayer.ODS,
 		type: TopicType.DISTINCT,
 		factors: [] as Array<Factor>,
 		version: 1,
@@ -37,14 +38,19 @@ export const createUnknownFactor = (factorId: FactorId, name: string = 'Unknown 
 	};
 };
 
-export const findSelectedTopic = (topics: Array<Topic>, topicId?: TopicId, extraTopicName?: string): {
-	selected: Topic | null,
-	extra: Topic | null
+export const findSelectedTopic = (
+	topics: Array<Topic>,
+	topicId?: TopicId,
+	extraTopicName?: string
+): {
+	selected: Topic | null;
+	extra: Topic | null;
 } => {
-	let selectedTopic: Topic | null = null, extraTopic: Topic | null = null;
+	let selectedTopic: Topic | null = null,
+		extraTopic: Topic | null = null;
 	if (topicId) {
 		// eslint-disable-next-line
-		selectedTopic = topics.find(topic => topic.topicId == topicId) || null;
+		selectedTopic = topics.find((topic) => topic.topicId == topicId) || null;
 		if (!selectedTopic) {
 			extraTopic = createUnknownTopic(topicId, extraTopicName);
 			selectedTopic = extraTopic;
@@ -56,9 +62,13 @@ export const findSelectedTopic = (topics: Array<Topic>, topicId?: TopicId, extra
  * find selected factor by given topic & factorId.
  * create extra factor when selection not found, and let selected to be extra one.
  */
-export const findSelectedFactor = (topic?: Topic | null, factorId?: FactorId, extraFactorName?: string): {
-	selected: Factor | null,
-	extra: Factor | null
+export const findSelectedFactor = (
+	topic?: Topic | null,
+	factorId?: FactorId,
+	extraFactorName?: string
+): {
+	selected: Factor | null;
+	extra: Factor | null;
 } => {
 	let selectedFactor: Factor | null = null;
 	let extraFactor: Factor | null = null;
@@ -66,7 +76,7 @@ export const findSelectedFactor = (topic?: Topic | null, factorId?: FactorId, ex
 		if (topic) {
 			// find factor in selected topic
 			// eslint-disable-next-line
-			selectedFactor = topic.factors.find(factor => factor.factorId == factorId) || null;
+			selectedFactor = topic.factors.find((factor) => factor.factorId == factorId) || null;
 		}
 		if (!selectedFactor) {
 			extraFactor = createUnknownFactor(factorId, extraFactorName);
@@ -97,7 +107,7 @@ export const isFactorTypeCompatibleWith = (options: {
 		return true;
 	}
 
-	const passed = expectedTypes.some(expectedType => {
+	const passed = expectedTypes.some((expectedType) => {
 		const {includes = [], excludes = []} = CompatibleTypes[expectedType as FactorType] || {};
 		return (includes.length === 0 || includes.includes(factorType)) && !excludes.includes(factorType);
 	});
@@ -143,11 +153,23 @@ export const isComputeTypeValid = (options: {
 		case ParameterComputeType.MONTH_OF:
 			return isFactorTypeCompatibleWith({factorType: FactorType.MONTH, expectedTypes, reasons: delegate});
 		case ParameterComputeType.WEEK_OF_YEAR:
-			return isFactorTypeCompatibleWith({factorType: FactorType.WEEK_OF_YEAR, expectedTypes, reasons: delegate});
+			return isFactorTypeCompatibleWith({
+				factorType: FactorType.WEEK_OF_YEAR,
+				expectedTypes,
+				reasons: delegate
+			});
 		case ParameterComputeType.WEEK_OF_MONTH:
-			return isFactorTypeCompatibleWith({factorType: FactorType.WEEK_OF_MONTH, expectedTypes, reasons: delegate});
+			return isFactorTypeCompatibleWith({
+				factorType: FactorType.WEEK_OF_MONTH,
+				expectedTypes,
+				reasons: delegate
+			});
 		case ParameterComputeType.DAY_OF_MONTH:
-			return isFactorTypeCompatibleWith({factorType: FactorType.DAY_OF_MONTH, expectedTypes, reasons: delegate});
+			return isFactorTypeCompatibleWith({
+				factorType: FactorType.DAY_OF_MONTH,
+				expectedTypes,
+				reasons: delegate
+			});
 		case ParameterComputeType.DAY_OF_WEEK:
 			return isFactorTypeCompatibleWith({factorType: FactorType.DAY_OF_WEEK, expectedTypes, reasons: delegate});
 		case ParameterComputeType.NONE:
@@ -161,7 +183,10 @@ export const isComputeTypeValid = (options: {
  * @param expectedTypes expected types after compute
  * @return factor types expected for sub parameters
  */
-export const computeValidTypesForSubParameter = (computeType: ParameterComputeType, expectedTypes: ValueTypes): ValueTypes => {
+export const computeValidTypesForSubParameter = (
+	computeType: ParameterComputeType,
+	expectedTypes: ValueTypes
+): ValueTypes => {
 	switch (computeType) {
 		case ParameterComputeType.CASE_THEN:
 			// case then can returns any type
@@ -187,10 +212,12 @@ export const computeValidTypesForSubParameter = (computeType: ParameterComputeTy
 	}
 };
 
-const COMPARABLE_VALUE_TYPES = [...new Set([
-	...(CompatibleTypes[FactorType.NUMBER].includes || []),
-	...(CompatibleTypes[FactorType.DATE].includes || [])
-])];
+const COMPARABLE_VALUE_TYPES = [
+	...new Set([
+		...(CompatibleTypes[FactorType.NUMBER].includes || []),
+		...(CompatibleTypes[FactorType.DATE].includes || [])
+	])
+];
 const OTHER_VALUE_TYPES = [AnyFactorType.ANY];
 export const computeValidTypesByExpressionOperator = (operator?: ParameterExpressionOperator): ValueTypes => {
 	switch (operator) {
@@ -232,70 +259,72 @@ const digByParentType = (names: Array<string>, types: ValueTypeOfParameter): Val
 		return [{array: types.array, type: AnyFactorType.ERROR}];
 	} else if (!types.factor) {
 		// from topic directly
-		const factor: Factor | undefined = (types.topic.factors || []).find(f => f.name === first);
+		const factor: Factor | undefined = (types.topic.factors || []).find((f) => f.name === first);
 		return digByFactor(factor, rest, types);
 	} else {
 		// from a factor
 		// factor which can hold properties is from raw topic
 		// and its properties are declared by "prefix.x", prefix is name of parent factor.
 		const prefix = types.factor.name;
-		const factor: Factor | undefined = (types.topic.factors || []).find(f => f.name === `${prefix}.${first}`);
+		const factor: Factor | undefined = (types.topic.factors || []).find((f) => f.name === `${prefix}.${first}`);
 		return digByFactor(factor, rest, types);
 	}
 };
 const digByParentTypes = (names: Array<string>, types: ValueTypesOfParameter): ValueTypesOfParameter => {
-	return types.map(type => digByParentType(names, type)).flat();
+	return types.map((type) => digByParentType(names, type)).flat();
 };
-export const isDateDiffConstant = (statement: string): { is: boolean, parsed?: ParsedVariablePredefineFunctions } => {
+export const isDateDiffConstant = (statement: string): { is: boolean; parsed?: ParsedVariablePredefineFunctions } => {
 	const parsed = [
 		VariablePredefineFunctions.YEAR_DIFF,
 		VariablePredefineFunctions.MONTH_DIFF,
 		VariablePredefineFunctions.DAY_DIFF
-	].map((func: VariablePredefineFunctions) => {
-		const matched = (statement || '').trim().match(new RegExp(`^(${func})\\s*\\((.+),(.+)\\)$`));
-		if (matched) {
-			const [, f, p1, p2] = matched;
-			return {f: f as VariablePredefineFunctions, params: [p1.trim(), p2.trim()]};
-		} else {
-			return false;
-		}
-	}).filter(x => x !== false);
+	]
+		.map((func: VariablePredefineFunctions) => {
+			const matched = (statement || '').trim().match(new RegExp(`^(${func})\\s*\\((.+),(.+)\\)$`));
+			if (matched) {
+				const [, f, p1, p2] = matched;
+				return {f: f as VariablePredefineFunctions, params: [p1.trim(), p2.trim()]};
+			} else {
+				return false;
+			}
+		})
+		.filter((x) => x !== false);
 	if (parsed.length === 0) {
 		return {is: false};
 	} else {
 		return {is: true, parsed: parsed[0] as ParsedVariablePredefineFunctions};
 	}
 };
-export const isMoveDateConstant = (statement: string): { is: boolean, parsed?: ParsedVariablePredefineFunctions } => {
-	const parsed = [
-		VariablePredefineFunctions.MOVE_DATE
-	].map((func: VariablePredefineFunctions) => {
-		const matched = (statement || '').trim().match(new RegExp(`^(${func})\\s*\\((.+),(.+)\\)$`));
-		if (matched) {
-			const [, f, p1, p2] = matched;
-			return {f: f as VariablePredefineFunctions, params: [p1.trim(), p2.trim()]};
-		} else {
-			return false;
-		}
-	}).filter(x => x !== false);
+export const isMoveDateConstant = (statement: string): { is: boolean; parsed?: ParsedVariablePredefineFunctions } => {
+	const parsed = [VariablePredefineFunctions.MOVE_DATE]
+		.map((func: VariablePredefineFunctions) => {
+			const matched = (statement || '').trim().match(new RegExp(`^(${func})\\s*\\((.+),(.+)\\)$`));
+			if (matched) {
+				const [, f, p1, p2] = matched;
+				return {f: f as VariablePredefineFunctions, params: [p1.trim(), p2.trim()]};
+			} else {
+				return false;
+			}
+		})
+		.filter((x) => x !== false);
 	if (parsed.length === 0) {
 		return {is: false};
 	} else {
 		return {is: true, parsed: parsed[0] as ParsedVariablePredefineFunctions};
 	}
 };
-export const isDateFormatConstant = (statement: string): { is: boolean, parsed?: ParsedVariablePredefineFunctions } => {
-	const parsed = [
-		VariablePredefineFunctions.DATE_FORMAT
-	].map((func: VariablePredefineFunctions) => {
-		const matched = (statement || '').trim().match(new RegExp(`^(${func})\\s*\\((.+),(.+)\\)$`));
-		if (matched) {
-			const [, f, p1, p2] = matched;
-			return {f: f as VariablePredefineFunctions, params: [p1.trim(), p2.trim()]};
-		} else {
-			return false;
-		}
-	}).filter(x => x !== false);
+export const isDateFormatConstant = (statement: string): { is: boolean; parsed?: ParsedVariablePredefineFunctions } => {
+	const parsed = [VariablePredefineFunctions.DATE_FORMAT]
+		.map((func: VariablePredefineFunctions) => {
+			const matched = (statement || '').trim().match(new RegExp(`^(${func})\\s*\\((.+),(.+)\\)$`));
+			if (matched) {
+				const [, f, p1, p2] = matched;
+				return {f: f as VariablePredefineFunctions, params: [p1.trim(), p2.trim()]};
+			} else {
+				return false;
+			}
+		})
+		.filter((x) => x !== false);
 	if (parsed.length === 0) {
 		return {is: false};
 	} else {
@@ -314,17 +343,19 @@ export const computeParameterTypes = (
 ): ValueTypesOfParameter => {
 	if (isTopicFactorParameter(parameter)) {
 		// eslint-disable-next-line
-		const topic = topics.find(topic => topic.topicId == parameter.topicId);
+		const topic = topics.find((topic) => topic.topicId == parameter.topicId);
 		// eslint-disable-next-line
 		const factor: Factor | undefined = (topic?.factors || []).find(factor => factor.factorId == parameter.factorId);
-		return [{
-			topic,
-			factor,
-			// treat unknown factor as not an array
-			array: factor ? factor.type === FactorType.ARRAY : false,
-			// treat unknown factor as object, since topic is an object anyway
-			type: factor ? (factor.type === FactorType.ARRAY ? FactorType.OBJECT : factor.type) : FactorType.OBJECT
-		}];
+		return [
+			{
+				topic,
+				factor,
+				// treat unknown factor as not an array
+				array: factor ? factor.type === FactorType.ARRAY : false,
+				// treat unknown factor as object, since topic is an object anyway
+				type: factor ? (factor.type === FactorType.ARRAY ? FactorType.OBJECT : factor.type) : FactorType.OBJECT
+			}
+		];
 	} else if (isComputedParameter(parameter)) {
 		switch (parameter.type) {
 			case ParameterComputeType.ADD:
@@ -351,9 +382,12 @@ export const computeParameterTypes = (
 			case ParameterComputeType.DAY_OF_WEEK:
 				return [{array: false, type: FactorType.DAY_OF_WEEK}];
 			case ParameterComputeType.CASE_THEN:
-				return parameter.parameters.filter(x => !!x).map(sub => {
-					return computeParameterTypes(sub, topics, variables, triggerTopic);
-				}).flat();
+				return parameter.parameters
+					.filter((x) => !!x)
+					.map((sub) => {
+						return computeParameterTypes(sub, topics, variables, triggerTopic);
+					})
+					.flat();
 			default:
 				// cannot determine compute type, treated as any type
 				return [{array: false, type: AnyFactorType.ANY}];
@@ -367,7 +401,7 @@ export const computeParameterTypes = (
 			return [{array: false, type: AnyFactorType.ANY}];
 		}
 
-		segments = segments.filter(x => !!x);
+		segments = segments.filter((x) => !!x);
 		if (segments.length > 1) {
 			// multiple segments, always concatenate to string
 			return [{array: false, type: FactorType.TEXT}];
@@ -378,7 +412,10 @@ export const computeParameterTypes = (
 				return [{array: false, type: FactorType.SEQUENCE}];
 			} else if (name === VariablePredefineFunctions.NOW) {
 				return [{array: false, type: FactorType.DATETIME}];
-			} else if (name.endsWith(`.${VariablePredefineFunctions.COUNT}`) || name.endsWith(`.${VariablePredefineFunctions.LENGTH}`)) {
+			} else if (
+				name.endsWith(`.${VariablePredefineFunctions.COUNT}`) ||
+				name.endsWith(`.${VariablePredefineFunctions.LENGTH}`)
+			) {
 				return [{array: false, type: FactorType.UNSIGNED}];
 			} else if (name.endsWith(`.${VariablePredefineFunctions.SUM}`)) {
 				return [{array: false, type: FactorType.NUMBER}];
@@ -398,19 +435,25 @@ export const computeParameterTypes = (
 				firstTypes = [{topic: triggerTopic, array: false, type: FactorType.OBJECT}];
 			} else {
 				// find in variables first
-				const variable = variables.find(v => v.name === first);
+				const variable = variables.find((v) => v.name === first);
 				if (variable) {
 					// find in variables
 					firstTypes = variable.types;
 				} else {
 					// find in trigger data when not existed in variables
-					const factor: Factor | undefined = (triggerTopic?.factors || []).find(f => f.name === first);
-					firstTypes = [{
-						topic: triggerTopic,
-						factor,
-						array: factor ? factor.type === FactorType.ARRAY : false,
-						type: factor ? (factor.type === FactorType.ARRAY ? FactorType.OBJECT : factor.type) : AnyFactorType.ERROR
-					}];
+					const factor: Factor | undefined = (triggerTopic?.factors || []).find((f) => f.name === first);
+					firstTypes = [
+						{
+							topic: triggerTopic,
+							factor,
+							array: factor ? factor.type === FactorType.ARRAY : false,
+							type: factor
+								? factor.type === FactorType.ARRAY
+									? FactorType.OBJECT
+									: factor.type
+								: AnyFactorType.ERROR
+						}
+					];
 				}
 			}
 			if (rest.length === 0) {
@@ -437,17 +480,17 @@ export const getFactorType = (factorOrType: Factor | FactorType): FactorType => 
 };
 export const isNumericFactor = (factorOrType: Factor | FactorType): boolean => {
 	return [
-		FactorType.NUMBER, FactorType.UNSIGNED,
+		FactorType.NUMBER,
+		FactorType.UNSIGNED,
 		FactorType.RESIDENTIAL_AREA,
 		FactorType.AGE,
 		FactorType.BIZ_SCALE
 	].includes(getFactorType(factorOrType));
 };
 export const isDateFactor = (factorOrType: Factor | FactorType): boolean => {
-	return [
-		FactorType.FULL_DATETIME, FactorType.DATETIME,
-		FactorType.DATE, FactorType.DATE_OF_BIRTH
-	].includes(getFactorType(factorOrType));
+	return [FactorType.FULL_DATETIME, FactorType.DATETIME, FactorType.DATE, FactorType.DATE_OF_BIRTH].includes(
+		getFactorType(factorOrType)
+	);
 };
 export const isDateTimeFactor = (factorOrType: Factor | FactorType): boolean => {
 	return [FactorType.FULL_DATETIME, FactorType.DATETIME].includes(getFactorType(factorOrType));
@@ -455,9 +498,16 @@ export const isDateTimeFactor = (factorOrType: Factor | FactorType): boolean => 
 export const isEnumFactor = (factorOrType: Factor | FactorType): boolean => {
 	return [
 		FactorType.ENUM,
-		FactorType.CONTINENT, FactorType.REGION, FactorType.COUNTRY, FactorType.PROVINCE, FactorType.CITY,
+		FactorType.CONTINENT,
+		FactorType.REGION,
+		FactorType.COUNTRY,
+		FactorType.PROVINCE,
+		FactorType.CITY,
 		FactorType.RESIDENCE_TYPE,
-		FactorType.GENDER, FactorType.OCCUPATION, FactorType.RELIGION, FactorType.NATIONALITY,
+		FactorType.GENDER,
+		FactorType.OCCUPATION,
+		FactorType.RELIGION,
+		FactorType.NATIONALITY,
 		FactorType.BIZ_TRADE
 	].includes(getFactorType(factorOrType));
 };

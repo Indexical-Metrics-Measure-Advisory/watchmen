@@ -12,7 +12,7 @@ import {
 } from '@/services/data/tuples/pipeline-stage-unit-action/write-topic-actions-types';
 import {Pipeline, PipelineTriggerType} from '@/services/data/tuples/pipeline-types';
 import {importTopics} from '@/services/data/tuples/topic';
-import {Topic, TopicKind, TopicType} from '@/services/data/tuples/topic-types';
+import {Topic, TopicKind, TopicLayer, TopicType} from '@/services/data/tuples/topic-types';
 import {generateUuid, isFakedUuid} from '@/services/data/tuples/utils';
 import {getCurrentTime} from '@/services/data/utils';
 import {AlertLabel} from '@/widgets/alert/widgets';
@@ -77,6 +77,7 @@ const createPeerTopic = (topic: Topic): Topic => {
 	return {
 		topicId: generateUuid(),
 		name: asPeerTopicName(topic),
+		layer : topic.layer,
 		kind: TopicKind.BUSINESS,
 		type: TopicType.DISTINCT,
 		factors: [],
@@ -101,6 +102,7 @@ const parseTopics = (topic: Topic) => {
 				name: topicName,
 				kind: TopicKind.BUSINESS,
 				type: TopicType.DISTINCT,
+				layer : TopicLayer.ODS,
 				factors: [],
 				dataSourceId: topic.dataSourceId,
 				version: 1,

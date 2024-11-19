@@ -1,5 +1,5 @@
-import {Command} from '../../command/types';
-import {MatchedCommand, MatchedCommands} from './types';
+
+import {Command, MatchedCommand, MatchedCommands} from "@/widgets/chatbot";
 
 const findNextQuote = (text: string, quote: string, startPosition: number): number => {
 	const index = text.indexOf(quote, startPosition);
@@ -53,7 +53,7 @@ const findFirstCommand = (startCommand: Command, commandText: string, greedy: bo
 		if (found) {
 			return {
 				command: found,
-				left: found ? commandText.substring(found.command.length).trimLeft() : commandText
+				left: found ? commandText.substring(found.command.length).trimStart() : commandText
 			};
 		}
 		return matchFreeTextCommand(commandText, startCommand);
@@ -63,7 +63,7 @@ const findFirstCommand = (startCommand: Command, commandText: string, greedy: bo
 		if (found) {
 			return {
 				command: found,
-				left: found ? commandText.substring(found.command.length).trimLeft() : commandText
+				left: found ? commandText.substring(found.command.length).trimStart() : commandText
 			};
 		}
 		if (commandText.endsWith(' ')) {
@@ -118,7 +118,7 @@ export const matchCommandText = (options: {
 	const {text, greedy, allCommands, pickedCommands} = options;
 
 	let startCommand: Command;
-	if (text.trimLeft().startsWith('/')) {
+	if (text.trimStart().startsWith('/')) {
 		startCommand = {trails: allCommands} as Command;
 	} else if (pickedCommands.length === 0) {
 		startCommand = {trails: allCommands} as Command;
@@ -128,7 +128,7 @@ export const matchCommandText = (options: {
 
 	const matched: MatchedCommands = {commands: [], left: ''};
 	if (text.trim()) {
-		matchCommand({matched, startCommand, commandText: text.trimLeft(), greedy});
+		matchCommand({matched, startCommand, commandText: text.trimStart(), greedy});
 	}
 	return matched;
 };

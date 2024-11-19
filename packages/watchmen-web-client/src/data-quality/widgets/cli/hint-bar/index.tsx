@@ -1,19 +1,17 @@
 import {ICON_SEND} from '@/widgets/basic/constants';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
-import {Command} from '../../../command/types';
-import {useCliEventBus} from '../events/cli-event-bus';
-import {CliEventTypes} from '../events/cli-event-bus-types';
-import {MatchedCommands} from '../types';
+
 import {matchCommand} from '../utils';
+import {CliEventTypes, Command, MatchedCommands, useCliEventBus} from "@/widgets/chatbot";
 import {
 	HintBarContainer,
 	HintCommandButton,
 	HintNoCommandButton,
 	HintOperateButton,
-	HintSendButton,
-	Placeholder
-} from './widgets';
+	HintSendButton, Placeholder
+} from "@/widgets/chatbot/cli/hint-bar/widgets";
+
 
 interface Hints {
 	commands: Array<Command>;

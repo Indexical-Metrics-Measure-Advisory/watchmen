@@ -2,9 +2,9 @@ import {Subscription, SubscriptionFrequency} from '@/services/data/subscribe';
 import {submitDerivedObjectiveSubscription} from '@/services/data/tuples/derived-objective';
 import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {
-	ObjectiveTimeFrame,
-	ObjectiveTimeFrameKind,
-	ObjectiveTimeFrameTill
+    ObjectiveTimeFrame,
+    ObjectiveTimeFrameKind,
+    ObjectiveTimeFrameTill
 } from '@/services/data/tuples/objective-types';
 import {Button} from '@/widgets/basic/button';
 import {ICON_SUBSCRIBE} from '@/widgets/basic/constants';
