@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from watchmen_model.common import TenantBasedTuple, OptimisticLock
 from watchmen_model.common.tuple_ids import AIModelId
+from watchmen_utilities import ExtendedBaseModel
 
 
 class ModelProvider(str, Enum):
@@ -17,7 +18,7 @@ class ModelProvider(str, Enum):
     Ollama = 'Ollama'
 
 
-class AIModel(TenantBasedTuple, OptimisticLock, BaseModel):
+class AIModel(TenantBasedTuple, OptimisticLock, ExtendedBaseModel):
     modelId: AIModelId = None
     enableMonitor: Optional[bool] = False
     llmProvider: ModelProvider = ModelProvider.Microsoft

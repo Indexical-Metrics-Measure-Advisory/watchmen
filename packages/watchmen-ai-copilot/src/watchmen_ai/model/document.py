@@ -11,7 +11,7 @@ class DocumentStatus(str, Enum):
     DELETED = 'deleted'
 
 
-class QueryDocument(BaseModel):
+class QueryDocument(ExtendedBaseModel):
     documentId: str = None
     documentName: str = None
     documentType: str = None
