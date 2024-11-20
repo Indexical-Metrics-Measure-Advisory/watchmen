@@ -1,12 +1,10 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel
-
 from watchmen_model.common import OptimisticLock, TenantBasedTuple
 
 
-class WatchmenNode(TenantBasedTuple, OptimisticLock, BaseModel):
+class WatchmenNode(ExtendedBaseModel,TenantBasedTuple, OptimisticLock):
     nodeId: str = None
     nodeLabel: str = None
     documentId: str = None
@@ -14,7 +12,7 @@ class WatchmenNode(TenantBasedTuple, OptimisticLock, BaseModel):
     nodeProperties: dict = None
 
 
-class WatchmenEdge(TenantBasedTuple, OptimisticLock, BaseModel):
+class WatchmenEdge(ExtendedBaseModel,TenantBasedTuple, OptimisticLock):
     edgeId: str = None
     sourceNodeID: str = None
     targetNodeID: str = None
@@ -31,7 +29,7 @@ class WatchmenPropertyType(str, Enum):
     DATE = "DATE"
 
 
-class WatchmenProperty(TenantBasedTuple, OptimisticLock, BaseModel):
+class WatchmenProperty(ExtendedBaseModel,TenantBasedTuple, OptimisticLock):
     propertyId: str = None
     nodeID: Optional[str] = None
     edgeID: Optional[str] = None
