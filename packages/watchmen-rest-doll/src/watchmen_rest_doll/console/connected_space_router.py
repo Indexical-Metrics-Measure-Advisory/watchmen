@@ -10,7 +10,9 @@ from watchmen_meta.admin import SpaceService, UserService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService, ReportService, SubjectService
 from watchmen_model.admin import Space, User, UserRole
-from watchmen_model.common import ConnectedSpaceId, LastVisit, ReportId, SpaceId, SubjectId, TenantId, UserId
+from watchmen_model.common import ConnectedSpaceId, LastVisit, ReportId, SpaceId, SubjectId, TenantId, UserId, \
+	Parameter, TopicFactorParameter, ConstantParameter, ComputedParameter, ParameterJoint, ParameterCondition, \
+	ParameterExpression, ParameterExpressionOperator
 from watchmen_model.console import ConnectedSpace, Report, Subject, SubjectDataset, SubjectDatasetColumn
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
@@ -62,11 +64,11 @@ def find_template_connected_spaces_by_ids(
 	parsed_template_ids = ArrayHelper(parse_template_ids(template_ids)).distinct().to_list()
 	if len(parsed_template_ids) == 0:
 		return []
-
+	
 	template_connected_spaces = connected_space_service.find_templates_by_ids(parsed_template_ids, space_id, tenant_id)
 	if len(template_connected_spaces) != len(parsed_template_ids):
 		raise_400(f'Template connected space ids do not match.')
-
+	
 	return template_connected_spaces
 
 
@@ -88,7 +90,7 @@ def construct_reports(reports: Optional[list] = None) -> Optional[List[Report]]:
 
 class SubjectWithReports(Subject):
 	reports: List[Report] = []
-
+	
 	def __setattr__(self, name, value):
 		if name == 'reports':
 			super().__setattr__(name, construct_reports(value))
@@ -114,7 +116,7 @@ def construct_subjects(subjects: Optional[list] = None) -> Optional[List[Subject
 
 class ConnectedSpaceWithSubjects(ConnectedSpace):
 	subjects: List[SubjectWithReports] = []
-
+	
 	def __setattr__(self, name, value):
 		if name == 'subjects':
 			super().__setattr__(name, construct_subjects(value))
@@ -166,13 +168,13 @@ def copy_to_connected_space(
 ) -> List[SubjectWithReports]:
 	subject_service = get_subject_service(connected_space_service)
 	subjects: List[Subject] = subject_service.find_by_connect_id(template_connected_space.connectId)
-
+	
 	report_service = get_report_service(connected_space_service)
 	reports: List[Report] = report_service.find_by_connect_id(template_connected_space.connectId)
 	report_map: Dict[SubjectId, List[Report]] = ArrayHelper(reports).group_by(lambda x: x.subjectId)
-
+	
 	now = get_current_time_in_seconds()
-
+	
 	def copy_and_create_report(report: Report, subject_id: SubjectId) -> Report:
 		del report.reportId
 		report_service.redress_storable_id(report)
@@ -185,7 +187,7 @@ def copy_to_connected_space(
 		report.simulateThumbnail = None
 		# noinspection PyTypeChecker
 		return report_service.create(report)
-
+	
 	def copy_and_create_subject(subject: Subject) -> SubjectWithReports:
 		my_reports = report_map.get(subject.subjectId)
 		del subject.subjectId
@@ -196,7 +198,7 @@ def copy_to_connected_space(
 		subject.lastVisitTime = now
 		# noinspection PyTypeChecker
 		subject: Subject = subject_service.create(subject)
-
+		
 		subject_with_reports = SubjectWithReports(**subject.dict())
 		if my_reports is not None and len(my_reports) != 0:
 			subject_with_reports.reports = ArrayHelper(my_reports) \
@@ -205,7 +207,7 @@ def copy_to_connected_space(
 		else:
 			subject_with_reports.reports = []
 		return subject_with_reports
-
+	
 	return ArrayHelper(subjects).map(lambda x: copy_and_create_subject(x)).to_list()
 
 
@@ -217,9 +219,9 @@ async def connect_as_connected_space(
 ) -> ConnectedSpaceWithSubjects:
 	if is_blank(space_id):
 		raise_400('Space id is required.')
-
+	
 	connected_space_service = get_connected_space_service(principal_service)
-
+	
 	def action() -> ConnectedSpaceWithSubjects:
 		space_service = get_space_service(connected_space_service)
 		space: Optional[Space] = space_service.find_by_id(space_id)
@@ -227,10 +229,10 @@ async def connect_as_connected_space(
 			raise_400('Incorrect space id.')
 		if space.tenantId != principal_service.get_tenant_id():
 			raise_403()
-
+		
 		template_connected_spaces = find_template_connected_spaces_by_ids(
 			connected_space_service, template_ids, space_id, space.tenantId)
-
+		
 		connected_space = ConnectedSpace(spaceId=space_id, name=name, isTemplate=False)
 		connected_space_service.redress_storable_id(connected_space)
 		connected_space.userId = principal_service.get_user_id()
@@ -238,15 +240,15 @@ async def connect_as_connected_space(
 		connected_space.lastVisitTime = get_current_time_in_seconds()
 		# noinspection PyTypeChecker
 		connected_space: ConnectedSpace = connected_space_service.create(connected_space)
-
+		
 		subjects_with_reports = ArrayHelper(template_connected_spaces) \
 			.map(lambda x: copy_to_connected_space(x, connected_space, connected_space_service)) \
 			.flatten().to_list()
-
+		
 		connected_space_with_subjects = ConnectedSpaceWithSubjects(**connected_space.dict())
 		connected_space_with_subjects.subjects = subjects_with_reports
 		return connected_space_with_subjects
-
+	
 	return trans(connected_space_service, action)
 
 
@@ -278,11 +280,11 @@ def load_subjects_and_reports(
 	reports: List[Report] = report_service.find_by_connect_id(connect_id)
 	# noinspection DuplicatedCode
 	report_map: Dict[SubjectId, List[Report]] = ArrayHelper(reports).group_by(lambda x: x.subjectId)
-
+	
 	connected_space_with_subjects = ConnectedSpaceWithSubjects(**connected_space.dict())
 	connected_space_with_subjects.subjects = ArrayHelper(subjects) \
 		.map(lambda x: to_subject_with_reports(x, report_map.get(x.subjectId))).to_list()
-
+	
 	if should_update_last_visit_time:
 		# update last visit time
 		update_last_visit_time(connected_space_service, connected_space.connectId, connected_space)
@@ -302,7 +304,7 @@ async def find_my_connected_spaces(
 	get my all connected spaces
 	"""
 	connected_space_service = get_connected_space_service(principal_service)
-
+	
 	def action() -> List[ConnectedSpaceWithSubjects]:
 		# noinspection PyTypeChecker
 		connected_spaces: List[ConnectedSpace] = connected_space_service.find_all_by_user_id(
@@ -312,7 +314,7 @@ async def find_my_connected_spaces(
 		else:
 			return ArrayHelper(connected_spaces).map(
 				lambda x: load_subjects_and_reports(x, connected_space_service, True)).to_list()
-
+	
 	return trans(connected_space_service, action)
 
 
@@ -328,9 +330,9 @@ async def updated_connected_space_as_template(
 		raise_400('Connected space id is required.')
 	if is_template is None:
 		raise_400('Connected space as template or not is required.')
-
+	
 	connected_space_service = get_connected_space_service(principal_service)
-
+	
 	# noinspection DuplicatedCode
 	def action() -> None:
 		existing_one = connected_space_service.find_tenant_and_user(connect_id)
@@ -344,7 +346,7 @@ async def updated_connected_space_as_template(
 		# noinspection PyTypeChecker
 		connected_space_service.update_as_template(
 			connect_id, is_template, principal_service.get_user_id(), principal_service.get_tenant_id())
-
+	
 	trans(connected_space_service, action)
 
 
@@ -358,9 +360,9 @@ async def update_connected_space_name_by_id(
 	"""
 	if is_blank(connect_id):
 		raise_400('Connected space id is required.')
-
+	
 	connected_space_service = get_connected_space_service(principal_service)
-
+	
 	# noinspection DuplicatedCode
 	def action() -> None:
 		existing_one = connected_space_service.find_tenant_and_user(connect_id)
@@ -374,7 +376,7 @@ async def update_connected_space_name_by_id(
 		# noinspection PyTypeChecker
 		connected_space_service.update_name(
 			connect_id, name, principal_service.get_user_id(), principal_service.get_tenant_id())
-
+	
 	trans(connected_space_service, action)
 
 
@@ -384,9 +386,9 @@ async def delete_connected_space_by_id(
 ) -> None:
 	if is_blank(connect_id):
 		raise_400('Connected space id is required.')
-
+	
 	connected_space_service = get_connected_space_service(principal_service)
-
+	
 	# noinspection DuplicatedCode
 	def action() -> None:
 		# noinspection PyTypeChecker
@@ -402,7 +404,7 @@ async def delete_connected_space_by_id(
 		subject_service.delete_by_connect_id(connect_id)
 		report_service: ReportService = get_report_service(connected_space_service)
 		report_service.delete_by_connect_id(connect_id)
-
+	
 	trans(connected_space_service, action)
 
 
@@ -420,9 +422,9 @@ async def find_all_template_connected_spaces(
 ) -> List[TemplateConnectedSpace]:
 	if is_blank(space_id):
 		raise_400('Space id is required.')
-
+	
 	connected_space_service = get_connected_space_service(principal_service)
-
+	
 	def to_template_connected_space(
 			connected_space: ConnectedSpace, user_map: Dict[UserId, User]) -> TemplateConnectedSpace:
 		user: Optional[User] = user_map.get(connected_space.userId)
@@ -437,7 +439,7 @@ async def find_all_template_connected_spaces(
 			name=connected_space.name,
 			createdBy=created_by
 		)
-
+	
 	def action() -> List[TemplateConnectedSpace]:
 		connected_spaces = connected_space_service.find_templates_by_space_id(
 			space_id, principal_service.get_tenant_id())
@@ -446,7 +448,7 @@ async def find_all_template_connected_spaces(
 		users: List[User] = user_service.find_by_ids(user_ids, principal_service.get_tenant_id())
 		user_map: Dict[UserId, User] = ArrayHelper(users).to_map(lambda x: x.userId, lambda x: x)
 		return ArrayHelper(connected_spaces).map(lambda x: to_template_connected_space(x, user_map)).to_list()
-
+	
 	return trans_readonly(connected_space_service, action)
 
 
@@ -455,7 +457,7 @@ async def find_template_connected_spaces_for_export(
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> List[ConnectedSpaceWithSubjects]:
 	connected_space_service = get_connected_space_service(principal_service)
-
+	
 	def action() -> List[ConnectedSpaceWithSubjects]:
 		# noinspection PyTypeChecker
 		connected_spaces: List[ConnectedSpace] = \
@@ -466,7 +468,7 @@ async def find_template_connected_spaces_for_export(
 			return ArrayHelper(connected_spaces) \
 				.map(lambda x: load_subjects_and_reports(x, connected_space_service, False)) \
 				.to_list()
-
+	
 	return trans_readonly(connected_space_service, action)
 
 
@@ -477,12 +479,12 @@ async def delete_connected_space_by_id_by_super_admin(
 ) -> ConnectedSpaceWithSubjects:
 	if not ask_tuple_delete_enabled():
 		raise_404('Not Found')
-
+	
 	if is_blank(connect_id):
 		raise_400('Connected space id is required.')
-
+	
 	connected_space_service = get_connected_space_service(principal_service)
-
+	
 	# noinspection DuplicatedCode
 	def action() -> ConnectedSpaceWithSubjects:
 		# noinspection PyTypeChecker
@@ -496,12 +498,12 @@ async def delete_connected_space_by_id_by_super_admin(
 		report_service: ReportService = get_report_service(connected_space_service)
 		reports: List[Report] = report_service.delete_by_connect_id(connect_id)
 		report_map: Dict[SubjectId, List[Report]] = ArrayHelper(reports).group_by(lambda x: x.subjectId)
-
+		
 		connected_space_with_subjects = ConnectedSpaceWithSubjects(**connected_space.dict())
 		connected_space_with_subjects.subjects = ArrayHelper(subjects) \
 			.map(lambda x: to_subject_with_reports(x, report_map.get(x.subjectId))).to_list()
 		return connected_space_with_subjects
-
+	
 	return trans(connected_space_service, action)
 
 
@@ -511,7 +513,7 @@ def add_dataset_column_type(
 	dataset = subject_with_type.dataset
 	schema = SubjectSchema(subject_with_type, principal_service, True)
 	available_schemas = schema.get_available_schemas()
-
+	
 	def ask_column_type(column: SubjectDatasetColumnWithType):
 		if not column.recalculate:
 			parsed_parameter = parse_parameter_for_storage(
@@ -523,7 +525,7 @@ def add_dataset_column_type(
 			return column
 		else:
 			return column
-
+	
 	dataset.columns = ArrayHelper(dataset.columns).map(lambda x: ask_column_type(x)).to_list()
 	return subject_with_type
 
@@ -539,7 +541,7 @@ def construct_subject_with_type(subject: Union[dict, Subject]) -> Optional[Subje
 
 def add_column_type_to_subjects(subjects: List[Subject], principal_service) -> List[SubjectWithFactorType]:
 	subject_list_with_type = ArrayHelper(subjects).map(lambda x: construct_subject_with_type(x.to_dict())).to_list()
-
+	
 	return ArrayHelper(subject_list_with_type).map(lambda x: add_dataset_column_type(x, principal_service)).to_list()
 
 
@@ -548,7 +550,7 @@ async def find_template_subjects_by_id(
 		principal_service: PrincipalService = Depends(
 			get_admin_principal)) -> List[Subject]:
 	connected_space_service = get_connected_space_service(principal_service)
-
+	
 	def action() -> List[Subject]:
 		connected_spaces: List[ConnectedSpace] = connected_space_service.find_templates_by_user_id(
 			principal_service.get_user_id(), principal_service.get_tenant_id())
@@ -557,7 +559,7 @@ async def find_template_subjects_by_id(
 			.map(lambda x: subject_service.find_by_connect_id(x.connectId)) \
 			.flatten() \
 			.to_list()
-
+	
 	subjects = trans(connected_space_service, action)
 	return add_column_type_to_subjects(subjects, principal_service)
 
@@ -567,7 +569,7 @@ async def find_template_subjects_by_id(
 		principal_service: PrincipalService = Depends(
 			get_admin_principal)) -> List[Subject]:
 	connected_space_service = get_connected_space_service(principal_service)
-
+	
 	def action() -> List[Subject]:
 		connected_spaces: List[ConnectedSpace] = connected_space_service.find_all(principal_service.get_tenant_id())
 		subject_service: SubjectService = get_subject_service(connected_space_service)
@@ -575,6 +577,95 @@ async def find_template_subjects_by_id(
 			.map(lambda x: subject_service.find_by_connect_id(x.connectId)) \
 			.flatten() \
 			.to_list()
-
+	
 	subjects = trans(connected_space_service, action)
-	return add_column_type_to_subjects(subjects, principal_service)
+	finished_subjects = filter_unfinished_subjects(subjects)
+	return add_column_type_to_subjects(finished_subjects, principal_service)
+
+
+def filter_unfinished_subjects(subjects: List[Subject]) -> List[Subject]:
+	def is_finished(subject: Subject) -> bool:
+		if incomplete_dataset(subject):
+			return False
+		else:
+			return True
+	
+	def incomplete_dataset(subject: Subject) -> bool:
+		dataset = subject.dataset
+		if dataset is None:
+			return True
+		
+		def incomplete_columns() -> bool:
+			columns = dataset.columns
+			if columns is None or len(columns) == 0:
+				return True
+			for column in columns:
+				if column.parameter:
+					if incomplete_parameter(column.parameter):
+						return True
+				else:
+					return True
+			return False
+		
+		if incomplete_columns():
+			return True
+		
+		def incomplete_joins() -> bool:
+			joins = dataset.joins
+			if joins:
+				for join in joins:
+					if join.topicId is None or join.factorId is None or join.secondaryTopicId is None or join.secondaryFactorId:
+						return True
+				return False
+			else:
+				return False
+		
+		if incomplete_joins():
+			return True
+		
+		def incomplete_filters() -> bool:
+			if dataset.filters:
+				return incomplete_filter(dataset.filters)
+			else:
+				return False
+		
+		if incomplete_filters():
+			return True
+	
+	return ArrayHelper(subjects).filter(lambda subject: is_finished(subject)).to_list()
+
+
+def incomplete_parameter(parameter: Parameter) -> bool:
+	if isinstance(parameter, TopicFactorParameter):
+		if is_blank(parameter.topicId) or is_blank(parameter.factorId):
+			return True
+		else:
+			return False
+	elif isinstance(parameter, ConstantParameter):
+		if is_blank(parameter.value):
+			return True
+		else:
+			return False
+	elif isinstance(parameter, ComputedParameter):
+		if parameter.type is None:
+			return True
+		elif parameter.parameters:
+			for parameter in parameter.parameters:
+				if incomplete_parameter(parameter):
+					return True
+				else:
+					continue
+		return False
+
+
+def incomplete_filter(condition: ParameterCondition) -> bool:
+	if isinstance(condition, ParameterJoint):
+		for filter_ in condition.filters:
+			if incomplete_parameter(filter_):
+				return True
+		return False
+	elif isinstance(condition, ParameterExpression):
+		if condition.operator == ParameterExpressionOperator.EMPTY or condition.operator == ParameterExpressionOperator.NOT_EMPTY:
+			return incomplete_parameter(condition.left)
+		else:
+			return incomplete_parameter(condition.left) or incomplete_parameter(condition.right)
