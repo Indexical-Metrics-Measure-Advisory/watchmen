@@ -154,7 +154,7 @@ def build_aggregate_assist_column(topic: Topic) -> str:
 
 
 def build_version_column(topic: Topic) -> str:
-	return f'\tversion_ DECIMAL(8),' if is_aggregation_topic(topic) else ''
+	return f'\tversion_ INTEGER,' if is_aggregation_topic(topic) else ''
 
 
 # noinspection SqlResolve,DuplicatedCode
@@ -190,7 +190,7 @@ def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
 
 	if is_aggregation_topic(topic) and not is_aggregation_topic(original_topic):
 		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN aggregate_assist_ JSON')
-		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN version_ DECIMAL(8)')
+		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN version_ INTEGER')
 
 	return columns
 
@@ -230,7 +230,7 @@ def build_table_script(topic: Topic) -> str:
 	# noinspection SqlType
 	return f'''
 CREATE TABLE {entity_name} (
-\tid_ DECIMAL(20),
+\tid_ BIGINT,
 {build_columns(topic)}
 {build_aggregate_assist_column(topic)}
 {build_version_column(topic)}
