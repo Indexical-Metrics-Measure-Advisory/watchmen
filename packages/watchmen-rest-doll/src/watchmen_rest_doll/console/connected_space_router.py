@@ -614,7 +614,7 @@ def filter_unfinished_subjects(subjects: List[Subject]) -> List[Subject]:
 			joins = dataset.joins
 			if joins:
 				for join in joins:
-					if join.topicId is None or join.factorId is None or join.secondaryTopicId is None or join.secondaryFactorId:
+					if is_blank(join.topicId) or is_blank(join.factorId) or is_blank(join.secondaryTopicId) or is_blank(join.secondaryFactorId):
 						return True
 				return False
 			else:
