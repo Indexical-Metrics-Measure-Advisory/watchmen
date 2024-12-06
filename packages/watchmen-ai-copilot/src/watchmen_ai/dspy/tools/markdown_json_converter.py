@@ -1,8 +1,9 @@
 import json
 
 import mistletoe
-from watchmen_ai.dspy.tools.markdown_parser import MarkdownParser
 from mistletoe.ast_renderer import AstRenderer
+
+from watchmen_ai.dspy.tools.markdown_parser import MarkdownParser
 
 
 class Markdown(MarkdownParser):

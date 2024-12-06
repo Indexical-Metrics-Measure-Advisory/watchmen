@@ -2,7 +2,7 @@ import json
 from enum import Enum
 from typing import List
 
-from watchmen_ai.dspy.model.watchmen_document import WatchmenDocument
+from watchmen_ai.dspy.model.data_story import DataStory
 from watchmen_ai.dspy.parser.common_parser import find_name_for_document
 from watchmen_ai.dspy.parser.objective_parser import ObjectiveParser
 from watchmen_ai.dspy.tools.markdown_json_converter import Markdown
@@ -25,12 +25,12 @@ def is_data_story_objective(name):
 class DataStorySpliter:
 
     def __init__(self, data):
-        self.data = data
+        self.data = data.decode("utf-8")
 
     def __process_objective(self, markdown_json: json):
         return ObjectiveParser(markdown_json).parse()
 
-    def split(self) -> WatchmenDocument:
+    def split(self) -> DataStory:
 
         markdown_json = self._convert_markdown_to_json()
 
@@ -52,6 +52,6 @@ if __name__ == '__main__':
     with open("../doc/How Incentive Programs Improve Business Performance.md", 'r') as fin:
         markdown = fin.read()
         spliter = DataStorySpliter(markdown)
-        result = spliter.split(DocumentType.OBJECTIVE)
+        result = spliter.split()
 
         print(result.json())

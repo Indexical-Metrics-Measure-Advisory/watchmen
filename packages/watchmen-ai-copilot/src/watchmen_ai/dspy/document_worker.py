@@ -1,31 +1,21 @@
-import os
 from typing import Dict
 
-import dspy
-from pydantic import BaseModel
-
-from watchmen_ai.dspy.event.knowledge_base_events import knowledge_graph_inserted
-from watchmen_ai.dspy.model.objective_document import ObjectiveDocument, MetricNode
-from watchmen_ai.dspy.model.watchmen_document import WatchmenDocument
+from watchmen_ai.dspy.model.data_story import DataStory, Hypothesis, Metric
 from watchmen_ai.dspy.module.content_verification import ContentVerification, Verification
 from watchmen_ai.dspy.module.metirc_ner import MetricNERMatch, MetricNER
 from watchmen_ai.dspy.module.visualization_suggestion import VisualizationSuggestionModule
-from watchmen_ai.dspy.test import lancedb_retriever
 from watchmen_ai.dspy.tools.data_story_spliter import DataStorySpliter
 from watchmen_ai.model.document import Document
 
-os.environ["AZURE_API_KEY"] = "88dfc733a80a4825a46a380a5d878809"
-os.environ["AZURE_API_BASE"] = "https://azure-insuremo-gpt4-openai.openai.azure.com"
-os.environ["AZURE_API_VERSION"] = "2024-02-15-preview"
-
-# load markdown upload_file
-# lm = dspy.LM('azure/gpt_4o')
-lm = dspy.LM('azure/gpt_4o_mini')
-
-dspy.settings.configure(rm=lancedb_retriever, lm=lm)
-
-
-
+# os.environ["AZURE_API_KEY"] = "88dfc733a80a4825a46a380a5d878809"
+# os.environ["AZURE_API_BASE"] = "https://azure-insuremo-gpt4-openai.openai.azure.com"
+# os.environ["AZURE_API_VERSION"] = "2024-02-15-preview"
+#
+# # load markdown upload_file
+# # lm = dspy.LM('azure/gpt_4o')
+# lm = dspy.LM('azure/gpt_4o_mini')
+#
+# dspy.settings.configure(rm=lancedb_retriever, lm=lm)
 
 check_rule = "check whether this document include objective ,business target , metrics for insurance domain"
 
@@ -41,7 +31,8 @@ class DocumentWorker:
         if self.need_verification:
             verify = ContentVerification()
             # Verify the content
-            verification_result: Verification = verify.forward(question=check_rule, content=self.document.documentContent)
+            verification_result: Verification = verify.forward(question=check_rule,
+                                                               content=self.document.documentContent)
             print(verification_result.response)
             if not verification_result.response.verification_pass:
                 self.document.verified = False
@@ -51,31 +42,30 @@ class DocumentWorker:
         split_document = self.split()
 
         if self.context_is_objective(split_document):
-            objective_document: ObjectiveDocument = split_document
+            data_story: DataStory = split_document
+            data_story.documentName = self.document.documentName
             ner = MetricNERMatch()
             vs = VisualizationSuggestionModule()
 
-            #
-            # objective_dict,all_metrics_dict = self.build_metric_dict_for_all_objective(objective_document)
-            #
-            # self.suggestion_visualization(all_metrics_dict, objective_document.dimensions,objective_dict.keys())
+            for sub_question in data_story.subQuestions:
+                for hypothesis in sub_question.hypothesis:
 
-            for objective in objective_document.objectives:
-                metrics_dict = self.build_metric_dict(objective.metrics)
-                self.suggestion_visualization(metrics_dict, objective_document.dimensions, objective.description, vs)
-                print("end suggestion")
-                self.ner_metrics(metrics_dict, ner, objective)
-                print("end ner")
-                # objective.metrics = list(metrics_dict.values())
+                    metrics_dict = self.build_metric_dict(hypothesis.metrics)
+                    # print("start suggestion",metrics_dict)
+                    self.suggestion_visualization(metrics_dict, data_story.dimensions, hypothesis.description,
+                                                  vs)
+                    print("end suggestion")
+                    self.ner_metrics(metrics_dict, ner, hypothesis)
+                    print("end ner")
+                    # objective.metrics = list(metrics_dict.values())
 
-                # TODO if have rate metric , then add benchmark
-                if self.benchmark_is_on():
-                    pass
-                    # benchmark = BenchmarkModule()
-                    # benchmark.forward(metrics=objective.metrics)
-
-            knowledge_graph_inserted.send(objective_document)
-            return objective_document
+                    # TODO if have rate metric , then add benchmark
+                    if self.benchmark_is_on():
+                        pass
+                        # benchmark = BenchmarkModule()
+                        # benchmark.forward(metrics=objective.metrics)
+                # todo knowledge_graph_inserted.send(objective_document)
+            return data_story
         else:
             return split_document
         ## TODO send data and contenxt to integration signal
@@ -88,15 +78,15 @@ class DocumentWorker:
                 metrics_dict[metric.metric_name].reason = metric.reason
                 metrics_dict[metric.metric_name].dimensions = metric.suggestion_dimensions
 
-    def ner_metrics(self, metrics_dict, ner, objective):
+    def ner_metrics(self, metrics_dict, ner, hypothesis: Hypothesis):
         if self.ner_is_on():
-            ner_result: MetricNER = ner(content=objective.description, context=objective.objective_name)
+            ner_result: MetricNER = ner(content=hypothesis.description, context=hypothesis.hypothesis)
 
             # TODO find dimension and metric from objective and suggestion how to visualize
             metric_results = ner_result.response.match_results
             for metric in metric_results:
                 if metric.metric_name not in metrics_dict:
-                    metrics_dict[metric.metric_name] = MetricNode(name=metric.metric_name)
+                    metrics_dict[metric.metric_name] = Metric(name=metric.metric_name)
 
     def build_metric_dict(self, metric_results):
         metric_dict = {}
@@ -104,21 +94,23 @@ class DocumentWorker:
             metric_dict[metric.name] = metric
         return metric_dict
 
-    def build_metric_dict_for_all_objective(self, objective_document: ObjectiveDocument) -> Dict:
+    def build_metric_dict_for_all_objective(self, data_story: DataStory) -> Dict:
         objective_dict = {}
         all_metrics_dict = {}
-        for objective in objective_document.objectives:
-            metric_dict = {}
-            for metric in objective.metrics:
-                metric_dict[metric.name] = metric
-                all_metrics_dict[metric.name] = metric
-
-            objective_dict[objective.objective_name] = metric_dict
+        for sub_question in data_story.subQuestions:
+            for hypothesis in sub_question.hypothesis:
+                metric_dict = {}
+                for metric in hypothesis.metrics:
+                    metric_dict[metric.name] = metric
+                    all_metrics_dict[metric.name] = metric
+                # TODO add dimension
+                objective_dict[hypothesis.hypothesis] = metric_dict
 
         return objective_dict, all_metrics_dict
 
     def split(self):
-        return DataStorySpliter(self.document.content).split()
+        # print(self.document.documentContent)
+        return DataStorySpliter(self.document.documentContent).split()
 
     def save(self):
         # Save the document
@@ -134,9 +126,9 @@ class DocumentWorker:
     def benchmark_is_on(self):
         return False
 
-    def context_is_objective(self, document: WatchmenDocument) -> bool:
+    def context_is_objective(self, data_story: DataStory) -> bool:
 
-        if isinstance(document, ObjectiveDocument):
+        if isinstance(data_story, DataStory):
             return True
         else:
             return False

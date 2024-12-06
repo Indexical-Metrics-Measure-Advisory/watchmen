@@ -1,9 +1,10 @@
-from pydantic import BaseModel
 from typing import List
 
-from watchmen_ai.task.base_action import BaseAction
+from pydantic import BaseModel
 from watchmen_model.admin import Topic
 from watchmen_model.console import Subject
+
+from watchmen_ai.task.base_action import BaseAction
 
 
 class SuggestionAnalysisCase(BaseModel):
@@ -13,7 +14,7 @@ class SuggestionAnalysisCase(BaseModel):
     analysis_metrics: List[str] = []
 
 
-def init_analyze(topics: List[Topic], subjects: List[Subject])->List[SuggestionAnalysisCase]:
+def init_analyze(topics: List[Topic], subjects: List[Subject]) -> List[SuggestionAnalysisCase]:
     ### read data
 
     pass

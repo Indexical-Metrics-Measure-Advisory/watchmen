@@ -1,9 +1,7 @@
-
-
 from enum import Enum
+from typing import List, Dict, Any, Optional
 
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
 
 
 class CopilotTask(BaseModel):

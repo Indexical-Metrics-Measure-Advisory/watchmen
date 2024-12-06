@@ -1,10 +1,11 @@
 # +---------+
 # | imports |
 # +---------+
-import watchmen_ai.markdown.mermaid.flowchart._internal_flowchart as _internal
-from typing import Union as _Union
 from typing import List as _List
 from typing import Tuple as _Tuple
+from typing import Union as _Union
+
+import watchmen_ai.markdown.mermaid.flowchart._internal_flowchart as _internal
 
 
 # +---------------+
@@ -169,7 +170,8 @@ def add_arrow(text: str = "", type: int = 0, length: int = 1, backArrow: bool = 
     return _internal.Arrow(text=text, type=type, length=length, backArrow=backArrow)
 
 
-def add_node_style(name: str, fill: str = "", border_color: str = "", border_width: int = 1, text_color: str = "", dashed_border_lengths: _Union[_List[int], _Tuple[int]] = ()) -> _internal.NodeStyle:
+def add_node_style(name: str, fill: str = "", border_color: str = "", border_width: int = 1, text_color: str = "",
+                   dashed_border_lengths: _Union[_List[int], _Tuple[int]] = ()) -> _internal.NodeStyle:
     """
     ==========
 
@@ -222,10 +224,12 @@ def add_node_style(name: str, fill: str = "", border_color: str = "", border_wid
 
     ==========
     """
-    return _internal.NodeStyle(name=name, fill=fill, border_color=border_color, border_width=border_width, text_color=text_color, dashed_border_lengths=dashed_border_lengths)
+    return _internal.NodeStyle(name=name, fill=fill, border_color=border_color, border_width=border_width,
+                               text_color=text_color, dashed_border_lengths=dashed_border_lengths)
 
 
-def add_link_style(line_color: str = "#d3d3d3", line_width: int = 2, text_color: str = "", dashed_line_lengths: _Union[_List[int], _Tuple[int]] = ()):
+def add_link_style(line_color: str = "#d3d3d3", line_width: int = 2, text_color: str = "",
+                   dashed_line_lengths: _Union[_List[int], _Tuple[int]] = ()):
     """
     ==========
 
@@ -272,13 +276,18 @@ def add_link_style(line_color: str = "#d3d3d3", line_width: int = 2, text_color:
 
     ==========
     """
-    return _internal.LinkStyle(line_color=line_color, line_width=line_width, text_color=text_color, dashed_line_lengths=dashed_line_lengths)
+    return _internal.LinkStyle(line_color=line_color, line_width=line_width, text_color=text_color,
+                               dashed_line_lengths=dashed_line_lengths)
 
 
 # +-------------------+
 # | general functions |
 # +-------------------+
-def link(a: _Union[_internal.Node, _internal.Group, _List[_internal.Node], _List[_internal.Group], _Tuple[_internal.Node, ...], _Tuple[_internal.Group, ...]], b: _Union[_internal.Node, _internal.Group, _List[_internal.Node], _List[_internal.Group], _Tuple[_internal.Node, ...], _Tuple[_internal.Group, ...]], arrow: _internal.Arrow = "", style: _internal.LinkStyle = "") -> None:
+def link(a: _Union[
+    _internal.Node, _internal.Group, _List[_internal.Node], _List[_internal.Group], _Tuple[_internal.Node, ...], _Tuple[
+        _internal.Group, ...]], b: _Union[
+    _internal.Node, _internal.Group, _List[_internal.Node], _List[_internal.Group], _Tuple[_internal.Node, ...], _Tuple[
+        _internal.Group, ...]], arrow: _internal.Arrow = "", style: _internal.LinkStyle = "") -> None:
     """
     ==========
 

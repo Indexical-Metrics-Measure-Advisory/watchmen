@@ -1,8 +1,7 @@
 from enum import Enum
 
-from pydantic import BaseModel
-
 from watchmen_model.common import OptimisticLock, TenantBasedTuple
+from watchmen_utilities import ExtendedBaseModel
 
 
 class DocumentStatus(str, Enum):
@@ -20,6 +19,5 @@ class QueryDocument(ExtendedBaseModel):
     verified: bool = True
 
 
-
-class Document(TenantBasedTuple, OptimisticLock, QueryDocument):
+class Document(QueryDocument, TenantBasedTuple, OptimisticLock):
     documentContent: bytes = None

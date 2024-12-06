@@ -1,7 +1,7 @@
 from fastapi import APIRouter
+from watchmen_auth import PrincipalService
 
 from watchmen_ai.knowledge_base.knowledge_process_service import KnowledgeProcessService
-from watchmen_auth import PrincipalService
 
 router = APIRouter()
 

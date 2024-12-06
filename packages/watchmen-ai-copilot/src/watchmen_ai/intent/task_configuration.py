@@ -30,12 +30,12 @@ class CopilotTaskConfiguration:
 
     def load_task_by_name(self, intent: str, language) -> CopilotTask:
         if intent == "summarize":
-            return  CopilotTask(task_name="summarize",
-                           description=get_message_by_lang(language, "summarize"),
-                           depends=["time_range", "business_target"])
+            return CopilotTask(task_name="summarize",
+                               description=get_message_by_lang(language, "summarize"),
+                               depends=["time_range", "business_target"])
         elif intent == "exception_metrics":
             return CopilotTask(task_name="exception_metrics", withConfirm=True,
-                           description=get_message_by_lang(language, "exception_metrics"),
-                           depends=[])
+                               description=get_message_by_lang(language, "exception_metrics"),
+                               depends=[])
 
         return None

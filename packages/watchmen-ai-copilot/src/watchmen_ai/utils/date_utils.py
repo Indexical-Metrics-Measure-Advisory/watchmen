@@ -1,6 +1,6 @@
+import calendar
 import datetime
 
-import calendar
 
 def recognize_time_description(user_input):
     """
@@ -47,14 +47,13 @@ def get_last_month_start():
 
 
 def get_last_month_end():
-  """
-  Gets the end date of the last month.
-  """
-  today = datetime.date.today()
-  last_month = today.replace(month=today.month - 1)
-  _, last_day = calendar.monthrange(last_month.year, last_month.month)
-  return last_month.replace(day=last_day)
-
+    """
+    Gets the end date of the last month.
+    """
+    today = datetime.date.today()
+    last_month = today.replace(month=today.month - 1)
+    _, last_day = calendar.monthrange(last_month.year, last_month.month)
+    return last_month.replace(day=last_day)
 
 
 def get_last_n_months_start(n):

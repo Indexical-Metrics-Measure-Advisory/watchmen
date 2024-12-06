@@ -421,14 +421,12 @@ def find_usage_actions():
     return message
 
 
-
 def generate_metric_chart_card():
     pass
 
 
 def generate_story_card():
     pass
-
 
 
 if __name__ == "__main__":

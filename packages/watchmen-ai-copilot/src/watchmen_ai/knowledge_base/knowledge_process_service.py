@@ -1,3 +1,6 @@
+from watchmen_auth import PrincipalService
+from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage, ask_super_admin
+
 from watchmen_ai.event.knowledge_base_events import knowledge_graph_inserted
 from watchmen_ai.knowledge_base.process.knowledge_graph_processor import KnowledgeGraphProcessor
 from watchmen_ai.meta.document_service import KnowledgeDocumentService
@@ -6,9 +9,7 @@ from watchmen_ai.meta.graph_service import KnowledgeGraphNodeService, KnowledgeG
 from watchmen_ai.model.document import DatasetDocument
 from watchmen_ai.model.knowledge_base import KnowledgeType
 from watchmen_ai.utils.graph_utils import WatchmenGraphWrapper, generate_uuid
-from watchmen_auth import PrincipalService
 from watchmen_indicator_surface.util import trans, trans_readonly
-from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage, ask_super_admin
 
 
 def load_graph_edge_service(node_service: KnowledgeGraphNodeService) -> KnowledgeGraphEdgeService:
@@ -128,8 +129,8 @@ class KnowledgeProcessService:
 
         print("knowledge graph")
 
-
-    def sync_insert_data_to_knowledge_graph(self, graph_wrapper: WatchmenGraphWrapper, principal_service: PrincipalService):
+    def sync_insert_data_to_knowledge_graph(self, graph_wrapper: WatchmenGraphWrapper,
+                                            principal_service: PrincipalService):
         knowledge_graph_inserted.send(graph_wrapper)
 
 
@@ -148,7 +149,6 @@ if __name__ == '__main__':
     # #                                                 KnowledgeType.OBJECTIVE, wrapper, document_set.documentId,
     # #                                                 ask_super_admin())
 
-
     #
     with open("../../../test/How Incentive Programs Improve Business Performance.md", 'r') as fin:
         markdown = fin.read()
@@ -157,14 +157,12 @@ if __name__ == '__main__':
         #
 
         document_set: DatasetDocument = knowledge_process_service.save_document_dataset(
-                 "How Incentive Programs Improve Business Performance.md", "Objecitive", markdown, ask_super_admin())
+            "How Incentive Programs Improve Business Performance.md", "Objecitive", markdown, ask_super_admin())
 
         #
         knowledge_process_service.process_markdown(markdown, KnowledgeType.OBJECTIVE, document_set.documentId,
                                                    ask_super_admin())
 
-
     print("done")
-
 
     #

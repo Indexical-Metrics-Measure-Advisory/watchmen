@@ -1,7 +1,10 @@
+import os
+
 import dspy
-from demo.azure_openai_register import azure_openai_registry
 from dspy.retrieve.lancedb_rm import LancedbRM
 from lancedb.pydantic import LanceModel, Vector
+
+from watchmen_ai.dspy.azure_openai_register import azure_openai_registry
 
 clip = azure_openai_registry.create(azure_deployment="text-embedding-ada-002",
                                     azure_endpoint="https://azure-insuremo-openai.openai.azure.com/",
@@ -19,11 +22,15 @@ class ObjectiveVector(LanceModel):
     node_label: str = None
 
 
+# find current path in this file and path /knowledge_vector
+path = os.path.join(os.path.dirname(__file__), persist_directory)
+
 lancedb_retriever = LancedbRM(
     table_name=GRAPH_TABLE,
-    persist_directory=persist_directory
+    persist_directory=path
 )
 
 dspy.settings.configure(rm=lancedb_retriever)
 
 # lancedb_retriever("Sale manager")
+# print("test")

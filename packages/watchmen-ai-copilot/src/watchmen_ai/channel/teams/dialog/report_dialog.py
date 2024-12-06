@@ -1,7 +1,3 @@
-from botbuilder.dialogs import WaterfallDialog, WaterfallStepContext, ComponentDialog, TextPrompt, DialogTurnResult, DialogTurnStatus
-from botbuilder.schema import Activity, ActivityTypes, SuggestedActions, CardAction, ActionTypes
-
-from watchmen_ai.channel.common.suggest_actions import suggest_action_service
 from botbuilder.dialogs import WaterfallDialog, WaterfallStepContext, ComponentDialog, TextPrompt, DialogTurnResult, \
     DialogTurnStatus
 from botbuilder.schema import Activity, ActivityTypes, SuggestedActions, CardAction, ActionTypes

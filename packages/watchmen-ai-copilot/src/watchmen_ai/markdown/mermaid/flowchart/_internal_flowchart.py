@@ -41,9 +41,11 @@ code = []
 
 
 class NodeStyle:
-    def __init__(self, name: str, fill: str = "", border_color: str = "", border_width: int = 1, text_color: str = "", dashed_border_lengths: Union[List[int], Tuple[int]] = ()):
+    def __init__(self, name: str, fill: str = "", border_color: str = "", border_width: int = 1, text_color: str = "",
+                 dashed_border_lengths: Union[List[int], Tuple[int]] = ()):
 
-        if fill == "" and border_color == "" and border_width == 1 and text_color == "" and dashed_border_lengths == (5, 5):
+        if fill == "" and border_color == "" and border_width == 1 and text_color == "" and dashed_border_lengths == (
+                5, 5):
             warn("At least one parameter is required", Warning, 3)
             exit()
 
@@ -72,7 +74,8 @@ class NodeStyle:
 
 
 class LinkStyle:
-    def __init__(self, line_color: str = "#d3d3d3", line_width: int = 2, text_color: str = "", dashed_line_lengths: Union[List[int], Tuple[int]] = ()):
+    def __init__(self, line_color: str = "#d3d3d3", line_width: int = 2, text_color: str = "",
+                 dashed_line_lengths: Union[List[int], Tuple[int]] = ()):
         if line_color == "#d3d3d3" and line_width == 2 and text_color == "" and dashed_line_lengths == (5, 5):
             warn("At least one parameter is required", Warning, 3)
             exit()
@@ -237,7 +240,8 @@ class Arrow:
 defaultArrow = Arrow()
 
 
-def link(a: Union[Node, List[Node], Tuple[Node, ...], Group], b: Union[Node, List[Node], Tuple[Node, ...], Group], arrow: Arrow = "", style: LinkStyle = ""):
+def link(a: Union[Node, List[Node], Tuple[Node, ...], Group], b: Union[Node, List[Node], Tuple[Node, ...], Group],
+         arrow: Arrow = "", style: LinkStyle = ""):
     global linksId
     linksId += 1
 

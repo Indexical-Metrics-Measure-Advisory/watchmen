@@ -1,5 +1,14 @@
 from typing import List
 
+from watchmen_auth import PrincipalService
+from watchmen_inquiry_kernel.helper.subject_helper import add_column_type_to_subjects
+from watchmen_inquiry_kernel.storage.subject_storage import get_connected_space_service
+from watchmen_meta.console import SubjectService, ConnectedSpaceService
+from watchmen_model.console import Subject, ConnectedSpace
+from watchmen_model.console.subject_ext import SubjectWithFactorType
+from watchmen_model.system.ai_model import AIModel
+from watchmen_utilities import ArrayHelper
+
 from watchmen_ai.intent.task_configuration import CopilotTaskConfiguration
 from watchmen_ai.lang.lang_service import get_message_by_lang
 from watchmen_ai.llm.azure_model_loader import AzureModelLoader
@@ -13,7 +22,13 @@ from watchmen_ai.service.objective_chat_service import get_chat_service, TIME_RA
 from watchmen_ai.session.session_managment import get_session_manager, SessionManager
 from watchmen_ai.task.connect_space_task_recognition import ConnectedSpaceIntentTaskRecognition
 from watchmen_ai.utils.utils import generate_token
-from watchmen_model.system.ai_model import AIModel
+from watchmen_indicator_surface.util import trans
+
+
+def get_subject_service(connected_space_service: ConnectedSpaceService) -> SubjectService:
+    return SubjectService(
+        connected_space_service.storage, connected_space_service.snowflakeGenerator,
+        connected_space_service.principalService)
 
 
 def build_graph_for_connected_space(target, language) -> str:
@@ -179,3 +194,18 @@ def chat_on_connected_space(session_id: str, token: str, message, principal_serv
                 pass
 
         return answer
+
+
+async def find_all_subject(principal_service: PrincipalService) -> List[SubjectWithFactorType]:
+    connected_space_service = get_connected_space_service(principal_service)
+    def action() -> List[Subject]:
+        connected_spaces: List[ConnectedSpace] = connected_space_service.find_templates_by_user_id(
+            principal_service.get_user_id(), principal_service.get_tenant_id())
+        subject_service: SubjectService = get_subject_service(connected_space_service)
+        return ArrayHelper(connected_spaces) \
+            .map(lambda x: subject_service.find_by_connect_id(x.connectId)) \
+            .flatten() \
+            .to_list()
+
+    subjects = trans(connected_space_service, action)
+    return add_column_type_to_subjects(subjects, principal_service)

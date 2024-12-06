@@ -1,18 +1,17 @@
+from typing import Any
+
 from langchain_core.language_models import BaseLanguageModel
-from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from pydantic import BaseModel
-from typing import Any, List
 
 from watchmen_ai.llm.azure_model_loader import AzureModelLoader
 from watchmen_ai.task.base_action import BaseAction
 
 
-
 class ConfirmMessageGenerate(BaseAction):
 
     def run(self, data: Any, ai_model: BaseLanguageModel):
-        input_message,language = data
+        input_message, language = data
 
         assistant_system_message = """You are a  expert for below question \
                 t"""
@@ -51,4 +50,5 @@ class ConfirmMessageGenerate(BaseAction):
 
 if __name__ == "__main__":
     action = ConfirmMessageGenerate()
-    action.run(([{"q":"Summarize Business Target"},{"q":"business_target","a":"利益"}],"jp"), AzureModelLoader().get_llm_model())
+    action.run(([{"q": "Summarize Business Target"}, {"q": "business_target", "a": "利益"}], "jp"),
+               AzureModelLoader().get_llm_model())

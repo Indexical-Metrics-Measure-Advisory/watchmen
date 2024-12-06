@@ -1,9 +1,9 @@
 from langchain_community.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain_community.embeddings import AzureOpenAIEmbeddings
 from langchain_community.llms.openai import BaseOpenAI, AzureOpenAI
+from watchmen_model.system.ai_model import AIModel
 
 from watchmen_ai.llm.base_model_loader import BaseModelLoader
-from watchmen_model.system.ai_model import AIModel
 
 
 def get_gpt_4():
