@@ -38,8 +38,6 @@ class MainDialog(ComponentDialog):
             )
         )
 
-
-
         self.initial_dialog_id = "WFDialog"
 
     async def recognize_input(self, turn_context: TurnContext):
@@ -58,20 +56,13 @@ class MainDialog(ComponentDialog):
         else:
             return MainIntent.analysis_objective
 
-
     async def welcome_step(self, step_context: WaterfallStepContext):
 
         # if first time user, send welcome message
 
         # if not first time user, send welcome back message
 
-
-
         pass
-
-
-
-
 
     async def intro_step(self, step_context: WaterfallStepContext) -> DialogTurnResult:
 

@@ -1,11 +1,10 @@
 from enum import Enum
-
 from typing import List, Optional, Any
 
 from pydantic import BaseModel
+from watchmen_model.admin import Topic, Factor
 
 from watchmen_ai.model.copilot_intent import CopilotTask
-from watchmen_model.admin import Topic, Factor
 
 
 class AskAIBase(BaseModel):
@@ -39,18 +38,17 @@ class ObjectiveIntent(Enum):
     insight_for_business_target = "insight_for_business_target"
 
 
-
 class ChatContext(BaseModel):
     sessionId: str = None
     context_type: str = None
     memory: dict = {}
-    current_token:Optional[str] = None
+    current_token: Optional[str] = None
 
 
 class ChatTaskContext(BaseModel):
     token: str = None
     main_task: CopilotTask = None
-    history:List[Any] = []
-    sub_tasks:List[str] = []
+    history: List[Any] = []
+    sub_tasks: List[str] = []
     parameters: dict = {}
     confirm: bool = False

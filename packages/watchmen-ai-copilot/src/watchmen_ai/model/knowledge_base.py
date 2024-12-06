@@ -2,7 +2,6 @@ from enum import Enum
 from typing import Optional, Any
 
 from pydantic import BaseModel
-
 from watchmen_model.common import TenantBasedTuple, Auditable
 
 

@@ -9,7 +9,6 @@ def bullet(text):
 
 
 def make_link(text: str, link: str) -> str:
-
     """
     Creates a markdown link
 
@@ -19,12 +18,12 @@ def make_link(text: str, link: str) -> str:
     """
     return '[%s](%s)' % (text, link)
 
+
 # TODO: Add code to support inline bold, italic etc.
 
 
 class MarkdownDocument:
     def __init__(self, indentation=None):
-
         #: A container for the text of the markdown document
         self._contents = StringIO()
 
@@ -42,7 +41,7 @@ class MarkdownDocument:
         return self
 
     def append_text_indented(self, text: str, depth: int):
-        text = (depth*self.indentation)+text
+        text = (depth * self.indentation) + text
         self.append_text(text)
 
     def append_link(self, text: str, link, depth: int = 0):
@@ -62,7 +61,7 @@ class MarkdownDocument:
         return result
 
     def append_heading(self, text, level=1):
-        self.append_text(level*'#' +' ' + text)
+        self.append_text(level * '#' + ' ' + text)
 
     def append_image_link(self, node_text, location, decoration):
         self.append_text('\n\n![%s](%s)%s\n\n' % (node_text, location, decoration))

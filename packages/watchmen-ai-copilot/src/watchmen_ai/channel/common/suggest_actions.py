@@ -36,7 +36,6 @@ class SuggestActionService:
                 SuggestActionModel(name="Report for Renew Policy", action="Option 2"), ]
 
     def suggested_metric_actions(self, business_target: str):
-
         # TODO generate suggestion actions
         # TODO add default action
 

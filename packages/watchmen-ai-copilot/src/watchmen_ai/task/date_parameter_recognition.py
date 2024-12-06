@@ -1,8 +1,9 @@
+from typing import Any
+
 from langchain_core.language_models import BaseLanguageModel
-from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel
-from typing import Any, List
 
 from watchmen_ai.llm.azure_model_loader import AzureModelLoader
 from watchmen_ai.task.base_action import BaseAction

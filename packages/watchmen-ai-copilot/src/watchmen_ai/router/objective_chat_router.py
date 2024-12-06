@@ -1,15 +1,9 @@
-from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 from typing import Optional, List
 
-from watchmen_ai.model.chat_answer import CopilotAnswerWithSession, CopilotAnswerOption
-from watchmen_ai.model.copilot_intent import CopilotIntent, CopilotTask
-from watchmen_ai.model.index import ChatContext, ChatTaskContext
-from watchmen_ai.intent.task_configuration import CopilotTaskConfiguration
-from watchmen_ai.session.session_managment import SessionManager, get_session_manager
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.meta import DerivedObjectiveService, ObjectiveService
-from watchmen_indicator_surface.util import trans
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.gui import LastSnapshotService
 from watchmen_model.admin import UserRole
@@ -17,6 +11,13 @@ from watchmen_model.gui import LastSnapshot
 from watchmen_model.indicator import DerivedObjective
 from watchmen_rest import get_console_principal
 from watchmen_storage import SnowflakeGenerator
+
+from watchmen_ai.intent.task_configuration import CopilotTaskConfiguration
+from watchmen_ai.model.chat_answer import CopilotAnswerWithSession, CopilotAnswerOption
+from watchmen_ai.model.copilot_intent import CopilotIntent, CopilotTask
+from watchmen_ai.model.index import ChatContext, ChatTaskContext
+from watchmen_ai.session.session_managment import SessionManager, get_session_manager
+from watchmen_indicator_surface.util import trans
 
 router = APIRouter()
 
@@ -41,9 +42,6 @@ class DerivedObjectiveChatReq(BaseModel):
     derivedObjectiveId: str
     sessionId: str
     recommendation: bool
-
-
-
 
 
 def mapping_task_to_option_with_vertical(copilot_task_list: List[CopilotTask], snowflakeGenerator: SnowflakeGenerator,

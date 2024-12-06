@@ -51,9 +51,9 @@ def message_for_en(key):
         return "Yes"
     elif key == "no":
         return "No"
-    elif key =="rate":
+    elif key == "rate":
         return "Please let me know the specific deviation rate you'd like to explore, and I'll be happy to assist you further."
-    elif key=="node_name":
+    elif key == "node_name":
         return "{name}: current:{current}"
     elif key == "markdown_summary":
         return "Here is the summary of your business target: "

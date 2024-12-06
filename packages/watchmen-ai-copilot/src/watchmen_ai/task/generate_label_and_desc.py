@@ -2,10 +2,10 @@ from langchain_core.language_models import BaseLanguageModel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
+from watchmen_model.admin import Factor
 
 from watchmen_ai.llm.llm_builder import LlmModelBuilder
 from watchmen_ai.task.base_action import BaseAction
-from watchmen_model.admin import Factor
 
 
 class GenerateTopicDescAction(BaseAction):

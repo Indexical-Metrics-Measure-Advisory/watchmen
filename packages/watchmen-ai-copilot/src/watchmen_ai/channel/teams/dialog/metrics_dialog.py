@@ -7,13 +7,12 @@ from botbuilder.dialogs import (
     ComponentDialog,
     WaterfallDialog,
     WaterfallStepContext,
-    DialogTurnResult, Choice, ChoicePrompt, DialogTurnStatus,
+    DialogTurnResult, ChoicePrompt, DialogTurnStatus,
 )
-from botbuilder.dialogs.prompts import TextPrompt, PromptOptions
+from botbuilder.dialogs.prompts import TextPrompt
 from botbuilder.schema import HeroCard, Attachment, Activity
 
 from watchmen_ai.channel.common.chart.chart_service import generate_chart_for_metric
-from watchmen_ai.channel.common.suggest_actions import suggest_action_service
 from watchmen_ai.channel.teams.helpers.activity_helper import build_metric_input_card, generate_image_card, \
     find_usage_actions
 
@@ -54,9 +53,6 @@ class MetricsDialog(ComponentDialog):
 
         conversation_data["business_target"] = business_target
 
-
-
-
         # if repeat:
         #     message = MessageFactory.text(f"Please select one of the following options to proceed:")
         # else:
@@ -67,7 +63,7 @@ class MetricsDialog(ComponentDialog):
 
         print("ask_for_analysis_type")
 
-        card_json =  find_usage_actions()
+        card_json = find_usage_actions()
 
         card_attachment = Attachment(
             content_type="application/vnd.microsoft.card.adaptive",
@@ -80,10 +76,7 @@ class MetricsDialog(ComponentDialog):
             )
         )
 
-
         return DialogTurnResult(status=DialogTurnStatus.Waiting)
-
-
 
         # ## todo generate base on graph content and business target
         #
@@ -106,7 +99,7 @@ class MetricsDialog(ComponentDialog):
 
         print("generate_form_for_business_target")
 
-        action  = step_context.context.activity.value
+        action = step_context.context.activity.value
 
         print("action", action)
 
@@ -126,11 +119,8 @@ class MetricsDialog(ComponentDialog):
 
         return DialogTurnResult(status=DialogTurnStatus.Waiting)
 
-
     async def perform_analysis_step(self, step_context: WaterfallStepContext) -> DialogTurnResult:
         turn_context = step_context.context
-
-
 
         if turn_context.activity.value and 'action' in turn_context.activity.value:
             if turn_context.activity.value['action'] == 'submitFeedback':
@@ -145,8 +135,6 @@ class MetricsDialog(ComponentDialog):
                            f"Email: {email}\n" \
                            f"Rating: {rating}\n" \
                            f"Feedback: {feedback}"
-
-
 
                 encode_image = generate_chart_for_metric(turn_context.activity.value)
 
@@ -189,9 +177,6 @@ class MetricsDialog(ComponentDialog):
         conversation_data["repeat"] = True
 
         return await step_context.replace_dialog(MetricsDialog.__name__, conversation_data["business_target"])
-
-
-
 
     # Helper: Generate a summary report card
     def generate_summary_report_card(self):

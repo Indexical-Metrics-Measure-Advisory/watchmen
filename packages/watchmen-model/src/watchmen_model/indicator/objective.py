@@ -299,12 +299,12 @@ class ObjectiveVariable(ExtendedBaseModel):
 
 
 class ObjectiveVariableOnValue(ObjectiveVariable):
-	kind: ObjectiveVariableKind.SINGLE_VALUE = ObjectiveVariableKind.SINGLE_VALUE
+	kind: ObjectiveVariableKind = ObjectiveVariableKind.SINGLE_VALUE
 	value: Optional[str] = None
 
 
 class ObjectiveVariableOnBucket(ObjectiveVariable):
-	kind: ObjectiveVariableKind.BUCKET = ObjectiveVariableKind.BUCKET
+	kind: ObjectiveVariableKind = ObjectiveVariableKind.BUCKET
 	bucketId: Optional[BucketId] = None
 	segmentName: Optional[str] = None
 

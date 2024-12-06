@@ -1,10 +1,9 @@
 import pandas as pd
 
 
-
 class ChartSuggestService:
 
-     def recommended_chart(self, data):
+    def recommended_chart(self, data):
         if isinstance(data, pd.DataFrame):
             num_cols = data.select_dtypes(include=['number']).shape[1]
         else:
@@ -24,9 +23,6 @@ class ChartSuggestService:
                 return 'Scatter Plot with Marginal Histograms'
         else:
             return '建议使用其他可视化工具进行多变量分析'
-
-
-
 
 
 if __name__ == '__main__':

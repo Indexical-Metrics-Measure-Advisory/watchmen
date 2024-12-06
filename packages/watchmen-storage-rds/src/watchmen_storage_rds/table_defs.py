@@ -538,17 +538,26 @@ table_graph_properties = Table(
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 
-table_document_datasets = Table(
-	'document_datasets', meta_data,
+table_documents = Table(
+	'documents', meta_data,
 	create_pk('document_id'),
 	create_str('document_name', 50, False), create_str('document_type', 50, False),
 	create_blob('document_content',  False),
+	create_str('document_status', 50, True), create_bool('processed', True),
+	create_bool('verified', True),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 
+table_data_stories = Table(
+	'data_stories', meta_data,
+	create_pk('data_story_id'),
 
+	create_str('document_name', 50, False), create_json('business_question'),
+	create_json('sub_questions'), create_json('dimensions'),
+	create_str('status', 20, True),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 
-
+)
 
 # noinspection DuplicatedCode
 tables: Dict[str, Table] = {
@@ -621,7 +630,8 @@ tables: Dict[str, Table] = {
 	'graph_nodes': table_graph_nodes,
 	'graph_edges': table_graph_edges,
 	'graph_properties': table_graph_properties,
-	'document_datasets': table_document_datasets
+	'documents': table_documents,
+	'data_stories': table_data_stories
 
 }
 

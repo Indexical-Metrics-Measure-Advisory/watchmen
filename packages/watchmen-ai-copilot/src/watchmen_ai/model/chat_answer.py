@@ -1,6 +1,7 @@
 from enum import Enum
-from pydantic import BaseModel
 from typing import Optional, List, Any
+
+from pydantic import BaseModel
 
 
 class CopilotAnswerItemType(str, Enum):

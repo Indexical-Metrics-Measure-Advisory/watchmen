@@ -106,6 +106,13 @@ def find_next_index_by_type(children, index, markdown_type):
             return i
     return None
 
+
+def find_next_index_by_header_level(children, index, level):
+    for i in range(index + 1, len(children)):
+        if children[i].get("type") == "Heading" and children[i].get("level") == level:
+            return i
+    return None
+
 #
 # def compare_node(node1: WatchmenNode, node2: WatchmenNode):
 #     return node1.nodeLabel == node2.nodeLabel

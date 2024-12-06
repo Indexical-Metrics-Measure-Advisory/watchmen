@@ -1,10 +1,9 @@
 from langchain_core.language_models import BaseLanguageModel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-
-from watchmen_ai.llm.llm_builder import LlmModelBuilder
-from watchmen_ai.task.base_action import BaseAction, TaskContext
 from watchmen_model.admin import Factor
+
+from watchmen_ai.task.base_action import BaseAction, TaskContext
 
 format_json = """
 {
@@ -17,8 +16,9 @@ format_json = """
 
 """
 
+
 class AdminGenerateContext(TaskContext):
-    nlp : str
+    nlp: str
 
 
 class GenerateTopicFactorsAction(BaseAction):
@@ -65,11 +65,10 @@ if __name__ == "__main__":
     # action.run(
     #     "Quotation", model)
 
-    print(4355 -2475 - 1373+30-240)
+    print(4355 - 2475 - 1373 + 30 - 240)
 
-    print(4355000000/8)
-    print(30000000/3)
-    print(2475000000/3)
-    print(1373000000/4)
-    print(240000000/3)
-
+    print(4355000000 / 8)
+    print(30000000 / 3)
+    print(2475000000 / 3)
+    print(1373000000 / 4)
+    print(240000000 / 3)
