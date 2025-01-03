@@ -215,7 +215,7 @@ def trigger_event_by_records(trigger_event: TriggerEvent):
 				tenantId=tenant_id
 			)
 
-		trigger_table = new_trigger_table(table_config.tableName,
+		trigger_table = new_trigger_table(table_config.name,
 		                                  table_config.modelName,
 		                                  trigger_model.modelTriggerId,
 		                                  trigger_model.moduleTriggerId,
