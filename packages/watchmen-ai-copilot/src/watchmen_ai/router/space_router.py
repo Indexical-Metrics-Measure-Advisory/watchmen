@@ -21,6 +21,8 @@ from watchmen_ai.session.session_managment import SessionManager, get_session_ma
 from watchmen_indicator_surface.util import trans
 
 
+router = APIRouter()
+
 class ConnectSpaceChatReq(BaseModel):
     connectSpaceId: str
     sessionId: str
@@ -31,11 +33,10 @@ def get_connected_space_service(principal_service: PrincipalService) -> Connecte
     return ConnectedSpaceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-router = APIRouter()
 
 
 @router.post("/connected-space/new-session", tags=[UserRole.CONSOLE], response_model=CopilotAnswerWithSession)
-def chat_new_session_for_objective(connected_space_req: ConnectSpaceChatReq,
+def chat_new_session_for_connect_space(connected_space_req: ConnectSpaceChatReq,
                                    principal_service: PrincipalService = Depends(
                                        get_console_principal)) -> CopilotAnswerWithSession:
     session_manager: SessionManager = get_session_manager()
