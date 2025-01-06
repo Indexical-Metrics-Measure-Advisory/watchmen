@@ -19,6 +19,7 @@ from watchmen_auth import PrincipalService
 from watchmen_indicator_surface.util import trans_readonly, trans
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService, SubjectService
+from watchmen_meta.system.ai_model_service import AIModelService
 from watchmen_rest import get_any_principal
 
 router = APIRouter()
@@ -30,6 +31,10 @@ class DataSetResultWithMarkdownTable(DatasetResult):
 
 async def load_data_story_service(principal_service: PrincipalService) -> DataStoryService:
     return DataStoryService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+async def load_ai_model_service(principal_service: PrincipalService)-> AIModelService:
+    return AIModelService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
 def get_subject_service(connected_space_service: ConnectedSpaceService) -> SubjectService:
@@ -70,6 +75,12 @@ async def generate_sub_question_for_business_question(business_question):
 @router.post("/generate_sub_question/", tags=["data_story"])
 async def generate_sub_question_for_story(business_target: BusinessTarget,
                                           principal_service: PrincipalService = Depends(get_any_principal)):
+
+    principal_service.tenantId
+
+
+
+
     if business_target.name is None:
         raise Exception(" business_target name is required")
 
