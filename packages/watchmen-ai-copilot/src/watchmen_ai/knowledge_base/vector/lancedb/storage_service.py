@@ -11,9 +11,7 @@ LIMIT = 2  # TODO move to config
 GRAPH_TABLE = "graph_table"
 
 # TODO change to config
-clip = azure_openai_registry.create(azure_deployment="text-embedding-ada-002",
-                                    azure_endpoint="https://azure-insuremo-openai.openai.azure.com/",
-                                    azure_api_key="e115304f78534afa84ce909c0882bcd5", azure_api_version="2022-12-01")
+
 
 db_path = os.path.abspath(__file__)
 father_path = os.path.abspath(os.path.dirname(db_path) + os.path.sep + ".")

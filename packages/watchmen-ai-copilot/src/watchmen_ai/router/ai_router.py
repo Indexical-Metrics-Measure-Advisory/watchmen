@@ -38,18 +38,10 @@ def ask_ai_generate_factors(topic: Topic, principal_service: PrincipalService = 
     return AskAIGenerateFactorsResponse(tenantId=principal_service.tenantId, suggestionFactors=result.factors,
                                         response="success")
 
-
-def ask_ai_identify_pii_factors(topic: Topic, principal_service: PrincipalService) -> AskAIGenerateFactorsResponse:
-    pass
-
-
-def ask_ai_generate_label_and_description(topic: Topic,
-                                          principal_service: PrincipalService) -> AskAIGenerateFactorsResponse:
-    pass
-
-
-def ask_ai_pipeline_mapping(pipeline: Pipeline, principal_service: PrincipalService) -> AskAIGenerateFactorsResponse:
-    pass
-
-    # def action() -> List[AIModel]:
-    #     return ai_model_service.find_all(tenant_id)
+#
+#
+# def ask_ai_pipeline_mapping(pipeline: Pipeline, principal_service: PrincipalService) -> AskAIGenerateFactorsResponse:
+#     pass
+#
+#     # def action() -> List[AIModel]:
+#     #     return ai_model_service.find_all(tenant_id)

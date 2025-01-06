@@ -24,9 +24,7 @@ class AIApp(RestApp):
         return build_find_user_by_name()
 
     def init_llm_dspy(self):
-        os.environ["AZURE_API_KEY"] = "88dfc733a80a4825a46a380a5d878809"
-        os.environ["AZURE_API_BASE"] = "https://azure-insuremo-gpt4-openai.openai.azure.com"
-        os.environ["AZURE_API_VERSION"] = "2024-02-15-preview"
+
 
         # load markdown upload_file
         lm = dspy.LM('azure/gpt_4o')

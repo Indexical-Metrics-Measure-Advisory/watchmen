@@ -52,8 +52,6 @@ class AzureOpenAIEmbeddings(TextEmbeddingFunction):
     @cached_property
     def _openai_client(self):
         openai = attempt_import_or_raise("openai")
-        # if not os.environ.get("OPENAI_API_KEY"):
-        #     api_key_not_found_help("openai")
         return openai.AzureOpenAI(
             azure_endpoint=self.azure_endpoint,
             api_key=self.azure_api_key,
@@ -64,9 +62,4 @@ class AzureOpenAIEmbeddings(TextEmbeddingFunction):
 
 azure_openai_registry = get_registry().get("azure_openai")
 
-#
-# from lancedb.embeddings import get_registry
-#
-# registry = get_registry()
-#
-# print(registry.get("azure_openai").create(azure_api_key="my-key", azure_endpoint="my-endpoint"))
+

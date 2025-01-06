@@ -64,9 +64,4 @@ class AzureOpenAIEmbeddings(TextEmbeddingFunction):
 
 azure_openai_registry = get_registry().get("azure_openai")
 
-#
-# from lancedb.embeddings import get_registry
-#
-# registry = get_registry()
-#
-# print(registry.get("azure_openai").create(azure_api_key="my-key", azure_endpoint="my-endpoint"))
+

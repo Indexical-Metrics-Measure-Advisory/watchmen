@@ -6,17 +6,6 @@ from watchmen_model.system.ai_model import AIModel
 from watchmen_ai.llm.base_model_loader import BaseModelLoader
 
 
-def get_gpt_4():
-    return AzureChatOpenAI(
-        api_key="88dfc733a80a4825a46a380a5d878809",
-        api_version="2023-07-01-preview",
-        model="gpt-4-8k",
-        azure_deployment="gpt-4-8k",
-        azure_endpoint="https://azure-insuremo-gpt4-openai.openai.azure.com",
-        temperature=0
-    )
-
-
 class AzureModelLoader(BaseModelLoader):
     """
     ai model builder

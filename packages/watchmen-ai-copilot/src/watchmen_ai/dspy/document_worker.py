@@ -7,15 +7,6 @@ from watchmen_ai.dspy.module.visualization_suggestion import VisualizationSugges
 from watchmen_ai.dspy.tools.data_story_spliter import DataStorySpliter
 from watchmen_ai.model.document import Document
 
-# os.environ["AZURE_API_KEY"] = "88dfc733a80a4825a46a380a5d878809"
-# os.environ["AZURE_API_BASE"] = "https://azure-insuremo-gpt4-openai.openai.azure.com"
-# os.environ["AZURE_API_VERSION"] = "2024-02-15-preview"
-#
-# # load markdown upload_file
-# # lm = dspy.LM('azure/gpt_4o')
-# lm = dspy.LM('azure/gpt_4o_mini')
-#
-# dspy.settings.configure(rm=lancedb_retriever, lm=lm)
 
 check_rule = "check whether this document include objective ,business target , metrics for insurance domain"
 
