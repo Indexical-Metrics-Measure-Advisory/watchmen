@@ -8,7 +8,8 @@ class VerificationResult(BaseModel):
 
 
 class Verification(dspy.Signature):
-    """your task is to verify the content is about insurance domain and if false pls return the reason"""
+    """your task is to verify the content is about insurance domain and if false pls return the reason
+    """
 
     content = dspy.InputField()
     question: str = dspy.InputField()

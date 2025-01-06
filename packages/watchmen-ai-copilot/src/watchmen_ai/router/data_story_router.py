@@ -84,6 +84,10 @@ class GenerateHypothesisReq(BaseModel):
     business_target: BusinessTarget
     sub_questions: List[SubQuestionForDspy] = []
 
+class SuggestionDataset(BaseModel):
+    suggestion_datasets: List[DataSetResultWithMarkdownTable] = []
+    all_options: List[MarkdownSubject] = []
+
 
 @router.post("/generate_hypothesis/", tags=["data_story"])
 async def generate_hypothesis_for_sub_question(req: GenerateHypothesisReq,
@@ -92,7 +96,7 @@ async def generate_hypothesis_for_sub_question(req: GenerateHypothesisReq,
     sub_question_list: List[SubQuestion] = []
     for sub_question in req.sub_questions:
         sub_question_result = SubQuestion(**sub_question.dict())
-        result = generate_hypothesis(sub_question.question, req.business_target.name)
+        result = generate_hypothesis(sub_question.question, req.business_target.name, req.business_target.datasets)
         ic(result.response)
         sub_question_result.hypothesis = result.response
         sub_question_list.append(sub_question_result)
@@ -158,9 +162,9 @@ async def suggestion_dataset(business_question: str, principal_service: Principa
                 result.append(DataSetResultWithMarkdownTable(dataset_name=dataset.dataset_name, reason=dataset.reason,
                                                              markdown_table=markdown_subject))
 
-    return result
+    return SuggestionDataset(suggestion_datasets=result, all_options=markdown_dataset_list)
 
-
+#todo implement code
 @router.post("/suggestion_objective/", tags=["data_story"])
 async def find_suggestion_objective(hypothesis: Hypothesis,
                                     principal_service: PrincipalService = Depends(get_any_principal)):
@@ -182,6 +186,8 @@ async def find_suggestion_objective(hypothesis: Hypothesis,
     tr_code	ENUM	TR Code			None	
 
     """
+
+
 
     # TODO find all metrics for current user and tenant
     metrics = """
@@ -211,4 +217,17 @@ async def confirm_data_mapping(data_story: DataStory,
 
     # TODO mapping dataset for sub_question or hypothesis
 
+    pass
+
+
+async def ask_data_result_by_hypothesis(hypothesis: Hypothesis,data :List,
+                                       principal_service: PrincipalService = Depends(get_any_principal)):
+
+
+    pass
+
+
+
+async  def ask_data_insight_by_question(sub_question: SubQuestion,
+                                       principal_service: PrincipalService = Depends(get_any_principal)):
     pass
