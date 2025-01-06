@@ -5,7 +5,6 @@ import dspy
 from watchmen_ai.dspy.model.data_story import SubQuestionForDspy
 
 
-
 class SubQuestionSignature(dspy.Signature):
     """generate a key question and sub questions and add emoji before question for business question base on context ,dataset and business question """
 
@@ -22,6 +21,6 @@ class GenerateSubQuestionModule(dspy.Module):
     def __init__(self):
         self.model = dspy.ChainOfThought(SubQuestionSignature)
 
-    def forward(self, question, context,dataset):
+    def forward(self, question, context, dataset):
         # TODO cache the result
         return self.model(business_question=question, context=context, dataset=dataset)

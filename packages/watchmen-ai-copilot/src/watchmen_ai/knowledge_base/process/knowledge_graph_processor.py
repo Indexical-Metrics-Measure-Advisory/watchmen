@@ -1,11 +1,10 @@
 import json
 
-from watchmen_model.common.tuple_ids import DocumentId
-
 from watchmen_ai.knowledge_base.loader.parse.markdown_parser import Markdown
 from watchmen_ai.knowledge_base.process.objective_processor import process_objective_graph
 from watchmen_ai.model.knowledge_base import KnowledgeType
 from watchmen_ai.utils.graph_utils import WatchmenGraphWrapper
+from watchmen_model.common.tuple_ids import DocumentId
 
 KEYWORDS = "keywords"
 

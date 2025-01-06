@@ -1,9 +1,9 @@
 from langchain_core.language_models import BaseLanguageModel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from watchmen_model.admin import Factor
 
 from watchmen_ai.task.base_action import BaseAction, TaskContext
+from watchmen_model.admin import Factor
 
 format_json = """
 {

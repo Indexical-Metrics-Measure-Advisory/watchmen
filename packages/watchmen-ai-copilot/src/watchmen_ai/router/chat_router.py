@@ -2,15 +2,6 @@ from typing import Optional, List, Dict
 
 from fastapi import APIRouter, Depends
 from openai import BaseModel
-from watchmen_auth import PrincipalService
-from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
-from watchmen_meta.gui import LastSnapshotService
-from watchmen_meta.system.ai_model_service import AIModelService
-from watchmen_model.admin import UserRole
-from watchmen_model.gui import LastSnapshot
-from watchmen_model.indicator import DerivedObjective
-from watchmen_model.system.ai_model import AIModel
-from watchmen_rest import get_console_principal
 
 from watchmen_ai.lang.lang_service import get_message_by_lang
 from watchmen_ai.llm.azure_model_loader import AzureModelLoader
@@ -21,7 +12,16 @@ from watchmen_ai.service.chat_service import ChatService
 from watchmen_ai.service.objective_chat_service import chat_on_objective, build_summary_markdown_for_business_target
 from watchmen_ai.session.session_managment import get_session_manager, SessionManager
 from watchmen_ai.task.confirm_message import ConfirmMessageGenerate
+from watchmen_auth import PrincipalService
 from watchmen_indicator_surface.util import trans
+from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
+from watchmen_meta.gui import LastSnapshotService
+from watchmen_meta.system.ai_model_service import AIModelService
+from watchmen_model.admin import UserRole
+from watchmen_model.gui import LastSnapshot
+from watchmen_model.indicator import DerivedObjective
+from watchmen_model.system.ai_model import AIModel
+from watchmen_rest import get_console_principal
 
 SUBJECT = "subject"
 

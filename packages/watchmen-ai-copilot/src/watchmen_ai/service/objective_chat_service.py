@@ -1,13 +1,5 @@
 from typing import List
 
-from watchmen_auth import PrincipalService
-from watchmen_indicator_kernel.data import get_objective_data_service, ObjectiveValues, ObjectiveTargetValues, \
-    ObjectiveFactorValues
-from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
-from watchmen_meta.system.ai_model_service import AIModelService
-from watchmen_model.indicator import DerivedObjective, Objective, ObjectiveTarget
-from watchmen_model.system.ai_model import AIModel
-
 from watchmen_ai.intent.task_configuration import CopilotTaskConfiguration
 from watchmen_ai.lang.lang_service import get_message_by_lang
 from watchmen_ai.llm.azure_model_loader import AzureModelLoader
@@ -23,9 +15,16 @@ from watchmen_ai.task.confirm_message import ConfirmMessageGenerate
 from watchmen_ai.task.date_parameter_recognition import DateParameterRecognition
 from watchmen_ai.task.derived_objective_intent_recognition import ObjectiveIntentTaskRecognition
 from watchmen_ai.utils.utils import generate_token
+from watchmen_auth import PrincipalService
+from watchmen_indicator_kernel.data import get_objective_data_service, ObjectiveValues, ObjectiveTargetValues, \
+    ObjectiveFactorValues
 from watchmen_lineage.model.lineage import LineageResult, ObjectiveLineage, RelationshipLineage, ObjectiveTargetLineage, \
     IndicatorLineage, ObjectiveFactorLineage
 from watchmen_lineage.service.lineage_service import get_lineage_service
+from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
+from watchmen_meta.system.ai_model_service import AIModelService
+from watchmen_model.indicator import DerivedObjective, Objective, ObjectiveTarget
+from watchmen_model.system.ai_model import AIModel
 
 TIME_RANGE = "time_range"
 

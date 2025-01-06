@@ -1,6 +1,6 @@
 from enum import Enum
 
-from demo.storage.graphdb import kuzu_adapter
+from watchmen_ai.dspy.storage.graphdb import kuzu_adapter
 
 
 class GraphDBProvider(str, Enum):

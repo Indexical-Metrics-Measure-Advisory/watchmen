@@ -9,7 +9,8 @@ class HypothesisValidateSignature(dspy.Signature):
     data = dspy.InputField()
     evidence = dspy.InputField()
     result = dspy.InputField()
-    response = dspy.OutputField(desc="The response of the hypothesis validate result include insight , summary ,reason and result ")
+    response = dspy.OutputField(
+        desc="The response of the hypothesis validate result include insight , summary ,reason and result ")
 
 
 class HypothesisValidateModule(dspy.Module):

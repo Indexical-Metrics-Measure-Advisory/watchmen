@@ -12,14 +12,14 @@ from watchmen_rest.auth_helper import WRAPPER
 
 
 def get_any_admin_principal(request: Request) -> PrincipalService:
-	return get_any_admin_principal_by(WRAPPER.authenticationManager)(request)
+    return get_any_admin_principal_by(WRAPPER.authenticationManager)(request)
 
 
 def get_ai_model_service(principal_service: PrincipalService) -> AIModelService:
     return AIModelService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-def get_ai_model_by_principal(principal_service: PrincipalService)->List[AIModel]:
+def get_ai_model_by_principal(principal_service: PrincipalService) -> List[AIModel]:
     ai_model_service = get_ai_model_service(principal_service)
 
     def action():
@@ -28,6 +28,6 @@ def get_ai_model_by_principal(principal_service: PrincipalService)->List[AIModel
     return trans_readonly(ai_model_service, action)
 
 
-def get_ai_models(request:Request)->List[AIModel]:
+def get_ai_models(request: Request) -> List[AIModel]:
     principal_service = get_any_admin_principal(request)
     return get_ai_model_by_principal(principal_service)

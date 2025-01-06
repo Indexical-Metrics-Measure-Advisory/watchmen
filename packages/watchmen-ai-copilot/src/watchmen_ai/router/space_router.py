@@ -2,14 +2,6 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from watchmen_auth import PrincipalService
-from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
-from watchmen_meta.console import ConnectedSpaceService
-from watchmen_meta.gui import LastSnapshotService
-from watchmen_model.admin import UserRole
-from watchmen_model.console import ConnectedSpace
-from watchmen_model.gui import LastSnapshot
-from watchmen_rest import get_console_principal
 
 from watchmen_ai.model.chat_answer import CopilotAnswerWithSession
 from watchmen_ai.model.copilot_intent import CopilotIntent
@@ -18,10 +10,18 @@ from watchmen_ai.router.chat_router import get_last_snapshot_service
 from watchmen_ai.router.objective_chat_router import get_greet_intent_configuration, \
     mapping_task_to_option_with_vertical
 from watchmen_ai.session.session_managment import SessionManager, get_session_manager
+from watchmen_auth import PrincipalService
 from watchmen_indicator_surface.util import trans
-
+from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
+from watchmen_meta.console import ConnectedSpaceService
+from watchmen_meta.gui import LastSnapshotService
+from watchmen_model.admin import UserRole
+from watchmen_model.console import ConnectedSpace
+from watchmen_model.gui import LastSnapshot
+from watchmen_rest import get_console_principal
 
 router = APIRouter()
+
 
 class ConnectSpaceChatReq(BaseModel):
     connectSpaceId: str
@@ -33,12 +33,10 @@ def get_connected_space_service(principal_service: PrincipalService) -> Connecte
     return ConnectedSpaceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-
-
 @router.post("/connected-space/new-session", tags=[UserRole.CONSOLE], response_model=CopilotAnswerWithSession)
 def chat_new_session_for_connect_space(connected_space_req: ConnectSpaceChatReq,
-                                   principal_service: PrincipalService = Depends(
-                                       get_console_principal)) -> CopilotAnswerWithSession:
+                                       principal_service: PrincipalService = Depends(
+                                           get_console_principal)) -> CopilotAnswerWithSession:
     session_manager: SessionManager = get_session_manager()
     session_id = connected_space_req.sessionId
 

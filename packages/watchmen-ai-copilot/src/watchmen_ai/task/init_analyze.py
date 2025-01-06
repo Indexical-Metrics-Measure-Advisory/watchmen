@@ -1,10 +1,10 @@
 from typing import List
 
 from pydantic import BaseModel
-from watchmen_model.admin import Topic
-from watchmen_model.console import Subject
 
 from watchmen_ai.task.base_action import BaseAction
+from watchmen_model.admin import Topic
+from watchmen_model.console import Subject
 
 
 class SuggestionAnalysisCase(BaseModel):
