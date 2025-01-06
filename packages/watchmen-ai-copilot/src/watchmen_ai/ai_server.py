@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat
 from watchmen_model.admin import User
 from watchmen_rest import RestApp
-
-from .dspy.test import lancedb_retriever
+#
+# from .dspy.test import lancedb_retriever
 from .settings import AISettings
 
 
@@ -32,7 +32,7 @@ class AIApp(RestApp):
         lm = dspy.LM('azure/gpt_4o')
         # lm = dspy.LM('azure/gpt_4o_mini')
 
-        dspy.settings.configure(rm=lancedb_retriever, lm=lm)
+        dspy.settings.configure(lm=lm)
 
     def build_find_user_by_pat(self) -> Callable[[str], Optional[User]]:
         """

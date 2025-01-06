@@ -25,12 +25,12 @@ class ObjectiveVector(LanceModel):
 # find current path in this file and path /knowledge_vector
 path = os.path.join(os.path.dirname(__file__), persist_directory)
 
-lancedb_retriever = LancedbRM(
-    table_name=GRAPH_TABLE,
-    persist_directory=path
-)
-
-dspy.settings.configure(rm=lancedb_retriever)
+# lancedb_retriever = LancedbRM(
+#     table_name=GRAPH_TABLE,
+#     persist_directory=path
+# )
+#
+# dspy.settings.configure(rm=lancedb_retriever)
 
 # lancedb_retriever("Sale manager")
 # print("test")
