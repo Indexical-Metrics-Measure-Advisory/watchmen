@@ -7,14 +7,14 @@ from watchmen_ai.dspy.model.data_story import SubQuestionForDspy
 
 
 class SubQuestionSignature(dspy.Signature):
-    """generate sub question and add emoji before question for business question base on context ,dataset and business question """
+    """generate a key question and sub questions and add emoji before question for business question base on context ,dataset and business question """
 
     business_question = dspy.InputField(desc="business question for insurance analysis")
     context = dspy.InputField(desc="description of the business question")
 
     dataset = dspy.InputField(desc="column name of dataset which will be used to generate sub question")
     response: List[SubQuestionForDspy] = dspy.OutputField(
-        desc="this response will contain the sub question, and the number of  sub question should be 3-5")
+        desc="this response will contain the sub question, and the number of  sub question number should be 1 to 8")
 
 
 class GenerateSubQuestionModule(dspy.Module):
