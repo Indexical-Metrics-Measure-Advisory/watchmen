@@ -1,13 +1,14 @@
 from enum import Enum
 from typing import List, Optional
 
-
 from watchmen_model.common import TenantBasedTuple, OptimisticLock
 from watchmen_utilities import ExtendedBaseModel
+
 
 class MarkdownSubject(ExtendedBaseModel):
     subject_name: str = None
     markdown_table: str = None
+
 
 class VisualizationSuggestionType(str, Enum):
     Line = "Line"
@@ -67,7 +68,7 @@ class HypothesisForDspy(ExtendedBaseModel):
 
 class Hypothesis(HypothesisForDspy):
     metrics: List[Metric] = []
-    dataResult:Optional[str] = None
+    dataResult: Optional[str] = None
 
 
 class BusinessTarget(ExtendedBaseModel):

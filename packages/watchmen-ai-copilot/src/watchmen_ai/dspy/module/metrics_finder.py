@@ -3,17 +3,18 @@ from typing import List, Optional
 import dspy
 from pydantic import BaseModel
 
+
 class ConstructedMetric(BaseModel):
-    name : str = None
-    dataset_fields : List[str] = None
-    description : str = None
+    name: str = None
+    dataset_fields: List[str] = None
+    description: str = None
     operator: str = None
 
 
 class MetricResult(BaseModel):
     metric_field: Optional[str] = None
     reason: str = None
-    constructed_metric : Optional[ConstructedMetric] = None
+    constructed_metric: Optional[ConstructedMetric] = None
 
 
 class DimensionResult(BaseModel):
@@ -44,7 +45,8 @@ class MetricsFinderSignature(dspy.Signature):
     hypothesis = dspy.InputField(desc="hypothesis for the metrics")
     metrics = dspy.InputField(desc="A metric from the `metrics list` that aligns with the `evidence`")
     dataset = dspy.InputField(desc="dataset for the system")
-    response: List[MetricsFinderResult] = dspy.OutputField(desc="include all  the metrics and dimensions and time dimensions")
+    response: List[MetricsFinderResult] = dspy.OutputField(
+        desc="include all  the metrics and dimensions and time dimensions")
 
 
 class MetricsFinderModule(dspy.Module):
@@ -52,5 +54,5 @@ class MetricsFinderModule(dspy.Module):
     def __init__(self):
         self.model = dspy.ChainOfThought(MetricsFinderSignature)
 
-    def forward(self, evidence, hypothesis, dataset,metrics):
-        return self.model(evidence=evidence, hypothesis=hypothesis, dataset=dataset,metrics= metrics)
+    def forward(self, evidence, hypothesis, dataset, metrics):
+        return self.model(evidence=evidence, hypothesis=hypothesis, dataset=dataset, metrics=metrics)

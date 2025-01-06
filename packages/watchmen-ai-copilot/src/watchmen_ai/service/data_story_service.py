@@ -7,8 +7,7 @@ from watchmen_model.console import SubjectDatasetColumn
 from watchmen_model.console.subject_ext import SubjectWithFactorType
 
 
-
-async def convert_subject_mata_to_markdown_table_format(subject: SubjectWithFactorType)->MarkdownSubject:
+async def convert_subject_mata_to_markdown_table_format(subject: SubjectWithFactorType) -> MarkdownSubject:
     table_columns: List[SubjectDatasetColumn] = subject.dataset.columns
 
     table_columns_data = []
@@ -21,6 +20,3 @@ async def convert_subject_mata_to_markdown_table_format(subject: SubjectWithFact
     df = pd.DataFrame(table_columns_data)
     markdown_table = df.to_markdown(index=False)
     return MarkdownSubject(subject_name=subject.name, markdown_table=markdown_table)
-
-
-

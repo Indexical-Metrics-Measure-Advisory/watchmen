@@ -7,7 +7,6 @@ from watchmen_ai.dspy.module.visualization_suggestion import VisualizationSugges
 from watchmen_ai.dspy.tools.data_story_spliter import DataStorySpliter
 from watchmen_ai.model.document import Document
 
-
 check_rule = "check whether this document include objective ,business target , metrics for insurance domain"
 
 

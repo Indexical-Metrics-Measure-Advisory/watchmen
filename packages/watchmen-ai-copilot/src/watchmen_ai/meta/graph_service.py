@@ -1,10 +1,9 @@
 from typing import List, Optional
 
+from watchmen_ai.model.graph.graph_models import WatchmenNode, WatchmenEdge, WatchmenProperty
 from watchmen_meta.common import TupleShaper, TupleService
 from watchmen_model.common.tuple_ids import GraphNodeId, TenantId, GraphEdgeId, GraphPropertyId
 from watchmen_storage import EntityRow, EntityShaper, EntityCriteriaExpression, ColumnNameLiteral
-
-from watchmen_ai.model.graph.graph_models import WatchmenNode, WatchmenEdge, WatchmenProperty
 
 
 class KnowledgeGraphNodeShaper(EntityShaper):

@@ -2,7 +2,6 @@ from langchain_community.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain_community.llms.openai import BaseOpenAI, AzureOpenAI
 
 
-
 class LlmModelBuilder:
     """
     ai model builder

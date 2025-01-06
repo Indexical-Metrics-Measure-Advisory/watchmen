@@ -1,9 +1,6 @@
 import json
 from typing import Dict, List, Tuple
 
-from watchmen_model.common import TenantId
-from watchmen_model.common.tuple_ids import DocumentId
-
 from watchmen_ai.knowledge_base.process.common_processor_service import get_all_document_nodes, find_name_for_document, \
     CHILDREN, TYPE
 from watchmen_ai.model.graph.graph_models import WatchmenProperty, WatchmenNode, WatchmenEdge
@@ -11,6 +8,8 @@ from watchmen_ai.utils.graph_utils import get_next_child, get_list_content, gene
     find_list_between_indices, find_node_by_type_level_and_content, MarkdownType, WatchmenGraphWrapper, lowercase, \
     GraphEdgeType, build_graph_dict, build_node_key_by_param, build_property_key_by_param, \
     build_edge_key_by_param, convert_dict_to_wrapper, find_node_by_start_and_level
+from watchmen_model.common import TenantId
+from watchmen_model.common.tuple_ids import DocumentId
 
 
 def find_meta_info(children: List) -> Dict:

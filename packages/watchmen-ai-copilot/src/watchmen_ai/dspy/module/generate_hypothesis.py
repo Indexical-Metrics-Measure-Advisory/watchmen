@@ -9,8 +9,6 @@ Trend Analysis,Distribution Analysis,Comparison Analysis,Correlation Analysis,Co
 """
 
 
-
-
 class HypothesisSignature(dspy.Signature):
     """generate hypothesis (pls ref analysis_method for generate evidence and result) for business question base on context ,dataset and sub question """
 
@@ -27,5 +25,5 @@ class GenerateHypothesisModule(dspy.Module):
     def __init__(self):
         self.model = dspy.ChainOfThought(HypothesisSignature)
 
-    def forward(self, question, context,dataset):
+    def forward(self, question, context, dataset):
         return self.model(sub_question=question, dataset=dataset, context=context, analysis_method=analysis_method)

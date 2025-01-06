@@ -1,6 +1,8 @@
 import os.path
 
 import kuzu
+from langchain_community.chains.graph_qa.kuzu import KuzuQAChain
+from langchain_community.graphs import KuzuGraph
 
 from watchmen_ai.knowledge_base.graphdb.kuzu_cypher_utils import build_create_edge_table, build_insert_node, \
     build_insert_edge, build_create_node_table
@@ -205,26 +207,3 @@ def query_by_langchain(kuzu_adapter: KuzuAdapter, query: str):
 
     return chain.invoke(query)
 
-
-if __name__ == "__main__":
-    # kuzu_adapter.init_table()
-
-    tst = "MATCH (n:BusinessTarget)-[r]->(m:Metric) return Label(m),m.name"
-
-    ref = "MATCH ()-[e]->() RETURN Label(e)"
-
-    # query_by_langchain(kuzu_adapter,"list all the objective")
-
-    # "MATCH (u1:BusinessTarget), (u2:Metric) WHERE u1.node_id = '13' AND u2.node_id = 'dada' CREATE (u1)-[:measured_metric {since: 2011}]->(u2)"
-
-    # rel = "MATCH (u1:BusinessTarget), (u2:Audience) WHERE u1.node_id = '8da1fa37e55a4805877d645ef0145c21' AND u2.node_id = 'eebf6427339e47479166d32d57f0b67b' RETURN u1.*"
-    # # connect = kuzu.Connection(kuzu.Database("./knowledge_graph",read_only=True))
-    # # # init_table()
-    result = kuzu_adapter.query_data(tst)
-    #
-    print(result.get_as_df())
-
-# @knowledge_graph_inserted.connect
-# def handle(knowledge_graph: WatchmenGraphWrapper):
-#     print("dada")
-#     kuzu_adapter.sync_to_graph_db(knowledge_graph)

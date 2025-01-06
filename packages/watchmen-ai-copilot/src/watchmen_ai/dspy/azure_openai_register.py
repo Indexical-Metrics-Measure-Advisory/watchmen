@@ -63,5 +63,3 @@ class AzureOpenAIEmbeddings(TextEmbeddingFunction):
 
 
 azure_openai_registry = get_registry().get("azure_openai")
-
-

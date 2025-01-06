@@ -1,17 +1,17 @@
 from logging import getLogger
 
 from fastapi import APIRouter, Depends
-from watchmen_auth import PrincipalService
-from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_meta.system.ai_model_service import AIModelService
-from watchmen_model.admin import UserRole, Topic, Pipeline
-from watchmen_model.system.ai_model import AIModel
-from watchmen_rest import get_any_principal
-from watchmen_rest.util import raise_500
 
 from watchmen_ai.llm.model_builder import load_model_loader_by_type
 from watchmen_ai.model.index import AskAIGenerateFactorsResponse
 from watchmen_ai.service.ai_service import generate_topic_factors
+from watchmen_auth import PrincipalService
+from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
+from watchmen_meta.system.ai_model_service import AIModelService
+from watchmen_model.admin import UserRole, Topic
+from watchmen_model.system.ai_model import AIModel
+from watchmen_rest import get_any_principal
+from watchmen_rest.util import raise_500
 
 router = APIRouter()
 

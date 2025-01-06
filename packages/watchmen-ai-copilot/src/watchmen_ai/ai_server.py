@@ -1,8 +1,8 @@
-import os
 from typing import Callable, Optional
 
 import dspy
 from fastapi import FastAPI
+
 from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat
 from watchmen_model.admin import User
 from watchmen_rest import RestApp
@@ -24,8 +24,6 @@ class AIApp(RestApp):
         return build_find_user_by_name()
 
     def init_llm_dspy(self):
-
-
         # load markdown upload_file
         lm = dspy.LM('azure/gpt_4o')
         # lm = dspy.LM('azure/gpt_4o_mini')

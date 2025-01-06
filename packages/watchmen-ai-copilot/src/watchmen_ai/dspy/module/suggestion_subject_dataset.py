@@ -9,9 +9,6 @@ class DatasetResult(BaseModel):
     reason: str = None
 
 
-
-
-
 class SuggestionsDatasetResult(BaseModel):
     business_question: str = None
     dataset_list: Optional[List[DatasetResult]] = None
@@ -29,5 +26,5 @@ class SuggestionsDatasetModule(dspy.Module):
     def __init__(self):
         self.model = dspy.ChainOfThought(SuggestionsDatasetSignature)
 
-    def forward(self, business_question,  dataset):
-        return self.model(business_question=business_question,  dataset=dataset)
+    def forward(self, business_question, dataset):
+        return self.model(business_question=business_question, dataset=dataset)

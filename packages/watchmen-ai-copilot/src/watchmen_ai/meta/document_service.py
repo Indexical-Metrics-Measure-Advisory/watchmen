@@ -1,10 +1,9 @@
 from typing import List, Optional
 
+from watchmen_ai.model.document import Document
 from watchmen_meta.common import TupleShaper, TupleService
 from watchmen_model.common import TenantId
 from watchmen_storage import EntityRow, EntityShaper, EntityCriteriaExpression, ColumnNameLiteral
-
-from watchmen_ai.model.document import Document
 
 
 class KnowledgeDocumentShaper(EntityShaper):

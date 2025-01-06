@@ -2,9 +2,9 @@ from enum import Enum
 from typing import List, Optional, Any
 
 from pydantic import BaseModel
-from watchmen_model.admin import Topic, Factor
 
 from watchmen_ai.model.copilot_intent import CopilotTask
+from watchmen_model.admin import Topic, Factor
 
 
 class AskAIBase(BaseModel):

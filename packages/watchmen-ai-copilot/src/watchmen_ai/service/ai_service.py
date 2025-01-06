@@ -1,9 +1,9 @@
 from langchain_core.exceptions import OutputParserException
 from retry import retry
-from watchmen_model.admin import Topic
 
 from watchmen_ai.service.ai_engine import AIEngine
 from watchmen_ai.task.generate_topic_factors import GenerateTopicFactorsAction, AdminGenerateContext
+from watchmen_model.admin import Topic
 
 
 def get_ai_engine():
