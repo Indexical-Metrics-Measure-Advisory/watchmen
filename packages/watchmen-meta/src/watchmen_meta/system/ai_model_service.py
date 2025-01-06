@@ -101,3 +101,15 @@ class AIModelService(TupleService):
             self.storage.close()
 
 
+    def find_all_by_tenant(self, tenant_id: TenantId) -> List[AIModel]:
+        try:
+            self.storage.connect()
+            return self.storage.find(self.get_entity_finder(
+                criteria=[
+                    EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+                ]
+            ))
+        finally:
+            self.storage.close()
+
+

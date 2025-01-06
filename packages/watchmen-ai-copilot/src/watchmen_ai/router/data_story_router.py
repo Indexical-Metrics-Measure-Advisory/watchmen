@@ -14,12 +14,14 @@ from watchmen_ai.dspy.module.suggestion_subject_dataset import SuggestionsDatase
 from watchmen_ai.meta.data_story_service import DataStoryService
 from watchmen_ai.service.connected_space_service import find_all_subject
 from watchmen_ai.service.data_story_service import convert_subject_mata_to_markdown_table_format, MarkdownSubject
+from watchmen_ai.utils.request_ai_model_helper import get_ai_models
 from watchmen_ai.utils.utils import clean_space
 from watchmen_auth import PrincipalService
 from watchmen_indicator_surface.util import trans_readonly, trans
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService, SubjectService
 from watchmen_meta.system.ai_model_service import AIModelService
+from watchmen_model.system.ai_model import AIModel
 from watchmen_rest import get_any_principal
 
 router = APIRouter()
@@ -33,7 +35,7 @@ async def load_data_story_service(principal_service: PrincipalService) -> DataSt
     return DataStoryService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-async def load_ai_model_service(principal_service: PrincipalService)-> AIModelService:
+async def load_ai_model_service(principal_service: PrincipalService) -> AIModelService:
     return AIModelService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
@@ -45,9 +47,11 @@ def get_subject_service(connected_space_service: ConnectedSpaceService) -> Subje
 
 @router.get("/load_data_story/", tags=["data_story"])
 async def load_data_story_by_document_name(document_name: str,
-                                           principal_service: PrincipalService = Depends(get_any_principal)):
+                                           principal_service: PrincipalService = Depends(get_any_principal),
+                                           ai_model_list: List[AIModel] = Depends(get_ai_models)):
     data_story_service: DataStoryService = await load_data_story_service(principal_service)
 
+    # print(ai_model_list)
     def action():
         return data_story_service.find_by_name(document_name, principal_service.tenantId)
 
@@ -67,7 +71,7 @@ async def load_data_story_by_id(data_story_id: str, principal_service: Principal
 
 async def generate_sub_question_for_business_question(business_question):
     generate_sub_question = GenerateSubQuestionModule()
-    result = generate_sub_question(business_question.name, business_question.description,business_question.datasets)
+    result = generate_sub_question(business_question.name, business_question.description, business_question.datasets)
     ic(result.response)
     return result
 
@@ -75,16 +79,8 @@ async def generate_sub_question_for_business_question(business_question):
 @router.post("/generate_sub_question/", tags=["data_story"])
 async def generate_sub_question_for_story(business_target: BusinessTarget,
                                           principal_service: PrincipalService = Depends(get_any_principal)):
-
-    principal_service.tenantId
-
-
-
-
     if business_target.name is None:
         raise Exception(" business_target name is required")
-
-
 
     sub_questions: List[SubQuestion] = await generate_sub_question_for_business_question(business_target)
 
@@ -94,6 +90,7 @@ async def generate_sub_question_for_story(business_target: BusinessTarget,
 class GenerateHypothesisReq(BaseModel):
     business_target: BusinessTarget
     sub_questions: List[SubQuestionForDspy] = []
+
 
 class SuggestionDataset(BaseModel):
     suggestion_datasets: List[DataSetResultWithMarkdownTable] = []
@@ -150,7 +147,6 @@ async def create_data_story(business_question: str, principal_service: Principal
     return trans(data_story_service, action)
 
 
-
 @router.get("/suggestion_dataset", tags=["data_story"])
 async def suggestion_dataset(business_question: str, principal_service: PrincipalService = Depends(get_any_principal)):
     # business_question = data_story.businessQuestion
@@ -175,7 +171,16 @@ async def suggestion_dataset(business_question: str, principal_service: Principa
 
     return SuggestionDataset(suggestion_datasets=result, all_options=markdown_dataset_list)
 
-#todo implement code
+
+async def generate_data_result():
+    pass
+
+
+async def generate_data_insight():
+    pass
+
+
+# todo implement code
 @router.post("/suggestion_objective/", tags=["data_story"])
 async def find_suggestion_objective(hypothesis: Hypothesis,
                                     principal_service: PrincipalService = Depends(get_any_principal)):
@@ -197,8 +202,6 @@ async def find_suggestion_objective(hypothesis: Hypothesis,
     tr_code	ENUM	TR Code			None	
 
     """
-
-
 
     # TODO find all metrics for current user and tenant
     metrics = """
@@ -231,14 +234,11 @@ async def confirm_data_mapping(data_story: DataStory,
     pass
 
 
-async def ask_data_result_by_hypothesis(hypothesis: Hypothesis,data :List,
-                                       principal_service: PrincipalService = Depends(get_any_principal)):
-
-
+async def ask_data_result_by_hypothesis(hypothesis: Hypothesis, data: List,
+                                        principal_service: PrincipalService = Depends(get_any_principal)):
     pass
 
 
-
-async  def ask_data_insight_by_question(sub_question: SubQuestion,
+async def ask_data_insight_by_question(sub_question: SubQuestion,
                                        principal_service: PrincipalService = Depends(get_any_principal)):
     pass
