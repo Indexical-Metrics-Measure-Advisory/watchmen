@@ -14,8 +14,8 @@ father_path = os.path.abspath(os.path.dirname(db_path) + os.path.sep + ".")
 
 
 class ObjectiveVector(LanceModel):
-    vector: Vector(clip.ndims()) = clip.VectorField()
-    text: str = clip.SourceField()
+    # vector: Vector(clip.ndims()) = clip.VectorField()
+    # text: str = clip.SourceField()
     node_id: str = None
     node_label: str = None
 

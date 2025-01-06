@@ -2,7 +2,6 @@ from typing import List
 
 from fastapi import APIRouter, Depends, UploadFile
 
-from watchmen_ai.dspy.document_worker import DocumentWorker
 from watchmen_ai.meta.data_story_service import DataStoryService
 from watchmen_ai.meta.document_service import KnowledgeDocumentService
 from watchmen_ai.model.document import QueryDocument, Document, DocumentStatus
@@ -57,17 +56,17 @@ async def build_document(document_new_id, tenant_id, upload_file):
     )
 
 
-@router.get("/analysis_document/", tags=[UserRole.CONSOLE])
-async def analysis_document(document_name: str, principal_service: PrincipalService = Depends(get_any_principal)):
-    document_service = load_service(KnowledgeDocumentService, principal_service)
-    data_story_service = load_service(DataStoryService, principal_service)
-    document = trans_readonly(document_service,
-                              lambda: document_service.find_by_name(document_name, principal_service.tenantId))
-    worker = DocumentWorker(document=document, context="insurance domain", need_verification=False)
-    data_story = worker.process()
-    data_story.tenantId = principal_service.tenantId
-    data_story.dataStoryId = data_story_service.snowflakeGenerator.next_id()
-    return trans(data_story_service, lambda: data_story_service.create(data_story))
+# @router.get("/analysis_document/", tags=[UserRole.CONSOLE])
+# async def analysis_document(document_name: str, principal_service: PrincipalService = Depends(get_any_principal)):
+#     document_service = load_service(KnowledgeDocumentService, principal_service)
+#     data_story_service = load_service(DataStoryService, principal_service)
+#     document = trans_readonly(document_service,
+#                               lambda: document_service.find_by_name(document_name, principal_service.tenantId))
+#     worker = DocumentWorker(document=document, context="insurance domain", need_verification=False)
+#     data_story = worker.process()
+#     data_story.tenantId = principal_service.tenantId
+#     data_story.dataStoryId = data_story_service.snowflakeGenerator.next_id()
+#     return trans(data_story_service, lambda: data_story_service.create(data_story))
 
 
 @router.get("/load_document_by_id/", tags=[UserRole.CONSOLE], response_model=Document)

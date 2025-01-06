@@ -15,7 +15,7 @@ from botbuilder.schema import CardAction, ActionTypes, ActivityTypes, Activity, 
 
 from watchmen_ai.channel.teams.dialog.metrics_dialog import MetricsDialog
 from watchmen_ai.channel.teams.model.objective_analysis_details import ObjectiveAnalysisDetails
-from watchmen_ai.knowledge_base.vector.lancedb.storage_service import lancedb_service, ObjectiveVector
+from watchmen_ai.dspy.storage.vectordb.lanchdb.storage_service import ObjectiveVector, lancedb_service
 
 FIND_MORE = "find_more"
 
