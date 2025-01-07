@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import List, Optional
 
+from watchmen_ai.dspy.model.data_result import HypothesisDataResult
 from watchmen_model.common import TenantBasedTuple, OptimisticLock
 from watchmen_utilities import ExtendedBaseModel
 
@@ -68,7 +69,7 @@ class HypothesisForDspy(ExtendedBaseModel):
 
 class Hypothesis(HypothesisForDspy):
     metrics: Optional[List[Metric]] = []
-    dataResult = None
+    dataResult:HypothesisDataResult = None
 
 
 class BusinessTarget(ExtendedBaseModel):

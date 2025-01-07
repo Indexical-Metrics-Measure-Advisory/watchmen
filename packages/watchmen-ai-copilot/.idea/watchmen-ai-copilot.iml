@@ -7,7 +7,7 @@
       <excludeFolder url="file://$MODULE_DIR$/.venv_new" />
       <excludeFolder url="file://$MODULE_DIR$/.venv_new2" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.12 (watchmen-ai-copilot) (4)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Poetry (watchmen-ai-copilot)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="watchmen-storage-mysql" />
     <orderEntry type="module" module-name="watchmen-meta" />

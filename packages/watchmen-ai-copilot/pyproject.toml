@@ -4,6 +4,10 @@ version = "0.1.0"
 description = ""
 authors = ["luke0623 <luke0623@outlook.com>"]
 
+packages = [
+    { include = "watchmen_ai", from = "src" }
+]
+
 [tool.poetry.dependencies]
 python = "~3.12"
 passlib = "^1.7.4"
@@ -15,7 +19,7 @@ watchmen-meta = { path = "../watchmen-meta", develop = true }
 watchmen-data-surface = { path = "../watchmen-data-surface", develop = true }
 watchmen-inquiry-surface = { path = "../watchmen-inquiry-surface", develop = true }
 watchmen-indicator-surface = { path = "../watchmen-indicator-surface", develop = true }
-watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
 watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
 kafka-python = { version = "^2.0.2", optional = true }
@@ -29,6 +33,18 @@ uvloop = "^0.19.0"
 pydantic-settings = "^2.7.1"
 python-json-logger = "2.0.7"
 sqlparse = "^0.5.3"
+multidict = "^6.1.0"
+yarl = "^1.18.3"
+botbuilder = "^0.0.1"
+botbuilder-core = "^4.16.2"
+botbuilder-integration-aiohttp = "^4.16.2"
+botbuilder-dialogs = "^4.16.2"
+adaptivecardbuilder = "^0.0.9"
+kuzu = "^0.7.1"
+langchain-community = "^0.3.14"
+plotly = "^5.24.1"
+retry = "^0.9.2"
+icecream = "^2.1.3"
 
 
 
