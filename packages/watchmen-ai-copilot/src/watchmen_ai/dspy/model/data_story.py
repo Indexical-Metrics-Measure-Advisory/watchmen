@@ -67,8 +67,8 @@ class HypothesisForDspy(ExtendedBaseModel):
 
 
 class Hypothesis(HypothesisForDspy):
-    metrics: List[Metric] = []
-    dataResult: Optional[str] = None
+    metrics: Optional[List[Metric]] = []
+    dataResult = None
 
 
 class BusinessTarget(ExtendedBaseModel):

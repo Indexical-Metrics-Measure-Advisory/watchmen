@@ -1,6 +1,7 @@
 from watchmen_ai.ai_server import ai_app
 from watchmen_ai.channel.teams import teams_router
-from watchmen_ai.router import ai_router, objective_chat_router, chat_router, document_router, data_story_router
+from watchmen_ai.router import ai_router, objective_chat_router, chat_router, document_router, data_story_router, \
+    data_insight_router
 from watchmen_rest.system import health_router
 from watchmen_utilities import ArrayHelper
 
@@ -17,6 +18,7 @@ ArrayHelper([
     # document_router.router,
     data_story_router.router,
     ai_router.router,
+    data_insight_router.router,
     # chat_router.router,
     # objective_chat_router.router,
     # teams_router.router
