@@ -1,0 +1,1 @@
+ALTER TABLE tenants ADD enable_ai DECIMAL(1) NOT NULL DEFAULT 0;

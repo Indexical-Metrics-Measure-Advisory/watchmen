@@ -388,6 +388,8 @@ def construct_variable(variable: Optional[Union[dict, ObjectiveVariable]]) -> Op
 	else:
 		kind = variable.get('kind')
 		if kind == ObjectiveVariableKind.SINGLE_VALUE:
+
+
 			return ObjectiveVariableOnValue(**variable)
 		elif kind == ObjectiveVariableKind.RANGE:
 			return ObjectiveVariableOnRange(**variable)
