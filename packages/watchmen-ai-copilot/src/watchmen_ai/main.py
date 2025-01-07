@@ -14,10 +14,10 @@ def startup():
 
 ArrayHelper([
     health_router.router,
-    document_router.router,
+    # document_router.router,
     data_story_router.router,
     ai_router.router,
-    chat_router.router,
-    objective_chat_router.router,
-    teams_router.router
+    # chat_router.router,
+    # objective_chat_router.router,
+    # teams_router.router
 ]).each(lambda x: app.include_router(x))

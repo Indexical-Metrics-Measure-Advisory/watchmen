@@ -132,3 +132,4 @@ packages/watchmen-ai-copilot/src/watchmen_ai/utils/__pycache__/__init__.cpython-
 packages/watchmen-ai-copilot/src/watchmen_ai/utils/__pycache__/graph_utils.cpython-312.pyc
 packages/watchmen-ai-copilot/src/watchmen_ai/utils/__pycache__/request_ai_model_helper.cpython-312.pyc
 packages/watchmen-ai-copilot/src/watchmen_ai/utils/__pycache__/utils.cpython-312.pyc
+*.pyc

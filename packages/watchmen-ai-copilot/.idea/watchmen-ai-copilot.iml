@@ -10,6 +10,14 @@
     <orderEntry type="module" module-name="watchmen-storage-mysql" />
     <orderEntry type="module" module-name="watchmen-meta" />
     <orderEntry type="module" module-name="watchmen-model" />
+    <orderEntry type="module" module-name="watchmen-rest" />
+    <orderEntry type="module" module-name="watchmen-indicator-kernel" />
+    <orderEntry type="module" module-name="watchmen-indicator-surface" />
+    <orderEntry type="module" module-name="watchmen-inquiry-kernel" />
+    <orderEntry type="module" module-name="watchmen-inquiry-surface" />
+    <orderEntry type="module" module-name="watchmen-storage-rds" />
+    <orderEntry type="module" module-name="watchmen-auth" />
+    <orderEntry type="module" module-name="watchmen-lineage" />
   </component>
   <component name="PyNamespacePackagesService">
     <option name="namespacePackageFolders">

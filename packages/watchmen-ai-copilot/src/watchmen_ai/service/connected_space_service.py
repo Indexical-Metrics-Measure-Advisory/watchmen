@@ -8,8 +8,6 @@ from watchmen_ai.model.chat_answer import OngoingCopilotAnswer, CopilotAnswerWit
 from watchmen_ai.model.copilot_intent import CopilotTask
 from watchmen_ai.model.index import ChatContext, ChatTaskContext
 from watchmen_ai.router.utils import build_yes_no_item
-from watchmen_ai.service.objective_chat_service import get_chat_service, TIME_RANGE, call_date_range_intent, \
-    build_exception_markdown_for_business_target
 from watchmen_ai.session.session_managment import get_session_manager, SessionManager
 from watchmen_ai.task.connect_space_task_recognition import ConnectedSpaceIntentTaskRecognition
 from watchmen_ai.utils.utils import generate_token
@@ -40,8 +38,8 @@ def build_graph_for_connected_space(target, language) -> str:
       Agent[Agent]
       Channel[Channel]
       Agency[Agency]
-        
-    
+
+
       Customer -->|has policies| Policy
       Policy -->|linked to| Quotation
       Policy -->|sold by| Agent
