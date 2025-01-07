@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "watchmen-ai-copilot"
+version = "0.1.0"
+description = ""
+authors = ["luke0623 <luke0623@outlook.com>"]
+
+[tool.poetry.dependencies]
+python = "~3.12"
+passlib = "^1.7.4"
+bcrypt = "^4.2.0"
+python-multipart = "^0.0.9"
+watchmen-lineage = { path = "../watchmen-lineage", develop = true }
+watchmen-model = { path = "../watchmen-model", develop = true }
+watchmen-meta = { path = "../watchmen-meta", develop = true }
+watchmen-data-surface = { path = "../watchmen-data-surface", develop = true }
+watchmen-inquiry-surface = { path = "../watchmen-inquiry-surface", develop = true }
+watchmen-indicator-surface = { path = "../watchmen-indicator-surface", develop = true }
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
+watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
+watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
+kafka-python = { version = "^2.0.2", optional = true }
+aiokafka = { version = "^0.11.0", optional = true }
+aio-pika = { version = "^9.4.2", optional = true }
+starlette-prometheus = { version = "^0.9.0", optional = true }
+requests = { version = "^2.32.3", optional = true }
+python3-saml = { version = "^1.16.0", optional = true }
+cryptography = { version = "^42.0.8", optional = true }
+uvloop = "^0.19.0"
+pydantic-settings = "^2.7.1"
+python-json-logger = "2.0.7"
+sqlparse = "^0.5.3"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
