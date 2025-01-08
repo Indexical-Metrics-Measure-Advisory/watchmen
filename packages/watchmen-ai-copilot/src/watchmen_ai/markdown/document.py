@@ -33,9 +33,12 @@ class MarkdownDocument:
     def append_text(self, text: str) -> 'MarkdownDocument':
         """
 
-        :param text:
-        :return:
-        """
+                :param text:
+                :return:
+            """
+        if text is None:
+            return self
+
         self._contents.write(text)
         self._contents.write('\n')
         return self
@@ -68,3 +71,14 @@ class MarkdownDocument:
 
     def new_page(self):
         self.append_text('\n\n\\newpage\n\n')
+
+
+    def append_table(self, headers, rows, depth=0):
+        self.append_text_indented('|'.join(headers), depth)
+        self.append_text_indented('|'.join(['---' for _ in headers]), depth)
+
+        for row in rows:
+            self.append_text_indented('|'.join(map(str, row)), depth)
+        self.append_text_indented('', depth)
+
+

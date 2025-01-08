@@ -179,44 +179,44 @@ async def generate_data_result():
 async def generate_data_insight():
     pass
 
-
-# todo implement code
-@router.post("/suggestion_objective/", tags=["data_story"])
-async def find_suggestion_objective(hypothesis: Hypothesis,
-                                    principal_service: PrincipalService = Depends(get_any_principal)):
-    # TODO find all dataset for current user and tenant
-    dataset = """
-    Name	Type	Label	Enumeration	Default Value	Encryption & Mask	Description
-    AFYC	NUMBER	AFYC (HKD)			None	
-    AFYP	NUMBER	AFYP (HKD)			None	
-    application_date	DATETIME	Application Date			None	
-    bank_code	ENUM	Bank Code			None	
-    branch_code	ENUM	Branch Code			None	
-    incentive_programs	ENUM	Incentive Programs			None	
-    issue_date	DATETIME	Issue Date			None	
-    plan_code	ENUM	Basic Plan Code			None	
-    policy_no	TEXT	Policy No.			None	
-    policy_status	ENUM	Policy Status			None	
-    product_group	ENUM	Product Group			None	
-    submission_date	DATETIME	Submission Date			None	
-    tr_code	ENUM	TR Code			None	
-
-    """
-
-    # TODO find all metrics for current user and tenant
-    metrics = """
-    Name | Description
-    ----|---
-    AFYC | Annualized First Year Commission
-    AFYP | Annualized First Year Premium
-    policies issued | Number of policies issued
-    """
-
-    metrics_finder = MetricsFinderModule()
-    res = metrics_finder(hypothesis=hypothesis.hypothesis, evidence=hypothesis.evidence, dataset=dataset,
-                         metrics=metrics)
-
-    return res.response
+#
+# # todo implement code
+# @router.post("/suggestion_objective/", tags=["data_story"])
+# async def find_suggestion_objective(hypothesis: Hypothesis,
+#                                     principal_service: PrincipalService = Depends(get_any_principal)):
+#     # TODO find all dataset for current user and tenant
+#     dataset = """
+#     Name	Type	Label	Enumeration	Default Value	Encryption & Mask	Description
+#     AFYC	NUMBER	AFYC (HKD)			None
+#     AFYP	NUMBER	AFYP (HKD)			None
+#     application_date	DATETIME	Application Date			None
+#     bank_code	ENUM	Bank Code			None
+#     branch_code	ENUM	Branch Code			None
+#     incentive_programs	ENUM	Incentive Programs			None
+#     issue_date	DATETIME	Issue Date			None
+#     plan_code	ENUM	Basic Plan Code			None
+#     policy_no	TEXT	Policy No.			None
+#     policy_status	ENUM	Policy Status			None
+#     product_group	ENUM	Product Group			None
+#     submission_date	DATETIME	Submission Date			None
+#     tr_code	ENUM	TR Code			None
+#
+#     """
+#
+#     # TODO find all metrics for current user and tenant
+#     metrics = """
+#     Name | Description
+#     ----|---
+#     AFYC | Annualized First Year Commission
+#     AFYP | Annualized First Year Premium
+#     policies issued | Number of policies issued
+#     """
+#
+#     metrics_finder = MetricsFinderModule()
+#     res = metrics_finder(hypothesis=hypothesis.hypothesis, evidence=hypothesis.evidence, dataset=dataset,
+#                          metrics=metrics)
+#
+#     return res.response
 
 
 async def confirm_data_mapping(data_story: DataStory,
