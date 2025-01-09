@@ -22,5 +22,5 @@ class GenerateSubQuestionModule(dspy.Module):
         self.model = dspy.ChainOfThought(SubQuestionSignature)
 
     def forward(self, question, context, dataset):
-        # TODO cache the result
+
         return self.model(business_question=question, context=context, dataset=dataset)

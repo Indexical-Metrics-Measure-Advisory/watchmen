@@ -88,8 +88,8 @@ async def generate_sub_question_for_story(business_target: BusinessTarget,
 
 
 class GenerateHypothesisReq(BaseModel):
-    business_target: BusinessTarget
-    sub_questions: List[SubQuestionForDspy] = []
+    business_target: BusinessTarget = None
+    sub_question: SubQuestionForDspy= None
 
 
 class SuggestionDataset(BaseModel):
@@ -101,15 +101,9 @@ class SuggestionDataset(BaseModel):
 async def generate_hypothesis_for_sub_question(req: GenerateHypothesisReq,
                                                principal_service: PrincipalService = Depends(get_any_principal)):
     generate_hypothesis = GenerateHypothesisModule()
-    sub_question_list: List[SubQuestion] = []
-    for sub_question in req.sub_questions:
-        sub_question_result = SubQuestion(**sub_question.dict())
-        result = generate_hypothesis(sub_question.question, req.business_target.name, req.business_target.datasets)
-        ic(result.response)
-        sub_question_result.hypothesis = result.response
-        sub_question_list.append(sub_question_result)
-
-    return sub_question_list
+    result = generate_hypothesis(req.sub_question, req.business_target.name, req.business_target.datasets)
+    ic(result.response)
+    return result.response
 
 
 @router.get("/publish_story/", tags=["data_story"])

@@ -109,12 +109,12 @@ class ReferObjectiveParameter(ObjectiveParameter):
 	when it is used in factor/target formula, {@link #uuid} should refer to another objective factor.
 	and when it is used in factor filter, {@link #uuid} should refer to factor from topic or column from subject dataset.
 	"""
-	kind: ObjectiveParameterType.REFER = ObjectiveParameterType.REFER
+	kind: ObjectiveParameterType = ObjectiveParameterType.REFER
 	uuid: Optional[Union[ObjectiveFactorId, FactorId, SubjectDatasetColumnId]] = None
 
 
 class ConstantObjectiveParameter(ObjectiveParameter):
-	kind: ObjectiveParameterType.CONSTANT = ObjectiveParameterType.CONSTANT
+	kind: ObjectiveParameterType = ObjectiveParameterType.CONSTANT
 	value: Optional[str] = None
 
 
@@ -159,13 +159,13 @@ class ComputedObjectiveParameter(ObjectiveParameter):
 
 
 class BucketObjectiveParameter(ObjectiveParameter):
-	kind: ObjectiveParameterType.BUCKET = ObjectiveParameterType.BUCKET
+	kind: ObjectiveParameterType = ObjectiveParameterType.BUCKET
 	bucketId: Optional[BucketId] = None
 	segmentName: Optional[str] = None
 
 
 class TimeFrameObjectiveParameter(ObjectiveParameter):
-	kind: ObjectiveParameterType.TIME_FRAME = ObjectiveParameterType.TIME_FRAME
+	kind: ObjectiveParameterType = ObjectiveParameterType.TIME_FRAME
 
 
 class ObjectiveParameterCondition(ExtendedBaseModel):
@@ -299,12 +299,12 @@ class ObjectiveVariable(ExtendedBaseModel):
 
 
 class ObjectiveVariableOnValue(ObjectiveVariable):
-	kind: ObjectiveVariableKind.SINGLE_VALUE = ObjectiveVariableKind.SINGLE_VALUE
+	kind: ObjectiveVariableKind = ObjectiveVariableKind.SINGLE_VALUE
 	value: Optional[str] = None
 
 
 class ObjectiveVariableOnBucket(ObjectiveVariable):
-	kind: ObjectiveVariableKind.BUCKET = ObjectiveVariableKind.BUCKET
+	kind: ObjectiveVariableKind = ObjectiveVariableKind.BUCKET
 	bucketId: Optional[BucketId] = None
 	segmentName: Optional[str] = None
 
@@ -350,7 +350,7 @@ class ObjectiveFactorOnIndicator(ObjectiveFactor):
 
 
 class ObjectiveFactorOnComputation(ObjectiveFactor):
-	kind: ObjectiveFactorKind.COMPUTED = ObjectiveFactorKind.COMPUTED
+	kind: ObjectiveFactorKind = ObjectiveFactorKind.COMPUTED
 
 
 def construct_time_frame(time_frame: Optional[Union[dict, ObjectiveTimeFrame]]) -> Optional[ObjectiveTimeFrame]:
@@ -388,8 +388,7 @@ def construct_variable(variable: Optional[Union[dict, ObjectiveVariable]]) -> Op
 	else:
 		kind = variable.get('kind')
 		if kind == ObjectiveVariableKind.SINGLE_VALUE:
-
-
+			print(variable)
 			return ObjectiveVariableOnValue(**variable)
 		elif kind == ObjectiveVariableKind.RANGE:
 			return ObjectiveVariableOnRange(**variable)

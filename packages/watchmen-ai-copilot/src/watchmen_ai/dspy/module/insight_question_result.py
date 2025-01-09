@@ -35,6 +35,7 @@ def convert_question_to_markdown(question: SubQuestion):
 
 
 class InsightQuestionResult(dspy.Module):
+
     def __init__(self):
         self.model = dspy.ChainOfThought(InsightQuestionResultSign)
 
