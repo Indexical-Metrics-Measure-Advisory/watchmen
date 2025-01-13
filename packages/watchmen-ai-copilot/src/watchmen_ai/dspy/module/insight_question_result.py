@@ -1,18 +1,13 @@
 
 
 import dspy
-from pydantic import BaseModel
 
-from watchmen_ai.dspy.model.data_story import SubQuestion
+from watchmen_ai.dspy.model.data_story import SubQuestion, InsightResult
 from watchmen_ai.markdown.document import MarkdownDocument
 from watchmen_ai.router.utils import convert_data_to_markdown
 
 
-class InsightResult(BaseModel):
-    answerForQuestion: str = None
-    summaryForHypothesis: str = None
-    futureAnalysis: str = None
-    futureBusinessAction: str = None
+
 
 
 class InsightQuestionResultSign(dspy.Signature):
@@ -33,7 +28,12 @@ def convert_question_to_markdown(question: SubQuestion):
     for hypothesis in question.hypothesis:
         markdown_document.append_heading(f'Hypothesis {hypothesis["hypothesis"]}', 3)
         markdown_document.append_text(f'**Evidence:** {hypothesis["evidence"]}')
-        markdown_document.append_text(f'**Result:** {hypothesis["result"]}')
+        if "result" in hypothesis:
+            data_explain_result = hypothesis["result"]
+            markdown_document.append_text(f'**Result hypothesisValidation:** {data_explain_result["hypothesisValidation"]}')
+            markdown_document.append_text(f'**Result keyMetricChange:** {data_explain_result["keyMetricChange"]}')
+            markdown_document.append_text(f'**Result summaryFinding:** {data_explain_result["summaryFinding"]}')
+        # markdown_document.append_text(f'**Result:** {hypothesis["result"]}')
         markdown_document.append_text(f'**Analysis Method:** {hypothesis["analysisMethod"]}')
 
         markdown_document = convert_data_to_markdown(hypothesis["dataResult"],markdown_document)

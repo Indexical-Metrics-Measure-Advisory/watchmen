@@ -1,10 +1,23 @@
 from enum import Enum
 from typing import List, Optional
 
+from pydantic import BaseModel
+
 from watchmen_ai.dspy.model.data_result import HypothesisDataResult
 from watchmen_model.common import TenantBasedTuple, OptimisticLock
 from watchmen_utilities import ExtendedBaseModel
 
+
+class DataExplain(BaseModel):
+    hypothesisValidation :str = None
+    keyMetricChange :str = None
+    summaryFinding:str = None
+
+class InsightResult(BaseModel):
+    answerForQuestion: str = None
+    summaryForHypothesis: str = None
+    futureAnalysis: str = None
+    futureBusinessAction: str = None
 
 class MarkdownSubject(ExtendedBaseModel):
     subject_name: str = None
@@ -64,7 +77,7 @@ class HypothesisForDspy(ExtendedBaseModel):
     description: str = None
     evidence: str = None
     analysisMethod: str = None
-    result: str = None
+    result: Optional[DataExplain] = None
 
 
 class Hypothesis(HypothesisForDspy):
@@ -84,6 +97,7 @@ class SubQuestionForDspy(ExtendedBaseModel):
     reason: Optional[str] = None
     isKey: Optional[bool] = False
     description: Optional[str] = None
+    result: Optional[InsightResult] = None
 
 
 class SubQuestion(SubQuestionForDspy):

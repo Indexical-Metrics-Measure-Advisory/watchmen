@@ -1,18 +1,14 @@
 from typing import List
 
 import dspy
-from pydantic import BaseModel
 
 from watchmen_ai.dspy.model.data_result import HypothesisDataResult
-from watchmen_ai.dspy.model.data_story import Hypothesis
+from watchmen_ai.dspy.model.data_story import Hypothesis, DataExplain
 from watchmen_ai.markdown.document import MarkdownDocument
 from watchmen_ai.router.utils import convert_data_to_markdown
 
 
-class DataExplain(BaseModel):
-    hypothesisValidation :str = None
-    keyMetricChange :str = None
-    summaryFinding:str = None
+
 
 class DataResultSign(dspy.Signature):
     """explain data results base on  hypothetical questions, data, and analytical methods,
