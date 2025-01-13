@@ -1,5 +1,6 @@
 from typing import List
 
+import dspy
 from fastapi import APIRouter, Depends
 from icecream import ic
 from pydantic import BaseModel
@@ -72,8 +73,8 @@ async def load_data_story_by_id(data_story_id: str, principal_service: Principal
 async def generate_sub_question_for_business_question(business_question):
     generate_sub_question = GenerateSubQuestionModule()
     result = generate_sub_question(business_question.name, business_question.description, business_question.datasets)
-    ic(result.response)
-    return result
+    # ic(result.response)
+    return result.response
 
 
 @router.post("/generate_sub_question/", tags=["data_story"])
@@ -82,9 +83,24 @@ async def generate_sub_question_for_story(business_target: BusinessTarget,
     if business_target.name is None:
         raise Exception(" business_target name is required")
 
-    sub_questions: List[SubQuestion] = await generate_sub_question_for_business_question(business_target)
+    sub_questions: List[SubQuestionForDspy] = await generate_sub_question_for_business_question(business_target)
 
-    return sub_questions
+
+
+    ## find key question in sub question and move it the first
+    new_sub_question = []
+    key_question = None
+    for sub_question in sub_questions:
+        if sub_question.isKeyQuestion:
+            key_question = sub_question
+        else:
+            new_sub_question.append(sub_question)
+
+    if key_question:
+        new_sub_question.insert(0, key_question)
+
+    ic(new_sub_question)
+    return new_sub_question
 
 
 class GenerateHypothesisReq(BaseModel):

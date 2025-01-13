@@ -77,12 +77,14 @@ class HypothesisForDspy(ExtendedBaseModel):
     description: str = None
     evidence: str = None
     analysisMethod: str = None
-    result: Optional[DataExplain] = None
+    result: Optional[str] = None
+
 
 
 class Hypothesis(HypothesisForDspy):
     metrics: Optional[List[Metric]] = []
     dataResult:List[HypothesisDataResult] = None
+    dataExplain: Optional[DataExplain] = None
 
 
 class BusinessTarget(ExtendedBaseModel):
@@ -95,13 +97,14 @@ class BusinessTarget(ExtendedBaseModel):
 class SubQuestionForDspy(ExtendedBaseModel):
     question: str = None
     reason: Optional[str] = None
-    isKey: Optional[bool] = False
+    isKeyQuestion: Optional[bool] = False
     description: Optional[str] = None
-    result: Optional[InsightResult] = None
 
 
 class SubQuestion(SubQuestionForDspy):
     hypothesis: Optional[List[Hypothesis]] = []
+    insightResult: Optional[InsightResult] = None
+
 
 
 class Dimension(ExtendedBaseModel):

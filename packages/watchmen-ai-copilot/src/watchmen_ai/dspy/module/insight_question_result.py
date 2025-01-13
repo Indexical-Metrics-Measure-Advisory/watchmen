@@ -29,14 +29,15 @@ def convert_question_to_markdown(question: SubQuestion):
         markdown_document.append_heading(f'Hypothesis {hypothesis["hypothesis"]}', 3)
         markdown_document.append_text(f'**Evidence:** {hypothesis["evidence"]}')
         if "result" in hypothesis:
-            data_explain_result = hypothesis["result"]
+            markdown_document.append_text(f'**Result:** {hypothesis["result"]}')
+        if "dataExplain" in hypothesis:
+            data_explain_result = hypothesis["dataExplain"]
             markdown_document.append_text(f'**Result hypothesisValidation:** {data_explain_result["hypothesisValidation"]}')
             markdown_document.append_text(f'**Result keyMetricChange:** {data_explain_result["keyMetricChange"]}')
             markdown_document.append_text(f'**Result summaryFinding:** {data_explain_result["summaryFinding"]}')
-        # markdown_document.append_text(f'**Result:** {hypothesis["result"]}')
         markdown_document.append_text(f'**Analysis Method:** {hypothesis["analysisMethod"]}')
 
-        markdown_document = convert_data_to_markdown(hypothesis["dataResult"],markdown_document)
+        # markdown_document = convert_data_to_markdown(hypothesis["dataResult"],markdown_document)
 
     return markdown_document.contents()
 
