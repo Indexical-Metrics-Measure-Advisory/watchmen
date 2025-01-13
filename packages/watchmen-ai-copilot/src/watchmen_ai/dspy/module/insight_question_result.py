@@ -1,8 +1,11 @@
+
+
 import dspy
 from pydantic import BaseModel
 
 from watchmen_ai.dspy.model.data_story import SubQuestion
 from watchmen_ai.markdown.document import MarkdownDocument
+from watchmen_ai.router.utils import convert_data_to_markdown
 
 
 class InsightResult(BaseModel):
@@ -13,10 +16,14 @@ class InsightResult(BaseModel):
 
 
 class InsightQuestionResultSign(dspy.Signature):
-    """ Insight Question Result based on Question data and context """
+    """ Insight Question Result based on Question data and context ,
+     pls use business language in insurance domain to explain the data results,make it simple and easy to understand
+     """
     question: str = dspy.InputField(desc="business question")
     context: str = dspy.InputField(desc="context for insight data")
     response: InsightResult = dspy.OutputField(desc="insight result")
+
+
 
 
 def convert_question_to_markdown(question: SubQuestion):
@@ -28,8 +35,8 @@ def convert_question_to_markdown(question: SubQuestion):
         markdown_document.append_text(f'**Evidence:** {hypothesis["evidence"]}')
         markdown_document.append_text(f'**Result:** {hypothesis["result"]}')
         markdown_document.append_text(f'**Analysis Method:** {hypothesis["analysisMethod"]}')
-        data_result = hypothesis["dataResult"]
-        markdown_document.append_table(data_result["headers"], data_result["data"])
+
+        markdown_document = convert_data_to_markdown(hypothesis["dataResult"],markdown_document)
 
     return markdown_document.contents()
 

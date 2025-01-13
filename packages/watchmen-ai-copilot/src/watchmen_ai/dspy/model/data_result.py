@@ -1,8 +1,9 @@
-from typing import List
+from typing import List, Dict, Optional
 
 from watchmen_utilities import ExtendedBaseModel
 
 
+
 class HypothesisDataResult(ExtendedBaseModel):
-    headers: List[str] = []
-    data: List = []
+    data: List [Dict] =  []
+    description: Optional[str] = None

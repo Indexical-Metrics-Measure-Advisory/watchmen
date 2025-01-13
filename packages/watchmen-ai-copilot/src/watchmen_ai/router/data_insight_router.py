@@ -21,7 +21,6 @@ class AskDataResultExplain(BaseModel):
     storyName :Optional[str] = None
     subQuestion:Optional[str] = None
     hypothesis: Hypothesis = None
-    dataResult:HypothesisDataResult = None
 
 
 class AskDataInsight(BaseModel):
@@ -31,7 +30,7 @@ class AskDataInsight(BaseModel):
 @router.post("/ask_data_explain", tags=["data_insight"])
 def ask_data_result_explain(ask_request:AskDataResultExplain,principal_service: PrincipalService = Depends(get_any_principal)):
     explain_data = ExplainDataResultModule()
-    explain_result = explain_data(ask_request.hypothesis, ask_request.dataResult)
+    explain_result = explain_data(ask_request.hypothesis)
     ic(explain_result)
     return explain_result
 
@@ -40,7 +39,7 @@ def ask_data_insight_for_question(ask_data_insight:AskDataInsight,principal_serv
     insight_data = InsightQuestionResult()
     insight_result = insight_data(ask_data_insight.question, ask_data_insight.context)
     ic(insight_result)
-    dspy.inspect_history(n=1)
+    # dspy.inspect_history(n=1)
     return insight_result
 
 
