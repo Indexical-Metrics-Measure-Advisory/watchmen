@@ -17,12 +17,12 @@ class DataResultSign(dspy.Signature):
 
     # storyName = dspy.InputField(desc="data story name")
     # subQuestion = dspy.InputField(desc="sub question")
-    hypothesis = dspy.InputField(desc="hypothesis")
-    analysisMethod = dspy.InputField(desc="analysis method")
-    hypothesisEvidence = dspy.InputField(desc="hypothesis evidence")
-    hypothesisResult = dspy.InputField(desc="hypothesis result")
-    dataResult: HypothesisDataResult = dspy.InputField(desc="hypothesis data result")
-    dataExplain:DataExplain = dspy.OutputField(desc="data explain")
+    hypothesis = dspy.InputField(description="hypothesis")
+    analysisMethod = dspy.InputField(description="analysis method")
+    hypothesisEvidence = dspy.InputField(description="hypothesis evidence")
+    hypothesisResult = dspy.InputField(description="hypothesis result")
+    dataResult: HypothesisDataResult = dspy.InputField(description="hypothesis data result")
+    dataExplain:DataExplain = dspy.OutputField(description="data explain")
 
 
 def convert_hypothesis_to_markdown(data_result_list: List[HypothesisDataResult]):

@@ -4,7 +4,6 @@ import dspy
 
 from watchmen_ai.dspy.model.data_story import SubQuestion, InsightResult
 from watchmen_ai.markdown.document import MarkdownDocument
-from watchmen_ai.router.utils import convert_data_to_markdown
 
 
 
@@ -14,9 +13,9 @@ class InsightQuestionResultSign(dspy.Signature):
     """ Insight Question Result based on Question data and context ,
      pls use business language in insurance domain to explain the data results,make it simple and easy to understand
      """
-    question: str = dspy.InputField(desc="business question")
-    context: str = dspy.InputField(desc="context for insight data")
-    response: InsightResult = dspy.OutputField(desc="insight result")
+    question: str = dspy.InputField(description="business question")
+    context: str = dspy.InputField(description="context for insight data")
+    response: InsightResult = dspy.OutputField(description="insight result")
 
 
 

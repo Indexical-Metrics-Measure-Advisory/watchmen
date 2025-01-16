@@ -6,15 +6,17 @@ from watchmen_ai.dspy.model.data_story import SubQuestionForDspy
 
 
 class SubQuestionSignature(dspy.Signature):
-    """generate a key question and sub questions and add emoji before question for business question base on context ,dataset and business question ,
-    the sub question should be simple and easy to understand, and the number of sub question number should be 1 to 8, and the sub question should be generated base on dataset
+    """You are an expert in the insurance domain and data analysis. Please help generate a key question along with 1 to 5 sub-questions that progress from simple and general to more detailed and in-depth, based on the provided context, dataset, and business question.
+- Use emojis before each question to make them visually engaging and clear.
+- Ensure the sub-questions are easy to understand, directly aligned with the dataset, and practical for data analysis.
+- Design the sequence of sub-questions to guide the analysis step-by-step, starting with basic inquiries and moving toward deeper insights
     """
 
-    business_question = dspy.InputField(desc="business question for insurance analysis")
-    context = dspy.InputField(desc="description of the business question")
-    dataset = dspy.InputField(desc="column name of dataset which will be used to generate sub question")
+    business_question = dspy.InputField(description="business question for insurance analysis")
+    context = dspy.InputField(description="description of the business question")
+    dataset = dspy.InputField(description="column name of dataset which will be used to generate sub question")
     response: List[SubQuestionForDspy] = dspy.OutputField(
-        desc="this response will contain the sub question, and the number of  sub question number should be 1 to 8")
+        description="this response will contain the sub question, and the number of  sub question number should be 1 to 8")
 
 
 def generate_markdown_sub_questions(sub_questions:List):

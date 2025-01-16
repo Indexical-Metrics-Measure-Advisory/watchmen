@@ -41,12 +41,12 @@ class MetricsFinderSignature(dspy.Signature):
     - If no match is found in the metrics list,  to construct a suitable metric from the available dataset fields to address the statistical test described in the `evidence`.
     - Clearly explain the process of metric matching or construction, including why a specific field or combination of fields was chosen.
     """
-    evidence = dspy.InputField(desc="evidence for the metrics")
-    hypothesis = dspy.InputField(desc="hypothesis for the metrics")
-    metrics = dspy.InputField(desc="A metric from the `metrics list` that aligns with the `evidence`")
-    dataset = dspy.InputField(desc="dataset for the system")
+    evidence = dspy.InputField(description="evidence for the metrics")
+    hypothesis = dspy.InputField(description="hypothesis for the metrics")
+    metrics = dspy.InputField(description="A metric from the `metrics list` that aligns with the `evidence`")
+    dataset = dspy.InputField(description="dataset for the system")
     response: List[MetricsFinderResult] = dspy.OutputField(
-        desc="include all  the metrics and dimensions and time dimensions")
+        description="include all  the metrics and dimensions and time dimensions")
 
 
 class MetricsFinderModule(dspy.Module):

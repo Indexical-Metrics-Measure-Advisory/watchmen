@@ -24,6 +24,10 @@ class MarkdownSubject(ExtendedBaseModel):
     markdown_table: str = None
 
 
+class MarkdownObjectiveTarget(ExtendedBaseModel):
+    objective_name: str = None
+    markdown_table: str = None
+
 class VisualizationSuggestionType(str, Enum):
     Line = "Line"
     Bar = "Bar"
@@ -77,7 +81,7 @@ class HypothesisForDspy(ExtendedBaseModel):
     description: str = None
     evidence: str = None
     analysisMethod: str = None
-    result: Optional[str] = None
+    result: str = None
 
 
 

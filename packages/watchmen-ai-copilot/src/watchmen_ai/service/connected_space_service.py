@@ -207,3 +207,5 @@ async def find_all_subject(principal_service: PrincipalService) -> List[SubjectW
 
     subjects = trans(connected_space_service, action)
     return add_column_type_to_subjects(subjects, principal_service)
+
+

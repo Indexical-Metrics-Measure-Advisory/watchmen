@@ -1,20 +1,22 @@
-from typing import List
+from typing import List, Optional
 
 import dspy
+import pandas as pd
 from fastapi import APIRouter, Depends
 from icecream import ic
 from pydantic import BaseModel
 
 from watchmen_ai.dspy.model.data_story import DataStory, BusinessTarget, SubQuestion, SubQuestionForDspy, \
-    DataStoryStatus, Hypothesis
+    DataStoryStatus, Hypothesis, MarkdownObjectiveTarget
 from watchmen_ai.dspy.module.generate_hypothesis import GenerateHypothesisModule
 from watchmen_ai.dspy.module.generate_sub_question import GenerateSubQuestionModule
-from watchmen_ai.dspy.module.metrics_finder import MetricsFinderModule
+from watchmen_ai.dspy.module.metircs_suggestion import MetricSuggestion, MetricMatchResult
 from watchmen_ai.dspy.module.suggestion_subject_dataset import SuggestionsDatasetModule, SuggestionsDatasetResult, \
     DatasetResult
 from watchmen_ai.meta.data_story_service import DataStoryService
 from watchmen_ai.service.connected_space_service import find_all_subject
 from watchmen_ai.service.data_story_service import convert_subject_mata_to_markdown_table_format, MarkdownSubject
+from watchmen_ai.service.objective_chat_service import find_all_objective
 from watchmen_ai.utils.request_ai_model_helper import get_ai_models
 from watchmen_ai.utils.utils import clean_space
 from watchmen_auth import PrincipalService
@@ -22,6 +24,7 @@ from watchmen_indicator_surface.util import trans_readonly, trans
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService, SubjectService
 from watchmen_meta.system.ai_model_service import AIModelService
+from watchmen_model.indicator import Objective
 from watchmen_model.system.ai_model import AIModel
 from watchmen_rest import get_any_principal
 
@@ -30,6 +33,12 @@ router = APIRouter()
 
 class DataSetResultWithMarkdownTable(DatasetResult):
     markdown_table: MarkdownSubject = None
+
+
+class AskMetricsSuggestions(BaseModel):
+    context: Optional[str] = None
+    hypothesis: Hypothesis = None
+    datasets: Optional[List[MarkdownSubject]] = []
 
 
 async def load_data_story_service(principal_service: PrincipalService) -> DataStoryService:
@@ -85,8 +94,6 @@ async def generate_sub_question_for_story(business_target: BusinessTarget,
 
     sub_questions: List[SubQuestionForDspy] = await generate_sub_question_for_business_question(business_target)
 
-
-
     ## find key question in sub question and move it the first
     new_sub_question = []
     key_question = None
@@ -105,7 +112,8 @@ async def generate_sub_question_for_story(business_target: BusinessTarget,
 
 class GenerateHypothesisReq(BaseModel):
     business_target: BusinessTarget = None
-    sub_question: SubQuestionForDspy= None
+    sub_question: SubQuestionForDspy = None
+
 
 
 class SuggestionDataset(BaseModel):
@@ -116,9 +124,12 @@ class SuggestionDataset(BaseModel):
 @router.post("/generate_hypothesis/", tags=["data_story"])
 async def generate_hypothesis_for_sub_question(req: GenerateHypothesisReq,
                                                principal_service: PrincipalService = Depends(get_any_principal)):
+
+    ic(req)
     generate_hypothesis = GenerateHypothesisModule()
     result = generate_hypothesis(req.sub_question, req.business_target.name, req.business_target.datasets)
     ic(result.response)
+    dspy.inspect_history(1)
     return result.response
 
 
@@ -169,7 +180,7 @@ async def suggestion_dataset(business_question: str, principal_service: Principa
     suggestion_dataset = SuggestionsDatasetModule()
     res = suggestion_dataset(business_question=business_question, dataset=markdown_dataset_list)
     suggested_result: SuggestionsDatasetResult = res.response
-
+    dspy.inspect_history(1)
     result = []
     for dataset in suggested_result.dataset_list:
         for markdown_subject in markdown_dataset_list:
@@ -182,12 +193,65 @@ async def suggestion_dataset(business_question: str, principal_service: Principa
     return SuggestionDataset(suggestion_datasets=result, all_options=markdown_dataset_list)
 
 
+async def load_markdown_subject_list(principal_service):
+    subject_list = await find_all_subject(principal_service)
+    markdown_dataset_list = []
+    for subject in subject_list:
+        markdown_subject: MarkdownSubject = await convert_subject_mata_to_markdown_table_format(subject)
+        markdown_dataset_list.append(markdown_subject)
+    return markdown_dataset_list
+
+
+async def convert_objective_target_to_markdown_table_format(objective_list: List[Objective]):
+    markdown_list = []
+    for objective in objective_list:
+        targets = objective.targets
+        table_columns_data = []
+        for target in targets:
+            table_columns_data.append({"name": target.name, "asis": target.asis})
+
+        df = pd.DataFrame(table_columns_data)
+        markdown_table = df.to_markdown(index=False)
+        markdown_list.append(MarkdownObjectiveTarget(objective_name=objective.name, markdown_table=markdown_table))
+    return markdown_list
+
+class MetricsOption(BaseModel):
+    metric_name: str = None
+    objective_name : str = None
+
+class MetricsMatchReq(BaseModel):
+    match_result: List[MetricMatchResult] = []
+    metrics_options:List[MetricsOption] = []
+
+
+
+
+@router.post("/suggestion_metrics/", tags=["data_story"])
+async def suggestion_metrics_and_mapping(ask_metrics: AskMetricsSuggestions,
+                                         principal_service: PrincipalService = Depends(get_any_principal)):
+    metric_suggestion = MetricSuggestion()
+    object_list: List[Objective] = await find_all_objective(principal_service)
+    objective_md_list = await convert_objective_target_to_markdown_table_format(object_list)
+
+    match_result: List[MetricMatchResult] = metric_suggestion(dataset =ask_metrics.datasets , hypothesis=ask_metrics.hypothesis,
+                                                              context=ask_metrics.context,
+                                                              exsitedMetrics=objective_md_list)
+
+    metrics_options: List[MetricsOption] = []
+    for objective in object_list:
+        for target in objective.targets:
+            metrics_options.append(MetricsOption(metric_name=target.name, objective_name=objective.name))
+
+    return MetricsMatchReq(match_result=match_result, metrics_options=metrics_options)
+
+
 async def generate_data_result():
     pass
 
 
 async def generate_data_insight():
     pass
+
 
 #
 # # todo implement code

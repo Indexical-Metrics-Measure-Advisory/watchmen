@@ -10,17 +10,18 @@ Trend Analysis,Distribution Analysis,Comparison Analysis,Correlation Analysis,Co
 
 
 class HypothesisSignature(dspy.Signature):
-    """generate hypothesis (pls ref analysis_method for generate evidence and result) for business question base on context ,dataset and sub question
-    hypothesis should be simple and easy to understand, and the number of hypothesis number should be 1 to 5, and the hypothesis should be generated base on dataset
-    hypothesis should be easy design for data analysis and data visualization
+    """You are an expert in the insurance domain and data analysis. Your task is to generate simple and clear hypotheses to address a given business question based on the provided context, dataset, and sub-questions. Please refer to the specified analysis_method(only one)to ensure that the hypotheses are well-suited for generating evidence and results.
+        1.Limit the number of hypotheses to 1 to 5, ensuring they are directly aligned with the dataset.
+        2.Ensure each hypothesis is easy to understand, straightforward to analyze, and conducive to effective data visualization.
+        3.Focus on designing hypotheses that can be practically tested using data analysis method.
     """
 
-    sub_question = dspy.InputField(desc="sub business question for insurance business  analysis")
-    context = dspy.InputField(desc="main business question for this insurance analysis story")
-    dataset = dspy.InputField(desc="column name of dataset which will be used to generate hypothesis")
-    analysis_method = dspy.InputField(desc="analysis method for this insurance analysis")
+    sub_question = dspy.InputField(description="sub business question for insurance business  analysis")
+    context = dspy.InputField(description="main business question for this insurance analysis story")
+    dataset = dspy.InputField(description="column name of dataset which will be used to generate hypothesis")
+    analysis_method:str = dspy.InputField(description="analysis method for this insurance analysis")
     response: List[HypothesisForDspy] = dspy.OutputField(
-        desc="this response will contain the hypothesis, and the number of  hypothesis number should be 1 to 5")
+        description="this response will contain the hypothesis, and the number of  hypothesis number should be 1 to 5")
 
 
 class GenerateHypothesisModule(dspy.Module):

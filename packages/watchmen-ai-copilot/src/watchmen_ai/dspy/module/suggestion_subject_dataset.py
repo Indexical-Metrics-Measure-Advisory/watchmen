@@ -17,9 +17,9 @@ class SuggestionsDatasetResult(BaseModel):
 class SuggestionsDatasetSignature(dspy.Signature):
     """your task is to suggest the dataset name  for the business question"""
 
-    business_question = dspy.InputField(desc="business question for insurance analysis")
-    dataset = dspy.InputField(desc="dataset name and factor list")
-    response: SuggestionsDatasetResult = dspy.OutputField(desc="this response will contain matching subject")
+    business_question = dspy.InputField(description="business question for insurance analysis")
+    dataset = dspy.InputField(description="dataset name and factor list")
+    response: SuggestionsDatasetResult = dspy.OutputField(description="this response will contain matching subjects ")
 
 
 class SuggestionsDatasetModule(dspy.Module):
