@@ -1,0 +1,6 @@
+# comment
+poetry.lock
+*.log
+*.LOG
+*.LoG
+*.log.*
