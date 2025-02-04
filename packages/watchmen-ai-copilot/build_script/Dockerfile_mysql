@@ -2,7 +2,7 @@ FROM python:3.12.4-slim-bullseye
 
 WORKDIR /app
 ADD . .
-RUN pip install dspy&&pip install lancedb
+RUN pip install dspy && pip install lancedb
 RUN pip install poetry && poetry config virtualenvs.create false && poetry install --no-dev -vv -E mysql -E trino -E rabbit -E s3 -E collector
 
 EXPOSE 8000

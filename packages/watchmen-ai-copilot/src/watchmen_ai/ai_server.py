@@ -1,6 +1,6 @@
 from typing import Callable, Optional
 
-import dspy
+
 from fastapi import FastAPI
 
 from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat
@@ -24,10 +24,10 @@ class AIApp(RestApp):
         return build_find_user_by_name()
 
     def init_llm_dspy(self):
+        import dspy
         # load markdown upload_file
         lm = dspy.LM('azure/gpt_4o')
         # lm = dspy.LM('azure/gpt_4o_mini')
-
         dspy.settings.configure(lm=lm)
 
     def build_find_user_by_pat(self) -> Callable[[str], Optional[User]]:
