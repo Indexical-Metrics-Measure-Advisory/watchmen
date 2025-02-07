@@ -22,6 +22,7 @@ watchmen-indicator-surface = { path = "../watchmen-indicator-surface", develop =
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
 watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
+watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
 kafka-python = { version = "^2.0.2", optional = true }
 aiokafka = { version = "^0.11.0", optional = true }
 aio-pika = { version = "^9.4.2", optional = true }
