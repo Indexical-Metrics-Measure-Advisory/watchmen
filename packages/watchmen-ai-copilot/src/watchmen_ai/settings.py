@@ -3,6 +3,7 @@ from watchmen_rest import RestSettings
 
 class AISettings(RestSettings):
     APP_NAME: str = 'Watchmen AI'
+    AZURE_MODEL: str = ''
     AZURE_API_KEY: str = ""
     AZURE_API_BASE: str = ""
     AZURE_API_VERSION: str = ""
@@ -20,3 +21,6 @@ def ask_azure_api_base() -> str:
 
 def ask_azure_api_version() -> str:
     return ai_settings.AZURE_API_VERSION
+
+def ask_azure_model()-> str:
+    return ai_settings.AZURE_MODEL
