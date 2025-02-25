@@ -8,4 +8,4 @@ from typing import Optional
 class Tenant(ExtendedBaseModel, Tuple, OptimisticLock):
 	tenantId: Optional[TenantId] = None
 	name: Optional[str] = None
-	enableAI: bool = False
+	enableAI: Optional[bool] = False
