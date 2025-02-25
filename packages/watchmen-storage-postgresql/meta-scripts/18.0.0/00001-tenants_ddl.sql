@@ -1,1 +1,1 @@
-ALTER TABLE tenants ADD enable_ai smallint NOT NULL DEFAULT 0;
+ALTER TABLE tenants ADD COLUMN enable_ai SMALLINT NULL DEFAULT 0;
