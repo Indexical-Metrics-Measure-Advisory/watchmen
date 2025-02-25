@@ -37,7 +37,7 @@ python3-saml = { version = "^1.16.0", optional = true }
 cryptography = { version = "^42.0.8", optional = true }
 uvloop = "^0.19.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 
 [tool.poetry.extras]
 trino = ["watchmen-inquiry-trino"]
