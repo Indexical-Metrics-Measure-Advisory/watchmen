@@ -2,7 +2,7 @@ CREATE TABLE ai_models
 (
     tenant_id          VARCHAR(50) NOT NULL,
     model_id           VARCHAR(50) NOT NULL,
-    enable_monitor     DECIMAL(1)  NOT NULL,
+    enable_monitor     SMALLINT  NOT NULL,
     llm_provider       VARCHAR(20) NOT NULL,
     base_url           VARCHAR(100),
     model_name         VARCHAR(50),

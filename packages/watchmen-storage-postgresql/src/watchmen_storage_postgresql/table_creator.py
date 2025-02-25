@@ -203,7 +203,7 @@ def build_unique_indexes_script(topic: Topic) -> List[str]:
 	# noinspection SqlResolve
 	def build_unique_index(factors: List[Factor], index: int) -> str:
 		return \
-			f'CREATE UNIQUE INDEX u_{as_table_name(topic)}_{index + 1} ON as_table_name(topic) ' \
+			f'CREATE UNIQUE INDEX u_{as_table_name(topic)}_{index + 1} ON {as_table_name(topic)} ' \
 			f'({ArrayHelper(factors).map(lambda x: ask_column_name(x)).join(",")})'
 
 	return ArrayHelper(list(index_groups.values())) \
