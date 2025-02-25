@@ -13,7 +13,7 @@ python = "~3.12"
 pyodbc = "^5.1.0"
 watchmen-storage-rds = { path = "../watchmen-storage-rds", develop = true }
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

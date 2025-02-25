@@ -21,7 +21,7 @@ watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop
 watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true, optional = true }
 watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true, optional = true }
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 
 [tool.poetry.extras]
 mysql = ["watchmen-storage-mysql"]

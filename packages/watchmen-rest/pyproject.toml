@@ -20,7 +20,7 @@ watchmen-auth = { path = "../watchmen-auth", develop = true }
 watchmen-storage = { path = "../watchmen-storage", develop = true }
 requests = "^2.32.3"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 
 [tool.poetry.extras]
 

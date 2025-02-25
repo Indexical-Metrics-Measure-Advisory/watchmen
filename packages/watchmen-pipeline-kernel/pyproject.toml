@@ -21,7 +21,7 @@ watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, o
 watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
 requests = { version = "^2.32.3", optional = true }
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 
 [tool.poetry.extras]
 mysql = ["watchmen-storage-mysql"]
