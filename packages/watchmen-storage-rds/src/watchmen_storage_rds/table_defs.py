@@ -31,6 +31,7 @@ table_pats = Table(
 table_tenants = Table(
 	'tenants', meta_data,
 	create_pk('tenant_id'),
+	create_bool('enable_ai', False),
 	create_str('name', 50, False),
 	*create_tuple_audit_columns(), create_optimistic_lock()
 )
