@@ -11,7 +11,7 @@ CREATE TABLE graph_nodes
     last_modified_at    DATETIME    NOT NULL,
     last_modified_by    VARCHAR(50) NOT NULL,
     version             INTEGER,
-    PRIMARY KEY (tenant_id, node_id),
+    PRIMARY KEY (node_id),
     INDEX (tenant_id),
     INDEX (created_at),
     INDEX (created_by),

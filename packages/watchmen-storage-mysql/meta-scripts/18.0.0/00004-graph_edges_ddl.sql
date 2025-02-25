@@ -13,7 +13,7 @@ CREATE TABLE graph_edges
     last_modified_at    DATETIME    NOT NULL,
     last_modified_by    VARCHAR(50) NOT NULL,
     version             INTEGER,
-    PRIMARY KEY （edge_id),
+    PRIMARY KEY (edge_id),
     INDEX (tenant_id),
     INDEX (created_at),
     INDEX (created_by),
