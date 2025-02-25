@@ -12,7 +12,7 @@ class MetricSuggestionResult(dspy.BaseModel):
     metric_name: str = Field(description="metric name suggestion")
     description: str = Field(description="metric description suggestion")
     reason: str = Field(description="reason for the suggestion")
-    formula: str = Field(description="formula for the metric if have it ")
+    # formula: str = Field(description="formula for the metric if have it ")
 
 
 class MetricSuggestionSignature(dspy.Signature):
@@ -30,7 +30,7 @@ class MetricMatchResult(dspy.BaseModel):
     metric_name: str = Field(description="metric name")
     match_exist_metric: str = Field(description="match exist metric name, if match multiple,pls return empty")
     match_score: float = Field(description="match score ,if match multiple, pls return 0")
-    formula: str = Field(description="formula for the metric if have it ")
+    # formula: str = Field(description="formula for the metric if have it ")
 
 
 class MetricMatchSignature(dspy.Signature):

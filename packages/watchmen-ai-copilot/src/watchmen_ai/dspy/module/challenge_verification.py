@@ -22,6 +22,7 @@ class Verification(dspy.Signature):
 
 class ChallengeVerification(dspy.Module):
     def __init__(self):
+        # dspy.configure(lm=dspy.LM("gpt-3.5-turbo"))
         self.verify = dspy.ChainOfThought(Verification)
 
     def forward(self, question, content):

@@ -10,7 +10,7 @@ class DatasetResult(BaseModel):
 
 
 class SuggestionsDatasetResult(BaseModel):
-    business_question: str = None
+    business_question: Optional[str] = None
     dataset_list: Optional[List[DatasetResult]] = None
 
 

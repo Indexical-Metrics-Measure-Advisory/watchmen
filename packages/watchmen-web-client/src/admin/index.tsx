@@ -46,6 +46,9 @@ const AdminMain = styled.main.attrs<{ scrollable?: boolean }>(({scrollable = tru
 	overflow-y : scroll;
 `;
 
+
+
+
 const asRoute = (path: Router, children: ReactNode,
                  options: { wrapped?: boolean; scrollable?: boolean } = {wrapped: true, scrollable: true}) => {
 	const {wrapped = true, scrollable = true} = options;

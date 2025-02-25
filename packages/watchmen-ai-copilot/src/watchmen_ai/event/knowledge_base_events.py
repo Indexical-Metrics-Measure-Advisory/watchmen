@@ -6,3 +6,5 @@ knowledge_graph_inserted = signal("knowledge_graph_inserted")
 
 # knowledge_graph_inserted.connect(kuzu_adapter.sync_to_graph_db)
 knowledge_graph_inserted.connect(vector_db.sync_graph_to_db)
+
+
