@@ -30,7 +30,9 @@ jobs:
         uses: actions/checkout@v3
       - name: Create database
         run: |
-          sudo apt-get update && sudo apt-get install -y mssql-tools
+          wget -qO- https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/20.04/prod.list)"
+          sudo apt-get update && sudo apt-get install -y mssql-tools unixodbc-dev
           /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1,1433 -U SA -P 'yourStrong(!)Password' -Q 'CREATE DATABASE watchmen'
       - name: Run db meta script
         run: |
