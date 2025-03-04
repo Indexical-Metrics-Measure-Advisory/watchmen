@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from watchmen_model.system import DataSource, DataSourceType
+from watchmen_model.system import DataSource, DataSourceType, DataSourceParam
 
 from .data_source_oracle import OracleDataSourceHelper, OracleDataSourceParams
 from .storage_oracle import StorageOracle, TopicDataStorageOracle
@@ -39,6 +39,12 @@ class Configuration:
 
 	def echo(self, enabled: bool = False) -> Configuration:
 		self.params.echo = enabled
+		return self
+	
+	def ssl(self, enabled: bool = False, sid: str = "") -> Configuration:
+		params = [DataSourceParam(name="sslEnabled", value=enabled),
+		          DataSourceParam(name="sid", value=sid)]
+		self.dataSource.params.extend(params)
 		return self
 
 	def get_or_create_storage_holder(self) -> StorageOracleConfiguration:

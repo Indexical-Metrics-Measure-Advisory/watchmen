@@ -7,7 +7,7 @@ from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 
 class DataSourceParam(ExtendedBaseModel):
 	name: Optional[str] = None
-	value: Optional[str] = None
+	value: Optional[Union[str, bool]] = None
 
 
 class DataSourceType(str, Enum):
