@@ -1,1 +1,1 @@
-ALTER TABLE scheduled_task_history ADD change_json_ids JSON NULL;
+ALTER TABLE scheduled_task_history ADD COLUMN change_json_ids JSON NULL;
