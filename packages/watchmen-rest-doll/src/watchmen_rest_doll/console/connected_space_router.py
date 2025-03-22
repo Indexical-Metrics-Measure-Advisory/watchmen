@@ -565,7 +565,7 @@ async def find_template_subjects_by_id(
 
 
 @router.get('/connected_space/subjects', tags=[UserRole.ADMIN], response_model=None)
-async def find_template_subjects_by_id(
+async def find_subjects_by_id(
 		principal_service: PrincipalService = Depends(
 			get_admin_principal)) -> List[Subject]:
 	connected_space_service = get_connected_space_service(principal_service)
