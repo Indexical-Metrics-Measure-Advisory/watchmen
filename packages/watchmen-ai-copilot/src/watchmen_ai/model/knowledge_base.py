@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Any
+from typing import Optional, Any,List
 
 from pydantic import BaseModel
 
@@ -14,14 +14,14 @@ class KnowledgeType(str, Enum):
     OBJECTIVE = "OBJECTIVE"
     MART = "MART"
     DATASET = "DATASET"
+    DATASTORY = "DATASTORY"
 
 
 class KnowledgeBase(BaseModel, TenantBasedTuple, Auditable):
     knowledgeBaseId: str = None
     name: str = None
     type: KnowledgeType = None
+    description: Optional[str] = None
+    params: Optional[List[str]] = None
 
-    description: str = None
-    graph: Any = None
-    vectorDB: Optional[str] = None
-    embeddingType: Optional[str] = None
+

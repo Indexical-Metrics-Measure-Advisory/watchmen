@@ -38,12 +38,15 @@ class MainDialog(ComponentDialog):
             )
         )
 
+
+
         self.initial_dialog_id = "WFDialog"
 
     async def recognize_input(self, turn_context: TurnContext):
         if turn_context.activity.value and "action" in turn_context.activity.value:
             return turn_context.activity.value["action"]
         elif turn_context.activity.text:
+            # return await self.search_intent(turn_context.activity.text)
 
             return None
 

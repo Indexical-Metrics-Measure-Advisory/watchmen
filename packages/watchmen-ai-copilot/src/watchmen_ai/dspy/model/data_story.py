@@ -81,7 +81,7 @@ class HypothesisForDspy(ExtendedBaseModel):
     description: str = None
     evidence: str = None
     analysisMethod: str = None
-    result: str = None
+    result: Optional[str] = None
 
 
 
