@@ -373,6 +373,7 @@ class SubjectStorage:
 		pager.commandOnly = True
 		pager.queryPfmMonitor = sql_monitor.create_monitor()
 		self.find_data(lambda agent: agent.free_page(pager))
+		# print(sql_monitor)
 		return sql_monitor.sql
 
 	# noinspection PyMethodMayBeStatic

@@ -35,6 +35,7 @@ def create_sql_performance_pipeline_invoker(
 ) -> Callable[[QueryPerformance, bool], None]:
 	def handle_sql_performance_log(sql_performance_log: QueryPerformance, asynchronized: bool) -> None:
 		schema = find_topic_schema('query_performance_log', principal_service)
+		sql_performance_log.user_id = principal_service.userId
 		trigger = PipelineTrigger(
 			trigger_topic_schema=schema,
 			trigger_type=PipelineTriggerType.INSERT,

@@ -417,38 +417,48 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 	# noinspection PyMethodMayBeStatic
 	def extract_sql(self, sql_query) -> QueryPerformance:
 		if ask_sql_analyzer_on():
-			sql = str(sql_query)
-			sql_parser = SqlParser()
-			return sql_parser.parse(sql)
+			sql =self.clean_sql( str(sql_query))
+			query_performance = QueryPerformance()
+			query_performance.sql = sql
+			# sql_parser = SqlParser()
+			return query_performance
+
+	def clean_sql(self,sql: str) -> str:
+		return sql.replace('\n', ' ')
 
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		data_statement = self.build_free_find_statement(finder)
-		# print("----------")
+
 		sql = data_statement.compile(dialect=self.connection.dialect, compile_kwargs={"literal_binds": True})
-		query_performance = self.extract_sql(sql)
-		if finder.commandOnly:
+		query_performance = QueryPerformance()
+		sql = self.clean_sql(str(sql))
+		query_performance.sql = sql
+
+
+		if finder.commandOnly and ask_sql_analyzer_on():
 			query_performance.execution_time = 0
 			query_performance.data_volume = 0
 			if finder.queryPfmMonitor:
 				finder.queryPfmMonitor(query_performance, True)
-			return []
 
-		# noinspection DuplicatedCode
 		start = timer()
-		# noinspection DuplicatedCode
+
 		results = self.connection.execute(data_statement).mappings().all()
+
 		end = timer()
+		if ask_sql_analyzer_on():
+			query_performance.execution_time = end - start
+			query_performance.data_volume = len(results)
 
-		query_performance.execution_time = end - start
-		query_performance.data_volume = len(results)
-		# print(query_performance)
-
-		if finder.queryPfmMonitor:
+		if finder.queryPfmMonitor and ask_sql_analyzer_on():
 			finder.queryPfmMonitor(query_performance, True)
 
-		return ArrayHelper(results) \
+
+		return_data =  ArrayHelper(results) \
 			.map(lambda x: self.deserialize_from_auto_generated_columns(x, finder.columns)) \
 			.to_list()
+		print(return_data)
+		return return_data
 
 	# noinspection DuplicatedCode
 	def free_page(self, pager: FreePager) -> DataPage:
@@ -562,7 +572,6 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		data_statement = self.build_sort_for_statement(data_statement, pager.highOrderSortColumns)
 		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
 		data_statement = self.build_offset_for_statement(data_statement, page_size, page_number)
-		# print("----------")
 		sql = data_statement.compile(dialect=self.connection.dialect, compile_kwargs={"literal_binds": True})
 		query_performance = self.extract_sql(sql)
 		if pager.commandOnly:

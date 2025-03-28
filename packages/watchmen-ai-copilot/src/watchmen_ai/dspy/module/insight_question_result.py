@@ -47,5 +47,6 @@ class InsightQuestionResult(dspy.Module):
         self.model = dspy.ChainOfThought(InsightQuestionResultSign)
 
     def forward(self, question: SubQuestion, context: str):
+
         question_markdown = convert_question_to_markdown(question)
         return self.model(question=question_markdown, context=context)

@@ -65,6 +65,7 @@ class QueryPerformance(ExtendedBaseModel):
 	where_dimensions:  Optional[str] = None
 	group_by_dimensions:  Optional[str] = None
 	sql:  Optional[str] = None
+	user_id:  Optional[str] = None
 
 
 def build_function(name):
