@@ -61,7 +61,8 @@ class MSSQLDataSourceHelper(DataSourceHelper):
 			url = f'mssql+pyodbc://{username}:{password}@{dsn}'
 			return MSSQLDataSourceHelper.acquire_engine_by_url(url, params)
 		else:
-			url = f'mssql+pyodbc://{username}:{password}@{host}:{port}/{name}?driver=ODBC+Driver+18+for+SQL+Server'
+			# todo for the tls connection
+			url = f'mssql+pyodbc://{username}:{password}@{host}:{port}/{name}?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes'
 			return MSSQLDataSourceHelper.acquire_engine_by_url(url, params)
 
 	def acquire_storage(self) -> StorageMSSQL:
