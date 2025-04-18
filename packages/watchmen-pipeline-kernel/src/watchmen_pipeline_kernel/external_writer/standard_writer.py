@@ -37,7 +37,7 @@ class StandardExternalWriter(ExternalWriter):
 		from requests import post
 		response = post(
 			url=params.url,
-			timeout=5,
+			timeout=2,
 			data=serialize_to_json(payload),
 			headers=headers
 		)
