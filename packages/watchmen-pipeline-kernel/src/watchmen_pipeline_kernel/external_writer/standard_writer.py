@@ -24,8 +24,7 @@ class StandardExternalWriter(ExternalWriter):
 				f'Fire standard external writer when previous and current are none is not supported.')
 		payload = {
 			'code': params.eventCode,
-			'currentData': current_data,
-			'previousData': previous_data,
+			'data': current_data,
 			'triggerType': trigger_type
 		}
 
@@ -38,7 +37,7 @@ class StandardExternalWriter(ExternalWriter):
 		from requests import post
 		response = post(
 			url=params.url,
-			timeout=2,
+			timeout=5,
 			data=serialize_to_json(payload),
 			headers=headers
 		)
