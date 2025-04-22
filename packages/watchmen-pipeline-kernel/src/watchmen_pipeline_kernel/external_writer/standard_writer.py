@@ -11,14 +11,10 @@ logger = getLogger(__name__)
 class StandardExternalWriter(ExternalWriter):
 	# noinspection PyMethodMayBeStatic
 	def do_run(self, params: ExternalWriterParams) -> None:
-		previous_data = params.previousData
+
 		current_data = params.currentData
-		if previous_data is None and current_data is not None:
+		if current_data:
 			trigger_type = PipelineTriggerType.INSERT.value
-		elif previous_data is not None and current_data is not None:
-			trigger_type = PipelineTriggerType.MERGE.value
-		elif previous_data is not None and current_data is None:
-			trigger_type = PipelineTriggerType.DELETE.value
 		else:
 			raise PipelineKernelException(
 				f'Fire standard external writer when previous and current are none is not supported.')
