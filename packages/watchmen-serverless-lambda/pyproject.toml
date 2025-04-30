@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "watchmen-serverless-lambda"
+version = "18.0.0"
+description = ""
+authors = ["skywalkerX69"]
+license = "MIT"
+packages = [
+    { include = "watchmen_serverless_lambda", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "~3.12"
+aws-cdk-lib = "^2.0.0"
+constructs = "^10.0.0"
+boto3 = "^1.34.140"
+watchmen-pipeline-surface = { path = "../watchmen-pipeline-surface", develop = true }
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
+watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
+watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
+watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
+watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
+watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true, optional = true }
+watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true, optional = true }
+
+
+
+[tool.poetry.group.dev.dependencies]
+
+[tool.poetry.extras]
+mysql = ["watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle"]
+mongodb = ["watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql"]
+postgresql = ["watchmen-storage-postgresql"]
+oss = ["watchmen-storage-oss"]
+s3 = ["watchmen-storage-s3"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
