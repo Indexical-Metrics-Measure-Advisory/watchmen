@@ -1,17 +1,19 @@
 from decimal import Decimal
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, Union
 
 
 def is_numeric_instance(value: Any) -> bool:
 	return value is not None and (isinstance(value, int) or isinstance(value, float) or isinstance(value, Decimal))
 
 
-def is_decimal(value: Optional[str]) -> Tuple[bool, Optional[Decimal]]:
+def is_decimal(value: Optional[Union[str, float]]) -> Tuple[bool, Optional[Decimal]]:
 	"""
 	none is not a numeric value, otherwise try to parse it by float function
 	"""
 	if value is None:
 		return False, None
+	if isinstance(value, float):
+		value = str(value)
 	# noinspection PyBroadException
 	try:
 		return True, Decimal(value)
