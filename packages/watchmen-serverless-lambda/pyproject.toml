@@ -14,6 +14,7 @@ aws-cdk-lib = "^2.0.0"
 constructs = "^10.0.0"
 boto3 = "^1.34.140"
 watchmen-pipeline-surface = { path = "../watchmen-pipeline-surface", develop = true }
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true }
 watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true }
 watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true }
@@ -22,17 +23,8 @@ watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true }
 watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true }
 
 
-
 [tool.poetry.group.dev.dependencies]
 
-[tool.poetry.extras]
-mysql = ["watchmen-storage-mysql"]
-oracle = ["watchmen-storage-oracle"]
-mongodb = ["watchmen-storage-mongodb"]
-mssql = ["watchmen-storage-mssql"]
-postgresql = ["watchmen-storage-postgresql"]
-oss = ["watchmen-storage-oss"]
-s3 = ["watchmen-storage-s3"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
