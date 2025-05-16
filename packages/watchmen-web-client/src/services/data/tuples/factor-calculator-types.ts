@@ -158,6 +158,8 @@ export enum VariablePredefineFunctions {
 	LENGTH = '&length',
 	SUM = '&sum',
     JOIN = '&join',
+	MIN = '&min',
+	MAX = '&max',
 	FROM_PREVIOUS_TRIGGER_DATA = '&old',
 
 	DAY_DIFF = '&dayDiff',

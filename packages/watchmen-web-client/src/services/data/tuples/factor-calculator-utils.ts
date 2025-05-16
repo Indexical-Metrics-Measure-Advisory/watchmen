@@ -384,6 +384,10 @@ export const computeParameterTypes = (
 				return [{array: false, type: FactorType.NUMBER}];
             } else if (name.endsWith(`.${VariablePredefineFunctions.JOIN}`)) {
                 return [{array: false, type: FactorType.TEXT}];
+			} else if (name.endsWith(`.${VariablePredefineFunctions.MIN}`)) {
+				return [{array: false, type: AnyFactorType.ANY}];
+			} else if (name.endsWith(`.${VariablePredefineFunctions.MAX}`)) {
+				return [{array: false, type: AnyFactorType.ANY}];
 			} else if (isDateDiffConstant(name).is) {
 				return [{array: false, type: FactorType.NUMBER}];
 			} else if (isMoveDateConstant(name).is) {

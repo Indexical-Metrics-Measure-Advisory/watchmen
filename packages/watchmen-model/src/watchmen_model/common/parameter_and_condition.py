@@ -37,6 +37,8 @@ class VariablePredefineFunctions(str, Enum):
 	LENGTH = '&length',
 	SUM = '&sum',
 	JOIN = '&join',
+	MAX = '&max',
+	MIN = '&min',
 	FROM_PREVIOUS_TRIGGER_DATA = '&old',
 
 	DAY_DIFF = '&dayDiff',

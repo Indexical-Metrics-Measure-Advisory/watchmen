@@ -219,6 +219,10 @@ const computeVariable = (options: {
 			}, 0);
         } else if (part === VariablePredefineFunctions.JOIN && Array.isArray(value)) {
             return Array.from(new Set(value)).join(',');
+		} else if (part === VariablePredefineFunctions.MIN && Array.isArray(value)) {
+			return typeAwareMin(value)
+		} else if (part === VariablePredefineFunctions.MAX && Array.isArray(value)) {
+			return typeAwareMax(value)
 		} else if (part === VariablePredefineFunctions.LENGTH && typeof value === 'string') {
 			return value.length;
 		} else if (typeof value === 'object') {
@@ -337,3 +341,61 @@ export const checkShouldBe = (parameter: ComputedParameter, shouldBe: ParameterS
 	}
 };
 
+type Sortable = number | string | Date | boolean;
+
+// Comparator function type
+type Comparator<T> = (a: T, b: T) => number;
+
+// Type judgment function
+function getType(value: any): string {
+  if (value instanceof Date) return 'date';
+  if (typeof value === 'string') return 'string';
+  if (typeof value === 'number') return 'number';
+  if (typeof value === 'boolean') return 'boolean';
+  return 'unknown';
+}
+
+// Default comparator mapping
+const defaultComparators: Record<string, Comparator<any>> = {
+  number: (a: number, b: number) => a - b,
+  string: (a: string, b: string) => a.localeCompare(b),
+  date: (a: Date, b: Date) => a.getTime() - b.getTime(),
+  boolean: (a: boolean, b: boolean) => (a === b ? 0 : a ? 1 : -1)
+};
+
+// Get the default comparator
+function getDefaultComparator(type: string): Comparator<any> {
+  const comparator = defaultComparators[type];
+  if (!comparator) throw new Error(`Unsupported type: ${type}`);
+  return comparator;
+}
+
+// Type-aware min function
+function typeAwareMin<T extends Sortable>(array: T[], comparator?: Comparator<T>): T | undefined {
+  if (array.length === 0) return undefined;
+
+  const firstType = getType(array[0]);
+  const allSameType = array.every(item => getType(item) === firstType);
+  if (!allSameType) {
+    throw new Error('Array contains mixed types, cannot determine min.');
+  }
+
+  const compareFn = comparator || getDefaultComparator(firstType);
+  return array.reduce((min, current) =>
+    compareFn(current, min) < 0 ? current : min, array[0]);
+}
+
+// Type-aware max function
+function typeAwareMax<T extends Sortable>(array: T[], comparator?: Comparator<T>): T | undefined {
+  if (array.length === 0) return undefined;
+
+  const firstType = getType(array[0]);
+  const allSameType = array.every(item => getType(item) === firstType);
+  if (!allSameType) {
+    throw new Error('Array contains mixed types, cannot determine max.');
+  }
+
+  const compareFn = comparator || getDefaultComparator(firstType);
+  return array.reduce((max, current) =>
+    compareFn(current, max) > 0 ? current : max, array[0]);
+}

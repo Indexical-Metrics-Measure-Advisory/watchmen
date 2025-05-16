@@ -46,6 +46,22 @@ def get_value_from(
 				return ','.join(map(str, set(data)))
 			else:
 				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
+		elif current_name == VariablePredefineFunctions.MIN:
+			if isinstance(data, list):
+				if len(data) == 0:
+					return None
+				else:
+					return min(data)
+			else:
+				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
+		elif current_name == VariablePredefineFunctions.MAX:
+			if isinstance(data, list):
+				if len(data) == 0:
+					return None
+				else:
+					return max(data)
+			else:
+				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
 		elif current_name == VariablePredefineFunctions.SUM:
 			if isinstance(data, list):
 				def to_decimal(value: Any) -> Decimal:
