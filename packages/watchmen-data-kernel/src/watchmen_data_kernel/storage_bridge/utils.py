@@ -48,18 +48,20 @@ def get_value_from(
 				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
 		elif current_name == VariablePredefineFunctions.MIN:
 			if isinstance(data, list):
-				if len(data) == 0:
+				new_data = [element for element in data if element is not None]
+				if len(new_data) == 0:
 					return None
 				else:
-					return min(data)
+					return min(new_data)
 			else:
 				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
 		elif current_name == VariablePredefineFunctions.MAX:
 			if isinstance(data, list):
-				if len(data) == 0:
+				new_data = [element for element in data if element is not None]
+				if len(new_data) == 0:
 					return None
 				else:
-					return max(data)
+					return max(new_data)
 			else:
 				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
 		elif current_name == VariablePredefineFunctions.SUM:
