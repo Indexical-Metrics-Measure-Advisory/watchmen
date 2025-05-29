@@ -1,12 +1,14 @@
+from functools import cache
 from logging import getLogger
 from typing import Any, Callable, List, Optional, Tuple
 
 from sqlalchemy import Table, text
 
-from watchmen_model.admin import FactorType, Topic
+from watchmen_model.admin import FactorType, Topic, Factor
 from watchmen_storage import as_table_name, EntityCriteria, EntitySort, Literal
 from watchmen_storage_rds import build_sort_for_statement, SQLAlchemyStatement, \
 	StorageRDS, TopicDataStorageRDS
+from watchmen_utilities import ArrayHelper
 from .table_creator import build_columns_script, build_indexes_script, \
 	build_unique_indexes_script, build_table_script
 from .where_build import build_criteria_for_statement, build_literal
@@ -172,3 +174,32 @@ class TopicDataStoragePostgreSQL(StoragePostgreSQL, TopicDataStorageRDS):
 
 	def build_literal(self, tables: List[Table], a_literal: Literal, build_plain_value: Callable[[Any], Any] = None):
 		return build_literal(tables, a_literal, build_plain_value)
+
+	# noinspection SqlResolve,SqlCaseVsIf
+	def ask_reflect_sql(self, table_name: str, schema: str) -> str:
+		return \
+			f"SELECT pg_catalog.pg_attribute.attname AS column_name, pg_catalog.format_type(pg_catalog.pg_attribute.atttypid, pg_catalog.pg_attribute.atttypmod) AS column_type, " \
+			f"pg_catalog.pg_attribute.attnotnull AS not_null, pg_catalog.pg_class.relname AS table_name, " \
+			f"pg_catalog.pg_description.description AS column_comment " \
+			f"FROM pg_catalog.pg_class LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_class.oid = pg_catalog.pg_attribute.attrelid " \
+			f"AND pg_catalog.pg_attribute.attnum > 0 AND " \
+			f"pg_catalog.pg_attribute.attisdropped = FALSE LEFT OUTER JOIN pg_catalog.pg_description ON pg_catalog.pg_description.objoid = pg_catalog.pg_attribute.attrelid " \
+			f"AND pg_catalog.pg_description.objsubid = " \
+			f"pg_catalog.pg_attribute.attnum JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace " \
+			f"WHERE pg_catalog.pg_class.relkind = ANY (ARRAY['r', 'p', 'f', 'v', 'm']) AND pg_catalog.pg_namespace.nspname = '{schema}' AND pg_catalog.pg_class.relname IN " \
+			f"('{table_name}') ORDER BY pg_catalog.pg_class.relname, pg_catalog.pg_attribute.attnum"
+
+	@cache
+	def ask_reflect_factors(self, table_name: str, schema: str) -> List[Factor]:
+		try:
+			self.connect()
+			columns = self.connection.execute(text(self.ask_reflect_sql(table_name, schema))).mappings().all()
+			factors = ArrayHelper(columns) \
+				.map_with_index(lambda x, index: self.schema_column_to_factor(x, index + 1)) \
+				.to_list()
+			return factors
+		finally:
+			self.close()
+
+
+
