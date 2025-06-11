@@ -1,12 +1,12 @@
-FROM python:3.12.4-slim-bullseye
+FROM python:3.12.5-slim-bookworm
 
 WORKDIR /app
 ADD . .
-RUN pip install dspy && pip install lancedb
-RUN pip install poetry && poetry config virtualenvs.create false && poetry install --without dev -vv -E mysql -E trino -E rabbit -E s3 -E collector
+RUN pip install dspy==2.5.43 && pip install lancedb && pip install poetry && poetry config virtualenvs.create false && poetry install --without dev -vv -E mysql -E trino -E rabbit -E s3 -E collector
 
-EXPOSE 8000
-CMD ["uvicorn","watchmen_rest_doll.main:app","--host", "0.0.0.0", "--port", "8000"]
+
+EXPOSE 8900
+CMD ["uvicorn","watchmen_ai.main:app","--host", "0.0.0.0", "--port", "8900"]
 
 
 

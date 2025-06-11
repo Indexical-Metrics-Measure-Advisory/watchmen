@@ -1,4 +1,4 @@
-FROM python:3.12.4-slim-bullseye
+FROM python:3.12.5-slim-bookworm
 
 WORKDIR    /opt/oracle
 RUN        apt-get update && apt-get install -y libaio1 wget unzip build-essential \
@@ -12,10 +12,10 @@ RUN        apt-get update && apt-get install -y libaio1 wget unzip build-essenti
 
 WORKDIR /app
 ADD . .
-RUN pip install cx_Oracle && pip install poetry && poetry config virtualenvs.create false && poetry install --without dev -vv -E oracle -E trino -E s3
+RUN pip install dspy==2.5.43 && pip install lancedb && pip install cx_Oracle && pip install poetry && poetry config virtualenvs.create false && poetry install --without dev -vv -E oracle -E trino -E s3
 
-EXPOSE 8000
-CMD ["uvicorn","watchmen_rest_doll.main:app","--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 8900
+CMD ["uvicorn","watchmen_ai.main:app","--host", "0.0.0.0", "--port", "8900"]
 
 
 

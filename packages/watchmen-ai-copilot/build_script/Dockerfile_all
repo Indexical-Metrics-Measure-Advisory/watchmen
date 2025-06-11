@@ -1,10 +1,10 @@
-FROM python:3.12.4-slim-bullseye
+FROM python:3.12.5-slim-bookworm
 
 WORKDIR    /opt/mssql
-RUN        apt-get update && apt-get install -y curl && apt-get install -y gnupg2 gcc g++ \
-           && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-           && curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-           && apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
+RUN        apt-get update && apt-get install -y curl && apt-get install -y gnupg gcc g++ \
+           && curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg \
+           && curl https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+           && apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
 
 WORKDIR    /opt/oracle
 RUN        apt-get update && apt-get install -y libaio1 wget unzip build-essential \
@@ -18,10 +18,10 @@ RUN        apt-get update && apt-get install -y libaio1 wget unzip build-essenti
 
 WORKDIR /app
 ADD . .
-RUN pip install cx_Oracle && pip install poetry && poetry config virtualenvs.create false && poetry install --without dev -vv -E mongodb -E mysql -E mssql -E oracle -E postgresql -E trino -E rabbit -E s3 -E collector -E adls
+RUN pip install dspy==2.5.43 && pip install lancedb && pip install cx_Oracle && pip install poetry && poetry config virtualenvs.create false && poetry install --without dev -vv -E mongodb -E mysql -E mssql -E oracle -E postgresql -E trino -E rabbit -E s3 -E collector -E adls
 
-EXPOSE 8000
-CMD ["uvicorn","watchmen_rest_doll.main:app","--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 8900
+CMD ["uvicorn","watchmen_ai.main:app","--host", "0.0.0.0", "--port", "8900"]
 
 
 
