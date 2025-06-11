@@ -1,10 +1,11 @@
 FROM python:3.12.5-slim-bookworm
 
 WORKDIR    /opt/mssql
-RUN        apt-get update && apt-get install -y curl && apt-get install -y gnupg2 gcc g++ \
-           && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+RUN        apt-get update && apt-get install -y curl && apt-get install -y gnupg gcc g++ \
+           && curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg \
            && curl https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-           && apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
+           && apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev \
+           && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR    /opt/oracle
 RUN        apt-get update && apt-get install -y libaio1 wget unzip build-essential \
