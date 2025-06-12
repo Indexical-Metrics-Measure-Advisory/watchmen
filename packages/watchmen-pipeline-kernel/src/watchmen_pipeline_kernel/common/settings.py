@@ -24,6 +24,7 @@ class PipelineKernelSettings(ExtendedBaseSettings):
 	PIPELINE_ERROR_HANDLE_MONITOR_LOG: bool = False  # just handle error monitor log
 	QUERY_MONITOR_LOG: bool = False
 	PIPELINE_RECURSION_LIMIT: int = 900
+	PIPELINE_STANDARD_EXTERNAL_WRITER_TIMEOUT: int = 60
 
 
 settings = PipelineKernelSettings()
@@ -100,3 +101,7 @@ def ask_pipeline_recursion_limit() -> int:
 
 def ask_pipeline_error_handle_monitor_log() -> bool:
 	return settings.PIPELINE_ERROR_HANDLE_MONITOR_LOG
+
+
+def ask_standard_external_writer_timeout() -> int:
+	return settings.PIPELINE_STANDARD_EXTERNAL_WRITER_TIMEOUT

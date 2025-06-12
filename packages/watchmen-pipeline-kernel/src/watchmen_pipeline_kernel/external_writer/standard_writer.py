@@ -2,7 +2,7 @@ from logging import getLogger
 
 from watchmen_data_kernel.external_writer import BuildExternalWriter, ExternalWriter, ExternalWriterParams
 from watchmen_model.admin import PipelineTriggerType
-from watchmen_pipeline_kernel.common import PipelineKernelException
+from watchmen_pipeline_kernel.common import PipelineKernelException, ask_standard_external_writer_timeout
 from watchmen_utilities import is_not_blank, serialize_to_json
 
 logger = getLogger(__name__)
@@ -33,7 +33,7 @@ class StandardExternalWriter(ExternalWriter):
 		from requests import post
 		response = post(
 			url=params.url,
-			timeout=2,
+			timeout=ask_standard_external_writer_timeout(),
 			data=serialize_to_json(payload),
 			headers=headers
 		)
