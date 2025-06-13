@@ -4,6 +4,8 @@ from enum import Enum
 from json import JSONEncoder
 from re import sub
 from typing import Any, List, Optional, Tuple, Union
+import re
+
 
 from .array_helper import ArrayHelper
 from .numeric_helper import is_decimal
@@ -296,8 +298,12 @@ DATE_FORMAT_MAPPING = {
 
 
 def translate_date_format_to_memory(date_format: str) -> str:
-	return ArrayHelper(list(DATE_FORMAT_MAPPING)) \
-		.reduce(lambda original, x: original.replace(x, DATE_FORMAT_MAPPING[x]), date_format)
+	pattern = '|'.join(re.escape(key) for key in DATE_FORMAT_MAPPING.keys())
+
+	def replace_match(match):
+		return DATE_FORMAT_MAPPING[match.group(0)]
+
+	return re.sub(pattern, replace_match, date_format)
 
 
 class DateTimeConstants(int, Enum):
