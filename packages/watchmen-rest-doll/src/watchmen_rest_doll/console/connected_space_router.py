@@ -1,9 +1,11 @@
+from logging import getLogger
 from typing import Dict, List, Optional, Union
 
 from fastapi import APIRouter, Depends
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
+from watchmen_data_kernel.common import DataKernelException
 from watchmen_data_kernel.storage_bridge import parse_parameter_for_storage
 from watchmen_inquiry_kernel.schema import SubjectSchema
 from watchmen_meta.admin import SpaceService, UserService
@@ -21,6 +23,8 @@ from watchmen_rest_doll.util import trans, trans_readonly
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_not_blank, ExtendedBaseModel
 
 router = APIRouter()
+
+logger = getLogger(__name__)
 
 
 def get_connected_space_service(principal_service: PrincipalService) -> ConnectedSpaceService:
@@ -580,7 +584,15 @@ async def find_subjects_by_id(
 	
 	subjects = trans(connected_space_service, action)
 	finished_subjects = filter_unfinished_subjects(subjects)
-	return add_column_type_to_subjects(finished_subjects, principal_service)
+	validate_subjects = []
+	for finished_subject in finished_subjects:
+		subject_with_type = construct_subject_with_type(finished_subject.to_dict())
+		try:
+			validate_subject = add_dataset_column_type(subject_with_type, principal_service)
+			validate_subjects.append(validate_subject)
+		except DataKernelException as e:
+			logger.error(f"process subject {subject_with_type.subjectId}, error: {e}", exc_info=True)
+	return validate_subjects
 
 
 def filter_unfinished_subjects(subjects: List[Subject]) -> List[Subject]:
@@ -631,7 +643,7 @@ def filter_unfinished_subjects(subjects: List[Subject]) -> List[Subject]:
 		
 		if incomplete_filters():
 			return True
-	
+
 	return ArrayHelper(subjects).filter(lambda subject: is_finished(subject)).to_list()
 
 
