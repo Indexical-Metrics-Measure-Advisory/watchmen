@@ -2,6 +2,7 @@ from .module_config_cache import ModuleConfigCache, module_config_cache
 from .model_config_cache import ModelConfigCache, model_config_cache
 from .table_config_cache import TableConfigCache, table_config_cache
 from .collector_topic_cache import CollectorTopicCache, collector_topic_cache
+from .collector_datasource_cache import CollectorDatasourceCache,collector_datasource_cache
 
 
 class CollectorCacheService:
@@ -21,10 +22,15 @@ class CollectorCacheService:
 	@staticmethod
 	def collector_topic() -> CollectorTopicCache:
 		return collector_topic_cache
-
+	
+	@staticmethod
+	def collector_datasource() -> CollectorDatasourceCache:
+		return collector_datasource_cache
+	
 	@staticmethod
 	def clear_all() -> None:
 		CollectorCacheService.module_config().clear()
 		CollectorCacheService.model_config().clear()
 		CollectorCacheService.table_config().clear()
 		CollectorCacheService.collector_topic().clear()
+		CollectorCacheService.collector_datasource().clear()

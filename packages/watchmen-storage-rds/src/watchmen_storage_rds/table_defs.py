@@ -403,6 +403,7 @@ table_trigger_table = Table(
 	create_pk('table_trigger_id', Integer), create_str('table_name', 50),
 	create_str('model_name', 50), create_int('data_count'),
 	create_bool('is_extracted', False),
+	create_json('result'),
 	create_int('model_trigger_id', False),
 	create_int('module_trigger_id', False),
 	create_int('event_trigger_id', False),

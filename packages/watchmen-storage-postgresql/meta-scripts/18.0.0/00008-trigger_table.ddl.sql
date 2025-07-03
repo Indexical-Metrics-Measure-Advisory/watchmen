@@ -1,0 +1,1 @@
+ALTER TABLE trigger_table ADD result JSON;

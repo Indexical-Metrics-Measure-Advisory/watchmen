@@ -1,4 +1,4 @@
-from typing import Optional, List, Any
+from typing import Optional, List
 
 from watchmen_model.common import DataModel
 from watchmen_model.system import DataSource, DataSourceParam

@@ -31,4 +31,4 @@ ADD . .
 RUN pip3 install cx_Oracle && pip3 install poetry && poetry config virtualenvs.create false && poetry install --without dev -vv
 
 # Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
-CMD [ "urltrigger-handler.main" ]
+CMD [ "lambda-handler.main" ]

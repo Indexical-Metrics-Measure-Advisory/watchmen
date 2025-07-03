@@ -1,0 +1,1 @@
+from .table_extractor import process_table_extractor_message
