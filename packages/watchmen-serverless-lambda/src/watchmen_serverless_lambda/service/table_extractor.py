@@ -8,7 +8,7 @@ from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, Trig
     Condition, Status, CollectorTableConfig
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, CriteriaBuilder, \
     build_audit_column_criteria, get_table_config_service, ask_source_extractor, ask_collector_storage
-from watchmen_collector_kernel.service.extract_utils import build_data_id, get_data_id
+from watchmen_collector_kernel.service.extract_utils import get_data_id
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_trigger_table_service, get_competitive_lock_service, \
     get_collector_table_config_service, get_trigger_event_service, get_change_data_record_service
@@ -47,8 +47,8 @@ class TableExtractorListener:
         self.change_data_record_service = get_change_data_record_service(self.meta_storage,
                                                                          self.snowflake_generator,
                                                                          self.principal_service)
-        # noinspection PyMethodMayBeStatic
     
+    # noinspection PyMethodMayBeStatic
     def trigger_table_lock_resource_id(self, trigger_table: TriggerTable) -> str:
         return f'trigger_table_{trigger_table.tableTriggerId}'
     
@@ -61,38 +61,16 @@ class TableExtractorListener:
             try:
                 if try_lock_nowait(self.competitive_lock_service, lock):
                     trigger = self.trigger_table_service.find_by_id(unfinished_trigger_table.tableTriggerId)
-                    if self.is_extracted(trigger):
+                    processor = TableProcessor(trigger.tenantId)
+                    if processor.is_extracted(trigger):
                         continue
                     else:
-                        config = self.table_config_service.find_by_name(trigger.tableName, trigger.tenantId)
-                        trigger_event = self.trigger_event_service.find_event_by_id(trigger.eventTriggerId)
-                        criteria = self.get_criteria(trigger_event, config)
-                        source_records = ask_source_extractor(config).find_primary_keys_by_criteria(
-                            criteria
-                        )
-                        existed_records = self.change_data_record_service.find_existed_records(
-                            trigger.tableTriggerId)
-                        if existed_records:
-                            diff_records: List[List] = self.get_diff(source_records, existed_records)
-                            logger.info(
-                                f'table_name: {config.tableName}, source_records: {len(source_records)}, existed_records: {len(existed_records)}, diffs: {len(diff_records)}'
-                            )
-                            for diff_record in diff_records:
-                                self.save_change_data_record(trigger, build_data_id(config.primaryKey, diff_record))
-                        else:
-                            logger.info(
-                                f'table_name: {config.tableName}, source_records: {len(source_records)}, existed_records: {len(existed_records)}'
-                            )
-                            ArrayHelper(source_records).map(
-                                lambda record: self.save_change_data_record(trigger,
-                                                                            get_data_id(config.primaryKey, record)))
-                        data_count = ArrayHelper(source_records).size()
-                        self.trigger_table_service.update_table_trigger(self.set_extracted(trigger, data_count))
+                        processor.process_trigger_table(trigger)
                         break
             finally:
                 unlock(self.competitive_lock_service, lock)
-
-
+    
+    
 class TableProcessor:
 
     def __init__(self, tenant_id: str):
@@ -186,7 +164,6 @@ class TableProcessor:
         successes, failures = sender.send_batch(messages)
         return successes, failures
         
-    
         
     def process_records(self, trigger_table, records: Optional[List[Dict[str, Any]]]):
         config = self.table_config_service.find_by_name(trigger_table.tableName, trigger_table.tenantId)

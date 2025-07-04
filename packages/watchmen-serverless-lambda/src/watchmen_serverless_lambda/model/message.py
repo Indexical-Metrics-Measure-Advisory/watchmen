@@ -34,7 +34,7 @@ class TableExtractorMessage(ActionMessage):
     records: Optional[List[Dict]] = None
     
     def __setattr__(self, name, value):
-        if name == 'triggerTables':
+        if name == 'triggerTable':
             super().__setattr__(name, construct_trigger_table(value))
         else:
             super().__setattr__(name, value)

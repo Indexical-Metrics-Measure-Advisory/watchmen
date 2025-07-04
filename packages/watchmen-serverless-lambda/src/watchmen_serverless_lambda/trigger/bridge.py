@@ -3,6 +3,8 @@ import json
 import logging
 from enum import StrEnum
 
+from watchmen_serverless_lambda.service import EventListener
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -19,7 +21,8 @@ def event_bridge_handler(event, context):
     try:
         detail = json.loads(event['detail'])
         if detail.get("listener", None) == ListenerType.EVENT:
-            self.event_listener()
+            listener = EventListener()
+            listener.event_listener()
         else:
             logger.error("not support event: %s", event)
         logger.info("Full event: %s", event)
