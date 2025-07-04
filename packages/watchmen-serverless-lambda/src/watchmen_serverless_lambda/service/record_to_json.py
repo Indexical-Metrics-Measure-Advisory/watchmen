@@ -18,6 +18,7 @@ from watchmen_collector_surface.settings import ask_record_to_json_wait
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
 from watchmen_serverless_lambda.common import ask_serverless_queue_url, \
 	ask_serverless_record_distribution_max_batch_size
+from watchmen_serverless_lambda.log import ask_file_log_service
 from watchmen_serverless_lambda.model import ActionType
 from watchmen_serverless_lambda.queue import SQSSender
 from watchmen_utilities import ArrayHelper
@@ -30,6 +31,7 @@ logger = logging.getLogger(__name__)
 class RecordListener:
 	
 	def __init__(self, tenant_id: str):
+		self.tenant_id = tenant_id
 		self.meta_storage = ask_meta_storage()
 		self.snowflake_generator = ask_snowflake_generator()
 		self.principal_service = ask_super_admin()
@@ -37,25 +39,26 @@ class RecordListener:
 		self.change_record_service = get_change_data_record_service(self.collector_storage,
 		                                                            self.snowflake_generator,
 		                                                            self.principal_service)
+		self.log_service = ask_file_log_service()
 	
 	def change_data_record_listener(self):
 		unmerged_records = self.find_records_and_locked()
-		for unmerged_record in unmerged_records:
-			change_data_record = unmerged_record
-			try:
-				self.process_record(change_data_record)
-			except Exception as e:
-				logger.error(e, exc_info=True, stack_info=True)
-				self.update_result(change_data_record, format_exc())
-			finally:
-				self.finalize(change_data_record)
+		successes, failures = self.send_messages(unmerged_records)
+		log_entity = {
+			'successes': successes,
+			'failures': failures
+		}
+		self.log_service.log_record_to_json_message(self.tenant_id, log_entity)
 		
-		
+	# noinspection PyMethodMayBeStatic
+	def change_status(self, record: ChangeDataRecord, status: int) -> ChangeDataRecord:
+		record.status = status
+		return record
+	
 	def find_records_and_locked(self) -> List[ChangeDataRecord]:
 		try:
 			self.change_record_service.begin_transaction()
 			records = self.change_record_service.find_records_and_locked()
-			# TODO bulk update. No need
 			results = ArrayHelper(records).map(
 				lambda record: self.change_status(record, Status.EXECUTING.value)
 			).map(
@@ -126,10 +129,8 @@ class RecordProcessor:
 		record.status = status
 		return record
 
-	
-
-	def change_data_record_listener(self):
-		unmerged_records = self.find_records_and_locked()
+	def process_change_data_record(self, records: List[ChangeDataRecord]):
+		unmerged_records = records
 		for unmerged_record in unmerged_records:
 			change_data_record = unmerged_record
 			try:

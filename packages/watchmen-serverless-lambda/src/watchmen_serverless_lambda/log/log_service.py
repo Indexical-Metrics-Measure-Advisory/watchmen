@@ -16,6 +16,12 @@ class FileLogService:
         key = f'logs/{trigger_table.eventTriggerId}/trigger_table/{trigger_table.tableTriggerId}/{self.snowflake_generator.next_id()}'
         log_storage = ask_log_storage(trigger_table.tenantId)
         log_storage.upload_log_to_s3(key, entity)
+        
+    def log_record_to_json_message(self, tenant_id: str, entity: Dict):
+        key = f'logs/record_to_json/{self.snowflake_generator.next_id()}'
+        log_storage = ask_log_storage(tenant_id)
+        log_storage.upload_log_to_s3(key, entity)
+
 
 def ask_file_log_service() -> FileLogService:
     return FileLogService()
