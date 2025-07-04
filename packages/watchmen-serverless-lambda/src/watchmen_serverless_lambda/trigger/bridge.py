@@ -21,7 +21,7 @@ def event_bridge_handler(event, context):
     try:
         detail = json.loads(event['detail'])
         if detail.get("listener", None) == ListenerType.EVENT:
-            listener = EventListener()
+            listener = EventListener(detail['tenantId'])
             listener.event_listener()
         else:
             logger.error("not support event: %s", event)

@@ -19,14 +19,14 @@ logger = logging.getLogger(__name__)
 
 class EventListener:
     
-    def __init__(self):
+    def __init__(self, tenant_id: str):
+        self.tenant_id = tenant_id
         self.meta_storage = ask_meta_storage()
         self.snowflake_generator = ask_snowflake_generator()
         self.principal_service = ask_super_admin()
         self.competitive_lock_service = get_competitive_lock_service(self.meta_storage)
         self.tenant_service = TenantService(self.principal_service)
         
-    
     def event_listener(self) -> None:
         tenants = self.tenant_service.find_all()
         for tenant in tenants:

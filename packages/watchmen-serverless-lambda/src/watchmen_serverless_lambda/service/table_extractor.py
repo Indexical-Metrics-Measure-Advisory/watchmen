@@ -27,24 +27,24 @@ logger = logging.getLogger(__name__)
 
 class TableExtractorListener:
 
-    def __init__(self):
+    def __init__(self, tenant_id: str):
         self.meta_storage = ask_meta_storage()
         self.snowflake_generator = ask_snowflake_generator()
         self.principal_service = ask_super_admin()
         self.tenant_service = TenantService(self.principal_service)
+        self.collector_storage = ask_collector_storage(tenant_id, self.principal_service)
         self.competitive_lock_service = get_competitive_lock_service(self.meta_storage)
-        self.trigger_event_service = get_trigger_event_service(self.meta_storage,
+        self.trigger_event_service = get_trigger_event_service(self.collector_storage,
                                                                self.snowflake_generator,
                                                                self.principal_service)
-        self.trigger_table_service = get_trigger_table_service(self.meta_storage,
+        self.trigger_table_service = get_trigger_table_service(self.collector_storage,
                                                                self.snowflake_generator,
                                                                self.principal_service)
-        self.competitive_lock_service = get_competitive_lock_service(self.meta_storage)
         self.collector_table_config_service = get_collector_table_config_service(self.meta_storage,
                                                                                  self.snowflake_generator,
                                                                                  self.principal_service)
         self.table_config_service = get_table_config_service(self.principal_service)
-        self.change_data_record_service = get_change_data_record_service(self.meta_storage,
+        self.change_data_record_service = get_change_data_record_service(self.collector_storage,
                                                                          self.snowflake_generator,
                                                                          self.principal_service)
     
