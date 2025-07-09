@@ -74,10 +74,11 @@ class TableExtractorListener:
 class TableProcessor:
 
     def __init__(self, tenant_id: str):
+        self.tenant_id = tenant_id
         self.meta_storage = ask_meta_storage()
         self.snowflake_generator = ask_snowflake_generator()
         self.principal_service = ask_super_admin()
-        self.collector_storage = ask_collector_storage(tenant_id, self.principal_service)
+        self.collector_storage = ask_collector_storage(self.tenant_id, self.principal_service)
         self.log_service = ask_file_log_service()
         self.trigger_event_service = get_trigger_event_service(self.collector_storage,
                                                                self.snowflake_generator,
@@ -154,6 +155,7 @@ class TableProcessor:
             message = {
                 'Id': self.snowflake_generator.next_id(),
                 'MessageBody': json.dumps({'action': ActionType.TABLE_EXTRACTOR,
+                                           'tenant_id': self.tenant_id,
                                            'triggerTable': trigger_table.to_dict(),
                                            'records': batch}),
                 'MessageGroupId': self.snowflake_generator.next_id(),

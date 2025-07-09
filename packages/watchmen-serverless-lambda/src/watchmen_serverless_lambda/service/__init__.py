@@ -1,2 +1,3 @@
 from .monitor_event import EventListener
-from .table_extractor import process_table_extractor_message
+from .table_extractor import process_table_extractor_message, TableExtractorListener
+from .record_to_json import process_record_to_json_message

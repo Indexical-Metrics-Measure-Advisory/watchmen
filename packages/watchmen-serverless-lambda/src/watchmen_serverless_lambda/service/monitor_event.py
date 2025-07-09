@@ -28,16 +28,15 @@ class EventListener:
         self.tenant_service = TenantService(self.principal_service)
         
     def event_listener(self) -> None:
-        tenants = self.tenant_service.find_all()
-        for tenant in tenants:
-            lock = get_resource_lock(self.snowflake_generator.next_id(),
-                                     self.trigger_event_lock_resource_id(tenant),
-                                     tenant.tenantId)
-            try:
-                if try_lock_nowait(self.competitive_lock_service, lock):
-                    self.process_trigger_event(tenant)
-            finally:
-                unlock(self.competitive_lock_service, lock)
+        tenant = self.tenant_service.find_by_id(self.tenant_id)
+        lock = get_resource_lock(self.snowflake_generator.next_id(),
+                                 self.trigger_event_lock_resource_id(tenant),
+                                 tenant.tenantId)
+        try:
+            if try_lock_nowait(self.competitive_lock_service, lock):
+                self.process_trigger_event(tenant)
+        finally:
+            unlock(self.competitive_lock_service, lock)
     
     def process_trigger_event(self, tenant: Tenant):
         event_processor = EventProcessor(tenant.tenantId)

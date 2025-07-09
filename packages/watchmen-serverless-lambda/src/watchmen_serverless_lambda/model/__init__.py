@@ -1,1 +1,1 @@
-from .message import ActionMessage, ActionType, TableExtractorMessage
+from .message import ActionMessage, ActionType, TableExtractorMessage, RecordToJSONMessage
