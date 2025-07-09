@@ -104,10 +104,29 @@ class TaskListener:
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
 		
-
 	def process_tasks(self):
 		unfinished_tasks = self.find_tasks_and_locked()
-		self.send_task_messages(unfinished_tasks)
+		if unfinished_tasks:
+			self.send_task_messages(unfinished_tasks)
+	
+	def find_tasks_and_locked(self) -> Optional[List[ScheduledTask]]:
+		try:
+			self.scheduled_task_service.begin_transaction()
+			tasks = self.scheduled_task_service.find_tasks_and_locked()
+			results = ArrayHelper(tasks).map(
+				lambda task: self.change_status(task, Status.EXECUTING.value)
+			).map(
+				lambda task: self.scheduled_task_service.update(task)
+			).to_list()
+			self.scheduled_task_service.commit_transaction()
+			return results
+		finally:
+			self.scheduled_task_service.close_transaction()
+		
+	# noinspection PyMethodMayBeStatic
+	def change_status(self, task: ScheduledTask, status: int) -> ScheduledTask:
+		task.status = status
+		return task
 	
 	def send_task_messages(self, tasks: List[ScheduledTask]) -> Tuple[Dict, Dict]:
 		# batch send messages
@@ -219,20 +238,6 @@ class TaskProcessor:
 	# noinspection PyTypeChecker
 	def get_change_data_json(self, change_json_id: int) -> ChangeDataJson:
 		return self.change_json_service.find_json_by_id(change_json_id)
-
-	def find_tasks_and_locked(self) -> Optional[List[ScheduledTask]]:
-		try:
-			self.scheduled_task_service.begin_transaction()
-			tasks = self.scheduled_task_service.find_tasks_and_locked()
-			results = ArrayHelper(tasks).map(
-				lambda task: self.change_status(task, Status.EXECUTING.value)
-			).map(
-				lambda task: self.scheduled_task_service.update(task)
-			).to_list()
-			self.scheduled_task_service.commit_transaction()
-			return results
-		finally:
-			self.scheduled_task_service.close_transaction()
 
 	def restore_task(self, task: ScheduledTask) -> ScheduledTask:
 		return self.scheduled_task_service.update_task(self.change_status(task, Status.INITIAL.value))
