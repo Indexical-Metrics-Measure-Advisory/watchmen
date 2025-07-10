@@ -285,30 +285,30 @@ class JsonListener:
 		self.snowflake_generator = ask_snowflake_generator()
 		self.principal_service = ask_super_admin()
 		self.collector_storage = ask_collector_storage(self.tenant_id, self.principal_service)
-		self.competitive_lock_service = get_competitive_lock_service(self.storage)
-		self.change_record_service = get_change_data_record_service(self.storage,
+		self.competitive_lock_service = get_competitive_lock_service(self.meta_storage)
+		self.change_record_service = get_change_data_record_service(self.collector_storage,
 		                                                            self.snowflake_generator,
 		                                                            self.principal_service)
-		self.change_json_service = get_change_data_json_service(self.storage,
+		self.change_json_service = get_change_data_json_service(self.collector_storage,
 		                                                        self.snowflake_generator,
 		                                                        self.principal_service)
-		self.change_json_history_service = get_change_data_json_history_service(self.storage,
+		self.change_json_history_service = get_change_data_json_history_service(self.collector_storage,
 		                                                                        self.snowflake_generator,
 		                                                                        self.principal_service)
-		self.scheduled_task_service = get_scheduled_task_service(self.storage,
+		self.scheduled_task_service = get_scheduled_task_service(self.collector_storage,
 		                                                         self.snowflake_generator,
 		                                                         self.principal_service)
-		self.module_config_service = get_collector_module_config_service(self.storage,
+		self.module_config_service = get_collector_module_config_service(self.collector_storage,
 		                                                                 self.snowflake_generator,
 		                                                                 self.principal_service)
 		self.model_config_service = get_model_config_service(self.principal_service)
-		self.trigger_module_service = get_trigger_module_service(self.storage,
+		self.trigger_module_service = get_trigger_module_service(self.collector_storage,
 		                                                         self.snowflake_generator,
 		                                                         self.principal_service)
-		self.trigger_model_service = get_trigger_model_service(self.storage,
+		self.trigger_model_service = get_trigger_model_service(self.collector_storage,
 		                                                       self.snowflake_generator,
 		                                                       self.principal_service)
-		self.trigger_event_service = get_trigger_event_service(self.storage,
+		self.trigger_event_service = get_trigger_event_service(self.collector_storage,
 		                                                       self.snowflake_generator,
 		                                                       self.principal_service)
 
@@ -585,3 +585,14 @@ class JsonProcessor:
 			raise e
 		finally:
 			self.change_json_service.close_transaction()
+		
+	# noinspection PyMethodMayBeStatic
+	def generate_resource_id(self, change_json: ChangeDataJson) -> str:
+		return f'{change_json.changeJsonId}{WAVE}{change_json.eventTriggerId}'
+	
+	# noinspection PyMethodMayBeStatic
+	def get_task_type(self, trigger_event: TriggerEvent) -> int:
+		if trigger_event.type == EventType.BY_PIPELINE.value:
+			return 2
+		else:
+			return 1
