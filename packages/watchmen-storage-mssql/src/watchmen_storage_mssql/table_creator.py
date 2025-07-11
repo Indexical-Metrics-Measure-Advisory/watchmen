@@ -79,30 +79,30 @@ FactorTypeMap: Dict[FactorType, Union[str, Callable[[Optional[str]], str]]] = {
 	FactorType.FULL_DATETIME: 'DATETIME',
 	FactorType.DATE: 'DATE',
 	FactorType.TIME: 'TIME',
-	FactorType.YEAR: 'DECIMAL(5)',
-	FactorType.HALF_YEAR: 'DECIMAL(3)',
-	FactorType.QUARTER: 'DECIMAL(3)',
-	FactorType.MONTH: 'DECIMAL(3)',
-	FactorType.HALF_MONTH: 'DECIMAL(3)',
-	FactorType.TEN_DAYS: 'DECIMAL(3)',
-	FactorType.WEEK_OF_YEAR: 'DECIMAL(3)',
-	FactorType.WEEK_OF_MONTH: 'DECIMAL(3)',
-	FactorType.HALF_WEEK: 'DECIMAL(3)',
-	FactorType.DAY_OF_MONTH: 'DECIMAL(3)',
-	FactorType.DAY_OF_WEEK: 'DECIMAL(3)',
-	FactorType.DAY_KIND: 'DECIMAL(3)',
-	FactorType.HOUR: 'DECIMAL(3)',
-	FactorType.HOUR_KIND: 'DECIMAL(3)',
-	FactorType.MINUTE: 'DECIMAL(3)',
-	FactorType.SECOND: 'DECIMAL(3)',
-	FactorType.MILLISECOND: 'DECIMAL(3)',
-	FactorType.AM_PM: 'DECIMAL(3)',
+	FactorType.YEAR: 'SMALLINT',
+	FactorType.HALF_YEAR: 'SMALLINT',
+	FactorType.QUARTER: 'SMALLINT',
+	FactorType.MONTH: 'SMALLINT',
+	FactorType.HALF_MONTH: 'SMALLINT',
+	FactorType.TEN_DAYS: 'SMALLINT',
+	FactorType.WEEK_OF_YEAR: 'SMALLINT',
+	FactorType.WEEK_OF_MONTH: 'SMALLINT',
+	FactorType.HALF_WEEK: 'SMALLINT',
+	FactorType.DAY_OF_MONTH: 'SMALLINT',
+	FactorType.DAY_OF_WEEK: 'SMALLINT',
+	FactorType.DAY_KIND: 'SMALLINT',
+	FactorType.HOUR: 'SMALLINT',
+	FactorType.HOUR_KIND: 'SMALLINT',
+	FactorType.MINUTE: 'SMALLINT',
+	FactorType.SECOND: 'SMALLINT',
+	FactorType.MILLISECOND: 'SMALLINT',
+	FactorType.AM_PM: 'SMALLINT',
 
 	# individual
 	FactorType.GENDER: varchar_10,
 	FactorType.OCCUPATION: varchar_10,
 	FactorType.DATE_OF_BIRTH: 'DATE',
-	FactorType.AGE: 'DECIMAL(5)',
+	FactorType.AGE: 'SMALLINT',
 	FactorType.ID_NO: varchar_50,
 	FactorType.RELIGION: varchar_10,
 	FactorType.NATIONALITY: varchar_10,
@@ -150,11 +150,11 @@ def build_columns(topic: Topic) -> str:
 
 # noinspection DuplicatedCode
 def build_aggregate_assist_column(topic: Topic) -> str:
-	return f'\taggregate_assist_ NVARCHAR(1024),' if is_aggregation_topic(topic) else ''
+	return f'\taggregate_assist_ NVARCHAR(MAX),' if is_aggregation_topic(topic) else ''
 
 
 def build_version_column(topic: Topic) -> str:
-	return f'\tversion_ DECIMAL(8),' if is_aggregation_topic(topic) else ''
+	return f'\tversion_ INTEGER,' if is_aggregation_topic(topic) else ''
 
 
 # noinspection SqlResolve,DuplicatedCode
@@ -189,8 +189,8 @@ def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
 		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN data_ NVARCHAR(MAX)')
 
 	if is_aggregation_topic(topic) and not is_aggregation_topic(original_topic):
-		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN aggregate_assist_ NVARCHAR(1024)')
-		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN version_ DECIMAL(8)')
+		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN aggregate_assist_ NVARCHAR(MAX)')
+		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN version_ INTEGER')
 
 	return columns
 
@@ -231,7 +231,7 @@ def build_table_script(topic: Topic) -> str:
 	# noinspection SqlType
 	script = f'''
 CREATE TABLE {entity_name} (
-\tid_ DECIMAL(20),
+\tid_ BIGINT,
 {build_columns(topic)}
 {build_aggregate_assist_column(topic)}
 {build_version_column(topic)}

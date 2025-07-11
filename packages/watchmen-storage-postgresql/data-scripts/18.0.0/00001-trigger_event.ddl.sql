@@ -9,7 +9,7 @@ CREATE TABLE trigger_event (
     last_modified_at    TIMESTAMP           NOT NULL,
     last_modified_by    VARCHAR(50)         NOT NULL,
 	status              SMALLINT,
-	"type"              SMALLINT,
+	type                SMALLINT,
 	table_name          VARCHAR(50),
 	records             JSON,
 	pipeline_id         VARCHAR(50),

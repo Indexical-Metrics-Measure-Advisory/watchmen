@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_serverless_lambda.trigger import event_bridge_handler, pipeline_trigger_handler, s3_file_handler, \
+from watchmen_serverless_lambda.trigger import event_bridge_handler, s3_file_handler, \
 	sqs_message_handler
 from watchmen_rest import RestSettings
 from watchmen_rest.auth_helper import register_authentication_manager
