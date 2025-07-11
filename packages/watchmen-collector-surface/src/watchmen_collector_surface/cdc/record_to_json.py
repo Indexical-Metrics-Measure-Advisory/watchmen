@@ -183,7 +183,7 @@ class RecordToJsonService:
 			changeJsonId=self.snowflake_generator.next_id(),
 			resourceId=self.generate_resource_id(change_data_record),
 			modelName=change_data_record.modelName,
-			objectId=root_data.get(root_config.objectKey),
+			objectId=str(root_data.get(root_config.objectKey)),
 			sequence=root_data.get(root_config.sequenceKey, 0),
 			tableName=root_config.tableName,
 			dataId=get_data_id(root_config.primaryKey, root_data),
