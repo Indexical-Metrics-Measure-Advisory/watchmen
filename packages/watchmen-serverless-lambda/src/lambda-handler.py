@@ -3,7 +3,7 @@ from typing import Optional
 
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_serverless_lambda.trigger import event_bridge_handler, s3_file_handler, \
-	sqs_message_handler
+	sqs_message_handler, url_trigger_handler
 from watchmen_rest import RestSettings
 from watchmen_rest.auth_helper import register_authentication_manager
 from watchmen_rest.authentication import build_authentication_manager
@@ -39,7 +39,7 @@ def main(event, context):
 	if get_event_type(event) == EventType.EVENTBRIDGE:
 		return event_bridge_handler(event, context)
 	elif get_event_type(event) == EventType.FUNCTION_URL:
-		return pipeline_trigger_handler(event, context)
+		return url_trigger_handler(event, context)
 	elif get_event_type(event) == EventType.S3:
 		return s3_file_handler(event, context)
 	elif get_event_type(event) == EventType.SQS:
