@@ -7,6 +7,7 @@ from starlette.responses import Response
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import DataKernelException
 from watchmen_data_kernel.storage_bridge import parse_parameter_for_storage
+from watchmen_inquiry_kernel.common import InquiryKernelException
 from watchmen_inquiry_kernel.schema import SubjectSchema
 from watchmen_meta.admin import SpaceService, UserService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
@@ -592,6 +593,9 @@ async def find_subjects_by_id(
 			validate_subjects.append(validate_subject)
 		except DataKernelException as e:
 			logger.error(f"process subject {subject_with_type.subjectId}, error: {e}", exc_info=True)
+		except InquiryKernelException as e:
+			logger.error(f"process subject {subject_with_type.subjectId}, error: {e}", exc_info=True)
+
 	return validate_subjects
 
 
