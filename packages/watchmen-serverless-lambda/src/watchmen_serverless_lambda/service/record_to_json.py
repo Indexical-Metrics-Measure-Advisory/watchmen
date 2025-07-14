@@ -11,10 +11,9 @@ from watchmen_collector_kernel.model.collector_table_config import Dependence as
 from watchmen_collector_kernel.service import DataCaptureService, get_table_config_service, ask_source_extractor, \
     ask_collector_storage
 from watchmen_collector_kernel.service.extract_utils import get_data_id
-from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
+from watchmen_collector_kernel.storage import get_change_data_record_service, \
     get_change_data_json_service, get_collector_table_config_service, get_change_data_record_history_service, \
     get_change_data_json_history_service
-from watchmen_collector_surface.settings import ask_record_to_json_wait
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
 from watchmen_serverless_lambda.common import ask_serverless_queue_url, \
     ask_serverless_record_distribution_max_batch_size
@@ -22,7 +21,6 @@ from watchmen_serverless_lambda.log import ask_file_log_service
 from watchmen_serverless_lambda.model import ActionType, RecordToJSONMessage
 from watchmen_serverless_lambda.queue import SQSSender
 from watchmen_utilities import ArrayHelper
-
 
 logger = logging.getLogger(__name__)
 

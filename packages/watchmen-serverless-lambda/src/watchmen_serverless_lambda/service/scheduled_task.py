@@ -1,22 +1,19 @@
 import json
 import logging
+from abc import ABC, abstractmethod
 from traceback import format_exc
 from typing import List, Dict, Optional, Tuple
-from abc import ABC, abstractmethod
-
-from watchmen_collector_kernel.service.task_service import TaskService
 
 from watchmen_collector_kernel.common import ask_exception_max_length, ask_grouped_task_data_size_threshold
-from watchmen_collector_kernel.model import TaskType, ChangeDataJson
-from watchmen_utilities import ArrayHelper
-
 from watchmen_collector_kernel.model import ScheduledTask, Status
+from watchmen_collector_kernel.model import TaskType, ChangeDataJson
 from watchmen_collector_kernel.service import get_task_service, ask_collector_storage
+from watchmen_collector_kernel.service.task_service import TaskService
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_scheduled_task_service, \
 	get_scheduled_task_history_service, get_change_data_json_service, get_change_data_json_history_service
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
+from watchmen_utilities import ArrayHelper
 from .handler import pipeline_data, run_pipeline
-from watchmen_collector_surface.settings import ask_task_listener_wait
 from ..common import ask_serverless_task_distribution_max_batch_size, ask_serverless_queue_url
 from ..model import ActionType
 from ..queue import SQSSender

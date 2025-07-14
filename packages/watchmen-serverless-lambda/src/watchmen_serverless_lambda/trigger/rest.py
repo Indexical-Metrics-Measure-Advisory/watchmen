@@ -5,8 +5,9 @@ from logging import getLogger
 from typing import Optional
 
 from watchmen_collector_kernel.model import TriggerEvent, Status, EventType
+from watchmen_collector_kernel.service import ask_collector_storage
 from watchmen_collector_kernel.storage import get_trigger_event_service
-from watchmen_rest.util import raise_400
+from watchmen_rest.util import raise_400, validate_tenant_id
 from watchmen_utilities import is_blank
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import UserRole
@@ -91,29 +92,27 @@ def trigger_event_handler(event, context):
     if is_blank(token):
         raise Exception('PAT not found.')
     
-    trigger_event = TriggerEvent(**submit_event)
-    
     if get_trigger_event_type(submit_event) == TriggerEventType.EVENT:
-        if trigger_event.startTime is None or trigger_event.endTime is None:
+        if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
             raise_400('start time or end time  is required.')
     elif get_trigger_event_type(submit_event) == TriggerEventType.TABLE:
-        if event.startTime is None or event.endTime is None:
+        if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
             raise_400('start time or end time  is required.')
-        
-        if is_blank(event.tableName):
+        if is_blank(submit_event.get('tableName')):
             raise_400('table name is required.')
     elif get_trigger_event_type(submit_event) == TriggerEventType.RECORD:
-        if is_blank(event.tableName):
+        if is_blank(submit_event.get('tableName')):
             raise_400('table name is required.')
-        
-        if event.records is None or len(event.records) == 0:
+        if submit_event.get('records') is None or len(submit_event.get('records')) == 0:
             raise_400('records is required.')
             
     principal_service = get_principal_by_pat(
         retrieve_authentication_manager(), token, [UserRole.ADMIN, UserRole.SUPER_ADMIN])
     
-    validate_tenant_id(event, principal_service)
-    trigger_event_service = get_trigger_event_service(ask_data_storage(),
+    trigger_event = TriggerEvent(**submit_event)
+    
+    validate_tenant_id(trigger_event, principal_service)
+    trigger_event_service = get_trigger_event_service(ask_collector_storage(trigger_event.tenantId, principal_service),
                                                       ask_snowflake_generator(),
                                                       principal_service)
     # noinspection PyTypeChecker
