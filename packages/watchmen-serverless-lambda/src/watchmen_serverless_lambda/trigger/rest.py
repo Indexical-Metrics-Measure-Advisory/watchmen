@@ -116,12 +116,12 @@ def trigger_event_handler(event, context):
                                                       ask_snowflake_generator(),
                                                       principal_service)
     # noinspection PyTypeChecker
-    if trigger_event_service.is_storable_id_faked(event.eventTriggerId):
-        trigger_event_service.redress_storable_id(event)
-        event.isFinished = False
-        event.status = Status.INITIAL.value
-        event.type = EventType.DEFAULT.value
-        return trigger_event_service.create_trigger_event(event)
+    if trigger_event_service.is_storable_id_faked(trigger_event.eventTriggerId):
+        trigger_event_service.redress_storable_id(trigger_event)
+        trigger_event.isFinished = False
+        trigger_event.status = Status.INITIAL.value
+        trigger_event.type = EventType.DEFAULT.value
+        return trigger_event_service.create_trigger_event(trigger_event)
 
 
 class TriggerEventType(StrEnum):
