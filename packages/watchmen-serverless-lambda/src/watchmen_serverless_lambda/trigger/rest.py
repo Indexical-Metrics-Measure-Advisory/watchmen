@@ -95,16 +95,19 @@ def trigger_event_handler(event, context):
     if get_trigger_event_type(submit_event) == TriggerEventType.EVENT:
         if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
             raise_400('start time or end time  is required.')
+        submit_event['type'] = EventType.DEFAULT.value
     elif get_trigger_event_type(submit_event) == TriggerEventType.TABLE:
         if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
             raise_400('start time or end time  is required.')
         if is_blank(submit_event.get('tableName')):
             raise_400('table name is required.')
+        submit_event['type'] = EventType.BY_TABLE.value
     elif get_trigger_event_type(submit_event) == TriggerEventType.RECORD:
         if is_blank(submit_event.get('tableName')):
             raise_400('table name is required.')
         if submit_event.get('records') is None or len(submit_event.get('records')) == 0:
             raise_400('records is required.')
+        submit_event['type'] = EventType.BY_RECORD.value
             
     principal_service = get_principal_by_pat(
         retrieve_authentication_manager(), token, [UserRole.ADMIN, UserRole.SUPER_ADMIN])
@@ -120,8 +123,11 @@ def trigger_event_handler(event, context):
         trigger_event_service.redress_storable_id(trigger_event)
         trigger_event.isFinished = False
         trigger_event.status = Status.INITIAL.value
-        trigger_event.type = EventType.DEFAULT.value
-        return trigger_event_service.create_trigger_event(trigger_event)
+        trigger_event =  trigger_event_service.create_trigger_event(trigger_event)
+        return {
+            'statusCode': 200,
+            'body': trigger_event.to_dict()
+        }
 
 
 class TriggerEventType(StrEnum):
@@ -137,7 +143,7 @@ def get_trigger_event_type(event) -> Optional[TriggerEventType]:
             'tableName' in event
     ):
         return TriggerEventType.TABLE
-    if (
+    elif (
             'startTime' in event and
             'endTime' in event
     ):
