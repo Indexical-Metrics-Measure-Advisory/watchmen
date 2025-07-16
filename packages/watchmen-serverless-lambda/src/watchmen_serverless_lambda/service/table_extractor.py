@@ -15,7 +15,7 @@ from watchmen_collector_kernel.storage import get_trigger_table_service, get_com
 from watchmen_meta.common import ask_super_admin, ask_snowflake_generator, ask_meta_storage
 from watchmen_meta.system import TenantService
 from watchmen_serverless_lambda.common import ask_serverless_queue_url, \
-    ask_serverless_record_distribution_max_batch_size
+    ask_serverless_table_extractor_record_max_batch_size
 from watchmen_serverless_lambda.log import ask_file_log_service
 from watchmen_serverless_lambda.model import TableExtractorMessage, ActionType
 from watchmen_serverless_lambda.queue import SQSSender
@@ -148,7 +148,7 @@ class TableProcessor:
             base_delay=0.5
         )
         # batch send messages
-        batch_size: int = ask_serverless_record_distribution_max_batch_size()
+        batch_size: int = ask_serverless_table_extractor_record_max_batch_size()
         messages = []
         for i in range(0, len(records), batch_size):
             batch = records[i:i + batch_size]

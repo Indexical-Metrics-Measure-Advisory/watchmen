@@ -1,2 +1,3 @@
 from .settings import ask_serverless_queue_url, ask_serverless_record_distribution_max_batch_size, \
-    ask_serverless_json_distribution_max_batch_size, ask_serverless_task_distribution_max_batch_size
+    ask_serverless_json_distribution_max_batch_size, ask_serverless_task_distribution_max_batch_size, \
+    ask_serverless_table_extractor_record_max_batch_size

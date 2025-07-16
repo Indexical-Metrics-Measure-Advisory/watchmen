@@ -58,12 +58,8 @@ class EventType(StrEnum):
 
 def get_event_type(event) -> Optional[EventType]:
 	if (
-			'version' in event and
-			'id' in event and
-			'detail-type' in event and
-			'source' in event and
-			'time' in event and
-			'detail' in event
+			'listener' in event and
+			'tenant_id' in event
 	):
 		return EventType.EVENTBRIDGE
 	elif (
