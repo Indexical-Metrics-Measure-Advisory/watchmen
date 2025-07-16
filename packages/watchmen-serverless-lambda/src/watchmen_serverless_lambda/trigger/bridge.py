@@ -19,12 +19,11 @@ class ListenerType(StrEnum):
 
 def event_bridge_handler(event, context):
     try:
-        detail = json.loads(event['detail'])
-        if detail.get("listener", None) == ListenerType.EVENT:
-            listener = EventListener(detail['tenant_id'])
+        if event.get("listener", None) == ListenerType.EVENT:
+            listener = EventListener(event['tenant_id'])
             listener.event_listener()
-        elif detail.get("listener", None) == ListenerType.TABLE:
-            listener = TableExtractorListener(detail['tenant_id'])
+        elif event.get("listener", None) == ListenerType.TABLE:
+            listener = TableExtractorListener(event['tenant_id'])
             listener.trigger_table_listener()
         else:
             logger.error("not support event: %s", event)
