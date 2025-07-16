@@ -126,7 +126,7 @@ def trigger_event_handler(event, context):
         trigger_event =  trigger_event_service.create_trigger_event(trigger_event)
         return {
             'statusCode': 200,
-            'body': serialize_to_json(trigger_event)
+            'body': serialize_to_json(trigger_event.to_dict())
         }
 
 
