@@ -8,7 +8,7 @@ from watchmen_collector_kernel.model import TriggerEvent, Status, EventType
 from watchmen_collector_kernel.service import ask_collector_storage
 from watchmen_collector_kernel.storage import get_trigger_event_service
 from watchmen_rest.util import raise_400, validate_tenant_id
-from watchmen_utilities import is_blank
+from watchmen_utilities import is_blank, serialize_to_json
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import UserRole
 from watchmen_model.pipeline_kernel import PipelineTriggerDataWithPAT, PipelineTriggerTraceId
@@ -126,7 +126,7 @@ def trigger_event_handler(event, context):
         trigger_event =  trigger_event_service.create_trigger_event(trigger_event)
         return {
             'statusCode': 200,
-            'body': trigger_event.to_dict()
+            'body': serialize_to_json(trigger_event)
         }
 
 
