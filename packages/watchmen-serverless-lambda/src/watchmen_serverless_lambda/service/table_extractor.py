@@ -13,7 +13,6 @@ from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_trigger_table_service, get_competitive_lock_service, \
     get_collector_table_config_service, get_trigger_event_service, get_change_data_record_service
 from watchmen_meta.common import ask_super_admin, ask_snowflake_generator, ask_meta_storage
-from watchmen_meta.system import TenantService
 from watchmen_serverless_lambda.common import ask_serverless_queue_url, \
     ask_serverless_table_extractor_record_max_batch_size
 from watchmen_serverless_lambda.log import ask_file_log_service
@@ -31,7 +30,6 @@ class TableExtractorListener:
         self.meta_storage = ask_meta_storage()
         self.snowflake_generator = ask_snowflake_generator()
         self.principal_service = ask_super_admin()
-        self.tenant_service = TenantService(self.principal_service)
         self.collector_storage = ask_collector_storage(tenant_id, self.principal_service)
         self.competitive_lock_service = get_competitive_lock_service(self.meta_storage)
         self.trigger_event_service = get_trigger_event_service(self.collector_storage,

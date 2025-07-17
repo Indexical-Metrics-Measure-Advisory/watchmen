@@ -3,6 +3,7 @@ CREATE TABLE trigger_model
     model_trigger_id    BIGINT       NOT NULL,
     model_name          VARCHAR(50)  NOT NULL,
     is_finished         TINYINT      NOT NULL,
+    priority            BIGINT       NOT NULL,
     module_trigger_id   BIGINT       NOT NULL,
     event_trigger_id    BIGINT       NOT NULL,
     tenant_id           VARCHAR(50)  NOT NULL,
