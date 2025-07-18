@@ -19,7 +19,7 @@ from watchmen_serverless_lambda.log import ask_file_log_service
 from watchmen_serverless_lambda.model import TableExtractorMessage, ActionType
 from watchmen_serverless_lambda.queue import SQSSender
 from watchmen_storage import EntityCriteria
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, serialize_to_json
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +154,7 @@ class TableProcessor:
             batch = records[i:i + batch_size]
             message = {
                 'Id': self.snowflake_generator.next_id(),
-                'MessageBody': json.dumps({'action': ActionType.TABLE_EXTRACTOR,
+                'MessageBody': serialize_to_json({'action': ActionType.TABLE_EXTRACTOR,
                                            'tenant_id': self.tenant_id,
                                            'triggerTable': trigger_table.to_dict(),
                                            'records': batch}),
