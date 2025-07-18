@@ -128,8 +128,10 @@ class TableProcessor:
                 'successes': successes,
                 'failures': failures
             }
-            self.log_service.log_trigger_table_message(trigger_table, log_entity)
-         
+            self.log_service.log_trigger_table_message(self.tenant_id,
+                                                       trigger_table.eventTriggerId,
+                                                       trigger_table.tableTriggerId,
+                                                       log_entity)
             data_count = ArrayHelper(source_records).size()
             self.trigger_table_service.update_table_trigger(self.set_extracted(trigger_table, data_count))
         except Exception as e:
