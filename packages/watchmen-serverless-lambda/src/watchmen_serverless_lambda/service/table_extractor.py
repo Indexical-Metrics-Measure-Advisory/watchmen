@@ -153,13 +153,13 @@ class TableProcessor:
         for i in range(0, len(records), batch_size):
             batch = records[i:i + batch_size]
             message = {
-                'Id': self.snowflake_generator.next_id(),
+                'Id': str(self.snowflake_generator.next_id()),
                 'MessageBody': serialize_to_json({'action': ActionType.TABLE_EXTRACTOR,
                                            'tenant_id': self.tenant_id,
                                            'triggerTable': trigger_table.to_dict(),
                                            'records': batch}),
-                'MessageGroupId': self.snowflake_generator.next_id(),
-                'MessageDeduplicationId': self.snowflake_generator.next_id()
+                'MessageGroupId': str(self.snowflake_generator.next_id()),
+                'MessageDeduplicationId': str(self.snowflake_generator.next_id())
             }
             messages.append(message)
         
