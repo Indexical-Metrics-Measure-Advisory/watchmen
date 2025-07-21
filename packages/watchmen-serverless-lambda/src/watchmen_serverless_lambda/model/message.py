@@ -35,7 +35,7 @@ def construct_trigger_tables(trigger_tables: Optional[List[Union[TriggerTable, D
         return ArrayHelper(trigger_tables).map(lambda x: construct_trigger_table(x)).to_list()
 
 
-class TableExtractorMessage(ActionMessage):
+class TableExtractorMessage(ActionMessage, ExtendedBaseModel):
     triggerTable: Optional[TriggerTable] = None
     records: Optional[List[Dict]] = None
     
