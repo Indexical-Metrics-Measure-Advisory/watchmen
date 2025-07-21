@@ -3,7 +3,7 @@ from typing import List, Optional, Dict, Union
 
 from watchmen_collector_kernel.model import TriggerTable, ChangeDataRecord, ChangeDataJson, TriggerEvent, \
     CollectorModelConfig, ScheduledTask
-from watchmen_model.common import TenantId
+from watchmen_model.common import TenantId, Storable
 from watchmen_utilities import ExtendedBaseModel, ArrayHelper
 
 
@@ -35,7 +35,7 @@ def construct_trigger_tables(trigger_tables: Optional[List[Union[TriggerTable, D
         return ArrayHelper(trigger_tables).map(lambda x: construct_trigger_table(x)).to_list()
 
 
-class TableExtractorMessage(ExtendedBaseModel, ActionMessage):
+class TableExtractorMessage(ActionMessage, Storable):
     triggerTable: Optional[TriggerTable] = None
     records: Optional[List[Dict]] = None
     
