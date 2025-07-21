@@ -35,7 +35,7 @@ register_authentication_manager(build_authentication_manager(
 
 
 def main(event, context):
-	logger.info("Full event: %s", event)
+	print(f"Full event: {event}")
 	if get_event_type(event) == EventType.EVENTBRIDGE:
 		return event_bridge_handler(event, context)
 	elif get_event_type(event) == EventType.FUNCTION_URL:
