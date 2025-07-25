@@ -30,6 +30,6 @@ class CollectorWorker:
             logger.warning(f"missing operation: {message}")
             
 
-def get_collector_worker(tenant_id: str) -> CollectorWorker:
-    return CollectorWorker(tenant_id)
+def get_collector_worker(tenant_id: str, context) -> CollectorWorker:
+    return CollectorWorker(tenant_id, context)
 

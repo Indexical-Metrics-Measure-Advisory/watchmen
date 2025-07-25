@@ -118,7 +118,7 @@ class TableWorker:
             )
             
             shard_size = ask_serverless_extract_table_record_shard_size()
-            remaining_records = []
+            
             for i in range(0, len(source_records), shard_size):
                 
                 if not self.time_manger.is_safe:
@@ -134,7 +134,7 @@ class TableWorker:
                 self.log_service.log_result(self.tenant_id, log_key, log_entity)
                 
                 state = {
-                    "remaining_records": remaining_records
+                    "remaining_records": source_records[i+shard_size:]
                 }
                 self.time_manger.save_state(self.tenant_id, state_key, state)
 

@@ -12,10 +12,10 @@ def sqs_message_handler(event, context):
         process_message(message)
 
 
-def process_message(message):
+def process_message(message, context):
     try:
         body = json.loads(message['body'])
-        consumer = get_collector_consumer(body['tenantId'])
+        consumer = get_collector_consumer(body['tenantId'], context)
         consumer.process_message(message)
     except Exception as err:
         logger.error("An error occurred", exc_info=True)
