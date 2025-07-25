@@ -9,9 +9,9 @@ logger = logging.getLogger(__name__)
 
 class CollectorWorker:
 
-    def __init__(self, tenant_id: str):
+    def __init__(self, tenant_id: str, context):
         self.tenant_id = tenant_id
-        self.table_worker = get_extract_table_worker(self.tenant_id)
+        self.table_worker = get_extract_table_worker(self.tenant_id, context)
         self.record_worker = get_record_worker(self.tenant_id)
 
 

@@ -29,7 +29,6 @@ class TableWorker:
     
     def __init__(self, tenant_id: str, context):
         self.tenant_id = tenant_id
-        self.context = context
         self.meta_storage = ask_meta_storage()
         self.snowflake_generator = ask_snowflake_generator()
         self.principal_service = ask_super_admin()
@@ -241,5 +240,5 @@ class TableWorker:
         return criteria
 
 
-def get_extract_table_worker(tenant_id: str) -> TableWorker:
-    return TableWorker(tenant_id)
+def get_extract_table_worker(tenant_id: str, context) -> TableWorker:
+    return TableWorker(tenant_id, context)
