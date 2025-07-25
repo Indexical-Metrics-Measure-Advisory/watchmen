@@ -12,6 +12,7 @@ from watchmen_serverless_lambda.common import ask_serverless_queue_url
 from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_serverless_lambda.model import ActionType, ListenerType
 from watchmen_serverless_lambda.queue import SQSSender
+from watchmen_utilities import serialize_to_json
 from .event_listener import EventListener
 from .record_listener import get_record_listener
 from .table_listener import get_table_listener
@@ -82,12 +83,12 @@ class CollectorListener:
         messages = []
         for i in range(count):
             message = {
-                'Id': self.snowflake_generator.next_id(),
-                'MessageBody': json.dumps({'action': action,
-                                           'tenantId': self.tenant_id,
-                                           'triggerEvent': trigger_event}),
-                'MessageGroupId': self.snowflake_generator.next_id(),
-                'MessageDeduplicationId': self.snowflake_generator.next_id()
+                'Id': str(self.snowflake_generator.next_id()),
+                'MessageBody': serialize_to_json({'action': action,
+                                                  'tenantId': self.tenant_id,
+                                                  'triggerEvent': trigger_event.to_dict()}),
+                'MessageGroupId': str(self.snowflake_generator.next_id()),
+                'MessageDeduplicationId': str(self.snowflake_generator.next_id())
             }
             messages.append(message)
         successes, failures = self.sender.send_batch(messages)
