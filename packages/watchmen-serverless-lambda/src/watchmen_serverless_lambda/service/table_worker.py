@@ -130,7 +130,7 @@ class TableWorker:
                     'successes': successes,
                     'failures': failures
                 }
-                log_key = f'logs/{self.tenant_id}/{trigger_table.trigger_event_id}/trigger_table/{trigger_table.trigger_table_id}/{self.snowflake_generator.next_id()}'
+                log_key = f'logs/{self.tenant_id}/{trigger_table.eventTriggerId}/trigger_table/{trigger_table.tableTriggerId}/{self.snowflake_generator.next_id()}'
                 self.log_service.log_result(self.tenant_id, log_key, log_entity)
                 
                 state = {
