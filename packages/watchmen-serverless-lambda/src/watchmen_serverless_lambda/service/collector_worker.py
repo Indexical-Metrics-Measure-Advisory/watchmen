@@ -17,7 +17,7 @@ class CollectorWorker:
 
     def receive_message(self, message: ActionMessage):
         if message.action == ActionType.EXTRACT_TABLE:
-            self.table_worker.process_trigger_table(message.trigger_table)
+            self.table_worker.extract_trigger_table()
         elif message.action == ActionType.SAVE_RECORD:
             self.table_worker.process_records(message.triggerTable, message.records)
         elif message.action == ActionType.BUILD_JSON:
