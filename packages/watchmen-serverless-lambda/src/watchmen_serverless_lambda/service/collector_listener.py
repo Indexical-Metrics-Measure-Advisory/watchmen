@@ -95,7 +95,7 @@ class CollectorListener:
         return successes, failures
             
     def ask_log_key(self, trigger_event: TriggerEvent) -> str:
-        key = f'logs/{self.tenant_id}/{trigger_event.eventTriggerId}/{self.listener_type.value}/{self.snowflake_generator.next_id()}'
+        key = f'logs/{self.tenant_id}/{trigger_event.eventTriggerId}/{self.listener_type}/{self.snowflake_generator.next_id()}'
         return key
 
 

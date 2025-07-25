@@ -157,7 +157,7 @@ class TableWorker:
             message = {
                 'Id': str(self.snowflake_generator.next_id()),
                 'MessageBody': serialize_to_json({'action': ActionType.SAVE_RECORD,
-                                                  'tenant_id': self.tenant_id,
+                                                  'tenantId': self.tenant_id,
                                                   'triggerTable': trigger_table.to_dict(),
                                                   'records': batch}),
                 'MessageGroupId': str(self.snowflake_generator.next_id()),
