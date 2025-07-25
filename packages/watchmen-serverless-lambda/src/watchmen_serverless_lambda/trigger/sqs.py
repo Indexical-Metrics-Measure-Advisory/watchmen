@@ -9,7 +9,7 @@ logger = logging.getLogger("trigger-sqs")
 
 def sqs_message_handler(event, context):
     for message in event['Records']:
-        process_message(message)
+        process_message(message, context)
 
 
 def process_message(message, context):
