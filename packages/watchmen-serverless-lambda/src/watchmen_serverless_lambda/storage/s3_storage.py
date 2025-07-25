@@ -1,3 +1,8 @@
+import json
+from logging import getLogger
+
+from boto3.exceptions import Boto3Error
+
 from typing import List, Optional, Callable, Dict
 
 from boto3 import client, resource
@@ -10,6 +15,9 @@ from watchmen_storage import ask_s3_bucket_auth_iam_enable, DataSourceHelper, St
 from watchmen_storage_s3 import SimpleStorageService
 from watchmen_meta.system import DataSourceService as DataSourceStorageService
 from watchmen_utilities import ArrayHelper, serialize_to_json
+
+
+logger = getLogger(__name__)
 
 
 class S3Params(DataModel):
@@ -56,7 +64,23 @@ class S3Engine:
 
     def put_object(self, key: str, data: Dict) -> None:
         self.client.put_object(Body=serialize_to_json(data), Bucket=self.bucket_name, Key=key)
-
+    
+    def get_object(self, key: str) -> Optional[Dict]:
+        try:
+            result = self.client.get_object(Bucket=self.bucket_name, Key=key)
+            return json.load(result['Body'])
+        except Boto3Error as e:
+            logger.error(f'Get object failed, detail: {e.__dict__}', stack_info=True, exc_info=True)
+            return None
+    
+    def delete_object(self, key: str) -> int:
+        try:
+            self.client.delete_object(Bucket=self.bucket_name, Key=key)
+            return 1
+        except Boto3Error as e:
+            logger.error(f'Delete object failed, detail: {e.__dict__}', stack_info=True, exc_info=True)
+            return 0
+        
 
 class LogStorageS3:
     def __init__(self, engine: S3Engine):
@@ -64,8 +88,17 @@ class LogStorageS3:
 
     def upload_log_to_s3(self, key: str, entity:Dict):
         self.engine.put_object(key, entity)
+        
+    def save_state(self, key: str, entity: Dict):
+        self.engine.put_object(key, entity)
+        
+    def load_state(self, key: str) -> Optional[Dict]:
+        return self.engine.get_object(key)
     
-
+    def delete_state(self, key: str) -> int:
+        return self.engine.delete_object(key)
+    
+    
 class LogS3DataSourceHelper(DataSourceHelper):
     
     def __init__(self, data_source: DataSource, params: S3Params = S3Params()):

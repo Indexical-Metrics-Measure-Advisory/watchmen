@@ -18,7 +18,7 @@ from watchmen_collector_kernel.storage import get_change_data_json_service, get_
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_serverless_lambda.common import ask_serverless_queue_url, \
 	ask_serverless_json_distribution_max_batch_size
-from watchmen_serverless_lambda.log import ask_file_log_service
+from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_serverless_lambda.model import ActionType
 from watchmen_serverless_lambda.model.message import GroupedJson
 from watchmen_serverless_lambda.queue import SQSSender

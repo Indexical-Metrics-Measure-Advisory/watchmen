@@ -1,86 +1,48 @@
 import logging
 from typing import Optional
 
-from watchmen_model.system import Tenant
-
-from watchmen_data_kernel.meta import TenantService
-
 from watchmen_collector_kernel.model import TriggerEvent, TriggerModel, TriggerTable, TriggerModule, Status, EventType
-from watchmen_collector_kernel.service import try_lock_nowait, unlock, get_resource_lock, ask_collector_storage
-from .trigger_event_helper import trigger_event_by_default, trigger_event_by_table, trigger_event_by_records, trigger_event_by_pipeline
-from watchmen_collector_kernel.storage import get_competitive_lock_service, get_trigger_event_service, \
-	get_trigger_model_service, get_trigger_table_service, get_change_data_record_service, get_change_data_json_service, \
-	get_trigger_module_service, get_scheduled_task_service
-
+from watchmen_collector_kernel.service import ask_collector_storage
+from watchmen_collector_kernel.storage import get_trigger_event_service, \
+    get_trigger_model_service, get_trigger_table_service, get_change_data_record_service, get_change_data_json_service, \
+    get_trigger_module_service, get_scheduled_task_service
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
+from watchmen_model.system import Tenant
 from watchmen_utilities import ArrayHelper
+from .trigger_event_helper import trigger_event_by_default, trigger_event_by_table, trigger_event_by_records, \
+    trigger_event_by_pipeline
 
 logger = logging.getLogger(__name__)
 
-class EventListener:
-    
-    def __init__(self, tenant_id: str):
-        self.tenant_id = tenant_id
-        self.meta_storage = ask_meta_storage()
-        self.snowflake_generator = ask_snowflake_generator()
-        self.principal_service = ask_super_admin()
-        self.competitive_lock_service = get_competitive_lock_service(self.meta_storage)
-        self.tenant_service = TenantService(self.principal_service)
-        
-    def event_listener(self) -> None:
-        tenant = self.tenant_service.find_by_id(self.tenant_id)
-        lock = get_resource_lock(self.snowflake_generator.next_id(),
-                                 self.trigger_event_lock_resource_id(tenant),
-                                 tenant.tenantId)
-        try:
-            if try_lock_nowait(self.competitive_lock_service, lock):
-                self.process_trigger_event(tenant)
-        finally:
-            unlock(self.competitive_lock_service, lock)
-    
-    def process_trigger_event(self, tenant: Tenant):
-        event_processor = EventProcessor(tenant.tenantId)
-        event = event_processor.get_executing_trigger_event(tenant)
-        if event is None:
-            event_processor.queuing_event(tenant)
-        else:
-            event_processor.check_finished(event)
-        
-    # noinspection PyMethodMayBeStatic
-    def trigger_event_lock_resource_id(self, tenant: Tenant) -> str:
-        return f'trigger_event_{tenant.tenantId}'
-    
-    
-class EventProcessor:
+
+class EventWorker:
     def __init__(self, tenant_id: str):
         self.meta_storage = ask_meta_storage()
         self.snowflake_generator = ask_snowflake_generator()
         self.principal_service = ask_super_admin()
-        self.collectr_storage = ask_collector_storage(tenant_id, self.principal_service)
-       
-        self.trigger_event_service = get_trigger_event_service(self.collectr_storage,
+        self.collector_storage = ask_collector_storage(tenant_id, self.principal_service)
+        
+        self.trigger_event_service = get_trigger_event_service(self.collector_storage,
                                                                self.snowflake_generator,
                                                                self.principal_service)
-        self.trigger_module_service = get_trigger_module_service(self.collectr_storage,
+        self.trigger_module_service = get_trigger_module_service(self.collector_storage,
                                                                  self.snowflake_generator,
                                                                  self.principal_service)
-        self.trigger_model_service = get_trigger_model_service(self.collectr_storage,
+        self.trigger_model_service = get_trigger_model_service(self.collector_storage,
                                                                self.snowflake_generator,
                                                                self.principal_service)
-        self.trigger_table_service = get_trigger_table_service(self.collectr_storage,
+        self.trigger_table_service = get_trigger_table_service(self.collector_storage,
                                                                self.snowflake_generator,
                                                                self.principal_service)
-        self.data_record_service = get_change_data_record_service(self.collectr_storage,
+        self.data_record_service = get_change_data_record_service(self.collector_storage,
                                                                   self.snowflake_generator,
                                                                   self.principal_service)
-        self.data_json_service = get_change_data_json_service(self.collectr_storage,
+        self.data_json_service = get_change_data_json_service(self.collector_storage,
                                                               self.snowflake_generator,
                                                               self.principal_service)
-        self.scheduled_task_service = get_scheduled_task_service(self.collectr_storage,
+        self.scheduled_task_service = get_scheduled_task_service(self.collector_storage,
                                                                  self.snowflake_generator,
                                                                  self.principal_service)
-       
-    
     
     def is_all_modules_finished(self, event: TriggerEvent) -> bool:
         return ArrayHelper(
@@ -152,11 +114,9 @@ class EventProcessor:
     def is_table_extracted(self, trigger_table: TriggerTable) -> bool:
         return trigger_table.isExtracted
     
-    
     # noinspection PyMethodMayBeStatic
     def is_finished(self, event: TriggerEvent) -> bool:
         return event.isFinished
-    
     
     def get_initial_trigger_event(self, tenant: Tenant) -> Optional[TriggerEvent]:
         return self.trigger_event_service.find_initial_event_by_tenant_id(tenant.tenantId)
@@ -186,4 +146,3 @@ class EventProcessor:
             event.isFinished = True
             event.status = Status.SUCCESS.value
             self.trigger_event_service.update_trigger_event(event)
-    

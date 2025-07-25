@@ -7,10 +7,15 @@ logger = getLogger(__name__)
 class ServerlessSettings(ExtendedBaseSettings):
 	SERVERLESS_S3_REGION: str = ""
 	SERVERLESS_QUEUE_URL: str = ""
+	
 	SERVERLESS_TABLE_EXTRACTOR_RECORD_MAX_BATCH_SIZE: int = 1000
-	SERVERLESS_RECORD_DISTRIBUTION_MAX_BATCH_SIZE: int = 100
+	SERVERLESS_RECORD_BATCH_SIZE: int = 100
 	SERVERLESS_JSON_DISTRIBUTION_MAX_BATCH_SIZE: int = 100
 	SERVERLESS_TASK_DISTRIBUTION_MAX_BATCH_SIZE: int = 10
+	
+	SERVERLESS_RECORD_COORDINATOR_BATCH_SIZE: int = 10000
+	
+	SERVERLESS_EXTRACT_TABLE_RECORD_SHARD_SIZE: int = 10000
 	
 
 serverless_settings = ServerlessSettings()
@@ -29,8 +34,8 @@ def ask_serverless_table_extractor_record_max_batch_size() -> int:
 	return serverless_settings.SERVERLESS_TABLE_EXTRACTOR_RECORD_MAX_BATCH_SIZE
 
 
-def ask_serverless_record_distribution_max_batch_size() -> int:
-	return serverless_settings.SERVERLESS_RECORD_DISTRIBUTION_MAX_BATCH_SIZE
+def ask_serverless_record_batch_size() -> int:
+	return serverless_settings.SERVERLESS_RECORD_BATCH_SIZE
 
 
 def ask_serverless_json_distribution_max_batch_size() -> int:
@@ -40,3 +45,10 @@ def ask_serverless_json_distribution_max_batch_size() -> int:
 def ask_serverless_task_distribution_max_batch_size() -> int:
 	return serverless_settings.SERVERLESS_TASK_DISTRIBUTION_MAX_BATCH_SIZE
 
+
+def ask_serverless_record_coordinator_batch_size() -> int:
+	return serverless_settings.SERVERLESS_RECORD_COORDINATOR_BATCH_SIZE
+
+
+def ask_serverless_extract_table_record_shard_size() -> int:
+	return serverless_settings.SERVERLESS_EXTRACT_TABLE_RECORD_SHARD_SIZE

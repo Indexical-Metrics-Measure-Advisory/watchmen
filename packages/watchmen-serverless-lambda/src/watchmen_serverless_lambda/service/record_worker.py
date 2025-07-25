@@ -1,4 +1,3 @@
-import json
 import logging
 from traceback import format_exc
 from typing import Dict, Tuple, Optional, List, Any
@@ -15,89 +14,11 @@ from watchmen_collector_kernel.storage import get_change_data_record_service, \
     get_change_data_json_service, get_collector_table_config_service, get_change_data_record_history_service, \
     get_change_data_json_history_service
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
-from watchmen_serverless_lambda.common import ask_serverless_queue_url, \
-    ask_serverless_record_distribution_max_batch_size
-from watchmen_serverless_lambda.log import ask_file_log_service
-from watchmen_serverless_lambda.model import ActionType, RecordToJSONMessage
-from watchmen_serverless_lambda.queue import SQSSender
 from watchmen_utilities import ArrayHelper
 
 logger = logging.getLogger(__name__)
 
-
-
-class RecordListener:
-    
-    def __init__(self, tenant_id: str):
-        self.tenant_id = tenant_id
-        self.meta_storage = ask_meta_storage()
-        self.snowflake_generator = ask_snowflake_generator()
-        self.principal_service = ask_super_admin()
-        self.collector_storage = ask_collector_storage(tenant_id, self.principal_service)
-        self.change_record_service = get_change_data_record_service(self.collector_storage,
-                                                                    self.snowflake_generator,
-                                                                    self.principal_service)
-        self.log_service = ask_file_log_service()
-        self.sender = SQSSender(queue_url=ask_serverless_queue_url(),
-                                max_retries=3,
-                                base_delay=0.5)
-    
-    def change_data_record_listener(self):
-        
-        def get_tenant_id_and_event_trigger_id(records: List[ChangeDataRecord]) -> Tuple[str, str]:
-            tenant_id_ = records[0].tenantId
-            event_trigger_id_ = records[0].eventTriggerId
-            return tenant_id_, event_trigger_id_
-        
-        unmerged_records = self.find_records_and_locked()
-        if unmerged_records:
-            successes, failures = self.send_messages(unmerged_records)
-            log_entity = {
-                'successes': successes,
-                'failures': failures
-            }
-            tenant_id, event_trigger_id = get_tenant_id_and_event_trigger_id(unmerged_records)
-            self.log_service.log_record_to_json_message(tenant_id, event_trigger_id, log_entity)
-        
-    # noinspection PyMethodMayBeStatic
-    def change_status(self, record: ChangeDataRecord, status: int) -> ChangeDataRecord:
-        record.status = status
-        return record
-    
-    def find_records_and_locked(self) -> Optional[List[ChangeDataRecord]]:
-        try:
-            self.change_record_service.begin_transaction()
-            records = self.change_record_service.find_records_and_locked()
-            results = ArrayHelper(records).map(
-                lambda record: self.change_status(record, Status.EXECUTING.value)
-            ).map(
-                lambda record: self.change_record_service.update(record)
-            ).to_list()
-            self.change_record_service.commit_transaction()
-            return results
-        finally:
-            self.change_record_service.close_transaction()
-        
-    def send_messages(self, records: List[ChangeDataRecord]) -> Tuple[Dict, Dict]:
-        # batch send messages
-        batch_size: int = ask_serverless_record_distribution_max_batch_size()
-        messages = []
-        for i in range(0, len(records), batch_size):
-            batch = records[i:i + batch_size]
-            message = {
-                'Id': self.snowflake_generator.next_id(),
-                'MessageBody': json.dumps({'action': ActionType.RECORD_TO_JSON,
-                                           'tenant_id': self.tenant_id,
-                                           'records': batch}),
-                'MessageGroupId': self.snowflake_generator.next_id(),
-                'MessageDeduplicationId': self.snowflake_generator.next_id()
-            }
-            messages.append(message)
-        successes, failures = self.sender.send_batch(messages)
-        return successes, failures
-
-
-class RecordProcessor:
+class RecordWorker:
 
     def __init__(self, tenant_id: str):
         self.tenant_id = tenant_id
@@ -265,8 +186,5 @@ class RecordProcessor:
         return ArrayHelper(config.dependOn).map(get_dependence).to_list()
 
 
-def process_record_to_json_message(message: RecordToJSONMessage):
-    tenant_id = message.tenantId
-    records = message.records
-    record_processor = RecordProcessor(tenant_id)
-    record_processor.process_change_data_record(records)
+def get_record_worker(tenant_id: str):
+    return RecordWorker(tenant_id)

@@ -142,6 +142,18 @@ class ChangeDataRecordService(TupleService):
 				],
 				limit=limit if limit is not None else ask_partial_size()
 			))
+	
+	def find_records_and_locked_by_trigger_event_id(self, trigger_event_id: int, limit: int = None) -> List:
+		return self.storage.find_for_update_skip_locked(
+			EntityLimitedFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=STATUS), right=0),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=trigger_event_id)
+				],
+				limit=limit if limit is not None else ask_partial_size()
+			))
 
 	def is_existed(self, change_record: ChangeDataRecord) -> bool:
 		self.begin_transaction()
