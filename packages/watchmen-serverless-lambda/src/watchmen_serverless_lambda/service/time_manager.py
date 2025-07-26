@@ -20,7 +20,7 @@ class LambdaTimeManager:
         return self.context.get_remaining_time_in_millis() / 1000
     
     @property
-    def is_safe(self):
+    def is_safe(self) -> bool:
         """Determine whether there is sufficient time to continue processing (considering the safety margin)"""
         return self.remaining_time > self.safety_margin
     

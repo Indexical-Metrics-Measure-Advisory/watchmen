@@ -110,6 +110,18 @@ class TriggerTableService(TupleService):
 			))
 		finally:
 			self.close_transaction()
+			
+	def find_by_event_trigger_id(self, event_trigger_id: int) -> Optional[List[TriggerTable]]:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)
+				]
+			))
+		finally:
+			self.close_transaction()
 
 
 def get_trigger_table_service(storage: TransactionalStorageSPI,

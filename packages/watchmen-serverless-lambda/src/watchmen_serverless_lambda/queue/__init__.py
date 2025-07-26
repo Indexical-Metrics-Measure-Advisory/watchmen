@@ -1,1 +1,1 @@
-from .sqs_sender import SQSSender
+from .sqs_fifo_sender import SQSSender

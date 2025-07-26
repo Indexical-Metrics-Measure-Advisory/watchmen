@@ -21,7 +21,7 @@ class RecordCoordinator:
                                                                     self.snowflake_generator,
                                                                     self.principal_service)
     
-    def ask_assign_records(self, trigger_event: TriggerEvent) -> Optional[List[ChangeDataRecord]]:
+    def ask_assign_rows(self, trigger_event: TriggerEvent) -> Optional[List[ChangeDataRecord]]:
         return self.find_records_and_locked_by_trigger_event_id(trigger_event)
     
     def find_records_and_locked_by_trigger_event_id(self, trigger_event: TriggerEvent) -> Optional[
@@ -48,9 +48,10 @@ class RecordCoordinator:
     def ask_message_batch_size(self) -> int:
         return ask_serverless_record_batch_size()
 
-    def ask_assign_record_message_body(self, batch: List[ChangeDataRecord]) -> str:
+    def ask_assign_record_message_body(self, trigger_event: TriggerEvent, batch: List[ChangeDataRecord]) -> str:
         return serialize_to_json({'action': ActionType.BUILD_JSON,
-                                  'tenant_id': self.tenant_id,
+                                  'tenantId': self.tenant_id,
+                                  'triggerEvent': trigger_event.to_dict(),
                                   'records': batch})
     
     

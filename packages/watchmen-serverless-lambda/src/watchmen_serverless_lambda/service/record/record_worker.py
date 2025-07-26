@@ -186,5 +186,5 @@ class RecordWorker:
         return ArrayHelper(config.dependOn).map(get_dependence).to_list()
 
 
-def get_record_worker(tenant_id: str):
+def get_record_worker(tenant_id: str) -> RecordWorker:
     return RecordWorker(tenant_id)

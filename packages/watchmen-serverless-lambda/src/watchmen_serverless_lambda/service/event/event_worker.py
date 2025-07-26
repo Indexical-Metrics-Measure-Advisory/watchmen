@@ -8,8 +8,9 @@ from watchmen_collector_kernel.storage import get_trigger_event_service, \
     get_trigger_module_service, get_scheduled_task_service
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
 from watchmen_model.system import Tenant
+from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_utilities import ArrayHelper
-from .trigger_event_helper import trigger_event_by_default, trigger_event_by_table, trigger_event_by_records, \
+from watchmen_serverless_lambda.service.event.trigger_event_helper import trigger_event_by_default, trigger_event_by_table, trigger_event_by_records, \
     trigger_event_by_pipeline
 
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class EventWorker:
     def __init__(self, tenant_id: str):
+        self.tenant_id = tenant_id
         self.meta_storage = ask_meta_storage()
         self.snowflake_generator = ask_snowflake_generator()
         self.principal_service = ask_super_admin()
@@ -43,6 +45,7 @@ class EventWorker:
         self.scheduled_task_service = get_scheduled_task_service(self.collector_storage,
                                                                  self.snowflake_generator,
                                                                  self.principal_service)
+        self.log_service = ask_file_log_service()
     
     def is_all_modules_finished(self, event: TriggerEvent) -> bool:
         return ArrayHelper(
@@ -146,3 +149,8 @@ class EventWorker:
             event.isFinished = True
             event.status = Status.SUCCESS.value
             self.trigger_event_service.update_trigger_event(event)
+            self.log_service.log_result(self.tenant_id, self.ask_monitor_key(event), event.to_dict())
+            
+    def ask_monitor_key(self, trigger_event: TriggerEvent) -> str:
+        key = f'monitor/{self.tenant_id}/{trigger_event.eventTriggerId}'
+        return key

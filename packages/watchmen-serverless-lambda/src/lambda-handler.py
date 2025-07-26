@@ -2,13 +2,14 @@ import logging
 from typing import Optional
 
 from watchmen_meta.common import ask_snowflake_generator
+from watchmen_serverless_lambda.model import EventType
 from watchmen_serverless_lambda.trigger import event_bridge_handler, s3_file_handler, \
 	sqs_message_handler, url_trigger_handler
 from watchmen_rest import RestSettings
 from watchmen_rest.auth_helper import register_authentication_manager
 from watchmen_rest.authentication import build_authentication_manager
 from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat
-from enum import StrEnum
+
 
 
 logger = logging.getLogger()
@@ -47,14 +48,6 @@ def main(event, context):
 	else:
 		logger.error("not support event: %s", event)
 	
-
-
-class EventType(StrEnum):
-	EVENTBRIDGE = "EVENTBRIDGE"
-	S3 = "S3"
-	FUNCTION_URL = "FUNCTION_URL"
-	SQS = "SQS"
-
 
 def get_event_type(event) -> Optional[EventType]:
 	if (

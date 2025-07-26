@@ -1,21 +1,21 @@
-import json
 import logging
 from collections.abc import Callable
 from typing import Dict, Tuple, Optional
 
 from watchmen_collector_kernel.model import TriggerEvent
 from watchmen_collector_kernel.service import ask_collector_storage
-from watchmen_collector_kernel.storage import get_change_data_record_service, \
-    get_trigger_event_service
+from watchmen_collector_kernel.storage import get_trigger_event_service
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
 from watchmen_serverless_lambda.common import ask_serverless_queue_url
-from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_serverless_lambda.model import ActionType, ListenerType
 from watchmen_serverless_lambda.queue import SQSSender
+from .collector_clean import get_clean_listener
+from watchmen_serverless_lambda.service.event import get_event_listener
+from watchmen_serverless_lambda.service.json.json_listener import get_json_listener
+from watchmen_serverless_lambda.service.record.record_listener import get_record_listener
+from watchmen_serverless_lambda.service.table.table_listener import get_table_listener
+from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_utilities import serialize_to_json
-from .event_listener import EventListener
-from .record_listener import get_record_listener
-from .table_listener import get_table_listener
 
 logger = logging.getLogger(__name__)
 
@@ -32,20 +32,21 @@ class CollectorListener:
         self.trigger_event_service = get_trigger_event_service(self.collector_storage,
                                                                self.snowflake_generator,
                                                                self.principal_service)
-        self.change_record_service = get_change_data_record_service(self.collector_storage,
-                                                                    self.snowflake_generator,
-                                                                    self.principal_service)
         self.log_service = ask_file_log_service()
         self.sender = SQSSender(queue_url=ask_serverless_queue_url(),
                                 max_retries=3,
                                 base_delay=0.5)
-        self.table_listener = get_table_listener(self.tenant_id)
-        self.record_listener = get_record_listener(self.tenant_id)
+        self.event_listener = get_event_listener(self.tenant_id)
+        self.table_listener = get_table_listener(tenant_id)
+        self.record_listener = get_record_listener(tenant_id)
+        self.json_listener = get_json_listener(tenant_id)
+        self.clean_listener = get_clean_listener(tenant_id)
 
     def listen(self):
         if self.listener_type == ListenerType.EVENT:
-            listener = EventListener(self.tenant_id)
-            listener.event_listener()
+            self.event_listener.event_listener()
+        elif self.listener_type == ListenerType.CLEAN:
+            self.clean_listener.listen()
         else:
             trigger_event = self.get_executing_trigger_event(self.tenant_id)
             if trigger_event:
@@ -53,8 +54,13 @@ class CollectorListener:
                     action = ActionType.EXTRACT_TABLE
                 elif self.listener_type == ListenerType.RECORD:
                     action = ActionType.ASSIGN_RECORD
+                elif self.listener_type == ListenerType.JSON:
+                    action = ActionType.ASSIGN_JSON
+                elif self.listener_type == ListenerType.TASK:
+                    action = ActionType.ASSIGN_TASK
                 else:
-                    pass
+                    logger.warning(f"missing listener type {self.listener_type}")
+                    return
                 count = self.ask_number_of_coordinators(trigger_event)
                 if count > 0:
                     self.ask_coordinators(count, action, trigger_event, self.send_coordinator_messages)
@@ -67,6 +73,8 @@ class CollectorListener:
             return self.table_listener.ask_number_of_coordinators(trigger_event)
         elif self.listener_type == ListenerType.RECORD:
             return self.record_listener.ask_number_of_coordinators(trigger_event)
+        elif self.listener_type == ListenerType.JSON:
+            return self.json_listener.ask_number_of_coordinators(trigger_event)
         else:
             pass
             

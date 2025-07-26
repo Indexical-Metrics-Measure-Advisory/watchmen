@@ -86,28 +86,36 @@ def construct_jsons(jsons: Optional[List[Union[ChangeDataRecord, Dict]]]) -> Opt
         return ArrayHelper(jsons).map(lambda x: construct_json(x)).to_list()
 
 
+def construct_model_config(config: Optional[Union[CollectorModelConfig, Dict]]) -> Optional[CollectorModelConfig]:
+    if config is None:
+        return None
+    else:
+        return CollectorModelConfig(**config)
+    
+    
 class PostJSONMessage(ActionMessage):
-    collector_model_config: Optional[CollectorModelConfig] = None
+    modelConfig: Optional[CollectorModelConfig] = None
     jsons: Optional[List[ChangeDataJson]] = None
     
     def __setattr__(self, name, value):
         if name == 'jsons':
             super().__setattr__(name, construct_jsons(value))
-        elif name == 'trigger_event':
-            pass
-        elif name == 'collector_model_config':
+        elif name == 'modelConfig':
             pass
         else:
             super().__setattr__(name, value)
 
 
 class GroupedJson(ExtendedBaseModel):
-    object_id: Optional[str] = None
-    sorted_jsons: Optional[List[ChangeDataJson]] = None
+    json: Optional[ChangeDataJson] = None
+    objectId: Optional[str] = None
+    sortedJsons: Optional[List[ChangeDataJson]] = None
     
     def __setattr__(self, name, value):
-        if name == 'sorted_json':
+        if name == 'sortedJson':
             super().__setattr__(name, construct_jsons(value))
+        elif name == 'json':
+            super().__setattr__(name, construct_json(value))
         else:
             super().__setattr__(name, value)
     
@@ -128,10 +136,10 @@ def construct_grouped_jsons(grouped_jsons: Optional[List[GroupedJson]]) -> Optio
     
 
 class PostGroupedJSONMessage(PostJSONMessage):
-    grouped_jsons: Optional[List[GroupedJson]] = None
+    groupedJsons: Optional[List[GroupedJson]] = None
     
     def __setattr__(self, name, value):
-        if name == 'grouped_jsons':
+        if name == 'groupedJsons':
             super().__setattr__(name, construct_grouped_jsons(value))
         else:
             super().__setattr__(name, value)

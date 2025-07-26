@@ -14,9 +14,9 @@ from watchmen_collector_kernel.storage import get_competitive_lock_service, get_
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
 from watchmen_utilities import ArrayHelper
 from .handler import pipeline_data, run_pipeline
-from ..common import ask_serverless_task_distribution_max_batch_size, ask_serverless_queue_url
-from ..model import ActionType
-from ..queue import SQSSender
+from watchmen_serverless_lambda.common import ask_serverless_task_distribution_max_batch_size, ask_serverless_queue_url
+from watchmen_serverless_lambda.model import ActionType
+from watchmen_serverless_lambda.queue import SQSSender
 
 logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)

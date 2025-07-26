@@ -42,3 +42,7 @@ class EventListener:
     # noinspection PyMethodMayBeStatic
     def trigger_event_lock_resource_id(self, tenant: Tenant) -> str:
         return f'trigger_event_{tenant.tenantId}'
+    
+
+def get_event_listener(tenant_id: str) -> EventListener:
+    return EventListener(tenant_id)

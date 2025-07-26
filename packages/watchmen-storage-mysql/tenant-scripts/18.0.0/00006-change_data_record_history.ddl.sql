@@ -21,14 +21,11 @@ CREATE TABLE change_data_record_history
     PRIMARY KEY (change_record_id),
     INDEX (table_trigger_id),
     INDEX (model_trigger_id),
+    INDEX (module_trigger_id),
     INDEX (event_trigger_id),
     INDEX (tenant_id),
     INDEX (created_at),
     INDEX (created_by),
     INDEX (last_modified_at),
-    INDEX (last_modified_by),
-    INDEX (table_trigger_id),
-    INDEX (model_trigger_id),
-    INDEX (module_trigger_id),
-    INDEX (event_trigger_id)
+    INDEX (last_modified_by)
 );

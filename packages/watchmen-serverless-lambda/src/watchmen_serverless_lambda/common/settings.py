@@ -10,10 +10,12 @@ class ServerlessSettings(ExtendedBaseSettings):
 	
 	SERVERLESS_TABLE_EXTRACTOR_RECORD_MAX_BATCH_SIZE: int = 1000
 	SERVERLESS_RECORD_BATCH_SIZE: int = 100
-	SERVERLESS_JSON_DISTRIBUTION_MAX_BATCH_SIZE: int = 100
-	SERVERLESS_TASK_DISTRIBUTION_MAX_BATCH_SIZE: int = 10
+	SERVERLESS_POST_JSON_BATCH_SIZE: int = 100
+	SERVERLESS_RUN_TASK_BATCH_SIZE: int = 10
 	
 	SERVERLESS_RECORD_COORDINATOR_BATCH_SIZE: int = 10000
+	SERVERLESS_JSON_COORDINATOR_BATCH_SIZE: int = 1000
+	SERVERLESS_TASK_COORDINATOR_BATCH_SIZE: int = 1000
 	
 	SERVERLESS_EXTRACT_TABLE_RECORD_SHARD_SIZE: int = 10000
 	
@@ -38,17 +40,27 @@ def ask_serverless_record_batch_size() -> int:
 	return serverless_settings.SERVERLESS_RECORD_BATCH_SIZE
 
 
-def ask_serverless_json_distribution_max_batch_size() -> int:
-	return serverless_settings.SERVERLESS_JSON_DISTRIBUTION_MAX_BATCH_SIZE
+def ask_serverless_post_json_batch_size() -> int:
+	return serverless_settings.SERVERLESS_POST_JSON_BATCH_SIZE
 
 
-def ask_serverless_task_distribution_max_batch_size() -> int:
-	return serverless_settings.SERVERLESS_TASK_DISTRIBUTION_MAX_BATCH_SIZE
+def ask_serverless_run_task_batch_size() -> int:
+	return serverless_settings.SERVERLESS_RUN_TASK_BATCH_SIZE
 
 
 def ask_serverless_record_coordinator_batch_size() -> int:
 	return serverless_settings.SERVERLESS_RECORD_COORDINATOR_BATCH_SIZE
 
 
+def ask_serverless_json_coordinator_batch_size() -> int:
+	return serverless_settings.SERVERLESS_JSON_COORDINATOR_BATCH_SIZE
+
+
+def ask_serverless_task_coordinator_batch_size() -> int:
+	return serverless_settings.SERVERLESS_TASK_COORDINATOR_BATCH_SIZE
+
+
 def ask_serverless_extract_table_record_shard_size() -> int:
 	return serverless_settings.SERVERLESS_EXTRACT_TABLE_RECORD_SHARD_SIZE
+
+

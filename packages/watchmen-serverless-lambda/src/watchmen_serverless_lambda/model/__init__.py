@@ -1,2 +1,2 @@
-from .message import ActionMessage, ActionType, ExtractTableMessage, SaveRecordMessage, BuildJSONMessage
-from .type import ListenerType
+from .message import ActionMessage, ExtractTableMessage, SaveRecordMessage, BuildJSONMessage
+from .type import EventType, ListenerType, ActionType

@@ -1,5 +1,29 @@
+import json
+import logging
+from watchmen_serverless_lambda.service.collector_monitor import get_collector_monitor
 
+
+logger = logging.getLogger(__name__)
 
 
 def s3_file_handler(event, context):
-    print(f"S3 event: {event}")
+    for record in event['Records']:
+        process_record(record, context)
+
+
+def process_record(record, context):
+    try:
+        object_ = json.loads(record['object'])
+        key = object_["key"]
+        tenant_id = extract_tenant_id(key)
+        monitor = get_collector_monitor(tenant_id)
+        monitor.monitor_trigger_event(key)
+    except Exception as err:
+        logger.error("An error occurred", exc_info=True)
+        raise err
+    
+def extract_tenant_id(key):
+    parts = key.split('/')
+    if len(parts) >= 3 and parts[0] == 'monitor':
+        return parts[1]
+    return None
