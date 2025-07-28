@@ -19,11 +19,16 @@ class RecordListener:
 
     
     def ask_number_of_coordinators(self, trigger_event: TriggerEvent) -> int:
-        count = self.change_record_service.count_change_data_record(trigger_event.eventTriggerId)
-        if count:
-            return count // ask_serverless_record_coordinator_batch_size() + 1
-        else:
-            return 0
+        try:
+            self.change_record_service.begin_transaction()
+            count = self.change_record_service.count_change_data_record(trigger_event.eventTriggerId)
+            self.change_record_service.commit_transaction()
+            if count:
+                return count // ask_serverless_record_coordinator_batch_size() + 1
+            else:
+                return 0
+        finally:
+            self.change_record_service.close_transaction()
     
 
 def get_record_listener(tenant_id: str) -> RecordListener:

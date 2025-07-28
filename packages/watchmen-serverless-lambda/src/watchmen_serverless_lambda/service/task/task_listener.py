@@ -18,11 +18,16 @@ class TaskListener:
                                                          self.principal_service)
     
     def ask_number_of_coordinators(self, trigger_event: TriggerEvent) -> int:
-        count = self.scheduled_task.count_scheduled_task(trigger_event.eventTriggerId)
-        if count:
-            return count // ask_serverless_task_coordinator_batch_size() + 1
-        else:
-            return 0
+        try:
+            self.scheduled_task.begin_transaction()
+            count = self.scheduled_task.count_scheduled_task(trigger_event.eventTriggerId)
+            self.scheduled_task.commit_transaction()
+            if count:
+                return count // ask_serverless_task_coordinator_batch_size() + 1
+            else:
+                return 0
+        finally:
+            self.scheduled_task.close_transaction()
 
 
 def get_task_listener(tenant_id: str) -> TaskListener:
