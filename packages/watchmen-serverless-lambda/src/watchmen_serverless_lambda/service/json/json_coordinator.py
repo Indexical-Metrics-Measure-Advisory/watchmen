@@ -68,7 +68,6 @@ class ModelExecutor(ModelExecutorSPI):
     
     def process_change_data_json(self, trigger_event: TriggerEvent, trigger_model: TriggerModel,
                                  model_config: CollectorModelConfig):
-        print(f"json is safe or not {self.time_manager.is_safe}")
         while self.time_manager.is_safe:
             jsons = self.find_json_and_locked(trigger_model.modelTriggerId)
             
@@ -198,7 +197,7 @@ class SequencedModelExecutor(ModelExecutor):
                                  trigger_model.tenantId)
         try:
             if try_lock_nowait(self.competitive_lock_service, lock):
-                while not self.time_manager.is_safe:
+                while self.time_manager.is_safe:
                     batch_group_jsons = []
                     processed_list = []
                     change_data_jsons = self.change_json_service.find_json(trigger_model.modelTriggerId)

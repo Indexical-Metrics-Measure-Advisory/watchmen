@@ -49,15 +49,15 @@ class SaveRecordMessage(ExtractTableMessage):
 
 
 class AssignRecordMessage(ActionMessage):
-    records: Optional[List[ChangeDataRecord]]
+    pass
 
 
 class AssignJsonMessage(ActionMessage):
-    jsons: Optional[List[ChangeDataJson]] = None
+    pass
 
 
 class AssignTaskMessage(ActionMessage):
-    tasks: Optional[List[ScheduledTask]] = None
+    pass
 
 
 def construct_record(record: Optional[Union[ChangeDataRecord, Dict]]) -> Optional[ChangeDataRecord]:
