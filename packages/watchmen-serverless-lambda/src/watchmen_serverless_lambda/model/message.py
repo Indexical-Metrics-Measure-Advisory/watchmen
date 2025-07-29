@@ -87,6 +87,8 @@ class BuildJSONMessage(ActionMessage):
 def construct_json(json: Optional[Union[ChangeDataJson, Dict]]) -> Optional[ChangeDataJson]:
     if json is None:
         return None
+    elif isinstance(json, ChangeDataJson):
+        return json
     else:
         return ChangeDataJson(**json)
 
@@ -100,6 +102,8 @@ def construct_jsons(jsons: Optional[List[Union[ChangeDataRecord, Dict]]]) -> Opt
 def construct_model_config(config: Optional[Union[CollectorModelConfig, Dict]]) -> Optional[CollectorModelConfig]:
     if config is None:
         return None
+    elif isinstance(config, CollectorModelConfig):
+        return config
     else:
         return CollectorModelConfig(**config)
 
