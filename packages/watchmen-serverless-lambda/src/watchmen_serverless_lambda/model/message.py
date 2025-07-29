@@ -139,6 +139,8 @@ class GroupedJson(Storable, ExtendedBaseModel):
 def construct_grouped_json(grouped_json: Optional[Union[GroupedJson, Dict]]) -> Optional[GroupedJson]:
     if grouped_json is None:
         return None
+    if isinstance(grouped_json, GroupedJson):
+        return grouped_json
     else:
         return GroupedJson(**grouped_json)
     
@@ -152,10 +154,10 @@ def construct_grouped_jsons(grouped_jsons: Optional[List[GroupedJson]]) -> Optio
 
 class PostGroupedJSONMessage(ActionMessage):
     modelConfig: Optional[CollectorModelConfig] = None
-    groupedJsons: Optional[List[GroupedJson]] = None
+    groupJsons: Optional[List[GroupedJson]] = None
     
     def __setattr__(self, name, value):
-        if name == 'groupedJsons':
+        if name == 'groupJsons':
             super().__setattr__(name, construct_grouped_jsons(value))
         elif name == 'modelConfig':
             super().__setattr__(name, construct_model_config(value))
