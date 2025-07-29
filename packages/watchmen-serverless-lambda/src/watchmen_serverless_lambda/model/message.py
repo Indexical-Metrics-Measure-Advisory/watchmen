@@ -117,7 +117,7 @@ class PostJSONMessage(ActionMessage):
             super().__setattr__(name, value)
 
 
-class GroupedJson(ExtendedBaseModel):
+class GroupedJson(Storable, ExtendedBaseModel):
     json: Optional[ChangeDataJson] = None
     objectId: Optional[str] = None
     sortedJsons: Optional[List[ChangeDataJson]] = None
