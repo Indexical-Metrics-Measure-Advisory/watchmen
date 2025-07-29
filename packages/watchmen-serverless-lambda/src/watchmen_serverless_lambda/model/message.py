@@ -102,7 +102,7 @@ def construct_model_config(config: Optional[Union[CollectorModelConfig, Dict]]) 
         return None
     else:
         return CollectorModelConfig(**config)
-    
+
     
 class PostJSONMessage(ActionMessage):
     modelConfig: Optional[CollectorModelConfig] = None
@@ -112,7 +112,7 @@ class PostJSONMessage(ActionMessage):
         if name == 'jsons':
             super().__setattr__(name, construct_jsons(value))
         elif name == 'modelConfig':
-            pass
+            super().__setattr__(name, construct_model_config(value))
         else:
             super().__setattr__(name, value)
 
@@ -123,7 +123,7 @@ class GroupedJson(ExtendedBaseModel):
     sortedJsons: Optional[List[ChangeDataJson]] = None
     
     def __setattr__(self, name, value):
-        if name == 'sortedJson':
+        if name == 'sortedJsons':
             super().__setattr__(name, construct_jsons(value))
         elif name == 'json':
             super().__setattr__(name, construct_json(value))
