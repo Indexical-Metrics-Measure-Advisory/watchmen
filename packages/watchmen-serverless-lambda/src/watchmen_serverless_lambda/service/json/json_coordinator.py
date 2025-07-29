@@ -216,13 +216,28 @@ class SequencedModelExecutor(ModelExecutor):
                                 change_data_json.modelTriggerId)
                             sorted_change_data_jsons = ArrayHelper(grouped_change_data_jsons).sort(
                                 sort_grouped_change_data_jsons).to_list()
+                            
+                            def change_json_status(sorted_jsons: List[ChangeDataJson]):
+                                def executed_change_json(change_json: ChangeDataJson):
+                                    change_json.isPosted = True
+                                    change_json.status = Status.EXECUTING.value
+                                    self.change_json_service.update(change_json)
+                                try:
+                                    self.change_json_service.begin_transaction()
+                                    ArrayHelper(sorted_jsons).each(executed_change_json)
+                                    self.change_json_service.commit_transaction()
+                                except Exception as ex:
+                                    self.change_json_service.rollback_transaction()
+                                    raise ex
+                                finally:
+                                    self.change_json_service.close_transaction()
+                            
+                            change_json_status(sorted_change_data_jsons)
+                            
                             ArrayHelper(sorted_change_data_jsons).each(
                                 lambda json_record: processed_list.append(json_record.changeJsonId)
-                            ).map(
-                                lambda json_record: self.change_status(json_record, Status.EXECUTING.value)
-                            ).map(
-                                lambda json_record: self.change_json_service.update(json_record)
-                            ).to_list()
+                            )
+                            
                             batch_group_jsons.append(GroupedJson(json=change_data_json,
                                                                  objectId=change_data_json.objectId,
                                                                  sortedJsons=sorted_change_data_jsons))
@@ -233,18 +248,19 @@ class SequencedModelExecutor(ModelExecutor):
                             change_data_json.result = format_exc()
                             self.update_result(change_data_json)
                     
-                    successes, failures = self.send_grouped_json_messages(trigger_event,
-                                                                          model_config,
-                                                                          batch_group_jsons)
-                    log_entity = {
-                        'successes': successes,
-                        'failures': failures
-                    }
-                    
-                    log_key =  f'logs/{self.tenant_id}/{trigger_event.eventTriggerId}/post_group_json/{self.snowflake_generator.next_id()}'
-                    self.log_service.log_result(trigger_event.tenantId,
-                                                log_key,
-                                                log_entity)
+                    if batch_group_jsons:
+                        successes, failures = self.send_grouped_json_messages(trigger_event,
+                                                                              model_config,
+                                                                              batch_group_jsons)
+                        log_entity = {
+                            'successes': successes,
+                            'failures': failures
+                        }
+                        
+                        log_key =  f'logs/{self.tenant_id}/{trigger_event.eventTriggerId}/post_group_json/{self.snowflake_generator.next_id()}'
+                        self.log_service.log_result(trigger_event.tenantId,
+                                                    log_key,
+                                                    log_entity)
         finally:
             unlock(self.competitive_lock_service, lock)
     
