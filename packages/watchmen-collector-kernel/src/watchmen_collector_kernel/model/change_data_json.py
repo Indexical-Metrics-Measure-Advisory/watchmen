@@ -16,6 +16,7 @@ class ChangeDataJson(TenantBasedTuple, ExtendedBaseModel):
 	modelName: Optional[str] = None
 	objectId: Optional[str] = None
 	sequence: Optional[int] = None
+	tableName: Optional[str] = None
 	content: Optional[Dict] = None
 	dataId: Optional[Dict] = None
 	dependOn: Optional[List[Dependence]] = None
