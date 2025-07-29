@@ -16,6 +16,7 @@ from watchmen_serverless_lambda.service.record.record_listener import get_record
 from watchmen_serverless_lambda.service.table.table_listener import get_table_listener
 from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_utilities import serialize_to_json
+from .task.task_listener import get_task_listener
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ class CollectorListener:
         self.table_listener = get_table_listener(tenant_id)
         self.record_listener = get_record_listener(tenant_id)
         self.json_listener = get_json_listener(tenant_id)
+        self.task_listener = get_task_listener(tenant_id)
         self.clean_listener = get_clean_listener(tenant_id)
 
     def listen(self):
@@ -75,6 +77,8 @@ class CollectorListener:
             return self.record_listener.ask_number_of_coordinators(trigger_event)
         elif self.listener_type == ListenerType.JSON:
             return self.json_listener.ask_number_of_coordinators(trigger_event)
+        elif self.listener_type == ListenerType.TASK:
+            return self.task_listener.ask_number_of_coordinators(trigger_event)
         else:
             pass
             

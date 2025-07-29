@@ -146,12 +146,15 @@ def construct_grouped_jsons(grouped_jsons: Optional[List[GroupedJson]]) -> Optio
         return ArrayHelper(grouped_jsons).map(lambda x: construct_grouped_json(x)).to_list()
     
 
-class PostGroupedJSONMessage(PostJSONMessage):
+class PostGroupedJSONMessage(ActionMessage):
+    modelConfig: Optional[CollectorModelConfig] = None
     groupedJsons: Optional[List[GroupedJson]] = None
     
     def __setattr__(self, name, value):
         if name == 'groupedJsons':
             super().__setattr__(name, construct_grouped_jsons(value))
+        elif name == 'modelConfig':
+            super().__setattr__(name, construct_model_config(value))
         else:
             super().__setattr__(name, value)
 
