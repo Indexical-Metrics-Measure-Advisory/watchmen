@@ -52,7 +52,7 @@ class RecordCoordinator:
         return serialize_to_json({'action': ActionType.BUILD_JSON,
                                   'tenantId': self.tenant_id,
                                   'triggerEvent': trigger_event.to_dict(),
-                                  'records': batch})
+                                  'records': ArrayHelper(batch).map(lambda x: x.to_dict()).to_list()})
     
     
 def get_record_coordinator(tenant_id: str) -> RecordCoordinator:

@@ -50,7 +50,7 @@ class TaskCoordinator:
         return serialize_to_json({'action': ActionType.RUN_TASK,
                                   'tenantId': self.tenant_id,
                                   'triggerEvent': trigger_event.to_dict(),
-                                  'tasks': batch})
+                                  'tasks': ArrayHelper(batch).map(lambda x: x.to_dict()).to_list()})
     
     
 def get_task_coordinator(tenant_id: str) -> TaskCoordinator:

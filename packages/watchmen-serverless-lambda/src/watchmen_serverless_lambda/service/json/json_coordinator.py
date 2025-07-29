@@ -1,31 +1,30 @@
 import json
 import logging
-import time
 from abc import ABC, abstractmethod
 from traceback import format_exc
 from typing import List, Optional, Dict, Tuple
 
 from watchmen_collector_kernel.common import WAVE
-from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, TriggerModel, \
-	CollectorModelConfig, TriggerEvent, TriggerModule, Status, EventType
+from watchmen_collector_kernel.model import ChangeDataJson, TriggerModel, \
+    CollectorModelConfig, TriggerEvent, TriggerModule, Status, EventType
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, ask_collector_storage
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.service.model_config_service import get_model_config_service
 from watchmen_collector_kernel.storage import get_change_data_json_service, get_competitive_lock_service, \
-	get_scheduled_task_service, get_trigger_model_service, \
-	get_trigger_event_service, get_change_data_record_service, get_change_data_json_history_service, \
-	get_collector_module_config_service, get_trigger_module_service, ChangeDataRecordService, ChangeDataJsonService, \
-	ChangeDataJsonHistoryService, ScheduledTaskService, CompetitiveLockService
+    get_scheduled_task_service, get_trigger_model_service, \
+    get_trigger_event_service, get_change_data_record_service, get_change_data_json_history_service, \
+    get_collector_module_config_service, get_trigger_module_service, ChangeDataRecordService, ChangeDataJsonService, \
+    ChangeDataJsonHistoryService, ScheduledTaskService, CompetitiveLockService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_serverless_lambda.common import ask_serverless_queue_url, \
-	ask_serverless_post_json_batch_size
-from watchmen_serverless_lambda.service.time_manager import get_lambda_time_manager, LambdaTimeManager
-from watchmen_serverless_lambda.storage import ask_file_log_service
+    ask_serverless_post_json_batch_size
 from watchmen_serverless_lambda.model import ActionType
 from watchmen_serverless_lambda.model.message import GroupedJson
 from watchmen_serverless_lambda.queue import SQSSender
-from watchmen_utilities import ArrayHelper
+from watchmen_serverless_lambda.service.time_manager import get_lambda_time_manager, LambdaTimeManager
+from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_serverless_lambda.storage.log_service import FileLogService
+from watchmen_utilities import ArrayHelper, serialize_to_json
 
 logger = logging.getLogger(__name__)
 
@@ -94,14 +93,14 @@ class ModelExecutor(ModelExecutorSPI):
         for i in range(0, len(jsons), batch_size):
             batch = jsons[i:i + batch_size]
             message = {
-                'Id': self.snowflake_generator.next_id(),
-                'MessageBody': json.dumps({'action': ActionType.POST_JSON,
+                'Id': str(self.snowflake_generator.next_id()),
+                'MessageBody': serialize_to_json({'action': ActionType.POST_JSON,
                                            'tenantId': trigger_event.tenantId,
-                                           'triggerEvent': trigger_event,
-                                           'modelConfig': model_config,
-                                           'jsons': batch}),
-                'MessageGroupId': self.snowflake_generator.next_id(),
-                'MessageDeduplicationId': self.snowflake_generator.next_id()
+                                           'triggerEvent': trigger_event.to_dict(),
+                                           'modelConfig': model_config.to_dict(),
+                                           'jsons': ArrayHelper(batch).map(lambda x: x.to_dict()).to_list()}),
+                'MessageGroupId': str(self.snowflake_generator.next_id()),
+                'MessageDeduplicationId': str(self.snowflake_generator.next_id())
             }
             messages.append(message)
         
