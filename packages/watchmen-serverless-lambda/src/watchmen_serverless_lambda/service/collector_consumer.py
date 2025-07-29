@@ -1,10 +1,11 @@
 import json
 import logging
 
-from watchmen_serverless_lambda.model import ActionType
+from watchmen_serverless_lambda.model import ActionType, AssignTaskMessage, ScheduledTaskMessage, PostGroupedJSONMessage
 from .collector_coordinator import get_collector_coordinator
 from .collector_worker import get_collector_worker
-from watchmen_serverless_lambda.model.message import ExtractTableMessage, SaveRecordMessage
+from watchmen_serverless_lambda.model.message import ExtractTableMessage, SaveRecordMessage, BuildJSONMessage, \
+    AssignRecordMessage, AssignJsonMessage, PostJSONMessage
 
 logger = logging.getLogger(__name__)
 
@@ -20,17 +21,31 @@ class CollectorConsumer:
         try:
             body = json.loads(message['body'])
             if body['action'] == ActionType.ASSIGN_RECORD:
-                message = ExtractTableMessage(**body)
+                message = AssignRecordMessage(**body)
                 self.collector_coordinator.receive_message(message)
             elif body['action'] == ActionType.ASSIGN_JSON:
-                pass
+                message = AssignJsonMessage(**body)
+                self.collector_coordinator.receive_message(message)
             elif body['action'] == ActionType.ASSIGN_TASK:
-                pass
+                message = AssignTaskMessage(**body)
+                self.collector_coordinator.receive_message(message)
             elif body['action'] == ActionType.EXTRACT_TABLE:
                 message = ExtractTableMessage(**body)
                 self.collector_worker.receive_message(message)
             elif body['action'] == ActionType.SAVE_RECORD:
                 message = SaveRecordMessage(**body)
+                self.collector_worker.receive_message(message)
+            elif body['action'] == ActionType.BUILD_JSON:
+                message = BuildJSONMessage(**body)
+                self.collector_worker.receive_message(message)
+            elif body['action'] == ActionType.POST_JSON:
+                message = PostJSONMessage(**body)
+                self.collector_worker.receive_message(message)
+            elif body['action'] == ActionType.POST_GROUP_JSON:
+                message = PostGroupedJSONMessage(**body)
+                self.collector_worker.receive_message(message)
+            elif body['action'] == ActionType.RUN_TASK:
+                message = ScheduledTaskMessage(**body)
                 self.collector_worker.receive_message(message)
             else:
                 logger.error(f"invalidate message {message}")

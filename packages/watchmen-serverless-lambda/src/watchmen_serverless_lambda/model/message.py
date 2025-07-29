@@ -45,8 +45,19 @@ class ExtractTableMessage(ActionMessage):
 
 class SaveRecordMessage(ExtractTableMessage):
     triggerTable: Optional[TriggerTable] = None
-    records: Optional[List[Dict]] = None
-    
+    records: Optional[List[ChangeDataRecord]] = None
+
+
+class AssignRecordMessage(ActionMessage):
+    records: Optional[List[ChangeDataRecord]]
+
+
+class AssignJsonMessage(ActionMessage):
+    jsons: Optional[List[ChangeDataJson]] = None
+
+
+class AssignTaskMessage(ActionMessage):
+    tasks: Optional[List[ScheduledTask]] = None
 
 
 def construct_record(record: Optional[Union[ChangeDataRecord, Dict]]) -> Optional[ChangeDataRecord]:
