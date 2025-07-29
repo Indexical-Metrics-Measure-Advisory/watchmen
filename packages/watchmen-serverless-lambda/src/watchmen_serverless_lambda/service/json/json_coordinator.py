@@ -68,6 +68,7 @@ class ModelExecutor(ModelExecutorSPI):
     
     def process_change_data_json(self, trigger_event: TriggerEvent, trigger_model: TriggerModel,
                                  model_config: CollectorModelConfig):
+        print(f"json is safe or not {self.time_manager.is_safe}")
         while self.time_manager.is_safe:
             jsons = self.find_json_and_locked(trigger_model.modelTriggerId)
             
@@ -95,10 +96,10 @@ class ModelExecutor(ModelExecutorSPI):
             message = {
                 'Id': str(self.snowflake_generator.next_id()),
                 'MessageBody': serialize_to_json({'action': ActionType.POST_JSON,
-                                           'tenantId': trigger_event.tenantId,
-                                           'triggerEvent': trigger_event.to_dict(),
-                                           'modelConfig': model_config.to_dict(),
-                                           'jsons': ArrayHelper(batch).map(lambda x: x.to_dict()).to_list()}),
+                                                  'tenantId': trigger_event.tenantId,
+                                                  'triggerEvent': trigger_event.to_dict(),
+                                                  'modelConfig': model_config.to_dict(),
+                                                  'jsons': ArrayHelper(batch).map(lambda x: x.to_dict()).to_list()}),
                 'MessageGroupId': str(self.snowflake_generator.next_id()),
                 'MessageDeduplicationId': str(self.snowflake_generator.next_id())
             }
@@ -272,11 +273,11 @@ class SequencedModelExecutor(ModelExecutor):
             batch = grouped_jsons[i:i + batch_size]
             message = {
                 'Id': str(self.snowflake_generator.next_id()),
-                'MessageBody': json.dumps({'action': ActionType.POST_GROUP_JSON,
-                                           'tenantId': trigger_event.tenantId,
-                                           'triggerEvent': trigger_event,
-                                           'modelConfig': model_config,
-                                           'groupJsons': batch}),
+                'MessageBody': serialize_to_json({'action': ActionType.POST_GROUP_JSON,
+                                                  'tenantId': trigger_event.tenantId,
+                                                  'triggerEvent': trigger_event.to_dict(),
+                                                  'modelConfig': model_config.to_dict(),
+                                                  'groupJsons': ArrayHelper(batch).map(lambda x: x.to_dict()).to_list()}),
                 'MessageGroupId': str(self.snowflake_generator.next_id()),
                 'MessageDeduplicationId': str(self.snowflake_generator.next_id())
             }

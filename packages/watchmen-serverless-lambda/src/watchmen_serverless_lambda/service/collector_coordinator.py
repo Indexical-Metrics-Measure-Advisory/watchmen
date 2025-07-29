@@ -60,8 +60,8 @@ class CollectorCoordinator:
             }
             self.log_service.log_result(self.tenant_id, self.ask_log_key(action, trigger_event), log_entity)
         
-    def ask_log_key(self, action: ActionType, trigger_event: TriggerEvent) -> str:
-        key = f'logs/{self.tenant_id}/{trigger_event.eventTriggerId}/{action.value}/{self.snowflake_generator.next_id()}'
+    def ask_log_key(self, action: str, trigger_event: TriggerEvent) -> str:
+        key = f'logs/{self.tenant_id}/{trigger_event.eventTriggerId}/{action}/{self.snowflake_generator.next_id()}'
         return key
     
     def ask_assign_rows(self, action: ActionType, trigger_event: TriggerEvent) -> Optional[List]:
