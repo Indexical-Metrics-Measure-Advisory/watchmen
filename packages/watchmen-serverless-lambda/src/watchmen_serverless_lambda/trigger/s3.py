@@ -13,7 +13,8 @@ def s3_file_handler(event, context):
 
 def process_record(record, context):
     try:
-        object_ = json.loads(record['object'])
+        s3 = record['s3']
+        object_ = json.loads(s3['object'])
         key = object_["key"]
         tenant_id = extract_tenant_id(key)
         monitor = get_collector_monitor(tenant_id)

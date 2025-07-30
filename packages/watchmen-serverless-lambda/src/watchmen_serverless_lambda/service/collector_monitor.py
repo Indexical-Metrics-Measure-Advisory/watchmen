@@ -11,7 +11,7 @@ class CollectorMonitor:
         self.log_service = ask_file_log_service()
         
     def monitor_trigger_event(self, key: str):
-        event = self.log_service.load_state(key)
+        event = self.log_service.load_state(self.tenant_id, key)
         self.reconciliation.reconciled(TriggerEvent(**event))
     
 def get_collector_monitor(tenant_id: str) -> CollectorMonitor:
