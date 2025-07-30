@@ -306,6 +306,15 @@ class ChangeDataJsonService(TupleService):
 				                         right=event_trigger_id)
 			]
 		))
+	
+	def count_initial_change_data_json(self, event_trigger_id: int) -> int:
+		return self.storage.count(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
+				                         right=event_trigger_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=0)
+			]
+		))
 
 	def find_timeout_json(self, query_time: datetime) -> List:
 		try:

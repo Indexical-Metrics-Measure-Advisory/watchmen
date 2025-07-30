@@ -280,6 +280,15 @@ class ChangeDataRecordService(TupleService):
 			]
 		))
 
+	def count_initial_change_data_record(self, event_trigger_id: int) -> int:
+		return self.storage.count(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
+				                         right=event_trigger_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=0)
+			]
+		))
+	
 	def find_timeout_record(self, query_time: datetime) -> List:
 		try:
 			self.storage.connect()

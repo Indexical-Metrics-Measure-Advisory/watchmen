@@ -17,6 +17,12 @@ class ServerlessSettings(ExtendedBaseSettings):
 	SERVERLESS_JSON_COORDINATOR_BATCH_SIZE: int = 1000
 	SERVERLESS_TASK_COORDINATOR_BATCH_SIZE: int = 1000
 	
+	SERVERLESS_MAX_NUMBER_OF_COORDINATOR: int = 50
+	
+	SERVERLESS_NUMBER_OF_RECORD_COORDINATOR: int = 10
+	SERVERLESS_NUMBER_OF_JSON_COORDINATOR: int = 10
+	SERVERLESS_NUMBER_OF_TASK_COORDINATOR: int = 10
+	
 	SERVERLESS_EXTRACT_TABLE_RECORD_SHARD_SIZE: int = 10000
 	
 
@@ -64,3 +70,5 @@ def ask_serverless_extract_table_record_shard_size() -> int:
 	return serverless_settings.SERVERLESS_EXTRACT_TABLE_RECORD_SHARD_SIZE
 
 
+def ask_serverless_max_number_of_coordinator() -> int:
+	return serverless_settings.SERVERLESS_MAX_NUMBER_OF_COORDINATOR
