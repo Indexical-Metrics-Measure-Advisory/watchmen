@@ -152,5 +152,5 @@ class EventWorker:
             self.log_service.log_result(self.tenant_id, self.ask_monitor_key(event), event.to_dict())
             
     def ask_monitor_key(self, trigger_event: TriggerEvent) -> str:
-        key = f'monitor/{self.tenant_id}/{trigger_event.eventTriggerId}'
+        key = f'monitor/{self.tenant_id}/{trigger_event.eventTriggerId}.json'
         return key

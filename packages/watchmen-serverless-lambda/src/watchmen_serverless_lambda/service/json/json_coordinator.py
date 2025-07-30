@@ -292,9 +292,7 @@ class SequencedModelExecutor(ModelExecutor):
                                                   'tenantId': trigger_event.tenantId,
                                                   'triggerEvent': trigger_event.to_dict(),
                                                   'modelConfig': model_config.to_dict(),
-                                                  'groupJsons': ArrayHelper(batch).map(lambda x: x.to_dict()).to_list()}),
-                'MessageGroupId': str(self.snowflake_generator.next_id()),
-                'MessageDeduplicationId': str(self.snowflake_generator.next_id())
+                                                  'groupJsons': ArrayHelper(batch).map(lambda x: x.to_dict()).to_list()})
             }
             messages.append(message)
         

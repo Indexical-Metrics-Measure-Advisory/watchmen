@@ -9,7 +9,7 @@ retryable_errors = ('ThrottlingException', 'RequestLimitExceeded',
                     'InternalError', 'ServiceUnavailable')
 
 
-class SQSStandardSender:
+class SQSSender:
     
     def __init__(self, queue_url: str, region_name: str = None,
                  max_retries: int = 5, base_delay: float = 1.0,

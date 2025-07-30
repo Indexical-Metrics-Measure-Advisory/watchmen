@@ -79,9 +79,7 @@ class CollectorCoordinator:
             batch = records[i:i + batch_size]
             message = {
                 'Id': str(self.snowflake_generator.next_id()),
-                'MessageBody': self.ask_worker_message_body(trigger_event, action, batch),
-                'MessageGroupId': str(self.snowflake_generator.next_id()),
-                'MessageDeduplicationId': str(self.snowflake_generator.next_id())
+                'MessageBody': self.ask_worker_message_body(trigger_event, action, batch)
             }
             messages.append(message)
         successes, failures = self.sender.send_batch(messages)

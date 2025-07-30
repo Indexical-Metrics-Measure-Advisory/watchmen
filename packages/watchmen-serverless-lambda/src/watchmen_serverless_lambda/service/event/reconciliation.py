@@ -65,7 +65,7 @@ class Reconciliation:
     
     
     def ask_report_key(self, trigger_event: TriggerEvent) -> str:
-        key = f'reconciliation/{self.tenant_id}/{trigger_event.eventTriggerId}.json'
+        key = f'reconciliation/{self.tenant_id}/{trigger_event.eventTriggerId}'
         return key
     
 

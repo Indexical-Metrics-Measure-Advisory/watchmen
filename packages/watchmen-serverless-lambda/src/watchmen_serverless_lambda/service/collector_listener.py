@@ -98,9 +98,7 @@ class CollectorListener:
                 'Id': str(self.snowflake_generator.next_id()),
                 'MessageBody': serialize_to_json({'action': action,
                                                   'tenantId': self.tenant_id,
-                                                  'triggerEvent': trigger_event.to_dict()}),
-                'MessageGroupId': str(self.snowflake_generator.next_id()),
-                'MessageDeduplicationId': str(self.snowflake_generator.next_id())
+                                                  'triggerEvent': trigger_event.to_dict()})
             }
             messages.append(message)
         successes, failures = self.sender.send_batch(messages)
