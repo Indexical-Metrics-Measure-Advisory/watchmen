@@ -8,6 +8,7 @@ from watchmen_collector_kernel.storage import get_trigger_event_service, \
     get_trigger_module_service, get_scheduled_task_service
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
 from watchmen_serverless_lambda.storage import ask_file_log_service
+from watchmen_utilities import ArrayHelper
 
 logger = logging.getLogger(__name__)
 
@@ -50,13 +51,13 @@ class Reconciliation:
         }
         
         modules = self.trigger_module_service.find_by_event_trigger_id(event.eventTriggerId)
-        report["modules"] = modules
+        report["modules"] = ArrayHelper(modules).map(lambda module: module.to_dict())
         
         models = self.trigger_model_service.find_by_event_trigger_id(event.eventTriggerId)
-        report["models"] = models
+        report["models"] = ArrayHelper(models).map(lambda module: module.to_dict())
         
         tables = self.trigger_table_service.find_by_event_trigger_id(event.eventTriggerId)
-        report["tables"] = tables
+        report["tables"] = ArrayHelper(tables).map(lambda module: module.to_dict())
         
         self.generate_report(event, report)
     
