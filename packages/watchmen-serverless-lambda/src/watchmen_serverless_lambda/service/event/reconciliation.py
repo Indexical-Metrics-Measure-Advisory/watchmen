@@ -51,13 +51,13 @@ class Reconciliation:
         }
         
         modules = self.trigger_module_service.find_by_event_trigger_id(event.eventTriggerId)
-        report["modules"] = ArrayHelper(modules).map(lambda module: module.to_dict())
+        report["modules"] = ArrayHelper(modules).map(lambda module: module.to_dict()).to_list()
         
         models = self.trigger_model_service.find_by_event_trigger_id(event.eventTriggerId)
-        report["models"] = ArrayHelper(models).map(lambda module: module.to_dict())
+        report["models"] = ArrayHelper(models).map(lambda module: module.to_dict()).to_list()
         
         tables = self.trigger_table_service.find_by_event_trigger_id(event.eventTriggerId)
-        report["tables"] = ArrayHelper(tables).map(lambda module: module.to_dict())
+        report["tables"] = ArrayHelper(tables).map(lambda module: module.to_dict()).to_list()
         
         self.generate_report(event, report)
     
