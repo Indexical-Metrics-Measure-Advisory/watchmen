@@ -27,6 +27,11 @@ class MetaSettings(BaseSettings):
 	META_STORAGE_PORT: int = 3306
 	META_STORAGE_NAME: str = 'watchmen'
 	META_STORAGE_ECHO: bool = False
+	META_STORAGE_SSL: bool = False
+	
+	META_STORAGE_SSL_CA: str = ""
+	META_STORAGE_SSL_CLIENT_CERT: str = ""
+	META_STORAGE_SSL_CLIENT_KEY: str = ""
 
 	SNOWFLAKE_DATA_CENTER_ID: int = 0  # data center id
 	SNOWFLAKE_WORKER_ID: int = 0  # worker id
@@ -73,6 +78,10 @@ def build_mysql_storage() -> Callable[[], TransactionalStorageSPI]:
 		.account(settings.META_STORAGE_USER_NAME, settings.META_STORAGE_PASSWORD) \
 		.schema(settings.META_STORAGE_NAME) \
 		.echo(settings.META_STORAGE_ECHO)
+	if settings.META_STORAGE_SSL:
+		configuration = configuration.ssl(settings.META_STORAGE_SSL_CA,
+		                                  settings.META_STORAGE_SSL_CLIENT_CERT,
+		                                  settings.META_STORAGE_SSL_CLIENT_KEY)
 	return lambda: configuration.build()
 
 

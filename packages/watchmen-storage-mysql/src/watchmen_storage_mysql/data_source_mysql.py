@@ -10,6 +10,9 @@ from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, serialize_to
 from .storage_mysql import StorageMySQL, TopicDataStorageMySQL
 
 
+MYSQL_URL_SEARCH_PARAMS_KEY = ['charset', 'ssl_ca', 'ssl_cert', 'ssl_key']
+
+
 def redress_url_by_pymysql(url: str) -> str:
 	if url.startswith('mysql://'):
 		return url.replace('mysql://', 'mysql+pymysql://')
@@ -86,7 +89,7 @@ class MySQLDataSourceHelper(DataSourceHelper):
 		url_params = []
 
 		def filter_param(param: DataSourceParam):
-			if param.name == "charset":
+			if param.name in MYSQL_URL_SEARCH_PARAMS_KEY:
 				url_params.append(param)
 
 		ArrayHelper(data_source_params).each(lambda param: filter_param(param))
