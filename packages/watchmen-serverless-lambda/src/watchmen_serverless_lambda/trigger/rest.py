@@ -1,5 +1,5 @@
-import json
 import asyncio
+import json
 from enum import StrEnum
 from logging import getLogger
 from typing import Optional
@@ -7,13 +7,13 @@ from typing import Optional
 from watchmen_collector_kernel.model import TriggerEvent, Status, EventType
 from watchmen_collector_kernel.service import ask_collector_storage
 from watchmen_collector_kernel.storage import get_trigger_event_service
-from watchmen_rest.util import raise_400, validate_tenant_id
-from watchmen_utilities import is_blank, serialize_to_json
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import UserRole
 from watchmen_model.pipeline_kernel import PipelineTriggerDataWithPAT, PipelineTriggerTraceId
 from watchmen_pipeline_kernel.pipeline import try_to_invoke_pipelines
 from watchmen_rest import get_principal_by_pat, retrieve_authentication_manager
+from watchmen_rest.util import raise_400, validate_tenant_id
+from watchmen_utilities import is_blank, serialize_to_json
 
 logger = getLogger(__name__)
 
@@ -84,50 +84,53 @@ def trigger_pipeline_handler(event, context):
 
 
 def trigger_event_handler(event, context):
-    headers = event['headers']
-    token = headers.get("authorization").split(" ")[1]
-    body = event['body']
-    submit_event = json.loads(body)
-    
-    if is_blank(token):
-        raise Exception('PAT not found.')
-    
-    if get_trigger_event_type(submit_event) == TriggerEventType.EVENT:
-        if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
-            raise_400('start time or end time  is required.')
-        submit_event['type'] = EventType.DEFAULT.value
-    elif get_trigger_event_type(submit_event) == TriggerEventType.TABLE:
-        if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
-            raise_400('start time or end time  is required.')
-        if is_blank(submit_event.get('tableName')):
-            raise_400('table name is required.')
-        submit_event['type'] = EventType.BY_TABLE.value
-    elif get_trigger_event_type(submit_event) == TriggerEventType.RECORD:
-        if is_blank(submit_event.get('tableName')):
-            raise_400('table name is required.')
-        if submit_event.get('records') is None or len(submit_event.get('records')) == 0:
-            raise_400('records is required.')
-        submit_event['type'] = EventType.BY_RECORD.value
+    try:
+        headers = event['headers']
+        token = headers.get("authorization").split(" ")[1]
+        body = event['body']
+        submit_event = json.loads(body)
+        
+        if is_blank(token):
+            raise Exception('PAT not found.')
+        
+        if get_trigger_event_type(submit_event) == TriggerEventType.EVENT:
+            if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
+                raise_400('start time or end time  is required.')
+            submit_event['type'] = EventType.DEFAULT.value
+        elif get_trigger_event_type(submit_event) == TriggerEventType.TABLE:
+            if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
+                raise_400('start time or end time  is required.')
+            if is_blank(submit_event.get('tableName')):
+                raise_400('table name is required.')
+            submit_event['type'] = EventType.BY_TABLE.value
+        elif get_trigger_event_type(submit_event) == TriggerEventType.RECORD:
+            if is_blank(submit_event.get('tableName')):
+                raise_400('table name is required.')
+            if submit_event.get('records') is None or len(submit_event.get('records')) == 0:
+                raise_400('records is required.')
+            submit_event['type'] = EventType.BY_RECORD.value
             
-    principal_service = get_principal_by_pat(
-        retrieve_authentication_manager(), token, [UserRole.ADMIN, UserRole.SUPER_ADMIN])
-    
-    trigger_event = TriggerEvent(**submit_event)
-    
-    validate_tenant_id(trigger_event, principal_service)
-    trigger_event_service = get_trigger_event_service(ask_collector_storage(trigger_event.tenantId, principal_service),
-                                                      ask_snowflake_generator(),
-                                                      principal_service)
-    # noinspection PyTypeChecker
-    if trigger_event_service.is_storable_id_faked(trigger_event.eventTriggerId):
-        trigger_event_service.redress_storable_id(trigger_event)
-        trigger_event.isFinished = False
-        trigger_event.status = Status.INITIAL.value
-        trigger_event =  trigger_event_service.create_trigger_event(trigger_event)
-        return {
-            'statusCode': 200,
-            'body': serialize_to_json(trigger_event.to_dict())
-        }
+        principal_service = get_principal_by_pat(
+            retrieve_authentication_manager(), token, [UserRole.ADMIN, UserRole.SUPER_ADMIN])
+        
+        trigger_event = TriggerEvent(**submit_event)
+        
+        validate_tenant_id(trigger_event, principal_service)
+        trigger_event_service = get_trigger_event_service(ask_collector_storage(trigger_event.tenantId, principal_service),
+                                                          ask_snowflake_generator(),
+                                                          principal_service)
+        # noinspection PyTypeChecker
+        if trigger_event_service.is_storable_id_faked(trigger_event.eventTriggerId):
+            trigger_event_service.redress_storable_id(trigger_event)
+            trigger_event.isFinished = False
+            trigger_event.status = Status.INITIAL.value
+            trigger_event =  trigger_event_service.create_trigger_event(trigger_event)
+            return {
+                'statusCode': 200,
+                'body': serialize_to_json(trigger_event.to_dict())
+            }
+    except Exception as e:
+        raise e
 
 
 class TriggerEventType(StrEnum):

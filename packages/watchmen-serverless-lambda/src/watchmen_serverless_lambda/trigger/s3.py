@@ -1,7 +1,6 @@
-import json
 import logging
-from watchmen_serverless_lambda.service.collector_monitor import get_collector_monitor
 
+from watchmen_serverless_lambda.service.collector_monitor import get_collector_monitor
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +19,8 @@ def process_record(record, context):
         monitor = get_collector_monitor(tenant_id)
         monitor.monitor_trigger_event(key)
     except Exception as err:
-        logger.error("An error occurred", exc_info=True)
-        raise err
+        logger.error(err, exc_info=True, stack_info=True)
+        
     
 def extract_tenant_id(key):
     parts = key.split('/')

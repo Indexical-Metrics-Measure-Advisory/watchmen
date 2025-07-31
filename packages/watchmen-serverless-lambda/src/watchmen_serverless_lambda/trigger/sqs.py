@@ -18,5 +18,5 @@ def process_message(message, context):
         consumer = get_collector_consumer(body['tenantId'], context)
         consumer.process_message(message)
     except Exception as err:
-        logger.error("An error occurred", exc_info=True)
-        raise err
+        logger.error(err, exc_info=True, stack_info=True)
+        

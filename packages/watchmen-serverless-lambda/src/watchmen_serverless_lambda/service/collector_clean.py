@@ -56,10 +56,7 @@ class CleanListener:
 		self.task_timeout = ask_collector_task_timeout()
 
 	def listen(self):
-		try:
-			self.clean_listener()
-		except Exception as e:
-			getLogger(__name__).error(e, exc_info=True, stack_info=True)
+		self.clean_listener()
 
 	def clean_listener(self) -> None:
 		lock = get_resource_lock(self.snowflake_generator.next_id(),

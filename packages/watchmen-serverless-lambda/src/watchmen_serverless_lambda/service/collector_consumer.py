@@ -1,11 +1,14 @@
 import json
 import logging
 
+from watchmen_meta.common import ask_snowflake_generator
 from watchmen_serverless_lambda.model import ActionType, AssignTaskMessage, ScheduledTaskMessage, PostGroupedJSONMessage
 from .collector_coordinator import get_collector_coordinator
 from .collector_worker import get_collector_worker
 from watchmen_serverless_lambda.model.message import ExtractTableMessage, SaveRecordMessage, BuildJSONMessage, \
     AssignRecordMessage, AssignJsonMessage, PostJSONMessage
+from watchmen_serverless_lambda.storage import ask_file_log_service
+from ..common import log_error
 
 logger = logging.getLogger(__name__)
 
@@ -14,8 +17,10 @@ class CollectorConsumer:
     
     def __init__(self, tenant_id: str, context):
         self.tenant_id = tenant_id
+        self.snowflake_generator = ask_snowflake_generator()
         self.collector_coordinator = get_collector_coordinator(self.tenant_id, context)
         self.collector_worker = get_collector_worker(self.tenant_id, context)
+        self.log_service = ask_file_log_service()
         
     def process_message(self, message):
         try:
@@ -50,8 +55,8 @@ class CollectorConsumer:
             else:
                 logger.error(f"invalidate message {message}")
         except Exception as err:
-            logger.error("An error occurred", exc_info=True)
-            raise err
+            error_key = f"error/{self.tenant_id}/consumer/{self.snowflake_generator.next_id()}"
+            log_error(self.tenant_id, self.log_service, error_key, err)
 
 
 def get_collector_consumer(tenant_id: str, context) -> CollectorConsumer:

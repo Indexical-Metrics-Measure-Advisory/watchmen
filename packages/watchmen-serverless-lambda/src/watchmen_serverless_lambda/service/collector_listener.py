@@ -6,7 +6,7 @@ from watchmen_collector_kernel.model import TriggerEvent
 from watchmen_collector_kernel.service import ask_collector_storage
 from watchmen_collector_kernel.storage import get_trigger_event_service
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
-from watchmen_serverless_lambda.common import ask_serverless_queue_url
+from watchmen_serverless_lambda.common import ask_serverless_queue_url, log_error
 from watchmen_serverless_lambda.model import ActionType, ListenerType
 from watchmen_serverless_lambda.queue import SQSSender
 from .collector_clean import get_clean_listener
@@ -45,27 +45,33 @@ class CollectorListener:
         self.clean_listener = get_clean_listener(tenant_id)
 
     def listen(self):
-        if self.listener_type == ListenerType.EVENT:
-            self.event_listener.event_listener()
-        elif self.listener_type == ListenerType.CLEAN:
-            self.clean_listener.listen()
-        else:
-            trigger_event = self.get_executing_trigger_event(self.tenant_id)
-            if trigger_event:
-                if self.listener_type == ListenerType.TABLE:
-                    action = ActionType.EXTRACT_TABLE
-                elif self.listener_type == ListenerType.RECORD:
-                    action = ActionType.ASSIGN_RECORD
-                elif self.listener_type == ListenerType.JSON:
-                    action = ActionType.ASSIGN_JSON
-                elif self.listener_type == ListenerType.TASK:
-                    action = ActionType.ASSIGN_TASK
-                else:
-                    logger.warning(f"missing listener type {self.listener_type}")
-                    return
-                count = self.ask_number_of_coordinators(trigger_event)
-                if count > 0:
-                    self.ask_coordinators(count, action, trigger_event, self.send_coordinator_messages)
+        try:
+            if self.listener_type == ListenerType.EVENT:
+                self.event_listener.event_listener()
+            elif self.listener_type == ListenerType.CLEAN:
+                self.clean_listener.listen()
+            else:
+                trigger_event = self.get_executing_trigger_event(self.tenant_id)
+                if trigger_event:
+                    if self.listener_type == ListenerType.TABLE:
+                        action = ActionType.EXTRACT_TABLE
+                    elif self.listener_type == ListenerType.RECORD:
+                        action = ActionType.ASSIGN_RECORD
+                    elif self.listener_type == ListenerType.JSON:
+                        action = ActionType.ASSIGN_JSON
+                    elif self.listener_type == ListenerType.TASK:
+                        action = ActionType.ASSIGN_TASK
+                    else:
+                        logger.warning(f"missing listener type {self.listener_type}")
+                        return
+                    count = self.ask_number_of_coordinators(trigger_event)
+                    if count > 0:
+                        self.ask_coordinators(count, action, trigger_event, self.send_coordinator_messages)
+        except Exception as ex:
+            logger.error(ex, exc_info=True, stack_info=True)
+            key = f"error/{self.tenant_id}/listener/{self.snowflake_generator.next_id()}"
+            log_error(self.tenant_id, self.log_service, key, ex)
+        
     
     def get_executing_trigger_event(self, tenant_id: str) -> Optional[TriggerEvent]:
         return self.trigger_event_service.find_executing_event_by_tenant_id(tenant_id)
