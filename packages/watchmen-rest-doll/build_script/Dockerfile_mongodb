@@ -2,7 +2,7 @@ FROM python:3.9.19-slim-bullseye
 
 WORKDIR /app
 ADD . .
-RUN pip install poetry && poetry config virtualenvs.create false && poetry install --no-dev -vv -E mongodb -E trino
+RUN pip install poetry && poetry config virtualenvs.create false && poetry install --without dev -vv -E mongodb -E trino
 
 EXPOSE 8000
 CMD ["uvicorn","watchmen_rest_doll.main:app","--host", "0.0.0.0", "--port", "8000"]
