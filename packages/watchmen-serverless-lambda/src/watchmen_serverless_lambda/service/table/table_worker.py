@@ -112,11 +112,7 @@ class TableWorker:
                 state = {"remaining_records": source_records}
                 self.time_manger.save_state(self.tenant_id, state_key, state)
                 self.trigger_table_service.update_table_trigger(self.set_data_count(trigger_table, len(source_records)))
-                
-            logger.info(
-                f'table_name: {config.tableName}, source_records: {len(source_records)}'
-            )
-            
+
             shard_size = ask_serverless_extract_table_record_shard_size()
             
             for i in range(0, len(source_records), shard_size):
@@ -168,10 +164,10 @@ class TableWorker:
     
     def process_records(self, trigger_table, records: Optional[List[Dict[str, Any]]]):
         config = self.table_config_service.find_by_name(trigger_table.tableName, trigger_table.tenantId)
-        records = ArrayHelper(records).map(lambda record: self.get_change_data_record(trigger_table, get_data_id(config.primaryKey, record))).to_list()
+        records = ArrayHelper(records).map(lambda record: self.ask_change_data_record(trigger_table, get_data_id(config.primaryKey, record))).to_list()
         self.change_data_record_service.create_change_records(records)
     
-    def get_change_data_record(self, trigger_table: TriggerTable, data_id: Dict) -> ChangeDataRecord:
+    def ask_change_data_record(self, trigger_table: TriggerTable, data_id: Dict) -> ChangeDataRecord:
         change_data_record = self.source_to_change(trigger_table, data_id)
         return change_data_record
     
