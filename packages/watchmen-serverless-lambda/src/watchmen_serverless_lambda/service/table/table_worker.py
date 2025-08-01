@@ -168,9 +168,12 @@ class TableWorker:
     
     def process_records(self, trigger_table, records: Optional[List[Dict[str, Any]]]):
         config = self.table_config_service.find_by_name(trigger_table.tableName, trigger_table.tenantId)
-        ArrayHelper(records).map(
-            lambda record: self.save_change_data_record(trigger_table,
-                                                        get_data_id(config.primaryKey, record)))
+        records = ArrayHelper(records).map(lambda record: self.get_change_data_record(trigger_table, get_data_id(config.primaryKey, record))).to_list()
+        self.change_data_record_service.create_change_records(records)
+    
+    def get_change_data_record(self, trigger_table: TriggerTable, data_id: Dict) -> ChangeDataRecord:
+        change_data_record = self.source_to_change(trigger_table, data_id)
+        return change_data_record
     
     def save_change_data_record(self,
                                 trigger_table: TriggerTable,

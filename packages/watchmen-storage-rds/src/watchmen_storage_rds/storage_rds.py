@@ -133,7 +133,9 @@ class StorageRDS(TransactionalStorageSPI):
 		self.connection.execute(insert(table).values(row))
 
 	def insert_all(self, data: List[Entity], helper: EntityHelper) -> None:
-		ArrayHelper(data).each(lambda row: self.insert_one(row, helper))
+		table = self.find_table(helper.name)
+		rows = ArrayHelper(data).map(lambda one: helper.shaper.serialize(one)).to_list()
+		self.connection.execute(insert(table).values(rows))
 
 	def update_one(self, one: Entity, helper: EntityIdHelper) -> int:
 		row = helper.shaper.serialize(one)

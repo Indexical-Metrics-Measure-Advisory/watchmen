@@ -1,12 +1,12 @@
 from datetime import datetime
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID, IS_MERGED, ask_partial_size, STATUS
 from watchmen_collector_kernel.model import ChangeDataRecord
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
-from watchmen_model.common import Storable, ChangeRecordId, Pageable
+from watchmen_model.common import Storable, ChangeRecordId, Pageable, OptimisticLock
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	EntityCriteriaExpression, ColumnNameLiteral, EntityStraightValuesFinder, EntityStraightColumn, EntityColumnType, \
 	EntityPager, EntityLimitedFinder, EntityCriteriaOperator
@@ -91,6 +91,29 @@ class ChangeDataRecordService(TupleService):
 			raise e
 		finally:
 			self.close_transaction()
+			
+	def create_change_records(self, records: List[ChangeDataRecord]) -> None:
+		
+		def prepare_insert(a_tuple: Tuple) -> Tuple:
+			self.try_to_prepare_auditable_on_create(a_tuple)
+			if isinstance(a_tuple, OptimisticLock):
+				a_tuple.version = 1
+			return a_tuple
+		
+		batch_size = 1000
+		for i in range(0, len(records), batch_size):
+			batch = records[i:i + batch_size]
+			tuples = ArrayHelper(batch).map(lambda record: prepare_insert(record)).to_list()
+			self.begin_transaction()
+			try:
+				self.storage.insert_all(tuples, self.get_entity_helper())
+				self.commit_transaction()
+			except Exception as e:
+				self.rollback_transaction()
+				raise e
+			finally:
+				self.close_transaction()
+		
 
 	def update_change_record(self, record: ChangeDataRecord) -> Optional[ChangeDataRecord]:
 		self.begin_transaction()
