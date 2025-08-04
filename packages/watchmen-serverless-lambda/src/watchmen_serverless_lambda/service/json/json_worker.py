@@ -12,7 +12,9 @@ from watchmen_collector_kernel.storage import get_change_data_json_service, get_
     get_trigger_event_service, get_change_data_record_service, get_change_data_json_history_service, \
     get_collector_module_config_service, get_trigger_module_service
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
+from watchmen_serverless_lambda.common import log_error
 from watchmen_serverless_lambda.model.message import GroupedJson
+from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_utilities import ArrayHelper
 
 logger = logging.getLogger(__name__)
@@ -51,6 +53,7 @@ class JSONWorker:
         self.trigger_event_service = get_trigger_event_service(self.collector_storage,
                                                                self.snowflake_generator,
                                                                self.principal_service)
+        self.log_service = ask_file_log_service()
                     
     def get_single_json_scheduled_task(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
                            change_json: ChangeDataJson) -> ScheduledTask:
@@ -160,6 +163,8 @@ class JSONWorker:
                                        grouped_json.sortedJsons)
             except Exception as e:
                 logger.error(e, exc_info=True, stack_info=True)
+                key = f"error/{self.tenant_id}/worker/post_group_json/{self.snowflake_generator.next_id()}"
+                log_error(self.tenant_id, self.log_service, key, e)
     
     
     def post_grouped_json(self,
