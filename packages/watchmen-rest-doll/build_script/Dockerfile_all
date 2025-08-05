@@ -1,4 +1,4 @@
-FROM python:3.12.5-slim-bookworm
+FROM python:3.12.11-slim-bookworm
 
 WORKDIR    /opt/mssql
 RUN        apt-get update && apt-get install -y curl && apt-get install -y gnupg gcc g++ \
