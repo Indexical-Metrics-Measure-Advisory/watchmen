@@ -10,6 +10,8 @@ from .type import ActionType
 def construct_trigger_event(trigger_event: Optional[Union[TriggerEvent, Dict]]) -> Optional[TriggerEvent]:
     if trigger_event is None:
         return None
+    elif isinstance(trigger_event, TriggerEvent):
+        return trigger_event
     else:
         return TriggerEvent(**trigger_event)
     
@@ -29,6 +31,8 @@ class ActionMessage(Storable, ExtendedBaseModel):
 def construct_trigger_table(trigger_table: Optional[Union[TriggerTable, Dict]]) -> Optional[TriggerTable]:
     if trigger_table is None:
         return None
+    elif isinstance(trigger_table, TriggerTable):
+        return trigger_table
     else:
         return TriggerTable(**trigger_table)
 
@@ -63,6 +67,8 @@ class AssignTaskMessage(ActionMessage):
 def construct_record(record: Optional[Union[ChangeDataRecord, Dict]]) -> Optional[ChangeDataRecord]:
     if record is None:
         return None
+    elif isinstance(record, ChangeDataRecord):
+        return record
     else:
         return ChangeDataRecord(**record)
 
@@ -159,6 +165,8 @@ class PostGroupedJSONMessage(ActionMessage):
 def construct_task(task: Optional[Union[ScheduledTask, Dict]]) -> Optional[ScheduledTask]:
     if task is None:
         return None
+    elif isinstance(task, ScheduledTask):
+        return task
     else:
         return ScheduledTask(**task)
 
