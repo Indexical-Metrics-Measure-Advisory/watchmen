@@ -8,7 +8,7 @@ from .collector_worker import get_collector_worker
 from watchmen_serverless_lambda.model.message import ExtractTableMessage, SaveRecordMessage, BuildJSONMessage, \
     AssignRecordMessage, AssignJsonMessage, PostJSONMessage
 from watchmen_serverless_lambda.storage import ask_file_log_service
-from ..common import log_error
+from watchmen_serverless_lambda.common import log_error
 
 logger = logging.getLogger(__name__)
 

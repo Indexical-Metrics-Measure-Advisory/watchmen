@@ -29,11 +29,11 @@ class CollectorWorker:
         elif message.action == ActionType.POST_JSON:
             self.json_worker.process_single_change_data_json(message.triggerEvent,
                                                              message.modelConfig,
-                                                             message.jsons)
+                                                             message.jsonIds)
         elif message.action == ActionType.POST_GROUP_JSON:
             self.json_worker.process_grouped_change_data_json(message.triggerEvent,
                                                               message.modelConfig,
-                                                              message.groupJsons)
+                                                              message.groupedJsonIds)
         elif message.action == ActionType.RUN_TASK:
             self.task_worker.process_tasks(message.tasks)
         else:

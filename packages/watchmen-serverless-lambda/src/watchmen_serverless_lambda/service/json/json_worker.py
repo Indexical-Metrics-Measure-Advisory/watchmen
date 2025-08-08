@@ -1,6 +1,6 @@
 import logging
 from traceback import format_exc
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, CollectorModelConfig, TriggerEvent, Status, \
@@ -13,9 +13,7 @@ from watchmen_collector_kernel.storage import get_change_data_json_service, get_
     get_collector_module_config_service, get_trigger_module_service
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_serverless_lambda.common import log_error
-from watchmen_serverless_lambda.model.message import GroupedJson
 from watchmen_serverless_lambda.storage import ask_file_log_service
-from watchmen_utilities import ArrayHelper
 
 logger = logging.getLogger(__name__)
 
@@ -79,18 +77,14 @@ class JSONWorker:
     
     def get_grouped_json_scheduled_task(self, trigger_event: TriggerEvent,
                                    model_config: CollectorModelConfig, object_id: str,
-                                   change_jsons: List[ChangeDataJson]) -> ScheduledTask:
-
-        def get_grouped_json_ids(change_jsons: List[ChangeDataJson]) -> Optional[List]:
-            ids = ArrayHelper(change_jsons).map(lambda change_json: change_json.changeJsonId).to_list()
-            return ids
+                                   change_json_ids: List[str]) -> ScheduledTask:
 
         return ScheduledTask(
             taskId=self.snowflake_generator.next_id(),
             resourceId=self.snowflake_generator.next_id(),
             topicCode=model_config.rawTopicCode,
             content=None,
-            changeJsonIds=get_grouped_json_ids(change_jsons),
+            changeJsonIds=change_json_ids,
             modelName=model_config.modelName,
             objectId=object_id,
             dependOn=[],
@@ -116,20 +110,22 @@ class JSONWorker:
     def process_single_change_data_json(self,
                                         trigger_event: TriggerEvent,
                                         model_config: CollectorModelConfig,
-                                        jsons: List[ChangeDataJson]):
-        for change_data_json in jsons:
-            if self.is_duplicated(change_data_json):
-                change_data_json.isPosted = True
-                self.update_result(change_data_json, True)
-            else:
-                try:
-                    self.post_json(trigger_event, model_config, change_data_json)
-                except Exception as e:
-                    logger.error(e, exc_info=True, stack_info=True)
+                                        jsonIds: List[int]):
+        for id_ in jsonIds:
+            change_data_json = self.change_json_service.find_json_by_id(id_)
+            if change_data_json:
+                if self.is_duplicated(change_data_json):
                     change_data_json.isPosted = True
-                    change_data_json.status = Status.FAIL.value
-                    change_data_json.result = format_exc()
-                    self.update_result(change_data_json)
+                    self.update_result(change_data_json, True)
+                else:
+                    try:
+                        self.post_json(trigger_event, model_config, change_data_json)
+                    except Exception as e:
+                        logger.error(e, exc_info=True, stack_info=True)
+                        change_data_json.isPosted = True
+                        change_data_json.status = Status.FAIL.value
+                        change_data_json.result = format_exc()
+                        self.update_result(change_data_json)
                     
                     
     def post_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
@@ -154,13 +150,13 @@ class JSONWorker:
     def process_grouped_change_data_json(self,
                                          trigger_event: TriggerEvent,
                                          model_config: CollectorModelConfig,
-                                         grouped_jsons: List[GroupedJson]):
-        for grouped_json in grouped_jsons:
+                                         grouped_json_ids: List[Tuple[str, List[str]]]):
+        for json_ids in grouped_json_ids:
             try:
                 self.post_grouped_json(trigger_event,
                                        model_config,
-                                       grouped_json.objectId,
-                                       grouped_json.sortedJsons)
+                                       json_ids[0],
+                                       json_ids[1])
             except Exception as e:
                 logger.error(e, exc_info=True, stack_info=True)
                 key = f"error/{self.tenant_id}/worker/post_group_json/{self.snowflake_generator.next_id()}"
@@ -171,27 +167,30 @@ class JSONWorker:
                           trigger_event: TriggerEvent,
                           model_config: CollectorModelConfig,
                           object_id: str,
-                          change_jsons: List[ChangeDataJson]) -> Optional[ScheduledTask]:
+                          change_json_ids: List[str]) -> Optional[ScheduledTask]:
 
-        task = self.get_grouped_json_scheduled_task(trigger_event, model_config, object_id, change_jsons)
+        task = self.get_grouped_json_scheduled_task(trigger_event, model_config, object_id, change_json_ids)
 
         def finished_change_json(change_json: ChangeDataJson):
             change_json.isPosted = True
             change_json.status = Status.WAITING.value
             change_json.taskId = task.taskId
             self.change_json_service.update(change_json)
-
-        try:
-            self.scheduled_task_service.begin_transaction()
-            self.scheduled_task_service.create(task)
-            ArrayHelper(change_jsons).each(finished_change_json)
-            self.scheduled_task_service.commit_transaction()
-            return task
-        except Exception as e:
-            self.scheduled_task_service.rollback_transaction()
-            raise e
-        finally:
-            self.scheduled_task_service.close_transaction()
+        
+        for change_json_id in change_json_ids:
+            change_json = self.change_json_service.find_json_by_id(change_json_id)
+            if change_json:
+                try:
+                    self.scheduled_task_service.begin_transaction()
+                    self.scheduled_task_service.create(task)
+                    finished_change_json(change_json)
+                    self.scheduled_task_service.commit_transaction()
+                    return task
+                except Exception as e:
+                    self.scheduled_task_service.rollback_transaction()
+                    raise e
+                finally:
+                    self.scheduled_task_service.close_transaction()
         
     # noinspection PyMethodMayBeStatic
     def change_status(self, change_data_json: ChangeDataJson, status: int) -> ChangeDataJson:

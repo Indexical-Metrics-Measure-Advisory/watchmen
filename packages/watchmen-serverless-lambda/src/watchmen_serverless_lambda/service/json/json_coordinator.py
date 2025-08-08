@@ -18,8 +18,8 @@ from watchmen_collector_kernel.storage import get_change_data_json_service, get_
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_serverless_lambda.common import ask_serverless_queue_url, \
     ask_serverless_post_json_batch_size
-from watchmen_serverless_lambda.model import ActionType
-from watchmen_serverless_lambda.model.message import GroupedJson
+from watchmen_serverless_lambda.model import ActionType, PostJSONMessage
+from watchmen_serverless_lambda.model.message import GroupedJson, PostGroupedJSONMessage
 from watchmen_serverless_lambda.queue import SQSSender
 from watchmen_serverless_lambda.service.time_manager import get_lambda_time_manager, LambdaTimeManager
 from watchmen_serverless_lambda.storage import ask_file_log_service
@@ -94,18 +94,24 @@ class ModelExecutor(ModelExecutorSPI):
             batch = jsons[i:i + batch_size]
             message = {
                 'Id': str(self.snowflake_generator.next_id()),
-                'MessageBody': serialize_to_json({'action': ActionType.POST_JSON,
-                                                  'tenantId': trigger_event.tenantId,
-                                                  'triggerEvent': trigger_event.to_dict(),
-                                                  'modelConfig': model_config.to_dict(),
-                                                  'jsons': ArrayHelper(batch).map(lambda x: x.to_dict()).to_list()}),
-                'MessageGroupId': str(self.snowflake_generator.next_id()),
-                'MessageDeduplicationId': str(self.snowflake_generator.next_id())
+                'MessageBody': self.build_post_json_message_body(self.tenant_id, trigger_event, model_config, batch)
             }
             messages.append(message)
         
         successes, failures = self.sender.send_batch(messages)
         return successes, failures
+    
+    def build_post_json_message_body(self,
+                                     tenant_id: str,
+                                     trigger_event: TriggerEvent,
+                                     model_config: CollectorModelConfig,
+                                     batch: List[ChangeDataJson]) -> str:
+        body: PostJSONMessage = PostJSONMessage(action=ActionType.POST_JSON,
+                                                tenantId=tenant_id,
+                                                triggerEvent=trigger_event,
+                                                modelConfig=model_config,
+                                                jsonIds=ArrayHelper(batch).map(lambda x: x.changeJsonId).to_list())
+        return serialize_to_json(body.to_dict())
     
     def find_json_and_locked(self, model_trigger_id: int) -> Optional[List[ChangeDataJson]]:
         try:
@@ -238,8 +244,7 @@ class SequencedModelExecutor(ModelExecutor):
                                 lambda json_record: processed_list.append(json_record.changeJsonId)
                             )
                             
-                            batch_group_jsons.append(GroupedJson(json=change_data_json,
-                                                                 objectId=change_data_json.objectId,
+                            batch_group_jsons.append(GroupedJson(objectId=change_data_json.objectId,
                                                                  sortedJsons=sorted_change_data_jsons))
                         except Exception as e:
                             logger.error(e, exc_info=True, stack_info=True)
@@ -288,16 +293,28 @@ class SequencedModelExecutor(ModelExecutor):
             batch = grouped_jsons[i:i + batch_size]
             message = {
                 'Id': str(self.snowflake_generator.next_id()),
-                'MessageBody': serialize_to_json({'action': ActionType.POST_GROUP_JSON,
-                                                  'tenantId': trigger_event.tenantId,
-                                                  'triggerEvent': trigger_event.to_dict(),
-                                                  'modelConfig': model_config.to_dict(),
-                                                  'groupJsons': ArrayHelper(batch).map(lambda x: x.to_dict()).to_list()})
+                'MessageBody': self.build_post_grouped_json_message_body(self.tenant_id, trigger_event, model_config, batch)
             }
             messages.append(message)
         
         successes, failures = self.sender.send_batch(messages)
         return successes, failures
+    
+    def build_post_grouped_json_message_body(self,
+                                     tenant_id: str,
+                                     trigger_event: TriggerEvent,
+                                     model_config: CollectorModelConfig,
+                                     batch: List[GroupedJson]) -> str:
+        
+        def get_grouped_json_ids(grouped_jsons: GroupedJson) -> Tuple[str, List[int]]:
+            return grouped_jsons.objectId, ArrayHelper(grouped_jsons.sortedJsons).map(lambda item: item.changeJsonId).to_list()
+        
+        body: PostGroupedJSONMessage = PostGroupedJSONMessage(action=ActionType.POST_GROUP_JSON,
+                                                              tenantId=tenant_id,
+                                                              triggerEvent=trigger_event,
+                                                              modelConfig=model_config,
+                                                              groupedJsonIds=ArrayHelper(batch).map(lambda x: get_grouped_json_ids(x)).to_list())
+        return serialize_to_json(body.to_dict())
     
     def check_all_json_generated(self, trigger_model: TriggerModel) -> bool:
         if trigger_model.isFinished:

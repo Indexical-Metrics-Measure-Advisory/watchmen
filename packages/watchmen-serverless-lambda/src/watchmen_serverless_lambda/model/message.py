@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Dict, Union, Tuple
 
 from watchmen_collector_kernel.model import TriggerTable, ChangeDataRecord, ChangeDataJson, TriggerEvent, \
     CollectorModelConfig, ScheduledTask
@@ -110,31 +110,24 @@ def construct_model_config(config: Optional[Union[CollectorModelConfig, Dict]]) 
     
 class PostJSONMessage(ActionMessage):
     modelConfig: Optional[CollectorModelConfig] = None
-    jsons: Optional[List[ChangeDataJson]] = None
+    jsonIds: Optional[List[str]] = None
     
     def __setattr__(self, name, value):
-        if name == 'jsons':
-            super().__setattr__(name, construct_jsons(value))
-        elif name == 'modelConfig':
+        if name == 'modelConfig':
             super().__setattr__(name, construct_model_config(value))
         else:
             super().__setattr__(name, value)
 
 
 class GroupedJson(Storable, ExtendedBaseModel):
-    json: Optional[ChangeDataJson] = None
     objectId: Optional[str] = None
     sortedJsons: Optional[List[ChangeDataJson]] = None
     
     def __setattr__(self, name, value):
         if name == 'sortedJsons':
             super().__setattr__(name, construct_jsons(value))
-        elif name == 'json':
-            super().__setattr__(name, construct_json(value))
         else:
             super().__setattr__(name, value)
-    
-    
     
 def construct_grouped_json(grouped_json: Optional[Union[GroupedJson, Dict]]) -> Optional[GroupedJson]:
     if grouped_json is None:
@@ -154,12 +147,10 @@ def construct_grouped_jsons(grouped_jsons: Optional[List[GroupedJson]]) -> Optio
 
 class PostGroupedJSONMessage(ActionMessage):
     modelConfig: Optional[CollectorModelConfig] = None
-    groupJsons: Optional[List[GroupedJson]] = None
+    groupedJsonIds: Optional[List[Tuple[str, List[int]]]] = None
     
     def __setattr__(self, name, value):
-        if name == 'groupJsons':
-            super().__setattr__(name, construct_grouped_jsons(value))
-        elif name == 'modelConfig':
+        if name == 'modelConfig':
             super().__setattr__(name, construct_model_config(value))
         else:
             super().__setattr__(name, value)
