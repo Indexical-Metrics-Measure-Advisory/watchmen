@@ -4,6 +4,7 @@ from watchmen_collector_kernel.model import TriggerEvent
 from watchmen_collector_kernel.service import ask_collector_storage
 from watchmen_collector_kernel.storage import get_trigger_table_service
 from watchmen_meta.common import ask_super_admin, ask_snowflake_generator, ask_meta_storage
+from watchmen_serverless_lambda.common import ask_serverless_number_of_extract_table_coordinator
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +21,7 @@ class TableListener:
                                                                self.principal_service)
     
     def ask_number_of_coordinators(self, trigger_event: TriggerEvent) -> int:
-        trigger_tables = self.trigger_table_service.find_unfinished()
-        if trigger_tables:
-            return len(trigger_tables)
-        else:
-            return 0
+        return ask_serverless_number_of_extract_table_coordinator()
         
     
 def get_table_listener(tenant_id: str) -> TableListener:
