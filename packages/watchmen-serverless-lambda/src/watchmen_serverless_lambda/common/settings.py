@@ -78,3 +78,6 @@ def ask_serverless_max_number_of_coordinator() -> int:
 
 def ask_serverless_number_of_extract_table_coordinator() -> int:
 	return serverless_settings.SERVERLESS_NUMBER_OF_EXTRACT_TABLE_COORDINATOR
+
+def ask_serverless_number_of_record_coordinator() -> int:
+	return serverless_settings.SERVERLESS_NUMBER_OF_RECORD_COORDINATOR
