@@ -108,6 +108,13 @@ class SourceExtractor(ExtractorSPI, ABC):
 			return self.process_json_columns(self.lower_key(result))
 		else:
 			return [ArrayHelper(self.topic.factors).to_map(lambda factor: factor.name.lower(), lambda factor: None)]
+		
+	def find_one_record_of_table_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
+		result = self.service.find_limited_values(criteria=criteria, limit=1)
+		if result:
+			return self.process_json_columns(self.lower_key(result))
+		else:
+			return [ArrayHelper(self.topic.factors).to_map(lambda factor: factor.name.lower(), lambda factor: None)]
 
 	def find_one_by_primary_keys(self, data_id: Dict) -> Optional[Dict[str, Any]]:
 		results = self.service.find(build_criteria_by_primary_key(data_id))
@@ -340,6 +347,13 @@ class SourceS3Extractor(SourceExtractor):
 			return self.process_json_columns(result)
 		else:
 			return [ArrayHelper(self.topic.factors).to_map(lambda factor: factor.name, lambda factor: None)]
+		
+	def find_one_record_of_table_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
+		result = self.service.find_limited_values(criteria=criteria, limit=1)
+		if result:
+			return self.process_json_columns(result)
+		else:
+			return [ArrayHelper(self.topic.factors).to_map(lambda factor: factor.name, lambda factor: None)]
 
 	def find_one_by_primary_keys(self, data_id: Dict) -> Optional[Dict[str, Any]]:
 		result = self.service.find_data_by_id(self.build_s3_key_by_primary_key(data_id))
@@ -388,6 +402,13 @@ class TopicTableExtractor(SourceExtractor):
 
 	def find_one_record_of_table(self) -> Optional[List[Dict[str, Any]]]:
 		result = self.service.find_limited_values(criteria=[], limit=1)
+		if result:
+			return self.process_json_columns(result)
+		else:
+			return [ArrayHelper(self.topic.factors).to_map(lambda factor: factor.name, lambda factor: None)]
+		
+	def find_one_record_of_table_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
+		result = self.service.find_limited_values(criteria=criteria, limit=1)
 		if result:
 			return self.process_json_columns(result)
 		else:

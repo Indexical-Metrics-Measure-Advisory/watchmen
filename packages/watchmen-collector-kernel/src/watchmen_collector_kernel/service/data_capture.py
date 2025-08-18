@@ -1,12 +1,13 @@
 from logging import getLogger
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any, Tuple, List
 
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.model import CollectorTableConfig
+from watchmen_collector_kernel.model import CollectorTableConfig, Condition
+from .criteria_builder import CriteriaBuilder
 from .table_config_service import get_table_config_service
 from .extract_source import ask_source_extractor
 from watchmen_collector_kernel.storage import get_collector_table_config_service
-from watchmen_storage import TransactionalStorageSPI, SnowflakeGenerator
+from watchmen_storage import TransactionalStorageSPI, SnowflakeGenerator, EntityCriteria
 from watchmen_utilities import ArrayHelper
 from .extract_utils import build_criteria_by_join_key
 
@@ -63,7 +64,13 @@ class DataCaptureService:
 			ArrayHelper(child_data).each(lambda child: self.build_json(child_config, child))
 
 	def build_json_template(self, config: CollectorTableConfig, data_: Dict = None) -> Dict:
-		record = ask_source_extractor(config).find_one_record_of_table()
+		variables = {}
+		def prepare_query_criteria(variables_: Dict, conditions: List[Condition]) -> EntityCriteria:
+			return CriteriaBuilder(variables_).build_criteria(conditions)
+		if config.conditions:
+			record = ask_source_extractor(config).find_records_by_criteria(prepare_query_criteria(variables, config.conditions))
+		else:
+			record = ask_source_extractor(config).find_one_record_of_table()
 		if data_:
 			if config.isList:
 				data_[config.label] = record

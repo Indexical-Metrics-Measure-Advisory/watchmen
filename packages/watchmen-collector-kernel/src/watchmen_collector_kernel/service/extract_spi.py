@@ -12,6 +12,10 @@ class ExtractorSPI(ABC):
 	@abstractmethod
 	def find_one_record_of_table(self) -> Optional[List[Dict[str, Any]]]:
 		pass
+	
+	@abstractmethod
+	def find_one_record_of_table_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
+		pass
 
 	@abstractmethod
 	def find_one_by_primary_keys(self, data_id: Dict) -> Optional[Dict[str, Any]]:
