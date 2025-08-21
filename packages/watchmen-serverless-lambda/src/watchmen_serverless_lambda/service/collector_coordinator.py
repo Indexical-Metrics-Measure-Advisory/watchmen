@@ -50,15 +50,15 @@ class CollectorCoordinator:
         while self.time_manger.is_safe:
             unfinished_rows = self.ask_assign_rows(action, trigger_event)
             
-            if not unfinished_rows:
+            if unfinished_rows:
+                successes, failures = self.send_worker_messages(trigger_event, action, unfinished_rows)
+                log_entity = {
+                    'successes': successes,
+                    'failures': failures
+                }
+                self.log_service.log_result(self.tenant_id, self.ask_log_key(action, trigger_event), log_entity)
+            else:
                 break
-                
-            successes, failures = self.send_worker_messages(trigger_event, action, unfinished_rows)
-            log_entity = {
-                'successes': successes,
-                'failures': failures
-            }
-            self.log_service.log_result(self.tenant_id, self.ask_log_key(action, trigger_event), log_entity)
         
     def ask_log_key(self, action: str, trigger_event: TriggerEvent) -> str:
         key = f'logs/{self.tenant_id}/{trigger_event.eventTriggerId}/{action}/{self.snowflake_generator.next_id()}'

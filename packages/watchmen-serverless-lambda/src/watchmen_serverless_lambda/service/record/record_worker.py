@@ -1,10 +1,11 @@
 import logging
+import time
 from traceback import format_exc
 from typing import Dict, Tuple, Optional, List, Any
 
 from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import CollectorTableConfig, \
-    ChangeDataRecord, ChangeDataJson, Status
+    ChangeDataRecord, ChangeDataJson, Status, TriggerEvent
 from watchmen_collector_kernel.model.change_data_json import Dependence
 from watchmen_collector_kernel.model.collector_table_config import Dependence as DependenceConfig
 from watchmen_collector_kernel.service import DataCaptureService, get_table_config_service, ask_source_extractor, \
@@ -14,6 +15,7 @@ from watchmen_collector_kernel.storage import get_change_data_record_service, \
     get_change_data_json_service, get_collector_table_config_service, get_change_data_record_history_service, \
     get_change_data_json_history_service
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
+from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_utilities import ArrayHelper
 
 logger = logging.getLogger(__name__)
@@ -45,6 +47,7 @@ class RecordWorker:
         self.data_capture_service = DataCaptureService(self.meta_storage,
                                                        self.snowflake_generator,
                                                        self.principal_service)
+        self.log_service = ask_file_log_service()
 
     # noinspection PyMethodMayBeStatic
     def is_merged(self, change_record: ChangeDataRecord) -> bool:
@@ -55,9 +58,10 @@ class RecordWorker:
         record.status = status
         return record
 
-    def process_change_data_record(self, records: List[ChangeDataRecord]):
+    def process_change_data_record(self, trigger_event: TriggerEvent, records: List[ChangeDataRecord]):
         unmerged_records = records
         for unmerged_record in unmerged_records:
+            start_time = time.perf_counter()
             change_data_record = unmerged_record
             try:
                 self.process_record(change_data_record)
@@ -66,6 +70,16 @@ class RecordWorker:
                 self.update_result(change_data_record, format_exc())
             finally:
                 self.finalize(change_data_record)
+                end_time = time.perf_counter()
+                execution_time = end_time - start_time
+                log = {
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "execution_time": execution_time
+                }
+                key = f'performance/{self.tenant_id}/{trigger_event.eventTriggerId}/recordToJson/{unmerged_record.changeRecordId}'
+                self.log_service.log_result(self.tenant_id, key, log)
+                
 
     def finalize(self, change_data_record: ChangeDataRecord):
         config = self.table_config_service.find_by_name(change_data_record.tableName, change_data_record.tenantId)

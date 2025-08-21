@@ -25,7 +25,7 @@ class CollectorWorker:
         elif message.action == ActionType.SAVE_RECORD:
             self.table_worker.process_records(message.triggerTable, message.records)
         elif message.action == ActionType.BUILD_JSON:
-            self.record_worker.process_change_data_record(message.records)
+            self.record_worker.process_change_data_record(message.triggerEvent, message.records)
         elif message.action == ActionType.POST_JSON:
             self.json_worker.process_single_change_data_json(message.triggerEvent,
                                                              message.modelConfig,
