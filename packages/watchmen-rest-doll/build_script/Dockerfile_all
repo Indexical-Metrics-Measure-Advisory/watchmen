@@ -28,8 +28,8 @@ RUN pip install cx_Oracle && pip install poetry && poetry config virtualenvs.cre
 RUN chown -R appuser:appuser /app && \
     chown -R appuser:appuser /opt/mssql && \
     chown -R appuser:appuser /opt/oracle && \
-    mkdir -p /app/logs /app/cache && \
-    chown -R appuser:appuser /app/logs /app/cache
+    mkdir -p /app/logs /app/cache /app/temp && \
+    chown -R appuser:appuser /app/logs /app/cache /app/temp
 
 USER appuser
 
