@@ -21,7 +21,12 @@ class TableListener:
                                                                self.principal_service)
     
     def ask_number_of_coordinators(self, trigger_event: TriggerEvent) -> int:
-        return ask_serverless_number_of_extract_table_coordinator()
+        trigger_tables = self.trigger_table_service.count_unfinished_by_event_trigger_id(trigger_event.eventTriggerId)
+        if trigger_tables:
+            return ask_serverless_number_of_extract_table_coordinator()
+        else:
+            return 0
+        
         
     
 def get_table_listener(tenant_id: str) -> TableListener:

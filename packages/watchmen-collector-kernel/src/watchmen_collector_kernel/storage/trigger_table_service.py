@@ -91,6 +91,20 @@ class TriggerTableService(TupleService):
 			)
 		finally:
 			self.close_transaction()
+	
+	def count_unfinished_by_event_trigger_id(self, event_trigger_id: int) -> int:
+		try:
+			self.storage.connect()
+			return self.storage.count(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
+					                         right=event_trigger_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_extracted'), right=0)
+				]
+			))
+		finally:
+			self.storage.close()
+			
 
 	def find_by_id(self, trigger_id: TableTriggerId) -> Optional[TriggerTable]:
 		self.begin_transaction()
