@@ -29,7 +29,8 @@ RUN chown -R appuser:appuser /app && \
     chown -R appuser:appuser /opt/mssql && \
     chown -R appuser:appuser /opt/oracle && \
     mkdir -p /app/logs /app/cache /app/temp && \
-    chown -R appuser:appuser /app/logs /app/cache /app/temp
+    chown -R appuser:appuser /app/logs /app/cache /app/temp && \
+    chmod -R 755 /app/logs /app/cache /app/temp
 
 USER appuser
 
