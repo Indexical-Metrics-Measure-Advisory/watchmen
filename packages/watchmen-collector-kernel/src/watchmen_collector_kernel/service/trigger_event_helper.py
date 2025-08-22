@@ -1,3 +1,4 @@
+from datetime import datetime, date, timedelta
 from typing import Dict
 
 from watchmen_auth import fake_tenant_admin
@@ -360,6 +361,71 @@ def trigger_event_by_pipeline(trigger_event: TriggerEvent):
 		                                                  trigger_model_service.snowflakeGenerator,
 		                                                  trigger_model_service.principalService)
 		save_trigger_table(trigger_table_service, trigger_table, trigger_table_service.principalService)
+
+		trigger_event_service.commit_transaction()
+	except Exception as e:
+		trigger_event_service.rollback_transaction()
+		raise e
+	finally:
+		trigger_event_service.close_transaction()
+
+	# noinspection PyTypeChecker
+	return trigger_event
+
+
+def trigger_event_by_schedule(trigger_event: TriggerEvent):
+	storage = ask_meta_storage()
+	snowflake_generator = ask_snowflake_generator()
+	principal_service = ask_super_admin()
+	trigger_event_service = get_trigger_event_service(storage, snowflake_generator, principal_service)
+	trigger_event_service.begin_transaction()
+	try:
+		if not (trigger_event.startTime and trigger_event.endTime):
+			last_event = trigger_event_service.find_last_finished_schedule_event_by_tenant_id(trigger_event.tenantId)
+			if last_event:
+				trigger_event.startTime = last_event.endTime
+			else:
+				yesterday = date.today() - timedelta(days=1)
+				trigger_event.startTime = datetime(
+					year=yesterday.year,
+					month=yesterday.month,
+					day=yesterday.day,
+					hour=0,
+					minute=0,
+					second=0
+				)
+			trigger_event.endTime = datetime.now()
+		trigger_event.status = Status.EXECUTING.value
+		trigger_event_service.update(trigger_event)
+
+		module_config_service = get_collector_module_config_service(trigger_event_service.storage,
+		                                                            trigger_event_service.snowflakeGenerator,
+		                                                            trigger_event_service.principalService)
+		trigger_module_service = get_trigger_module_service(trigger_event_service.storage,
+		                                                    trigger_event_service.snowflakeGenerator,
+		                                                    trigger_event_service.principalService)
+		model_config_service = get_collector_model_config_service(trigger_event_service.storage,
+		                                                          trigger_event_service.snowflakeGenerator,
+		                                                          trigger_event_service.principalService)
+		trigger_model_service = get_trigger_model_service(trigger_event_service.storage,
+		                                                  trigger_event_service.snowflakeGenerator,
+		                                                  trigger_event_service.principalService)
+		table_config_service = get_collector_table_config_service(trigger_event_service.storage,
+		                                                          trigger_event_service.snowflakeGenerator,
+		                                                          trigger_event_service.principalService)
+
+		module_configs = module_config_service.find_by_tenant(trigger_event.tenantId)
+		trigger_module_action = get_trigger_module_action(trigger_event_service, trigger_event)
+		for module_config in module_configs:
+			trigger_module = trigger_module_action(module_config)
+			trigger_model_action = get_trigger_model_action(trigger_module_service, trigger_module)
+			model_configs = get_model_configs_by_module(model_config_service, module_config)
+			for model_config in model_configs:
+				trigger_model = trigger_model_action(model_config)
+				trigger_table_action = get_trigger_table_action(trigger_model_service, trigger_model)
+				table_configs = table_config_service.find_by_model_name(model_config.modelName, model_config.tenantId)
+				for table_config in table_configs:
+					trigger_table_action(table_config)
 
 		trigger_event_service.commit_transaction()
 	except Exception as e:

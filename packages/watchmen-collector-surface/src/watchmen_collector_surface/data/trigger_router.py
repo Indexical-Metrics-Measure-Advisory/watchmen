@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends
@@ -157,4 +158,24 @@ async def trigger_event_by_pipeline(
 		event.isFinished = False
 		event.status = Status.INITIAL.value
 		event.type = EventType.BY_PIPELINE.value
+		return trigger_event_service.create_trigger_event(event)
+
+
+@router.post('/collector/trigger/event/schedule', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
+             response_model=TriggerEvent)
+async def trigger_event_by_schedule(
+		event: TriggerEvent, principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> TriggerEvent:
+	
+	validate_tenant_id(event, principal_service)
+	trigger_event_service = get_trigger_event_service(ask_meta_storage(),
+	                                                  ask_snowflake_generator(),
+	                                                  principal_service)
+	
+	# noinspection PyTypeChecker
+	if trigger_event_service.is_storable_id_faked(event.eventTriggerId):
+		trigger_event_service.redress_storable_id(event)
+		event.isFinished = False
+		event.status = Status.INITIAL.value
+		event.type = EventType.BY_SCHEDULE.value
 		return trigger_event_service.create_trigger_event(event)

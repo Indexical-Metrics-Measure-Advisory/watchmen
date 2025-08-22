@@ -11,7 +11,7 @@ from watchmen_model.system import Tenant
 from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_utilities import ArrayHelper
 from watchmen_serverless_lambda.service.event.trigger_event_helper import trigger_event_by_default, trigger_event_by_table, trigger_event_by_records, \
-    trigger_event_by_pipeline
+    trigger_event_by_pipeline, trigger_event_by_schedule
 
 logger = logging.getLogger(__name__)
 
@@ -135,6 +135,8 @@ class EventWorker:
                 trigger_event_by_records(event)
             elif event.type == EventType.BY_PIPELINE.value:
                 trigger_event_by_pipeline(event)
+            elif event.type == EventType.BY_SCHEDULE.value:
+                trigger_event_by_schedule(event)
             else:
                 raise Exception(f'Event type {event.type} is not supported.')
         else:

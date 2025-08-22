@@ -1,6 +1,7 @@
 from .lock_helper import try_lock_nowait, get_resource_lock, unlock
 from .trigger_collector import get_trigger_collector
-from .trigger_event_helper import trigger_event_by_default, trigger_event_by_table, trigger_event_by_records, trigger_event_by_pipeline
+from .trigger_event_helper import trigger_event_by_default, trigger_event_by_table, \
+    trigger_event_by_records, trigger_event_by_pipeline, trigger_event_by_schedule
 from .data_capture import DataCaptureService
 from .extract_source import SourceTableExtractor, ask_source_extractor
 from .task_service import get_task_service

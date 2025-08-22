@@ -7,7 +7,8 @@ from watchmen_data_kernel.meta import TenantService
 
 from watchmen_collector_kernel.model import TriggerEvent, TriggerModel, TriggerTable, TriggerModule, Status, EventType
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, trigger_event_by_default, \
-	trigger_event_by_records, trigger_event_by_table, get_resource_lock, trigger_event_by_pipeline
+	trigger_event_by_records, trigger_event_by_table, get_resource_lock, trigger_event_by_pipeline, \
+	trigger_event_by_schedule
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_trigger_event_service, \
 	get_trigger_model_service, get_trigger_table_service, get_change_data_record_service, get_change_data_json_service, \
 	get_trigger_module_service, get_scheduled_task_service
@@ -169,6 +170,8 @@ class CollectorEventListener:
 				trigger_event_by_records(event)
 			elif event.type == EventType.BY_PIPELINE.value:
 				trigger_event_by_pipeline(event)
+			elif event.type == EventType.BY_SCHEDULE.value:
+				trigger_event_by_schedule(event)
 			else:
 				raise Exception(f'Event type {event.type} is not supported.')
 		else:

@@ -12,6 +12,7 @@ class EventType(int, Enum):
 	BY_TABLE = 2,
 	BY_RECORD = 3,
 	BY_PIPELINE = 4
+	BY_SCHEDULE = 5
 
 
 class QueryParam(DataModel, ExtendedBaseModel):

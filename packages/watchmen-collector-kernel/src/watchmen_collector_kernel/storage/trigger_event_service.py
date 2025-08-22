@@ -7,7 +7,7 @@ from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, EventTriggerId
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	EntityStraightValuesFinder, EntityCriteriaExpression, ColumnNameLiteral, \
-	EntityStraightColumn, EntitySortColumn, EntitySortMethod
+	EntityStraightColumn, EntitySortColumn, EntitySortMethod, EntityLimitedFinder
 from watchmen_utilities import ArrayHelper
 
 
@@ -201,6 +201,29 @@ class TriggerEventService(TupleService):
 				return None
 		finally:
 			self.close_transaction()
+			
+	def find_last_finished_schedule_event_by_tenant_id(self, tenant_id: str) -> Optional[TriggerEvent]:
+		try:
+			self.storage.connect()
+			results = self.storage.find_limited(
+				EntityLimitedFinder(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_finished'), right=True),
+					          EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
+					          EntityCriteriaExpression(left=ColumnNameLiteral(columnName='type'), right=5)],
+					sort=[EntitySortColumn(name=self.get_storable_id_column_name(), method=EntitySortMethod.DESC)],
+					limit=1
+				)
+			)
+			self.commit_transaction()
+			if results:
+				# noinspection PyTypeChecker
+				return results[0]
+			else:
+				return None
+		finally:
+			self.storage.close()
 
 
 def get_trigger_event_service(storage: TransactionalStorageSPI,
