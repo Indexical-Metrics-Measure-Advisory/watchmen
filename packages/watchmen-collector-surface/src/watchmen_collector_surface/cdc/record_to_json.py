@@ -1,6 +1,7 @@
 import logging
 from traceback import format_exc
 from typing import Dict, Tuple, Optional, List, Any
+import time
 
 from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import CollectorTableConfig, \
@@ -88,6 +89,7 @@ class RecordToJsonService:
 	def change_data_record_listener(self):
 		unmerged_records = self.find_records_and_locked()
 		for unmerged_record in unmerged_records:
+			self.performance_result(unmerged_record, True)
 			change_data_record = unmerged_record
 			try:
 				self.process_record(change_data_record)
@@ -96,6 +98,7 @@ class RecordToJsonService:
 				self.update_result(change_data_record, format_exc())
 			finally:
 				self.finalize(change_data_record)
+				self.performance_result(change_data_record, False)
 
 	def finalize(self, change_data_record: ChangeDataRecord):
 		config = self.table_config_service.find_by_name(change_data_record.tableName, change_data_record.tenantId)
@@ -215,3 +218,27 @@ class RecordToJsonService:
 			                  objectId=data_.get(dependence_config.objectKey))
 
 		return ArrayHelper(config.dependOn).map(get_dependence).to_list()
+
+	def performance_result(self, change_record: ChangeDataRecord, start: bool=False):
+		if start:
+			start_time = time.perf_counter()
+			change_record.result = {"start_time": start_time}
+		else:
+			start_time = change_record.result["start_time"]
+			end_time = time.perf_counter()
+			execution_time = end_time - start_time
+			change_record.result["end_time"] = end_time
+			change_record.result["execution_time"] = execution_time
+			self.update_record_history(change_record)
+			
+	
+	def update_record_history(self, change_data_record: ChangeDataRecord):
+		self.change_record_history_service.begin_transaction()
+		try:
+			self.change_record_history_service.update(change_data_record)
+			self.change_record_history_service.commit_transaction()
+		except Exception as e:
+			self.change_record_history_service.rollback_transaction()
+			logger.error(e, exc_info=True, stack_info=True)
+		finally:
+			self.change_record_history_service.close_transaction()
