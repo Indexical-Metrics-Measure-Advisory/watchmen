@@ -25,7 +25,8 @@ class OIDCAuth:
 	def get_sso_login_url(self) -> str:
 		base_url = self.settings.OIDC_LOGIN_URL
 		params_string = self.settings.OIDC_LOGIN_PARAMS
-		encoded_params = urllib.parse.quote(params_string)
+		# encoded_params = urllib.parse.quote(params_string)
+		encoded_params = params_string
 		return f"{base_url}?{encoded_params}"
 	
 	def get_access_token(self, code: str) -> str:
