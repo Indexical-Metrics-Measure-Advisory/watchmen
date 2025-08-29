@@ -832,9 +832,9 @@ class CompiledDeleteRowsAction(CompiledDeleteTopicAction):
 					else:
 						touched.append(row)
 						# new pipeline
-						has_id, id_ = topic_data_service.get_data_entity_helper().find_data_id(data[0])
+						has_id, id_ = topic_data_service.get_data_entity_helper().find_data_id(row)
 						new_pipeline(self.schema, TopicTrigger(
-							previous=data[0],
+							previous=row,
 							current=None,
 							triggerType=PipelineTriggerType.DELETE,
 							internalDataId=id_
