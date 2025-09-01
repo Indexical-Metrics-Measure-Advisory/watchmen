@@ -61,7 +61,7 @@ class RecordWorker:
     def process_change_data_record(self, trigger_event: TriggerEvent, records: List[ChangeDataRecord]):
         unmerged_records = records
         for unmerged_record in unmerged_records:
-            start_time = time.perf_counter()
+            self.performance_result(unmerged_record, True)
             change_data_record = unmerged_record
             try:
                 self.process_record(change_data_record)
@@ -70,15 +70,7 @@ class RecordWorker:
                 self.update_result(change_data_record, format_exc())
             finally:
                 self.finalize(change_data_record)
-                end_time = time.perf_counter()
-                execution_time = end_time - start_time
-                log = {
-                    "start_time": start_time,
-                    "end_time": end_time,
-                    "execution_time": execution_time
-                }
-                key = f'performance/{self.tenant_id}/{trigger_event.eventTriggerId}/recordToJson/{unmerged_record.changeRecordId}'
-                self.log_service.log_result(self.tenant_id, key, log)
+                self.performance_result(change_data_record, False)
                 
 
     def finalize(self, change_data_record: ChangeDataRecord):
@@ -199,6 +191,29 @@ class RecordWorker:
                               objectId=data_.get(dependence_config.objectKey))
 
         return ArrayHelper(config.dependOn).map(get_dependence).to_list()
+    
+    def performance_result(self, change_record: ChangeDataRecord, start: bool = False):
+        if start:
+            start_time = time.perf_counter()
+            change_record.result = {"start_time": start_time}
+        else:
+            start_time = change_record.result["start_time"]
+            end_time = time.perf_counter()
+            execution_time = end_time - start_time
+            change_record.result["end_time"] = end_time
+            change_record.result["execution_time"] = execution_time
+            self.update_record_history(change_record)
+    
+    def update_record_history(self, change_data_record: ChangeDataRecord):
+        self.change_record_history_service.begin_transaction()
+        try:
+            self.change_record_history_service.update(change_data_record)
+            self.change_record_history_service.commit_transaction()
+        except Exception as e:
+            self.change_record_history_service.rollback_transaction()
+            logger.error(e, exc_info=True, stack_info=True)
+        finally:
+            self.change_record_history_service.close_transaction()
 
 
 def get_record_worker(tenant_id: str) -> RecordWorker:
