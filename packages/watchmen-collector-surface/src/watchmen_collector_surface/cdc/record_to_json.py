@@ -3,7 +3,7 @@ from traceback import format_exc
 from typing import Dict, Tuple, Optional, List, Any
 import time
 
-from watchmen_collector_kernel.common import WAVE
+from watchmen_collector_kernel.common import WAVE, ask_record_performance_monitor_enabled
 from watchmen_collector_kernel.model import CollectorTableConfig, \
 	ChangeDataRecord, ChangeDataJson, Status
 from watchmen_collector_kernel.model.change_data_json import Dependence
@@ -220,16 +220,19 @@ class RecordToJsonService:
 		return ArrayHelper(config.dependOn).map(get_dependence).to_list()
 
 	def performance_result(self, change_record: ChangeDataRecord, start: bool=False):
-		if start:
-			start_time = time.perf_counter()
-			change_record.result = {"start_time": start_time}
+		if ask_record_performance_monitor_enabled():
+			if start:
+				start_time = time.perf_counter()
+				change_record.result = {"start_time": start_time}
+			else:
+				start_time = change_record.result["start_time"]
+				end_time = time.perf_counter()
+				execution_time = end_time - start_time
+				change_record.result["end_time"] = end_time
+				change_record.result["execution_time"] = execution_time
+				self.update_record_history(change_record)
 		else:
-			start_time = change_record.result["start_time"]
-			end_time = time.perf_counter()
-			execution_time = end_time - start_time
-			change_record.result["end_time"] = end_time
-			change_record.result["execution_time"] = execution_time
-			self.update_record_history(change_record)
+			pass
 			
 	
 	def update_record_history(self, change_data_record: ChangeDataRecord):

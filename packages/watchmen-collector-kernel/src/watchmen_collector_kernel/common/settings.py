@@ -18,6 +18,7 @@ class CollectorSettings(ExtendedBaseSettings):
 	EXCEPTION_MAX_LENGTH: int = 5000  # character
 	GROUPED_TASK_DATA_SIZE_THRESHOLD: int = 100
 	TASK_PARTIAL_SIZE: int = 100
+	RECORD_PERFORMANCE_MONITOR_ENABLED: bool = False
 
 
 collector_settings = CollectorSettings()
@@ -74,3 +75,7 @@ def ask_grouped_task_data_size_threshold() -> int:
 
 def ask_task_partial_size() -> int:
 	return collector_settings.TASK_PARTIAL_SIZE
+
+
+def ask_record_performance_monitor_enabled() -> bool:
+	return collector_settings.RECORD_PERFORMANCE_MONITOR_ENABLED
