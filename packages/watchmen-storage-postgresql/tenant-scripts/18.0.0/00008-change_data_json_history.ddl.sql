@@ -6,7 +6,7 @@ CREATE TABLE change_data_json_history
     object_id           VARCHAR(50)      NOT NULL,
     table_name          VARCHAR(50)      NOT NULL,
     data_id             JSON             NOT NULL,
-    sequence            INTEGER,
+    sequence            BIGINT,
     content             JSON,
     depend_on           JSON,
     is_posted           SMALLINT         NOT NULL,

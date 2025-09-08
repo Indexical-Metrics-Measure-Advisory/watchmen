@@ -18,4 +18,4 @@ CREATE INDEX i_trigger_model_2 ON trigger_model (created_at);
 CREATE INDEX i_trigger_model_3 ON trigger_model (created_by);
 CREATE INDEX i_trigger_model_4 ON trigger_model (last_modified_at);
 CREATE INDEX i_trigger_model_5 ON trigger_model (last_modified_by);
-CREATE INDEX i_trigger_model_module_trigger_id ON trigger_model USING btree (module_trigger_id);
+CREATE INDEX i_trigger_model_module_trigger_id ON trigger_model (module_trigger_id);

@@ -10,7 +10,7 @@ CREATE TABLE scheduled_task
     parent_task_id      JSON,
 	is_finished         SMALLINT         NOT NULL,
 	result              JSON,
-	status              BIGINT           NOT NULL,
+	status              SMALLINT         NOT NULL,
 	event_id            VARCHAR(200),
 	pipeline_id         VARCHAR(50),
 	type                SMALLINT,
