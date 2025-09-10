@@ -80,9 +80,15 @@ class RecordWorker:
     def update_result(self, change_data_record: ChangeDataRecord, result: str) -> None:
         change_data_record.isMerged = True
         change_data_record.status = Status.FAIL.value
-        change_data_record.result = result
+        self.handle_result(change_data_record, {"error": result})
         self.finish_and_backup_record(change_data_record, None, False)
-
+    
+    def handle_result(self, change_data_record: ChangeDataRecord, result: Dict):
+        if change_data_record.result is None:
+            change_data_record.result = result
+        else:
+            change_data_record.result.update(result)
+            
     def finish_and_backup_record(self,
                                  change_data_record: ChangeDataRecord,
                                  change_data_json: Optional[ChangeDataJson] = None,
@@ -196,13 +202,12 @@ class RecordWorker:
         if ask_record_performance_monitor_enabled():
             if start:
                 start_time = time.perf_counter()
-                change_record.result = {"start_time": start_time}
+                self.handle_result(change_record, {"start_time": start_time})
             else:
                 start_time = change_record.result["start_time"]
                 end_time = time.perf_counter()
                 execution_time = end_time - start_time
-                change_record.result["end_time"] = end_time
-                change_record.result["execution_time"] = execution_time
+                self.handle_result(change_record, {"end_time": end_time, "execution_time": execution_time})
                 self.update_record_history(change_record)
         else:
             pass
