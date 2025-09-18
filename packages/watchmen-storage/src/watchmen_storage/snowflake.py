@@ -58,14 +58,22 @@ class SnowflakeGenerator:
 		if worker_id > MAX_WORKER_ID or worker_id < 0:
 			raise ValueError(
 				f'Worker id invalid, it must be between [0, {MAX_WORKER_ID}] and passed by [{worker_id}] .')
-
 		# initialize
 		self.dataCenterId = data_center_id
 		self.workerId = worker_id
 		self.sequence = 0
 		self.lastTimestamp = -1
+		self.generate_worker_id = generate_worker_id
+
 
 	def next_id(self) -> int:
+		
+		worker_id = self.generate_worker_id()
+		# sanity check
+		if worker_id > MAX_WORKER_ID or worker_id < 0:
+			raise ValueError(
+				f'Worker id invalid, it must be between [0, {MAX_WORKER_ID}] and passed by [{worker_id}] .')
+		
 		timestamp = generate_timestamp()
 
 		if timestamp < self.lastTimestamp:
@@ -85,9 +93,9 @@ class SnowflakeGenerator:
 			# already beyonds in-memory timestamp, reset in-memory
 			self.sequence = 0
 			self.lastTimestamp = timestamp
-
+			
 		return \
 			((timestamp - TWEPOCH) << TIMESTAMP_LEFT_SHIFT) | \
 			(self.dataCenterId << DATACENTER_ID_SHIFT) | \
-			(self.workerId << WORKER_ID_SHIFT) | \
+			(worker_id << WORKER_ID_SHIFT) | \
 			self.sequence

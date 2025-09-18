@@ -8,7 +8,8 @@ from watchmen_model.admin import User, UserRole
 from watchmen_model.common import TenantId, UserId
 from watchmen_model.system import DataSourceType
 from watchmen_storage import competitive_worker_id, CompetitiveWorkerRestarter, CompetitiveWorkerShutdownSignal, \
-	immutable_worker_id, SnowflakeGenerator, StorageBasedWorkerIdGenerator, TransactionalStorageSPI
+	immutable_worker_id, SnowflakeGenerator, StorageBasedWorkerIdGenerator, TransactionalStorageSPI, SnowflakeWorker, \
+	DBConfig
 from .exception import InitialMetaAppException
 
 logger = getLogger(__name__)
@@ -38,6 +39,7 @@ class MetaSettings(ExtendedBaseSettings):
 	SNOWFLAKE_DATA_CENTER_ID: int = 0  # data center id
 	SNOWFLAKE_WORKER_ID: int = 0  # worker id
 	SNOWFLAKE_COMPETITIVE_WORKERS: bool = True  # enable competitive snowflake worker
+	SNOWFLAKE_COMPETITIVE_WORKERS_V2: bool = False  # enable new version snowflake worker
 	SNOWFLAKE_COMPETITIVE_WORKER_HEART_BEAT_INTERVAL: int = 60  # competitive worker heart beat interval, in seconds
 	SNOWFLAKE_COMPETITIVE_WORKER_CREATION_RETRY_TIMES: int = 3  # competitive worker creation max retry times
 	SNOWFLAKE_COMPETITIVE_WORKER_RESTART_ON_SHOWDOWN: bool = False  # competitive worker restart automatically on shutdown
@@ -166,27 +168,48 @@ class SnowflakeGeneratorHolder:
 
 def build_snowflake_generator(storage: TransactionalStorageSPI) -> SnowflakeGenerator:
 	if settings.SNOWFLAKE_COMPETITIVE_WORKERS:
-		# competitive workers
-		def shutdown_listener(
-				signal: CompetitiveWorkerShutdownSignal,
-				data_center_id: int, worker_id: int,
-				restart: CompetitiveWorkerRestarter) -> None:
-			logger.warning(
-				f'Worker[dataCenterId={data_center_id}, workerId={worker_id}] shutdown on signal[{signal}].')
-			if settings.SNOWFLAKE_COMPETITIVE_WORKER_RESTART_ON_SHOWDOWN:
-				if signal == CompetitiveWorkerShutdownSignal.EXCEPTION_RAISED:
-					restart()
-
-		worker_id_generator = competitive_worker_id(StorageBasedWorkerIdGenerator(
-			storage=storage,
-			heart_beat_interval=settings.SNOWFLAKE_COMPETITIVE_WORKER_HEART_BEAT_INTERVAL,
-			worker_creation_retry_times=settings.SNOWFLAKE_COMPETITIVE_WORKER_CREATION_RETRY_TIMES,
-			shutdown_listener=shutdown_listener
-		))
-		return SnowflakeGenerator(
-			data_center_id=settings.SNOWFLAKE_DATA_CENTER_ID,
-			generate_worker_id=worker_id_generator
-		)
+		if settings.SNOWFLAKE_COMPETITIVE_WORKERS_V2:
+			db_config = DBConfig(
+				type_=settings.META_STORAGE_TYPE,
+				host=settings.META_STORAGE_HOST,
+				port=settings.META_STORAGE_PORT,
+				username=settings.META_STORAGE_USER_NAME,
+				password=settings.META_STORAGE_PASSWORD,
+				dbname=settings.META_STORAGE_NAME
+			)
+			
+			snowflake_worker = SnowflakeWorker(db_config,
+			                                   settings.SNOWFLAKE_DATA_CENTER_ID,
+			                                   0,
+			                                   1023,
+			                                   settings.SNOWFLAKE_COMPETITIVE_WORKER_HEART_BEAT_INTERVAL)
+			worker_id_generator = competitive_worker_id(snowflake_worker)
+			return SnowflakeGenerator(
+				data_center_id=settings.SNOWFLAKE_DATA_CENTER_ID,
+				generate_worker_id=worker_id_generator
+			)
+		else:
+			# competitive workers
+			def shutdown_listener(
+					signal: CompetitiveWorkerShutdownSignal,
+					data_center_id: int, worker_id: int,
+					restart: CompetitiveWorkerRestarter) -> None:
+				logger.warning(
+					f'Worker[dataCenterId={data_center_id}, workerId={worker_id}] shutdown on signal[{signal}].')
+				if settings.SNOWFLAKE_COMPETITIVE_WORKER_RESTART_ON_SHOWDOWN:
+					if signal == CompetitiveWorkerShutdownSignal.EXCEPTION_RAISED:
+						restart()
+	
+			worker_id_generator = competitive_worker_id(StorageBasedWorkerIdGenerator(
+				storage=storage,
+				heart_beat_interval=settings.SNOWFLAKE_COMPETITIVE_WORKER_HEART_BEAT_INTERVAL,
+				worker_creation_retry_times=settings.SNOWFLAKE_COMPETITIVE_WORKER_CREATION_RETRY_TIMES,
+				shutdown_listener=shutdown_listener
+			))
+			return SnowflakeGenerator(
+				data_center_id=settings.SNOWFLAKE_DATA_CENTER_ID,
+				generate_worker_id=worker_id_generator
+			)
 	else:
 		# fix worker id
 		return SnowflakeGenerator(

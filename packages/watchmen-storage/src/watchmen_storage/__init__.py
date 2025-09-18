@@ -25,3 +25,4 @@ from .storage_types import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOp
 	EntitySortMethod, EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightValuesFinder, EntityUpdate, \
 	EntityUpdater, Literal, EntityLimitedFinder
 from .topic_utils import as_table_name
+from .snowflake_workers import SnowflakeWorker, DBConfig
