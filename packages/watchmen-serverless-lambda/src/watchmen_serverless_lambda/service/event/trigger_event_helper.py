@@ -33,7 +33,7 @@ def trigger_event_by_default(trigger_event: TriggerEvent):
 		trigger_event.status = Status.EXECUTING.value
 		trigger_event_service.update(trigger_event)
 
-		module_config_service = get_collector_module_config_service(trigger_event_service.storage,
+		module_config_service = get_collector_module_config_service(meta_storage,
 		                                                            trigger_event_service.snowflakeGenerator,
 		                                                            trigger_event_service.principalService)
 		trigger_module_service = get_trigger_module_service(trigger_event_service.storage,
