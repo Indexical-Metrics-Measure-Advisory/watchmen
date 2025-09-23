@@ -26,7 +26,7 @@ def get_module_config_by_tenant_id(module_config_service: CollectorModuleConfigS
                                    trigger_event: TriggerEvent) -> Optional[List[CollectorModuleConfig]]:
 	try:
 		module_config_service.begin_transaction()
-		return module_config_service.find_by_tenant(trigger_event.tenant_id)
+		return module_config_service.find_by_tenant(trigger_event.tenantId)
 	finally:
 		module_config_service.close_transaction()
 
