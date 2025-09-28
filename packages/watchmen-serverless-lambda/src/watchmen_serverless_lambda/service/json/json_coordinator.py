@@ -216,36 +216,18 @@ class SequencedModelExecutor(ModelExecutor):
                             continue
                         
                         try:
-                            grouped_change_data_jsons = self.change_json_service.find_by_object_id(
+                            grouped_change_data_json_ids = self.change_json_service.find_grouped_ids_by_object_id(
                                 change_data_json.modelName,
                                 change_data_json.objectId,
-                                change_data_json.modelTriggerId)
-                            sorted_change_data_jsons = ArrayHelper(grouped_change_data_jsons).sort(
-                                sort_grouped_change_data_jsons).to_list()
-                            
-                            def change_json_status(sorted_jsons: List[ChangeDataJson]):
-                                def executed_change_json(change_json: ChangeDataJson):
-                                    change_json.isPosted = True
-                                    change_json.status = Status.EXECUTING.value
-                                    self.change_json_service.update(change_json)
-                                try:
-                                    self.change_json_service.begin_transaction()
-                                    ArrayHelper(sorted_jsons).each(executed_change_json)
-                                    self.change_json_service.commit_transaction()
-                                except Exception as ex:
-                                    self.change_json_service.rollback_transaction()
-                                    raise ex
-                                finally:
-                                    self.change_json_service.close_transaction()
-                            
-                            change_json_status(sorted_change_data_jsons)
-                            
-                            ArrayHelper(sorted_change_data_jsons).each(
-                                lambda json_record: processed_list.append(json_record.changeJsonId)
+                                change_data_json.modelTriggerId
                             )
-                            
+                            self.change_json_service.update_bulk_by_ids(
+                                grouped_change_data_json_ids,
+                                {"isPosted": True, "status": Status.EXECUTING.value}
+                            )
+                            processed_list.extend(grouped_change_data_json_ids)
                             batch_group_jsons.append(GroupedJson(objectId=change_data_json.objectId,
-                                                                 sortedJsons=sorted_change_data_jsons))
+                                                                 sortedJsonIds=grouped_change_data_json_ids))
                         except Exception as e:
                             logger.error(e, exc_info=True, stack_info=True)
                             change_data_json.isPosted = True
@@ -307,7 +289,7 @@ class SequencedModelExecutor(ModelExecutor):
                                      batch: List[GroupedJson]) -> str:
         
         def get_grouped_json_ids(grouped_jsons: GroupedJson) -> Tuple[str, List[int]]:
-            return grouped_jsons.objectId, ArrayHelper(grouped_jsons.sortedJsons).map(lambda item: item.changeJsonId).to_list()
+            return grouped_jsons.objectId, grouped_jsons.sortedJsonIds
         
         body: PostGroupedJSONMessage = PostGroupedJSONMessage(action=ActionType.POST_GROUP_JSON,
                                                               tenantId=tenant_id,

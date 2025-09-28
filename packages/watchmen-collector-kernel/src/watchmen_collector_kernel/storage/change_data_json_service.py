@@ -10,7 +10,7 @@ from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeJsonId, Pageable
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	ColumnNameLiteral, EntityCriteriaExpression, EntityStraightValuesFinder, EntityStraightColumn, EntitySortColumn, \
-	EntitySortMethod, EntityLimitedFinder, EntityCriteriaOperator
+	EntitySortMethod, EntityLimitedFinder, EntityCriteriaOperator, EntityUpdater
 
 
 class ChangeDataJsonShaper(EntityShaper):
@@ -209,6 +209,25 @@ class ChangeDataJsonService(TupleService):
 		finally:
 			self.storage.close()
 
+	def find_grouped_ids_by_object_id(self, model_name: str, object_id: str, model_trigger_id: int) -> List:
+		try:
+			self.storage.connect()
+			return self.storage.find_straight_values(EntityStraightValuesFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
+					                         right=model_trigger_id)
+				],
+				straightColumns=[EntityStraightColumn(columnName=CHANGE_JSON_ID)],
+				sort=[EntitySortColumn(name='sequence', method=EntitySortMethod.ASC)]
+			))
+		finally:
+			self.storage.close()
+	
+
 	"""
 	def is_event_finished(self, event_trigger_id: int) -> bool:
 		self.begin_transaction()
@@ -340,6 +359,25 @@ class ChangeDataJsonService(TupleService):
 		else:
 			return None
 
+	def update_bulk_by_ids(self, json_ids: List[int], data_: Dict[str, Any]):
+		try:
+			self.begin_transaction()
+			self.storage.update(
+				EntityUpdater(
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='change_json_id'),
+						                         operator=EntityCriteriaOperator.IN,
+						                         right=json_ids)
+					],
+					update=data_
+				)
+			)
+			self.commit_transaction()
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
+		finally:
+			self.close_transaction()
 
 def get_change_data_json_service(storage: TransactionalStorageSPI,
                                  snowflake_generator: SnowflakeGenerator,

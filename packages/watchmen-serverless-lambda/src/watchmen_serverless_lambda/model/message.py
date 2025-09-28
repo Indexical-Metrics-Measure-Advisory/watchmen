@@ -127,13 +127,8 @@ class PostJSONMessage(ActionMessage):
 
 class GroupedJson(Storable, ExtendedBaseModel):
     objectId: Optional[str] = None
-    sortedJsons: Optional[List[ChangeDataJson]] = None
+    sortedJsonIds: Optional[List[int]] = None
     
-    def __setattr__(self, name, value):
-        if name == 'sortedJsons':
-            super().__setattr__(name, construct_jsons(value))
-        else:
-            super().__setattr__(name, value)
     
 def construct_grouped_json(grouped_json: Optional[Union[GroupedJson, Dict]]) -> Optional[GroupedJson]:
     if grouped_json is None:
