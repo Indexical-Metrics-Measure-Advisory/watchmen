@@ -364,6 +364,8 @@ class ChangeDataJsonService(TupleService):
 			self.begin_transaction()
 			self.storage.update(
 				EntityUpdater(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
 					criteria=[
 						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='change_json_id'),
 						                         operator=EntityCriteriaOperator.IN,
