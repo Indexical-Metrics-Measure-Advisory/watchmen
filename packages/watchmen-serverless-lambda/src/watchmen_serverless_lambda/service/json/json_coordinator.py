@@ -223,7 +223,7 @@ class SequencedModelExecutor(ModelExecutor):
                             )
                             self.change_json_service.update_bulk_by_ids(
                                 grouped_change_data_json_ids,
-                                {"isPosted": True, "status": Status.EXECUTING.value}
+                                {"is_posted": True, "status": Status.EXECUTING.value}
                             )
                             processed_list.extend(grouped_change_data_json_ids)
                             batch_group_jsons.append(GroupedJson(objectId=change_data_json.objectId,
