@@ -8,7 +8,6 @@ from threading import Thread
 from time import sleep, time
 
 
-
 class WorkerIdAllocateFailedError(Exception):
 
     def __init__(self, message: str = "Worker ID Allocate Failed，can't start heart beat thread"):
@@ -278,7 +277,7 @@ class SnowflakeWorker:
         """
         generate snowflake worker id
         """
-        return self.relet_worker()
+        return self.worker
     
     def relet_worker(self) -> int:
         if self.worker == -1:

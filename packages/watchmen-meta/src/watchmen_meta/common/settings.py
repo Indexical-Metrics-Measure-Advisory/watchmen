@@ -1,3 +1,4 @@
+import threading
 from logging import getLogger
 from typing import Callable, Optional, Tuple
 
@@ -12,7 +13,11 @@ from watchmen_storage import competitive_worker_id, CompetitiveWorkerRestarter, 
 	DBConfig
 from .exception import InitialMetaAppException
 
+
 logger = getLogger(__name__)
+
+_global_snowflake_worker = None
+_worker_lock = threading.Lock()
 
 
 class MetaSettings(ExtendedBaseSettings):
@@ -169,21 +174,24 @@ class SnowflakeGeneratorHolder:
 def build_snowflake_generator(storage: TransactionalStorageSPI) -> SnowflakeGenerator:
 	if settings.SNOWFLAKE_COMPETITIVE_WORKERS:
 		if settings.SNOWFLAKE_COMPETITIVE_WORKERS_V2:
-			db_config = DBConfig(
-				type_=settings.META_STORAGE_TYPE,
-				host=settings.META_STORAGE_HOST,
-				port=settings.META_STORAGE_PORT,
-				username=settings.META_STORAGE_USER_NAME,
-				password=settings.META_STORAGE_PASSWORD,
-				dbname=settings.META_STORAGE_NAME
-			)
+			if _global_snowflake_worker is None:
+				with _worker_lock:
+					if _global_snowflake_worker is None:
+						db_config = DBConfig(
+							type_=settings.META_STORAGE_TYPE,
+							host=settings.META_STORAGE_HOST,
+							port=settings.META_STORAGE_PORT,
+							username=settings.META_STORAGE_USER_NAME,
+							password=settings.META_STORAGE_PASSWORD,
+							dbname=settings.META_STORAGE_NAME)
 			
-			snowflake_worker = SnowflakeWorker(db_config,
-			                                   settings.SNOWFLAKE_DATA_CENTER_ID,
-			                                   0,
-			                                   1023,
-			                                   settings.SNOWFLAKE_COMPETITIVE_WORKER_HEART_BEAT_INTERVAL)
-			worker_id_generator = competitive_worker_id(snowflake_worker)
+						_global_snowflake_worker = SnowflakeWorker(
+							db_config,
+							settings.SNOWFLAKE_DATA_CENTER_ID,
+							0,
+						   	1023,
+						   	settings.SNOWFLAKE_COMPETITIVE_WORKER_HEART_BEAT_INTERVAL)
+			worker_id_generator = competitive_worker_id(_global_snowflake_worker)
 			return SnowflakeGenerator(
 				data_center_id=settings.SNOWFLAKE_DATA_CENTER_ID,
 				generate_worker_id=worker_id_generator
@@ -242,3 +250,7 @@ def ask_engine_index_enabled() -> bool:
 
 def ask_default_package_version() -> str:
 	return settings.PACKAGE_VERSION_DEFAULT_VALUE
+
+
+def ask_snowflake_competitive_workers_v2() -> bool:
+	return settings.SNOWFLAKE_COMPETITIVE_WORKERS_V2

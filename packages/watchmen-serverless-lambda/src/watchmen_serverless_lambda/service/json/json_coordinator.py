@@ -221,13 +221,16 @@ class SequencedModelExecutor(ModelExecutor):
                                 change_data_json.objectId,
                                 change_data_json.modelTriggerId
                             )
+                            ids_ = ArrayHelper(grouped_change_data_json_ids).map(
+                                lambda x: x.get("change_json_id")
+                            ).to_list()
                             self.change_json_service.update_bulk_by_ids(
-                                grouped_change_data_json_ids,
+                                ids_,
                                 {"is_posted": True, "status": Status.EXECUTING.value}
                             )
-                            processed_list.extend(grouped_change_data_json_ids)
+                            processed_list.extend(ids_)
                             batch_group_jsons.append(GroupedJson(objectId=change_data_json.objectId,
-                                                                 sortedJsonIds=grouped_change_data_json_ids))
+                                                                 sortedJsonIds=ids_))
                         except Exception as e:
                             logger.error(e, exc_info=True, stack_info=True)
                             change_data_json.isPosted = True

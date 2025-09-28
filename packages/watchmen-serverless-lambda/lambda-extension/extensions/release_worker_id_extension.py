@@ -36,12 +36,15 @@ def read_worker_id_from_tmp() -> int:
 
 
 def release_worker_id():
-    storage = ask_meta_storage()
-    worker_id = read_worker_id_from_tmp()
-    if worker_id:
-        get_storage_based_worker_id_service(storage).release_worker(0, worker_id)
+    if ask_snowflake_competitive_workers_v2():
+        _global_snowflake_worker.release_worker()
     else:
-        print("Serving WorkerIdReleaseExtension without worker_id")
+        storage = ask_meta_storage()
+        worker_id = read_worker_id_from_tmp()
+        if worker_id:
+            get_storage_based_worker_id_service(storage).release_worker(0, worker_id)
+        else:
+            print("Serving WorkerIdReleaseExtension without worker_id")
 
 
 # Register for the INVOKE events from the EXTENSIONS API
