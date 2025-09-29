@@ -175,11 +175,11 @@ class SnowflakeWorker(metaclass=SingletonMeta):
         worker_id = -1
         trans = conn.begin()
         try:
-            get_timeout_sql = """
+            get_timeout_sql = f"""
                     SELECT worker_id 
-                    FROM {table} 
+                    FROM {{table}}
                     WHERE data_center_id = :data_center_id
-                      AND last_beat_at < NOW() - INTERVAL '1.5 minutes' 
+                      AND last_beat_at < NOW() - INTERVAL '{self.heart_beat_interval + 60} seconds'
                     ORDER BY worker_id 
                     LIMIT 1 
                     FOR UPDATE SKIP LOCKED
