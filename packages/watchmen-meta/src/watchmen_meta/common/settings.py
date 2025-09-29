@@ -1,8 +1,5 @@
-import threading
 from logging import getLogger
 from typing import Callable, Optional, Tuple
-
-from watchmen_utilities import ExtendedBaseSettings
 
 from watchmen_auth import PrincipalService
 from watchmen_model.admin import User, UserRole
@@ -11,13 +8,10 @@ from watchmen_model.system import DataSourceType
 from watchmen_storage import competitive_worker_id, CompetitiveWorkerRestarter, CompetitiveWorkerShutdownSignal, \
 	immutable_worker_id, SnowflakeGenerator, StorageBasedWorkerIdGenerator, TransactionalStorageSPI, SnowflakeWorker, \
 	DBConfig
+from watchmen_utilities import ExtendedBaseSettings
 from .exception import InitialMetaAppException
 
-
 logger = getLogger(__name__)
-
-_global_snowflake_worker = None
-_worker_lock = threading.Lock()
 
 
 class MetaSettings(ExtendedBaseSettings):
@@ -171,27 +165,27 @@ class SnowflakeGeneratorHolder:
 	snowflakeGenerator: Optional[SnowflakeGenerator] = None
 
 
+def get_snowflake_worker() -> SnowflakeWorker:
+	db_config = DBConfig(
+		type_=settings.META_STORAGE_TYPE,
+		host=settings.META_STORAGE_HOST,
+		port=settings.META_STORAGE_PORT,
+		username=settings.META_STORAGE_USER_NAME,
+		password=settings.META_STORAGE_PASSWORD,
+		dbname=settings.META_STORAGE_NAME)
+	
+	return SnowflakeWorker(db_config,
+	                       settings.SNOWFLAKE_DATA_CENTER_ID,
+	                       0,
+	                       1023,
+	                       settings.SNOWFLAKE_COMPETITIVE_WORKER_HEART_BEAT_INTERVAL)
+
+
 def build_snowflake_generator(storage: TransactionalStorageSPI) -> SnowflakeGenerator:
 	if settings.SNOWFLAKE_COMPETITIVE_WORKERS:
 		if settings.SNOWFLAKE_COMPETITIVE_WORKERS_V2:
-			if _global_snowflake_worker is None:
-				with _worker_lock:
-					if _global_snowflake_worker is None:
-						db_config = DBConfig(
-							type_=settings.META_STORAGE_TYPE,
-							host=settings.META_STORAGE_HOST,
-							port=settings.META_STORAGE_PORT,
-							username=settings.META_STORAGE_USER_NAME,
-							password=settings.META_STORAGE_PASSWORD,
-							dbname=settings.META_STORAGE_NAME)
-			
-						_global_snowflake_worker = SnowflakeWorker(
-							db_config,
-							settings.SNOWFLAKE_DATA_CENTER_ID,
-							0,
-						   	1023,
-						   	settings.SNOWFLAKE_COMPETITIVE_WORKER_HEART_BEAT_INTERVAL)
-			worker_id_generator = competitive_worker_id(_global_snowflake_worker)
+			snowflake_worker = get_snowflake_worker()
+			worker_id_generator = competitive_worker_id(snowflake_worker)
 			return SnowflakeGenerator(
 				data_center_id=settings.SNOWFLAKE_DATA_CENTER_ID,
 				generate_worker_id=worker_id_generator

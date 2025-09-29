@@ -3,11 +3,10 @@
 import json
 import os
 import sys
-import set_env_variable
 
-from watchmen_meta.common import ask_meta_storage
-from watchmen_storage import get_storage_based_worker_id_service
 from release_worker_id_extension.extensions_api_client import ExtensionsAPIClient
+from watchmen_meta.common import ask_meta_storage, ask_snowflake_competitive_workers_v2, get_snowflake_worker
+from watchmen_storage import get_storage_based_worker_id_service
 
 
 class WorkerIdReleaseExtension:
@@ -37,7 +36,8 @@ def read_worker_id_from_tmp() -> int:
 
 def release_worker_id():
     if ask_snowflake_competitive_workers_v2():
-        _global_snowflake_worker.release_worker()
+        worker = get_snowflake_worker()
+        worker.release_worker()
     else:
         storage = ask_meta_storage()
         worker_id = read_worker_id_from_tmp()

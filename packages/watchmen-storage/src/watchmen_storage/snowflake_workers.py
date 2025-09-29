@@ -1,10 +1,10 @@
+import threading
 from logging import getLogger
 
 from sqlalchemy import text, Engine, create_engine, TextClause
 from sqlalchemy.exc import IntegrityError
 
 from watchmen_utilities import serialize_to_json
-from threading import Thread
 from time import sleep, time
 
 
@@ -44,7 +44,20 @@ class SchemaSQL:
             sql_without_schema = raw_sql.format(table=table_name)
             return text(sql_without_schema)
 
-class SnowflakeWorker:
+
+class SingletonMeta(type):
+    _instances = {}
+    _lock = threading.Lock()
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            with cls._lock:
+                if cls not in cls._instances:
+                    cls._instances[cls] = super().__call__(*args, **kwargs)
+        return cls._instances[cls]
+    
+    
+class SnowflakeWorker(metaclass=SingletonMeta):
 
     def __init__(self, dbconfig: DBConfig,
                  data_center_id: int,
@@ -246,7 +259,7 @@ class SnowflakeWorker:
     def try_create_worker(self):
         self.worker = self.get_snowflake_worker_id()
         if self.worker != -1:
-            Thread(target=SnowflakeWorker.heart_beat, args=(self,), daemon=True).start()
+            threading.Thread(target=SnowflakeWorker.heart_beat, args=(self,), daemon=True).start()
         else:
             raise WorkerIdAllocateFailedError()
 
