@@ -380,6 +380,36 @@ class ChangeDataJsonService(TupleService):
 			raise e
 		finally:
 			self.close_transaction()
+	
+	def update_by_ids(self, json_ids: List[int], data_: Dict[str, Any]) -> int:
+		return self.storage.update(
+			EntityUpdater(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='change_json_id'),
+					                         operator=EntityCriteriaOperator.IN,
+					                         right=json_ids)
+				],
+				update=data_
+			)
+		)
+	
+	def find_jsons_by_timeout(self, tenant_id: str, query_time: datetime, status: int) -> List:
+		try:
+			self.storage.connect()
+			return self.storage.find_limited(EntityLimitedFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='last_modified_at'),
+				                                   operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
+				          EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=status),
+				          EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)],
+				sort=[EntitySortColumn(name='change_json_id', method=EntitySortMethod.ASC)],
+				limit=100
+			))
+		finally:
+			self.storage.close()
 
 def get_change_data_json_service(storage: TransactionalStorageSPI,
                                  snowflake_generator: SnowflakeGenerator,

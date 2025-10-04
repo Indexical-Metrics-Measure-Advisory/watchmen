@@ -99,6 +99,17 @@ class CompetitiveLockService(EntityService):
 		finally:
 			self.storage.close()
 
+	def find_locks_by_tenant_id(self, tenant_id: str) -> List[CompetitiveLock]:
+		try:
+			self.storage.connect()
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(criteria=[
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName='tenant_id'),
+					right=tenant_id)
+			]))
+		finally:
+			self.storage.close()
 
 def get_competitive_lock_service(storage: TransactionalStorageSPI) -> CompetitiveLockService:
 	return CompetitiveLockService(storage)

@@ -9,13 +9,13 @@ from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflak
 from watchmen_serverless_lambda.common import ask_serverless_queue_url, log_error
 from watchmen_serverless_lambda.model import ActionType, ListenerType
 from watchmen_serverless_lambda.queue import SQSSender
-from .collector_clean import get_clean_listener
 from watchmen_serverless_lambda.service.event import get_event_listener
 from watchmen_serverless_lambda.service.json.json_listener import get_json_listener
 from watchmen_serverless_lambda.service.record.record_listener import get_record_listener
 from watchmen_serverless_lambda.service.table.table_listener import get_table_listener
 from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_utilities import serialize_to_json
+from .clean import get_clean_listener
 from .task.task_listener import get_task_listener
 
 logger = logging.getLogger(__name__)

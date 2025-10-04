@@ -168,29 +168,22 @@ class JSONWorker:
                           model_config: CollectorModelConfig,
                           object_id: str,
                           change_json_ids: List[str]) -> Optional[ScheduledTask]:
-
         task = self.get_grouped_json_scheduled_task(trigger_event, model_config, object_id, change_json_ids)
+        try:
+            self.scheduled_task_service.begin_transaction()
+            self.scheduled_task_service.create(task)
+            self.change_json_service.update_by_ids(
+                change_json_ids,
+                {"is_posted": True, "status": Status.WAITING.value, "task_id": task.taskId}
+            )
+            self.scheduled_task_service.commit_transaction()
+            return task
+        except Exception as e:
+            self.scheduled_task_service.rollback_transaction()
+            raise e
+        finally:
+            self.scheduled_task_service.close_transaction()
 
-        def finished_change_json(change_json: ChangeDataJson):
-            change_json.isPosted = True
-            change_json.status = Status.WAITING.value
-            change_json.taskId = task.taskId
-            self.change_json_service.update(change_json)
-        
-        for change_json_id in change_json_ids:
-            change_json = self.change_json_service.find_json_by_id(change_json_id)
-            if change_json:
-                try:
-                    self.scheduled_task_service.begin_transaction()
-                    self.scheduled_task_service.create(task)
-                    finished_change_json(change_json)
-                    self.scheduled_task_service.commit_transaction()
-                    return task
-                except Exception as e:
-                    self.scheduled_task_service.rollback_transaction()
-                    raise e
-                finally:
-                    self.scheduled_task_service.close_transaction()
         
     # noinspection PyMethodMayBeStatic
     def change_status(self, change_data_json: ChangeDataJson, status: int) -> ChangeDataJson:

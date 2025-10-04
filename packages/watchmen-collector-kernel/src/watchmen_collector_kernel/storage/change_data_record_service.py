@@ -1,15 +1,16 @@
 from datetime import datetime
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Dict, Tuple, Any
 
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID, IS_MERGED, ask_partial_size, STATUS
+from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID, IS_MERGED, ask_partial_size, STATUS, \
+	CHANGE_JSON_ID
 from watchmen_collector_kernel.model import ChangeDataRecord
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeRecordId, Pageable, OptimisticLock
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	EntityCriteriaExpression, ColumnNameLiteral, EntityStraightValuesFinder, EntityStraightColumn, EntityColumnType, \
-	EntityPager, EntityLimitedFinder, EntityCriteriaOperator
+	EntityPager, EntityLimitedFinder, EntityCriteriaOperator, EntityUpdater, EntitySortColumn, EntitySortMethod
 from watchmen_utilities import ArrayHelper
 
 
@@ -327,6 +328,39 @@ class ChangeDataRecordService(TupleService):
 			]))
 		finally:
 			self.storage.close()
+	
+	def find_records_by_timeout(self, tenant_id: str, query_time: datetime, status: int) -> List:
+		try:
+			self.storage.connect()
+			return self.storage.find_limited(EntityLimitedFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='last_modified_at'),
+						operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=status),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+				],
+				sort=[EntitySortColumn(name='change_record_id', method=EntitySortMethod.ASC)],
+				limit=100
+			))
+		finally:
+			self.storage.close()
+			
+	def update_by_ids(self, record_ids: List[int], data_: Dict[str, Any]) -> int:
+		return self.storage.update(
+			EntityUpdater(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='change_record_id'),
+					                         operator=EntityCriteriaOperator.IN,
+					                         right=record_ids)
+				],
+				update=data_
+			)
+		)
 
 
 def get_change_data_record_service(storage: TransactionalStorageSPI,
