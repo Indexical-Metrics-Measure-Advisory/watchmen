@@ -47,7 +47,10 @@ class Configuration:
             DataSourceParam(name="ssl_cert", value=cert),
             DataSourceParam(name="ssl_key", value=key)
         ]
-        self.dataSource.params.extend(params)
+        if self.dataSource.params:
+            self.dataSource.params.extend(params)
+        else:
+            self.dataSource.params=params
         return self
     
     def get_or_create_storage_holder(self) -> StorageMySQLConfiguration:
