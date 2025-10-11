@@ -133,3 +133,5 @@ packages/watchmen-ai-copilot/src/watchmen_ai/utils/__pycache__/graph_utils.cpyth
 packages/watchmen-ai-copilot/src/watchmen_ai/utils/__pycache__/request_ai_model_helper.cpython-312.pyc
 packages/watchmen-ai-copilot/src/watchmen_ai/utils/__pycache__/utils.cpython-312.pyc
 *.pyc
+*.txn
+*.txn
