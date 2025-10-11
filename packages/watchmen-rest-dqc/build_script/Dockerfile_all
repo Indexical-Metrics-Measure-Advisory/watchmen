@@ -1,4 +1,4 @@
-FROM python:3.9.6-slim-buster
+FROM python:3.9.19-slim-bullseye
 
 WORKDIR    /opt/mssql
 RUN        apt-get update && apt-get install -y curl && apt-get install -y gnupg2 gcc g++ \
