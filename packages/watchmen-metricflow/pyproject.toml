@@ -1,0 +1,50 @@
+[project]
+name = "watchmen-metricflow"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "luke0623",email = "luke0623@outlook.com"}
+]
+readme = "README.md"
+requires-python = "<3.13,>=3.9"
+dependencies = [
+    "dbt-metricflow[dbt-postgres] (>=0.8.2,<0.9.0)",
+    "uvicorn (>=0.35.0,<0.36.0)",
+    "fastapi (>=0.116.1,<0.117.0)",
+    "uvloop (>=0.21.0,<0.22.0)",
+    "pydantic-settings (>=2.10.1,<3.0.0)",
+    "python-json-logger (>=3.3.0,<4.0.0)",
+    "sqlalchemy (>=2.0.43,<3.0.0)",
+    "pymysql (>=1.1.2,<2.0.0)",
+    "python-jose (>=3.5.0,<4.0.0)",
+    "cacheout (>=0.16.0,<0.17.0)",
+    "dask (>=2025.7.0,<2026.0.0)",
+    "distributed (>=2025.7.0,<2026.0.0)",
+    "apscheduler (>=3.11.0,<4.0.0)",
+    "passlib (>=1.7.4,<2.0.0)",
+    "pycryptodome (>=3.23.0,<4.0.0)"
+
+]
+
+[tool.poetry.dependencies]
+python = "~3.12"
+passlib = "^1.7.4"
+bcrypt = "^4.2.0"
+python-multipart = "^0.0.9"
+watchmen-lineage = { path = "../watchmen-lineage", develop = true }
+watchmen-model = { path = "../watchmen-model", develop = true }
+watchmen-meta = { path = "../watchmen-meta", develop = true }
+watchmen-rest = { path = "../watchmen-rest", develop = true }
+
+watchmen-data-surface = { path = "../watchmen-data-surface", develop = true }
+watchmen-inquiry-surface = { path = "../watchmen-inquiry-surface", develop = true }
+watchmen-indicator-surface = { path = "../watchmen-indicator-surface", develop = true }
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true }
+watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
+watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
+watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
