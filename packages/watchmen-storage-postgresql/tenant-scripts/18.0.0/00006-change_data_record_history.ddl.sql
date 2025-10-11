@@ -29,3 +29,4 @@ CREATE INDEX i_change_data_record_history_6 ON change_data_record_history (table
 CREATE INDEX i_change_data_record_history_7 ON change_data_record_history (model_trigger_id);
 CREATE INDEX i_change_data_record_history_8 ON change_data_record_history (module_trigger_id);
 CREATE INDEX i_change_data_record_history_9 ON change_data_record_history (event_trigger_id);
+CREATE INDEX i_change_data_record_history_status_event_trigger_id ON change_data_record_history (status, event_trigger_id);

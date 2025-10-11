@@ -27,5 +27,6 @@ CREATE TABLE change_data_record_history
     INDEX (created_at),
     INDEX (created_by),
     INDEX (last_modified_at),
-    INDEX (last_modified_by)
+    INDEX (last_modified_by),
+    INDEX (status, event_trigger_id)
 );

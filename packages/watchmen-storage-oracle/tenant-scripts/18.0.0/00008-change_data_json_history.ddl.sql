@@ -24,15 +24,15 @@ CREATE TABLE change_data_json_history
     last_modified_by    VARCHAR2(50)    NOT NULL,
     CONSTRAINT pk_change_data_json PRIMARY KEY (change_json_id)
 );
-CREATE UNIQUE INDEX u_change_data_json_1 ON change_data_json (resource_id);
-CREATE INDEX i_change_data_json_1 ON change_data_json (tenant_id);
-CREATE INDEX i_change_data_json_2 ON change_data_json (created_at);
-CREATE INDEX i_change_data_json_3 ON change_data_json (created_by);
-CREATE INDEX i_change_data_json_4 ON change_data_json (last_modified_at);
-CREATE INDEX i_change_data_json_5 ON change_data_json (last_modified_by);
-CREATE INDEX i_change_data_json_6 ON change_data_json (table_trigger_id);
-CREATE INDEX i_change_data_json_7 ON change_data_json (model_trigger_id);
-CREATE INDEX i_change_data_json_8 ON change_data_json (module_trigger_id);
-CREATE INDEX i_change_data_json_9 ON change_data_json (event_trigger_id);
-CREATE INDEX i_change_data_json_model_name_object_id_model_trigger_id ON change_data_json (model_name, object_id, model_trigger_id);
-CREATE INDEX i_change_data_json_status_model_trigger_id ON change_data_json (status, model_trigger_id);
+CREATE UNIQUE INDEX u_change_data_json_history_1 ON change_data_json_history (resource_id);
+CREATE INDEX i_change_data_json_history_1 ON change_data_json_history (tenant_id);
+CREATE INDEX i_change_data_json_history_2 ON change_data_json_history (created_at);
+CREATE INDEX i_change_data_json_history_3 ON change_data_json_history (created_by);
+CREATE INDEX i_change_data_json_history_4 ON change_data_json_history (last_modified_at);
+CREATE INDEX i_change_data_json_history_5 ON change_data_json_history (last_modified_by);
+CREATE INDEX i_change_data_json_history_6 ON change_data_json_history (table_trigger_id);
+CREATE INDEX i_change_data_json_history_7 ON change_data_json_history (model_trigger_id);
+CREATE INDEX i_change_data_json_history_8 ON change_data_json_history (module_trigger_id);
+CREATE INDEX i_change_data_json_history_9 ON change_data_json_history (event_trigger_id);
+CREATE INDEX i_change_data_json_history_model_name_object_id_model_trigger_id ON change_data_json_history (model_name, object_id, model_trigger_id);
+CREATE INDEX i_change_data_json_history_status_model_trigger_id ON change_data_json_history (status, model_trigger_id);

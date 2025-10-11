@@ -6,7 +6,8 @@ from watchmen_collector_kernel.model import TriggerEvent
 from watchmen_collector_kernel.service import ask_collector_storage
 from watchmen_collector_kernel.storage import get_trigger_event_service
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
-from watchmen_serverless_lambda.common import ask_serverless_queue_url, log_error
+from watchmen_serverless_lambda.common import ask_serverless_queue_url, log_error, \
+    ask_serverless_extract_table_queue_url
 from watchmen_serverless_lambda.model import ActionType, ListenerType
 from watchmen_serverless_lambda.queue import SQSSender
 from watchmen_serverless_lambda.service.event import get_event_listener
@@ -37,6 +38,9 @@ class CollectorListener:
         self.sender = SQSSender(queue_url=ask_serverless_queue_url(),
                                 max_retries=3,
                                 base_delay=0.5)
+        self.extract_table_sender =  SQSSender(queue_url=ask_serverless_extract_table_queue_url(),
+                                               max_retries=3,
+                                               base_delay=0.5)
         self.event_listener = get_event_listener(self.tenant_id)
         self.table_listener = get_table_listener(tenant_id)
         self.record_listener = get_record_listener(tenant_id)
@@ -107,7 +111,10 @@ class CollectorListener:
                                                   'triggerEvent': trigger_event.to_dict()})
             }
             messages.append(message)
-        successes, failures = self.sender.send_batch(messages)
+        if self.listener_type == ListenerType.TABLE:
+            successes, failures = self.extract_table_sender.send_batch(messages)
+        else:
+            successes, failures = self.sender.send_batch(messages)
         return successes, failures
             
     def ask_log_key(self, trigger_event: TriggerEvent) -> str:

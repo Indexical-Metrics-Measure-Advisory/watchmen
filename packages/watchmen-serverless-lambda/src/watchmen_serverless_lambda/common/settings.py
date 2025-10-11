@@ -25,7 +25,7 @@ class ServerlessSettings(ExtendedBaseSettings):
 	SERVERLESS_NUMBER_OF_JSON_COORDINATOR: int = 10
 	SERVERLESS_NUMBER_OF_TASK_COORDINATOR: int = 10
 	
-	
+	SERVERLESS_EXTRACT_TABLE_QUEUE_URL: str = ""
 	
 
 serverless_settings = ServerlessSettings()
@@ -38,6 +38,10 @@ def ask_serverless_s3_region() -> str:
 
 def ask_serverless_queue_url() -> str:
 	return serverless_settings.SERVERLESS_QUEUE_URL
+
+
+def ask_serverless_extract_table_queue_url() -> str:
+	return serverless_settings.SERVERLESS_EXTRACT_TABLE_QUEUE_URL
 
 
 def ask_serverless_table_extractor_record_max_batch_size() -> int:
