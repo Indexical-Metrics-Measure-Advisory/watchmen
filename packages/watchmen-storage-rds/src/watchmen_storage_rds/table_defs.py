@@ -8,7 +8,7 @@ from watchmen_model.common import TopicId
 from watchmen_storage import SNOWFLAKE_WORKER_ID_TABLE, UnexpectedStorageException
 from .table_defs_helper import create_bool, create_date, create_datetime, create_description, create_int, create_json, \
 	create_last_visit_time, create_medium_text, create_optimistic_lock, create_pk, create_str, create_tenant_id, \
-	create_tuple_audit_columns, create_tuple_id_column, create_user_id, meta_data
+	create_tuple_audit_columns, create_tuple_id_column, create_user_id, meta_data, create_number
 from .topic_table_generate import build_by_aggregation, build_by_raw, build_by_regular
 
 # snowflake workers
@@ -495,6 +495,139 @@ table_subscription_event_locks = Table(
 	create_datetime('created_at', False)
 )
 
+
+table_business_challenges = Table(
+	'business_challenges', meta_data,
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(),create_user_id(),
+	create_str('title', 10, False),create_pk('id'),
+	create_str('description', 10, False),
+	create_json('problemIds'),
+)
+
+table_business_problems = Table(
+	'business_problems', meta_data,
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(),create_user_id(),
+	create_str('title', 10, False),create_pk('id'),
+	create_str('businessChallengeId', 10, False),
+	create_str("aiAnswer",2000,False),
+	create_datetime("dataset_start_date"), create_datetime("dataset_end_date"),
+	create_str('description', 250, False),create_str('status', 10, False),
+	create_json('hypothesisIds'),
+)
+
+table_hypotheses = Table(
+	'hypotheses', meta_data,
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(),create_user_id(),
+	create_str('title', 10, False),create_pk('id'),
+	create_str('description', 250, False),
+	create_str("analysis_method",length=100, nullable=False),
+	create_str('status', 10, False),
+	create_number('confidence', False),
+	create_str('business_problem_id',10, False),
+	create_json('metrics'),
+	create_json('related_hypotheses_ids'),
+	create_json("metrics_details")
+)
+
+table_metrics = Table(
+    'metrics', meta_data,
+    create_pk('id'),
+    create_str('name', 128, False),
+    create_str('description', 1024),
+    create_str('type', 50, False),
+    create_json('type_params'),
+    create_str('filter', 1024),
+    create_json('metadata'),
+    create_str('label', 255),
+    create_json('config'),
+    create_str('time_granularity', 50),
+    create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(),
+)
+
+
+table_semantic_models = Table(
+	'semantic_models', meta_data,
+	create_pk('id'),
+	create_str('name', 128),
+	create_str('description', 1024),
+	create_json('node_relation'),
+	create_json('entities'),
+	create_json('measures'),
+	create_json('dimensions'),
+	create_json('defaults'),
+	create_str('topicId', 128),
+	create_str('sourceType', 128),
+	create_str('primary_entity', 128),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+
+
+table_agent_cards = Table(
+	'agent_cards', meta_data,
+	create_pk('id'),
+	create_str('name', 128),
+	create_str('description', 1024),
+	create_str('role', 50),
+	create_bool("isConnecting"),
+	create_json('capabilities'),
+	create_json('supportedContentTypes'),
+	create_json('metadata'),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(), create_user_id()
+)
+
+
+
+table_analysis = Table(
+	'analysis', meta_data,
+	create_pk('analysis_id'),
+	create_str('hypothesis_id', 128),
+	create_json('hypotheses'),
+	create_json('test_results'),
+	create_json('analysis_metrics'),
+	create_json('metrics_card_data'),
+	create_json('purchase_behaviors'),
+	create_json('customer_characteristics'),
+	create_json('data_explain_dict'),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(), create_user_id()
+)
+
+table_analysis_reports = Table(
+	'analysis_reports', meta_data,
+	create_pk('analysis_report_id'),
+	create_json('header'),
+	create_str('content', 1024),
+	create_str('challenge_id', 128),
+	create_str('status', 50),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(), create_user_id()
+)
+
+table_chat_sessions = Table(
+	'chat_sessions', meta_data,
+	create_pk('id'),
+	create_str('title', 10, False),
+	create_json('messages'),
+	create_str('analysis_type', 10, False),
+	create_user_id(),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+
+table_data_profiles = Table(
+	'data_profiles', meta_data,
+	create_pk('id'),
+	create_str('name', 128),
+	create_str('target', 128),
+	create_json('outputs'),
+	create_str('description', 1024),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+
+
+
+
+
+
+
+
 # noinspection DuplicatedCode
 tables: Dict[str, Table] = {
 	# snowflake workers
@@ -561,7 +694,17 @@ tables: Dict[str, Table] = {
 	'change_data_record': table_change_data_record,
 	'change_data_record_history': table_change_data_record_history,
 	'change_data_json': table_change_data_json,
-	'change_data_json_history': table_change_data_json_history
+	'change_data_json_history': table_change_data_json_history,
+	"business_challenges": table_business_challenges,
+	"business_problems": table_business_problems,
+	"hypotheses": table_hypotheses,
+	"metrics": table_metrics,
+	"semantic_models": table_semantic_models,
+	"agent_cards": table_agent_cards,
+	'analysis': table_analysis,
+	"analysis_reports": table_analysis_reports,
+	'chat_sessions': table_chat_sessions,
+	'data_profiles': table_data_profiles,
 }
 
 
@@ -605,3 +748,4 @@ def register_table(topic: Topic, datasource: DataSource) -> None:
 		topic_tables[topic.topicId] = (build_by_aggregation(topic, datasource), topic.lastModifiedAt)
 	else:
 		topic_tables[topic.topicId] = (build_by_regular(topic, datasource), topic.lastModifiedAt)
+
