@@ -51,6 +51,9 @@ def find_all_dimensions(cfg: CLIConfiguration) -> List[Dict[str, str]]:
 
 
 def load_dimensions_by_metrics(metrics:List[str], cfg: CLIConfiguration) -> List[Dict[str, str]]:
+    if not cfg.is_setup:
+        cfg.setup()
+
     dimensions = cfg.mf.simple_dimensions_for_metrics(metrics)
 
     # print(dimensions)

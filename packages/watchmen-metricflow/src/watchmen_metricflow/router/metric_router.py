@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from metricflow.data_table.column_types import CellValue
 from metricflow.engine.metricflow_engine import MetricFlowQueryResult
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
@@ -16,6 +16,7 @@ from watchmen_metricflow.service.meta_service import load_metrics_by_tenant_id, 
     build_profile
 from watchmen_rest import get_admin_principal
 from watchmen_utilities import ExtendedBaseModel
+from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
 
 router = APIRouter()
 
@@ -104,6 +105,10 @@ async def query_metrics(request_list: List[MetricQueryRequest],
 
 async def build_metric_config(principal_service):
     tenant_id = principal_service.tenantId
+    # Return cached configuration if available
+    cached = metric_config_cache.get(tenant_id)
+    if cached is not None:
+        return cached
     metrics: List[Metric] = await load_metrics_by_tenant_id(principal_service)
     ## convert to json
     metrics_json = [item.model_dump() if hasattr(item, 'model_dump') else item for item in metrics]
@@ -113,4 +118,6 @@ async def build_metric_config(principal_service):
     for semantic in semantics:
         profile = {"profile": build_profile(semantic, principal_service)}
     config = CLIConfigurationDB(tenant_id, semantics, metrics_json, profile)
+    # Cache configuration for this tenant
+    metric_config_cache.put(tenant_id, config)
     return config
