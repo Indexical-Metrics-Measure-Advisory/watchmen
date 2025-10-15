@@ -11,7 +11,7 @@ from watchmen_data_kernel.storage import TopicTrigger
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin
 from watchmen_model.pipeline_kernel import PipelineTriggerData, TopicDataColumnNames
 from watchmen_pipeline_kernel.pipeline import create_monitor_log_pipeline_invoker, PipelineTrigger
-from watchmen_utilities import run
+
 
 logger = getLogger(__name__)
 
@@ -48,18 +48,18 @@ def save_topic_data(trigger_data: PipelineTriggerData) -> TopicTrigger:
 	return service.trigger_by_insert(data)
 
 
-def pipeline_data(topic_code: str, data: Dict, tenant_id: str) -> None:
+async def pipeline_data(topic_code: str, data: Dict, tenant_id: str) -> None:
 	trigger_data = PipelineTriggerData(code=topic_code, data=data, tenantId=tenant_id)
 	topic_trigger = save_topic_data(trigger_data)
-	trigger_pipeline(trigger_data, topic_trigger)
+	await trigger_pipeline(trigger_data, topic_trigger)
 
 
 # noinspection PyMethodMayBeStatic
-def trigger_pipeline(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger):
-	run(handle_trigger_data(trigger_data, topic_trigger))
+async def trigger_pipeline(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger):
+	await handle_trigger_data(trigger_data, topic_trigger)
 
 
-def run_pipeline(topic_code: str, data: Dict, tenant_id: str,  pipeline_id: PipelineId) -> None:
+async def run_pipeline(topic_code: str, data: Dict, tenant_id: str,  pipeline_id: PipelineId) -> None:
 	trigger_data = PipelineTriggerData(code=topic_code, data=data, tenantId=tenant_id)
 	topic_trigger = TopicTrigger(
 		previous=None,
@@ -67,7 +67,7 @@ def run_pipeline(topic_code: str, data: Dict, tenant_id: str,  pipeline_id: Pipe
 		triggerType=PipelineTriggerType.INSERT,
 		internalDataId=data.get(TopicDataColumnNames.ID.value)
 	)
-	run(handle_trigger_data(trigger_data, topic_trigger, pipeline_id))
+	await handle_trigger_data(trigger_data, topic_trigger, pipeline_id)
 
 
 
