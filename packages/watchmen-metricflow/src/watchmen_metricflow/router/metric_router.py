@@ -89,6 +89,9 @@ async def query_metrics(request_list: List[MetricQueryRequest],
                         principal_service: PrincipalService = Depends(get_admin_principal)):
     config = await build_metric_config(principal_service)
 
+
+    ## check topic and subject space acesss 
+
     # cfg = data_config_loader.get_config()
     response_list = []
     for request in request_list:
@@ -105,6 +108,9 @@ async def query_metrics(request_list: List[MetricQueryRequest],
 
 async def build_metric_config(principal_service):
     tenant_id = principal_service.tenantId
+
+
+
     # Return cached configuration if available
     cached = metric_config_cache.get(tenant_id)
     if cached is not None:
