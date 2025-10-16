@@ -52,7 +52,7 @@ class MetaSettings(ExtendedBaseSettings):
 
 
 settings = MetaSettings()
-# logger.info(f'Meta settings[{settings.dict()}].')
+logger.debug(f'Meta settings[{settings.dict()}].')
 
 
 def ask_super_admin() -> PrincipalService:
