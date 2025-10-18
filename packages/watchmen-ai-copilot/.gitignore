@@ -10,3 +10,6 @@
 *.LOG
 *.LoG
 *.log.*
+*.txn
+/src/watchmen_ai_cache/
+/src/data/

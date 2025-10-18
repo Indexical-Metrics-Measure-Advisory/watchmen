@@ -2,7 +2,7 @@ from typing import List
 
 import dspy
 
-from watchmen_ai.dspy.model.data_story import HypothesisForDspy
+from watchmen_ai.hypothesis.model.data_story import HypothesisForDspy
 
 analysis_method = """
 Trend Analysis,Distribution Analysis,Comparison Analysis,Correlation Analysis,Composition Analysis,features Importances,t-test,ANOVA,

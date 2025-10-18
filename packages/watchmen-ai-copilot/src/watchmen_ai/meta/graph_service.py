@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from watchmen_ai.model.graph.graph_models import WatchmenNode, WatchmenEdge, WatchmenProperty
 from watchmen_meta.common import TupleShaper, TupleService
-from watchmen_model.common.tuple_ids import GraphNodeId, TenantId, GraphEdgeId, GraphPropertyId
+from watchmen_model.common.tuple_ids import  TenantId
 from watchmen_storage import EntityRow, EntityShaper, EntityCriteriaExpression, ColumnNameLiteral
 
 
@@ -45,10 +45,10 @@ class KnowledgeGraphNodeService(TupleService):
     def get_entity_shaper(self) -> EntityShaper:
         return GRAPH_NODE_ENTITY_SHAPER
 
-    def get_storable_id(self, storable: WatchmenNode) -> GraphNodeId:
+    def get_storable_id(self, storable: WatchmenNode) -> str:
         return storable.nodeId
 
-    def set_storable_id(self, storable: WatchmenNode, storable_id: GraphNodeId) -> WatchmenNode:
+    def set_storable_id(self, storable: WatchmenNode, storable_id: str) -> WatchmenNode:
         storable.nodeId = storable_id
         return storable
 
@@ -115,10 +115,10 @@ class KnowledgeGraphEdgeService(TupleService):
     def get_entity_shaper(self) -> EntityShaper:
         return GRAPH_EDGE_ENTITY_SHAPER
 
-    def get_storable_id(self, storable: WatchmenEdge) -> GraphEdgeId:
+    def get_storable_id(self, storable: WatchmenEdge) -> str:
         return storable.edgeId
 
-    def set_storable_id(self, storable: WatchmenEdge, storable_id: GraphEdgeId) -> WatchmenEdge:
+    def set_storable_id(self, storable: WatchmenEdge, storable_id: str) -> WatchmenEdge:
         storable.edgeId = storable_id
         return storable
 
@@ -184,10 +184,10 @@ class KnowledgeGraphPropertyService(TupleService):
     def get_entity_shaper(self) -> EntityShaper:
         return GRAPH_PROPERTY_ENTITY_SHAPER
 
-    def get_storable_id(self, storable: WatchmenProperty) -> GraphPropertyId:
+    def get_storable_id(self, storable: WatchmenProperty) -> str:
         return storable.propertyId
 
-    def set_storable_id(self, storable: WatchmenProperty, storable_id: GraphPropertyId) -> WatchmenProperty:
+    def set_storable_id(self, storable: WatchmenProperty, storable_id: str) -> WatchmenProperty:
         storable.propertyId = storable_id
         return storable
 

@@ -2,7 +2,7 @@ from typing import List
 
 import pandas as pd
 
-from watchmen_ai.dspy.model.data_story import MarkdownSubject
+from watchmen_ai.hypothesis.model.data_story import MarkdownSubject
 from watchmen_model.console import SubjectDatasetColumn
 from watchmen_model.console.subject_ext import SubjectWithFactorType
 

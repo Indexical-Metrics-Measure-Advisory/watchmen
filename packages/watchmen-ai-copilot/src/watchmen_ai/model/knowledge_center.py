@@ -3,8 +3,6 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from watchmen_model.common import  Auditable, Tuple
-
 
 class KnowledgeType(str, Enum):
     METRIC = "METRIC"
