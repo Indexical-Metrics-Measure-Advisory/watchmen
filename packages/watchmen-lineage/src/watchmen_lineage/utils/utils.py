@@ -61,6 +61,11 @@ def is_datetime_compute(source):
 	       source.type == ParameterComputeType.WEEK_OF_YEAR or source.type == ParameterComputeType.YEAR_OF
 
 
+def is_datetime(source):
+	return source.type == FactorType.DATE or source.type == FactorType.DATETIME or \
+	       source.type == FactorType.FULL_DATETIME
+
+
 def is_number_calculate(source):
 	return source.type == ParameterComputeType.ADD or source.type == ParameterComputeType.MODULUS or \
 	       source.type == ParameterComputeType.DIVIDE or source.type == ParameterComputeType.MULTIPLY \

@@ -46,3 +46,8 @@ def add_column_type_to_subjects(subjects: List[Subject], principal_service) -> L
 	subject_list_with_type = ArrayHelper(subjects).map(lambda x: construct_subject_with_type(x.to_dict())).to_list()
 
 	return ArrayHelper(subject_list_with_type).map(lambda x: add_dataset_column_type(x, principal_service)).to_list()
+
+
+def add_column_type_to_subject(subject: Subject, principal_service) -> SubjectWithFactorType:
+	subject_with_type = construct_subject_with_type(subject.to_dict())
+	return add_dataset_column_type(subject_with_type, principal_service)

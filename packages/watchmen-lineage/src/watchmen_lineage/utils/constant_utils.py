@@ -213,16 +213,3 @@ def is_punctuation(key: str):
 
 def is_word(key: str):
 	return key == 'word'
-#
-
-
-#
-# print(parse_constant_parameter("{&dayDiff(&now,eb_policy_listing.effective_dt)}"))
-# # #
-# print(parse_constant_parameter("{x.t}  {b.s}"))
-# print(parse_constant_parameter("{da.b.c}  {b.s}"))
-# print(parse_constant_parameter("{&nextSeq}"))
-# print(parse_constant_parameter("{&daydiff(dataset_clm_case.settle_approve_date,dataset_clm_case.report_time)}"))
-
-# print(parse_constant_parameter("{&x.daa}"))
-# print(parse_constant_parameter("{&dateDiff(test.date,test2.date2)}"))
