@@ -97,17 +97,29 @@ class TableWorker:
      
     def process_trigger_table(self, trigger_table: TriggerTable):
         try:
-            config = self.table_config_service.find_by_name(trigger_table.tableName, trigger_table.tenantId)
-            trigger_event = self.trigger_event_service.find_event_by_id(trigger_table.eventTriggerId)
-            criteria = self.get_criteria(trigger_event, config)
-            source_records = ask_source_extractor(config).find_primary_keys_by_criteria(
-                criteria
-            )
-            self.trigger_table_service.update_table_trigger(self.set_data_count(trigger_table, len(source_records)))
+            state_key = f"state/{self.tenant_id}/{trigger_table.eventTriggerId}/extract_table/{trigger_table.tableTriggerId}"
+            
+            if trigger_table.dataCount > 0 and trigger_table.isExtracted == False:
+                state = self.time_manger.load_state(self.tenant_id, state_key)
+                source_records = state['remaining_records']
+            else:
+                config = self.table_config_service.find_by_name(trigger_table.tableName, trigger_table.tenantId)
+                trigger_event = self.trigger_event_service.find_event_by_id(trigger_table.eventTriggerId)
+                criteria = self.get_criteria(trigger_event, config)
+                source_records = ask_source_extractor(config).find_primary_keys_by_criteria(
+                    criteria
+                )
+                state = {"remaining_records": source_records}
+                self.time_manger.save_state(self.tenant_id, state_key, state)
+                self.trigger_table_service.update_table_trigger(self.set_data_count(trigger_table, len(source_records)))
 
             shard_size = ask_serverless_extract_table_record_shard_size()
             
             for i in range(0, len(source_records), shard_size):
+                
+                if not self.time_manger.is_safe:
+                    return
+                
                 shards = source_records[i:i + shard_size]
                 successes, failures = self.send_messages(trigger_table, shards)
                 log_entity = {
@@ -116,7 +128,14 @@ class TableWorker:
                 }
                 log_key = f'logs/{self.tenant_id}/{trigger_table.eventTriggerId}/trigger_table/{trigger_table.tableTriggerId}/{self.snowflake_generator.next_id()}'
                 self.log_service.log_result(self.tenant_id, log_key, log_entity)
+                
+                state = {
+                    "remaining_records": source_records[i+shard_size:]
+                }
+                self.time_manger.save_state(self.tenant_id, state_key, state)
+
             self.trigger_table_service.update_table_trigger(self.set_extracted(trigger_table))
+            self.time_manger.delete_state(self.tenant_id, state_key)
         except Exception as e:
             logger.error(e, exc_info=True, stack_info=True)
             trigger_table.isExtracted = True
