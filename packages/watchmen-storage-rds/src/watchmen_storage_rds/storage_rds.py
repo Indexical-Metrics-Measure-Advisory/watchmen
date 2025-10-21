@@ -16,7 +16,7 @@ from watchmen_storage import ask_disable_compiled_cache, ColumnNameLiteral, Enti
 	EntityId, EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, EntitySort, \
 	EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, \
 	TooManyEntitiesFoundException, TransactionalStorageSPI, UnexpectedStorageException, \
-	UnsupportedStraightColumnException, EntityLimitedFinder
+	UnsupportedStraightColumnException, EntityLimitedFinder, EntityLimitedStraightValuesFinder
 from watchmen_utilities import ArrayHelper, is_blank, serialize_to_json
 from .settings import ask_connection_leak_time_in_seconds, ask_detect_connection_leak_enabled, \
 	ask_print_connection_leak_interval
@@ -339,6 +339,18 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = self.build_offset_for_statement(statement, finder.limit, 1)
 		results = self.connection.execute(statement).mappings().all()
 		return ArrayHelper(results).map(lambda x: dict(x)).map(finder.shaper.deserialize).to_list()
+	
+	def find_limited_straight_values(self, finder: EntityLimitedStraightValuesFinder) -> EntityList:
+		table = self.find_table(finder.name)
+		statement = select(
+			*ArrayHelper(finder.straightColumns).map(self.translate_straight_column_name).to_list()) \
+			.select_from(table)
+		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
+		statement = self.translate_straight_group_bys(statement, finder.straightColumns)
+		statement = self.build_sort_for_statement(statement, finder.sort)
+		statement = self.build_offset_for_statement(statement, finder.limit, 1)
+		results = self.connection.execute(statement).mappings().all()
+		return ArrayHelper(results).map(lambda x: dict(x)).to_list()
 
 	def find_for_update_skip_locked(self, finder: EntityLimitedFinder) -> EntityList:
 		table = self.find_table(finder.name)
@@ -412,7 +424,7 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = self.build_sort_for_statement(statement, finder.sort)
 		results = self.connection.execute(statement).mappings().all()
 		return ArrayHelper(results).map(lambda x: dict(x)).to_list()
-
+	
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		return self.find(EntityFinder(name=helper.name, shaper=helper.shaper))
 

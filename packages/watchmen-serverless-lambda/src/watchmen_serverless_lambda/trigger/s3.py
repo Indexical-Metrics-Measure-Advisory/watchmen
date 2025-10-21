@@ -1,5 +1,6 @@
 import logging
 
+from watchmen_serverless_lambda.common import set_mdc_tenant
 from watchmen_serverless_lambda.service.collector_monitor import get_collector_monitor
 
 logger = logging.getLogger(__name__)
@@ -16,6 +17,7 @@ def process_record(record, context):
         object_ = s3['object']
         key = object_["key"]
         tenant_id = extract_tenant_id(key)
+        set_mdc_tenant(tenant_id)
         monitor = get_collector_monitor(tenant_id)
         monitor.monitor_trigger_event(key)
     except Exception as err:

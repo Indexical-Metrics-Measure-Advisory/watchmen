@@ -13,6 +13,7 @@ from watchmen_model.pipeline_kernel import PipelineTriggerDataWithPAT, PipelineT
 from watchmen_pipeline_kernel.pipeline import try_to_invoke_pipelines
 from watchmen_rest import get_principal_by_pat, retrieve_authentication_manager
 from watchmen_rest.util import raise_400, validate_tenant_id
+from watchmen_serverless_lambda.common import set_mdc_tenant
 from watchmen_utilities import is_blank, serialize_to_json
 
 logger = getLogger(__name__)
@@ -67,6 +68,8 @@ def trigger_pipeline_handler(event, context):
         
         principal_service = get_principal_by_pat(
             retrieve_authentication_manager(), trigger_data.pat, [UserRole.ADMIN, UserRole.SUPER_ADMIN])
+        
+        set_mdc_tenant(principal_service.tenantId)
         
         trace_id: PipelineTriggerTraceId = str(
             ask_snowflake_generator().next_id())

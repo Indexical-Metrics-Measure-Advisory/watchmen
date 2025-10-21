@@ -7,7 +7,7 @@ from watchmen_model.common import DataPage
 from watchmen_storage import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, \
 	FreeAggregator, FreeFinder, FreePager, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException, \
-	EntityLimitedFinder
+	EntityLimitedFinder, EntityLimitedStraightValuesFinder
 from .object_defs_oss import find_directory, register_directory
 from .object_storage_service import ObjectStorageService
 
@@ -212,6 +212,17 @@ class StorageOss(TransactionalStorageSPI):
 		not supported by oss
 		"""
 		raise UnexpectedStorageException('Method[find_straight_values] does not support by oss storage.')
+	
+	def find_limited_straight_values(self, finder: EntityLimitedStraightValuesFinder) -> EntityList:
+		"""
+		fill values with given straight columns, returns an entity list
+		entity will not be deserialized by shaper.
+		And when there is aggregated columns, other columns will be used in group by
+		"""
+		"""
+		not supported by oss
+		"""
+		raise UnexpectedStorageException('Method[find_limited_straight_values] does not support by oss storage.')
 
 	def find_limited(self, finder: EntityLimitedFinder) -> EntityList:
 		"""

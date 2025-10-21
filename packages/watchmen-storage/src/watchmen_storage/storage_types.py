@@ -202,3 +202,7 @@ class EntityPager(EntityFinder):
 class EntityUpdater(EntityHelper):
 	criteria: Optional[EntityCriteria] = None
 	update: EntityUpdate
+
+
+class EntityLimitedStraightValuesFinder(EntityLimitedFinder):
+	straightColumns: List[EntityStraightColumn] = None
