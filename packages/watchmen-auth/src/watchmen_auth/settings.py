@@ -15,7 +15,7 @@ def ask_external_auth_on() -> bool:
 
 
 def ask_tenant_name_http_header_key() -> str:
-	return auth_settings.TENANT_NAME_HTTP_HEADER_KEY
+	return auth_settings.DATAZONE_NAME_HTTP_HEADER_KEY
 
 
 def ask_user_name_http_header_key() -> str:

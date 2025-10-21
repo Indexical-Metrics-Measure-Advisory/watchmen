@@ -75,18 +75,34 @@ class MongoConnection:
 
 	def find_with_project(
 			self, document: MongoDocument, project: Dict[str, Any],
-			criteria: Dict[str, Any], sort: Optional[Dict[str, Any]] = None):
+			criteria: Dict[str, Any], sort: Optional[Dict[str, Any]] = None,
+			limit: Optional[int] = None):
 		if sort is None:
-			return list(self.collection(document.name).aggregate(pipeline=[
-				{'$match': {'$expr': criteria}},
-				{'$project': project}
-			]))
+			if limit is None:
+				return list(self.collection(document.name).aggregate(pipeline=[
+					{'$match': {'$expr': criteria}},
+					{'$project': project}
+				]))
+			else:
+				return list(self.collection(document.name).aggregate(pipeline=[
+					{'$match': {'$expr': criteria}},
+					{'$project': project},
+					{'$limit': limit}
+				]))
 		else:
-			return list(self.collection(document.name).aggregate(pipeline=[
-				{'$match': {'$expr': criteria}},
-				{'$project': project},
-				{'$sort': sort}
-			]))
+			if limit is None:
+				return list(self.collection(document.name).aggregate(pipeline=[
+					{'$match': {'$expr': criteria}},
+					{'$project': project},
+					{'$sort': sort}
+				]))
+			else:
+				return list(self.collection(document.name).aggregate(pipeline=[
+					{'$match': {'$expr': criteria}},
+					{'$project': project},
+					{'$sort': sort},
+					{'$limit': limit}
+				]))
 
 	def find_all(self, document: MongoDocument) -> List[Dict[str, Any]]:
 		return list(self.collection(document.name).find(filter={}))
@@ -132,20 +148,38 @@ class MongoConnection:
 	def find_on_group(
 			self, document: MongoDocument, project: Dict[str, Any],
 			criteria: Dict[str, Any], group: Dict[str, Any],
-			sort: Optional[Dict[str, Any]] = None):
+			sort: Optional[Dict[str, Any]] = None,
+			limit: Optional[int] = None):
 		if sort is None:
-			return list(self.collection(document.name).aggregate([
-				{'$match': {'$expr': criteria}},
-				{'$group': group},
-				{'$project': project}
-			]))
+			if limit is None:
+				return list(self.collection(document.name).aggregate([
+					{'$match': {'$expr': criteria}},
+					{'$group': group},
+					{'$project': project}
+				]))
+			else:
+				return list(self.collection(document.name).aggregate([
+					{'$match': {'$expr': criteria}},
+					{'$group': group},
+					{'$project': project},
+					{'$limit': limit}
+				]))
 		else:
-			return list(self.collection(document.name).aggregate([
-				{'$match': {'$expr': criteria}},
-				{'$group': group},
-				{'$project': project},
-				{'$sort': sort}
-			]))
+			if limit is None:
+				return list(self.collection(document.name).aggregate([
+					{'$match': {'$expr': criteria}},
+					{'$group': group},
+					{'$project': project},
+					{'$sort': sort}
+				]))
+			else:
+				return list(self.collection(document.name).aggregate([
+					{'$match': {'$expr': criteria}},
+					{'$group': group},
+					{'$project': project},
+					{'$sort': sort},
+					{'$limit': limit}
+				]))
 
 	def page(
 			self, document: MongoDocument, criteria: Dict[str, Any],

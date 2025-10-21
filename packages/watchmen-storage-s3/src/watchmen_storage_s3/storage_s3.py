@@ -8,7 +8,7 @@ from watchmen_model.common import DataPage
 from watchmen_storage import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, \
 	FreeAggregator, FreeFinder, FreePager, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException, \
-	EntityLimitedFinder
+	EntityLimitedFinder, EntityLimitedStraightValuesFinder
 from .object_defs_s3 import find_directory, register_directory
 from .simple_storage_service import SimpleStorageService
 
@@ -201,6 +201,12 @@ class StorageS3(TransactionalStorageSPI):
 		                                                 finder.criteria)
 
 		return ArrayHelper(objects).map(lambda obj: {finder.straightColumns[0].columnName: obj.key}).to_list()
+	
+	def find_limited_straight_values(self, finder: EntityLimitedStraightValuesFinder) -> EntityList:
+		objects = self.s3_client.get_objects_by_criteria(find_directory(finder.name),
+		                                                 finder.criteria)
+
+		return ArrayHelper(objects).map(lambda obj: {finder.straightColumns[0].columnName: obj.key}).to_list()
 
 	def find_limited(self, finder: EntityLimitedFinder) -> EntityList:
 		prefix = self.s3_client.ask_table_path(find_directory(finder.name))
@@ -235,10 +241,10 @@ class StorageS3(TransactionalStorageSPI):
 		raise UnexpectedStorageException('Method[exists] does not support by S3 storage.')
 
 	def count(self, finder: EntityFinder) -> int:
-		"""
-		not supported by S3
-		"""
-		raise UnexpectedStorageException('Method[count] does not support by S3 storage.')
+		objects = self.s3_client.get_objects_by_criteria(find_directory(finder.name),
+		                                                 finder.criteria)
+		
+		return len(objects)
 
 
 # noinspection DuplicatedCode

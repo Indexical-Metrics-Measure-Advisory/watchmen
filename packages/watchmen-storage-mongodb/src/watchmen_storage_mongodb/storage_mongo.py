@@ -9,7 +9,7 @@ from watchmen_storage import as_table_name, Entity, EntityColumnAggregateArithme
 	EntityNotFoundException, EntityPager, EntityRow, EntityStraightAggregateColumn, EntityStraightColumn, \
 	EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, FreeAggregator, FreeFinder, FreePager, \
 	TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException, \
-	UnsupportedStraightColumnException, EntityLimitedFinder
+	UnsupportedStraightColumnException, EntityLimitedFinder, EntityLimitedStraightValuesFinder
 from watchmen_utilities import ArrayHelper, is_blank
 from .document_defs_mongo import find_document, register_document
 from .document_mongo import MongoDocument
@@ -426,7 +426,6 @@ class StorageMongoDB(TransactionalStorageSPI):
 			def add_column(columns: Dict[str, int], column: EntityStraightColumn) -> Dict[str, int]:
 				columns[column.columnName] = 1
 				return columns
-
 			project = ArrayHelper(straight_columns).reduce(add_column, {})
 			where = build_criteria_for_statement([document], finder.criteria)
 			sort = build_sort_for_statement(finder.sort)
@@ -444,6 +443,34 @@ class StorageMongoDB(TransactionalStorageSPI):
 			where = build_criteria_for_statement([document], finder.criteria)
 			sort = build_sort_for_statement(finder.sort)
 			return self.connection.find_on_group(document, project, where, group, sort)
+	
+	def find_limited_straight_values(self, finder: EntityLimitedStraightValuesFinder) -> EntityList:
+		document = self.find_document(finder.name)
+		straight_columns = finder.straightColumns
+		aggregate_columns = self.build_straight_aggregate_columns(straight_columns)
+		if len(aggregate_columns) == 0:
+			def add_column(columns: Dict[str, int], column: EntityStraightColumn) -> Dict[str, int]:
+				columns[column.columnName] = 1
+				return columns
+			project = ArrayHelper(straight_columns).reduce(add_column, {})
+			where = build_criteria_for_statement([document], finder.criteria)
+			sort = build_sort_for_statement(finder.sort)
+			limit = finder.limit
+			return self.connection.find_with_project(document, project, where, sort, limit)
+		else:
+			non_aggregate_columns = self.build_straight_non_aggregate_columns(straight_columns)
+			group = {
+				'_id': non_aggregate_columns,
+				**aggregate_columns
+			}
+			project = {
+				'_id': 0,
+				**self.build_straight_project_columns(straight_columns, non_aggregate_columns, aggregate_columns)
+			}
+			where = build_criteria_for_statement([document], finder.criteria)
+			sort = build_sort_for_statement(finder.sort)
+			limit = finder.limit
+			return self.connection.find_on_group(document, project, where, group, sort, limit)
 
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		document = self.find_document(helper.name)

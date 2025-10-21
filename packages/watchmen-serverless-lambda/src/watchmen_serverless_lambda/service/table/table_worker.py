@@ -17,7 +17,7 @@ from watchmen_serverless_lambda.service.time_manager import get_lambda_time_mana
 from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_serverless_lambda.model import ActionType
 from watchmen_serverless_lambda.queue import SQSSender
-from watchmen_storage import EntityCriteria
+from watchmen_storage import EntityCriteria, EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaOperator
 from watchmen_utilities import ArrayHelper, serialize_to_json
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 
@@ -98,28 +98,39 @@ class TableWorker:
     def process_trigger_table(self, trigger_table: TriggerTable):
         try:
             state_key = f"state/{self.tenant_id}/{trigger_table.eventTriggerId}/extract_table/{trigger_table.tableTriggerId}"
+            state = self.query_state(trigger_table, state_key)
+            if state['is_complete']:
+                self.time_manger.delete_state(self.tenant_id, state_key)
+                trigger_table = self.set_data_count(trigger_table, state.get("data_count"))
+                trigger_table = self.set_extracted(trigger_table)
+                self.trigger_table_service.update_table_trigger(trigger_table)
+                return
             
-            if trigger_table.dataCount > 0 and trigger_table.isExtracted == False:
-                state = self.time_manger.load_state(self.tenant_id, state_key)
-                source_records = state['remaining_records']
-            else:
-                config = self.table_config_service.find_by_name(trigger_table.tableName, trigger_table.tenantId)
-                trigger_event = self.trigger_event_service.find_event_by_id(trigger_table.eventTriggerId)
-                criteria = self.get_criteria(trigger_event, config)
-                source_records = ask_source_extractor(config).find_primary_keys_by_criteria(
-                    criteria
+            config = self.table_config_service.find_by_name(trigger_table.tableName, trigger_table.tenantId)
+            trigger_event = self.trigger_event_service.find_event_by_id(trigger_table.eventTriggerId)
+            base_criteria = self.get_criteria(trigger_event, config)
+            
+            if state['data_count'] == 0:
+                data_count = ask_source_extractor(config).count_by_criteria(
+                        base_criteria
                 )
-                state = {"remaining_records": source_records}
-                self.time_manger.save_state(self.tenant_id, state_key, state)
-                self.trigger_table_service.update_table_trigger(self.set_data_count(trigger_table, len(source_records)))
+                state["data_count"] = data_count
+                state["remaining_count"] = data_count
+                
+            criteria = self.get_criteria_with_pagination(base_criteria, state)
+            limit = 100000
+            source_records = ask_source_extractor(config).find_limited_primary_keys_by_criteria(
+                criteria,
+                limit
+            )
+            if not source_records:
+                state['is_complete'] = True
+                state["remaining_count"] = 0
+                return
 
             shard_size = ask_serverless_extract_table_record_shard_size()
             
             for i in range(0, len(source_records), shard_size):
-                
-                if not self.time_manger.is_safe:
-                    return
-                
                 shards = source_records[i:i + shard_size]
                 successes, failures = self.send_messages(trigger_table, shards)
                 log_entity = {
@@ -128,14 +139,12 @@ class TableWorker:
                 }
                 log_key = f'logs/{self.tenant_id}/{trigger_table.eventTriggerId}/trigger_table/{trigger_table.tableTriggerId}/{self.snowflake_generator.next_id()}'
                 self.log_service.log_result(self.tenant_id, log_key, log_entity)
-                
-                state = {
-                    "remaining_records": source_records[i+shard_size:]
-                }
-                self.time_manger.save_state(self.tenant_id, state_key, state)
-
-            self.trigger_table_service.update_table_trigger(self.set_extracted(trigger_table))
-            self.time_manger.delete_state(self.tenant_id, state_key)
+            
+            max_index = len(source_records) - 1
+            current_max_pk = source_records[max_index]
+            state['last_max_pk'] = current_max_pk
+            state['remaining_count'] -= len(source_records)
+            self.time_manger.save_state(self.tenant_id, state_key, state)
         except Exception as e:
             logger.error(e, exc_info=True, stack_info=True)
             trigger_table.isExtracted = True
@@ -143,6 +152,36 @@ class TableWorker:
             trigger_table.result = format_exc()
             self.trigger_table_service.update_table_trigger(trigger_table)
 
+    def query_state(self, trigger_table: TriggerTable, state_key: str) -> Dict:
+        state = self.time_manger.load_state(self.tenant_id, state_key)
+        if state:
+            return state
+        else:
+            return {
+                    "tenant_id": self.tenant_id,
+                    "event_trigger_id": trigger_table.eventTriggerId,
+                    "table_trigger_id": trigger_table.tableTriggerId,
+                    "last_max_pk": None,
+                    "data_count": 0,
+                    "remaining_count": 0,
+                    "is_complete": False
+                }
+
+    def build_criteria_by_primary_key(self, data_id: Dict) -> List[EntityCriteriaExpression]:
+        criteria = []
+        for key, value in data_id.items():
+            criteria.append(
+                EntityCriteriaExpression(left=ColumnNameLiteral(columnName=key),
+                                         operator=EntityCriteriaOperator.GREATER_THAN,
+                                         right=value)
+            )
+        return criteria
+    
+    def get_criteria_with_pagination(self, base_criteria: EntityCriteria, state: Dict):
+        data_id = state.get("last_max_pk")
+        if data_id:
+            base_criteria.extend(self.build_criteria_by_primary_key(data_id))
+        return base_criteria
     
     def send_messages(self, trigger_table: TriggerTable, records: List[Dict]) -> Tuple[Dict, Dict]:
         # batch send messages

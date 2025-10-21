@@ -4,6 +4,7 @@ from sys import stdout
 
 from .pydantic_helper import ExtendedBaseSettings
 from pythonjsonlogger.jsonlogger import JsonFormatter
+from .log_filter import MDCFilter
 
 
 class LogLevel(str, Enum):
@@ -23,7 +24,8 @@ class LoggerSettings(ExtendedBaseSettings):
 	LOGGER_FILE_ENCODING: str = 'utf-8'
 	LOGGER_JSON_FORMAT: bool = False
 	# noinspection SpellCheckingInspection
-	LOGGER_FORMAT: str = '%(asctime)s - %(process)d - %(threadName)s - %(name)s - %(levelname)s - %(message)s'
+	LOGGER_FORMAT: str = '%(asctime)s - %(tenant)s - %(process)d - %(threadName)s - %(name)s - %(levelname)s - %(message)s'
+	LOGGER_DEFAULT_DATAZONE: str = 'watchmen'
 
 
 def get_logger_level(level: LogLevel) -> int:
@@ -53,6 +55,7 @@ def init_log():
 	console.setLevel(logger_level)
 	formatter = Formatter(settings.LOGGER_FORMAT)
 	console.setFormatter(formatter)
+	console.addFilter(MDCFilter(settings.LOGGER_DEFAULT_DATAZONE))
 	logger.addHandler(console)
 
 	# Add file rotating handler
@@ -68,6 +71,8 @@ def init_log():
 		else:
 			formatter = Formatter(settings.LOGGER_FORMAT)
 		file_log_handler.setFormatter(formatter)
+		file_log_handler.addFilter(MDCFilter(settings.LOGGER_DEFAULT_DATAZONE))
 		logger.addHandler(file_log_handler)
-
+	
+	getLogger('apscheduler').setLevel(ERROR)
 	# logger.info(f'Logger settings[{settings.dict()}].')

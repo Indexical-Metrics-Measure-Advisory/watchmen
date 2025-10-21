@@ -23,6 +23,6 @@ from .storage_types import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOp
 	EntityCriteriaStatement, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityName, EntityPager, EntityRow, EntityShaper, EntitySort, EntitySortColumn, \
 	EntitySortMethod, EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightValuesFinder, EntityUpdate, \
-	EntityUpdater, Literal, EntityLimitedFinder
+	EntityUpdater, Literal, EntityLimitedFinder, EntityLimitedStraightValuesFinder
 from .topic_utils import as_table_name
 from .snowflake_workers import SnowflakeWorker, DBConfig

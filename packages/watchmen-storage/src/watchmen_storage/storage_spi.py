@@ -6,7 +6,8 @@ from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage
 from .free_storage_types import FreeAggregatePager, FreeAggregator, FreeFinder, FreePager
 from .storage_types import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
-	EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater, EntityLimitedFinder
+	EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater, EntityLimitedFinder, \
+	EntityLimitedStraightValuesFinder
 
 
 class StorageSPI(ABC):
@@ -145,6 +146,15 @@ class StorageSPI(ABC):
 		entity will not be deserialized by shaper.
 		And when there is aggregated columns, other columns will be used in group by
 		"""
+		pass
+	
+	@abstractmethod
+	def find_limited_straight_values(self, finder: EntityLimitedStraightValuesFinder) -> EntityList:
+		"""
+        fill values with given straight columns, returns an entity list
+        entity will not be deserialized by shaper.
+        And when there is aggregated columns, other columns will be used in group by
+        """
 		pass
 
 	@abstractmethod

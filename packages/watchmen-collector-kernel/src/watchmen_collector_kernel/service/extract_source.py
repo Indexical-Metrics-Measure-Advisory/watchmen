@@ -16,7 +16,7 @@ from watchmen_data_kernel.service import ask_topic_storage, ask_topic_data_servi
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Topic, TopicKind, Factor, TopicType
 from watchmen_storage import EntityCriteria, EntityStraightColumn, DataSourceHelper, \
-	UnexpectedStorageException, EntityIdHelper
+	UnexpectedStorageException, EntityIdHelper, EntitySortColumn, EntitySortMethod
 from watchmen_utilities import get_current_time_in_seconds, ArrayHelper
 from watchmen_collector_kernel.cache import CollectorCacheService
 from watchmen_collector_kernel.common import CollectorKernelException
@@ -89,6 +89,16 @@ class SourceExtractor(ExtractorSPI, ABC):
 		CollectorCacheService.collector_topic().put_topic_by_id(topic)
 		return topic
 
+	def count_by_criteria(self, criteria: EntityCriteria) -> Optional[int]:
+		try:
+			return self.service.count_by_criteria(
+				criteria
+			)
+		except Exception as e:
+			raise CollectorKernelException(
+				f'count_by_criteria error, the table is {self.config.tableName}, the criteria is {criteria}'
+			) from e
+
 	def find_primary_keys_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
 		try:
 			return self.lower_key(self.service.find_straight_values(
@@ -102,6 +112,23 @@ class SourceExtractor(ExtractorSPI, ABC):
 				f'find_primary_keys_by_criteria error, the table is {self.config.tableName}, the criteria is {criteria}'
 			) from e
 
+	def find_limited_primary_keys_by_criteria(self, criteria: EntityCriteria, limit: int) -> Optional[List[Dict[str, Any]]]:
+		try:
+			return self.lower_key(self.service.find_limited_straight_values(
+				criteria=criteria,
+				columns=ArrayHelper(self.config.primaryKey).map(
+					lambda column_name: EntityStraightColumn(columnName=column_name)
+				).to_list(),
+				sort=ArrayHelper(self.config.primaryKey).map(
+					lambda column_name: EntitySortColumn(name=column_name, method=EntitySortMethod.ASC)
+				).to_list(),
+				limit=limit
+			))
+		except Exception as e:
+			raise CollectorKernelException(
+				f'find_limited_primary_keys_by_criteria error, the table is {self.config.tableName}, the criteria is {criteria}'
+			) from e
+		
 	def find_one_record_of_table(self) -> Optional[List[Dict[str, Any]]]:
 		result = self.service.find_limited_values(criteria=[], limit=1)
 		if result:
@@ -332,13 +359,35 @@ class SourceS3Extractor(SourceExtractor):
 		topic.lastModifiedAt = now
 		topic.lastModifiedBy = self.principal_service.get_user_id()
 		return topic
-
+	
+	def count_by_criteria(self, criteria: EntityCriteria) -> Optional[int]:
+		try:
+			return self.service.count_by_criteria(
+				criteria
+			)
+		except Exception as e:
+			raise CollectorKernelException(
+				f'count_by_criteria error, the table is {self.config.tableName}, the criteria is {criteria}'
+			) from e
+		
 	def find_primary_keys_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
 		return self.service.find_straight_values(
 			criteria=criteria,
 			columns=ArrayHelper(self.config.primaryKey).map(
 				lambda column_name: EntityStraightColumn(columnName=column_name)
 			).to_list()
+		)
+
+	def find_limited_primary_keys_by_criteria(self, criteria: EntityCriteria, limit: int) -> Optional[List[Dict[str, Any]]]:
+		return self.service.find_limited_straight_values(
+			criteria=criteria,
+			columns=ArrayHelper(self.config.primaryKey).map(
+				lambda column_name: EntityStraightColumn(columnName=column_name)
+			).to_list(),
+			sort=ArrayHelper(self.config.primaryKey).map(
+				lambda column_name: EntitySortColumn(name=column_name, method=EntitySortMethod.ASC)
+			).to_list(),
+			limit = limit
 		)
 
 	def find_one_record_of_table(self) -> Optional[List[Dict[str, Any]]]:
@@ -398,6 +447,18 @@ class TopicTableExtractor(SourceExtractor):
 			columns=ArrayHelper(self.config.primaryKey).map(
 				lambda column_name: EntityStraightColumn(columnName=column_name)
 			).to_list()
+		)
+	
+	def find_limited_primary_keys_by_criteria(self, criteria: EntityCriteria, limit: int) -> Optional[List[Dict[str, Any]]]:
+		return self.service.find_limited_straight_values(
+			criteria=criteria,
+			columns=ArrayHelper(self.config.primaryKey).map(
+				lambda column_name: EntityStraightColumn(columnName=column_name)
+			).to_list(),
+			sort=ArrayHelper(self.config.primaryKey).map(
+				lambda column_name: EntitySortColumn(name=column_name, method=EntitySortMethod.ASC)
+			).to_list(),
+			limit=limit
 		)
 
 	def find_one_record_of_table(self) -> Optional[List[Dict[str, Any]]]:

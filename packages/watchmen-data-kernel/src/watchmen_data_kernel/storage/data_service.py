@@ -11,7 +11,7 @@ from watchmen_model.admin import PipelineTriggerType, Topic
 from watchmen_model.common import DataModel, DataPage, Pageable
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import EntityColumnName, EntityCriteria, EntityPager, EntityStraightColumn, SnowflakeGenerator, \
-	TopicDataStorageSPI, EntityId
+	TopicDataStorageSPI, EntityId, EntitySort
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 from .data_entity_helper import TopicDataEntityHelper
 
@@ -330,6 +330,19 @@ class TopicDataService(TopicStructureService):
 		finally:
 			storage.close()
 
+	def find_limited_straight_values(
+			self, criteria: EntityCriteria, columns: List[EntityStraightColumn], sort: Optional[EntitySort], limit: int) -> List[Dict[str, Any]]:
+		data_entity_helper = self.get_data_entity_helper()
+		storage = self.get_storage()
+		try:
+			storage.connect()
+			return storage.find_limited_straight_values(data_entity_helper.get_limited_straight_values_finder(criteria,
+			                                                                                                  columns,
+			                                                                                                  sort,
+			                                                                                                  limit))
+		finally:
+			storage.close()
+			
 	def find_limited_values(self, criteria: EntityCriteria, limit: int) -> List[Dict[str, Any]]:
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()

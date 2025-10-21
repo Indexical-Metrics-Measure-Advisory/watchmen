@@ -10,7 +10,7 @@ from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, EntityColumnName, EntityCriteria, EntityCriteriaExpression, \
 	EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityIdHelper, EntityPager, EntitySort, \
 	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdate, EntityUpdater, SnowflakeGenerator, \
-	EntityLimitedFinder
+	EntityLimitedFinder, EntityLimitedStraightValuesFinder
 from .shaper import TopicShaper
 
 
@@ -109,6 +109,21 @@ class TopicDataEntityHelper:
 			criteria=criteria,
 			sort=sort,
 			straightColumns=columns
+		)
+	
+	def get_limited_straight_values_finder(
+			self,
+			criteria: EntityCriteria, columns: List[EntityStraightColumn],
+			sort: Optional[EntitySort] = None,
+			limit: Optional[int] = None) -> EntityLimitedStraightValuesFinder:
+		entity_helper = self.get_entity_helper()
+		return EntityLimitedStraightValuesFinder(
+			name=entity_helper.name,
+			shaper=entity_helper.shaper,
+			criteria=criteria,
+			sort=sort,
+			straightColumns=columns,
+			limit=limit
 		)
 
 	def get_limited_finder(self, criteria: EntityCriteria, limit: int, sort: Optional[EntitySort] = None):

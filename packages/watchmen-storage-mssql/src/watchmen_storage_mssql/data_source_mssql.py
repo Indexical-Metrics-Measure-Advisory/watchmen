@@ -1,3 +1,4 @@
+import urllib.parse
 from typing import List, Optional
 
 from sqlalchemy import create_engine
@@ -57,12 +58,13 @@ class MSSQLDataSourceHelper(DataSourceHelper):
 			params: MSSQLDataSourceParams
 	) -> Engine:
 		dsn = MSSQLDataSourceHelper.find_param(data_source_params, 'dsn')
+		encoded_password = urllib.parse.quote_plus(password)
 		if dsn is not None:
-			url = f'mssql+pyodbc://{username}:{password}@{dsn}'
+			url = f'mssql+pyodbc://{username}:{encoded_password}@{dsn}'
 			return MSSQLDataSourceHelper.acquire_engine_by_url(url, params)
 		else:
 			# todo for the tls connection
-			url = f'mssql+pyodbc://{username}:{password}@{host}:{port}/{name}?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes'
+			url = f'mssql+pyodbc://{username}:{encoded_password}@{host}:{port}/{name}?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes'
 			return MSSQLDataSourceHelper.acquire_engine_by_url(url, params)
 
 	def acquire_storage(self) -> StorageMSSQL:
