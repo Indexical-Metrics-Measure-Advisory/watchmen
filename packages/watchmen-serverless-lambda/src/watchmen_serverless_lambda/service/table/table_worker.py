@@ -126,6 +126,7 @@ class TableWorker:
             if not source_records:
                 state['is_complete'] = True
                 state["remaining_count"] = 0
+                self.time_manger.save_state(self.tenant_id, state_key, state)
                 return
 
             shard_size = ask_serverless_extract_table_record_shard_size()

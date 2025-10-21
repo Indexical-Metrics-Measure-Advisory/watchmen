@@ -39,7 +39,10 @@ class MDCMiddleware(BaseHTTPMiddleware):
                 else:
                     principal_service = get_any_principal(request)
                     tenant = TenantService(principal_service).find_by_id(principal_service.tenantId)
-                    mdc_put("tenant", tenant.name)
+                    if tenant:
+                        mdc_put("tenant", tenant.name)
+                    else:
+                        mdc_put("tenant", self.default_tenant)
                     
                 response: Response = await call_next(request)
         finally:
