@@ -58,8 +58,8 @@ async def health_check():
 #     return {"dimensions": []}
 
 
-@router.get("/list_metrics")
-async def list_metrics(principal_service: PrincipalService = Depends(get_admin_principal)):
+@router.get("/list_metrics",tags =["mcp"])
+async def list_m(principal_service: PrincipalService = Depends(get_admin_principal)):
 
     """
     List all metrics available in the metric system.
@@ -72,9 +72,21 @@ async def list_metrics(principal_service: PrincipalService = Depends(get_admin_p
     return find_all_metrics(config)
 
 
+@router.post("/dimensions_by_metric", tags =["mcp"])
+async def find_d(metric_name: str,principal_service: PrincipalService = Depends(get_admin_principal)):
+    """
+    Find common dimensions between a list of metrics and a list of dimensions.
+    """
+
+    config = await build_metric_config(principal_service)
+
+    return load_dimensions_by_metrics([metric_name], config)
+
+
+
 # find common dimensions between metrics and dimensions
-@router.post("/find_dimensions")
-async def find_common_dimensions(metrics: List[str],principal_service: PrincipalService = Depends(get_admin_principal)):
+@router.post("/find_dimensions", tags =["mcp"])
+async def find_ds(metrics: List[str],principal_service: PrincipalService = Depends(get_admin_principal)):
     """
     Find common dimensions between a list of metrics and a list of dimensions.
     """
@@ -84,15 +96,30 @@ async def find_common_dimensions(metrics: List[str],principal_service: Principal
     return load_dimensions_by_metrics(metrics, config)
 
 
+@router.post("/query_metric",tags =["mcp"], response_model=MetricFlowResponse)
+async def q_metric(req :MetricQueryRequest,
+                        principal_service: PrincipalService = Depends(get_admin_principal)):
+
+    config = await build_metric_config(principal_service)
+
+    ## check topic and subject space acesss
+
+    # cfg = data_config_loader.get_config()
+    query_result: MetricFlowQueryResult = query(
+        cfg=config,
+        metrics=req.metrics,
+        group_by=req.group_by
+    )
+    res = MetricFlowResponse(data=query_result.result_df.rows, column_names=query_result.result_df.column_names)
+    return res
+
+
 @router.post("/query_metrics", response_model=List[MetricFlowResponse])
-async def query_metrics(request_list: List[MetricQueryRequest],
+async def q_metrics(request_list: List[MetricQueryRequest],
                         principal_service: PrincipalService = Depends(get_admin_principal)):
     config = await build_metric_config(principal_service)
 
 
-    ## check topic and subject space acesss 
-
-    # cfg = data_config_loader.get_config()
     response_list = []
     for request in request_list:
         query_result: MetricFlowQueryResult = query(

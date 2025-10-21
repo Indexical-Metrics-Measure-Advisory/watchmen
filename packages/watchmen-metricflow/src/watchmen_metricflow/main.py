@@ -1,15 +1,29 @@
+from fastapi import FastAPI
+from fastapi_mcp import FastApiMCP
+
 from watchmen_metricflow.app import metric_flow_app
 from watchmen_metricflow.router import metric_meta_router, semantic_meta_router, metric_router, data_profile_router, topic_router
+from watchmen_metricflow.settings import ask_mcp_flag
 
 from watchmen_rest.system import health_router
 from watchmen_utilities import ArrayHelper
 
-app = metric_flow_app.construct()
+app:FastAPI = metric_flow_app.construct()
 
 
 @app.on_event("startup")
 def startup():
     metric_flow_app.on_startup(app)
+
+    if ask_mcp_flag():
+        mcp = FastApiMCP(
+            app,
+            include_tags=["mcp"]
+        )
+
+        mcp.mount_http()
+
+
 
 
 ArrayHelper([

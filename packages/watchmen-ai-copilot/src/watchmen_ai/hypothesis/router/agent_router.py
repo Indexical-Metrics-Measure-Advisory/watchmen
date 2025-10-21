@@ -232,12 +232,6 @@ async def build_conclusions_and_generate_analysis_report(
     # simulation_result.result.challengeMarkdown
 
 
-
-
-
-
-    ##
-
     simulation_result.result["challengeMarkdown"] = analysis_report
 
     return simulation_result

@@ -3,13 +3,14 @@ from watchmen_rest import RestSettings
 
 class MetricFlowSettings(RestSettings):
     APP_NAME: str = 'Watchmen Metric Flow'
+    MCP_FLAG:bool = True
 
 
 
-ai_settings = MetricFlowSettings()
+mf_settings = MetricFlowSettings()
 
-# def ask_azure_api_key() -> str:
-#     return ai_settings.AZURE_API_KEY
+def ask_mcp_flag() -> bool:
+    return mf_settings.MCP_FLAG
 #
 #
 # def ask_azure_api_base() -> str:
