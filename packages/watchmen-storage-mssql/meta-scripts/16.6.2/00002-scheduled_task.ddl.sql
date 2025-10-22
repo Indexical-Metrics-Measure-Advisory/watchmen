@@ -1,2 +1,2 @@
-ALTER TABLE scheduled_task ADD COLUMN pipeline_id NVARCHAR(50);
-ALTER TABLE scheduled_task ADD COLUMN type smallint;
+ALTER TABLE scheduled_task ADD  pipeline_id NVARCHAR(50);
+ALTER TABLE scheduled_task ADD  type smallint;

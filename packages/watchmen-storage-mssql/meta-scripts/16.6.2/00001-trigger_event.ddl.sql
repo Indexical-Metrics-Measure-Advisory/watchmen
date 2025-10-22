@@ -1,1 +1,1 @@
-ALTER TABLE trigger_event ADD COLUMN pipeline_id NVARCHAR(50);
+ALTER TABLE trigger_event ADD  pipeline_id NVARCHAR(50);

@@ -1,1 +1,1 @@
-ALTER TABLE scheduled_task_history ADD COLUMN event_id NVARCHAR(200);
+ALTER TABLE scheduled_task_history ADD  event_id NVARCHAR(200);

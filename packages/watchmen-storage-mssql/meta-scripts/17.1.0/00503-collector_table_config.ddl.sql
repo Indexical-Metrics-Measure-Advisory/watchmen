@@ -1,1 +1,1 @@
-DROP INDEX u_collector_table_config_2;
+DROP INDEX u_collector_table_config_2 ON collector_table_config;

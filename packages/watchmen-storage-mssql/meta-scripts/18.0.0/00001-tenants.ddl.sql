@@ -1,1 +1,1 @@
-ALTER TABLE tenants ADD COLUMN enable_ai smallint;
+ALTER TABLE tenants ADD enable_ai smallint;

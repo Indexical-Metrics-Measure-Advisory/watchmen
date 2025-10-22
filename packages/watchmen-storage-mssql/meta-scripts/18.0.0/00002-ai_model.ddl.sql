@@ -1,7 +1,7 @@
 CREATE TABLE ai_models
 (
     model_id           NVARCHAR(50) NOT NULL,
-    enable_monitor     TINYINT(1)  NOT NULL,
+    enable_monitor     TINYINT  NOT NULL,
     llm_provider       NVARCHAR(20) NOT NULL,
     base_url           NVARCHAR(100),
     model_name         NVARCHAR(50),

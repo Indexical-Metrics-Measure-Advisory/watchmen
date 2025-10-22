@@ -1,1 +1,1 @@
-ALTER TABLE scheduled_task ADD COLUMN event_id NVARCHAR(200);
+ALTER TABLE scheduled_task ADD  event_id NVARCHAR(200);

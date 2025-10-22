@@ -1,1 +1,1 @@
-ALTER TABLE trigger_event ADD COLUMN params NVARCHAR(MAX) NULL;
+ALTER TABLE trigger_event ADD  params NVARCHAR(MAX) NULL;

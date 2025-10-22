@@ -5,7 +5,7 @@ CREATE TABLE change_data_record
     table_name              NVARCHAR(50)     NOT NULL,
     data_id                 NVARCHAR(MAX)    NOT NULL,
     root_table_name         NVARCHAR(50),
-    root_data_id            NVARCHAR(MAX)
+    root_data_id            NVARCHAR(MAX),
     is_merged               TINYINT          NOT NULL,
     result                  NVARCHAR(MAX),
     table_trigger_id        DECIMAL(20)      NOT NULL,

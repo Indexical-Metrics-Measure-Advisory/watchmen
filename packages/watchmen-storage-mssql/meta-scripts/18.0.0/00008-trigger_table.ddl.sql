@@ -1,1 +1,1 @@
-ALTER TABLE trigger_table ADD COLUMN result NVARCHAR(MAX);
+ALTER TABLE trigger_table ADD result NVARCHAR(MAX);
