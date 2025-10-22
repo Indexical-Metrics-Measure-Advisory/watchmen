@@ -1,2 +1,4 @@
+ALTER TABLE snowflake_competitive_workers DROP CONSTRAINT pk_snowflake_competitive_workers;
 ALTER TABLE snowflake_competitive_workers ALTER COLUMN data_center_id INTEGER NOT NULL;
 ALTER TABLE snowflake_competitive_workers ALTER COLUMN worker_id INTEGER NOT NULL;
+ALTER TABLE snowflake_competitive_workers ADD CONSTRAINT pk_snowflake_competitive_workers PRIMARY KEY (data_center_id,worker_id);
