@@ -9,6 +9,7 @@ from watchmen_metricflow.meta.metrics_meta_service import MetricService
 from watchmen_metricflow.meta.semantic_meta_service import SemanticModelService
 from watchmen_metricflow.metricflow.config.db_version.cli_configuration_db import CLIConfigurationDB
 from watchmen_metricflow.metricflow.main_api import query, load_dimensions_by_metrics, find_all_metrics
+from watchmen_metricflow.model.dimension_response import DimensionListResponse, MetricListResponse
 from watchmen_metricflow.model.metric_request import MetricQueryRequest
 from watchmen_metricflow.model.metrics import Metric
 from watchmen_metricflow.model.semantic import SemanticModel
@@ -46,7 +47,9 @@ async def health_check():
     """
     return {"status": "ok"}
 
-
+@router.get("/get_dimension_values",tags =["mcp"],operation_id="get_dimension_values")
+async def get_dimension_values():
+    pass
 
 # @router.get("/list_dimensions")
 # async def list_dimensions(principal_service: PrincipalService = Depends(get_admin_principal)):
@@ -58,8 +61,18 @@ async def health_check():
 #     return {"dimensions": []}
 
 
-@router.get("/list_metrics",tags =["mcp"])
-async def list_m(principal_service: PrincipalService = Depends(get_admin_principal)):
+@router.get("/current_date",tags =["mcp"],operation_id="get_current_date")
+async def get_current_date(principal_service: PrincipalService = Depends(get_admin_principal)):
+    from datetime import date
+
+    today = date.today()
+    return today
+
+
+
+
+@router.get("/list_metrics",tags =["mcp"],operation_id="list_metrics",response_model=MetricListResponse)
+async def list_metrics(principal_service: PrincipalService = Depends(get_admin_principal))->MetricListResponse:
 
     """
     List all metrics available in the metric system.
@@ -72,12 +85,11 @@ async def list_m(principal_service: PrincipalService = Depends(get_admin_princip
     return find_all_metrics(config)
 
 
-@router.post("/dimensions_by_metric", tags =["mcp"])
-async def find_d(metric_name: str,principal_service: PrincipalService = Depends(get_admin_principal)):
+@router.post("/dimensions_by_metric", tags =["mcp"],operation_id="find_dimensions_by_metric",response_model=DimensionListResponse)
+async def find_dimensions_by_metric(metric_name: str,principal_service: PrincipalService = Depends(get_admin_principal))->DimensionListResponse:
     """
     Find common dimensions between a list of metrics and a list of dimensions.
     """
-
     config = await build_metric_config(principal_service)
 
     return load_dimensions_by_metrics([metric_name], config)
@@ -85,8 +97,8 @@ async def find_d(metric_name: str,principal_service: PrincipalService = Depends(
 
 
 # find common dimensions between metrics and dimensions
-@router.post("/find_dimensions", tags =["mcp"])
-async def find_ds(metrics: List[str],principal_service: PrincipalService = Depends(get_admin_principal)):
+@router.post("/find_dimensions", tags =["mcp"],operation_id="find_dimensions",response_model=DimensionListResponse)
+async def find_dimensions(metrics: List[str],principal_service: PrincipalService = Depends(get_admin_principal))->DimensionListResponse:
     """
     Find common dimensions between a list of metrics and a list of dimensions.
     """
@@ -97,8 +109,8 @@ async def find_ds(metrics: List[str],principal_service: PrincipalService = Depen
 
 
 @router.post("/query_metric",tags =["mcp"], response_model=MetricFlowResponse)
-async def q_metric(req :MetricQueryRequest,
-                        principal_service: PrincipalService = Depends(get_admin_principal)):
+async def query_metric(req :MetricQueryRequest,
+                        principal_service: PrincipalService = Depends(get_admin_principal))->MetricFlowResponse:
 
     config = await build_metric_config(principal_service)
 
@@ -133,10 +145,11 @@ async def q_metrics(request_list: List[MetricQueryRequest],
     return response_list
 
 
+
+
+
 async def build_metric_config(principal_service):
     tenant_id = principal_service.tenantId
-
-
 
     # Return cached configuration if available
     cached = metric_config_cache.get(tenant_id)
