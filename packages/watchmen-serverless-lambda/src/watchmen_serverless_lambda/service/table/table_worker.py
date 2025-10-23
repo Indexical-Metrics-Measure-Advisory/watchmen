@@ -12,7 +12,8 @@ from watchmen_collector_kernel.storage import get_trigger_table_service, get_com
     get_collector_table_config_service, get_trigger_event_service, get_change_data_record_service
 from watchmen_meta.common import ask_super_admin, ask_snowflake_generator, ask_meta_storage
 from watchmen_serverless_lambda.common import ask_serverless_queue_url, \
-    ask_serverless_table_extractor_record_max_batch_size, ask_serverless_extract_table_record_shard_size
+    ask_serverless_table_extractor_record_max_batch_size, ask_serverless_extract_table_record_shard_size, \
+    ask_serverless_extract_table_limit_size
 from watchmen_serverless_lambda.service.time_manager import get_lambda_time_manager
 from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_serverless_lambda.model import ActionType
@@ -118,7 +119,7 @@ class TableWorker:
                 state["remaining_count"] = data_count
                 
             criteria = self.get_criteria_with_pagination(base_criteria, state)
-            limit = 100000
+            limit = ask_serverless_extract_table_limit_size()
             source_records = ask_source_extractor(config).find_limited_primary_keys_by_criteria(
                 criteria,
                 limit
