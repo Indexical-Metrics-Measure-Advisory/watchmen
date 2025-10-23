@@ -18,7 +18,10 @@ def startup():
     if ask_mcp_flag():
         mcp = FastApiMCP(
             app,
-            include_tags=["mcp"]
+            include_tags=["mcp"],
+            description = "mcp services for insurance metrics analysis",
+            describe_all_responses = True,
+            describe_full_response_schema = True
         )
 
         mcp.mount_http()
@@ -28,8 +31,6 @@ def startup():
 
 ArrayHelper([
     health_router.router,
-    # document_router.router,
-    # data_story_router.router,
     metric_meta_router.router,
     semantic_meta_router.router,
     metric_router.router,

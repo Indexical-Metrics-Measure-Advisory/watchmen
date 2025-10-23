@@ -6,13 +6,14 @@ from pathlib import Path
 from typing import Optional, Sequence, List, Dict
 
 from watchmen_metricflow.metricflow.config.db_version.cli_configuration_db import CLIConfigurationDB
+from watchmen_metricflow.model.dimension_response import DimensionInfo, DimensionListResponse, MetricInfo, MetricListResponse
 
 
 # cfg = CLIConfiguration()
 
 
 
-def find_all_metrics(cfg: CLIConfiguration) -> List[Dict[str, str]]:
+def find_all_metrics(cfg: CLIConfiguration) -> MetricListResponse:
     """List all available metrics in the MetricFlow configuration."""
     if not cfg.is_setup:
         cfg.setup()
@@ -20,19 +21,24 @@ def find_all_metrics(cfg: CLIConfiguration) -> List[Dict[str, str]]:
     metrics :List[Metric] =  cfg.mf.list_metrics()  # type: ignore
 
     ## find name and label
-    return [
-        {
-            "name": metric.name,
-            "label": metric.label,
-            "description": metric.description,
-            "type": metric.type.name,
-        }
+    metric_infos = [
+        MetricInfo(
+            name=metric.name,
+            label=metric.label,
+            description=metric.description,
+            type=metric.type.name,
+        )
         for metric in metrics
     ]
+    
+    return MetricListResponse(
+        metrics=metric_infos,
+        total_count=len(metric_infos)
+    )
 
 
 
-def find_all_dimensions(cfg: CLIConfiguration) -> List[Dict[str, str]]:
+def find_all_dimensions(cfg: CLIConfiguration) -> DimensionListResponse:
     """List all available dimensions in the MetricFlow configuration."""
     if not cfg.is_setup:
         cfg.setup()
@@ -40,17 +46,23 @@ def find_all_dimensions(cfg: CLIConfiguration) -> List[Dict[str, str]]:
     dimensions: List[Dimension] = cfg.mf.list_dimensions()  # type: ignore
 
     ## find name and label
-    return [
-        {
-            "name": dimension.name,
-            "qualified_name": dimension.qualified_name,
-            "description": dimension.description,
-            "type": dimension.type.name,
-        }
-        for dimension in dimensions]
+    dimension_infos = [
+        DimensionInfo(
+            name=dimension.name,
+            qualified_name=dimension.qualified_name,
+            description=dimension.description,
+            type=dimension.type.name,
+        )
+        for dimension in dimensions
+    ]
+    
+    return DimensionListResponse(
+        dimensions=dimension_infos,
+        total_count=len(dimension_infos)
+    )
 
 
-def load_dimensions_by_metrics(metrics:List[str], cfg: CLIConfiguration) -> List[Dict[str, str]]:
+def load_dimensions_by_metrics(metrics:List[str], cfg: CLIConfiguration) -> DimensionListResponse:
     if not cfg.is_setup:
         cfg.setup()
 
@@ -58,14 +70,20 @@ def load_dimensions_by_metrics(metrics:List[str], cfg: CLIConfiguration) -> List
 
     # print(dimensions)
 
-    return [
-        {
-            "name": dimension.name,
-            "qualified_name": dimension.qualified_name,
-            "description":dimension.description,
-            "type": dimension.type.name,
-        }
-        for dimension in dimensions]
+    dimension_infos = [
+        DimensionInfo(
+            name=dimension.name,
+            qualified_name=dimension.qualified_name,
+            description=dimension.description,
+            type=dimension.type.name,
+        )
+        for dimension in dimensions
+    ]
+    
+    return DimensionListResponse(
+        dimensions=dimension_infos,
+        total_count=len(dimension_infos)
+    )
 
 
 def query(
@@ -143,12 +161,14 @@ def query(
 
 
 
-if __name__ == "__main__":
-    # Example usage
-    cfg = CLIConfiguration()
-    query(
-        cfg=cfg,
-        metrics=["total_revenue"],
-        group_by=["metric_time__week"],
-        limit=100,
-    )
+
+
+# if __name__ == "__main__":
+#     # Example usage
+#     cfg = CLIConfiguration()
+#     query(
+#         cfg=cfg,
+#         metrics=["total_revenue"],
+#         group_by=["metric_time__week"],
+#         limit=100,
+#     )
