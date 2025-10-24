@@ -8,14 +8,15 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
 from watchmen_metricflow.meta.semantic_meta_service import SemanticModelService
 from watchmen_metricflow.metricflow.config.db_version.cli_configuration_db import CLIConfigurationDB
-from watchmen_metricflow.metricflow.main_api import query, load_dimensions_by_metrics, find_all_metrics
+from watchmen_metricflow.metricflow.main_api import query, load_dimensions_by_metrics, find_all_metrics, \
+    get_dimension_values
 from watchmen_metricflow.model.dimension_response import DimensionListResponse, MetricListResponse
 from watchmen_metricflow.model.metric_request import MetricQueryRequest
 from watchmen_metricflow.model.metrics import Metric
 from watchmen_metricflow.model.semantic import SemanticModel
 from watchmen_metricflow.service.meta_service import load_metrics_by_tenant_id, load_semantic_models_by_tenant_id, \
     build_profile
-from watchmen_rest import get_admin_principal
+from watchmen_rest import get_admin_principal, get_any_principal
 from watchmen_utilities import ExtendedBaseModel
 from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
 
@@ -36,8 +37,7 @@ class MetricFlowResponse(ExtendedBaseModel):
     column_names: List[str]
 
 
-async def list_metrics():
-    pass
+
 
 
 @router.get("/metrics/health")
@@ -47,18 +47,7 @@ async def health_check():
     """
     return {"status": "ok"}
 
-@router.get("/get_dimension_values",tags =["mcp"],operation_id="get_dimension_values")
-async def get_dimension_values():
-    pass
 
-# @router.get("/list_dimensions")
-# async def list_dimensions(principal_service: PrincipalService = Depends(get_admin_principal)):
-#     """
-#     List all dimensions available in the metric system.
-#     """
-#     config = await build_metric_config(principal_service)
-#     # Placeholder for actual implementation
-#     return {"dimensions": []}
 
 
 @router.get("/current_date",tags =["mcp"],operation_id="get_current_date")
@@ -126,8 +115,15 @@ async def query_metric(req :MetricQueryRequest,
     return res
 
 
+
+
+
+
+
+
+
 @router.post("/query_metrics", response_model=List[MetricFlowResponse])
-async def q_metrics(request_list: List[MetricQueryRequest],
+async def query_metrics(request_list: List[MetricQueryRequest],
                         principal_service: PrincipalService = Depends(get_admin_principal)):
     config = await build_metric_config(principal_service)
 
@@ -167,3 +163,5 @@ async def build_metric_config(principal_service):
     # Cache configuration for this tenant
     metric_config_cache.put(tenant_id, config)
     return config
+
+

@@ -9,9 +9,6 @@ from watchmen_metricflow.metricflow.config.db_version.cli_configuration_db impor
 from watchmen_metricflow.model.dimension_response import DimensionInfo, DimensionListResponse, MetricInfo, MetricListResponse
 
 
-# cfg = CLIConfiguration()
-
-
 
 def find_all_metrics(cfg: CLIConfiguration) -> MetricListResponse:
     """List all available metrics in the MetricFlow configuration."""
@@ -35,6 +32,14 @@ def find_all_metrics(cfg: CLIConfiguration) -> MetricListResponse:
         metrics=metric_infos,
         total_count=len(metric_infos)
     )
+
+
+def get_dimension_values(cfg: CLIConfiguration,metric_name:str,group_by_name:str,time_constraint_start,time_constraint_end):
+    if not cfg.is_setup:
+        cfg.setup()
+
+    dimension_values :List[str] = cfg.mf.get_dimension_values(metric_names=[metric_name],get_group_by_values=group_by_name,time_constraint_start=time_constraint_start ,time_constraint_end=time_constraint_end)
+    return dimension_values
 
 
 
@@ -160,15 +165,3 @@ def query(
     return query_result
 
 
-
-
-
-# if __name__ == "__main__":
-#     # Example usage
-#     cfg = CLIConfiguration()
-#     query(
-#         cfg=cfg,
-#         metrics=["total_revenue"],
-#         group_by=["metric_time__week"],
-#         limit=100,
-#     )

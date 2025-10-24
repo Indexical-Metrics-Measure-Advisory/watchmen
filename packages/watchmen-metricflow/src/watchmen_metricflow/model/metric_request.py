@@ -12,3 +12,11 @@ class MetricQueryRequest(BaseModel):
     end_time: Optional[dt.datetime] = None
     order: Optional[List[str]] = None
     limit: Optional[int] = None
+
+
+class MetricDimensionRequest(BaseModel):
+    metricName:str = None
+    dimensionName:str = None
+    start_time: Optional[dt.datetime] = None
+    end_time: Optional[dt.datetime] = None
+
