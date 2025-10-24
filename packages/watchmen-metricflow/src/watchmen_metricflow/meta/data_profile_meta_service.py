@@ -7,11 +7,11 @@ from ..model.data_profile import DataProfile, DatabaseOutput
 
 
 class DataProfileShaper(UserBasedTupleShaper):
-    """数据配置文件数据塑形器"""
+    
 
     @staticmethod
     def serialize_database_output(output: DatabaseOutput) -> dict:
-        """序列化数据库输出配置"""
+        
         if isinstance(output, dict):
             return output
         else:
@@ -19,7 +19,7 @@ class DataProfileShaper(UserBasedTupleShaper):
 
     @staticmethod
     def serialize_database_outputs(outputs: Optional[Dict[str, DatabaseOutput]]) -> Optional[dict]:
-        """序列化数据库输出配置字典"""
+       
         if outputs is None:
             return None
         result = {}
@@ -28,7 +28,7 @@ class DataProfileShaper(UserBasedTupleShaper):
         return result
 
     def serialize(self, data_profile: DataProfile) -> EntityRow:
-        """序列化数据配置文件"""
+        
         row = {
             "id": data_profile.id,
             'name': data_profile.name,
@@ -43,7 +43,7 @@ class DataProfileShaper(UserBasedTupleShaper):
         return row
 
     def deserialize(self, row: EntityRow) -> DataProfile:
-        """反序列化数据配置文件"""
+        
         data_profile_data = {
             "id": row.get("id"),
             'name': row.get('name'),
@@ -66,7 +66,7 @@ DATA_PROFILE_ENTITY_SHAPER = DataProfileShaper()
 
 
 class DataProfileService(UserBasedTupleService):
-    """数据配置文件服务"""
+    
     
     def should_record_operation(self) -> bool:
         return False
@@ -88,7 +88,7 @@ class DataProfileService(UserBasedTupleService):
         return 'name'
 
     def find_all(self, tenant_id: Optional[TenantId] = None) -> List[DataProfile]:
-        """查找所有数据配置文件"""
+        
         criteria = []
         if tenant_id is not None and len(tenant_id.strip()) != 0:
             criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
@@ -96,7 +96,7 @@ class DataProfileService(UserBasedTupleService):
         return self.storage.find(self.get_entity_finder(criteria=criteria))
 
     def find_by_name(self, name: str, tenant_id: Optional[TenantId] = None) -> Optional[DataProfile]:
-        """根据名称查找数据配置文件"""
+       
         criteria = []
         if tenant_id is not None and len(tenant_id.strip()) != 0:
             criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
@@ -108,7 +108,7 @@ class DataProfileService(UserBasedTupleService):
         return results[0] if results else None
 
     def find_by_target(self, target: str, tenant_id: Optional[TenantId] = None) -> List[DataProfile]:
-        """根据目标查找数据配置文件"""
+       
         criteria = []
         if tenant_id is not None and len(tenant_id.strip()) != 0:
             criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
@@ -119,7 +119,7 @@ class DataProfileService(UserBasedTupleService):
         return self.storage.find(self.get_entity_finder(criteria=criteria))
 
     def find_by_id(self, profile_id: str, tenant_id: Optional[TenantId] = None) -> Optional[DataProfile]:
-        """根据ID查找数据配置文件"""
+        
         criteria = []
         if tenant_id is not None and len(tenant_id.strip()) != 0:
             criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
@@ -131,7 +131,7 @@ class DataProfileService(UserBasedTupleService):
         return results[0] if results else None
 
     def update_by_name(self, name: str, data_profile: DataProfile) -> DataProfile:
-        """根据名称更新数据配置文件"""
+        
         if name is None or len(name.strip()) == 0:
             raise ValueError("name cannot be empty")
         criteria = [
@@ -143,7 +143,7 @@ class DataProfileService(UserBasedTupleService):
         return data_profile
 
     def update_by_id(self, profile_id: str, data_profile: DataProfile) -> DataProfile:
-        """根据ID更新数据配置文件"""
+        
         if profile_id is None or len(profile_id.strip()) == 0:
             raise ValueError("profile_id cannot be empty")
         criteria = [
@@ -155,7 +155,7 @@ class DataProfileService(UserBasedTupleService):
         return data_profile
 
     def delete_by_name(self, name: str, tenant_id: Optional[TenantId] = None) -> None:
-        """根据名称删除数据配置文件"""
+        
         if name is None or len(name.strip()) == 0:
             raise ValueError("name cannot be empty")
         criteria = [
@@ -168,7 +168,7 @@ class DataProfileService(UserBasedTupleService):
         self.storage.delete(self.get_entity_deleter(criteria=criteria))
 
     def delete_by_id(self, profile_id: str, tenant_id: Optional[TenantId] = None) -> None:
-        """根据ID删除数据配置文件"""
+       
         if profile_id is None or len(profile_id.strip()) == 0:
             raise ValueError("profile_id cannot be empty")
         criteria = [

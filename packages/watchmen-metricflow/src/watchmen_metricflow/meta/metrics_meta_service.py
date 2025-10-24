@@ -9,11 +9,11 @@ from ..model.metrics import Metric, MetricConfig, MetricTypeParams, MeasureRefer
 
 
 class MetricShaper(UserBasedTupleShaper):
-    """指标数据塑形器"""
+    
 
     @staticmethod
     def serialize_measure_reference(measure: MeasureReference) -> dict:
-        """序列化度量引用"""
+       
         if isinstance(measure, dict):
             return measure
         else:
@@ -21,14 +21,14 @@ class MetricShaper(UserBasedTupleShaper):
 
     @staticmethod
     def serialize_measure_references(measures: Optional[List[MeasureReference]]) -> Optional[list]:
-        """序列化度量引用列表"""
+        
         if measures is None:
             return None
         return ArrayHelper(measures).map(lambda x: MetricShaper.serialize_measure_reference(x)).to_list()
 
     @staticmethod
     def serialize_window_params(window: WindowParams) -> dict:
-        """序列化窗口参数"""
+        
         if isinstance(window, dict):
             return window
         else:
@@ -36,7 +36,7 @@ class MetricShaper(UserBasedTupleShaper):
 
     @staticmethod
     def serialize_conversion_type_params(conversion: ConversionTypeParams) -> dict:
-        """序列化转换类型参数"""
+        
         if isinstance(conversion, dict):
             return conversion
         else:
@@ -44,7 +44,7 @@ class MetricShaper(UserBasedTupleShaper):
 
     @staticmethod
     def serialize_cumulative_type_params(cumulative: CumulativeTypeParams) -> dict:
-        """序列化累积类型参数"""
+        
         if isinstance(cumulative, dict):
             return cumulative
         else:
@@ -52,7 +52,7 @@ class MetricShaper(UserBasedTupleShaper):
 
     @staticmethod
     def serialize_metric_type_params(type_params: MetricTypeParams) -> dict:
-        """序列化指标类型参数"""
+        
         if isinstance(type_params, dict):
             return type_params
         
@@ -88,7 +88,7 @@ class MetricShaper(UserBasedTupleShaper):
             return config.model_dump()
 
     def serialize(self, metric: Metric) -> EntityRow:
-        """序列化指标"""
+        
         row = {
             "id":metric.id,
             'name': metric.name,
@@ -108,7 +108,7 @@ class MetricShaper(UserBasedTupleShaper):
         return row
 
     def deserialize(self, row: EntityRow) -> Metric:
-        """反序列化指标"""
+       
         metric_data = {
             "id":row.get("id"),
             'name': row.get('name'),
@@ -137,7 +137,7 @@ METRIC_ENTITY_SHAPER = MetricShaper()
 
 
 class MetricService(UserBasedTupleService):
-    """指标服务"""
+    
     
     def should_record_operation(self) -> bool:
         return False
@@ -159,7 +159,7 @@ class MetricService(UserBasedTupleService):
         return 'name'
 
     def find_all(self, tenant_id: Optional[TenantId] = None) -> List[Metric]:
-        """查找所有指标"""
+        
         criteria = []
         if tenant_id is not None and len(tenant_id.strip()) != 0:
             criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
@@ -167,7 +167,7 @@ class MetricService(UserBasedTupleService):
         return self.storage.find(self.get_entity_finder(criteria=criteria))
 
     def find_by_name(self, name: str, tenant_id: Optional[TenantId] = None) -> Optional[Metric]:
-        """根据名称查找指标"""
+        
         criteria = []
         if tenant_id is not None and len(tenant_id.strip()) != 0:
             criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
@@ -179,7 +179,7 @@ class MetricService(UserBasedTupleService):
         return results[0] if results else None
 
     def find_by_type(self, metric_type: str, tenant_id: Optional[TenantId] = None) -> List[Metric]:
-        """根据指标类型查找指标"""
+        
         criteria = []
         if tenant_id is not None and len(tenant_id.strip()) != 0:
             criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
@@ -190,7 +190,7 @@ class MetricService(UserBasedTupleService):
         return self.storage.find(self.get_entity_finder(criteria=criteria))
 
     def find_by_label(self, label: str, tenant_id: Optional[TenantId] = None) -> List[Metric]:
-        """根据标签查找指标"""
+        
         criteria = []
         if tenant_id is not None and len(tenant_id.strip()) != 0:
             criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
@@ -202,7 +202,7 @@ class MetricService(UserBasedTupleService):
 
 
     def update_by_name(self, name: str, metric: Metric) -> Metric:
-        """根据名称更新指标"""
+        
         if name is None or len(name.strip()) == 0:
             raise ValueError("name cannot be empty")
         criteria = [
@@ -214,7 +214,7 @@ class MetricService(UserBasedTupleService):
         return metric
 
     def delete_by_name(self, name: str, tenant_id: Optional[TenantId] = None) -> None:
-        """根据名称删除指标"""
+        
         if name is None or len(name.strip()) == 0:
             raise ValueError("name cannot be empty")
         criteria = [

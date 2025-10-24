@@ -7,7 +7,7 @@ from watchmen_utilities import ExtendedBaseModel
 
 
 class MetricType(Enum):
-    """指标类型枚举"""
+   
     SIMPLE = "simple"
     RATIO = "ratio"
     CUMULATIVE = "cumulative"
@@ -16,7 +16,7 @@ class MetricType(Enum):
 
 
 class MeasureReference(BaseModel):
-    """度量引用"""
+    
     model_config = ConfigDict(use_enum_values=True)
 
     name: str
@@ -27,26 +27,26 @@ class MeasureReference(BaseModel):
 
 
 class ConversionTypeParams(BaseModel):
-    """转换类型参数"""
+    
     model_config = ConfigDict(use_enum_values=True)
 
-    # 转换相关参数可以根据需要扩展
+    
     pass
 
 
 class CumulativeTypeParams(BaseModel):
-    """累积类型参数"""
+    
     model_config = ConfigDict(use_enum_values=True)
 
-    # 累积相关参数可以根据需要扩展
+    
     pass
 
 
 class WindowParams(BaseModel):
-    """窗口参数"""
+   
     model_config = ConfigDict(use_enum_values=True)
 
-    # 窗口相关参数可以根据需要扩展
+    
     pass
 
 class OffsetWindow(BaseModel):
@@ -61,7 +61,7 @@ class MetricRef(BaseModel):
     offset_to_grain:Optional[str]= None
 
 class MetricTypeParams(BaseModel):
-    """指标类型参数"""
+    
     model_config = ConfigDict(use_enum_values=True)
 
     measure: Optional[MeasureReference] = None
@@ -77,14 +77,14 @@ class MetricTypeParams(BaseModel):
 
 
 class MetricConfig(BaseModel):
-    """指标配置"""
+    
     model_config = ConfigDict(use_enum_values=True)
 
     meta: Dict[str, Any] = Field(default_factory=dict)
 
 
 class Metric(ExtendedBaseModel, TenantBasedTuple, Auditable,OptimisticLock):
-    """指标模型"""
+    
     # model_config = ConfigDict(use_enum_values=True)
     id:str
     name: str

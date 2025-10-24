@@ -6,7 +6,7 @@ from watchmen_utilities import ExtendedBaseModel
 
 
 class DimensionType(Enum):
-    """Dimension type enumeration"""
+    """维度类型枚举"""
     CATEGORICAL = "categorical"
     TIME = "time"
     ENTITY = "entity"
@@ -14,13 +14,13 @@ class DimensionType(Enum):
 
 
 class DimensionInfo(BaseModel):
-    """Single dimension information model"""
+    """单个维度信息模型"""
     # model_config = ConfigDict(use_enum_values=True)
     
-    name: str = Field(..., description="Dimension name")
-    qualified_name: str = Field(..., description="Dimension qualified name")
-    description: Optional[str] = Field(None, description="Dimension description")
-    type: str = Field(..., description="Dimension type")
+    name: str = Field(..., description="维度名称")
+    qualified_name: str = Field(..., description="维度限定名称")
+    description: Optional[str] = Field(None, description="维度描述")
+    type: str = Field(..., description="维度类型")
     
     # class Config:
     #     json_schema_extra = {
@@ -34,11 +34,11 @@ class DimensionInfo(BaseModel):
 
 
 class DimensionListResponse(BaseModel):
-    """Dimension list response model"""
+    """维度列表响应模型"""
     # model_config = ConfigDict(use_enum_values=True)
     
-    dimensions: List[DimensionInfo] = Field(default_factory=list, description="Dimension list")
-    total_count: int = Field(0, description="Total count of dimensions")
+    dimensions: List[DimensionInfo] = Field(default_factory=list, description="维度列表")
+    total_count: int = Field(0, description="维度总数")
     
     # class Config:
     #     json_schema_extra = {
@@ -63,13 +63,13 @@ class DimensionListResponse(BaseModel):
 
 
 class MetricInfo(BaseModel):
-    """Single metric information model"""
+    """单个指标信息模型"""
     # model_config = ConfigDict(use_enum_values=True)
     
-    name: str = Field(..., description="Metric name")
-    label: Optional[str] = Field(None, description="Metric label")
-    description: Optional[str] = Field(None, description="Metric description")
-    type: str = Field(..., description="Metric type")
+    name: str = Field(..., description="指标名称")
+    label: Optional[str] = Field(None, description="指标标签")
+    description: Optional[str] = Field(None, description="指标描述")
+    type: str = Field(..., description="指标类型")
     
     # class Config:
     #     json_schema_extra = {
@@ -83,11 +83,11 @@ class MetricInfo(BaseModel):
 
 
 class MetricListResponse(BaseModel):
-    """Metric list response model"""
+    """指标列表响应模型"""
     # model_config = ConfigDict(use_enum_values=True)
     
-    metrics: List[MetricInfo] = Field(default_factory=list, description="Metric list")
-    total_count: int = Field(0, description="Total count of metrics")
+    metrics: List[MetricInfo] = Field(default_factory=list, description="指标列表")
+    total_count: int = Field(0, description="指标总数")
     
     # class Config:
     #     json_schema_extra = {

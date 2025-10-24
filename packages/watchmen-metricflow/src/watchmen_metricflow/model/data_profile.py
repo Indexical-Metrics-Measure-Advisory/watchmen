@@ -6,7 +6,7 @@ from watchmen_utilities import ExtendedBaseModel
 
 
 class DatabaseOutput(BaseModel):
-    """数据库输出配置"""
+    
     model_config = ConfigDict(use_enum_values=True)
 
     type: str
@@ -24,7 +24,7 @@ class DatabaseOutput(BaseModel):
 
 
 class DataProfile(ExtendedBaseModel, TenantBasedTuple, Auditable,OptimisticLock):
-    """数据配置文件接口"""
+    
     model_config = ConfigDict(use_enum_values=True)
 
     name: str

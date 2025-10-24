@@ -23,13 +23,6 @@ class MetricFlowApp(RestApp):
         """
         return build_find_user_by_name()
 
-    # def get_o1_model(self):
-    #     url = "https://azure-insuremo-gpt4-openai.openai.azure.com"
-    #     lm = dspy.LM("azure/o1", api_key="88dfc733a80a4825a46a380a5d878809", api_base=url,
-    #                  api_version="2025-01-01-preview")
-    #     dspy.configure(lm=lm, adapter=TwoStepAdapter(lm))
-
-
 
 
     def build_find_user_by_pat(self) -> Callable[[str], Optional[User]]:
