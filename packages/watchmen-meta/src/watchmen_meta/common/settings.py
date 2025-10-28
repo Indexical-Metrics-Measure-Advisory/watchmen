@@ -49,6 +49,8 @@ class MetaSettings(ExtendedBaseSettings):
 
 	ENGINE_INDEX: bool = True
 	PACKAGE_VERSION_DEFAULT_VALUE: str = '50.0.0'
+	
+	IN_SERVERLESS_PLATFORM: bool = False
 
 
 settings = MetaSettings()
@@ -178,7 +180,8 @@ def get_snowflake_worker() -> SnowflakeWorker:
 	                       settings.SNOWFLAKE_DATA_CENTER_ID,
 	                       0,
 	                       1023,
-	                       settings.SNOWFLAKE_COMPETITIVE_WORKER_HEART_BEAT_INTERVAL)
+	                       settings.SNOWFLAKE_COMPETITIVE_WORKER_HEART_BEAT_INTERVAL,
+	                       settings.IN_SERVERLESS_PLATFORM)
 
 
 def build_snowflake_generator(storage: TransactionalStorageSPI) -> SnowflakeGenerator:

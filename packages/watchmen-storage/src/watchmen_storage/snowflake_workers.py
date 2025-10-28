@@ -8,6 +8,10 @@ from watchmen_utilities import serialize_to_json
 from time import sleep, time
 
 
+
+MIN_DATETIME = '1970-01-01 00:00:00'
+MAX_DATETIME = '9999-12-31 23:59:59'
+
 class WorkerIdAllocateFailedError(Exception):
 
     def __init__(self, message: str = "Worker ID Allocate Failed，can't start heart beat thread"):
@@ -63,7 +67,9 @@ class SnowflakeWorker(metaclass=SingletonMeta):
                  data_center_id: int,
                  min_worker_id: int,
                  max_worker_id: int,
-                 heart_beat_interval: int):
+                 heart_beat_interval: int,
+                 in_serverless: bool):
+        self.in_serverless = in_serverless
         self.data_center_id = data_center_id
         self.min_worker_id = min_worker_id
         self.max_worker_id = max_worker_id
@@ -109,8 +115,7 @@ class SnowflakeWorker(metaclass=SingletonMeta):
                     )
                 except IntegrityError:
                     continue
-        else:
-            self.initialed = True
+        self.initialed = True
 
     def build_connection_url(self) -> str:
         url = f'postgresql+psycopg2://{self.dbconfig.username}:{self.dbconfig.password}@{self.dbconfig.host}:{self.dbconfig.port}/{self.dbconfig.dbname}?client_encoding=utf8'
@@ -128,25 +133,29 @@ class SnowflakeWorker(metaclass=SingletonMeta):
             lock_sql = """
                     SELECT worker_id 
                     FROM {table} 
-                    WHERE locked = 0 
+                    WHERE locked = 0 AND data_center_id = :data_center_id
                     ORDER BY worker_id 
                     LIMIT 1 
                     FOR UPDATE SKIP LOCKED
                 """
             row = conn.execute(
                 self.schema_sql.get_sql("snowflake_workers", lock_sql),
+                {
+                    "data_center_id": self.data_center_id
+                }
             ).first()
             if row:
                 worker_id = row[0]
                 update_sql = """
                         UPDATE {table}
-                        SET locked = :locked, last_beat_at = NOW()
+                        SET locked = :locked, last_beat_at = :last_beat_at
                         WHERE data_center_id = :data_center_id AND worker_id = :worker_id
                     """
                 conn.execute(
                     self.schema_sql.get_sql("snowflake_workers", update_sql),
                     {
                         "locked": 1,
+                        "last_beat_at": MAX_DATETIME if self.in_serverless else 'NOW()',
                         "data_center_id": self.data_center_id,
                         "worker_id": worker_id
                     }
@@ -213,8 +222,6 @@ class SnowflakeWorker(metaclass=SingletonMeta):
     def get_snowflake_worker_id(self) -> int:
         try:
             with self.engine.connect() as conn:
-                if not self.initialed:
-                    self.initial_workers(conn)
                 worker_id = self.get_unlocked_worker_id(conn)
                 if worker_id == -1:
                     worker_id = self.get_timeout_worker_id(conn)
@@ -258,7 +265,7 @@ class SnowflakeWorker(metaclass=SingletonMeta):
 
     def try_create_worker(self):
         self.worker = self.get_snowflake_worker_id()
-        if self.worker != -1:
+        if not self.in_serverless and self.worker != -1:
             threading.Thread(target=SnowflakeWorker.heart_beat, args=(self,), daemon=True).start()
         else:
             raise WorkerIdAllocateFailedError()
@@ -270,13 +277,14 @@ class SnowflakeWorker(metaclass=SingletonMeta):
             try:
                 release_sql = """
                                UPDATE {table}
-                               SET locked = :locked
+                               SET locked = :locked, last_beat_at = :last_beat_at
                                WHERE data_center_id = :data_center_id AND worker_id = :worker_id
                                """
                 conn.execute(
                     self.schema_sql.get_sql("snowflake_workers", release_sql),
                     {
                         "locked": 0,
+                        "last_beat_at": MIN_DATETIME,
                         "data_center_id": self.data_center_id,
                         "worker_id": self.worker
                     }
