@@ -23,7 +23,7 @@ def write_worker_id_in_tmp(worker_id: int):
 		file.write(str(worker_id))
 
 
-print(f"Serving WorkerIdReleaseExtension {snowflake_generator.workerId}")
+logger.debug(f"Serving WorkerIdReleaseExtension {snowflake_generator.workerId}")
 
 write_worker_id_in_tmp(snowflake_generator.workerId)
 
@@ -36,7 +36,7 @@ register_authentication_manager(build_authentication_manager(
 
 
 def main(event, context):
-	print(f"Full event: {event}")
+	logger.debug(f"Full event: {event}")
 	if get_event_type(event) == EventType.EVENTBRIDGE:
 		return event_bridge_handler(event, context)
 	elif get_event_type(event) == EventType.FUNCTION_URL:
