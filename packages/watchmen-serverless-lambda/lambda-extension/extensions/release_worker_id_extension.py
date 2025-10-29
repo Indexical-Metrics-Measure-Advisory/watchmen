@@ -4,6 +4,7 @@ import json
 import os
 import sys
 
+import set_env_variable
 from release_worker_id_extension.extensions_api_client import ExtensionsAPIClient
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_competitive_workers_v2, get_snowflake_worker
 from watchmen_storage import get_storage_based_worker_id_service
