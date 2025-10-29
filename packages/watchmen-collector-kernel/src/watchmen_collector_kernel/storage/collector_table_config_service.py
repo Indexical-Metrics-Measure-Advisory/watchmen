@@ -4,9 +4,10 @@ from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import CollectorTableConfig
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
-from watchmen_model.common import Storable
+from watchmen_model.common import Storable, TenantId, Pageable, DataPage
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
-	EntityCriteriaExpression, ColumnNameLiteral
+	EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
+	EntityCriteriaOperator
 from watchmen_utilities import ArrayHelper
 
 
@@ -206,6 +207,27 @@ class CollectorTableConfigService(TupleService):
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
 				]
 			))
+		finally:
+			self.storage.close()
+
+	def find_page_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
+		try:
+			self.storage.connect()
+			criteria = []
+			if text is not None and len(text.strip()) != 0:
+				criteria.append(EntityCriteriaJoint(
+					conjunction=EntityCriteriaJointConjunction.OR,
+					children=[
+						EntityCriteriaExpression(
+							left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text),
+						EntityCriteriaExpression(
+							left=ColumnNameLiteral(columnName='description'), operator=EntityCriteriaOperator.LIKE,
+							right=text)
+					]
+				))
+			if tenant_id is not None and len(tenant_id.strip()) != 0:
+				criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+			return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
 		finally:
 			self.storage.close()
 

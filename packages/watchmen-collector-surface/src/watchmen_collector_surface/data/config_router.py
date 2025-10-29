@@ -1,6 +1,6 @@
 from typing import Callable, Optional, Dict, List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Body
 from watchmen_collector_kernel.service import DataCaptureService
 
 from watchmen_auth import PrincipalService
@@ -10,10 +10,60 @@ from watchmen_collector_kernel.storage import get_collector_model_config_service
 	CollectorModuleConfigService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
-from watchmen_rest import get_any_admin_principal
-from watchmen_rest.util import validate_tenant_id, raise_403
+from watchmen_model.common import Pageable, DataPage, TenantId
+from watchmen_rest import get_any_admin_principal, get_console_principal
+from watchmen_rest.util import validate_tenant_id, raise_403, raise_400, raise_404
+from watchmen_utilities import is_blank
 
 router = APIRouter()
+
+
+@router.get('/collector/table/config', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def load_table_config_by_id(
+		table_config_id: Optional[str] = None, principal_service: PrincipalService = Depends(get_console_principal)
+) -> CollectorTableConfig:
+	if is_blank(table_config_id):
+		raise_400('collector table config id is required.')
+	
+	collector_table_config_service = get_collector_table_config_service(ask_meta_storage(),
+	                                                                    ask_snowflake_generator(),
+	                                                                    principal_service)
+	
+	def action() -> CollectorTableConfig:
+		# noinspection PyTypeChecker
+		table_config: CollectorTableConfig = collector_table_config_service.find_config_by_id(table_config_id)
+		if table_config is None:
+			raise_404()
+		# tenant id must match current principal's
+		if table_config.tenantId != principal_service.get_tenant_id():
+			raise_404()
+		return table_config
+	
+	return action()
+
+
+class QueryTableConfigDataPage(DataPage):
+	data: List[CollectorTableConfig]
+
+
+@router.post('/collector/table/config/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def find_tables_page_by_name(
+		query_name: Optional[str], pageable: Pageable = Body(...),
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> QueryTableConfigDataPage:
+	collector_table_config_service = get_collector_table_config_service(ask_meta_storage(),
+	                                                                    ask_snowflake_generator(),
+	                                                                    principal_service)
+	def action() -> QueryTableConfigDataPage:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		if is_blank(query_name):
+			# noinspection PyTypeChecker
+			return collector_table_config_service.find_page_by_text(None, tenant_id, pageable)
+		else:
+			# noinspection PyTypeChecker
+			return collector_table_config_service.find_page_by_text(query_name, tenant_id, pageable)
+	
+	return action()
 
 
 @router.post('/collector/table/config', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
