@@ -30,7 +30,8 @@ class MDCMiddleware(BaseHTTPMiddleware):
 
         try:
             current_path = request.url.path
-            if current_path in self.ignore_paths:
+            # Skip authentication for OPTIONS requests (CORS preflight)
+            if request.method == "OPTIONS" or current_path in self.ignore_paths:
                 response: Response = await call_next(request)
             else:
                 tenant_name = request.headers.get(ask_tenant_name_http_header_key())

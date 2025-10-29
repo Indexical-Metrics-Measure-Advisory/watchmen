@@ -158,6 +158,8 @@ def build_authentication_manager(
 def parse_token(request: Request) -> Tuple[str, str]:
 	authorization: str = request.headers.get("Authorization")
 
+	print(request.headers)
+
 	if not authorization:
 		raise AuthFailOn401('Unauthorized caused by token not found.')
 	else:

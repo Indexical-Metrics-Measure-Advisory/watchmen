@@ -8,7 +8,7 @@ from watchmen_model.common import Storable, TenantId, Pageable, DataPage
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
 	EntityCriteriaOperator
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, is_not_blank
 
 
 class CollectorTableConfigShaper(EntityShaper):
@@ -209,6 +209,13 @@ class CollectorTableConfigService(TupleService):
 			))
 		finally:
 			self.storage.close()
+	def find_all(self, tenant_id: Optional[TenantId]) -> List[CollectorTableConfig]:
+		criteria = []
+		if is_not_blank(tenant_id):
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria))
+
 
 	def find_page_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		try:
@@ -230,6 +237,7 @@ class CollectorTableConfigService(TupleService):
 			return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
 		finally:
 			self.storage.close()
+
 
 
 def get_collector_table_config_service(storage: TransactionalStorageSPI,

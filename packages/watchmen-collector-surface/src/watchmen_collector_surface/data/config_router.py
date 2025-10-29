@@ -20,7 +20,7 @@ router = APIRouter()
 
 @router.get('/collector/table/config', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def load_table_config_by_id(
-		table_config_id: Optional[str] = None, principal_service: PrincipalService = Depends(get_console_principal)
+		table_config_id: Optional[str] = None, principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> CollectorTableConfig:
 	if is_blank(table_config_id):
 		raise_400('collector table config id is required.')
@@ -40,6 +40,24 @@ async def load_table_config_by_id(
 		return table_config
 	
 	return action()
+
+
+@router.get('/collector/config/table/all', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def load_table_config_list(
+		principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> List[CollectorTableConfig]:
+
+	collector_table_config_service = get_collector_table_config_service(ask_meta_storage(),
+																		ask_snowflake_generator(),
+																		principal_service)
+
+	def action() -> List[CollectorTableConfig]:
+		# noinspection PyTypeChecker
+		table_config_list:  List[CollectorTableConfig] = collector_table_config_service.find_all(principal_service.tenantId)
+
+		return table_config_list
+
+	return trans_readonly()
 
 
 class QueryTableConfigDataPage(DataPage):
@@ -219,3 +237,315 @@ async def create_json_template(model_name: str, principal_service: PrincipalServ
 	if table_config:
 		json_data = data_capture_service.build_json_template(table_config[0])
 		return {"topicCode": model.rawTopicCode, "data": json_data}
+
+
+# ==================== MODEL QUERY SERVICES ====================
+
+@router.get('/collector/model/config', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def load_model_config_by_id(
+		model_id: Optional[str] = None, principal_service: PrincipalService = Depends(get_console_principal)
+) -> CollectorModelConfig:
+	if is_blank(model_id):
+		raise_400('collector model config id is required.')
+	
+	collector_model_config_service = get_collector_model_config_service(ask_meta_storage(),
+	                                                                   ask_snowflake_generator(),
+	                                                                   principal_service)
+	
+	def action() -> CollectorModelConfig:
+		# noinspection PyTypeChecker
+		model_config: CollectorModelConfig = collector_model_config_service.find_by_model_id(model_id)
+		if model_config is None:
+			raise_404()
+		# tenant id must match current principal's
+		if model_config.tenantId != principal_service.get_tenant_id():
+			raise_404()
+		return model_config
+	
+	return action()
+
+
+class QueryModelConfigDataPage(DataPage):
+	data: List[CollectorModelConfig]
+
+
+@router.post('/collector/model/config/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def find_models_page_by_name(
+		query_name: Optional[str], pageable: Pageable = Body(...),
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> QueryModelConfigDataPage:
+	collector_model_config_service = get_collector_model_config_service(ask_meta_storage(),
+	                                                                   ask_snowflake_generator(),
+	                                                                   principal_service)
+	def action() -> QueryModelConfigDataPage:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		if is_blank(query_name):
+			# noinspection PyTypeChecker
+			return collector_model_config_service.find_page_by_text(None, tenant_id, pageable)
+		else:
+			# noinspection PyTypeChecker
+			return collector_model_config_service.find_page_by_text(query_name, tenant_id, pageable)
+	
+	return action()
+
+
+@router.post('/collector/model/config/search', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def find_models_page_with_filters(
+		filters: Dict = Body(...), pageable: Pageable = Body(...),
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> QueryModelConfigDataPage:
+	collector_model_config_service = get_collector_model_config_service(ask_meta_storage(),
+	                                                                   ask_snowflake_generator(),
+	                                                                   principal_service)
+	def action() -> QueryModelConfigDataPage:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		# noinspection PyTypeChecker
+		return collector_model_config_service.find_page_by_filters(filters, tenant_id, pageable)
+	
+	return action()
+
+
+@router.get('/collector/model/config/with-tables', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def load_model_config_with_related_tables(
+		model_id: Optional[str] = None, principal_service: PrincipalService = Depends(get_console_principal)
+) -> Dict:
+	if is_blank(model_id):
+		raise_400('collector model config id is required.')
+	
+	collector_model_config_service = get_collector_model_config_service(ask_meta_storage(),
+	                                                                   ask_snowflake_generator(),
+	                                                                   principal_service)
+	collector_table_config_service = get_collector_table_config_service(ask_meta_storage(),
+	                                                                    ask_snowflake_generator(),
+	                                                                    principal_service)
+	
+	def action() -> Dict:
+		# noinspection PyTypeChecker
+		model_config: CollectorModelConfig = collector_model_config_service.find_by_model_id(model_id)
+		if model_config is None:
+			raise_404()
+		# tenant id must match current principal's
+		if model_config.tenantId != principal_service.get_tenant_id():
+			raise_404()
+		
+		# Load related table configs
+		related_tables = collector_table_config_service.find_by_model_name(model_config.modelName, model_config.tenantId)
+		
+		return {
+			"model": model_config,
+			"relatedTables": related_tables
+		}
+	
+	return action()
+
+
+@router.get('/collector/model/config/stats', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def get_model_config_statistics(
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> Dict:
+	collector_model_config_service = get_collector_model_config_service(ask_meta_storage(),
+	                                                                   ask_snowflake_generator(),
+	                                                                   principal_service)
+	collector_table_config_service = get_collector_table_config_service(ask_meta_storage(),
+	                                                                    ask_snowflake_generator(),
+	                                                                    principal_service)
+	
+	def action() -> Dict:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		
+		# Get basic statistics
+		total_models = collector_model_config_service.count_by_tenant(tenant_id)
+		active_models = collector_model_config_service.count_active_by_tenant(tenant_id)
+		
+		# Get models with table counts
+		models_with_table_counts = collector_model_config_service.get_models_with_table_counts(tenant_id)
+		
+		return {
+			"totalModels": total_models,
+			"activeModels": active_models,
+			"modelsWithTableCounts": models_with_table_counts
+		}
+	
+	return action()
+
+
+# ==================== MODULE QUERY SERVICES ====================
+
+@router.get('/collector/module/config', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def load_module_config_by_id(
+		module_id: Optional[str] = None, principal_service: PrincipalService = Depends(get_console_principal)
+) -> CollectorModuleConfig:
+	if is_blank(module_id):
+		raise_400('collector module config id is required.')
+	
+	collector_module_config_service = get_collector_module_config_service(ask_meta_storage(),
+	                                                                      ask_snowflake_generator(),
+	                                                                      principal_service)
+	
+	def action() -> CollectorModuleConfig:
+		# noinspection PyTypeChecker
+		module_config: CollectorModuleConfig = collector_module_config_service.find_by_module_id(module_id)
+		if module_config is None:
+			raise_404()
+		# tenant id must match current principal's
+		if module_config.tenantId != principal_service.get_tenant_id():
+			raise_404()
+		return module_config
+	
+	return action()
+
+
+class QueryModuleConfigDataPage(DataPage):
+	data: List[CollectorModuleConfig]
+
+
+@router.post('/collector/module/config/search', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def find_modules_page_with_multiple_conditions(
+		conditions: Dict = Body(...), pageable: Pageable = Body(...),
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> QueryModuleConfigDataPage:
+	collector_module_config_service = get_collector_module_config_service(ask_meta_storage(),
+	                                                                      ask_snowflake_generator(),
+	                                                                      principal_service)
+	def action() -> QueryModuleConfigDataPage:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		# noinspection PyTypeChecker
+		return collector_module_config_service.find_page_by_conditions(conditions, tenant_id, pageable)
+	
+	return action()
+
+
+@router.get('/collector/module/config/tree', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def load_module_config_tree(
+		parent_module_id: Optional[str] = None, principal_service: PrincipalService = Depends(get_console_principal)
+) -> List[Dict]:
+	collector_module_config_service = get_collector_module_config_service(ask_meta_storage(),
+	                                                                      ask_snowflake_generator(),
+	                                                                      principal_service)
+	
+	def action() -> List[Dict]:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		
+		if is_blank(parent_module_id):
+			# Load root modules
+			root_modules = collector_module_config_service.find_root_modules(tenant_id)
+		else:
+			# Load child modules
+			root_modules = collector_module_config_service.find_child_modules(parent_module_id, tenant_id)
+		
+		# Build tree structure
+		tree_data = []
+		for module in root_modules:
+			children = collector_module_config_service.find_child_modules(module.moduleId, tenant_id)
+			tree_data.append({
+				"module": module,
+				"children": children,
+				"hasChildren": len(children) > 0
+			})
+		
+		return tree_data
+	
+	return action()
+
+
+@router.get('/collector/module/config/hierarchy', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def load_module_config_hierarchy(
+		module_id: Optional[str] = None, principal_service: PrincipalService = Depends(get_console_principal)
+) -> Dict:
+	if is_blank(module_id):
+		raise_400('collector module config id is required.')
+	
+	collector_module_config_service = get_collector_module_config_service(ask_meta_storage(),
+	                                                                      ask_snowflake_generator(),
+	                                                                      principal_service)
+	
+	def action() -> Dict:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		
+		# noinspection PyTypeChecker
+		module_config: CollectorModuleConfig = collector_module_config_service.find_by_module_id(module_id)
+		if module_config is None:
+			raise_404()
+		if module_config.tenantId != tenant_id:
+			raise_404()
+		
+		# Get parent hierarchy
+		parents = collector_module_config_service.find_parent_hierarchy(module_id, tenant_id)
+		
+		# Get children
+		children = collector_module_config_service.find_child_modules(module_id, tenant_id)
+		
+		# Get siblings
+		siblings = collector_module_config_service.find_sibling_modules(module_id, tenant_id)
+		
+		return {
+			"module": module_config,
+			"parents": parents,
+			"children": children,
+			"siblings": siblings
+		}
+	
+	return action()
+
+
+@router.post('/collector/module/config/batch', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def load_modules_batch(
+		module_ids: List[str] = Body(...), principal_service: PrincipalService = Depends(get_console_principal)
+) -> List[CollectorModuleConfig]:
+	if not module_ids or len(module_ids) == 0:
+		raise_400('module ids are required.')
+	
+	collector_module_config_service = get_collector_module_config_service(ask_meta_storage(),
+	                                                                      ask_snowflake_generator(),
+	                                                                      principal_service)
+	
+	def action() -> List[CollectorModuleConfig]:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		# noinspection PyTypeChecker
+		modules = collector_module_config_service.find_by_module_ids(module_ids, tenant_id)
+		
+		# Filter out modules that don't belong to current tenant
+		filtered_modules = [module for module in modules if module.tenantId == tenant_id]
+		
+		return filtered_modules
+	
+	return action()
+
+
+@router.post('/collector/module/config/batch/update', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
+async def update_modules_batch(
+		updates: List[Dict] = Body(...), principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> List[CollectorModuleConfig]:
+	if not updates or len(updates) == 0:
+		raise_400('update data is required.')
+	
+	collector_module_config_service = get_collector_module_config_service(ask_meta_storage(),
+	                                                                      ask_snowflake_generator(),
+	                                                                      principal_service)
+	
+	def action() -> List[CollectorModuleConfig]:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		updated_modules = []
+		
+		for update_data in updates:
+			module_id = update_data.get('moduleId')
+			if is_blank(module_id):
+				continue
+			
+			# noinspection PyTypeChecker
+			existing_module: Optional[CollectorModuleConfig] = \
+				collector_module_config_service.find_by_module_id(module_id)
+			
+			if existing_module is not None and existing_module.tenantId == tenant_id:
+				# Apply updates
+				for key, value in update_data.items():
+					if hasattr(existing_module, key) and key != 'moduleId' and key != 'tenantId':
+						setattr(existing_module, key, value)
+				
+				# noinspection PyTypeChecker
+				updated_module = collector_module_config_service.update_module_config(existing_module)
+				updated_modules.append(updated_module)
+		
+		return updated_modules
+	
+	return action()
