@@ -16,10 +16,6 @@ RUN        dnf -y update && sudo dnf -y install libaio wget unzip ldconfig \
             && sudo sh -c "echo /opt/oracle/instantclient* > /etc/ld.so.conf.d/oracle-instantclient.conf" \
             && sudo ldconfig
 
-COPY lambda-extension /opt/
-
-RUN chmod -R 755 /opt/extensions/*.py
-
 # Copy function code
 COPY ./src/ ${LAMBDA_TASK_ROOT}
 

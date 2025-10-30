@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from watchmen_meta.common import ask_snowflake_generator
+from watchmen_meta.common import get_snowflake_worker
 from watchmen_serverless_lambda.model import EventType
 from watchmen_serverless_lambda.trigger import event_bridge_handler, s3_file_handler, \
 	sqs_message_handler, url_trigger_handler
@@ -15,17 +15,6 @@ from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-snowflake_generator = ask_snowflake_generator()
-
-
-def write_worker_id_in_tmp(worker_id: int):
-	with open('/tmp/worker_id.txt', 'w') as file:
-		file.write(str(worker_id))
-
-
-logger.debug(f"Serving WorkerIdReleaseExtension {snowflake_generator.workerId}")
-
-write_worker_id_in_tmp(snowflake_generator.workerId)
 
 # initial
 settings = RestSettings()
@@ -37,16 +26,20 @@ register_authentication_manager(build_authentication_manager(
 
 def main(event, context):
 	logger.debug(f"Full event: {event}")
-	if get_event_type(event) == EventType.EVENTBRIDGE:
-		return event_bridge_handler(event, context)
-	elif get_event_type(event) == EventType.FUNCTION_URL:
-		return url_trigger_handler(event, context)
-	elif get_event_type(event) == EventType.S3:
-		return s3_file_handler(event, context)
-	elif get_event_type(event) == EventType.SQS:
-		return sqs_message_handler(event, context)
-	else:
-		logger.error("not support event: %s", event)
+	try:
+		if get_event_type(event) == EventType.EVENTBRIDGE:
+			return event_bridge_handler(event, context)
+		elif get_event_type(event) == EventType.FUNCTION_URL:
+			return url_trigger_handler(event, context)
+		elif get_event_type(event) == EventType.S3:
+			return s3_file_handler(event, context)
+		elif get_event_type(event) == EventType.SQS:
+			return sqs_message_handler(event, context)
+		else:
+			logger.error("not support event: %s", event)
+	finally:
+		worker = get_snowflake_worker()
+		worker.release_worker()
 	
 
 def get_event_type(event) -> Optional[EventType]:

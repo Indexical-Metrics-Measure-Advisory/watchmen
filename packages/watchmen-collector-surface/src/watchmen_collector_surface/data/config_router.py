@@ -42,24 +42,6 @@ async def load_table_config_by_id(
 	return action()
 
 
-@router.get('/collector/config/table/all', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
-async def load_table_config_list(
-		principal_service: PrincipalService = Depends(get_any_admin_principal)
-) -> List[CollectorTableConfig]:
-
-	collector_table_config_service = get_collector_table_config_service(ask_meta_storage(),
-																		ask_snowflake_generator(),
-																		principal_service)
-
-	def action() -> List[CollectorTableConfig]:
-		# noinspection PyTypeChecker
-		table_config_list:  List[CollectorTableConfig] = collector_table_config_service.find_all(principal_service.tenantId)
-
-		return table_config_list
-
-	return trans_readonly()
-
-
 class QueryTableConfigDataPage(DataPage):
 	data: List[CollectorTableConfig]
 

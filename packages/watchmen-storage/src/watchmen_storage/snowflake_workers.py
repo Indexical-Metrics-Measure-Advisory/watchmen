@@ -265,11 +265,11 @@ class SnowflakeWorker(metaclass=SingletonMeta):
 
     def try_create_worker(self):
         self.worker = self.get_snowflake_worker_id()
-        if not self.in_serverless and self.worker != -1:
-            threading.Thread(target=SnowflakeWorker.heart_beat, args=(self,), daemon=True).start()
+        if self.worker != -1:
+            if not self.in_serverless:
+                threading.Thread(target=SnowflakeWorker.heart_beat, args=(self,), daemon=True).start()
         else:
             raise WorkerIdAllocateFailedError()
-
 
     def release_worker(self):
         with self.engine.connect() as conn:

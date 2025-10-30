@@ -1,4 +1,4 @@
-from typing import Awaitable, Callable
+from typing import Awaitable, Callable, Optional
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -21,17 +21,16 @@ class MDCMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.default_tenant = default_tenant
         self.ignore_paths = ignore_paths or ["/login", "/token/validate/jwt", "/auth/config", "/token/exchange-user"]
+        
     
     async def dispatch(
             self,
             request: Request,
             call_next: Callable[[Request], Awaitable[Response]]
-    ) -> Response:
-
+    ) -> Optional[Response]:
         try:
             current_path = request.url.path
-            # Skip authentication for OPTIONS requests (CORS preflight)
-            if request.method == "OPTIONS" or current_path in self.ignore_paths:
+            if current_path in self.ignore_paths:
                 response: Response = await call_next(request)
             else:
                 tenant_name = request.headers.get(ask_tenant_name_http_header_key())
@@ -46,7 +45,7 @@ class MDCMiddleware(BaseHTTPMiddleware):
                         mdc_put("tenant", self.default_tenant)
                     
                 response: Response = await call_next(request)
+            
+            return response
         finally:
             mdc_clear()
-        
-        return response

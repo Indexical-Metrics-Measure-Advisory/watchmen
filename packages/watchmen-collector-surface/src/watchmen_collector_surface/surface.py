@@ -10,11 +10,13 @@ class CollectorSurface:
 
 	# noinspection PyMethodMayBeStatic
 	def init_task_listener(self, scheduler: JobScheduler) -> None:
-		scheduler.init_task_jobs()
+		if ask_task_listener_enabled():
+			scheduler.init_task_jobs()
 
 	# noinspection PyMethodMayBeStatic
 	def init_clean_up(self, scheduler: JobScheduler) -> None:
-		scheduler.init_clean_up_job()
+		if ask_task_listener_enabled():
+			scheduler.init_clean_up_job()
 
 	# noinspection PyMethodMayBeStatic
 	def init_collector(self, scheduler: JobScheduler) -> None:
@@ -28,12 +30,11 @@ class CollectorSurface:
 
 	def init(self) -> None:
 		job_scheduler = ask_job_scheduler()
-		if ask_task_listener_enabled():
-			self.init_task_listener(job_scheduler)
-			self.init_clean_up(job_scheduler)
-			self.init_collector(job_scheduler)
-			self.init_s3_connector(job_scheduler)
-			job_scheduler.start()
+		self.init_task_listener(job_scheduler)
+		self.init_clean_up(job_scheduler)
+		self.init_collector(job_scheduler)
+		self.init_s3_connector(job_scheduler)
+		job_scheduler.start()
 
 
 collector_surface = CollectorSurface()

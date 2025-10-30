@@ -209,6 +209,7 @@ class CollectorTableConfigService(TupleService):
 			))
 		finally:
 			self.storage.close()
+			
 	def find_all(self, tenant_id: Optional[TenantId]) -> List[CollectorTableConfig]:
 		criteria = []
 		if is_not_blank(tenant_id):
