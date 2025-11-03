@@ -11,7 +11,7 @@ from watchmen_metricflow.metricflow.config.db_version.cli_configuration_db impor
 from watchmen_metricflow.metricflow.main_api import query, load_dimensions_by_metrics, find_all_metrics, \
     get_dimension_values
 from watchmen_metricflow.model.dimension_response import DimensionListResponse, MetricListResponse
-from watchmen_metricflow.model.metric_request import MetricQueryRequest
+from watchmen_metricflow.model.metric_request import MetricQueryRequest, MetricsQueryRequest
 from watchmen_metricflow.model.metrics import Metric
 from watchmen_metricflow.model.semantic import SemanticModel
 from watchmen_metricflow.service.meta_service import load_metrics_by_tenant_id, load_semantic_models_by_tenant_id, \
@@ -97,8 +97,27 @@ async def find_dimensions(metrics: List[str],principal_service: PrincipalService
     return load_dimensions_by_metrics(metrics, config)
 
 
-@router.post("/query_metric",tags =["mcp"], response_model=MetricFlowResponse)
-async def query_metric(req :MetricQueryRequest,
+# @router.post("/get_metrics_value",tags =["mcp"], operation_id="get_metrics_value", response_model=MetricFlowResponse)
+# async def get_metrics_value(req :MetricsQueryRequest,
+#                         principal_service: PrincipalService = Depends(get_admin_principal))->MetricFlowResponse:
+#
+#     config = await build_metric_config(principal_service)
+#
+#     ## check topic and subject space acesss
+#
+#     # cfg = data_config_loader.get_config()
+#     query_result: MetricFlowQueryResult = query(
+#         cfg=config,
+#         metrics=req.metrics,
+#         group_by=req.group_by
+#     )
+#     res = MetricFlowResponse(data=query_result.result_df.rows, column_names=query_result.result_df.column_names)
+#     return res
+
+
+
+@router.post("/get_metric_value",tags =["mcp"], operation_id="get_metric_value", response_model=MetricFlowResponse)
+async def get_metric_value(req :MetricQueryRequest,
                         principal_service: PrincipalService = Depends(get_admin_principal))->MetricFlowResponse:
 
     config = await build_metric_config(principal_service)
@@ -108,13 +127,11 @@ async def query_metric(req :MetricQueryRequest,
     # cfg = data_config_loader.get_config()
     query_result: MetricFlowQueryResult = query(
         cfg=config,
-        metrics=req.metrics,
+        metrics=[req.metric],
         group_by=req.group_by
     )
     res = MetricFlowResponse(data=query_result.result_df.rows, column_names=query_result.result_df.column_names)
     return res
-
-
 
 
 

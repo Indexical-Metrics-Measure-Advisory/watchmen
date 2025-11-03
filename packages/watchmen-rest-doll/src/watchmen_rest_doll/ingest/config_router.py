@@ -122,7 +122,7 @@ def ask_save_table_config_action(
 	return action
 
 
-@router.post('/ingest/model/config', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
+@router.post('/ingest/config/model/', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
              response_model=CollectorModelConfig)
 async def save_model_config(config: CollectorModelConfig,
                             principal_service: PrincipalService = Depends(
@@ -190,8 +190,7 @@ def ask_save_module_config_action(
 				if existing_module_config.tenantId != config.tenantId:
 					raise_403()
 			# noinspection PyTypeChecker
-			config: CollectorModuleConfig = \
-				module_config_service.update_module_config(config)
+			config: CollectorModuleConfig = module_config_service.update_module_config(config)
 
 		return config
 
@@ -340,6 +339,22 @@ async def load_model_config_with_related_tables(
 	return action()
 
 
+@router.get('/ingest/config/model/all', tags=[UserRole.ADMIN])
+async def load_model_config_list(
+		principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> List[CollectorModelConfig]:
+	collector_model_config_service = get_collector_model_config_service(ask_meta_storage(),
+																		ask_snowflake_generator(),
+																		principal_service)
+
+	def action() -> List[CollectorModelConfig]:
+		# noinspection PyTypeChecker
+		model_config_list:  List[CollectorModelConfig] = collector_model_config_service.find_all(principal_service.tenantId)
+		return model_config_list
+
+	return trans_readonly(collector_model_config_service,action)
+
+
 @router.get('/ingest/model/config/stats', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def get_model_config_statistics(
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -448,6 +463,21 @@ async def load_module_config_tree(
 	
 	return action()
 
+
+@router.get('/ingest/config/module/all', tags=[UserRole.ADMIN])
+async def load_module_config_list(
+		principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> List[CollectorModuleConfig]:
+	collector_module_config_service = get_collector_module_config_service(ask_meta_storage(),
+																		  ask_snowflake_generator(),
+																		  principal_service)
+
+	def action() -> List[CollectorModuleConfig]:
+		# noinspection PyTypeChecker
+		module_config_list:  List[CollectorModuleConfig] = collector_module_config_service.find_all(principal_service.tenantId)
+		return module_config_list
+
+	return trans_readonly(collector_module_config_service,action)
 
 @router.get('/ingest/module/config/hierarchy', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def load_module_config_hierarchy(

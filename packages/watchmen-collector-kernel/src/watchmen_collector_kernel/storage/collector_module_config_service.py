@@ -7,6 +7,7 @@ from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, TenantId, CollectorModelConfigId
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	EntityCriteriaExpression, ColumnNameLiteral, EntitySortMethod, EntitySortColumn
+from watchmen_utilities import is_not_blank
 
 
 class CollectorModuleConfigShaper(EntityShaper):
@@ -95,6 +96,15 @@ class CollectorModuleConfigService(TupleService):
 			))
 		finally:
 			self.close_transaction()
+
+	def find_all(self, tenant_id: Optional[TenantId]) -> List[CollectorModuleConfig]:
+		criteria = []
+		if is_not_blank(tenant_id):
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria))
+
+
 
 
 def get_collector_module_config_service(storage: TransactionalStorageSPI,

@@ -4,9 +4,18 @@ from pydantic import BaseModel
 from typing import Optional, Sequence, List
 
 
+class MetricsQueryRequest(BaseModel):
+    metrics: Optional[List[str]] = None
+    group_by: Optional[List[str]] = None
+    where: Optional[str] = None
+    start_time: Optional[dt.datetime] = None
+    end_time: Optional[dt.datetime] = None
+    order: Optional[List[str]] = None
+    limit: Optional[int] = None
+
 class MetricQueryRequest(BaseModel):
-    metrics: Optional[Sequence[str]] = None
-    group_by: Optional[Sequence[str]] = None
+    metric: str = None
+    group_by: Optional[List[str]] = None
     where: Optional[str] = None
     start_time: Optional[dt.datetime] = None
     end_time: Optional[dt.datetime] = None
