@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-
 import json
 import os
 import sys
 
-import set_env_variable
 from release_worker_id_extension.extensions_api_client import ExtensionsAPIClient
-from watchmen_meta.common import ask_meta_storage, ask_snowflake_competitive_workers_v2, get_snowflake_worker
-from watchmen_storage import get_storage_based_worker_id_service
+from set_env_variable import get_engine, settings
+from snowflake_worker import Worker, read_worker_id_from_tmp
 
+engine = get_engine()
 
 class WorkerIdReleaseExtension:
 
@@ -28,25 +27,18 @@ class WorkerIdReleaseExtension:
                 sys.exit(0)
 
 
-def read_worker_id_from_tmp() -> int:
-    if os.path.exists('/tmp/worker_id.txt'):
-        with open('/tmp/worker_id.txt', 'r') as file:
-            worker_id = file.read()
-            return worker_id
-
 
 def release_worker_id():
-    if ask_snowflake_competitive_workers_v2():
-        worker = get_snowflake_worker()
-        worker.release_worker()
-    else:
-        storage = ask_meta_storage()
-        worker_id = read_worker_id_from_tmp()
-        if worker_id:
-            get_storage_based_worker_id_service(storage).release_worker(0, worker_id)
+    worker_id = read_worker_id_from_tmp()
+    if worker_id:
+        worker = Worker(engine)
+        if settings.SNOWFLAKE_COMPETITIVE_WORKERS_V2:
+            worker.release_worker_v2(0, worker_id)
         else:
-            print("Serving WorkerIdReleaseExtension without worker_id")
-
+            worker.release_worker(0, worker_id)
+    else:
+        print("Serving WorkerIdReleaseExtension without worker_id")
+        
 
 # Register for the INVOKE events from the EXTENSIONS API
 _REGISTRATION_BODY = {
