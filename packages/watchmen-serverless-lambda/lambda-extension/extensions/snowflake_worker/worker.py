@@ -2,6 +2,8 @@ import os
 from logging import getLogger
 from typing import Optional
 
+from sqlalchemy import text
+
 MIN_DATETIME = '1970-01-01 00:00:00'
 MAX_DATETIME = '9999-12-31 23:59:59'
 
@@ -19,7 +21,7 @@ class Worker:
                 WHERE data_center_id = :data_center_id AND worker_id = :worker_id
                 """
                 conn.execute(
-                    release_sql,
+                    text(release_sql),
                     {
                         "data_center_id": data_center_id,
                         "worker_id": worker_id
@@ -40,7 +42,7 @@ class Worker:
                                WHERE data_center_id = :data_center_id AND worker_id = :worker_id
                                """
                 conn.execute(
-                    release_sql,
+                    text(release_sql),
                     {
                         "locked": 0,
                         "last_beat_at": MIN_DATETIME,
