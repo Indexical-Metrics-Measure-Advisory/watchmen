@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from watchmen_rest import RestSettings
+from ..settings import RestSettings
 
 
 def install_mdc(app: FastAPI, settings: RestSettings) -> None:

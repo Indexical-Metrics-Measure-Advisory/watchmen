@@ -13,6 +13,7 @@ from .authentication import build_authentication_manager
 from .cors import install_cors
 from .prometheus import install_prometheus
 from .settings import RestSettings
+from .logger import install_mdc
 
 logger = getLogger(f'app.{__name__}')
 
@@ -31,16 +32,20 @@ class RestApp:
 			version=self.settings.VERSION,
 			description=self.settings.DESCRIPTION
 		)
-
+		
+		self.init_logger_mdc(app)
 		self.init_cors(app)
 		self.init_prometheus(app)
 
 		self.init_authentication()
 		self.post_construct(app)
-
+		
 		logger.info('REST app constructed.')
 		return app
 
+	def init_logger_mdc(self, app: FastAPI) -> None:
+		install_mdc(app, self.settings)
+		
 	def is_cors_on(self) -> bool:
 		return self.settings.CORS
 
