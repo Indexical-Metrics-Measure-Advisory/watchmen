@@ -4,10 +4,11 @@ from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import TriggerEvent, QueryParam
 from watchmen_meta.common import TupleShaper, TupleService
 from watchmen_meta.common.storage_service import StorableId
-from watchmen_model.common import Storable, EventTriggerId
+from watchmen_model.common import Storable, EventTriggerId, TenantId, Pageable, DataPage
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	EntityStraightValuesFinder, EntityCriteriaExpression, ColumnNameLiteral, \
-	EntityStraightColumn, EntitySortColumn, EntitySortMethod, EntityLimitedFinder
+	EntityStraightColumn, EntitySortColumn, EntitySortMethod, EntityLimitedFinder, EntityCriteriaJoint, \
+	EntityCriteriaJointConjunction, EntityCriteriaOperator
 from watchmen_utilities import ArrayHelper
 
 
@@ -224,7 +225,17 @@ class TriggerEventService(TupleService):
 				return None
 		finally:
 			self.storage.close()
-
+	
+	def find_page_by_tenant(self, status: Optional[int], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
+		try:
+			self.storage.connect()
+			criteria = []
+			if status is not None:
+				criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=status))
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+			return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
+		finally:
+			self.storage.close()
 
 def get_trigger_event_service(storage: TransactionalStorageSPI,
                               snowflake_generator: SnowflakeGenerator,

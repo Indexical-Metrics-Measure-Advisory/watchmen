@@ -4,7 +4,7 @@ from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import TriggerTable
 from watchmen_meta.common import TupleShaper, TupleService
 from watchmen_meta.common.storage_service import StorableId
-from watchmen_model.common import Storable, TableTriggerId
+from watchmen_model.common import Storable, TableTriggerId, Pageable, DataPage
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	EntityCriteriaJoint, EntityCriteriaExpression, ColumnNameLiteral, EntitySortColumn
 
@@ -136,6 +136,14 @@ class TriggerTableService(TupleService):
 			))
 		finally:
 			self.close_transaction()
+	
+	def find_page_by_event_trigger_id(self, event_trigger_id: int, pageable: Pageable) -> DataPage:
+		try:
+			self.storage.connect()
+			criteria = [EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)]
+			return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
+		finally:
+			self.storage.close()
 
 
 def get_trigger_table_service(storage: TransactionalStorageSPI,
