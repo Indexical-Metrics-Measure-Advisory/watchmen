@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-storage-oss"
-version = "17.0.0"
+version = "18.0.1"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -11,7 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "~3.12"
 oss2 = "2.18.6"
-watchmen-storage = { path = "../watchmen-storage", develop = true }
+watchmen-storage = "18.0.1"
 
 [tool.poetry.group.dev.dependencies]
 

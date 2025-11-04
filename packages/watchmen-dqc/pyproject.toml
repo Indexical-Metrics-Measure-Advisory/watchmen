@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-dqc"
-version = "17.0.0"
+version = "18.0.1"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -14,14 +14,14 @@ pandas = "^2.2.3"
 # ydata-profiling = "4.6.0"
 numpy = "^2.1.0"
 APScheduler = "^3.10.4"
-watchmen-meta = { path = "../watchmen-meta", develop = true }
-watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
-watchmen-pipeline-kernel = { path = "../watchmen-pipeline-kernel", develop = true }
-watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
-watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
-watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
-watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
-watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
+watchmen-meta = "18.0.1"
+watchmen-data-kernel = "18.0.1"
+watchmen-pipeline-kernel = "18.0.1"
+watchmen-storage-mysql = { version = "18.0.1", optional = true }
+watchmen-storage-oracle = { version = "18.0.1", optional = true }
+watchmen-storage-mongodb = { version = "18.0.1", optional = true }
+watchmen-storage-mssql = { version = "18.0.1", optional = true }
+watchmen-storage-postgresql = { version = "18.0.1", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 

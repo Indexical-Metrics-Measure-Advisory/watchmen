@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-storage-oracle"
-version = "17.0.0"
+version = "18.0.1"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -11,7 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "~3.12"
 cx-Oracle = "^8.3.0"
-watchmen-storage-rds = { path = "../watchmen-storage-rds", develop = true }
+watchmen-storage-rds = "18.0.1"
 
 [tool.poetry.group.dev.dependencies]
 
