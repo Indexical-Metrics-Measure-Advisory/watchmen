@@ -152,6 +152,54 @@ jobs:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
       version: ${{ needs.compute-version.outputs.version }}
       storage: all
+  # publish metricflow image, on mysql
+  publish-metricflow-mysql-image:
+    needs: [ compute-version, prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-metricflow.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: mysql
+  # publish metricflow image, on oracle
+  publish-metricflow-oracle-image:
+    needs: [ compute-version, prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-metricflow.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: oracle
+  # publish metricflow image, on mongodb
+  publish-metricflow-mongodb-image:
+    needs: [ compute-version, prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-metricflow.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: mongodb
+  # publish metricflow image, on mssql
+  publish-metricflow-mssql-image:
+    needs: [ compute-version, prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-metricflow.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: mssql
+  # publish metricflow image, on postgresql
+  publish-metricflow-postgresql-image:
+    needs: [ compute-version, prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-metricflow.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: postgresql
+  # publish metricflow image, on all storage
+  publish-metricflow-all-image:
+    needs: [ compute-version, prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-metricflow.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: all
   # publish dqc image, on mysql
   publish-dqc-mysql-image:
     needs: [ compute-version, prepare, publish-web-client-image ]
