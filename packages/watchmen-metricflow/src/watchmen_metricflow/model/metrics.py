@@ -89,6 +89,7 @@ class Metric(ExtendedBaseModel, TenantBasedTuple, Auditable,OptimisticLock):
     id:str
     name: str
     description: Optional[str] = None
+    category:Optional[str] =None
     type: MetricType
     type_params: MetricTypeParams
     filter: Optional[str] = None

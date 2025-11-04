@@ -93,6 +93,7 @@ class MetricShaper(UserBasedTupleShaper):
             "id":metric.id,
             'name': metric.name,
             'description': metric.description,
+            "category":metric.category,
             'type': metric.type.value if hasattr(metric.type, 'value') else metric.type,
             'type_params': MetricShaper.serialize_metric_type_params(metric.type_params),
             'filter': metric.filter,
@@ -112,6 +113,7 @@ class MetricShaper(UserBasedTupleShaper):
         metric_data = {
             "id":row.get("id"),
             'name': row.get('name'),
+            "category": row.get("category"),
             'description': row.get('description'),
             'type': row.get('type'),
             'type_params': row.get('type_params', {}),
