@@ -17,7 +17,7 @@ class Worker:
             trans = conn.begin()
             try:
                 release_sql = """
-                DELETE FROM snowflake_workers
+                DELETE FROM snowflake_competitive_workers
                 WHERE data_center_id = :data_center_id AND worker_id = :worker_id
                 """
                 conn.execute(
