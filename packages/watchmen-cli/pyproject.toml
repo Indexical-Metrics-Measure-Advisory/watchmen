@@ -23,4 +23,3 @@ build-backend = "poetry.core.masonry.api"
 [[tool.poetry.source]]
 name = "foo"
 url = "https://pypi.org/simple/"
-default = true
