@@ -9,8 +9,8 @@ from watchmen_metricflow.model.semantic import SemanticModel
 from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_rest import get_admin_principal, get_console_principal
 from watchmen_rest.util import raise_400, raise_404
-from watchmen_rest_doll.doll import ask_tuple_delete_enabled
-from watchmen_rest_doll.util import trans, trans_readonly
+from watchmen_metricflow.settings import ask_tuple_delete_enabled
+from watchmen_metricflow.util import trans, trans_readonly
 from watchmen_utilities import is_blank
 
 router = APIRouter()
