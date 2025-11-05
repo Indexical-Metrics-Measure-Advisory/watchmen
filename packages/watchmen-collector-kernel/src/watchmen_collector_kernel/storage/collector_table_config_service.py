@@ -195,11 +195,12 @@ class CollectorTableConfigService(TupleService):
 			]
 		))
 
-	def find_root_table_config(self, model_name: str, tenant_id: str) -> Optional[List[CollectorTableConfig]]:
+
+	def find_root_table_config(self, model_name: str, tenant_id: str) -> Optional[CollectorTableConfig]:
 		try:
 			self.storage.connect()
 			# noinspection PyTypeChecker
-			return self.storage.find(self.get_entity_finder(
+			return self.storage.find_one(self.get_entity_finder(
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'),
 					                         right=model_name),

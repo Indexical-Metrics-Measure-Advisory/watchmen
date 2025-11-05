@@ -196,7 +196,7 @@ async def create_json_template(principal_service: PrincipalService = Depends(get
 	for model in models:
 		table_config = collector_table_config_service.find_root_table_config(model.modelName, model.tenantId)
 		if table_config:
-			json_data = data_capture_service.build_json_template(table_config[0])
+			json_data = data_capture_service.build_json_template(table_config)
 			results.append({"topicCode": model.rawTopicCode, "data": json_data})
 	return results
 
@@ -217,7 +217,7 @@ async def create_json_template(model_name: str, principal_service: PrincipalServ
 
 	table_config = collector_table_config_service.find_root_table_config(model.modelName, model.tenantId)
 	if table_config:
-		json_data = data_capture_service.build_json_template(table_config[0])
+		json_data = data_capture_service.build_json_template(table_config)
 		return {"topicCode": model.rawTopicCode, "data": json_data}
 
 
