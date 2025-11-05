@@ -1,10 +1,8 @@
-[project]
-name = "watchmen-metricflow"
+[tool.poetry]
+name = "watchmen—metricflow"
 version = "18.0.1"
 description = ""
-authors = [
-    {name = "luke0623",email = "luke0623@outlook.com"}
-]
+authors = ["luke0623 <luke0623@outlook.com>"]
 license = "MIT"
 packages = [
     { include = "watchmen_metricflow", from = "src" }
@@ -19,6 +17,7 @@ python-multipart = "^0.0.9"
 dbt-metricflow = ">=0.8.2,<0.9.0"
 dbt-postgres = ">=1.8.0,<2.0.0"
 fastapi-mcp = ">=0.4.0,<0.5.0"
+psycopg2-binary = "2.9.11"
 watchmen-lineage = { path = "../watchmen-lineage", develop = true }
 watchmen-model = { path = "../watchmen-model", develop = true }
 watchmen-meta = { path = "../watchmen-meta", develop = true }
