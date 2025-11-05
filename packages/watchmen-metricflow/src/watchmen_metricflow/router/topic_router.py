@@ -8,7 +8,7 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import Topic, TopicType
 from watchmen_model.common import DataPage, TenantId
 from watchmen_rest import get_console_principal
-from watchmen_rest_doll.util import trans_readonly
+from watchmen_metricflow.util import trans_readonly
 from watchmen_utilities import ExtendedBaseModel
 
 router = APIRouter()

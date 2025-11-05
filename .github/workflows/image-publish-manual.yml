@@ -40,6 +40,11 @@ on:
         required: true
         default: false
         type: boolean
+      metricflow:
+        description: 'Metricflow'
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   # publish doll image, on mysql
@@ -65,3 +70,11 @@ jobs:
     with:
       branch: ${{ github.event.inputs.ref }}
       version: ${{ github.event.inputs.version }}
+  # publish doll image, on mysql
+  publish-metricflow-image:
+    uses: ./.github/workflows/image-publish-metricflow.yml
+    if: ${{ github.event.inputs.metricflow == 'true' }}
+    with:
+      branch: ${{ github.event.inputs.ref }}
+      version: ${{ github.event.inputs.version }}
+      storage: ${{ github.event.inputs.storage }}

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-storage-oracle"
-version = "17.0.0"
+version = "18.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"

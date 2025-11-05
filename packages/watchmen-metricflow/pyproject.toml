@@ -1,10 +1,8 @@
-[project]
-name = "watchmen-metricflow"
-version = "17.0.0"
+[tool.poetry]
+name = "watchmen—metricflow"
+version = "18.0.0"
 description = ""
-authors = [
-    {name = "luke0623",email = "luke0623@outlook.com"}
-]
+authors = ["luke0623 <luke0623@outlook.com>"]
 license = "MIT"
 packages = [
     { include = "watchmen_metricflow", from = "src" }
@@ -18,21 +16,7 @@ bcrypt = "^4.2.0"
 python-multipart = "^0.0.9"
 dbt-metricflow = ">=0.8.2,<0.9.0"
 dbt-postgres = ">=1.8.0,<2.0.0"
-uvicorn = ">=0.35.0,<0.36.0"
-fastapi = ">=0.116.1,<0.117.0"
-uvloop = ">=0.21.0,<0.22.0"
-pydantic-settings = ">=2.10.1,<3.0.0"
-python-json-logger = ">=3.3.0,<4.0.0"
-sqlalchemy = ">=2.0.43,<3.0.0"
-pymysql = ">=1.1.2,<2.0.0"
-python-jose = ">=3.5.0,<4.0.0"
-cacheout = ">=0.16.0,<0.17.0"
-dask = ">=2025.7.0,<2026.0.0"
-distributed = ">=2025.7.0,<2026.0.0"
-apscheduler = ">=3.11.0,<4.0.0"
-pycryptodome = ">=2.3.4,<4.0.0"
 fastapi-mcp = ">=0.4.0,<0.5.0"
-numpy = ">=2.3.4,<3.0.0"
 watchmen-lineage = { path = "../watchmen-lineage", develop = true }
 watchmen-model = { path = "../watchmen-model", develop = true }
 watchmen-meta = { path = "../watchmen-meta", develop = true }

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-lineage"
-version = "17.0.0"
+version = "18.0.0"
 description = ""
 authors = ["luke0623 <luke0623@outlook.com>"]
 readme = "README.md"
