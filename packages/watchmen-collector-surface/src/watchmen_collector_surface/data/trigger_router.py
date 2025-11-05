@@ -101,9 +101,10 @@ async def trigger_event_by_model(
     trigger_event.endTime = event.endTime
     trigger_event.tableName = parent_table_config.tableName
     trigger_event_service.redress_storable_id(trigger_event)
-    event.isFinished = False
-    event.status = Status.INITIAL.value
-    event.type = EventType.BY_TABLE.value
+    trigger_event.isFinished = False
+    trigger_event.status = Status.INITIAL.value
+    trigger_event.type = EventType.BY_TABLE.value
+    trigger_event.tenantId = principal_service.get_tenant_id()
     return trigger_event_service.create_trigger_event(trigger_event)
 
 
