@@ -41,7 +41,7 @@ on:
         default: false
         type: boolean
       metricflow:
-        description: 'metricflow'
+        description: 'Metricflow'
         required: true
         default: false
         type: boolean
