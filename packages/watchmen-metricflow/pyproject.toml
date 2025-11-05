@@ -19,17 +19,17 @@ python-multipart = "^0.0.9"
 dbt-metricflow = ">=0.8.2,<0.9.0"
 dbt-postgres = ">=1.8.0,<2.0.0"
 fastapi-mcp = ">=0.4.0,<0.5.0"
-watchmen-lineage = "18.0.1"
-watchmen-model = "18.0.1"
-watchmen-meta = "18.0.1"
-watchmen-rest = "18.0.1"
-watchmen-data-surface = "18.0.1"
-watchmen-inquiry-surface = "18.0.1"
-watchmen-indicator-surface = "18.0.1"
-watchmen-storage-mysql = { version = "18.0.1", optional = true }
-watchmen-storage-oracle = { version = "18.0.1", optional = true }
-watchmen-storage-mssql = { version = "18.0.1", optional = true }
-watchmen-storage-postgresql = { version = "18.0.1", optional = true }
+watchmen-lineage = { path = "../watchmen-lineage", develop = true }
+watchmen-model = { path = "../watchmen-model", develop = true }
+watchmen-meta = { path = "../watchmen-meta", develop = true }
+watchmen-rest = { path = "../watchmen-rest", develop = true }
+watchmen-data-surface = { path = "../watchmen-data-surface", develop = true }
+watchmen-inquiry-surface = { path = "../watchmen-inquiry-surface", develop = true }
+watchmen-indicator-surface = { path = "../watchmen-indicator-surface", develop = true }
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
+watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
+watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
+watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
 
 
 [tool.poetry.group.dev.dependencies]
