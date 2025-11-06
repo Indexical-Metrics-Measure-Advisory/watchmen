@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from watchmen_utilities.pydantic_helper import ExtendedBaseModel
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import TriggerEvent, Status, EventType, CollectorModelConfig, CollectorTableConfig
@@ -18,7 +18,7 @@ from watchmen_utilities import is_blank
 router = APIRouter()
 
 
-class TriggerEventRequest(BaseModel):
+class TriggerEventRequest(ExtendedBaseModel):
     startTime: datetime
     endTime: datetime
     modelId: str
@@ -85,7 +85,7 @@ async def trigger_event_by_model(
                                                                         ask_snowflake_generator(),
                                                                         principal_service)
 
-    model_config: Optional[CollectorModelConfig]= collector_model_config_service.find_by_id(event.modelId)
+    model_config: Optional[CollectorModelConfig]= collector_model_config_service.find_by_model_id(event.modelId)
 
     parent_table_config: CollectorTableConfig = collector_table_config_service.find_root_table_config(
         model_config.modelName,

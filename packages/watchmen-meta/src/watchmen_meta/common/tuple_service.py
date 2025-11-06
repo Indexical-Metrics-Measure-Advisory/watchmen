@@ -170,9 +170,5 @@ class TupleService(EntityService):
 		return a_tuple
 
 	def find_by_id(self, tuple_id: TupleId) -> Optional[Tuple]:
-		try:
-			self.storage.connect()
-			return self.storage.find_by_id(tuple_id, self.get_entity_id_helper())
-		finally:
-			self.storage.connect()
-			
+		return self.storage.find_by_id(tuple_id, self.get_entity_id_helper())
+	

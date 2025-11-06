@@ -1,6 +1,7 @@
 from typing import Awaitable, Callable, Optional
 
-from fastapi import Request, Response
+from fastapi import Request, Response, HTTPException
+from starlette import status
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
@@ -47,5 +48,7 @@ class MDCMiddleware(BaseHTTPMiddleware):
                 response: Response = await call_next(request)
             
             return response
+        except Exception:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Unauthorized visit.')
         finally:
             mdc_clear()
