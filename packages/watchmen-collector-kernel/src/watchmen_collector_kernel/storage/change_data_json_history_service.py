@@ -5,7 +5,8 @@ from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import ChangeDataJson
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeJsonId
-from watchmen_storage import EntityName, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator
+from watchmen_storage import EntityName, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
+	EntityCriteriaExpression, ColumnNameLiteral
 
 
 class ChangeDataJsonHistoryShaper(ChangeDataJsonShaper):
@@ -39,6 +40,19 @@ class ChangeDataJsonHistoryService(ChangeDataJsonService):
 	def set_storable_id(self, storable: ChangeDataJson, storable_id: ChangeJsonId) -> Storable:
 		storable.changeRecordId = storable_id
 		return storable
+	
+	def count_failed_change_data_json(self, table_trigger_id: int) -> int:
+		try:
+			self.storage.connect()
+			return self.storage.count(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_trigger_id'),
+					                         right=table_trigger_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=3)
+				]
+			))
+		finally:
+			self.storage.close()
 
 
 def get_change_data_json_history_service(storage: TransactionalStorageSPI,

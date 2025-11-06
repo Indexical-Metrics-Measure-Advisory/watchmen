@@ -317,6 +317,31 @@ class ChangeDataJsonService(TupleService):
 			raise e
 		finally:
 			self.close_transaction()
+			
+	def is_table_finished(self, table_trigger_id: int) -> bool:
+		try:
+			self.begin_transaction()
+			results = self.storage.find_limited(
+				EntityLimitedFinder(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_trigger_id'),
+						                         right=table_trigger_id)
+					],
+					limit=1
+				)
+			)
+			self.commit_transaction()
+			if len(results) == 0:
+				return True
+			else:
+				return False
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
+		finally:
+			self.close_transaction()
 
 	def count_change_data_json(self, event_trigger_id: int) -> int:
 		return self.storage.count(self.get_entity_finder(
@@ -325,6 +350,18 @@ class ChangeDataJsonService(TupleService):
 				                         right=event_trigger_id)
 			]
 		))
+	
+	def count_change_data_json_by_table_trigger_id(self, table_trigger_id: int) -> int:
+		try:
+			self.storage.connect()
+			return self.storage.count(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_trigger_id'),
+					                         right=table_trigger_id)
+				]
+			))
+		finally:
+			self.storage.close()
 	
 	def count_initial_change_data_json(self, event_trigger_id: int) -> int:
 		try:

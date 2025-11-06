@@ -11,3 +11,4 @@ from .table_config_service import get_table_config_service
 from .model_config_service import get_model_config_service
 from .module_config_service import get_module_config_service
 from .storage_helper import ask_collector_storage, get_collector_data_source_service, get_data_source_service
+from .monitor_service import get_monitor_service
