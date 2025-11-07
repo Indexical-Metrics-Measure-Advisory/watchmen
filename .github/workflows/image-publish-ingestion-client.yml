@@ -32,7 +32,7 @@ jobs:
         run: |
           cd ./packages/watchmen-ingestion-client
           npm install
-          npm build
+          npm run build
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
