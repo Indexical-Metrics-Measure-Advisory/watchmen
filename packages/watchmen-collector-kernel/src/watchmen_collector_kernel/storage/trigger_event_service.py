@@ -233,7 +233,8 @@ class TriggerEventService(TupleService):
 			if status is not None:
 				criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=status))
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
-			return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
+			sort = EntitySortColumn(name="event_trigger_id", method=EntitySortMethod.DESC)
+			return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable, sort=[sort]))
 		finally:
 			self.storage.close()
 

@@ -38,17 +38,20 @@ class MDCMiddleware(BaseHTTPMiddleware):
                 if tenant_name:
                     mdc_put("tenant", tenant_name)
                 else:
-                    principal_service = get_any_principal(request)
-                    tenant = TenantService(principal_service).find_by_id(principal_service.tenantId)
-                    if tenant:
-                        mdc_put("tenant", tenant.name)
-                    else:
-                        mdc_put("tenant", self.default_tenant)
-                    
+                   self.get_tenant_by_authentication(request)
                 response: Response = await call_next(request)
             
             return response
-        except Exception:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Unauthorized visit.')
         finally:
             mdc_clear()
+            
+    def get_tenant_by_authentication(self, request):
+        try:
+            principal_service = get_any_principal(request)
+            tenant = TenantService(principal_service).find_by_id(principal_service.tenantId)
+            if tenant:
+                mdc_put("tenant", tenant.name)
+            else:
+                mdc_put("tenant", self.default_tenant)
+        except Exception:
+            mdc_put("tenant", self.default_tenant)
