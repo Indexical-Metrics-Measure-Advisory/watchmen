@@ -28,6 +28,7 @@ export interface ModelNodeData extends BaseNodeData {
   modelId: string;
   moduleId?: string;
   dependOn?: string;
+  topicName?: string;
   childCount?: number;
   parentModuleId?: string;
 }
@@ -158,6 +159,7 @@ const ModelNodeComponent: React.FC<NodeProps<ModelNodeData>> = ({ data, selected
             <div className="text-xs text-green-600">
               Model • Priority: {data.priority}
               {data.dependOn && ` • Depends on: ${data.dependOn}`}
+              {data.topicName && ` • Topic: ${data.topicName}`}
             </div>
           </div>
         </div>

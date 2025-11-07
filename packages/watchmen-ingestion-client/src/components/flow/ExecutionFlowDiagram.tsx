@@ -138,9 +138,9 @@ interface FlowStatistics {
  */
 const HORIZONTAL_LAYOUT: HorizontalLayoutConfig = {
   // Horizontal spacing between module nodes (increased to avoid overlap)
-  moduleSpacing: 600,
+  moduleSpacing: 800,
   // Vertical spacing between model nodes (increased for better readability)
-  modelVerticalSpacing: 150,
+  modelVerticalSpacing: 200,
   // Horizontal offset from module to model (increased for clear separation)
   moduleToModelOffset: 300,
   // Starting position (adjusted to ensure complete display)

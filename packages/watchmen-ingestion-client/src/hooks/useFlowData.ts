@@ -128,6 +128,7 @@ export const useFlowData = (autoFetch = true): UseFlowDataState => {
           modelId: model.modelId,
           moduleId: model.moduleId,
           dependOn: model.dependOn,
+          topicName: (model as any).rawTopicCode || model.rawTopicCode,
           level: 1,
           isExpanded: false,
           parentModuleId: model.moduleId,
