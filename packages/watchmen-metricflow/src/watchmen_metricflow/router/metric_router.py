@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends
+import json
 from metricflow.data_table.column_types import CellValue
 from metricflow.engine.metricflow_engine import MetricFlowQueryResult
+
+from starlette.requests import Request
 from typing import List, Tuple, Dict, Optional
 
 from watchmen_auth import PrincipalService
@@ -115,10 +118,26 @@ async def find_dimensions(metrics: List[str],principal_service: PrincipalService
 #     return res
 
 
+async def convert_request(request: Request):
+    body = await request.json()
+    # normalize ids when provided as comma-separated string or JSON-like string
+    # normalize group_by from string to list
+    if 'group_by' in body and isinstance(body['group_by'], str):
+        gb_str = body['group_by'].strip()
+        if gb_str.startswith("[") and gb_str.endswith("]"):
+            try:
+                body['group_by'] = json.loads(gb_str.replace("'", '"'))
+            except json.JSONDecodeError:
+                body['group_by'] = [x.strip().strip("'").strip('"') for x in gb_str[1:-1].split(",") if x.strip()]
+        elif "," in gb_str:
+            body['group_by'] = [x.strip() for x in gb_str.split(",") if x.strip()]
+        else:
+            body['group_by'] = [gb_str]
+    return body
 
 @router.post("/get_metric_value",tags =["mcp"], operation_id="get_metric_value", response_model=MetricFlowResponse)
 async def get_metric_value(req :MetricQueryRequest,
-                        principal_service: PrincipalService = Depends(get_admin_principal))->MetricFlowResponse:
+                        principal_service: PrincipalService = Depends(get_any_principal))->MetricFlowResponse:
 
     config = await build_metric_config(principal_service)
 
@@ -141,7 +160,7 @@ async def get_metric_value(req :MetricQueryRequest,
 
 @router.post("/query_metrics", response_model=List[MetricFlowResponse])
 async def query_metrics(request_list: List[MetricQueryRequest],
-                        principal_service: PrincipalService = Depends(get_admin_principal)):
+                        principal_service: PrincipalService = Depends(get_any_principal)):
     config = await build_metric_config(principal_service)
 
 

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Body
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import TriggerEvent
+from watchmen_collector_kernel.model.monitor import EventResultRecord
 from watchmen_collector_kernel.service import ask_collector_storage, get_monitor_service
 from watchmen_collector_kernel.storage import get_trigger_event_service, get_trigger_module_service, \
     get_trigger_model_service, get_trigger_table_service, get_change_data_record_service, \
@@ -159,11 +160,11 @@ async def monitor_task_by_event(
     return {"unfinished": unfinished, "finished": finished}
 
 
-@router.post('/ingest/monitor/event/detail', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+@router.get('/ingest/monitor/event/detail', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def monitor_task_by_event(
         trigger_event_id: Optional[int],
         principal_service: PrincipalService = Depends(get_any_admin_principal)
-) -> List:
+) -> List[EventResultRecord]:
     
     monitor_service = get_monitor_service(principal_service)
     

@@ -1,6 +1,7 @@
+import json
 
 import datetime as dt
-from pydantic import BaseModel
+from pydantic import BaseModel, validator, field_validator
 from typing import Optional, Sequence, List
 
 
@@ -21,6 +22,8 @@ class MetricQueryRequest(BaseModel):
     end_time: Optional[dt.datetime] = None
     order: Optional[List[str]] = None
     limit: Optional[int] = None
+
+
 
 
 class MetricDimensionRequest(BaseModel):
