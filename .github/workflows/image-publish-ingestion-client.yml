@@ -1,0 +1,48 @@
+name: Publish ingestion client images
+
+on:
+  workflow_call:
+    inputs:
+      branch:
+        description: Release branch
+        required: true
+        type: string
+      version:
+        description: Target version
+        required: true
+        type: string
+
+jobs:
+  build-and-publish:
+    name: Publish image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo inputs
+        run: |
+          echo "Release branch: [${{ inputs.branch }}]"
+          echo "Target version: [${{ inputs.version }}]"
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Build
+        run: |
+          cd ./packages/watchmen-ingestion-client
+          yarn install
+          yarn build
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+      - name: Ingestion client build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: ./packages/watchmen-ingestion-client
+          file: ./packages/watchmen-ingestion-client/Dockerfile
+          push: true
+          tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-ingestion-client:${{ inputs.version }}

@@ -1,0 +1,23 @@
+name: Manual publish ingestion-client images
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch or tag name
+        required: true
+        type: string
+        default: 'main'
+      version:
+        description: Version
+        required: true
+        type: string
+        default: '18.0.0'
+
+jobs:
+  # publish ingestion client image
+  publish-web-client-image:
+    uses: ./.github/workflows/image-publish-ingestion-client.yml
+    with:
+      branch: ${{ github.event.inputs.ref }}
+      version: ${{ github.event.inputs.version }}
