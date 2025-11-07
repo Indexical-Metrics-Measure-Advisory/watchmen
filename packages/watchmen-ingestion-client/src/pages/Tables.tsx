@@ -4,22 +4,16 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Database, Plus, Filter, Download, RefreshCw, Info, Eye, Edit, X, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Minus } from 'lucide-react';
+import { Database, Plus, Filter, Download, RefreshCw, Info, Eye, Edit, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Minus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  CollectorTableConfig, 
-  TableStatus, 
-  CreateTableRequest, 
-  TableField,
-  Condition,
-  JoinCondition,
-  Dependence,
-  JsonColumn 
+import {
+  CollectorTableConfig, Condition, Dependence,
+  JsonColumn
 } from '@/models/table';
 import { tableService, TableServiceError } from '@/services/tableService';
 import dataSourceService from '@/services/dataSourceService';
@@ -1009,15 +1003,6 @@ const Tables = () => {
                     >
                       <Edit className="h-4 w-4" />
                       Configure
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="sm" 
-                      className="gap-1"
-                      onClick={() => table.configId && handleDeleteTable(table.configId)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Delete
                     </Button>
                   </div>
                 </CardContent>

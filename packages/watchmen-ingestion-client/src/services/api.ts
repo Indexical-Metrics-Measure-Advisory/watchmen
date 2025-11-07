@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } f
 import { ApiResponse, ApiError } from '../models/api.models';
 
 // Define base API configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/watchmen';
 const API_TIMEOUT = 30000; // 30 seconds
 
 // Create API service class
