@@ -55,7 +55,7 @@ class MonitorService:
                 jsonCount=unfinished,
                 jsonFinishedCount=finished,
                 status=self.get_status(trigger_table),
-                percent=finished/(unfinished+finished),
+                percent=0 if finished == 0 else finished / (unfinished + finished),
                 errors=self.get_errors(trigger_table)
             )
             results.append(record)
