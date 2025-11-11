@@ -27,17 +27,17 @@ class MonitorService {
   }
   
   // Retry a failed ingestion event
-  public async retryIngestionEvent(eventId: number): Promise<ApiResponse<any>> {
+  public async retryIngestionEvent(eventId: string): Promise<ApiResponse<any>> {
     return apiService.post<any>(`${this.baseUrl}/events/${eventId}/retry`);
   }
   
   // Cancel a running ingestion event
-  public async cancelIngestionEvent(eventId: number): Promise<ApiResponse<any>> {
+  public async cancelIngestionEvent(eventId: string): Promise<ApiResponse<any>> {
     return apiService.post<any>(`${this.baseUrl}/events/${eventId}/cancel`);
   }
   
   // Get detailed logs for an ingestion event
-  public async getIngestionEventLogs(eventId: number): Promise<ApiResponse<any>> {
+  public async getIngestionEventLogs(eventId: string): Promise<ApiResponse<any>> {
     return apiService.get<any>(`${this.baseUrl}/events/${eventId}/logs`);
   }
 
@@ -48,7 +48,7 @@ class MonitorService {
   }
 
   // Get detailed event result records by eventTriggerId
-  public async getEventResultRecords(eventTriggerId: number): Promise<ApiResponse<EventResultRecord[]>> {
+  public async getEventResultRecords(eventTriggerId: string): Promise<ApiResponse<EventResultRecord[]>> {
     return apiService.get<EventResultRecord[]>(`${this.baseUrl}/events/${eventTriggerId}/records`);
   }
 }

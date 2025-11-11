@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Database, Plus, Filter, Download, RefreshCw, Info, Eye, Edit, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Minus } from 'lucide-react';
+import { Database, Plus, Download, RefreshCw, Info, Eye, Edit, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Minus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -520,7 +520,9 @@ const Tables = () => {
   };
 
   const handleSaveEdit = async () => {
+      
     if (!selectedTable || !editFormData) return;
+
 
     try {
       setLoading(true);
@@ -528,9 +530,13 @@ const Tables = () => {
 
       // Form validation
       if (!validateForm(editFormData, true)) {
+  
         setLoading(false);
         return;
       }
+
+    
+
 
       // Call TableService to update table
       const updatedTable = await tableService.updateTable(selectedTable.configId!, editFormData);
@@ -572,39 +578,39 @@ const Tables = () => {
     }
   };
 
-  const handleDeleteTable = async (tableId: string) => {
-    if (!confirm('Are you sure you want to delete this table? This action cannot be undone.')) {
-      return;
-    }
+  // const handleDeleteTable = async (tableId: string) => {
+  //   if (!confirm('Are you sure you want to delete this table? This action cannot be undone.')) {
+  //     return;
+  //   }
 
-    try {
-      setLoading(true);
-      setError(null);
+  //   try {
+  //     setLoading(true);
+  //     setError(null);
 
-      // Call TableService to delete table
-      await tableService.deleteTable(tableId);
+  //     // Call TableService to delete table
+  //     await tableService.deleteTable(tableId);
       
-      // Update local state, remove deleted table
-      const updatedTables = tables.filter(table => table.configId !== tableId);
-      setTables(updatedTables);
+  //     // Update local state, remove deleted table
+  //     const updatedTables = tables.filter(table => table.configId !== tableId);
+  //     setTables(updatedTables);
       
-      // If currently selected table is deleted, clear selection state
-      if (selectedTable?.configId === tableId) {
-        setSelectedTable(null);
-        setViewDialogOpen(false);
-        setEditDialogOpen(false);
-      }
-    } catch (error) {
-      console.error('Error deleting table:', error);
-      if (error instanceof TableServiceError) {
-        setError(`Failed to delete table: ${error.message}`);
-      } else {
-        setError('Failed to delete table. Please try again.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     // If currently selected table is deleted, clear selection state
+  //     if (selectedTable?.configId === tableId) {
+  //       setSelectedTable(null);
+  //       setViewDialogOpen(false);
+  //       setEditDialogOpen(false);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error deleting table:', error);
+  //     if (error instanceof TableServiceError) {
+  //       setError(`Failed to delete table: ${error.message}`);
+  //     } else {
+  //       setError('Failed to delete table. Please try again.');
+  //     }
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // Reset create table form
   const resetCreateForm = () => {
@@ -735,6 +741,8 @@ const Tables = () => {
         }
       });
     }
+
+    console.log(errors)
 
     if (isEdit) {
       setEditFormErrors(errors);

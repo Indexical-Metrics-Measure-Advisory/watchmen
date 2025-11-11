@@ -1,5 +1,6 @@
 // API configuration and header management
 import { authService } from '@/services/authService';
+import jsonBigint from 'json-bigint';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3030/watchmen';
 
@@ -26,8 +27,25 @@ export const getDefaultHeaders = () => {
 // Helper function to check if the response is ok
 export const checkResponse = async (response: Response) => {
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorText = await response.text().catch(() => '');
+    let errorData: any = {};
+    try {
+      const JSONbigString = jsonBigint({ storeAsString: true });
+      errorData = errorText ? JSONbigString.parse(errorText) : {};
+    } catch {
+      try {
+        errorData = errorText ? JSON.parse(errorText) : {};
+      } catch {
+        errorData = {};
+      }
+    }
     throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
   }
-  return response.json();
+  const text = await response.text();
+  try {
+    const JSONbigString = jsonBigint({ storeAsString: true });
+    return JSONbigString.parse(text);
+  } catch {
+    return JSON.parse(text);
+  }
 };

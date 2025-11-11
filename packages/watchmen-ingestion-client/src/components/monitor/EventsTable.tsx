@@ -153,7 +153,7 @@ EventsTable.propTypes = ({
     pageSize: PropTypes.number.isRequired,
     data: PropTypes.arrayOf(
       PropTypes.shape({
-        eventTriggerId: PropTypes.number.isRequired,
+        eventTriggerId: PropTypes.string.isRequired,
         startTime: PropTypes.string,
         endTime: PropTypes.string,
         isFinished: PropTypes.bool,
@@ -161,7 +161,7 @@ EventsTable.propTypes = ({
         type: PropTypes.number,
         tableName: PropTypes.string,
         records: PropTypes.array,
-        pipelineId: PropTypes.number,
+        pipelineId: PropTypes.string,
         params: PropTypes.any,
         createdAt: PropTypes.string.isRequired,
         createdBy: PropTypes.string,
@@ -174,7 +174,7 @@ EventsTable.propTypes = ({
     totalPages: PropTypes.number,
   }),
   selectedEvent: PropTypes.shape({
-    eventTriggerId: PropTypes.number.isRequired,
+    eventTriggerId: PropTypes.string.isRequired,
     startTime: PropTypes.string,
     endTime: PropTypes.string,
     isFinished: PropTypes.bool,
@@ -182,7 +182,7 @@ EventsTable.propTypes = ({
     type: PropTypes.number,
     tableName: PropTypes.string,
     records: PropTypes.array,
-    pipelineId: PropTypes.number,
+    pipelineId: PropTypes.string,
     params: PropTypes.any,
     createdAt: PropTypes.string.isRequired,
     createdBy: PropTypes.string,

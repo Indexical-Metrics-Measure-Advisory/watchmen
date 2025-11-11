@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import jsonBigint from 'json-bigint';
 import { ApiResponse, ApiError } from '../models/api.models';
 
 // Define base API configuration
@@ -11,6 +12,7 @@ class ApiService {
   
   constructor() {
     // Create axios instance with default config
+    const JSONbigString = jsonBigint({ storeAsString: true });
     this.instance = axios.create({
       baseURL: API_BASE_URL,
       timeout: API_TIMEOUT,
@@ -18,6 +20,21 @@ class ApiService {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
+      transformResponse: [function (data) {
+        // Preserve large integers by parsing them as strings
+        if (typeof data === 'string') {
+          try {
+            return JSONbigString.parse(data);
+          } catch (e) {
+            try {
+              return JSON.parse(data);
+            } catch {
+              return data;
+            }
+          }
+        }
+        return data;
+      }]
     });
     
     // Add request interceptor for auth tokens, etc.

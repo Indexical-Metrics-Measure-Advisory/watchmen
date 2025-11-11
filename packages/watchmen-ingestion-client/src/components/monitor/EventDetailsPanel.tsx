@@ -77,7 +77,7 @@ const EventDetailsPanel: React.FC<EventDetailsPanelProps> = ({ selectedEvent, re
 
 EventDetailsPanel.propTypes = ({
   selectedEvent: PropTypes.shape({
-    eventTriggerId: PropTypes.number.isRequired,
+    eventTriggerId: PropTypes.string.isRequired,
     startTime: PropTypes.string,
     endTime: PropTypes.string,
     isFinished: PropTypes.bool,
@@ -85,7 +85,7 @@ EventDetailsPanel.propTypes = ({
     type: PropTypes.number,
     tableName: PropTypes.string,
     records: PropTypes.array,
-    pipelineId: PropTypes.number,
+    pipelineId: PropTypes.string,
     params: PropTypes.any,
     createdAt: PropTypes.string.isRequired,
     createdBy: PropTypes.string,
@@ -95,10 +95,10 @@ EventDetailsPanel.propTypes = ({
   }),
   records: PropTypes.arrayOf(
     PropTypes.shape({
-      eventTriggerId: PropTypes.number,
-      moduleTriggerId: PropTypes.number,
-      modelTriggerId: PropTypes.number,
-      tableTriggerId: PropTypes.number,
+      eventTriggerId: PropTypes.string,
+      moduleTriggerId: PropTypes.string,
+      modelTriggerId: PropTypes.string,
+      tableTriggerId: PropTypes.string,
       moduleName: PropTypes.string,
       modelName: PropTypes.string,
       tableName: PropTypes.string,

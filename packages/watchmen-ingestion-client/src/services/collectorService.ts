@@ -34,7 +34,7 @@ class CollectorService {
   }
 
   // Fetch detailed event result records by eventTriggerId
-  async getMonitorEventRecords(eventTriggerId: number): Promise<EventResultRecord[]> {
+  async getMonitorEventRecords(eventTriggerId: string): Promise<EventResultRecord[]> {
     const response = await fetch(`${API_BASE_URL}/ingest/monitor/event/detail?trigger_event_id=${encodeURIComponent(eventTriggerId)}` , {
       method: 'GET',
       headers: getDefaultHeaders()

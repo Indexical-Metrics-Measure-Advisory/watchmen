@@ -1,7 +1,7 @@
 // Monitoring data models
 
 export interface IngestionEvent {
-  id: number;
+  id: string;
   module: string;
   model: string;
   table: string;
@@ -25,7 +25,7 @@ export interface MonitoringSummary {
 
 // Paginated event trigger item (first-level list)
 export interface EventTriggerItem {
-  eventTriggerId: number;
+  eventTriggerId: string;
   startTime: string | null;
   endTime: string | null;
   isFinished: boolean;
@@ -33,7 +33,7 @@ export interface EventTriggerItem {
   type: number;
   tableName: string;
   records: Array<Record<string, any>> | null;
-  pipelineId: number | null;
+  pipelineId: string | null;
   params: any | null;
   createdAt: string;
   createdBy: string;
@@ -53,10 +53,10 @@ export interface PaginatedEventsResponse {
 
 // Event result record (second-level list)
 export interface EventResultRecord {
-  eventTriggerId?: number;
-  moduleTriggerId?: number;
-  modelTriggerId?: number;
-  tableTriggerId?: number;
+  eventTriggerId?: string;
+  moduleTriggerId?: string;
+  modelTriggerId?: string;
+  tableTriggerId?: string;
   moduleName?: string;
   modelName?: string;
   tableName?: string;
