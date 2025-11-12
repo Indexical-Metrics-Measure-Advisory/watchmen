@@ -34,6 +34,8 @@ class CollectorWorker:
             self.json_worker.process_grouped_change_data_json(message.triggerEvent,
                                                               message.modelConfig,
                                                               message.groupedJsonIds)
+        elif message.action == ActionType.POST_OBJECT_ID:
+            self.json_worker.process_object_ids(message.triggerEvent, message.modelTriggerId, message.objectIds)
         elif message.action == ActionType.RUN_TASK:
             self.task_worker.process_tasks(message.tasks)
         else:

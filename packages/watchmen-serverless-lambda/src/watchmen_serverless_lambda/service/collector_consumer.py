@@ -6,7 +6,7 @@ from watchmen_serverless_lambda.model import ActionType, AssignTaskMessage, Sche
 from .collector_coordinator import get_collector_coordinator
 from .collector_worker import get_collector_worker
 from watchmen_serverless_lambda.model.message import ExtractTableMessage, SaveRecordMessage, BuildJSONMessage, \
-    AssignRecordMessage, AssignJsonMessage, PostJSONMessage
+    AssignRecordMessage, AssignJsonMessage, PostJSONMessage, PostObjectIdMessage
 from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_serverless_lambda.common import log_error
 
@@ -45,6 +45,9 @@ class CollectorConsumer:
                 self.collector_worker.receive_message(message)
             elif body['action'] == ActionType.POST_JSON:
                 message = PostJSONMessage(**body)
+                self.collector_worker.receive_message(message)
+            elif body['action'] == ActionType.POST_OBJECT_ID:
+                message = PostObjectIdMessage(**body)
                 self.collector_worker.receive_message(message)
             elif body['action'] == ActionType.POST_GROUP_JSON:
                 message = PostGroupedJSONMessage(**body)

@@ -10,7 +10,7 @@ from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeJsonId, Pageable
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	ColumnNameLiteral, EntityCriteriaExpression, EntityStraightValuesFinder, EntityStraightColumn, EntitySortColumn, \
-	EntitySortMethod, EntityLimitedFinder, EntityCriteriaOperator, EntityUpdater
+	EntitySortMethod, EntityLimitedFinder, EntityCriteriaOperator, EntityUpdater, EntityDistinctValuesFinder
 
 
 class ChangeDataJsonShaper(EntityShaper):
@@ -160,6 +160,25 @@ class ChangeDataJsonService(TupleService):
 				))
 		finally:
 			self.close_transaction()
+	
+	def find_distinct_object_ids(self, model_trigger_id: int, limit: int = None) -> List:
+		try:
+			self.begin_transaction()
+			return self.storage.find_distinct_values(
+				EntityDistinctValuesFinder(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName=STATUS), right=0),
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName=MODEL_TRIGGER_ID),
+						                         right=model_trigger_id)
+					],
+					distinctColumnNames=["object_id"],
+					distinctValueOnSingleColumn=True,
+					limit=limit if limit is not None else ask_partial_size()
+				))
+		finally:
+			self.close_transaction()
 
 	def is_existed(self, change_json: ChangeDataJson) -> bool:
 		self.begin_transaction()
@@ -212,6 +231,27 @@ class ChangeDataJsonService(TupleService):
 	def find_grouped_ids_by_object_id(self, model_name: str, object_id: str, model_trigger_id: int) -> List:
 		try:
 			self.storage.connect()
+			return self.storage.find_straight_values(EntityStraightValuesFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
+					                         right=model_trigger_id)
+				],
+				straightColumns=[EntityStraightColumn(columnName=CHANGE_JSON_ID)],
+				sort=[EntitySortColumn(name='sequence', method=EntitySortMethod.ASC)]
+			))
+		finally:
+			self.storage.close()
+			
+	def find_object_ids_by_limit(self, model_name: str, object_id: str, model_trigger_id: int) -> List:
+		try:
+			self.storage.connect()
+			self.storage.find_distinct_values()
+			
+			
 			return self.storage.find_straight_values(EntityStraightValuesFinder(
 				name=self.get_entity_name(),
 				shaper=self.get_entity_shaper(),
@@ -407,6 +447,30 @@ class ChangeDataJsonService(TupleService):
 						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='change_json_id'),
 						                         operator=EntityCriteriaOperator.IN,
 						                         right=json_ids)
+					],
+					update=data_
+				)
+			)
+			self.commit_transaction()
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
+		finally:
+			self.close_transaction()
+			
+	def update_bulk_by_object_ids(self, model_name: str, object_ids: List[str], model_trigger_id: int, data_: Dict[str, Any]):
+		try:
+			self.begin_transaction()
+			self.storage.update(
+				EntityUpdater(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'),
+						                         operator=EntityCriteriaOperator.IN,
+						                         right=object_ids),
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'), right=model_trigger_id)
 					],
 					update=data_
 				)

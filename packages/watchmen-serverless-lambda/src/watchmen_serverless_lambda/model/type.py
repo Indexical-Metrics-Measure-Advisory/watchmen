@@ -23,6 +23,7 @@ class ActionType(StrEnum):
     BUILD_JSON = "build_json"
     POST_JSON = "post_json"
     POST_GROUP_JSON = "post_group_json"
+    POST_OBJECT_ID = "post_object_id"
     RUN_TASK = "run_task"
     ASSIGN_RECORD = "assign_record"
     ASSIGN_JSON = "assign_json"

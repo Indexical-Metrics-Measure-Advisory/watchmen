@@ -156,6 +156,11 @@ class PostGroupedJSONMessage(ActionMessage):
         else:
             super().__setattr__(name, value)
 
+
+class PostObjectIdMessage(ActionMessage):
+    objectIds: Optional[List[str]] = None
+    modelTriggerId: Optional[int] = None
+    
          
 def construct_task(task: Optional[Union[ScheduledTask, Dict]]) -> Optional[ScheduledTask]:
     if task is None:

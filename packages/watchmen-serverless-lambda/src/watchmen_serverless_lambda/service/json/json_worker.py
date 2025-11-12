@@ -222,6 +222,22 @@ class JSONWorker:
             return 2
         else:
             return 1
+    
+    def process_object_ids(self, trigger_event: TriggerEvent, trigger_model_id: int, object_ids: List[str]):
+        try:
+            for object_id in object_ids:
+                trigger_model = self.trigger_model_service.find_trigger_by_id(trigger_model_id)
+                model_config = self.model_config_service.find_by_name(trigger_model.modelName, trigger_model.tenantId)
+                json_ids = self.change_json_service.find_grouped_ids_by_object_id(trigger_model.modelName, object_id, trigger_model_id)
+
+                self.post_grouped_json(trigger_event,
+                                       model_config,
+                                       object_id,
+                                       json_ids)
+        except Exception as e:
+            logger.error(e, exc_info=True, stack_info=True)
+            key = f"error/{self.tenant_id}/worker/post_group_json/{self.snowflake_generator.next_id()}"
+            log_error(self.tenant_id, self.log_service, key, e)
         
         
 def get_json_worker(tenant_id: str) -> JSONWorker:

@@ -367,6 +367,8 @@ class StorageRDS(TransactionalStorageSPI):
 			statement = select(*ArrayHelper(finder.distinctColumnNames).map(text).to_list()).select_from(table)
 		else:
 			statement = select(distinct(text(finder.distinctColumnNames[0]))).select_from(table)
+		if finder.limit:
+			statement = self.build_offset_for_statement(statement, finder.limit, 1)
 		return self.find_on_statement_by_finder(table, statement, finder)
 
 	# noinspection PyMethodMayBeStatic
