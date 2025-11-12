@@ -85,11 +85,7 @@ const Index = () => {
 
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
-      <Header
-        title="Dashboard"
-        description="Configure ingestion and monitor system health"
-        showUserInfo={true}
-      />
+     
       {/* Hero header */}
       <Card className="border-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl shadow-md">
         <CardContent className="p-6">
