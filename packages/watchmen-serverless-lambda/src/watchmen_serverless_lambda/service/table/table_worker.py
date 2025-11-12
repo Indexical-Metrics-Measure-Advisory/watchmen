@@ -101,7 +101,7 @@ class TableWorker:
             state_key = f"state/{self.tenant_id}/{trigger_table.eventTriggerId}/extract_table/{trigger_table.tableTriggerId}"
             state = self.query_state(trigger_table, state_key)
             if state['is_complete']:
-                self.time_manger.delete_state(self.tenant_id, state_key)
+                # self.time_manger.delete_state(self.tenant_id, state_key)
                 trigger_table = self.set_data_count(trigger_table, state.get("data_count"))
                 trigger_table = self.set_extracted(trigger_table)
                 self.trigger_table_service.update_table_trigger(trigger_table)

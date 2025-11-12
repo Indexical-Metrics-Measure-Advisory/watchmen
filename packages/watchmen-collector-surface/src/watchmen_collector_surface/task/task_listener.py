@@ -3,6 +3,8 @@ from traceback import format_exc
 from typing import List, Dict, Optional
 from abc import ABC, abstractmethod
 
+from sqlalchemy.exc import IntegrityError
+
 from watchmen_collector_kernel.service.task_service import TaskService
 
 from watchmen_collector_kernel.common import ask_exception_max_length, ask_grouped_task_data_size_threshold
@@ -216,6 +218,9 @@ class TaskListener:
             self.change_json_history_service.create(change_json)
             self.change_json_service.delete(change_json.changeJsonId)
             self.change_json_history_service.commit_transaction()
+        except IntegrityError:
+            self.change_json_history_service.rollback_transaction()
+            self.change_json_history_service.update_change_data_json(change_json)
         except Exception as e:
             self.change_json_history_service.rollback_transaction()
             raise e
