@@ -344,7 +344,7 @@ class SequencedModelExecutorV2(ModelExecutor):
         
         def trigger_model_lock_resource_id(trigger_model: TriggerModel) -> str:
             return f'trigger_model_{trigger_model.modelTriggerId}'
-            
+        
         lock = get_resource_lock(self.snowflake_generator.next_id(),
                                  trigger_model_lock_resource_id(trigger_model),
                                  trigger_model.tenantId)
@@ -353,8 +353,9 @@ class SequencedModelExecutorV2(ModelExecutor):
                 while self.time_manager.is_safe:
                     try:
                         limit = ask_serverless_post_object_id_limit_size()
-                        object_ids = self.change_json_service.find_distinct_object_ids(trigger_model.modelTriggerId,limit)
-                        if object_ids:
+                        results = self.change_json_service.find_distinct_object_ids(trigger_model.modelTriggerId,limit)
+                        if results:
+                            object_ids = ArrayHelper(results).map(lambda x: x.get("object_id")).to_list()
                             successes, failures = self.send_object_id_messages(trigger_event,
                                                                                trigger_model,
                                                                                object_ids)
@@ -450,7 +451,8 @@ def get_model_executor(tenant_id: str,
     else:
         return SequencedModelExecutorV2(tenant_id,
                                         competitive_lock_service,
-                                        change_record_service, change_json_service,
+                                        change_record_service,
+                                        change_json_service,
                                         change_json_history_service,
                                         scheduled_task_service,
                                         sender,
