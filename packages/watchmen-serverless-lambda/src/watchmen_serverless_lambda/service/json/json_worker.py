@@ -15,6 +15,8 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_
 from watchmen_serverless_lambda.common import log_error
 from watchmen_serverless_lambda.storage import ask_file_log_service
 
+from watchmen_utilities import ArrayHelper
+
 logger = logging.getLogger(__name__)
 
 
@@ -229,11 +231,13 @@ class JSONWorker:
                 trigger_model = self.trigger_model_service.find_trigger_by_id(trigger_model_id)
                 model_config = self.model_config_service.find_by_name(trigger_model.modelName, trigger_model.tenantId)
                 json_ids = self.change_json_service.find_grouped_ids_by_object_id(trigger_model.modelName, object_id, trigger_model_id)
-
+                ids_ = ArrayHelper(json_ids).map(
+                    lambda x: x.get("change_json_id")
+                ).to_list()
                 self.post_grouped_json(trigger_event,
                                        model_config,
                                        object_id,
-                                       json_ids)
+                                       ids_)
         except Exception as e:
             logger.error(e, exc_info=True, stack_info=True)
             key = f"error/{self.tenant_id}/worker/post_object_ids/{self.snowflake_generator.next_id()}"
