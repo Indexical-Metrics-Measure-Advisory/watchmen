@@ -17,9 +17,10 @@ from watchmen_collector_kernel.storage import get_change_data_json_service, get_
     ChangeDataJsonHistoryService, ScheduledTaskService, CompetitiveLockService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_serverless_lambda.common import ask_serverless_queue_url, \
-    ask_serverless_post_json_batch_size
+    ask_serverless_post_json_batch_size, ask_serverless_post_object_id_batch_size, \
+    ask_serverless_post_object_id_limit_size
 from watchmen_serverless_lambda.model import ActionType, PostJSONMessage
-from watchmen_serverless_lambda.model.message import GroupedJson, PostGroupedJSONMessage
+from watchmen_serverless_lambda.model.message import GroupedJson, PostGroupedJSONMessage, PostObjectIdMessage
 from watchmen_serverless_lambda.queue import SQSSender
 from watchmen_serverless_lambda.service.time_manager import get_lambda_time_manager, LambdaTimeManager
 from watchmen_serverless_lambda.storage import ask_file_log_service
@@ -308,6 +309,127 @@ class SequencedModelExecutor(ModelExecutor):
             return False
 
 
+class SequencedModelExecutorV2(ModelExecutor):
+    
+    def __init__(self,
+                 tenant_id: str,
+                 competitive_lock_service: CompetitiveLockService,
+                 change_record_service: ChangeDataRecordService,
+                 change_json_service: ChangeDataJsonService,
+                 change_json_history_service: ChangeDataJsonHistoryService,
+                 scheduled_task_service: ScheduledTaskService,
+                 sender: SQSSender,
+                 log_service: FileLogService,
+                 time_manger: LambdaTimeManager):
+        super().__init__(tenant_id,
+                         change_json_service,
+                         change_json_history_service,
+                         scheduled_task_service,
+                         sender,
+                         log_service,
+                         time_manger)
+        self.change_record_service = change_record_service
+        self.competitive_lock_service = competitive_lock_service
+
+    def process_model(self, trigger_event: TriggerEvent,
+                      trigger_model: TriggerModel,
+                      model_config: CollectorModelConfig):
+        if self.check_all_json_generated(trigger_model):
+            self.process_change_data_json(trigger_event, model_config, trigger_model)
+        else:
+            logger.debug(f'sequenced model {trigger_model.modelName} not finish record to json yet')
+    
+    def process_change_data_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
+                                 trigger_model: TriggerModel):
+        
+        def trigger_model_lock_resource_id(trigger_model: TriggerModel) -> str:
+            return f'trigger_model_{trigger_model.modelTriggerId}'
+        
+        lock = get_resource_lock(self.snowflake_generator.next_id(),
+                                 trigger_model_lock_resource_id(trigger_model),
+                                 trigger_model.tenantId)
+        try:
+            if try_lock_nowait(self.competitive_lock_service, lock):
+                while self.time_manager.is_safe:
+                    try:
+                        limit = ask_serverless_post_object_id_limit_size()
+                        results = self.change_json_service.find_distinct_object_ids(trigger_model.modelTriggerId,limit)
+                        if results:
+                            object_ids = ArrayHelper(results).map(lambda x: x.get("object_id")).to_list()
+                            successes, failures = self.send_object_id_messages(trigger_event,
+                                                                               trigger_model,
+                                                                               object_ids)
+                            log_entity = {
+                                'successes': successes,
+                                'failures': failures
+                            }
+                            
+                            log_key = f'logs/{self.tenant_id}/{trigger_event.eventTriggerId}/post_object_id/{self.snowflake_generator.next_id()}'
+                            self.log_service.log_result(trigger_event.tenantId,
+                                                        log_key,
+                                                        log_entity)
+                    except Exception as e:
+                        logger.error(e, exc_info=True, stack_info=True)
+        finally:
+            unlock(self.competitive_lock_service, lock)
+    
+    def update_result(self, change_data_json: ChangeDataJson, is_duplicated: bool = False):
+        try:
+            self.change_json_service.begin_transaction()
+            if not is_duplicated:
+                self.change_json_history_service.create(change_data_json)
+            # noinspection PyTypeChecker
+            self.change_json_service.delete(change_data_json.changeJsonId)
+            self.change_json_service.commit_transaction()
+            return change_data_json
+        except Exception as e:
+            self.change_json_service.rollback_transaction()
+            raise e
+        finally:
+            self.change_json_service.close_transaction()
+    
+    def send_object_id_messages(self, trigger_event: TriggerEvent, trigger_model: TriggerModel,
+                                   object_ids: List[str]) -> Tuple[Dict, Dict]:
+        # batch send messages
+        batch_size: int = ask_serverless_post_object_id_batch_size()
+        messages = []
+        for i in range(0, len(object_ids), batch_size):
+            batch = object_ids[i:i + batch_size]
+            self.change_json_service.update_bulk_by_object_ids(
+                trigger_model.modelName,
+                batch,
+                trigger_model.modelTriggerId,
+                {"is_posted": True, "status": Status.EXECUTING.value}
+            )
+            message = {
+                'Id': str(self.snowflake_generator.next_id()),
+                'MessageBody': self.build_post_object_id_message_body(self.tenant_id, trigger_event, trigger_model, batch)
+            }
+            messages.append(message)
+        
+        successes, failures = self.sender.send_batch(messages)
+        return successes, failures
+    
+    def build_post_object_id_message_body(self,
+                                          tenant_id: str,
+                                          trigger_event: TriggerEvent,
+                                          trigger_model: TriggerModel,
+                                          batch: List[str]) -> str:
+                
+        body: PostObjectIdMessage = PostObjectIdMessage(action=ActionType.POST_OBJECT_ID,
+                                                        tenantId=tenant_id,
+                                                        triggerEvent=trigger_event,
+                                                        modelTriggerId=trigger_model.modelTriggerId,
+                                                        objectIds=batch)
+        return serialize_to_json(body.to_dict())
+    
+    def check_all_json_generated(self, trigger_model: TriggerModel) -> bool:
+        if trigger_model.isFinished:
+            return self.change_record_service.is_model_finished(trigger_model.modelTriggerId)
+        else:
+            return False
+            
+            
 def get_model_executor(tenant_id: str,
                        competitive_lock_service: CompetitiveLockService,
                        change_record_service: ChangeDataRecordService,
@@ -327,14 +449,15 @@ def get_model_executor(tenant_id: str,
                              log_service,
                              time_manger)
     else:
-        return SequencedModelExecutor(tenant_id,
-                                      competitive_lock_service,
-                                      change_record_service, change_json_service,
-                                      change_json_history_service,
-                                      scheduled_task_service,
-                                      sender,
-                                      log_service,
-                                      time_manger)
+        return SequencedModelExecutorV2(tenant_id,
+                                        competitive_lock_service,
+                                        change_record_service,
+                                        change_json_service,
+                                        change_json_history_service,
+                                        scheduled_task_service,
+                                        sender,
+                                        log_service,
+                                        time_manger)
 
 
 class JSONCoordinator:

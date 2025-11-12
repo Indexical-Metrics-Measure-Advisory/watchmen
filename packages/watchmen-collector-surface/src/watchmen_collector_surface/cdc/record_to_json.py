@@ -3,6 +3,8 @@ from traceback import format_exc
 from typing import Dict, Tuple, Optional, List, Any
 import time
 
+from sqlalchemy.exc import IntegrityError
+
 from watchmen_collector_kernel.common import WAVE, ask_record_performance_monitor_enabled
 from watchmen_collector_kernel.model import CollectorTableConfig, \
 	ChangeDataRecord, ChangeDataJson, Status
@@ -93,6 +95,11 @@ class RecordToJsonService:
 			change_data_record = unmerged_record
 			try:
 				self.process_record(change_data_record)
+			except IntegrityError:
+				change_data_record.isMerged = True
+				change_data_record.status = Status.SUCCESS.value
+				self.handle_result(change_data_record, {"result": "duplicated"})
+				self.finish_and_backup_record(change_data_record, None, False)
 			except Exception as e:
 				logger.error(e, exc_info=True, stack_info=True)
 				self.update_result(change_data_record, format_exc())

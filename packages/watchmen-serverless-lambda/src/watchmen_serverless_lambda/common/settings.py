@@ -11,6 +11,8 @@ class ServerlessSettings(ExtendedBaseSettings):
 	SERVERLESS_TABLE_EXTRACTOR_RECORD_MAX_BATCH_SIZE: int = 1000
 	SERVERLESS_RECORD_BATCH_SIZE: int = 10
 	SERVERLESS_POST_JSON_BATCH_SIZE: int = 100
+	SERVERLESS_POST_OBJECT_ID_BATCH_SIZE: int = 100
+	SERVERLESS_POST_OBJECT_ID_LIMIT_SIZE: int = 10000
 	SERVERLESS_RUN_TASK_BATCH_SIZE: int = 10
 	
 	SERVERLESS_EXTRACT_TABLE_LIMIT_SIZE: int = 100000
@@ -56,6 +58,14 @@ def ask_serverless_record_batch_size() -> int:
 
 def ask_serverless_post_json_batch_size() -> int:
 	return serverless_settings.SERVERLESS_POST_JSON_BATCH_SIZE
+
+
+def ask_serverless_post_object_id_batch_size() -> int:
+	return serverless_settings.SERVERLESS_POST_OBJECT_ID_BATCH_SIZE
+
+
+def ask_serverless_post_object_id_limit_size() -> int:
+	return serverless_settings.SERVERLESS_POST_OBJECT_ID_LIMIT_SIZE
 
 
 def ask_serverless_run_task_batch_size() -> int:

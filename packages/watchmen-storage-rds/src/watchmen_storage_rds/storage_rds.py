@@ -367,8 +367,13 @@ class StorageRDS(TransactionalStorageSPI):
 			statement = select(*ArrayHelper(finder.distinctColumnNames).map(text).to_list()).select_from(table)
 		else:
 			statement = select(distinct(text(finder.distinctColumnNames[0]))).select_from(table)
-		return self.find_on_statement_by_finder(table, statement, finder)
-
+		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
+		statement = self.build_sort_for_statement(statement, finder.sort)
+		if finder.limit:
+			statement = self.build_offset_for_statement(statement, finder.limit, 1)
+		results = self.connection.execute(statement).mappings().all()
+		return ArrayHelper(results).map(lambda x: dict(x)).to_list()
+		
 	# noinspection PyMethodMayBeStatic
 	def get_alias_from_straight_column(self, straight_column: EntityStraightColumn) -> Any:
 		return straight_column.columnName if is_blank(straight_column.alias) else straight_column.alias
