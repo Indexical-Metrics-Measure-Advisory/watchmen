@@ -349,9 +349,12 @@ class SequencedModelExecutorV2(ModelExecutor):
                                  trigger_model_lock_resource_id(trigger_model),
                                  trigger_model.tenantId)
         try:
+            print(f"before lock on {lock.resourceId}")
             if try_lock_nowait(self.competitive_lock_service, lock):
+                print(f"after lock on {lock.resourceId}")
                 limit = ask_serverless_post_object_id_limit_size()
                 results = self.change_json_service.find_distinct_object_ids(trigger_model.modelTriggerId,limit)
+                print(f"object ids on {results}")
                 if results:
                     object_ids = []
                     for result in results:
