@@ -366,7 +366,8 @@ class StorageRDS(TransactionalStorageSPI):
 		if len(finder.distinctColumnNames) != 1 or not finder.distinctValueOnSingleColumn:
 			statement = select(*ArrayHelper(finder.distinctColumnNames).map(text).to_list()).select_from(table)
 		else:
-			statement = select(distinct(text(finder.distinctColumnNames[0]))).select_from(table)
+			target_alias = finder.distinctColumnNames[0]
+			statement = select(distinct(text(finder.distinctColumnNames[0])).label(target_alias)).select_from(table)
 		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
 		statement = self.build_sort_for_statement(statement, finder.sort)
 		if finder.limit:
