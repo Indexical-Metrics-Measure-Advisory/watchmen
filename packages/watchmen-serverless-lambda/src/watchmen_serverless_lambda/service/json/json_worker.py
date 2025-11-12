@@ -236,7 +236,7 @@ class JSONWorker:
                                        json_ids)
         except Exception as e:
             logger.error(e, exc_info=True, stack_info=True)
-            key = f"error/{self.tenant_id}/worker/post_group_json/{self.snowflake_generator.next_id()}"
+            key = f"error/{self.tenant_id}/worker/post_object_ids/{self.snowflake_generator.next_id()}"
             log_error(self.tenant_id, self.log_service, key, e)
         
         

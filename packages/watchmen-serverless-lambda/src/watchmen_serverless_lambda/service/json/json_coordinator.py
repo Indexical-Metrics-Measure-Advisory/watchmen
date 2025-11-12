@@ -350,26 +350,30 @@ class SequencedModelExecutorV2(ModelExecutor):
                                  trigger_model.tenantId)
         try:
             if try_lock_nowait(self.competitive_lock_service, lock):
-                while self.time_manager.is_safe:
-                    try:
-                        limit = ask_serverless_post_object_id_limit_size()
-                        results = self.change_json_service.find_distinct_object_ids(trigger_model.modelTriggerId,limit)
-                        if results:
-                            object_ids = ArrayHelper(results).map(lambda x: x.get("object_id")).to_list()
-                            successes, failures = self.send_object_id_messages(trigger_event,
-                                                                               trigger_model,
-                                                                               object_ids)
-                            log_entity = {
-                                'successes': successes,
-                                'failures': failures
-                            }
-                            
-                            log_key = f'logs/{self.tenant_id}/{trigger_event.eventTriggerId}/post_object_id/{self.snowflake_generator.next_id()}'
-                            self.log_service.log_result(trigger_event.tenantId,
-                                                        log_key,
-                                                        log_entity)
-                    except Exception as e:
-                        logger.error(e, exc_info=True, stack_info=True)
+                limit = ask_serverless_post_object_id_limit_size()
+                results = self.change_json_service.find_distinct_object_ids(trigger_model.modelTriggerId,limit)
+                if results:
+                    object_ids = []
+                    for result in results:
+                        if result.get("object_id"):
+                            object_ids.append(result.get("object_id"))
+                    
+                    if object_ids:
+                        successes, failures = self.send_object_id_messages(trigger_event,
+                                                                           trigger_model,
+                                                                           object_ids)
+                        log_entity = {
+                            'successes': successes,
+                            'failures': failures
+                        }
+                        
+                        log_key = f'logs/{self.tenant_id}/{trigger_event.eventTriggerId}/post_object_id/{self.snowflake_generator.next_id()}'
+                        self.log_service.log_result(trigger_event.tenantId,
+                                                    log_key,
+                                                    log_entity)
+        except Exception as e:
+            logger.error(e, exc_info=True, stack_info=True)
+            raise e
         finally:
             unlock(self.competitive_lock_service, lock)
     
