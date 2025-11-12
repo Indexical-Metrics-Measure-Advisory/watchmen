@@ -373,7 +373,7 @@ class StorageRDS(TransactionalStorageSPI):
 		if finder.limit:
 			statement = self.build_offset_for_statement(statement, finder.limit, 1)
 		results = self.connection.execute(statement).mappings().all()
-		return ArrayHelper(results).map(lambda x: dict(x)).to_list()
+		return ArrayHelper(results).map(lambda x: dict(x)).map(finder.shaper.deserialize).to_list()
 		
 	# noinspection PyMethodMayBeStatic
 	def get_alias_from_straight_column(self, straight_column: EntityStraightColumn) -> Any:

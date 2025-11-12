@@ -245,28 +245,6 @@ class ChangeDataJsonService(TupleService):
 			))
 		finally:
 			self.storage.close()
-			
-	def find_object_ids_by_limit(self, model_name: str, object_id: str, model_trigger_id: int) -> List:
-		try:
-			self.storage.connect()
-			self.storage.find_distinct_values()
-			
-			
-			return self.storage.find_straight_values(EntityStraightValuesFinder(
-				name=self.get_entity_name(),
-				shaper=self.get_entity_shaper(),
-				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
-					                         right=model_trigger_id)
-				],
-				straightColumns=[EntityStraightColumn(columnName=CHANGE_JSON_ID)],
-				sort=[EntitySortColumn(name='sequence', method=EntitySortMethod.ASC)]
-			))
-		finally:
-			self.storage.close()
-	
 
 	"""
 	def is_event_finished(self, event_trigger_id: int) -> bool:

@@ -351,12 +351,12 @@ class SequencedModelExecutorV2(ModelExecutor):
         try:
             if try_lock_nowait(self.competitive_lock_service, lock):
                 limit = ask_serverless_post_object_id_limit_size()
-                results = self.change_json_service.find_distinct_object_ids(trigger_model.modelTriggerId,limit)
+                results: List[ChangeDataJson] = self.change_json_service.find_distinct_object_ids(trigger_model.modelTriggerId,limit)
                 if results:
                     object_ids = []
                     for result in results:
-                        if result.get("object_id"):
-                            object_ids.append(result.get("object_id"))
+                        if result.objectId:
+                            object_ids.append(result.objectId)
                     
                     if object_ids:
                         successes, failures = self.send_object_id_messages(trigger_event,
