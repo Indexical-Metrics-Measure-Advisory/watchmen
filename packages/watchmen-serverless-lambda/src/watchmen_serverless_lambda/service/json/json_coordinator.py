@@ -453,7 +453,7 @@ def get_model_executor(tenant_id: str,
                              log_service,
                              time_manger)
     else:
-        return SequencedModelExecutor(tenant_id,
+        return SequencedModelExecutorV2(tenant_id,
                                         competitive_lock_service,
                                         change_record_service,
                                         change_json_service,
