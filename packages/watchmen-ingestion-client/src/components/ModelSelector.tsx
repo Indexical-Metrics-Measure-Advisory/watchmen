@@ -12,6 +12,7 @@ interface ModelSelectorProps {
   selectedModule: string;
   selectedModel: string;
   onModelSelect: (model: string) => void;
+  onModelSelectDetail?: (model: Model) => void;
   aiEnabled: boolean;
 }
 
@@ -19,6 +20,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
   selectedModule,
   selectedModel,
   onModelSelect,
+  onModelSelectDetail,
   aiEnabled
 }) => {
   const [models, setModels] = useState<Model[]>([]);
@@ -122,7 +124,10 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
               ? 'ring-2 ring-blue-500 bg-blue-50 border-blue-200'
               : 'hover:border-gray-300'
           }`}
-          onClick={() => onModelSelect(model.modelId)}
+          onClick={() => {
+            onModelSelect(model.modelId);
+            onModelSelectDetail?.(model);
+          }}
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">

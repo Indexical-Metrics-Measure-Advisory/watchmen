@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { tableService } from '@/services';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -9,54 +10,85 @@ import { Table, Sparkles, CheckCircle, Database } from 'lucide-react';
 interface TableSelectorProps {
   selectedModule: string;
   selectedModel: string;
+  selectedModelName?: string;
   selectedTables: string[];
   onTablesSelect: (tables: string[]) => void;
   aiEnabled: boolean;
+  defaultSelectAll?: boolean;
 }
 
 const TableSelector: React.FC<TableSelectorProps> = ({
   selectedModule,
   selectedModel,
+  selectedModelName,
   selectedTables,
   onTablesSelect,
-  aiEnabled
+  aiEnabled,
+  defaultSelectAll = false
 }) => {
-  const getTablesForModel = (moduleId: string, modelId: string) => {
-    const tableMappings: Record<string, Record<string, any[]>> = {
-      policy_management: {
-        policy: [
-          { id: 'policies', name: 'Policies', description: 'Main policy information', aiSuggested: true, required: true },
-          { id: 'policy_holders', name: 'Policy Holders', description: 'Customer policy holder data', aiSuggested: true, required: false },
-          { id: 'premiums', name: 'Premiums', description: 'Premium calculation data', aiSuggested: false, required: false },
-          { id: 'coverage_details', name: 'Coverage Details', description: 'Detailed coverage information', aiSuggested: true, required: false }
-        ],
-        quote: [
-          { id: 'quotes', name: 'Quotes', description: 'Quote request information', aiSuggested: true, required: true },
-          { id: 'quote_items', name: 'Quote Items', description: 'Individual quote line items', aiSuggested: true, required: false },
-          { id: 'underwriting', name: 'Underwriting', description: 'Underwriting assessment data', aiSuggested: false, required: false }
-        ]
-      },
-      claims: {
-        claim: [
-          { id: 'claims', name: 'Claims', description: 'Main claim records', aiSuggested: true, required: true },
-          { id: 'claim_details', name: 'Claim Details', description: 'Detailed claim information', aiSuggested: true, required: false },
-          { id: 'documents', name: 'Documents', description: 'Claim supporting documents', aiSuggested: false, required: false },
-          { id: 'adjusters', name: 'Adjusters', description: 'Claim adjuster assignments', aiSuggested: false, required: false }
-        ]
-      },
-      sales_management: {
-        customer: [
-          { id: 'customers', name: 'Customers', description: 'Customer master data', aiSuggested: true, required: true },
-          { id: 'customer_contacts', name: 'Customer Contacts', description: 'Customer contact information', aiSuggested: true, required: false },
-          { id: 'customer_history', name: 'Customer History', description: 'Customer interaction history', aiSuggested: false, required: false }
-        ]
-      }
-    };
+  // Available tables state (normalized shape)
+  const [availableTables, setAvailableTables] = React.useState<Array<{ id: string; name: string; description?: string; required?: boolean; aiSuggested?: boolean }>>([]);
 
-    return tableMappings[moduleId]?.[modelId] || [];
+  // Fallback mapping for mock/demo
+  const fallbackTablesForModel = (moduleId: string, modelIdOrName: string) => {
+    const tablesMap: Record<string, { id: string; name: string; description?: string; required?: boolean; aiSuggested?: boolean }[]> = {
+      policy_management: [
+        { id: 'policy_table', name: 'Policy', description: 'Policy master data', required: true },
+        { id: 'endorsement_table', name: 'Endorsement', description: 'Policy endorsements' },
+        { id: 'claims_table', name: 'Claims', description: 'Policy claims', aiSuggested: true },
+      ],
+      claims: [
+        { id: 'claim_table', name: 'Claim', description: 'Claim records', required: true },
+        { id: 'payment_table', name: 'Payment', description: 'Claim payments' },
+      ],
+      sales_management: [
+        { id: 'customer_table', name: 'Customer', description: 'Customer info', required: true },
+        { id: 'order_table', name: 'Order', description: 'Orders' },
+        { id: 'invoice_table', name: 'Invoice', description: 'Invoices' },
+      ],
+    };
+    return tablesMap[moduleId] || [];
   };
 
-  const tables = getTablesForModel(selectedModule, selectedModel);
+  // Load tables from service using modelName to match backend `CollectorTableConfig.modelName`
+  React.useEffect(() => {
+    const load = async () => {
+      if (!selectedModule || !selectedModel) {
+        setAvailableTables([]);
+        return;
+      }
+
+      try {
+        const all = await tableService.getAllTables();
+        const normalized = all
+          .filter(t => !selectedModelName || t.modelName === selectedModelName)
+          .map(t => ({ id: t.configId || t.tableName || t.name, name: t.name || t.tableName || t.configId, description: t.label }));
+
+        if (normalized.length === 0 && selectedModelName) {
+          // Explicit filter by name yielded none; fall back to all tables for visibility
+          const fallback = all.map(t => ({ id: t.configId || t.tableName || t.name, name: t.name || t.tableName || t.configId, description: t.label }));
+          setAvailableTables(fallback);
+        } else if (normalized.length > 0) {
+          setAvailableTables(normalized);
+        } else {
+          // No backend tables; use local fallback by module
+          setAvailableTables(fallbackTablesForModel(selectedModule, selectedModel));
+        }
+      } catch {
+        // Backend not available; use local fallback by module
+        setAvailableTables(fallbackTablesForModel(selectedModule, selectedModel));
+      }
+    };
+    load();
+  }, [selectedModule, selectedModel, selectedModelName]);
+
+  // Auto-select all tables when model changes and defaultSelectAll is true
+  React.useEffect(() => {
+    if (!defaultSelectAll) return;
+    if (selectedTables.length > 0) return;
+    if (availableTables.length === 0) return;
+    onTablesSelect(availableTables.map(t => t.id));
+  }, [availableTables]);
 
   const handleTableToggle = (tableId: string) => {
     const newSelection = selectedTables.includes(tableId)
@@ -66,8 +98,29 @@ const TableSelector: React.FC<TableSelectorProps> = ({
   };
 
   const selectRecommended = () => {
-    const recommended = tables.filter(table => table.aiSuggested || table.required).map(table => table.id);
+    const recommended = availableTables.filter(table => table.aiSuggested || table.required).map(table => table.id);
     onTablesSelect(recommended);
+  };
+
+  const [autoSelectDone, setAutoSelectDone] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!defaultSelectAll) return;
+    if (autoSelectDone) return;
+    if (selectedTables.length > 0) return;
+    if (availableTables.length === 0) return;
+    onTablesSelect(availableTables.map(t => t.id));
+    setAutoSelectDone(true);
+  }, [availableTables]);
+
+  const selectAll = () => {
+    onTablesSelect(availableTables.map(t => t.id));
+    setAutoSelectDone(true);
+  };
+
+  const clearSelection = () => {
+    onTablesSelect([]);
+    setAutoSelectDone(true);
   };
 
   if (!selectedModule || !selectedModel) {
@@ -79,7 +132,7 @@ const TableSelector: React.FC<TableSelectorProps> = ({
     );
   }
 
-  if (tables.length === 0) {
+  if (availableTables.length === 0) {
     return (
       <Card className="p-6 text-center bg-yellow-50 border-yellow-200">
         <Database className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
@@ -90,23 +143,22 @@ const TableSelector: React.FC<TableSelectorProps> = ({
 
   return (
     <div className="space-y-4">
-      {aiEnabled && (
-        <div className="flex justify-between items-center">
-          <p className="text-sm text-gray-600">Select tables to include in your data extraction</p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={selectRecommended}
-            className="gap-2"
-          >
-            <Sparkles className="h-4 w-4" />
-            Select AI Recommended
-          </Button>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <p className="text-sm text-gray-600">Select tables to include in your data extraction</p>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={selectAll}>Select All</Button>
+          <Button variant="outline" size="sm" onClick={clearSelection}>Clear Selection</Button>
+          {aiEnabled && (
+            <Button variant="outline" size="sm" onClick={selectRecommended} className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              Select AI Recommended
+            </Button>
+          )}
         </div>
-      )}
+      </div>
 
-      <div className="grid grid-cols-1 gap-3">
-        {tables.map((table) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {availableTables.map((table) => (
           <Card
             key={table.id}
             className={`p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${

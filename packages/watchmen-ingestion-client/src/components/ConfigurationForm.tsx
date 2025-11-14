@@ -10,10 +10,12 @@ import { toast } from '@/hooks/use-toast';
 import ModuleSelector from '@/components/ModuleSelector';
 import ModelSelector from '@/components/ModelSelector';
 import { moduleService, modelService, tableService, collectorService } from '@/services';
+import TableSelector from '@/components/TableSelector';
 
 const ConfigurationForm = () => {
   const [selectedModule, setSelectedModule] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
+  const [selectedModelName, setSelectedModelName] = useState('');
   const aiFeatureFlag = (import.meta.env.VITE_AI_FEATURE_ENABLED === 'true');
   const [isAiEnabled, setIsAiEnabled] = useState<boolean>(aiFeatureFlag);
   const [isTesting, setIsTesting] = useState(false);
@@ -21,6 +23,7 @@ const ConfigurationForm = () => {
   const [startTime, setStartTime] = useState<string>('');
   const [endTime, setEndTime] = useState<string>('');
   const [activeStep, setActiveStep] = useState(1);
+  const [selectedTables, setSelectedTables] = useState<string[]>([]);
   const [timeError, setTimeError] = useState<string | null>(null);
 
   // Helpers for friendlier time inputs
@@ -190,10 +193,10 @@ const ConfigurationForm = () => {
     }
   };
 
-  const isConfigurationComplete = selectedModule && selectedModel;
+  const isConfigurationComplete = selectedModule && selectedModel && selectedTables.length > 0;
   
   const handleNextStep = () => {
-    if (activeStep < 2) {
+    if (activeStep < 3) {
       setActiveStep(activeStep + 1);
     }
   };
@@ -207,9 +210,11 @@ const ConfigurationForm = () => {
   // Reset test success state when configuration changes
   useEffect(() => {
     setTestSucceeded(false);
-    // Also clear time range when module/model changes to avoid stale payloads
+    // Also clear time range when configuration changes to avoid stale payloads
     setStartTime('');
     setEndTime('');
+    // Reset tables selection when model changes so Step 3 can default-select all
+    setSelectedTables([]);
   }, [selectedModule, selectedModel]);
 
   return (
@@ -240,7 +245,7 @@ const ConfigurationForm = () => {
         <div className="overflow-hidden h-2 mb-6 text-xs flex rounded bg-gray-200">
           <div 
             className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-600 transition-all duration-500"
-            style={{ width: `${(activeStep / 2) * 100}%` }}
+            style={{ width: `${(activeStep / 3) * 100}%` }}
           ></div>
         </div>
         <div className="flex justify-between">
@@ -255,6 +260,12 @@ const ConfigurationForm = () => {
               {selectedModel ? <CheckCircle className="h-5 w-5" /> : "2"}
             </div>
             <div className="text-xs mt-1">Model</div>
+          </div>
+          <div className={`text-center ${activeStep >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>
+            <div className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center ${activeStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+              {selectedTables.length > 0 ? <CheckCircle className="h-5 w-5" /> : "3"}
+            </div>
+            <div className="text-xs mt-1">Table</div>
           </div>
         </div>
       </div>
@@ -306,7 +317,48 @@ const ConfigurationForm = () => {
                 selectedModule={selectedModule}
                 selectedModel={selectedModel}
                 onModelSelect={setSelectedModel}
+                onModelSelectDetail={(m) => setSelectedModelName(m.modelName)}
                 aiEnabled={isAiEnabled}
+              />
+            </CardContent>
+          </Card>
+          <div className="flex justify-between mt-4">
+            <Button 
+              variant="outline" 
+              onClick={handlePrevStep}
+            >
+              Back
+            </Button>
+            <Button 
+              onClick={handleNextStep} 
+              disabled={!selectedModel}
+              className="gap-2"
+            >
+              Next Step
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Step 3: Table Selection */}
+        <div className={`space-y-4 transition-all duration-300 ${activeStep === 3 ? 'block' : 'hidden'}`}>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center font-semibold">
+              3
+            </div>
+            <Label className="text-lg font-semibold">Select Table</Label>
+            {selectedTables.length > 0 && <CheckCircle className="h-5 w-5 text-green-600" />}
+          </div>
+          <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+            <CardContent className="p-6">
+              <TableSelector
+                selectedModule={selectedModule}
+                selectedModel={selectedModel}
+                selectedModelName={selectedModelName}
+                selectedTables={selectedTables}
+                onTablesSelect={setSelectedTables}
+                aiEnabled={isAiEnabled}
+                defaultSelectAll
               />
             </CardContent>
           </Card>
