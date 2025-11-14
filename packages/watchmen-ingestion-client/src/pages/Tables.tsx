@@ -1331,12 +1331,19 @@ const Tables = () => {
 
                   <div>
                     <Label htmlFor="edit-model-name">Model Name</Label>
-                    <Input
-                      id="edit-model-name"
+                    <Select
                       value={editFormData.modelName || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, modelName: e.target.value })}
-                      placeholder="Enter model name"
-                    />
+                      onValueChange={(value) => setEditFormData({ ...editFormData, modelName: value })}
+                    >
+                      <SelectTrigger id="edit-model-name">
+                        <SelectValue placeholder="Select model name" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {modelNames.map((name) => (
+                          <SelectItem key={name} value={name}>{name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div>
