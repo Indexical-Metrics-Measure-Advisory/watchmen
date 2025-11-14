@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import Header from '@/components/Header';
 import { 
   Database, 
   Settings, 
@@ -20,6 +19,9 @@ import {
   Home,
   
 } from 'lucide-react';
+import MetricCard from '@/components/ui/metric-card';
+import ActionTile from '@/components/ui/action-tile';
+import { variantStyles } from '@/lib/variants';
 
 const Index = () => {
   const { user } = useAuth();
@@ -27,9 +29,9 @@ const Index = () => {
   // If user is not logged in, show loading state
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-live="polite" aria-busy="true">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto" aria-hidden="true"></div>
           <p className="mt-4 text-lg text-gray-600">Loading...</p>
         </div>
       </div>
@@ -84,14 +86,14 @@ const Index = () => {
   };
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
      
       {/* Hero header */}
-      <Card className="border-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl shadow-md">
+      <Card className="border-0 bg-gradient-to-r from-primary to-primary/80 text-white rounded-lg shadow-md">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-white/20 rounded-xl shadow-md">
+              <div className="p-3 bg-white/20 rounded-lg shadow-md">
                 <Home className="h-8 w-8 text-white" />
               </div>
               <div>
@@ -106,59 +108,16 @@ const Index = () => {
 
       {/* Quick Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-600">Total Modules</p>
-                <p className="text-2xl font-bold text-blue-700">{stats.totalModules}</p>
-              </div>
-              <Database className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-600">Total Models</p>
-                <p className="text-2xl font-bold text-green-700">{stats.totalModels}</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-orange-50 border-orange-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-orange-600">Total Tables</p>
-                <p className="text-2xl font-bold text-orange-700">{stats.totalTables}</p>
-              </div>
-              <Activity className="h-8 w-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-purple-50 border-purple-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-600">Last Update</p>
-                <p className="text-sm font-bold text-purple-700">{stats.lastUpdate}</p>
-              </div>
-              <Clock className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
+        <MetricCard label="Total Modules" value={stats.totalModules} icon={<Database />} variant="module" aria-label="Total modules" />
+        <MetricCard label="Total Models" value={stats.totalModels} icon={<TrendingUp />} variant="model" aria-label="Total models" />
+        <MetricCard label="Total Tables" value={stats.totalTables} icon={<Activity />} variant="table" aria-label="Total tables" />
+        <MetricCard label="Last Update" value={<span className="text-sm font-bold">{stats.lastUpdate}</span>} icon={<Clock />} variant="info" aria-label="Last update" />
       </div>
 
       {/* Main Action Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Quick Actions */}
-        <Card className="shadow-lg lg:col-span-2 rounded-2xl">
+        <Card className="shadow-lg lg:col-span-2 rounded-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5 text-blue-600" />
@@ -167,70 +126,17 @@ const Index = () => {
             <CardDescription>Common tasks to get you started</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Link to="/modules">
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer group">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200">
-                    <Plus className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">Add New Module</p>
-                    <p className="text-sm text-gray-600">Configure a new data source</p>
-                  </div>
-                </div>
-                <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
-              </div>
-            </Link>
-
-            <Link to="/models">
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer group">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200">
-                    <Database className="h-4 w-4 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">Setup Data Model</p>
-                    <p className="text-sm text-gray-600">Define your data structure</p>
-                  </div>
-                </div>
-                <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-green-600" />
-              </div>
-            </Link>
-
-            <Link to="/tables">
-              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer group">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200">
-                    <Server className="h-4 w-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">Configure Tables</p>
-                    <p className="text-sm text-gray-600">Map your table structures</p>
-                  </div>
-                </div>
-                <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-purple-600" />
-              </div>
-            </Link>
-
-            <Link to="/monitor">
-              <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer group">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-100 rounded-lg group-hover:bg-orange-200">
-                    <Eye className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">Monitor System</p>
-                    <p className="text-sm text-gray-600">Check ingestion status</p>
-                  </div>
-                </div>
-                <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-orange-600" />
-              </div>
-            </Link>
+            <div className="space-y-3">
+              <ActionTile to="/modules" title="Add New Module" subtitle="Configure a new data source" icon={<Plus />} variant="module" />
+              <ActionTile to="/models" title="Setup Data Model" subtitle="Define your data structure" icon={<Database />} variant="model" />
+              <ActionTile to="/tables" title="Configure Tables" subtitle="Map your table structures" icon={<Server />} variant="table" />
+              <ActionTile to="/monitor" title="Monitor System" subtitle="Check ingestion status" icon={<Eye />} variant="monitor" />
+            </div>
           </CardContent>
         </Card>
 
         {/* Shortcuts */}
-        <Card className="shadow-sm rounded-2xl">
+        <Card className="shadow-sm rounded-lg">
           <CardHeader>
             <CardTitle className="text-gray-900">Shortcuts</CardTitle>
             <CardDescription>Quick links and resources</CardDescription>
@@ -285,7 +191,7 @@ const Index = () => {
       </div>
 
       {/* Status Banner */}
-      <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white border-0">
+      <Card className="bg-gradient-to-r from-green-600 to-emerald-600 text-white border-0 rounded-lg">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

@@ -43,15 +43,16 @@ const menuItems = [
     icon: Search,
   },
   {
-    title: "Monitor",
-    url: "/monitor",
-    icon: Activity,
-  },
-  {
     title: "Configuration",
     url: "/config",
     icon: Settings,
   },
+  {
+    title: "Monitor",
+    url: "/monitor",
+    icon: Activity,
+  },
+  
 ];
 
 export function AppSidebar() {

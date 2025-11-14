@@ -14,12 +14,102 @@ import { moduleService, modelService, tableService, collectorService } from '@/s
 const ConfigurationForm = () => {
   const [selectedModule, setSelectedModule] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
-  const [isAiEnabled, setIsAiEnabled] = useState(false);
+  const aiFeatureFlag = (import.meta.env.VITE_AI_FEATURE_ENABLED === 'true');
+  const [isAiEnabled, setIsAiEnabled] = useState<boolean>(aiFeatureFlag);
   const [isTesting, setIsTesting] = useState(false);
   const [testSucceeded, setTestSucceeded] = useState(false);
   const [startTime, setStartTime] = useState<string>('');
   const [endTime, setEndTime] = useState<string>('');
   const [activeStep, setActiveStep] = useState(1);
+  const [timeError, setTimeError] = useState<string | null>(null);
+
+  // Helpers for friendlier time inputs
+  const toLocalInputValue = (input: Date | string) => {
+    const d = typeof input === 'string' ? new Date(input) : input;
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const year = d.getFullYear();
+    const month = pad(d.getMonth() + 1);
+    const day = pad(d.getDate());
+    const hours = pad(d.getHours());
+    const minutes = pad(d.getMinutes());
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const roundToMinute = (date: Date) => {
+    const d = new Date(date);
+    d.setSeconds(0, 0);
+    return d;
+  };
+
+  const toMySQLDateTime = (input: string) => {
+    const d = new Date(input);
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const year = d.getFullYear();
+    const month = pad(d.getMonth() + 1);
+    const day = pad(d.getDate());
+    const hours = pad(d.getHours());
+    const minutes = pad(d.getMinutes());
+    const seconds = pad(d.getSeconds());
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
+
+  const validateTimeRange = (start: string, end: string) => {
+    if (start && end && new Date(end) <= new Date(start)) {
+      setTimeError('End time must be after the start time.');
+    } else {
+      setTimeError(null);
+    }
+  };
+
+  const handleStartChange = (value: string) => {
+    setStartTime(value);
+    validateTimeRange(value, endTime);
+  };
+
+  const handleEndChange = (value: string) => {
+    setEndTime(value);
+    validateTimeRange(startTime, value);
+  };
+
+  const applyPreset = (preset: 'last1h' | 'last24h' | 'last7d' | 'today' | 'yesterday') => {
+    const now = roundToMinute(new Date());
+    if (preset === 'yesterday') {
+      const yStart = new Date(now);
+      yStart.setDate(yStart.getDate() - 1);
+      yStart.setHours(0, 0, 0, 0);
+      const yEnd = new Date(yStart);
+      yEnd.setHours(23, 59, 0, 0);
+      const s = toLocalInputValue(yStart);
+      const e = toLocalInputValue(yEnd);
+      setStartTime(s);
+      setEndTime(e);
+      validateTimeRange(s, e);
+      return;
+    }
+    let start = now;
+    switch (preset) {
+      case 'last1h':
+        start = new Date(now.getTime() - 60 * 60 * 1000);
+        break;
+      case 'last24h':
+        start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case 'last7d':
+        start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'today':
+        start = new Date(now);
+        start.setHours(0, 0, 0, 0);
+        break;
+      default:
+        break;
+    }
+    const s = toLocalInputValue(start);
+    const e = toLocalInputValue(now);
+    setStartTime(s);
+    setEndTime(e);
+    validateTimeRange(s, e);
+  };
 
   // Ensure all services use real data instead of mock data
   useEffect(() => {
@@ -130,15 +220,17 @@ const ConfigurationForm = () => {
           <h3 className="text-xl font-semibold text-gray-900">Configuration Wizard</h3>
           <p className="text-sm text-gray-600">Follow the steps below to configure your data extraction</p>
         </div>
-        <Button
-          variant={isAiEnabled ? "default" : "outline"}
-          size="sm"
-          onClick={() => setIsAiEnabled(!isAiEnabled)}
-          className="gap-2 self-start sm:self-auto"
-        >
-          <Sparkles className="h-4 w-4" />
-          AI Assistance {isAiEnabled ? 'On' : 'Off'}
-        </Button>
+        {aiFeatureFlag && (
+          <Button
+            variant={isAiEnabled ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIsAiEnabled(!isAiEnabled)}
+            className="gap-2 self-start sm:self-auto"
+          >
+            <Sparkles className="h-4 w-4" />
+            AI Assistance {isAiEnabled ? 'On' : 'Off'}
+          </Button>
+        )}
       </div>
 
       <Separator className="my-6" />
@@ -249,29 +341,57 @@ const ConfigurationForm = () => {
 
       {/* Time Range Selection */}
       <Card className="border border-gray-200 shadow-sm">
-        <CardContent className="p-6">
+        <CardContent className="p-6 space-y-4">
+          <div className="flex flex-wrap gap-2 items-center justify-between">
+            <p className="text-xs text-gray-600">Times use your local timezone. Quick presets:</p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => applyPreset('last1h')}>Last 1h</Button>
+              <Button variant="outline" size="sm" onClick={() => applyPreset('last24h')}>Last 24h</Button>
+              <Button variant="outline" size="sm" onClick={() => applyPreset('last7d')}>Last 7d</Button>
+              <Button variant="outline" size="sm" onClick={() => applyPreset('today')}>Today</Button>
+              <Button variant="outline" size="sm" onClick={() => applyPreset('yesterday')}>Yesterday</Button>
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="startTime" className="text-sm font-medium">Start Time</Label>
-              <Input
-                id="startTime"
-                type="datetime-local"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="mt-2"
-              />
+              <div className="mt-2 flex items-center gap-2">
+                <Input
+                  id="startTime"
+                  type="datetime-local"
+                  value={startTime}
+                  onChange={(e) => handleStartChange(e.target.value)}
+                  onBlur={() => startTime && setStartTime(toLocalInputValue(roundToMinute(new Date(startTime))))}
+                  step={60}
+                  max={toLocalInputValue(new Date())}
+                />
+              </div>
+              {startTime && (
+                <p className="text-xs text-gray-500 mt-1">MySQL: {toMySQLDateTime(startTime)}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="endTime" className="text-sm font-medium">End Time</Label>
-              <Input
-                id="endTime"
-                type="datetime-local"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="mt-2"
-              />
+              <div className="mt-2 flex items-center gap-2">
+                <Input
+                  id="endTime"
+                  type="datetime-local"
+                  value={endTime}
+                  onChange={(e) => handleEndChange(e.target.value)}
+                  onBlur={() => endTime && setEndTime(toLocalInputValue(roundToMinute(new Date(endTime))))}
+                  step={60}
+                  max={toLocalInputValue(new Date())}
+                />
+                <Button variant="ghost" size="sm" onClick={() => handleEndChange(toLocalInputValue(roundToMinute(new Date())))}>Now</Button>
+              </div>
+              {endTime && (
+                <p className="text-xs text-gray-500 mt-1">MySQL: {toMySQLDateTime(endTime)}</p>
+              )}
             </div>
           </div>
+          {timeError && (
+            <p className="text-sm text-red-600">{timeError}</p>
+          )}
         </CardContent>
       </Card>
 

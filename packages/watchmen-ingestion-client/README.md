@@ -60,6 +60,37 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Style guide and UI consistency
+
+This app uses Tailwind tokens defined in `src/index.css` and extended via `tailwind.config.ts`.
+
+- Color tokens: `--primary`, `--secondary`, `--background`, `--foreground`, etc.
+- Radius: `--radius` with default `rounded-lg` applied by shadcn `Card`.
+- Typography: default Tailwind font stack; use `text-sm`, `text-2xl`, `font-semibold` consistently.
+
+New reusable components for dashboard consistency:
+
+- `src/components/ui/metric-card.tsx` — unified metric tile (label + value + icon) using variant styles.
+- `src/components/ui/action-tile.tsx` — accessible action link tile for quick actions.
+- `src/lib/variants.ts` — centralized color system for variants: `module`, `model`, `table`, `monitor`, `info`.
+
+Index page (`src/pages/Index.tsx`) is refactored to use these components, aligning spacing, colors, and radius with surrounding pages.
+
+## Visual regression testing
+
+Basic Playwright visual tests are included:
+
+- Config: `playwright.config.ts` (reuses existing dev server at `http://localhost:8080/`).
+- Test: `tests/visual/index.spec.ts` — captures a baseline screenshot of the dashboard container.
+
+Run tests and create baseline snapshots:
+
+```sh
+npm run test:visual -- --update-snapshots
+```
+
+Subsequent runs without `--update-snapshots` will compare against the baseline to detect style regressions.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/d9455efe-9563-429f-ad18-5d921030c949) and click on Share -> Publish.
