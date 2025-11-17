@@ -18,7 +18,8 @@ from watchmen_serverless_lambda.service.time_manager import get_lambda_time_mana
 from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_serverless_lambda.model import ActionType
 from watchmen_serverless_lambda.queue import SQSSender
-from watchmen_storage import EntityCriteria, EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaOperator
+from watchmen_storage import EntityCriteria, EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaOperator, \
+    EntityCriteriaJoint, EntityCriteriaJointConjunction
 from watchmen_utilities import ArrayHelper, serialize_to_json
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 
@@ -118,7 +119,7 @@ class TableWorker:
                 state["data_count"] = data_count
                 state["remaining_count"] = data_count
                 
-            criteria = self.get_criteria_with_pagination(base_criteria, state)
+            criteria = self.get_criteria_with_pagination(base_criteria, state, config)
             limit = ask_serverless_extract_table_limit_size()
             source_records = ask_source_extractor(config).find_limited_primary_keys_by_criteria(
                 criteria,
@@ -178,11 +179,54 @@ class TableWorker:
                                          right=value)
             )
         return criteria
-    
-    def get_criteria_with_pagination(self, base_criteria: EntityCriteria, state: Dict):
+
+    def build_page_criteria_by_primary_key(self, data_id: Dict, config: CollectorTableConfig) -> EntityCriteriaJoint:
+        primary_keys = config.primaryKey
+        if not primary_keys:
+            raise ValueError("primary_keys can't be empty")
+
+        missing_keys = [key for key in primary_keys if key not in data_id]
+        if missing_keys:
+            raise KeyError(f"data_id lack filed：{missing_keys}，make sure include all primary_keys")
+
+        sub_conditions: List[EntityCriteriaJoint] = []
+        for i in range(len(primary_keys)):
+            current_prefix_keys = primary_keys[:i + 1]
+            sub_exprs: List[EntityCriteriaExpression] = []
+            for key in current_prefix_keys[:-1]:
+                sub_exprs.append(
+                    EntityCriteriaExpression(
+                        left=ColumnNameLiteral(columnName=key),
+                        operator=EntityCriteriaOperator.EQUALS,
+                        right=data_id[key]
+                    )
+                )
+            last_key = current_prefix_keys[-1]
+            sub_exprs.append(
+                EntityCriteriaExpression(
+                    left=ColumnNameLiteral(columnName=last_key),
+                    operator=EntityCriteriaOperator.GREATER_THAN,
+                    right=data_id[last_key]
+                )
+            )
+            sub_condition = EntityCriteriaJoint(
+                conjunction=EntityCriteriaJointConjunction.AND,
+                children=sub_exprs
+            )
+            sub_conditions.append(sub_condition)
+        return EntityCriteriaJoint(
+            conjunction=EntityCriteriaJointConjunction.OR,
+            children=sub_conditions
+        )
+
+
+    def get_criteria_with_pagination(self, 
+                                     base_criteria: EntityCriteria, 
+                                     state: Dict, 
+                                     config: CollectorTableConfig) -> EntityCriteria:
         data_id = state.get("last_max_pk")
         if data_id:
-            base_criteria.extend(self.build_criteria_by_primary_key(data_id))
+            base_criteria.append(self.build_page_criteria_by_primary_key(data_id, config))
         return base_criteria
     
     def send_messages(self, trigger_table: TriggerTable, records: List[Dict]) -> Tuple[Dict, Dict]:
