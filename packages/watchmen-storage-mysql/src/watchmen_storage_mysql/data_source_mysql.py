@@ -1,3 +1,4 @@
+import urllib.parse
 from typing import List, Optional
 
 from sqlalchemy import create_engine
@@ -77,7 +78,8 @@ class MySQLDataSourceHelper(DataSourceHelper):
         search = MySQLDataSourceHelper.build_url_search(url_params)
         if is_not_blank(search):
             search = f'?{search}'
-        url = f'mysql+pymysql://{username}:{password}@{host}:{port}/{name}{search}'
+        encoded_password = urllib.parse.quote_plus(password)
+        url = f'mysql+pymysql://{username}:{encoded_password}@{host}:{port}/{name}{search}'
         return MySQLDataSourceHelper.acquire_engine_by_url(url, params)
     
     @staticmethod
