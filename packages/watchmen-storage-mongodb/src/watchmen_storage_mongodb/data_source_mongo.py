@@ -1,5 +1,5 @@
 from typing import Optional, List
-
+import urllib.parse
 from watchmen_model.common import DataModel
 from watchmen_model.system import DataSource, DataSourceParam
 from watchmen_storage import DataSourceHelper
@@ -27,7 +27,8 @@ class MongoDataSourceHelper(DataSourceHelper):
 			username: str, password: str, host: str, port: str, name: str, data_source_params: Optional[List[DataSourceParam]],
 			params: MongoDataSourceParams
 	) -> MongoEngine:
-		url = f'mongodb://{username}:{password}@{host}:{port}/{name}'
+		encoded_password = urllib.parse.quote_plus(password)
+		url = f'mongodb://{username}:{encoded_password}@{host}:{port}/{name}'
 		return MongoDataSourceHelper.acquire_engine_by_url(url, params)
 
 	def acquire_storage(self) -> StorageMongoDB:

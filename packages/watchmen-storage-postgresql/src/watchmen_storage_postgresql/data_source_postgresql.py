@@ -1,5 +1,5 @@
 from typing import List, Optional
-
+import urllib.parse
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
@@ -86,7 +86,8 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 		search = PostgreSQLDataSourceHelper.build_url_search(url_params)
 		if is_not_blank(search):
 			search = f'?{search}'
-		url = f'postgresql+psycopg2://{username}:{password}@{host}:{port}/{name}{search}'
+		encoded_password = urllib.parse.quote_plus(password)
+		url = f'postgresql+psycopg2://{username}:{encoded_password}@{host}:{port}/{name}{search}'
 		return PostgreSQLDataSourceHelper.acquire_engine_by_url(url, params)
 
 	@staticmethod
