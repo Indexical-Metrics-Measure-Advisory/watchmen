@@ -57,13 +57,14 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const appTitle = import.meta.env.VITE_APP_TITLE ?? 'Watchmen Ingestion';
 
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
           <Database className="h-6 w-6 text-blue-600" />
-          <span className="font-bold text-lg">Watchmen</span>
+          <span className="font-bold text-lg">{appTitle}</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
