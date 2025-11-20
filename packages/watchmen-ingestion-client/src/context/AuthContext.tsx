@@ -43,6 +43,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Load login configuration
       await loadLoginConfiguration();
       
+      const url = new URL(window.location.href);
+      const search = url.searchParams;
+      const hashParams = new URLSearchParams(url.hash.startsWith('#') ? url.hash.substring(1) : url.hash);
+      const urlToken = search.get('token') || search.get('access_token') || hashParams.get('token') || hashParams.get('access_token');
+      const redirectTo = search.get('redirect') || search.get('return_to');
+
+      if (urlToken) {
+        const tokenData: Token = { accessToken: urlToken, tokenType: 'Bearer', role: '', tenantId: '' };
+        authService.storeToken(tokenData);
+        setToken(urlToken);
+        try {
+          const userData = await authService.exchangeUser(urlToken);
+          if (userData) {
+            setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+        } catch (e) {
+          authService.clearStoredAuth();
+        }
+        search.delete('token');
+        search.delete('access_token');
+        search.delete('redirect');
+        search.delete('return_to');
+        const newUrl = `${url.origin}${url.pathname}${search.toString() ? `?${search.toString()}` : ''}`;
+        window.history.replaceState(null, '', newUrl);
+        if (redirectTo && /^\//.test(redirectTo)) {
+          window.location.replace(redirectTo);
+          return;
+        }
+      }
+
       // Check if user is already logged in
       const storedToken = authService.getStoredToken();
       

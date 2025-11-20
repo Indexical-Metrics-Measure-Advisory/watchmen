@@ -38,30 +38,7 @@ const Index = () => {
     );
   }
 
-  // Mock recent activity data
-  const recentActivity = [
-    {
-      id: 1,
-      action: "Policy Management module configured",
-      time: "2 hours ago",
-      status: "success",
-      user: "John Smith"
-    },
-    {
-      id: 2,
-      action: "Claims ingestion completed",
-      time: "4 hours ago",
-      status: "success",
-      user: "System"
-    },
-    {
-      id: 3,
-      action: "Finance model validation failed",
-      time: "6 hours ago",
-      status: "error",
-      user: "System"
-    }
-  ];
+  
 
   // Mock statistics
   const stats = {
