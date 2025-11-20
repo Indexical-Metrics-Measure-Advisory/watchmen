@@ -65,19 +65,21 @@ class TableWorker:
     def extract_trigger_table(self):
         unfinished_trigger_tables = self.trigger_table_service.find_unfinished()
         for unfinished_trigger_table in unfinished_trigger_tables:
-            lock = get_resource_lock(self.snowflake_generator.next_id(),
-                                     self.trigger_table_lock_resource_id(unfinished_trigger_table),
-                                     unfinished_trigger_table.tenantId)
-            try:
-                if try_lock_nowait(self.competitive_lock_service, lock):
-                    trigger = self.trigger_table_service.find_by_id(unfinished_trigger_table.tableTriggerId)
-                    if self.is_extracted(trigger):
-                        continue
-                    else:
-                        self.process_trigger_table(trigger)
-                        break
-            finally:
-                unlock(self.competitive_lock_service, lock)
+            if self.time_manger.is_safe:
+                lock = get_resource_lock(self.snowflake_generator.next_id(),
+                                         self.trigger_table_lock_resource_id(unfinished_trigger_table),
+                                         unfinished_trigger_table.tenantId)
+                try:
+                    if try_lock_nowait(self.competitive_lock_service, lock):
+                        trigger = self.trigger_table_service.find_by_id(unfinished_trigger_table.tableTriggerId)
+                        if self.is_extracted(trigger):
+                            continue
+                        else:
+                            self.process_trigger_table(trigger)
+                finally:
+                    unlock(self.competitive_lock_service, lock)
+            else:
+                break
 
     # noinspection PyMethodMayBeStatic
     def is_extracted(self, trigger_table: TriggerTable) -> bool:
@@ -98,62 +100,63 @@ class TableWorker:
         return event.startTime, event.endTime
      
     def process_trigger_table(self, trigger_table: TriggerTable):
-        try:
-            state_key = f"state/{self.tenant_id}/{trigger_table.eventTriggerId}/extract_table/{trigger_table.tableTriggerId}"
-            state = self.query_state(trigger_table, state_key)
-            if state['is_complete']:
-                # self.time_manger.delete_state(self.tenant_id, state_key)
-                trigger_table = self.set_data_count(trigger_table, state.get("data_count"))
-                trigger_table = self.set_extracted(trigger_table)
-                self.trigger_table_service.update_table_trigger(trigger_table)
-                return
-            
-            config = self.table_config_service.find_by_name(trigger_table.tableName, trigger_table.tenantId)
-            trigger_event = self.trigger_event_service.find_event_by_id(trigger_table.eventTriggerId)
-            base_criteria = self.get_criteria(trigger_event, config)
-            
-            if state['data_count'] == 0:
-                data_count = ask_source_extractor(config).count_by_criteria(
-                        base_criteria
-                )
-                state["data_count"] = data_count
-                state["remaining_count"] = data_count
-                
-            criteria = self.get_criteria_with_pagination(base_criteria, state, config)
-            limit = ask_serverless_extract_table_limit_size()
-            source_records = ask_source_extractor(config).find_limited_primary_keys_by_criteria(
-                criteria,
-                limit
-            )
-            if not source_records:
-                state['is_complete'] = True
-                state["remaining_count"] = 0
-                self.time_manger.save_state(self.tenant_id, state_key, state)
-                return
+        while self.time_manger.is_safe:
+            try:
+                state_key = f"state/{self.tenant_id}/{trigger_table.eventTriggerId}/extract_table/{trigger_table.tableTriggerId}"
+                state = self.query_state(trigger_table, state_key)
+                if state['is_complete']:
+                    # self.time_manger.delete_state(self.tenant_id, state_key)
+                    trigger_table = self.set_data_count(trigger_table, state.get("data_count"))
+                    trigger_table = self.set_extracted(trigger_table)
+                    self.trigger_table_service.update_table_trigger(trigger_table)
+                    return
 
-            shard_size = ask_serverless_extract_table_record_shard_size()
-            
-            for i in range(0, len(source_records), shard_size):
-                shards = source_records[i:i + shard_size]
-                successes, failures = self.send_messages(trigger_table, shards)
-                log_entity = {
-                    'successes': successes,
-                    'failures': failures
-                }
-                log_key = f'logs/{self.tenant_id}/{trigger_table.eventTriggerId}/trigger_table/{trigger_table.tableTriggerId}/{self.snowflake_generator.next_id()}'
-                self.log_service.log_result(self.tenant_id, log_key, log_entity)
-            
-            max_index = len(source_records) - 1
-            current_max_pk = source_records[max_index]
-            state['last_max_pk'] = current_max_pk
-            state['remaining_count'] -= len(source_records)
-            self.time_manger.save_state(self.tenant_id, state_key, state)
-        except Exception as e:
-            logger.error(e, exc_info=True, stack_info=True)
-            trigger_table.isExtracted = True
-            trigger_table.dataCount = 0
-            trigger_table.result = format_exc()
-            self.trigger_table_service.update_table_trigger(trigger_table)
+                config = self.table_config_service.find_by_name(trigger_table.tableName, trigger_table.tenantId)
+                trigger_event = self.trigger_event_service.find_event_by_id(trigger_table.eventTriggerId)
+                base_criteria = self.get_criteria(trigger_event, config)
+
+                if state['data_count'] == 0:
+                    data_count = ask_source_extractor(config).count_by_criteria(
+                            base_criteria
+                    )
+                    state["data_count"] = data_count
+                    state["remaining_count"] = data_count
+
+                criteria = self.get_criteria_with_pagination(base_criteria, state, config)
+                limit = ask_serverless_extract_table_limit_size()
+                source_records = ask_source_extractor(config).find_limited_primary_keys_by_criteria(
+                    criteria,
+                    limit
+                )
+                if not source_records:
+                    state['is_complete'] = True
+                    state["remaining_count"] = 0
+                    self.time_manger.save_state(self.tenant_id, state_key, state)
+                    return
+
+                shard_size = ask_serverless_extract_table_record_shard_size()
+
+                for i in range(0, len(source_records), shard_size):
+                    shards = source_records[i:i + shard_size]
+                    successes, failures = self.send_messages(trigger_table, shards)
+                    log_entity = {
+                        'successes': successes,
+                        'failures': failures
+                    }
+                    log_key = f'logs/{self.tenant_id}/{trigger_table.eventTriggerId}/trigger_table/{trigger_table.tableTriggerId}/{self.snowflake_generator.next_id()}'
+                    self.log_service.log_result(self.tenant_id, log_key, log_entity)
+
+                max_index = len(source_records) - 1
+                current_max_pk = source_records[max_index]
+                state['last_max_pk'] = current_max_pk
+                state['remaining_count'] -= len(source_records)
+                self.time_manger.save_state(self.tenant_id, state_key, state)
+            except Exception as e:
+                logger.error(e, exc_info=True, stack_info=True)
+                trigger_table.isExtracted = True
+                trigger_table.dataCount = 0
+                trigger_table.result = format_exc()
+                self.trigger_table_service.update_table_trigger(trigger_table)
 
     def query_state(self, trigger_table: TriggerTable, state_key: str) -> Dict:
         state = self.time_manger.load_state(self.tenant_id, state_key)
