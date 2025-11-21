@@ -16,7 +16,7 @@ from watchmen_utilities import run
 logger = getLogger(__name__)
 
 
-async def handle_trigger_data(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger, pipeline_id: Optional[PipelineId] = None):
+async def handle_trigger_data(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger, pipeline_id: Optional[PipelineId] = None) -> str:
 	# use super admin
 	principal_service = ask_super_admin()
 	# change the tenant_id
@@ -32,6 +32,7 @@ async def handle_trigger_data(trigger_data: PipelineTriggerData, topic_trigger: 
 		asynchronized=False,
 		handle_monitor_log=create_monitor_log_pipeline_invoker(trace_id, principal_service)
 	).start(topic_trigger, pipeline_id)
+	return trace_id
 
 
 def save_topic_data(trigger_data: PipelineTriggerData) -> TopicTrigger:
@@ -48,18 +49,18 @@ def save_topic_data(trigger_data: PipelineTriggerData) -> TopicTrigger:
 	return service.trigger_by_insert(data)
 
 
-async def pipeline_data(topic_code: str, data: Dict, tenant_id: str) -> None:
+async def pipeline_data(topic_code: str, data: Dict, tenant_id: str) -> str:
 	trigger_data = PipelineTriggerData(code=topic_code, data=data, tenantId=tenant_id)
 	topic_trigger = save_topic_data(trigger_data)
-	await trigger_pipeline(trigger_data, topic_trigger)
+	return await trigger_pipeline(trigger_data, topic_trigger)
 
 
 # noinspection PyMethodMayBeStatic
-async def trigger_pipeline(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger):
-	await handle_trigger_data(trigger_data, topic_trigger)
+async def trigger_pipeline(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger) -> str:
+	return await handle_trigger_data(trigger_data, topic_trigger)
 
 
-async def run_pipeline(topic_code: str, data: Dict, tenant_id: str,  pipeline_id: PipelineId) -> None:
+async def run_pipeline(topic_code: str, data: Dict, tenant_id: str,  pipeline_id: PipelineId) -> str:
 	trigger_data = PipelineTriggerData(code=topic_code, data=data, tenantId=tenant_id)
 	topic_trigger = TopicTrigger(
 		previous=None,
@@ -67,7 +68,7 @@ async def run_pipeline(topic_code: str, data: Dict, tenant_id: str,  pipeline_id
 		triggerType=PipelineTriggerType.INSERT,
 		internalDataId=data.get(TopicDataColumnNames.ID.value)
 	)
-	await handle_trigger_data(trigger_data, topic_trigger, pipeline_id)
+	return await handle_trigger_data(trigger_data, topic_trigger, pipeline_id)
 
 
 

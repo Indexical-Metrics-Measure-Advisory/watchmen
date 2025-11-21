@@ -381,6 +381,14 @@ table_trigger_event = Table(
 	create_json('params'),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
+table_trigger_online = Table(
+	'trigger_online', meta_data,
+	create_pk('online_trigger_id', Integer),
+	create_int('status', False),
+	create_str('code', 50), create_json('record'), create_str('trace_id', 50),
+	create_json('result'),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
 table_trigger_module = Table(
 	'trigger_module', meta_data,
 	create_pk('module_trigger_id', Integer),
@@ -688,6 +696,7 @@ tables: Dict[str, Table] = {
 	'collector_model_config': table_collector_model_config,
 	'collector_table_config': table_collector_table_config,
 	'trigger_event': table_trigger_event,
+	'trigger_online': table_trigger_online,
 	'trigger_module': table_trigger_module,
 	'trigger_model': table_trigger_model,
 	'trigger_table': table_trigger_table,

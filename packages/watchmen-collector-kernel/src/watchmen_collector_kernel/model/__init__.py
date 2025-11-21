@@ -9,6 +9,7 @@ from .trigger_event import TriggerEvent, EventType, QueryParam
 from .trigger_module import TriggerModule
 from .trigger_model import TriggerModel
 from .trigger_table import TriggerTable
+from .trigger_online import TriggerOnline
 
 from .change_data_record import ChangeDataRecord
 from .change_data_record_history import ChangeDataRecordHistory
