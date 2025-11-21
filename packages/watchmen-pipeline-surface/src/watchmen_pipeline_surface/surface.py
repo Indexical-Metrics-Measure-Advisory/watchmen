@@ -33,7 +33,10 @@ class PipelineSurface:
 	def init(self) -> None:
 		self.init_connectors()
 		self.init_external_writers()
-		self.init_topic_snapshot_jobs()
+		# deprecated
+		# self.init_topic_snapshot_jobs()
+		
+		
 
 
 pipeline_surface = PipelineSurface()
