@@ -72,8 +72,9 @@ async def process_online_trigger(
         try:
             data_ = find_json(trigger, principal_service)
             if data_:
-                await trigger_pipeline(trigger.code, data_, trigger.tenantId)
+                trace_id = await trigger_pipeline(trigger.code, data_, trigger.tenantId)
                 trigger.status = Status.SUCCESS.value
+                trigger.traceId = trace_id
             else:
                 trigger.status = Status.FAIL.value
                 trigger.result = "Not Found"
@@ -105,7 +106,7 @@ def find_json(trigger: TriggerOnline, principal_service: PrincipalService) -> Di
     
     
 async def trigger_pipeline(code: str, data_: Dict, tenant_id: TenantId):
-    await pipeline_data(code, data_, tenant_id)
+    return await pipeline_data(code, data_, tenant_id)
         
         
         
