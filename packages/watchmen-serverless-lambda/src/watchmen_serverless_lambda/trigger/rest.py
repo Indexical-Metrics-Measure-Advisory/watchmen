@@ -53,6 +53,11 @@ def get_request_type(event) -> Optional[RequestType]:
         'tableName' in payload
     ):
         return RequestType.EVENT
+    elif (
+            'code' in payload and
+            'record' in payload
+    ):
+        return RequestType.ONLINE
   
 
 def trigger_pipeline_handler(event, context):
