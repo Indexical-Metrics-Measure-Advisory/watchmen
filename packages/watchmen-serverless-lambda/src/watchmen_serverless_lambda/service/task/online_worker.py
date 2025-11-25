@@ -12,7 +12,6 @@ from watchmen_collector_kernel.storage import get_change_data_record_service, \
 from watchmen_collector_kernel.storage.trigger_online_service import get_trigger_online_service
 from watchmen_meta.common import ask_meta_storage, ask_super_admin
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_rest.util import validate_tenant_id
 from watchmen_serverless_lambda.storage import ask_file_log_service
 from .handler import pipeline_data
 
