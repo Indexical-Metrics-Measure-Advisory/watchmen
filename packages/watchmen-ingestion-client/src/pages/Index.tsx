@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -22,9 +22,34 @@ import {
 import MetricCard from '@/components/ui/metric-card';
 import ActionTile from '@/components/ui/action-tile';
 import { variantStyles } from '@/lib/variants';
+import { tableService } from '@/services';
 
 const Index = () => {
   const { user } = useAuth();
+  const [totalTables, setTotalTables] = useState(0);
+  useEffect(() => {
+    const loadTotalTables = async () => {
+      try {
+        const stats = await tableService.getTableStats();
+        if (stats && typeof stats.total === 'number') {
+          setTotalTables(stats.total);
+          return;
+        }
+      } catch {}
+      try {
+        const tables = await tableService.getAllTables();
+        setTotalTables(tables.length);
+        return;
+      } catch {}
+      try {
+        const configs = await tableService.getAllCollectorConfigs();
+        setTotalTables(configs.length);
+      } catch {}
+    };
+    if (user) {
+      loadTotalTables();
+    }
+  }, [user]);
   
   // If user is not logged in, show loading state
   if (!user) {
@@ -45,7 +70,6 @@ const Index = () => {
     totalModules: 8,
     // dashboard totals
     totalModels: 12,
-    totalTables: 34,
     activeIngestions: 3,
     successRate: 94,
     lastUpdate: "2 minutes ago"
@@ -87,7 +111,7 @@ const Index = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <MetricCard label="Total Modules" value={stats.totalModules} icon={<Database />} variant="module" aria-label="Total modules" />
         <MetricCard label="Total Models" value={stats.totalModels} icon={<TrendingUp />} variant="model" aria-label="Total models" />
-        <MetricCard label="Total Tables" value={stats.totalTables} icon={<Activity />} variant="table" aria-label="Total tables" />
+        <MetricCard label="Total Tables" value={totalTables} icon={<Activity />} variant="table" aria-label="Total tables" />
         <MetricCard label="Last Update" value={<span className="text-sm font-bold">{stats.lastUpdate}</span>} icon={<Clock />} variant="info" aria-label="Last update" />
       </div>
 

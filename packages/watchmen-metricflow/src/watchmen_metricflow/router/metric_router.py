@@ -77,7 +77,7 @@ async def list_metrics(principal_service: PrincipalService = Depends(get_admin_p
     return find_all_metrics(config)
 
 
-@router.post("/dimensions_by_metric", tags =["mcp"],operation_id="find_dimensions_by_metric",response_model=DimensionListResponse)
+@router.get("/dimensions_by_metric", tags =["mcp"],operation_id="find_dimensions_by_metric",response_model=DimensionListResponse)
 async def find_dimensions_by_metric(metric_name: str,principal_service: PrincipalService = Depends(get_admin_principal))->DimensionListResponse:
     """
     Find common dimensions between a list of metrics and a list of dimensions.

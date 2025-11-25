@@ -6,10 +6,9 @@ import { Activity, RefreshCw, Loader2 } from 'lucide-react';
 import { collectorService } from '@/services';
 import { EventTriggerItem, PaginatedEventsResponse, EventResultRecord } from '@/models/monitor.models';
 import { toast } from '@/hooks/use-toast';
-import Skeleton from '@/components/monitor/Skeleton';
-import EventsTable from '@/components/monitor/EventsTable';
-import { Console } from 'console';
-const EventDetailsPanel = React.lazy(() => import('@/components/monitor/EventDetailsPanel'));
+import Skeleton from '@/components/ui/monitor/Skeleton';
+import EventsTable from '@/components/ui/monitor/EventsTable';
+const EventDetailsPanel = React.lazy(() => import('@/components/ui/monitor/EventDetailsPanel'));
 
 // Trigger type display mapping
 const TRIGGER_TYPE_LABELS: Record<number, string> = {
@@ -31,7 +30,7 @@ const Monitor = () => {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const deferredQuery = useDeferredValue(query);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   // Second-level details state
   const [selectedEvent, setSelectedEvent] = useState<EventTriggerItem | null>(null);
