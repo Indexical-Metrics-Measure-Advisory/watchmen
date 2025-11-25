@@ -61,9 +61,9 @@ class OnlineWorker:
     async def trigger_online(self, raw_topic_code:str,  record: Dict) -> TriggerOnline:
         trigger = TriggerOnline(
             code=raw_topic_code,
-            record=record
+            record=record,
+            tenantId=self.tenant_id
         )
-        validate_tenant_id(trigger, self.principal_service)
         self.trigger_online_service.redress_storable_id(trigger)
         trigger.status = Status.INITIAL.value
         self.trigger_online_service.create_trigger_online(trigger)
