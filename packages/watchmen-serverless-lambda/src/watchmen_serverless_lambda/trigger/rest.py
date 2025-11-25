@@ -4,7 +4,7 @@ from enum import StrEnum
 from logging import getLogger
 from typing import Optional
 
-from watchmen_collector_kernel.model import TriggerEvent, Status, EventType
+from watchmen_collector_kernel.model import TriggerEvent, Status, EventType, TriggerOnline
 from watchmen_collector_kernel.service import ask_collector_storage
 from watchmen_collector_kernel.storage import get_trigger_event_service
 from watchmen_meta.common import ask_snowflake_generator
@@ -14,6 +14,7 @@ from watchmen_pipeline_kernel.pipeline import try_to_invoke_pipelines
 from watchmen_rest import get_principal_by_pat, retrieve_authentication_manager
 from watchmen_rest.util import raise_400, validate_tenant_id
 from watchmen_serverless_lambda.common import set_mdc_tenant
+from watchmen_serverless_lambda.service.task import get_online_worker
 from watchmen_utilities import is_blank, serialize_to_json
 
 logger = getLogger(__name__)
@@ -23,6 +24,8 @@ def url_trigger_handler(event, context):
         return trigger_event_handler(event, context)
     elif get_request_type(event) == RequestType.PIPELINE:
         return trigger_pipeline_handler(event, context)
+    elif get_request_type(event) == RequestType.ONLINE:
+        return trigger_online_handler(event, context)
     else:
         logger.error("not support event: %s", event)
 
@@ -30,6 +33,7 @@ def url_trigger_handler(event, context):
 class RequestType(StrEnum):
     PIPELINE = "pipeline"
     EVENT = "event"
+    ONLINE = "online"
    
  
 def get_request_type(event) -> Optional[RequestType]:
@@ -49,6 +53,11 @@ def get_request_type(event) -> Optional[RequestType]:
         'tableName' in payload
     ):
         return RequestType.EVENT
+    elif (
+            'code' in payload and
+            'record' in payload
+    ):
+        return RequestType.ONLINE
   
 
 def trigger_pipeline_handler(event, context):
@@ -161,3 +170,29 @@ def get_trigger_event_type(event) -> Optional[TriggerEventType]:
         return TriggerEventType.RECORD
 
 
+def trigger_online_handler(event, context):
+    try:
+        headers = event['headers']
+        token = headers.get("authorization").split(" ")[1]
+        body = event['body']
+        topic_event = json.loads(body)
+        code = topic_event.get("code")
+        record = topic_event.get('record')
+        
+        if is_blank(token):
+            raise Exception('PAT not found.')
+        
+        principal_service = get_principal_by_pat(
+            retrieve_authentication_manager(), token, [UserRole.ADMIN, UserRole.SUPER_ADMIN])
+        
+        set_mdc_tenant(principal_service.tenantId)
+        
+        online_worker = get_online_worker(principal_service.tenantId)
+        trigger: TriggerOnline = asyncio.run(online_worker.trigger_online(code, record))
+        
+        return {
+            'statusCode': 200,
+            'body': serialize_to_json(trigger.to_dict())
+        }
+    except Exception as e:
+        raise e

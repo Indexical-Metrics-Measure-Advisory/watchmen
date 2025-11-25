@@ -126,7 +126,18 @@ class CollectorModelConfigService(TupleService):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria))
-
+	
+	def find_by_code(self, code: str, tenant_id: Optional[TenantId]) -> Optional[CollectorModelConfig]:
+		try:
+			self.begin_transaction()
+			return self.storage.find_one(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='raw_topic_code'), right=code),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+				]
+			))
+		finally:
+			self.close_transaction()
 
 
 def get_collector_model_config_service(storage: TransactionalStorageSPI,
