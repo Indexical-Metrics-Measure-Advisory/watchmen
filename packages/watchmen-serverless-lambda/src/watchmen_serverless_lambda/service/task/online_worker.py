@@ -1,42 +1,18 @@
 import logging
-import time
 from traceback import format_exc
-from typing import Dict, Tuple, Optional, List, Any
+from typing import Dict
 
-from sqlalchemy.exc import IntegrityError
-
-from watchmen_collector_kernel.common import WAVE, ask_record_performance_monitor_enabled
-from watchmen_collector_kernel.model import CollectorTableConfig, \
-    ChangeDataRecord, ChangeDataJson, Status, TriggerEvent, TriggerOnline
-from watchmen_collector_kernel.model.change_data_json import Dependence
-from watchmen_collector_kernel.model.collector_table_config import Dependence as DependenceConfig
-from watchmen_collector_kernel.service import DataCaptureService, get_table_config_service, ask_source_extractor, \
-    ask_collector_storage
-from watchmen_collector_kernel.service.extract_utils import get_data_id
+from watchmen_collector_kernel.model import Status
+from watchmen_collector_kernel.model import TriggerOnline
+from watchmen_collector_kernel.service import DataCaptureService, get_table_config_service
+from watchmen_collector_kernel.service import ask_collector_storage
 from watchmen_collector_kernel.storage import get_change_data_record_service, \
     get_change_data_json_service, get_collector_table_config_service, get_change_data_record_history_service, \
     get_change_data_json_history_service, get_collector_model_config_service
 from watchmen_collector_kernel.storage.trigger_online_service import get_trigger_online_service
-from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
-from watchmen_serverless_lambda.storage import ask_file_log_service
-from watchmen_utilities import ArrayHelper
-import asyncio
-import json
-from enum import StrEnum
-from logging import getLogger
-from typing import Optional
-
-from watchmen_collector_kernel.model import TriggerEvent, Status, EventType
-from watchmen_collector_kernel.service import ask_collector_storage
-from watchmen_collector_kernel.storage import get_trigger_event_service
+from watchmen_meta.common import ask_meta_storage, ask_super_admin
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_model.admin import UserRole
-from watchmen_model.pipeline_kernel import PipelineTriggerData, PipelineTriggerTraceId
-from watchmen_pipeline_kernel.pipeline import try_to_invoke_pipelines
-from watchmen_rest import get_principal_by_pat, retrieve_authentication_manager
-from watchmen_rest.util import raise_400, validate_tenant_id
-from watchmen_serverless_lambda.common import set_mdc_tenant
-from watchmen_utilities import is_blank, serialize_to_json
+from watchmen_serverless_lambda.storage import ask_file_log_service
 from .handler import pipeline_data
 
 logger = logging.getLogger(__name__)
@@ -84,7 +60,8 @@ class OnlineWorker:
     async def trigger_online(self, raw_topic_code:str,  record: Dict) -> TriggerOnline:
         trigger = TriggerOnline(
             code=raw_topic_code,
-            record=record
+            record=record,
+            tenantId=self.tenant_id
         )
         self.trigger_online_service.redress_storable_id(trigger)
         trigger.status = Status.INITIAL.value
