@@ -32,4 +32,7 @@ class DollSettings(RestSettings):
 	SAML_SP_X509CERT: str = ''
 
 	COLLECTOR_ON: bool = False
-	
+
+	ADMIN_MCP_ON: bool = False
+
+

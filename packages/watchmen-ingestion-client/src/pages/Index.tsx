@@ -1,6 +1,6 @@
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -9,19 +9,14 @@ import {
   Settings, 
   Activity, 
   CheckCircle, 
-  AlertTriangle, 
-  Clock,
   ArrowRight,
   Plus,
   Eye,
   TrendingUp,
   Server,
-  Home,
-  
 } from 'lucide-react';
 import MetricCard from '@/components/ui/metric-card';
 import ActionTile from '@/components/ui/action-tile';
-import { variantStyles } from '@/lib/variants';
 import { tableService } from '@/services';
 
 const Index = () => {
@@ -75,143 +70,93 @@ const Index = () => {
     lastUpdate: "2 minutes ago"
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'error':
-        return <AlertTriangle className="h-4 w-4 text-red-600" />;
-      default:
-        return <Clock className="h-4 w-4 text-blue-600" />;
-    }
-  };
-
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-6 space-y-8 max-w-7xl mx-auto bg-gray-50/50 min-h-screen">
      
-      {/* Hero header */}
-      <Card className="border-0 bg-gradient-to-r from-primary to-primary/80 text-white rounded-lg shadow-md">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-white/20 rounded-lg shadow-md">
-                <Home className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold">Dashboard</h1>
-                <p className="text-blue-100 mt-1">Configure ingestion and monitor system health</p>
-              </div>
-            </div>
-            
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b pb-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Overview of your data ingestion pipeline and system health
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1 bg-white border rounded-full shadow-sm">
+            <div className={`h-2.5 w-2.5 rounded-full ${stats.successRate > 90 ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+            <span className="text-sm font-medium text-gray-700">System Normal</span>
           </div>
-        </CardContent>
-      </Card>
+          <span className="text-sm text-muted-foreground">Last updated: {stats.lastUpdate}</span>
+        </div>
+      </div>
 
       {/* Quick Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <MetricCard label="Total Modules" value={stats.totalModules} icon={<Database />} variant="module" aria-label="Total modules" />
-        <MetricCard label="Total Models" value={stats.totalModels} icon={<TrendingUp />} variant="model" aria-label="Total models" />
-        <MetricCard label="Total Tables" value={totalTables} icon={<Activity />} variant="table" aria-label="Total tables" />
-        <MetricCard label="Last Update" value={<span className="text-sm font-bold">{stats.lastUpdate}</span>} icon={<Clock />} variant="info" aria-label="Last update" />
+        <MetricCard label="Total Modules" value={stats.totalModules} icon={<Database className="h-4 w-4" />} variant="module" aria-label="Total modules" />
+        <MetricCard label="Total Models" value={stats.totalModels} icon={<TrendingUp className="h-4 w-4" />} variant="model" aria-label="Total models" />
+        <MetricCard label="Total Tables" value={totalTables} icon={<Activity className="h-4 w-4" />} variant="table" aria-label="Total tables" />
+        <MetricCard label="Success Rate" value={`${stats.successRate}%`} icon={<CheckCircle className="h-4 w-4" />} variant="info" aria-label="Success rate" />
       </div>
 
-      {/* Main Action Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main Content Area */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
         {/* Quick Actions */}
-        <Card className="shadow-lg lg:col-span-2 rounded-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5 text-blue-600" />
-              What would you like to do?
-            </CardTitle>
-            <CardDescription>Common tasks to get you started</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="space-y-3">
-              <ActionTile to="/modules" title="Add New Module" subtitle="Configure a new data source" icon={<Plus />} variant="module" />
-              <ActionTile to="/models" title="Setup Data Model" subtitle="Define your data structure" icon={<Database />} variant="model" />
-              <ActionTile to="/tables" title="Configure Tables" subtitle="Map your table structures" icon={<Server />} variant="table" />
-              <ActionTile to="/monitor" title="Monitor System" subtitle="Check ingestion status" icon={<Eye />} variant="monitor" />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-900">Quick Actions</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <ActionTile to="/modules" title="Add Module" subtitle="Configure data source" icon={<Plus />} variant="module" />
+            <ActionTile to="/models" title="Setup Model" subtitle="Define data structure" icon={<Database />} variant="model" />
+            <ActionTile to="/tables" title="Configure Tables" subtitle="Map table structures" icon={<Server />} variant="table" />
+            <ActionTile to="/monitor" title="Monitor System" subtitle="Check ingestion status" icon={<Eye />} variant="monitor" />
+          </div>
+        </div>
 
-        {/* Shortcuts */}
-        <Card className="shadow-sm rounded-lg">
-          <CardHeader>
-            <CardTitle className="text-gray-900">Shortcuts</CardTitle>
-            <CardDescription>Quick links and resources</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <Link to="/monitor">
-              <Button variant="outline" size="sm" className="w-full justify-start gap-2">
-                <Activity className="h-4 w-4" /> View Activity
-              </Button>
-            </Link>
-            
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        {/* <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-green-600" />
-              Recent Activity
-            </CardTitle>
-            <CardDescription>What's been happening in your system</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="mt-0.5">
-                    {getStatusIcon(activity.status)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-gray-500">{activity.time}</span>
-                      <span className="text-xs text-gray-400">•</span>
-                      <span className="text-xs text-gray-500">by {activity.user}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 pt-3 border-t">
+        {/* Sidebar / Status */}
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold text-gray-900">System Status</h2>
+          
+          <Card className="shadow-sm border-l-4 border-l-green-500">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-medium flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                All Systems Operational
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600 mb-4">
+                All modules are running smoothly with {stats.successRate}% success rate.
+              </p>
               <Link to="/monitor">
-                <Button variant="outline" className="w-full">
-                  View All Activity
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                <Button variant="outline" size="sm" className="w-full justify-between group">
+                  View Detailed Report
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-            </div>
-          </CardContent>
-        </Card> */}
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-medium">Quick Links</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Link to="/monitor" className="block">
+                <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-gray-600 hover:text-primary hover:bg-blue-50">
+                  <Activity className="h-4 w-4" /> View Activity Log
+                </Button>
+              </Link>
+              <Link to="/modules" className="block">
+                <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-gray-600 hover:text-primary hover:bg-blue-50">
+                  <Settings className="h-4 w-4" /> Manage Configurations
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-
-      {/* Status Banner */}
-      <Card className="bg-gradient-to-r from-green-600 to-emerald-600 text-white border-0 rounded-lg">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="h-6 w-6" />
-              <div>
-                <h3 className="font-semibold">System Status: All Good!</h3>
-                <p className="text-green-100">All modules are running smoothly with {stats.successRate}% success rate</p>
-              </div>
-            </div>
-            <Link to="/monitor">
-              <Button variant="secondary" size="sm">
-                View Details
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-
-     
     </div>
   );
 };

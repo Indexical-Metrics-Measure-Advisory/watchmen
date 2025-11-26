@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Database, Plus, Download, RefreshCw, Info, Eye, Edit, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Minus } from 'lucide-react';
+import { Database, Plus, Download, RefreshCw, Info, Eye, Edit, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Minus, Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -790,33 +790,23 @@ const Tables = () => {
   // Note: Field management functions removed as CollectorTableConfig doesn't have fields property
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
-      {/* Hero header */}
-      <Card className="border-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl shadow-md">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-white/20 rounded-xl shadow-md">
-                <Database className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold">Tables</h1>
-                <p className="text-indigo-100 mt-1">Manage and configure your data tables</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button 
-                className="gap-2 self-start md:self-auto"
-                onClick={() => setCreateDialogOpen(true)}
-                size="sm"
-              >
-                <Plus className="h-4 w-4" />
-                Add New Table
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="p-6 space-y-8 max-w-7xl mx-auto bg-gray-50/50 min-h-screen">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b pb-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Tables</h1>
+          <p className="text-muted-foreground">Manage and configure your data tables and sources</p>
+        </div>
+        <div className="flex gap-3">
+          <Button 
+            className="gap-2"
+            onClick={() => setCreateDialogOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Add New Table
+          </Button>
+        </div>
+      </div>
 
       {/* Info banner */}
       <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 flex items-start gap-3">
@@ -875,65 +865,64 @@ const Tables = () => {
       <Separator />
 
       {/* Filters and actions */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-          <Input 
-            placeholder="Search tables..." 
-            value={searchTerm} 
-            onChange={(e) => setSearchTerm(e.target.value)} 
-            className="w-full sm:w-80"
-          />
-          <Select value={selectedModelName} onValueChange={setSelectedModelName}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Filter by model" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Models</SelectItem>
-              {modelNames.map((name) => (
-                <SelectItem key={name} value={name}>{name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="flex gap-2">
-            <Button 
-              variant={selectedStatus === 'all' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setSelectedStatus('all')}
-            >
-              All
-            </Button>
-            <Button 
-              variant={selectedStatus === 'active' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setSelectedStatus('active')}
-            >
-              Active
-            </Button>
-            <Button 
-              variant={selectedStatus === 'inactive' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setSelectedStatus('inactive')}
-            >
-              Inactive
-            </Button>
-            <Button 
-              variant={selectedStatus === 'pending' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setSelectedStatus('pending')}
-            >
-              Pending
-            </Button>
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-4 bg-white rounded-xl border shadow-sm">
+        <div className="flex flex-col md:flex-row items-center gap-4 w-full lg:w-auto flex-1">
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Input 
+              placeholder="Search tables..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+              className="pl-9 bg-gray-50/50"
+            />
+          </div>
+          <div className="w-full md:w-48">
+            <Select value={selectedModelName} onValueChange={setSelectedModelName}>
+              <SelectTrigger className="bg-gray-50/50">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-3.5 w-3.5 text-gray-500" />
+                  <SelectValue placeholder="Filter by model" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Models</SelectItem>
+                {modelNames.map((name) => (
+                  <SelectItem key={name} value={name}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto justify-end">
-          <Button variant="outline" size="sm" className="gap-1">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-          <Button variant="outline" size="sm" className="gap-1" onClick={() => window.location.reload()}>
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
+
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+          <div className="flex bg-gray-100 p-1 rounded-lg w-full sm:w-auto">
+            {['all', 'active', 'inactive', 'pending'].map((status) => (
+              <Button
+                key={status}
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedStatus(status)}
+                className={`flex-1 sm:flex-none capitalize h-8 px-3 rounded-md transition-all ${
+                  selectedStatus === status 
+                    ? 'bg-white shadow-sm text-gray-900 font-medium' 
+                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'
+                }`}
+              >
+                {status}
+              </Button>
+            ))}
+          </div>
+          
+          <div className="flex gap-2 w-full sm:w-auto justify-end">
+            <Button variant="outline" size="sm" className="gap-2 text-gray-600">
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Export</span>
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2 text-gray-600" onClick={() => window.location.reload()}>
+              <RefreshCw className="h-4 w-4" />
+              <span className="hidden sm:inline">Refresh</span>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -958,58 +947,69 @@ const Tables = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {paginatedTables.length > 0 ? (
             paginatedTables.map((table) => (
-              <Card key={table.configId} className="border border-gray-200 shadow-sm rounded-xl overflow-hidden hover:shadow-md transition-shadow duration-200">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg font-semibold text-gray-900">{table.name}</CardTitle>
+              <Card key={table.configId} className="group border border-gray-200 shadow-sm rounded-xl overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200 bg-white">
+                <CardHeader className="pb-3 bg-gray-50/50 border-b border-gray-100">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-base font-semibold text-gray-900 truncate">{table.name}</CardTitle>
+                        {table.isList && <Badge variant="outline" className="text-xs font-normal bg-white">List</Badge>}
+                      </div>
                       {table.label && (
-                        <CardDescription className="mt-1 text-sm text-gray-600 line-clamp-2">
+                        <CardDescription className="text-xs text-gray-500 line-clamp-1" title={table.label}>
                           {table.label}
                         </CardDescription>
                       )}
                     </div>
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 ml-3 flex-shrink-0">
+                    <Badge variant={table.triggered ? "default" : "secondary"} className={table.triggered ? "bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-indigo-200 shadow-none" : "bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-200 shadow-none"}>
                       {table.triggered ? 'Triggered' : 'Manual'}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-3 mb-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500">Model</span>
-                      <span className="text-sm font-medium text-gray-900">{table.modelName || 'N/A'}</span>
+                <CardContent className="pt-4">
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-4 text-sm">
+                    <div className="col-span-2 sm:col-span-1">
+                      <p className="text-xs text-gray-500 mb-1">Model</p>
+                      <div className="flex items-center gap-1.5 font-medium text-gray-700">
+                        <Database className="h-3.5 w-3.5 text-gray-400" />
+                        <span className="truncate">{table.modelName || '-'}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500">Table</span>
-                      <span className="text-sm font-medium text-gray-900">{table.tableName || 'N/A'}</span>
+                    <div className="col-span-2 sm:col-span-1">
+                      <p className="text-xs text-gray-500 mb-1">Table Name</p>
+                      <div className="flex items-center gap-1.5 font-medium text-gray-700">
+                        <span className="truncate font-mono text-xs bg-gray-50 px-1.5 py-0.5 rounded text-gray-600 border border-gray-100">{table.tableName || '-'}</span>
+                      </div>
                     </div>
                     {table.primaryKey && table.primaryKey.length > 0 && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-500">Primary Key</span>
-                        <span className="text-sm font-medium text-gray-900 truncate ml-2">
-                          {table.primaryKey.join(', ')}
-                        </span>
+                      <div className="col-span-2">
+                        <p className="text-xs text-gray-500 mb-1">Primary Key</p>
+                        <div className="flex flex-wrap gap-1">
+                          {table.primaryKey.map(k => (
+                            <Badge key={k} variant="secondary" className="px-1.5 py-0 h-5 text-[10px] font-mono bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200">{k}</Badge>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
+
                   <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
                     <Button 
-                      variant="outline" 
+                      variant="ghost" 
                       size="sm" 
-                      className="gap-1"
+                      className="h-8 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50"
                       onClick={() => handleViewTable(table)}
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-3.5 w-3.5 mr-1.5" />
                       View
                     </Button>
                     <Button 
-                      variant="default" 
+                      variant="outline" 
                       size="sm" 
-                      className="gap-1"
+                      className="h-8 border-gray-200 text-gray-700 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
                       onClick={() => handleEditTable(table)}
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-3.5 w-3.5 mr-1.5" />
                       Configure
                     </Button>
                   </div>

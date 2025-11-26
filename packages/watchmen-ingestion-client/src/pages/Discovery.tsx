@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 import { Database, Search, Sparkles, Info, RefreshCw, FileText } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -118,43 +118,28 @@ const Discovery = () => {
   }, []);
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
-      {/* Hero header */}
-      <Card className="border-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl shadow-md">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-white/20 rounded-xl shadow-md">
-                <Database className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold">Data Discovery</h1>
-                <p className="text-indigo-100 mt-1">Explore database structure and discover insights</p>
-              </div>
-            </div>
-            
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Info banner */}
-      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 flex items-start gap-3">
-        <Info className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+    <div className="p-8 max-w-[1600px] mx-auto space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h3 className="font-medium text-indigo-800">AI-Powered Database Discovery</h3>
-          <p className="text-sm text-indigo-700 mt-1">
-            This tool visualizes your database structure and uses AI to provide insights about relationships,
-            optimization opportunities, and potential issues. Select tables to view details and run analysis
-            to get AI-generated recommendations.
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Data Discovery</h1>
+          <p className="text-gray-500 mt-2">Explore database structure and discover insights</p>
         </div>
       </div>
       
-      <Separator />
+      {/* Info banner */}
+      <Alert className="bg-indigo-50/50 border-indigo-100 text-indigo-900">
+        <Sparkles className="h-4 w-4 text-indigo-600" />
+        <AlertDescription className="ml-2">
+            This tool visualizes your database structure and uses AI to provide insights about relationships,
+            optimization opportunities, and potential issues. Select tables to view details and run analysis
+            to get AI-generated recommendations.
+        </AlertDescription>
+      </Alert>
       
-      {/* Filters and Actions - moved to top */}
-      <Card className="p-6">
-        <div className="space-y-4">
+      {/* Filters and Actions */}
+      <div className="flex flex-col xl:flex-row items-start xl:items-end justify-between gap-4 p-4 bg-white rounded-xl border shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full xl:w-auto flex-1">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Module</label>
             <ModuleSelector
@@ -173,44 +158,41 @@ const Discovery = () => {
               aiEnabled={true}
             />
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Search</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search entities, columns..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Actions</label>
-              <Button 
-                className="w-full gap-2" 
-                onClick={runAnalysis}
-                disabled={analyzing || loading}
-              >
-                {analyzing ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4" />
-                    Run AI Analysis
-                  </>
-                )}
-              </Button>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Search</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search entities, columns..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
           </div>
         </div>
-      </Card>
+        
+        <div className="flex gap-2 w-full xl:w-auto justify-end">
+            <Button 
+            className="gap-2 shadow-sm whitespace-nowrap" 
+            onClick={runAnalysis}
+            disabled={analyzing || loading}
+            >
+            {analyzing ? (
+                <>
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Analyzing...
+                </>
+            ) : (
+                <>
+                <Sparkles className="h-4 w-4" />
+                Run AI Analysis
+                </>
+            )}
+            </Button>
+        </div>
+      </div>
       
       {/* Main content with tabs */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

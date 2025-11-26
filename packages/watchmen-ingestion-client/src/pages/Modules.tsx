@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Layers, GitBranch, Loader2, X, BookOpen, HelpCircle } from 'lucide-react';
+import { Plus, Edit, Layers, GitBranch, Loader2, X, BookOpen, HelpCircle, Search, RefreshCw, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +38,7 @@ const Modules: React.FC = () => {
   const [createLoading, setCreateLoading] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
 
   // Disable mock data mode to use remote service
@@ -223,6 +224,10 @@ const Modules: React.FC = () => {
     }
   };
 
+  const filteredModules = modules.filter((module) => {
+    return searchTerm === '' || module.moduleName.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
   if (loading) {
     return (
       <div className="p-6 space-y-6">
@@ -234,60 +239,74 @@ const Modules: React.FC = () => {
   }
 
   return (
-    <div className="p-8 space-y-8">
-      {/* Hero header */}
-      <Card className="border-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl shadow-md">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-white/20 rounded-xl shadow-md">
-                <Layers className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold">Modules</h1>
-                <p className="text-blue-100 mt-1">Manage system modules</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2 text-foreground border-white/40">
-                    <GitBranch className="h-4 w-4" />
-                    Execution Flow 
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-none max-h-none w-screen h-screen p-0 m-0 border-0">
-                  <DialogHeader className="p-6 pb-2">
-                    <DialogTitle>Flow Diagram</DialogTitle>
-                    <DialogDescription>
-                      Explore the execution flow. Hover edges for details and click nodes to inspect.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="flex-1 h-[calc(100vh-80px)] p-6 pt-2">
-                    <ExecutionFlowDiagram 
-                      height="100%"
-                      width="100%"
-                      autoFetch={true}
-                      onNodeClick={(node) => {
-                        toast({
-                          title: `${node.data.type} `,
-                          description: `name: ${node.data.label}${node.data.priority ? ` | priority : ${node.data.priority}` : ''}`,
-                        });
-                      }}
-                    />
-                  </div>
-                </DialogContent>
-              </Dialog>
-              <Button onClick={handleCreate} size="sm" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Create Module
+    <div className="p-8 max-w-[1600px] mx-auto space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Modules</h1>
+          <p className="text-gray-500 mt-2">Manage your system modules and execution flows.</p>
+        </div>
+        <div className="flex gap-3">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2 shadow-sm">
+                <GitBranch className="h-4 w-4" />
+                Execution Flow 
               </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </DialogTrigger>
+            <DialogContent className="max-w-none max-h-none w-screen h-screen p-0 m-0 border-0">
+              <DialogHeader className="p-6 pb-2">
+                <DialogTitle>Flow Diagram</DialogTitle>
+                <DialogDescription>
+                  Explore the execution flow. Hover edges for details and click nodes to inspect.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex-1 h-[calc(100vh-80px)] p-6 pt-2">
+                <ExecutionFlowDiagram 
+                  height="100%"
+                  width="100%"
+                  autoFetch={true}
+                  onNodeClick={(node) => {
+                    toast({
+                      title: `${node.data.type} `,
+                      description: `name: ${node.data.label}${node.data.priority ? ` | priority : ${node.data.priority}` : ''}`,
+                    });
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Button onClick={handleCreate} className="gap-2 shadow-sm">
+            <Plus className="h-4 w-4" />
+            Create Module
+          </Button>
+        </div>
+      </div>
 
-      <Separator />
+      {/* Filters */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-4 bg-white rounded-xl border shadow-sm">
+        <div className="flex flex-col md:flex-row items-center gap-4 w-full lg:w-auto flex-1">
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Input 
+              placeholder="Search modules..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+              className="pl-9 bg-gray-50/50"
+            />
+          </div>
+        </div>
+        <div className="flex gap-2 w-full sm:w-auto justify-end">
+          <Button variant="outline" size="sm" className="gap-2 text-gray-600">
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Export</span>
+          </Button>
+          <Button variant="outline" size="sm" className="gap-2 text-gray-600" onClick={() => window.location.reload()}>
+            <RefreshCw className="h-4 w-4" />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
+        </div>
+      </div>
 
       {/* Error banner */}
       {error && (
@@ -331,21 +350,14 @@ const Modules: React.FC = () => {
         </div>
       )}
 
-      {loading && (
-        <Card className="p-8">
-          <div className="flex items-center justify-center gap-3">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <p className="text-lg">Loading modules...</p>
-          </div>
-        </Card>
-      )}
-
       {!loading && !error && modules.length === 0 && (
-        <Card className="p-8">
+        <Card className="p-12 border-dashed">
           <div className="text-center">
-            <Layers className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">No Modules Found</h3>
-            <p className="text-gray-500 mb-4">Get started by creating your first module.</p>
+            <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Layers className="h-8 w-8 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Modules Found</h3>
+            <p className="text-gray-500 mb-6 max-w-sm mx-auto">Get started by creating your first module to organize your system.</p>
             <Button onClick={handleCreate} className="gap-2">
               <Plus className="h-4 w-4" />
               Create First Module
@@ -354,40 +366,74 @@ const Modules: React.FC = () => {
         </Card>
       )}
 
+      {/* No results after filtering */}
+      {!loading && modules.length > 0 && filteredModules.length === 0 && (
+        <Card className="p-12 border-dashed">
+          <div className="text-center">
+            <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Matches Found</h3>
+            <p className="text-gray-500 max-w-sm mx-auto">
+              We couldn't find any modules matching your current search.
+            </p>
+            <Button variant="link" onClick={() => setSearchTerm('')} className="mt-4 text-blue-600">
+              Clear search
+            </Button>
+          </div>
+        </Card>
+      )}
+
       {/* Modules Grid */}
-      {!loading && modules.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {modules.map((module) => (
-            <Card key={module.moduleId} className="p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">{module.moduleName}</h3>
-                  <p className="text-sm text-gray-600 font-mono">ID: {module.moduleId}</p>
-                </div>
-                <div className="flex gap-2">
+      {!loading && filteredModules.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredModules.map((module) => (
+            <Card key={module.moduleId} className="group hover:shadow-md transition-all duration-200 border-gray-200">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <CardTitle className="text-lg font-semibold text-gray-900">
+                      {module.moduleName}
+                    </CardTitle>
+                    <CardDescription className="text-xs font-mono text-gray-500 truncate max-w-[200px]" title={module.moduleId}>
+                      {module.moduleId}
+                    </CardDescription>
+                  </div>
                   <Button 
-                    variant="outline" 
-                    size="sm" 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={() => handleEdit(module)}
-                    className="hover:bg-blue-50 hover:border-blue-300"
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit className="h-4 w-4 text-gray-500 hover:text-blue-600" />
                   </Button>
                 </div>
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                    Priority: {module.priority}
-                  </Badge>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    v{module.version}
-                  </Badge>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="space-y-1">
+                      <p className="text-xs text-gray-500 font-medium uppercase">Priority</p>
+                      <Badge variant="outline" className="font-normal">
+                        Level {module.priority}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-gray-500 font-medium uppercase">Version</p>
+                      <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-100 font-normal">
+                        v{module.version}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <Separator className="bg-gray-100" />
+
+                  <div className="pt-2 flex items-center justify-between text-xs text-gray-500">
+                    <span>Last modified</span>
+                    <span>{new Date(module.lastModifiedAt).toLocaleDateString()}</span>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600">
-                  Last modified: {new Date(module.lastModifiedAt).toLocaleDateString()}
-                </p>
-              </div>
+              </CardContent>
             </Card>
           ))}
         </div>

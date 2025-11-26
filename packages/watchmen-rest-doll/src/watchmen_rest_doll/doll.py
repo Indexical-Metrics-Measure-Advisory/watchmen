@@ -144,3 +144,6 @@ def ask_oidc_settings() -> DollSettings:
 
 def ask_collector_enabled() -> bool:
 	return doll.ask_collector_enabled()
+
+def ask_admin_mcp() -> bool:
+	return doll.get_settings().ADMIN_MCP_ON

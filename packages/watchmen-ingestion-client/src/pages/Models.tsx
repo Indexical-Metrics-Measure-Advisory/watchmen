@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Database, Loader2, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Plus, Edit, Database, Loader2, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search, Filter, RefreshCw, Download } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Model } from '@/models/model';
@@ -47,7 +47,8 @@ const Models = () => {
   const [pageSize, setPageSize] = useState<number>(6); // Number of models displayed per page
   
   // Filters
-  const [selectedModuleId, setSelectedModuleId] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedModuleId, setSelectedModuleId] = useState<string>('all');
 
   // Fetch models and modules on component mount
   useEffect(() => {
@@ -72,10 +73,14 @@ const Models = () => {
     fetchData();
   }, []);
 
-  // Apply module dropdown filter (exact match by moduleId)
-  const filteredModels = selectedModuleId
-    ? models.filter((m) => m.moduleId === selectedModuleId)
-    : models;
+  // Apply filters
+  const filteredModels = models.filter((model) => {
+    const matchesModule = selectedModuleId === 'all' || !selectedModuleId || model.moduleId === selectedModuleId;
+    const matchesSearch = searchTerm === '' || 
+                          model.modelName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (model.rawTopicCode && model.rawTopicCode.toLowerCase().includes(searchTerm.toLowerCase()));
+    return matchesModule && matchesSearch;
+  });
 
   // Pagination calculation logic (based on filtered models)
   const totalFilteredCount = filteredModels.length;
@@ -308,59 +313,64 @@ const Models = () => {
   };
 
   return (
-    <div className="p-8 space-y-8">
-      {/* Hero header */}
-      <Card className="border-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl shadow-md">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-white/20 rounded-xl shadow-md">
-                <Database className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold">Models</h1>
-                <p className="text-blue-100 mt-1">Manage domain models</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button onClick={handleCreate} size="sm" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Create Model
-              </Button>
-              
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Separator />
+    <div className="p-8 max-w-[1600px] mx-auto space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Models</h1>
+          <p className="text-gray-500 mt-2">Manage your data models and definitions.</p>
+        </div>
+        <div className="flex gap-3">
+          <Button onClick={handleCreate} className="gap-2 shadow-sm">
+            <Plus className="h-4 w-4" />
+            Create Model
+          </Button>
+        </div>
+      </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="filter-module-select">Filter by module</Label>
-          <Select
-            value={selectedModuleId}
-            onValueChange={(value) => setSelectedModuleId(value)}
-          >
-            <SelectTrigger id="filter-module-select">
-              <SelectValue placeholder="All modules" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableModules.map((module) => (
-                <SelectItem key={module.moduleId} value={module.moduleId}>
-                  {module.moduleName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-4 bg-white rounded-xl border shadow-sm">
+        <div className="flex flex-col md:flex-row items-center gap-4 w-full lg:w-auto flex-1">
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Input 
+              placeholder="Search models..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+              className="pl-9 bg-gray-50/50"
+            />
+          </div>
+          <div className="w-full md:w-48">
+            <Select 
+              value={selectedModuleId} 
+              onValueChange={(value) => setSelectedModuleId(value)}
+            >
+              <SelectTrigger className="bg-gray-50/50">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-3.5 w-3.5 text-gray-500" />
+                  <SelectValue placeholder="Filter by module" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Modules</SelectItem>
+                {availableModules.map((module) => (
+                  <SelectItem key={module.moduleId} value={module.moduleId}>
+                    {module.moduleName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="flex items-end">
-          {selectedModuleId && (
-            <Button variant="outline" size="sm" onClick={() => setSelectedModuleId('')}>
-              Clear Filter
-            </Button>
-          )}
+        <div className="flex gap-2 w-full sm:w-auto justify-end">
+          <Button variant="outline" size="sm" className="gap-2 text-gray-600">
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Export</span>
+          </Button>
+          <Button variant="outline" size="sm" className="gap-2 text-gray-600" onClick={() => window.location.reload()}>
+            <RefreshCw className="h-4 w-4" />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
         </div>
       </div>
 
@@ -407,20 +417,22 @@ const Models = () => {
       )}
 
       {loading && (
-        <Card className="p-8">
-          <div className="flex items-center justify-center gap-3">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <p className="text-lg">Loading models...</p>
+        <div className="flex items-center justify-center py-12">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <p className="text-lg text-gray-600">Loading models...</p>
           </div>
-        </Card>
+        </div>
       )}
 
       {!loading && !error && models.length === 0 && (
-        <Card className="p-8">
+        <Card className="p-12 border-dashed">
           <div className="text-center">
-            <Database className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">No Models Found</h3>
-            <p className="text-gray-500 mb-4">Get started by creating your first model.</p>
+            <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Database className="h-8 w-8 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Models Found</h3>
+            <p className="text-gray-500 mb-6 max-w-sm mx-auto">Get started by creating your first model to define your data structure.</p>
             <Button onClick={handleCreate} className="gap-2">
               <Plus className="h-4 w-4" />
               Create First Model
@@ -431,38 +443,99 @@ const Models = () => {
 
       {/* No results after filtering */}
       {!loading && models.length > 0 && filteredModels.length === 0 && (
-        <Card className="p-6">
-          <p className="text-sm text-gray-600">No models match the selected module.</p>
+        <Card className="p-12 border-dashed">
+          <div className="text-center">
+            <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Matches Found</h3>
+            <p className="text-gray-500 max-w-sm mx-auto">
+              We couldn't find any models matching your current filters. Try adjusting your search or filters.
+            </p>
+            <Button variant="link" onClick={() => {setSearchTerm(''); setSelectedModuleId('all');}} className="mt-4 text-blue-600">
+              Clear all filters
+            </Button>
+          </div>
         </Card>
       )}
 
       {!loading && filteredModels.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {paginatedModels.map((model) => (
-          <Card key={model.modelId} className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold">{model.modelName}</h3>
-                <p className="text-sm text-gray-600">ID: {model.modelId}</p>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => handleEdit(model)}>
-                  <Edit className="h-4 w-4" />
+          <Card key={model.modelId} className="group hover:shadow-md transition-all duration-200 border-gray-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-lg font-semibold text-gray-900">
+                      {model.modelName}
+                    </CardTitle>
+                    {model.isParalleled && (
+                      <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-100 text-[10px] px-1.5 py-0.5 h-5">
+                        Parallel
+                      </Badge>
+                    )}
+                  </div>
+                  <CardDescription className="text-xs font-mono text-gray-500 truncate max-w-[200px]" title={model.modelId}>
+                    {model.modelId}
+                  </CardDescription>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => handleEdit(model)}
+                >
+                  <Edit className="h-4 w-4 text-gray-500 hover:text-blue-600" />
                 </Button>
               </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">Priority: {model.priority}</Badge>
-                {model.isParalleled && <Badge variant="secondary">Paralleled</Badge>}
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-500 font-medium uppercase">Priority</p>
+                    <Badge variant="outline" className="font-normal">
+                      Level {model.priority}
+                    </Badge>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-500 font-medium uppercase">Topic</p>
+                    <p className="text-gray-700 truncate" title={model.rawTopicCode || '-'}>
+                      {model.rawTopicCode || '-'}
+                    </p>
+                  </div>
+                </div>
+                
+                <Separator className="bg-gray-100" />
+                
+                <div className="space-y-2">
+                  {model.dependOn ? (
+                    <div className="flex items-start gap-2">
+                      <div className="mt-0.5 p-1 bg-amber-50 rounded text-amber-600">
+                         <Database className="h-3 w-3" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Depends on</p>
+                        <p className="text-sm text-gray-700 font-medium">{model.dependOn}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <div className="p-1 bg-gray-50 rounded">
+                        <Database className="h-3 w-3" />
+                      </div>
+                      <span className="text-xs">No dependencies</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-2 flex items-center justify-between text-xs text-gray-500">
+                  <span>Last modified</span>
+                  <span>{new Date(model.lastModifiedAt).toLocaleDateString()}</span>
+                </div>
               </div>
-              {/* <p className="text-sm text-gray-600">Module: {model.moduleId}</p> */}
-              <p className="text-sm text-gray-600">Topic: {model.rawTopicCode}</p>
-              {model.dependOn && <p className="text-sm text-gray-600">Depends on: {model.dependOn}</p>}
-              <p className="text-sm text-gray-600">
-                Last modified: {new Date(model.lastModifiedAt).toLocaleDateString()}
-              </p>
-            </div>
+            </CardContent>
           </Card>
         ))}
         </div>

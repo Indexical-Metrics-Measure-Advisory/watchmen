@@ -349,31 +349,4 @@ class DataImportRunner:
                 'error': str(e),
                 'message': f'Data import failed: {e}'
             }
-#
-#
-# def main():
-#     """Main function for command-line execution"""
-#     # Default manifest file path
-#     default_manifest_path = "/Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-metricflow/src/watchmen_metricflow/import/semantic_manifest2.json"
-#
-#    
-#     manifest_path = sys.argv[1] if len(sys.argv) > 1 else default_manifest_path
-#
-#     
-#     runner = DataImportRunner(
-#         tenant_id="941717860814777344",
-#         user_id="941718042763684864"
-#     )
-#
 
-#     result = runner.run_import(manifest_path)
-#
-#    
-#     print(json.dumps(result, indent=2, ensure_ascii=False))
-#
-#       
-#     sys.exit(0 if result['success'] else 1)
-#
-#
-# if __name__ == "__main__":
-#     main()
