@@ -609,6 +609,14 @@ class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 		self.connect()
 		self.connection.delete_many(self.find_document('_schema'), {'table': as_table_name(topic)})
 
+	
+	def find_sql(self, finder: FreeFinder) -> str:
+		"""
+		not supported by mongo
+		"""
+		raise UnexpectedStorageException('Method[find_sql] does not support by mongo storage.')
+	
+	
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		"""
 		not supported by mongo

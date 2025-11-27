@@ -65,6 +65,10 @@ class FindAgent:
 		pass
 
 	@abstractmethod
+	def find_sql(self, finder: FreeFinder) -> str:
+		pass
+	
+	@abstractmethod
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		pass
 
@@ -90,6 +94,9 @@ class StorageFindAgent(FindAgent):
 
 	def close(self) -> None:
 		self.storage.close()
+
+	def find_sql(self, finder: FreeFinder) -> str:
+		return self.storage.find_sql(finder)
 
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		return self.storage.free_find(finder)
@@ -352,8 +359,7 @@ class SubjectStorage:
 		sql_monitor = SqlHandler()
 		finder.commandOnly = True
 		finder.queryPfmMonitor = sql_monitor.create_monitor()
-		self.find_data(lambda agent: agent.free_find(finder))
-		return sql_monitor.sql
+		return self.find_sql_by_agent(lambda agent: agent.find_sql(finder))
 
 	def ask_storage_pager(self, pageable: Pageable) -> FreePager:
 		finder, _ = self.ask_storage_finder()
@@ -1294,3 +1300,24 @@ class SubjectStorage:
 				'ask your administrator to turn on presto/trino engine.')
 		else:
 			return self.do_find(self.ask_trino_find_agent(), find)
+
+	def find_sql_by_agent(self, find: Callable[[FindAgent], str]) -> str:
+		
+		def do_find(find_agent: FindAgent, find: Callable[[FindAgent], str]) -> str:
+			try:
+				find_agent.connect()
+				return find(find_agent)
+			finally:
+				find_agent.close()
+
+		if not ask_use_storage_directly():
+			return do_find(self.ask_trino_find_agent(), find)
+
+		if self.schema.from_one_data_source():
+			return do_find(self.ask_storage_find_agent(), find)
+		elif not ask_trino_enabled():
+			raise InquiryKernelException(
+				'Cannot perform inquiry on storage native when there are multiple data sources, '
+				'ask your administrator to turn on presto/trino engine.')
+		else:
+			return do_find(self.ask_trino_find_agent(), find)

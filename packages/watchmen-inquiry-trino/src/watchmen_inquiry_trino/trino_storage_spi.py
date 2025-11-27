@@ -246,6 +246,10 @@ class TrinoStorageSPI(TopicDataStorageSPI):
 		pass
 
 	@abstractmethod
+	def find_sql(self, finder: FreeFinder) -> str:
+		pass
+	
+	@abstractmethod
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		pass
 
