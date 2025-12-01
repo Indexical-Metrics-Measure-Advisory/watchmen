@@ -302,6 +302,39 @@ export const isDateFormatConstant = (statement: string): { is: boolean, parsed?:
 		return {is: true, parsed: parsed[0] as ParsedVariablePredefineFunctions};
 	}
 };
+const SUPPORTED_FUNCTION_NAMES = new Set([
+  'len',
+  'slice',
+  'find',
+  'index',
+  'startswith',
+  'endswith',
+  'strip',
+  'replace',
+  'upper',
+  'lower',
+  'contains',
+  'split'
+]);
+export function checkSupportedFunction(inputStr: string): boolean {
+  if (typeof inputStr !== 'string' || !inputStr) {
+    return false;
+  }
+
+  const funcPattern = /&(?<func_name>\w+)(?:\((?<params>[^)]*)\))?/g;
+  let match: RegExpMatchArray | null;
+  let hasValidFunc = false;
+
+  while ((match = funcPattern.exec(inputStr)) !== null) {
+    hasValidFunc = true;
+    const funcName = match.groups?.['func_name'];
+    if (!funcName || !SUPPORTED_FUNCTION_NAMES.has(funcName)) {
+      return false;
+    }
+  }
+
+  return hasValidFunc;
+}
 /**
  * compute the possible types of given parameter,
  * according to topics and variables which are used in parameter definition.
@@ -394,7 +427,9 @@ export const computeParameterTypes = (
 				return [{array: false, type: FactorType.DATETIME}];
 			} else if (isDateFormatConstant(name).is) {
 				return [{array: false, type: FactorType.TEXT}];
-			}
+			} else if (checkSupportedFunction(name)) {
+                return [{array: false, type: AnyFactorType.ANY}];
+            }
 			const [first, ...rest] = name.split('.');
 			let firstTypes: ValueTypesOfParameter;
 			if (first === VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA) {

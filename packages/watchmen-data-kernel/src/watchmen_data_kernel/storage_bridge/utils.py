@@ -10,6 +10,7 @@ from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.common import VariablePredefineFunctions
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_date, month_diff, \
 	truncate_time, try_to_decimal, year_diff
+from .str_utils import check_supported_function_with_params, execute_string_operations
 from .variables import PipelineVariables
 
 
@@ -76,6 +77,11 @@ def get_value_from(
 						return decimal_value
 
 				return ArrayHelper(data).reduce(lambda sum_value, value: sum_value + to_decimal(value), Decimal(0))
+			else:
+				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
+		elif check_supported_function_with_params(current_name):
+			if isinstance(data, str):
+				return execute_string_operations(data, current_name)
 			else:
 				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
 		elif isinstance(data, dict):
