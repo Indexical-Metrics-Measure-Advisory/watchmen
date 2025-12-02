@@ -34,20 +34,20 @@ async def get_all_bi_analyses(
     return trans_readonly(service, action)
 
 
-@router.get('/bi-analysis/{name}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/bi-analysis/{analysis_id}', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_bi_analysis_by_name(
-        name: str,
+        analysis_id: str,
         principal_service: PrincipalService = Depends(get_console_principal)
 ) -> BIAnalysis:
     """Get a specific BI analysis by name"""
-    if is_blank(name):
-        raise_400('BI analysis name is required.')
+    if is_blank(analysis_id):
+        raise_400('BI analysis analysis_id is required.')
 
     service = get_bi_analysis_service(principal_service)
 
     def action() -> BIAnalysis:
         tenant_id: TenantId = principal_service.get_tenant_id()
-        analysis = service.find_by_name(name, tenant_id)
+        analysis = service.find_by_id(analysis_id)
         if analysis is None:
             raise_404()
         return analysis
@@ -81,15 +81,14 @@ async def create_bi_analysis(
     return trans(service, action)
 
 
-@router.put('/bi-analysis/{name}', tags=['ADMIN'], response_model=None)
+@router.post('/bi-analysis/update', tags=['ADMIN'], response_model=None)
 async def update_bi_analysis(
-        name: str,
         analysis: BIAnalysis,
         principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> BIAnalysis:
     """Update an existing BI analysis"""
-    if is_blank(name):
-        raise_400('BI analysis name is required.')
+    if is_blank(analysis.id):
+        raise_400('BI analysis id is required.')
 
     # Set tenant ID from principal
     analysis.tenantId = principal_service.get_tenant_id()
@@ -98,7 +97,7 @@ async def update_bi_analysis(
 
     def action() -> BIAnalysis:
         # Check if analysis exists
-        existing_analysis = service.find_by_name(name, analysis.tenantId)
+        existing_analysis = service.find_by_id(analysis.id)
         if existing_analysis is None:
             raise_404('BI analysis not found.')
         analysis.id = existing_analysis.id
@@ -107,28 +106,27 @@ async def update_bi_analysis(
     return trans(service, action)
 
 
-@router.delete('/bi-analysis/{name}', tags=['ADMIN'], response_model=None)
+@router.get('/bi-analysis/delete/{analysis_id}', tags=['ADMIN'], response_model=None)
 async def delete_bi_analysis(
-        name: str,
+        analysis_id: str,
         principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> BIAnalysis:
     """Delete a BI analysis"""
     if not ask_tuple_delete_enabled():
         raise_404('Not Found')
 
-    if is_blank(name):
-        raise_400('BI analysis name is required.')
+    if is_blank(analysis_id):
+        raise_400('BI analysis analysis_id is required.')
 
     service = get_bi_analysis_service(principal_service)
 
     def action() -> BIAnalysis:
-        tenant_id: TenantId = principal_service.get_tenant_id()
 
         # Check if analysis exists
-        existing_analysis = service.find_by_name(name, tenant_id)
+        existing_analysis = service.find_by_id(analysis_id)
         if existing_analysis is None:
             raise_404('BI analysis not found.')
 
-        return service.delete_by_name(name, tenant_id)
+        return service.delete_by_id(analysis_id)
 
     return trans(service, action)

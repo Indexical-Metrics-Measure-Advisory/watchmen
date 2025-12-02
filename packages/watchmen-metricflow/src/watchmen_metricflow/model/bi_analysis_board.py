@@ -7,23 +7,23 @@ from watchmen_utilities import ExtendedBaseModel
 from watchmen_model.common import TenantBasedTuple, Auditable, OptimisticLock
 
 
-class BIMetricKind(Enum):
+class BIMetricKind(str,Enum):
     COUNT = "count"
     RATE = "rate"
     AMOUNT = "amount"
 
 
-class BIChartType(Enum):
+class BIChartType(str,Enum):
     LINE = "line"
     BAR = "bar"
     PIE = "pie"
     AREA = "area"
 
 
-class BICardSize(Enum):
-    SMALL = "small"
-    MEDIUM = "medium"
-    LARGE = "large"
+class BICardSize(str,Enum):
+    SMALL = "sm"
+    MEDIUM = "md"
+    LARGE = "lg"
 
 
 class BICategory(ExtendedBaseModel):
@@ -36,7 +36,7 @@ class BIMetric(ExtendedBaseModel):
     id: str
     name: str
     description: Optional[str] = None
-    category_id: str
+    categoryId: str
     kind: BIMetricKind
     dimensions: List[str] = Field(default_factory=list)
 
@@ -45,21 +45,20 @@ class BIMetric(ExtendedBaseModel):
 
 
 class BIDimensionSelection(BaseModel):
-    # 使用枚举值作为序列化输出（虽未使用枚举，这里保持风格一致）
+
     model_config = ConfigDict(use_enum_values=True)
 
-    dimensions: List[str] = Field(default_factory=list)
-    time_range: Optional[str] = None
+    dimensions: Optional[List[str]] = None
+    timeRange: Optional[str] = None
 
 
 class BIChartCard(ExtendedBaseModel):
     id: str
     title: str
-    metric_id: str
-    chart_type: BIChartType
-    size: BICardSize
-    selection: BIDimensionSelection
-
+    metricId: str
+    chartType: Optional[BIChartType] = None
+    size: Optional[BICardSize] = None
+    selection: Optional[ BIDimensionSelection] = None
     model_config = ConfigDict(use_enum_values=True)
 
 
@@ -67,7 +66,7 @@ class BIAnalysis(ExtendedBaseModel, TenantBasedTuple, Auditable, OptimisticLock)
     id: str
     name: str
     description: Optional[str] = None
-    cards: List[BIChartCard] = Field(default_factory=list)
+    cards: Optional[List[BIChartCard]] = []
 
     # 审计字段由 Auditable 混入提供：createdAt, createdBy, lastModifiedAt, lastModifiedBy
     # 乐观锁字段由 OptimisticLock 混入提供：version
@@ -100,3 +99,15 @@ class BIAnalysisListItem(BaseModel):
     updated_at: Optional[datetime] = None
 
     model_config = ConfigDict(use_enum_values=True)
+
+
+
+
+
+json = {"id":"","name":"aaa","description":"","cards":[{"id":"card_1764593251449","title":"total_claim_cases · Past 30 days","metricId":"total_claim_cases","chartType":"bar","size":"md","selection":{"dimensions":["claim_case__accept_decision_desc"],"timeRange":"Past 30 days"}}]}
+
+
+# 解析 JSON 字符串为 BIAnalysisInput 实例
+analysis_input = BIAnalysis(**json)
+
+print(analysis_input)

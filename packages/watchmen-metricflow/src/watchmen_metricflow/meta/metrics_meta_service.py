@@ -4,7 +4,7 @@ from watchmen_meta.common import UserBasedTupleService, UserBasedTupleShaper, Au
 from watchmen_model.common import TenantId
 from watchmen_storage import EntityShaper, EntityRow, EntityCriteriaExpression, ColumnNameLiteral
 from watchmen_utilities import ArrayHelper
-from ..model.metrics import Metric, MetricConfig, MetricTypeParams, MeasureReference, WindowParams, \
+from ..model.metrics import MetricWithCategory, MetricConfig, MetricTypeParams, MeasureReference, WindowParams, \
     ConversionTypeParams, CumulativeTypeParams
 
 
@@ -87,13 +87,13 @@ class MetricShaper(UserBasedTupleShaper):
         else:
             return config.model_dump()
 
-    def serialize(self, metric: Metric) -> EntityRow:
+    def serialize(self, metric: MetricWithCategory) -> EntityRow:
         
         row = {
             "id":metric.id,
             'name': metric.name,
             'description': metric.description,
-            # "category":metric.category,
+            "categoryId":metric.categoryId,
             'type': metric.type.value if hasattr(metric.type, 'value') else metric.type,
             'type_params': MetricShaper.serialize_metric_type_params(metric.type_params),
             'filter': metric.filter,
@@ -108,12 +108,12 @@ class MetricShaper(UserBasedTupleShaper):
 
         return row
 
-    def deserialize(self, row: EntityRow) -> Metric:
+    def deserialize(self, row: EntityRow) -> MetricWithCategory:
        
         metric_data = {
             "id":row.get("id"),
             'name': row.get('name'),
-            # "category": row.get("category"),
+            "categoryId": row.get("categoryId"),
             'description': row.get('description'),
             'type': row.get('type'),
             'type_params': row.get('type_params', {}),
@@ -125,12 +125,12 @@ class MetricShaper(UserBasedTupleShaper):
         }
 
         
-        metric = Metric.model_validate(metric_data)
+        metric = MetricWithCategory.model_validate(metric_data)
         
         # noinspection PyTypeChecker
-        metric: Metric = AuditableShaper.deserialize(row, metric)
+        metric: MetricWithCategory = AuditableShaper.deserialize(row, metric)
         # noinspection PyTypeChecker
-        metric: Metric = TupleShaper.deserialize_tenant_based(row, metric)
+        metric: MetricWithCategory = TupleShaper.deserialize_tenant_based(row, metric)
         return metric
 
 
@@ -150,17 +150,17 @@ class MetricService(UserBasedTupleService):
     def get_entity_shaper(self) -> EntityShaper:
         return METRIC_ENTITY_SHAPER
 
-    def get_storable_id(self, storable: Metric) -> str:
+    def get_storable_id(self, storable: MetricWithCategory) -> str:
         return storable.name
 
-    def set_storable_id(self, storable: Metric, storable_id: str) -> Metric:
+    def set_storable_id(self, storable: MetricWithCategory, storable_id: str) -> MetricWithCategory:
         storable.name = storable_id
         return storable
 
     def get_storable_id_column_name(self) -> str:
         return 'name'
 
-    def find_all(self, tenant_id: Optional[TenantId] = None) -> List[Metric]:
+    def find_all(self, tenant_id: Optional[TenantId] = None) -> List[MetricWithCategory]:
         
         criteria = []
         if tenant_id is not None and len(tenant_id.strip()) != 0:
@@ -168,7 +168,7 @@ class MetricService(UserBasedTupleService):
         # noinspection PyTypeChecker
         return self.storage.find(self.get_entity_finder(criteria=criteria))
 
-    def find_by_name(self, name: str, tenant_id: Optional[TenantId] = None) -> Optional[Metric]:
+    def find_by_name(self, name: str, tenant_id: Optional[TenantId] = None) -> Optional[MetricWithCategory]:
         
         criteria = []
         if tenant_id is not None and len(tenant_id.strip()) != 0:
@@ -180,7 +180,7 @@ class MetricService(UserBasedTupleService):
         results = self.storage.find(self.get_entity_finder(criteria=criteria))
         return results[0] if results else None
 
-    def find_by_type(self, metric_type: str, tenant_id: Optional[TenantId] = None) -> List[Metric]:
+    def find_by_type(self, metric_type: str, tenant_id: Optional[TenantId] = None) -> List[MetricWithCategory]:
         
         criteria = []
         if tenant_id is not None and len(tenant_id.strip()) != 0:
@@ -191,7 +191,7 @@ class MetricService(UserBasedTupleService):
         # noinspection PyTypeChecker
         return self.storage.find(self.get_entity_finder(criteria=criteria))
 
-    def find_by_label(self, label: str, tenant_id: Optional[TenantId] = None) -> List[Metric]:
+    def find_by_label(self, label: str, tenant_id: Optional[TenantId] = None) -> List[MetricWithCategory]:
         
         criteria = []
         if tenant_id is not None and len(tenant_id.strip()) != 0:
@@ -203,7 +203,7 @@ class MetricService(UserBasedTupleService):
         return self.storage.find(self.get_entity_finder(criteria=criteria))
 
 
-    def update_by_name(self, name: str, metric: Metric) -> Metric:
+    def update_by_name(self, name: str, metric: MetricWithCategory) -> MetricWithCategory:
         
         if name is None or len(name.strip()) == 0:
             raise ValueError("name cannot be empty")

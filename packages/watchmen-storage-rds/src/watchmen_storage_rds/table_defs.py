@@ -542,6 +542,7 @@ table_metrics = Table(
     create_pk('id'),
     create_str('name', 128, False),
     create_str('description', 1024),
+	create_str('categoryId', 200),
     create_str('type', 50, False),
     create_json('type_params'),
     create_str('filter', 1024),
@@ -626,6 +627,27 @@ table_data_profiles = Table(
 	create_str('target', 128),
 	create_json('outputs'),
 	create_str('description', 1024),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+
+table_metric_categories = Table(
+	'metric_categories', meta_data,
+	create_pk('id'),
+	create_str('name', 128),
+	create_str('description', 1024),
+	create_str('color', 128),
+	create_str('icon', 128),
+	# create_bool('is_active'),
+	# create_number('sort_order'),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+
+table_bi_analysis = Table(
+	'bi_analysis', meta_data,
+	create_pk('id'),
+	create_str('name', 128),
+	create_str('description', 1024),
+	create_json('cards'),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 
@@ -714,6 +736,8 @@ tables: Dict[str, Table] = {
 	"analysis_reports": table_analysis_reports,
 	'chat_sessions': table_chat_sessions,
 	'data_profiles': table_data_profiles,
+	'metric_categories': table_metric_categories,
+	'bi_analysis': table_bi_analysis,
 }
 
 

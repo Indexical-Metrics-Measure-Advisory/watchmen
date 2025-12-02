@@ -7,7 +7,7 @@ from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
 from watchmen_meta.system import DataSourceService
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
 from watchmen_metricflow.meta.semantic_meta_service import SemanticModelService
-from watchmen_metricflow.model.metrics import Metric
+from watchmen_metricflow.model.metrics import Metric, MetricWithCategory
 from watchmen_metricflow.model.semantic import SemanticModel
 from watchmen_model.common import TenantId
 from watchmen_model.system import DataSource
@@ -31,10 +31,10 @@ def get_data_source_service(principal_service: PrincipalService) -> DataSourceSe
 
 async def load_metrics_by_tenant_id(principal_service) -> List[Metric]:
     metric_service = get_metric_service(principal_service)
-
     def action() -> List[Metric]:
         tenant_id: TenantId = principal_service.get_tenant_id()
-        return metric_service.find_all(tenant_id)
+        metrics_list:List[MetricWithCategory] =  metric_service.find_all(tenant_id)
+        return metrics_list
 
     return trans_readonly(metric_service, action)
 

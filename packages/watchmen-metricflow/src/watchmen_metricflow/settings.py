@@ -4,7 +4,7 @@ from watchmen_rest import RestSettings
 class MetricFlowSettings(RestSettings):
     APP_NAME: str = 'Watchmen Metric Flow'
     MCP_FLAG:bool = True
-    TUPLE_DELETABLE: bool = False
+    TUPLE_DELETABLE: bool = True
 
 
 

@@ -81,25 +81,29 @@ async def create_category(
     return trans(category_service, action)
 
 
-@router.put('/metric/category/{name}', tags=['ADMIN'], response_model=None)
+@router.put('/metric/category/{category_id}', tags=['ADMIN'], response_model=None)
 async def update_category(
-        name: str,
+        category_id: str,
         category: Category,
         principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Category:
     """Update an existing metric category"""
-    if is_blank(name):
-        raise_400('Category name is required.')
+    if is_blank(category_id):
+        raise_400('Category id is required.')
 
     # Set tenant ID from principal
     category.tenantId = principal_service.get_tenant_id()
 
     category_service = get_category_service(principal_service)
 
+
+
     def action() -> Category:
         # Check if category exists
-        existing_category = category_service.find_by_name(name, category.tenantId)
+        existing_category = category_service.find_by_id(category_id)
+
         if existing_category is None:
+
             raise_404('Category not found.')
         category.id = existing_category.id
         return category_service.update(category)
@@ -107,28 +111,28 @@ async def update_category(
     return trans(category_service, action)
 
 
-@router.delete('/metric/category/{name}', tags=['ADMIN'], response_model=None)
+@router.get('/metric/category/delete/{category_id}', tags=['ADMIN'], response_model=None)
 async def delete_category(
-        name: str,
+        category_id: str,
         principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Category:
     """Delete a metric category"""
     if not ask_tuple_delete_enabled():
         raise_404('Not Found')
 
-    if is_blank(name):
-        raise_400('Category name is required.')
+    if is_blank(category_id):
+        raise_400('Category category_id is required.')
 
     category_service = get_category_service(principal_service)
 
     def action() -> Category:
-        tenant_id: TenantId = principal_service.get_tenant_id()
+        # tenant_id: TenantId = principal_service.get_tenant_id()
 
         # Check if category exists
-        existing_category = category_service.find_by_name(name, tenant_id)
+        existing_category = category_service.find_by_id(category_id)
         if existing_category is None:
             raise_404('Category not found.')
 
-        return category_service.delete_by_name(name, tenant_id)
+        return category_service.delete_by_id(category_id)
 
     return trans(category_service, action)

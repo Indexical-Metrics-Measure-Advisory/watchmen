@@ -5,7 +5,7 @@ from typing import List, Optional
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
-from watchmen_metricflow.model.metrics import Metric
+from watchmen_metricflow.model.metrics import Metric, MetricWithCategory
 from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_rest import get_admin_principal, get_console_principal
 from watchmen_rest.util import raise_400, raise_404
@@ -28,7 +28,7 @@ class QueryMetricDataPage(DataPage):
 async def get_metric_by_name(
         metric_name: str,
         principal_service: PrincipalService = Depends(get_console_principal)
-) -> Metric:
+) -> MetricWithCategory:
     """Get a specific metric by name"""
     if is_blank(metric_name):
         raise_400('Metric name is required.')
@@ -47,9 +47,9 @@ async def get_metric_by_name(
 
 @router.post('/metric', tags=['ADMIN'], response_model=None)
 async def create_metric(
-        metric: Metric,
+        metric: MetricWithCategory,
         principal_service: PrincipalService = Depends(get_admin_principal)
-) -> Metric:
+) -> MetricWithCategory:
     """Create a new metric"""
     if is_blank(metric.name):
         raise_400('Metric name is required.')
@@ -74,9 +74,9 @@ async def create_metric(
 @router.put('/metric/{metric_name}', tags=['ADMIN'], response_model=None)
 async def update_metric(
         metric_name: str,
-        metric: Metric,
+        metric: MetricWithCategory,
         principal_service: PrincipalService = Depends(get_admin_principal)
-) -> Metric:
+) -> MetricWithCategory:
     """Update an existing metric"""
     if is_blank(metric_name):
         raise_400('Metric name is required.')
@@ -101,7 +101,7 @@ async def update_metric(
 async def delete_metric(
         metric_name: str,
         principal_service: PrincipalService = Depends(get_admin_principal)
-) -> Metric:
+) -> MetricWithCategory:
     """Delete a metric"""
     if not ask_tuple_delete_enabled():
         raise_404('Not Found')
@@ -128,7 +128,7 @@ async def delete_metric(
 async def get_metrics_by_type(
         metric_type: str,
         principal_service: PrincipalService = Depends(get_console_principal)
-) -> List[Metric]:
+) -> List[MetricWithCategory]:
     """Get all metrics of a specific type"""
     if is_blank(metric_type):
         raise_400('Metric type is required.')
@@ -146,14 +146,14 @@ async def get_metrics_by_type(
 async def get_metrics_by_label(
         label: str,
         principal_service: PrincipalService = Depends(get_console_principal)
-) -> List[Metric]:
+) -> List[MetricWithCategory]:
     """Get all metrics with a specific label"""
     if is_blank(label):
         raise_400('Label is required.')
     
     metric_service = get_metric_service(principal_service)
     
-    def action() -> List[Metric]:
+    def action() -> List[MetricWithCategory]:
         tenant_id: TenantId = principal_service.get_tenant_id()
         return metric_service.find_by_label(label, tenant_id)
     
@@ -163,11 +163,11 @@ async def get_metrics_by_label(
 @router.get('/metrics/all', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_all_metrics(
         principal_service: PrincipalService = Depends(get_console_principal)
-) -> List[Metric]:
+) -> List[MetricWithCategory]:
     """Get all metrics"""
     metric_service = get_metric_service(principal_service)
     
-    def action() -> List[Metric]:
+    def action() -> List[MetricWithCategory]:
         tenant_id: TenantId = principal_service.get_tenant_id()
         return metric_service.find_all(tenant_id)
     
