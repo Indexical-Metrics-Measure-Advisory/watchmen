@@ -52,8 +52,10 @@ def execute_string_operations(original_str, config_text):
 def check_supported_function_with_params(current_name) -> bool:
     pattern = r'&(?P<func_name>\w+)(?:\((?P<params>[^)]*)\))?'
     matches = re.finditer(pattern, current_name)
+    has_match = False
     for match in matches:
+        has_match = True
         func_name = match.group('func_name')
         if func_name not in SUPPORTED_FUNCTIONS:
             return False
-    return True
+    return has_match
