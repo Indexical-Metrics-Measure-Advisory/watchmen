@@ -20,6 +20,7 @@ on:
 jobs:
   test-api:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       DB_DATABASE: watchmen
       DB_USER: admin
@@ -114,6 +115,13 @@ jobs:
           poetry update
           poetry install --without dev -vv -E mysql -E trino
           uvicorn watchmen_rest_doll.main:app --host='0.0.0.0' --port='8000' > server.out 2>&1 &
+      - name: waiting doll ready（health check）
+        timeout-minutes: 5
+        run: |
+          until curl -f http://localhost:8000/health; do
+            echo "waiting app starting..."
+            sleep 3
+          done
       - name: Install Node
         uses: actions/setup-node@v3
         with:
