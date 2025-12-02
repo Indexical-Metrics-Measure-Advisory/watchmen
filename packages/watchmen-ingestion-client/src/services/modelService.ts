@@ -354,12 +354,12 @@ export class ModelService {
    * Update model
    */
   async updateModel(modelId: string, updateData: UpdateModelRequest): Promise<Model> {
-    console.log('ModelService.updateModel called with:', { modelId, updateData });
-    console.log('useMockData mode:', this.useMockData);
+    // console.log('ModelService.updateModel called with:', { modelId, updateData });
+    // console.log('useMockData mode:', this.useMockData);
     updateData.modelId = modelId;
     
     if (this.useMockData) {
-      console.log('Using mock data for update');
+      // console.log('Using mock data for update');
       const modelIndex = mockModels.findIndex(m => m.modelId === modelId);
       if (modelIndex === -1) throw new ModelServiceError('Model not found', 404);
       

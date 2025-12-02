@@ -252,19 +252,19 @@ const Models = () => {
   };
 
   const handleSaveEdit = async () => {
-    console.log('handleSaveEdit called');
+    // console.log('handleSaveEdit called');
     if (!selectedModel || !editFormData) {
-      console.log('No selected model or edit form data');
+      // console.log('No selected model or edit form data');
       return;
     }
 
     try {
-      console.log('Starting edit process for model:', selectedModel.modelId);
+      // console.log('Starting edit process for model:', selectedModel.modelId);
       setEditLoading(true);
       setError(null);
 
       if (!validateEditForm(editFormData)) {
-        console.log('Form validation failed');
+        // console.log('Form validation failed');
         setEditLoading(false);
         return;
       }
@@ -282,13 +282,13 @@ const Models = () => {
         priority: editFormData.priority
       };
 
-      console.log('Update data prepared:', updateData);
-      console.log('Calling modelService.updateModel...');
+      // console.log('Update data prepared:', updateData);
+      // console.log('Calling modelService.updateModel...');
       
       // Call service layer to update model
       const updatedModel = await modelService.updateModel(selectedModel.modelId, updateData);
       
-      console.log('Model updated successfully:', updatedModel);
+      // console.log('Model updated successfully:', updatedModel);
       
       // Update local state with the updated model
       setModels(prev => prev.map(m => m.modelId === selectedModel.modelId ? updatedModel : m));

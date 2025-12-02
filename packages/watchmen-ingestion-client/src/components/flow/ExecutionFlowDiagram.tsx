@@ -389,11 +389,11 @@ function ExecutionFlowDiagram(props: ExecutionFlowDiagramProps) {
 
   // Calculate visible nodes and edges based on expansion state
   const visibleContent = useMemo(() => {
-    console.log('=== CALCULATING VISIBLE CONTENT ===');
-    console.log('Expanded modules:', state.expandedModules);
+    // console.log('=== CALCULATING VISIBLE CONTENT ===');
+    // console.log('Expanded modules:', state.expandedModules);
 
     const moduleNodes = getModuleNodes();
-    console.log('Available module nodes:', moduleNodes.length);
+    // console.log('Available module nodes:', moduleNodes.length);
 
     const result = calculateHorizontalLayout(
       moduleNodes,
@@ -404,30 +404,28 @@ function ExecutionFlowDiagram(props: ExecutionFlowDiagramProps) {
       handleEdgeClick
     );
 
-    console.log('=== LAYOUT RESULT ===');
-    console.log('Nodes created:', result.nodes.length);
-    console.log('Edges created:', result.edges.length);
 
-    result.nodes.forEach((node, index) => {
-      console.log(`Node ${index + 1}:`, {
-        id: node.id,
-        type: node.type,
-        position: node.position,
-        data: node.data,
-      });
-    });
 
-    result.edges.forEach((edge, index) => {
-      console.log(`Edge ${index + 1}:`, {
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-        type: edge.type,
-        style: edge.style,
-        label: edge.label,
-        animated: edge.animated,
-      });
-    });
+    // result.nodes.forEach((node, index) => {
+    //   console.log(`Node ${index + 1}:`, {
+    //     id: node.id,
+    //     type: node.type,
+    //     position: node.position,
+    //     data: node.data,
+    //   });
+    // });
+
+    // result.edges.forEach((edge, index) => {
+    //   console.log(`Edge ${index + 1}:`, {
+    //     id: edge.id,
+    //     source: edge.source,
+    //     target: edge.target,
+    //     type: edge.type,
+    //     style: edge.style,
+    //     label: edge.label,
+    //     animated: edge.animated,
+    //   });
+    // });
 
     return result;
   }, [getModuleNodes, getModelsByModule, state.expandedModules, state.animatingNodes, state.highlightedModules]);
@@ -439,11 +437,11 @@ function ExecutionFlowDiagram(props: ExecutionFlowDiagramProps) {
     // console.log('Current edges count:', visibleContent.edges.length);
     
     // if (visibleContent.edges.length > 0) {
-    console.log('Sample edges being set:', visibleContent.edges.slice(0, 3));
+    // console.log('Sample edges being set:', visibleContent.edges.slice(0, 3));
     const timer = window.setTimeout(() => {
       setNodes(visibleContent.nodes);
       setEdges(visibleContent.edges);
-      console.log('ReactFlow state updated successfully');
+      // console.log('ReactFlow state updated successfully');
     }, 120);
     return () => window.clearTimeout(timer);
   }, [visibleContent, setNodes, setEdges]);
@@ -568,20 +566,20 @@ function ExecutionFlowDiagram(props: ExecutionFlowDiagramProps) {
     };
   }, [nodes, edges, state.expandedModules]);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('=== COMPONENT RENDERED ===');
-    console.log('Nodes:', nodes.length);
-    console.log('Edges:', edges.length);
-    console.log('First few edges:', edges.slice(0, 3));
-  }, [nodes, edges]);
+  // // Debug logging
+  // useEffect(() => {
+  //   console.log('=== COMPONENT RENDERED ===');
+  //   console.log('Nodes:', nodes.length);
+  //   console.log('Edges:', edges.length);
+  //   console.log('First few edges:', edges.slice(0, 3));
+  // }, [nodes, edges]);
 
-  console.log('[ExecutionFlowDiagram] Data from useFlowData:', {
-    isLoading,
-    error,
-    moduleNodesCount: getModuleNodes().length,
-    hasGetModelsByModule: typeof getModelsByModule === 'function'
-  });
+  // console.log('[ExecutionFlowDiagram] Data from useFlowData:', {
+  //   isLoading,
+  //   error,
+  //   moduleNodesCount: getModuleNodes().length,
+  //   hasGetModelsByModule: typeof getModelsByModule === 'function'
+  // });
 
   // NOW SAFE TO HAVE EARLY RETURNS AFTER ALL HOOKS
   // Loading state

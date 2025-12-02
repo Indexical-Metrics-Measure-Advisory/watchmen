@@ -55,7 +55,7 @@ const Monitor = () => {
         const t0 = performance.now();
         const data = await collectorService.getMonitorEvents({ pageNumber, pageSize });
         const t1 = performance.now();
-        console.log(data)
+        // console.log(data)
         perfRef.current.eventsFetchMs = Math.round(t1 - t0);
         startTransition(() => setEventsPage(data));
       } catch (error: any) {
@@ -90,7 +90,7 @@ const Monitor = () => {
     try {
       const t0 = performance.now();
 
-      console.log("event.eventTriggerId",event.eventTriggerId)
+      // console.log("event.eventTriggerId",event.eventTriggerId)
       const data = await collectorService.getMonitorEventRecords(event.eventTriggerId);
       const t1 = performance.now();
       perfRef.current.recordsFetchMs = Math.round(t1 - t0);

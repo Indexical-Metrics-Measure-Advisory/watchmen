@@ -50,10 +50,10 @@ export const useFlowData = (autoFetch = true): UseFlowDataState => {
   const dataCache = useMemo<FlowDataCache | null>(() => {
     if (!rawData) return null;
 
-    console.log('[useFlowData] Computing data cache from raw data:', {
-      modules: rawData.modules.length,
-      models: rawData.models.length
-    });
+    // console.log('[useFlowData] Computing data cache from raw data:', {
+    //   modules: rawData.modules.length,
+    //   models: rawData.models.length
+    // });
 
     const allNodes: Node[] = [];
     const allEdges: Edge[] = [];
@@ -138,12 +138,12 @@ export const useFlowData = (autoFetch = true): UseFlowDataState => {
     
     allNodes.push(...modelNodes);
     
-    console.log('[useFlowData] Created nodes:', {
-      modules: moduleNodes.length,
-      models: modelNodes.length,
-      moduleIds: moduleNodes.map(n => ({ id: n.id, moduleId: n.data.moduleId })),
-      modelIds: modelNodes.map(n => ({ id: n.id, modelId: n.data.modelId, dependOn: n.data.dependOn }))
-    });
+    // console.log('[useFlowData] Created nodes:', {
+    //   modules: moduleNodes.length,
+    //   models: modelNodes.length,
+    //   moduleIds: moduleNodes.map(n => ({ id: n.id, moduleId: n.data.moduleId })),
+    //   modelIds: modelNodes.map(n => ({ id: n.id, modelId: n.data.modelId, dependOn: n.data.dependOn }))
+    // });
     
     // Create edges: models to modules
     modelNodes.forEach(modelNode => {
@@ -254,37 +254,37 @@ export const useFlowData = (autoFetch = true): UseFlowDataState => {
       });
     }
 
-    console.log('[useFlowData] Created edges:', {
-      total: allEdges.length,
-      byType: {
-        'module-relation': allEdges.filter(e => e.data?.type === 'module-relation').length,
-        'dependency': allEdges.filter(e => e.data?.type === 'dependency').length
-      },
-      edgeDetails: allEdges.map(e => ({
-        id: e.id,
-        source: e.source,
-        target: e.target,
-        type: e.data?.type
-      }))
-    });
+    // console.log('[useFlowData] Created edges:', {
+    //   total: allEdges.length,
+    //   byType: {
+    //     'module-relation': allEdges.filter(e => e.data?.type === 'module-relation').length,
+    //     'dependency': allEdges.filter(e => e.data?.type === 'dependency').length
+    //   },
+    //   edgeDetails: allEdges.map(e => ({
+    //     id: e.id,
+    //     source: e.source,
+    //     target: e.target,
+    //     type: e.data?.type
+    //   }))
+    // });
 
     // Validate that edge source and target nodes exist
-    console.log('[useFlowData] Edge validation:', {
-      totalEdges: allEdges.length,
-      totalNodes: allNodes.length,
-      nodeIds: allNodes.map(n => n.id),
-      invalidEdges: allEdges.filter(edge => {
-        const sourceExists = allNodes.some(n => n.id === edge.source);
-        const targetExists = allNodes.some(n => n.id === edge.target);
-        return !sourceExists || !targetExists;
-      }).map(edge => ({
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-        sourceExists: allNodes.some(n => n.id === edge.source),
-        targetExists: allNodes.some(n => n.id === edge.target)
-      }))
-    });
+    // console.log('[useFlowData] Edge validation:', {
+    //   totalEdges: allEdges.length,
+    //   totalNodes: allNodes.length,
+    //   nodeIds: allNodes.map(n => n.id),
+    //   invalidEdges: allEdges.filter(edge => {
+    //     const sourceExists = allNodes.some(n => n.id === edge.source);
+    //     const targetExists = allNodes.some(n => n.id === edge.target);
+    //     return !sourceExists || !targetExists;
+    //   }).map(edge => ({
+    //     id: edge.id,
+    //     source: edge.source,
+    //     target: edge.target,
+    //     sourceExists: allNodes.some(n => n.id === edge.source),
+    //     targetExists: allNodes.some(n => n.id === edge.target)
+    //   }))
+    // });
 
     // Add priority module edges to the overall set (for relationship cache and default view)
     allEdges.push(...priorityEdges);
@@ -336,13 +336,13 @@ export const useFlowData = (autoFetch = true): UseFlowDataState => {
       return { nodes: [], edges: [] };
     }
     
-    console.log('[useFlowData] Default return values:', {
-      nodeCount: dataCache.moduleNodes.length,
-      edgeCount: dataCache.priorityEdges.length,
-      allEdgesInCache: dataCache.allEdges.length,
-      moduleEdgeDetails: dataCache.priorityEdges.map(e => ({ id: e.id, source: e.source, target: e.target })),
-      allEdgeDetails: dataCache.allEdges.map(e => ({ id: e.id, source: e.source, target: e.target, type: e.data?.type }))
-    });
+    // console.log('[useFlowData] Default return values:', {
+    //   nodeCount: dataCache.moduleNodes.length,
+    //   edgeCount: dataCache.priorityEdges.length,
+    //   allEdgesInCache: dataCache.allEdges.length,
+    //   moduleEdgeDetails: dataCache.priorityEdges.map(e => ({ id: e.id, source: e.source, target: e.target })),
+    //   allEdgeDetails: dataCache.allEdges.map(e => ({ id: e.id, source: e.source, target: e.target, type: e.data?.type }))
+    // });
     
     return {
       nodes: dataCache.moduleNodes,
@@ -379,17 +379,17 @@ export const useFlowData = (autoFetch = true): UseFlowDataState => {
     
     try {
       const data = await flowDataService.getAllRelationshipData();
-      console.log('[useFlowData] Raw data received from service:', data);
+      // console.log('[useFlowData] Raw data received from service:', data);
       
       setRawData(data);
-      console.log('[useFlowData] Raw data set successfully');
+      // console.log('[useFlowData] Raw data set successfully');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch flow data';
-      console.error('[useFlowData] Error during fetch:', err);
+        console.error('[useFlowData] Error during fetch:', err);
       setError(errorMessage);
     } finally {
       setIsLoading(false);
-      console.log('[useFlowData] Fetch completed');
+      // console.log('[useFlowData] Fetch completed');
     }
   }, []);
 
