@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Database, Plus, Download, RefreshCw, Info, Eye, Edit, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Minus, Search, Filter } from 'lucide-react';
+import { Database, Plus, RefreshCw, Info, Eye, Edit, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Minus, Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -254,7 +254,6 @@ const Tables = () => {
   const [tables, setTables] = useState<CollectorTableConfig[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [viewDialogOpen, setViewDialogOpen] = useState<boolean>(false);
   const [editDialogOpen, setEditDialogOpen] = useState<boolean>(false);
   const [selectedTable, setSelectedTable] = useState<CollectorTableConfig | null>(null);
@@ -411,7 +410,7 @@ const Tables = () => {
 
   useEffect(() => {
     fetchTables();
-  }, [currentPage, searchTerm, selectedStatus]);
+  }, [currentPage, searchTerm]);
 
   useEffect(() => {
     fetchDataSources();
@@ -895,29 +894,7 @@ const Tables = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-          <div className="flex bg-gray-100 p-1 rounded-lg w-full sm:w-auto">
-            {['all', 'active', 'inactive', 'pending'].map((status) => (
-              <Button
-                key={status}
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedStatus(status)}
-                className={`flex-1 sm:flex-none capitalize h-8 px-3 rounded-md transition-all ${
-                  selectedStatus === status 
-                    ? 'bg-white shadow-sm text-gray-900 font-medium' 
-                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'
-                }`}
-              >
-                {status}
-              </Button>
-            ))}
-          </div>
-          
           <div className="flex gap-2 w-full sm:w-auto justify-end">
-            <Button variant="outline" size="sm" className="gap-2 text-gray-600">
-              <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">Export</span>
-            </Button>
             <Button variant="outline" size="sm" className="gap-2 text-gray-600" onClick={() => window.location.reload()}>
               <RefreshCw className="h-4 w-4" />
               <span className="hidden sm:inline">Refresh</span>
@@ -1023,7 +1000,7 @@ const Tables = () => {
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-1">No tables found</h3>
               <p className="text-gray-500 mb-4">No tables match your current search criteria.</p>
-              <Button onClick={() => { setSearchTerm(''); setSelectedStatus('all'); }}>
+              <Button onClick={() => { setSearchTerm(''); }}>
                 Clear Filters
               </Button>
             </div>
