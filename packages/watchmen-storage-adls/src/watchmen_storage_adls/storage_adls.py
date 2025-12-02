@@ -284,6 +284,12 @@ class TopicDataStorageAzureDataLake(StorageAzureDataLake, TopicDataStorageSPI):
 	def is_free_find_supported(self) -> bool:
 		return False
 
+	def find_sql(self, finder: FreeFinder) -> str:
+		"""
+		not supported by Azure Data Lake Storage
+		"""
+		raise UnexpectedStorageException('Method[find_sql] does not support by Azure Data Lake Storage.')
+	
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		"""
 		not supported by Azure Data Lake Storage

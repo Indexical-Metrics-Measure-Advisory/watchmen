@@ -650,6 +650,10 @@ class TrinoStorage(TrinoStorageSPI):
 		# build when recalculate columns existing
 		return self.build_recalculate_sql(finder.columns, sql)
 
+	def find_sql(self, finder: FreeFinder) -> str:
+		data_sql = self.build_find_sql(finder)
+		return data_sql
+
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		data_sql = self.build_find_sql(finder)
 		cursor = self.connection.cursor()

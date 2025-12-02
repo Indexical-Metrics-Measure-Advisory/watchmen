@@ -47,8 +47,21 @@ class VariablePredefineFunctions(str, Enum):
 	MOVE_DATE = '&moveDate'
 	DATE_FORMAT = '&fmtDate'
 	NOW = '&now'
-
-
+	
+	LEN = '&len'
+	SLICE = '&slice'
+	FIND = '&find'
+	INDEX = '&index'
+	STARTSWITH = '&startswith'
+	ENDSWITH = '&endswith'
+	STRIP = '&strip'
+	REPLACE = '&replace'
+	UPPER = '&upper'
+	LOWER = '&lower'
+	CONTAINS = '&contains'
+	SPLIT = '&split'
+	
+	
 class ConstantParameter(Parameter):
 	kind: ParameterKind = ParameterKind.CONSTANT
 	value: Optional[str] = None

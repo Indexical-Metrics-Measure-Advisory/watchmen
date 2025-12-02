@@ -426,6 +426,12 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 	def clean_sql(self,sql: str) -> str:
 		return sql.replace('\n', ' ')
 
+	def find_sql(self, finder: FreeFinder) -> str:
+		data_statement = self.build_free_find_statement(finder)
+		sql = data_statement.compile(dialect=self.connection.dialect, compile_kwargs={"literal_binds": True})
+		sql = self.clean_sql(str(sql))
+		return sql
+
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		data_statement = self.build_free_find_statement(finder)
 
@@ -457,7 +463,6 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		return_data =  ArrayHelper(results) \
 			.map(lambda x: self.deserialize_from_auto_generated_columns(x, finder.columns)) \
 			.to_list()
-		print(return_data)
 		return return_data
 
 	# noinspection DuplicatedCode

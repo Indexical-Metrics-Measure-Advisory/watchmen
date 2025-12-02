@@ -292,6 +292,12 @@ class TopicDataStorageOss(StorageOss, TopicDataStorageSPI):
 	def is_free_find_supported(self) -> bool:
 		return False
 
+	def find_sql(self, finder: FreeFinder) -> str:
+		"""
+		not supported by oss
+		"""
+		raise UnexpectedStorageException('Method[find_sql] does not support by oss storage.')
+
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		"""
 		not supported by oss
