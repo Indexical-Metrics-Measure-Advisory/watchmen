@@ -1,7 +1,7 @@
 WITH p AS (
-    SELECT 0 AS generated_number FROM DUAL
+    SELECT 0 AS generated_number
     UNION ALL
-    SELECT 1 AS generated_number FROM DUAL
+    SELECT 1 AS generated_number
 ),
 unioned AS (
     SELECT
@@ -53,20 +53,18 @@ rawdata AS (
     WHERE generated_number <= 731
 ),
 all_periods AS (
-    SELECT (
-        TO_DATE('2024-01-01', 'YYYY-MM-DD') + (ROW_NUMBER() OVER (ORDER BY generated_number) - 1)
-    ) as date_day
+    SELECT DATEADD(day, ROW_NUMBER() OVER (ORDER BY generated_number) - 1, CAST('2024-01-01' AS DATE)) as date_day
     FROM rawdata
 ),
 filtered AS (
     SELECT *
     FROM all_periods
-    WHERE date_day < TO_DATE('2026-01-01', 'YYYY-MM-DD')
+    WHERE date_day < CAST('2026-01-01' AS DATE)
 ),
 final AS (
     SELECT CAST(date_day AS DATE) as date_day
     FROM filtered
 )
 SELECT * FROM final
-WHERE date_day >= TO_DATE('2024-01-01', 'YYYY-MM-DD')
-AND date_day < TO_DATE('2026-01-01', 'YYYY-MM-DD')
+WHERE date_day >= CAST('2024-01-01' AS DATE)
+AND date_day < CAST('2026-01-01' AS DATE)
