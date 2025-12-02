@@ -25,4 +25,8 @@ dist-ssr
 .idea/*
 .trae
 .vercel
+.trae/*
+.vercel/*
+.trae/rules/*
+
 
