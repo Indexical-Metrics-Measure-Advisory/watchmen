@@ -55,7 +55,9 @@ class SimpleStorageService:
 			              region_name=self.get_region_name(params),
 			              aws_access_key_id=access_key_id,
 			              aws_secret_access_key=access_key_secret,
-			              config=Config(signature_version="s3v4")
+			              config=Config(signature_version="s3v4",
+										request_checksum_calculation="when_required",
+										response_checksum_validation="when_required")
 			              )
 		else:
 			if ask_s3_bucket_auth_iam_enable():
@@ -81,7 +83,9 @@ class SimpleStorageService:
 				endpoint_url=endpoint,
 				aws_access_key_id=access_key_id,
 				aws_secret_access_key=access_key_secret,
-				config=Config(signature_version="s3v4")
+				config=Config(signature_version="s3v4",
+							  request_checksum_calculation="when_required",
+							  response_checksum_validation="when_required")
 			)
 		else:
 			if ask_s3_bucket_auth_iam_enable():
