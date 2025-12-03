@@ -695,8 +695,8 @@ const Tables = () => {
     }
 
     // Validate parent name format if provided
-    if (formData.parentName && !/^[a-zA-Z0-9_]+$/.test(formData.parentName)) {
-      errors.parentName = 'Parent name can only contain letters, numbers and underscores';
+    if (formData.parentName && !/^[a-zA-Z0-9_\s-]+$/.test(formData.parentName)) {
+      errors.parentName = 'Parent name can only contain letters, numbers, spaces, underscores and hyphens';
     }
 
     // Validate data source ID format if provided
@@ -1325,12 +1325,23 @@ const Tables = () => {
 
                   <div>
                     <Label htmlFor="edit-parent-name">Parent Name</Label>
-                    <Input
-                      id="edit-parent-name"
+                    <Select
                       value={editFormData.parentName || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, parentName: e.target.value })}
-                      placeholder="Enter parent table name"
-                    />
+                      onValueChange={(value) => setEditFormData({ ...editFormData, parentName: value })}
+                    >
+                      <SelectTrigger id="edit-parent-name">
+                        <SelectValue placeholder="Select parent table" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {tables
+                          .filter(t => t.modelName === editFormData.modelName && t.configId !== editFormData.configId)
+                          .map((t) => (
+                            <SelectItem key={t.configId} value={t.name || ''}>
+                              {t.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="md:col-span-2">
@@ -1613,12 +1624,24 @@ const Tables = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="parentName">Parent Name</Label>
-                  <Input
-                    id="parentName"
-                    value={createFormData.parentName}
-                    onChange={(e) => setCreateFormData(prev => ({ ...prev, parentName: e.target.value }))}
-                    placeholder="Enter parent name"
-                  />
+                  <Select
+                    value={createFormData.parentName || ''}
+                    onValueChange={(value) => setCreateFormData(prev => ({ ...prev, parentName: value }))}
+                    disabled={!createFormData.modelName}
+                  >
+                    <SelectTrigger id="parentName">
+                      <SelectValue placeholder="Select parent table" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tables
+                        .filter(t => t.modelName && createFormData.modelName && t.modelName.toLowerCase() === createFormData.modelName.toLowerCase())
+                        .map((t) => (
+                          <SelectItem key={t.configId} value={t.name || ''}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="space-y-2">
