@@ -1,14 +1,15 @@
 import json
+from datetime import datetime
 from logging import getLogger
 from typing import Dict, Optional, List, Union
 
 from boto3 import client, resource
 from boto3.exceptions import Boto3Error
-from datetime import datetime
+from botocore.config import Config
 
 from watchmen_model.common import DataModel
 from watchmen_model.system import DataSourceParam
-from watchmen_storage import ask_object_storage_need_date_directory, EntityCriteria, ask_s3_bucket_auth_iam_enable
+from watchmen_storage import EntityCriteria, ask_s3_bucket_auth_iam_enable
 from watchmen_utilities import serialize_to_json, ArrayHelper
 from .object_defs_s3 import as_file_name
 from .where_build import build_criteria
@@ -34,34 +35,66 @@ class SimpleStorageService:
 		self.client = self.get_client(access_key_id, access_key_secret, endpoint, bucket_name, params)
 		self.resource = self.get_resource(access_key_id, access_key_secret, endpoint, bucket_name, params)
 
+
+	def get_storage_type(self, params: Optional[List[DataSourceParam]]) -> Optional[str]:
+		for param in params:
+			if param.name == 'storage_class':
+				return param.value
+		
+	def get_region_name(self, params: Optional[List[DataSourceParam]]) -> Optional[str]:
+		for param in params:
+			if param.name == 'region_name':
+				return param.value
+
 	def get_client(self, access_key_id: str, access_key_secret: str, endpoint: str, bucket_name: str,
 	               params: Optional[List[DataSourceParam]]) -> client:
-		if ask_s3_bucket_auth_iam_enable():
-			return client(
-				service_name='s3',
-				region_name=endpoint
-			)
+		
+		if self.get_storage_type(params) == "oos":
+			return client("s3",
+			              endpoint_url=endpoint,
+			              region_name=self.get_region_name(params),
+			              aws_access_key_id=access_key_id,
+			              aws_secret_access_key=access_key_secret,
+			              config=Config(signature_version="s3v4")
+			              )
 		else:
-			return client(
-				service_name='s3',
-				region_name=endpoint,
-				aws_access_key_id=access_key_id,
-				aws_secret_access_key=access_key_secret
-			)
+			if ask_s3_bucket_auth_iam_enable():
+				return client(
+					service_name='s3',
+					region_name=endpoint
+				)
+			else:
+				return client(
+					service_name='s3',
+					region_name=endpoint,
+					aws_access_key_id=access_key_id,
+					aws_secret_access_key=access_key_secret
+				)
 
 	def get_resource(self, access_key_id: str, access_key_secret: str, endpoint: str, bucket_name: str,
 	                 params: Optional[List[DataSourceParam]]) -> resource:
-		if ask_s3_bucket_auth_iam_enable():
+		
+		if self.get_storage_type(params) == "oos":
 			return resource(
-				service_name='s3',
-				region_name=endpoint
+				"s3",
+				region_name=self.get_region_name(params),
+				endpoint_url=endpoint,
+				aws_access_key_id=access_key_id,
+				aws_secret_access_key=access_key_secret,
+				config=Config(signature_version="s3v4")
 			)
 		else:
-			return resource(
-				service_name='s3',
-				region_name=endpoint,
-				aws_access_key_id=access_key_id,
-				aws_secret_access_key=access_key_secret)
+			if ask_s3_bucket_auth_iam_enable():
+				return resource(
+					service_name='s3',
+					region_name=endpoint
+				)
+			else:
+				return resource(
+					service_name='s3',
+					region_name=endpoint,
+					aws_access_key_id=access_key_id,
+					aws_secret_access_key=access_key_secret)
 
 	def gen_key(self, directory: str, id_: str, row: Dict) -> str:
 		literal = self.get_param("filename")

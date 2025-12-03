@@ -35,7 +35,7 @@ def execute_string_operations(original_str, config_text):
         params = []
         if params_str:
             params = [p.strip() for p in params_str.split(',')]
-            if func_name not in ['split', 'slice']:
+            if func_name not in ['split', 'slice', 'replace']:
                 for idx, param in enumerate(params):
                     if not param:
                         raise ValueError(f"invalid empty param at position {idx + 1} in {func_item}")
