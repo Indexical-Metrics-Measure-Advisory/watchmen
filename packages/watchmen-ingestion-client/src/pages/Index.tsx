@@ -66,7 +66,6 @@ const Index = () => {
     // dashboard totals
     totalModels: 12,
     activeIngestions: 3,
-    successRate: 94,
     lastUpdate: "2 minutes ago"
   };
 
@@ -83,7 +82,7 @@ const Index = () => {
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 px-3 py-1 bg-white border rounded-full shadow-sm">
-            <div className={`h-2.5 w-2.5 rounded-full ${stats.successRate > 90 ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+            <div className="h-2.5 w-2.5 rounded-full bg-green-500"></div>
             <span className="text-sm font-medium text-gray-700">System Normal</span>
           </div>
           <span className="text-sm text-muted-foreground">Last updated: {stats.lastUpdate}</span>
@@ -91,11 +90,10 @@ const Index = () => {
       </div>
 
       {/* Quick Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MetricCard label="Total Modules" value={stats.totalModules} icon={<Database className="h-4 w-4" />} variant="module" aria-label="Total modules" />
         <MetricCard label="Total Models" value={stats.totalModels} icon={<TrendingUp className="h-4 w-4" />} variant="model" aria-label="Total models" />
         <MetricCard label="Total Tables" value={totalTables} icon={<Activity className="h-4 w-4" />} variant="table" aria-label="Total tables" />
-        <MetricCard label="Success Rate" value={`${stats.successRate}%`} icon={<CheckCircle className="h-4 w-4" />} variant="info" aria-label="Success rate" />
       </div>
 
       {/* Main Content Area */}
@@ -127,7 +125,7 @@ const Index = () => {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-4">
-                All modules are running smoothly with {stats.successRate}% success rate.
+                All modules are running smoothly.
               </p>
               <Link to="/monitor">
                 <Button variant="outline" size="sm" className="w-full justify-between group">
