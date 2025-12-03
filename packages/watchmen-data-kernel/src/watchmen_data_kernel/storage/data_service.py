@@ -150,6 +150,7 @@ class TopicDataService(TopicStructureService):
 				internalDataId=data_entity_helper.find_data_id(topic_data)[1]
 			)
 		except Exception as e:
+			logger.error(e)
 			self.raise_exception(f'Failed to create data[{data}] into {self.raise_on_topic()}.', e)
 		finally:
 			storage.close()
