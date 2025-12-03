@@ -139,7 +139,6 @@ const Models = () => {
     setCreateFormData({
       modelId: generateModelId(),
       modelName: '',
-      dependOn: '',
       rawTopicCode: '',
       isParalleled: false,
       tenantId: user?.tenantId || '',
@@ -217,7 +216,7 @@ const Models = () => {
       const createData = {
         modelId: createFormData.modelId!,
         modelName: createFormData.modelName!,
-        dependOn: createFormData.dependOn || '',
+        dependOn: '',
         rawTopicCode: createFormData.rawTopicCode || '',
         isParalleled: createFormData.isParalleled || false,
         version: '1.0.0', // Default version for new models
@@ -272,7 +271,6 @@ const Models = () => {
       // Prepare data for service call (excluding modelId, createdAt, createdBy)
       const updateData = {
         modelName: editFormData.modelName,
-        dependOn: editFormData.dependOn,
         rawTopicCode: editFormData.rawTopicCode,
         isParalleled: editFormData.isParalleled,
         version: editFormData.version,
@@ -509,26 +507,7 @@ const Models = () => {
                 
                 <Separator className="bg-gray-100" />
                 
-                <div className="space-y-2">
-                  {model.dependOn ? (
-                    <div className="flex items-start gap-2">
-                      <div className="mt-0.5 p-1 bg-amber-50 rounded text-amber-600">
-                         <Database className="h-3 w-3" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Depends on</p>
-                        <p className="text-sm text-gray-700 font-medium">{model.dependOn}</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 text-gray-400">
-                      <div className="p-1 bg-gray-50 rounded">
-                        <Database className="h-3 w-3" />
-                      </div>
-                      <span className="text-xs">No dependencies</span>
-                    </div>
-                  )}
-                </div>
+
 
                 <div className="pt-2 flex items-center justify-between text-xs text-gray-500">
                   <span>Last modified</span>
@@ -686,15 +665,7 @@ const Models = () => {
               </Select>
               {formErrors.moduleId && <p className="text-sm text-red-600">{formErrors.moduleId}</p>}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="create-dependOn">Depends On</Label>
-              <Input
-                id="create-dependOn"
-                value={createFormData.dependOn || ''}
-                onChange={(e) => setCreateFormData(prev => ({ ...prev, dependOn: e.target.value }))}
-                placeholder="Enter dependencies"
-              />
-            </div>
+
             <div className="space-y-2">
               <Label htmlFor="create-rawTopicCode">Raw Topic Code</Label>
               <Input
@@ -772,15 +743,7 @@ const Models = () => {
               </Select>
               {formErrors.moduleId && <p className="text-sm text-red-600">{formErrors.moduleId}</p>}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-dependOn">Depends On</Label>
-              <Input
-                id="edit-dependOn"
-                value={editFormData.dependOn || ''}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, dependOn: e.target.value }))}
-                placeholder="Enter dependencies"
-              />
-            </div>
+
             <div className="space-y-2">
               <Label htmlFor="edit-rawTopicCode">Raw Topic Code</Label>
               <Input
