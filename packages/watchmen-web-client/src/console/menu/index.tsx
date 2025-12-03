@@ -5,8 +5,10 @@ import {
 	ICON_DQC,
 	ICON_HOME,
 	ICON_IDW,
+	ICON_IMPORT,
 	ICON_LOGOUT,
 	ICON_SETTINGS,
+	ICON_STATISTICS,
 	ICON_SWITCH_WORKBENCH
 } from '@/widgets/basic/constants';
 import {SideMenuItem} from '@/widgets/basic/side-menu/side-menu-item';
@@ -21,7 +23,9 @@ import {useSideMenuWidth} from '@/widgets/basic/side-menu/use-side-menu-width';
 import {
 	isAdminAvailable,
 	isDataQualityAvailable,
-	isIndicatorAvailable
+	isIndicatorAvailable,
+	isIngestionAvailable,
+	isMetricsAvailable
 } from '@/widgets/common-settings/workbench-utils';
 import {Lang} from '@/widgets/langs';
 import React from 'react';
@@ -71,12 +75,21 @@ export const ConsoleMenu = () => {
 	// const onConnectSpaceClicked = useConnectSpace();
 
 	const workbenches = [];
+	// if (isIngestionAvailable()) {
+	// 		workbenches.push({label: Lang.CONSOLE.MENU.TO_INGESTION, icon: ICON_IMPORT, action: navigateTo(Router.INGESTION)});
+	// 	}
+
 	if (isAdminAvailable()) {
 		workbenches.push({label: Lang.CONSOLE.MENU.TO_ADMIN, icon: ICON_ADMIN, action: navigateTo(Router.ADMIN)});
 	}
-	if (isIndicatorAvailable()) {
-		workbenches.push({label: Lang.CONSOLE.MENU.TO_INDICATOR, icon: ICON_IDW, action: navigateTo(Router.IDW)});
-	}
+
+	// if (isMetricsAvailable()) {
+	// 		workbenches.push({label: Lang.CONSOLE.MENU.TO_METRICS, icon: ICON_STATISTICS, action: navigateTo(Router.METRICS)});
+	// 	}
+
+	// if (isIndicatorAvailable()) {
+	// 	workbenches.push({label: Lang.CONSOLE.MENU.TO_INDICATOR, icon: ICON_IDW, action: navigateTo(Router.IDW)});
+	// }
 	if (isDataQualityAvailable()) {
 		workbenches.push({label: Lang.CONSOLE.MENU.TO_DATA_QUALITY, icon: ICON_DQC, action: navigateTo(Router.DQC)});
 	}

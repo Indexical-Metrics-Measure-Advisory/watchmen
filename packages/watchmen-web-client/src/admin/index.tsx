@@ -1,4 +1,9 @@
-import {isMultipleDataSourcesEnabled, isPluginEnabled, isWriteExternalEnabled} from '@/feature-switch';
+import {
+	isAiModelEnabled,
+	isMultipleDataSourcesEnabled,
+	isPluginEnabled,
+	isWriteExternalEnabled
+} from '@/feature-switch';
 import {Router} from '@/routes/types';
 import {asAdminRoute, asFallbackNavigate} from '@/routes/utils';
 import {isAdmin, isSuperAdmin} from '@/services/data/account';
@@ -16,6 +21,7 @@ import AdminMonitorLogs from './monitor-log';
 import AdminPipelines from './pipelines';
 import AdminPlugins from './plugins';
 import AdminSettings from './settings';
+import AdminAiModels from './ai-model';
 import AdminDebug from './simulator';
 import AdminSpaces from './spaces';
 import AdminTenants from './tenants';
@@ -76,6 +82,7 @@ const AdminIndex = () => {
 						{asRoute(Router.ADMIN_TENANTS, <AdminTenants/>)}
 						{isMultipleDataSourcesEnabled()
 							? asRoute(Router.ADMIN_DATA_SOURCES, <AdminDataSources/>) : null}
+						{isAiModelEnabled() ? asRoute(Router.ADMIN_AI_MODELS, <AdminAiModels/>) : null}
 						{isWriteExternalEnabled()
 							? asRoute(Router.ADMIN_EXTERNAL_WRITERS, <AdminExternalWriters/>) : null}
 						{isPluginEnabled() ? asRoute(Router.ADMIN_PLUGINS, <AdminPlugins/>) : null}

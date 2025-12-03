@@ -31,7 +31,8 @@ import {
   Minimize2,
   X,
   Loader2,
-  Trash2
+  Trash2,
+  LayoutTemplate
 } from 'lucide-react';
 import { ChartCard } from '@/components/bi/ChartCard';
 import { AnalysisBoard } from '@/components/bi/AnalysisBoard';
@@ -78,7 +79,7 @@ const BIAnalysisPage: React.FC = () => {
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveName, setSaveName] = useState('');
   const [saveDesc, setSaveDesc] = useState('');
-  const [templates, setTemplates] = useState<Array<{ id: string; name: string; description?: string; updatedAt: string }>>([]);
+  const [templates, setTemplates] = useState<Array<{ id: string; name: string; description?: string; updatedAt: string; isTemplate?: boolean }>>([]);
   // Collapse config: default collapsed, show saved templates first
   const [configCollapsed, setConfigCollapsed] = useState<boolean>(true);
 
@@ -314,7 +315,7 @@ const BIAnalysisPage: React.FC = () => {
 
   // templates list
   useEffect(() => {
-    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, updatedAt: i.updatedAt }))));
+    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, updatedAt: i.updatedAt, isTemplate: i.isTemplate }))));
   }, []);
 
   // Load dimensions by metric via MCP when metric changes
@@ -452,7 +453,7 @@ const BIAnalysisPage: React.FC = () => {
     } else {
       const record = await saveAnalysis({ id: "", name: saveName.trim(), description: saveDesc.trim(), cards });
       setCurrentAnalysisId(record.id);
-      toast({ title: 'Saved', description: 'Analysis board has been saved as a template' });
+      toast({ title: 'Saved', description: 'Analysis board has been saved' });
     }
 
     setSaveOpen(false);
@@ -461,7 +462,7 @@ const BIAnalysisPage: React.FC = () => {
     // But if we want to enforce "Save As" behavior for next save, we might need to be careful.
     // For now, let's NOT clear saveName/saveDesc so user can continue editing.
     
-    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, updatedAt: i.updatedAt }))));
+    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, updatedAt: i.updatedAt, isTemplate: i.isTemplate }))));
   };
 
   const handleSaveAsNew = async () => {
@@ -472,7 +473,7 @@ const BIAnalysisPage: React.FC = () => {
     const record = await saveAnalysis({ id: "", name: saveName.trim(), description: saveDesc.trim(), cards });
     setCurrentAnalysisId(record.id);
     setSaveOpen(false);
-    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, updatedAt: i.updatedAt }))));
+    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, updatedAt: i.updatedAt, isTemplate: i.isTemplate }))));
     toast({ title: 'Saved', description: 'Analysis saved as new copy' });
   };
 
@@ -480,16 +481,28 @@ const BIAnalysisPage: React.FC = () => {
     const tpl = await getAnalysis(id);
     if (!tpl) return;
     setCards(tpl.cards);
-    setCurrentAnalysisId(tpl.id);
+    // If template, treat as new copy (cannot modify original)
+    if (tpl.isTemplate) {
+      setCurrentAnalysisId(null);
+      toast({ title: 'Template loaded', description: `Loaded "${tpl.name}" as a new board` });
+    } else {
+      setCurrentAnalysisId(tpl.id);
+      toast({ title: 'Analysis loaded', description: `Board switched to "${tpl.name}"` });
+    }
     setSaveName(tpl.name);
     setSaveDesc(tpl.description || '');
-    toast({ title: 'Template loaded', description: `Board switched to "${tpl.name}"` });
   };
 
   const deleteTemplate = async (id: string) => {
     await deleteAnalysis(id);
-    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, updatedAt: i.updatedAt }))));
-    toast({ title: 'Deleted', description: 'Template deleted' });
+    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, updatedAt: i.updatedAt, isTemplate: i.isTemplate }))));
+    toast({ title: 'Deleted', description: 'Analysis deleted' });
+  };
+
+  const toggleTemplate = async (id: string, currentStatus: boolean) => {
+    await updateAnalysis({ id, isTemplate: !currentStatus });
+    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, updatedAt: i.updatedAt, isTemplate: i.isTemplate }))));
+    toast({ title: 'Updated', description: `Analysis ${!currentStatus ? 'set as template' : 'removed from templates'}` });
   };
 
   return (
@@ -791,7 +804,10 @@ const BIAnalysisPage: React.FC = () => {
                 {templates.map(t => (
                   <Card key={t.id} className="group hover:shadow-md transition-all duration-200">
                     <CardHeader className="pb-3">
-                      <CardTitle className="text-base font-medium truncate" title={t.name}>{t.name}</CardTitle>
+                      <div className="flex justify-between items-start gap-2">
+                        <CardTitle className="text-base font-medium truncate" title={t.name}>{t.name}</CardTitle>
+                        {t.isTemplate && <Badge variant="secondary" className="text-[10px] h-5 px-1.5">Template</Badge>}
+                      </div>
                       <CardDescription className="text-xs line-clamp-2 min-h-[2.5em]">
                         {t.description || 'No description provided'}
                       </CardDescription>
@@ -804,6 +820,15 @@ const BIAnalysisPage: React.FC = () => {
                     <CardFooter className="pt-0 flex justify-between gap-2">
                       <Button variant="outline" size="sm" className="flex-1" onClick={() => loadTemplate(t.id)}>
                         Load
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className={t.isTemplate ? "text-primary bg-primary/10 hover:bg-primary/20" : "text-muted-foreground hover:text-primary"}
+                        title={t.isTemplate ? "Unset as Template" : "Set as Template"}
+                        onClick={() => toggleTemplate(t.id, !!t.isTemplate)}
+                      >
+                        <LayoutTemplate className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => deleteTemplate(t.id)}>
                         <Trash2 className="h-4 w-4" />

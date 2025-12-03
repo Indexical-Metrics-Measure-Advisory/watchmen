@@ -24,6 +24,7 @@ export enum Router {
 	ADMIN_PLUGINS = '/admin/plugins',
 	ADMIN_MONITOR_LOGS = '/admin/monitor_logs',
 	ADMIN_SIMULATOR = '/admin/simulator',
+	ADMIN_AI_MODELS = '/admin/ai-models',
 	ADMIN_SETTINGS = '/admin/settings',
 	ADMIN_TOOLBOX = '/admin/toolbox',
 	ADMIN_TOOLBOX_ALL = '/admin/toolbox/*',
@@ -76,5 +77,12 @@ export enum Router {
 	SHARE = '/share',
 	SHARE_ALL = '/share/*',
 	SHARE_DASHBOARD = '/share/dashboard/:dashboardId/:token',
-	SHARE_DERIVED_OBJECTIVE = '/share/objective/derived/:derivedObjectiveId/:token'
+	SHARE_DERIVED_OBJECTIVE = '/share/objective/derived/:derivedObjectiveId/:token',
+
+	INGESTION = '/ingestion',
+
+
+	METRICS = '/metrics',
+
+
 }

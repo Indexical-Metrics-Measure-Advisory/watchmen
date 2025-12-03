@@ -8,7 +8,10 @@ export enum DataSourceType {
 	MSSQL = 'mssql',
 	POSTGRESQL = 'postgresql',
 	AWS_S3 = 's3',
-	ALI_OSS = 'oss'
+	ALI_OSS = 'oss',
+	AZURE_BLOB_STORAGE = 'azure_blob_storage',
+	SNOWFLAKE = 'snowflake',
+	REDSHIFT = 'redshift',
 }
 
 export interface DataSourceParam {

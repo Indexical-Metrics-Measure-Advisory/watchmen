@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { BIChartCard, BICardSize, BIChartType } from '@/model/biAnalysis';
-import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Download, Share2, Table as TableIcon, LineChart as LineChartIcon, Sparkles } from 'lucide-react';
+import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Download, Table as TableIcon, LineChart as LineChartIcon, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -203,9 +203,6 @@ export const ChartCard: React.FC<ChartCardProps> = ({
           <div className="flex items-center gap-1 flex-shrink-0">
             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Download CSV">
               <Download className="h-3.5 w-3.5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Share">
-              <Share2 className="h-3.5 w-3.5" />
             </Button>
             
             <div className="w-px h-4 bg-border mx-1" />

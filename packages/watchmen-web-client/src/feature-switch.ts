@@ -11,6 +11,11 @@ export const isChartScriptInConsoleEnabled = () => process.env.REACT_APP_CHART_S
 export const isSaml2MockEnabled = () => process.env.REACT_APP_MOCK_SAML2 === 'true';
 export const isOidcMockEnabled = () => process.env.REACT_APP_MOCK_OIDC === 'true';
 export const isPluginEnabled = () => process.env.REACT_APP_PLUGIN === 'true';
+export const isPipelineSimulatorEnabled = () => process.env.REACT_APP_PIPELINE_SIMULATOR_ENABLED === 'true';
+export const isAiModelEnabled = () => process.env.REACT_APP_AI_MODEL_ENABLED === 'true';
+export const getWebAppEnvironment = () => process.env.REACT_APP_WEB_APP_ENV;
+export const getIngestionUrl = () => process.env.REACT_APP_INGESTION_URL;
+export const getMetricsUrl = () => process.env.REACT_APP_METRICS_URL;
 const asNumber = (value: string | undefined, defaultValue: number): number => {
 	try {
 		const v = parseInt(value ?? '');

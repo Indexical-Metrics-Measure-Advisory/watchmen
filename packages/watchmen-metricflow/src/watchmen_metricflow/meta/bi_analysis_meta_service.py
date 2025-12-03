@@ -1,6 +1,7 @@
 from typing import List, Optional
 
-from watchmen_meta.common import UserBasedTupleService, UserBasedTupleShaper, AuditableShaper, TupleShaper
+from watchmen_meta.common import UserBasedTupleService, UserBasedTupleShaper, AuditableShaper, TupleShaper, \
+    LastVisitShaper
 from watchmen_model.common import TenantId
 from watchmen_storage import EntityShaper, EntityRow, EntityCriteriaExpression, ColumnNameLiteral
 from watchmen_utilities import ArrayHelper
@@ -47,8 +48,12 @@ class BIAnalysisShaper(UserBasedTupleShaper):
         }
 
         # Append tenant and audit fields
-        row = TupleShaper.serialize_tenant_based(analysis, row)
+        # row = TupleShaper.serialize_tenant_based(analysis, row)
+        # row = UserBasedTupleShaper.serialize(analysis, row)
+        # row = AuditableShaper.serialize(analysis, row)
         row = AuditableShaper.serialize(analysis, row)
+        row = UserBasedTupleShaper.serialize(analysis, row)
+        row = LastVisitShaper.serialize(analysis, row)
         return row
 
     def deserialize(self, row: EntityRow) -> BIAnalysis:

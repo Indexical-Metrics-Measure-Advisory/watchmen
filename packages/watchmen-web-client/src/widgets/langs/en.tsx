@@ -131,6 +131,8 @@ export const En = {
 			TO_ADMIN: 'To Admin',
 			TO_DATA_QUALITY: 'To Data Quality Center',
 			TO_INDICATOR: 'To Indicator',
+			TO_INGESTION: 'To Ingestion',
+			TO_METRICS: 'To Metrics',
 			LOGOUT: 'Logout'
 		},
 		FAVORITE: {

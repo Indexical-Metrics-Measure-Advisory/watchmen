@@ -121,7 +121,15 @@ export const saveAnalysis = async (input: BIAnalysisInput): Promise<BIAnalysis> 
   if (isMockMode) {
     const now = new Date().toISOString();
     const id = `bi_${Date.now()}`;
-    const record: BIAnalysis = { id, name: input.name, description: input.description, createdAt: now, updatedAt: now, cards: input.cards };
+    const record: BIAnalysis = { 
+      id, 
+      name: input.name, 
+      description: input.description, 
+      createdAt: now, 
+      updatedAt: now, 
+      cards: input.cards,
+      isTemplate: input.isTemplate 
+    };
     const all = readStore();
     writeStore([record, ...all]);
     return record;
@@ -138,7 +146,15 @@ export const saveAnalysis = async (input: BIAnalysisInput): Promise<BIAnalysis> 
 export const listAnalyses = async (): Promise<BIAnalysisListItem[]> => {
   if (isMockMode) {
     const all = readStore();
-    return all.map(a => ({ id: a.id, name: a.name, description: a.description, createdAt: a.createdAt, updatedAt: a.updatedAt, cardCount: a.cards.length }));
+    return all.map(a => ({ 
+      id: a.id, 
+      name: a.name, 
+      description: a.description, 
+      createdAt: a.createdAt, 
+      updatedAt: a.updatedAt, 
+      cardCount: a.cards.length,
+      isTemplate: a.isTemplate 
+    }));
   }
 
   const response = await fetch(`${BASE_URL}/all`, {
@@ -178,6 +194,7 @@ export const updateAnalysis = async (update: BIAnalysisUpdate): Promise<BIAnalys
       ...(update.name ? { name: update.name } : {}),
       ...(update.description ? { description: update.description } : {}),
       ...(update.cards ? { cards: update.cards } : {}),
+      ...(update.isTemplate !== undefined ? { isTemplate: update.isTemplate } : {}),
       updatedAt: new Date().toISOString(),
     };
     all[idx] = merged;

@@ -3,7 +3,14 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
 import styled from 'styled-components';
 import {v4} from 'uuid';
-import {SIDE_MENU_MIN_WIDTH, SIDE_MENU_RESIZE_HANDLE_Z_INDEX} from '../constants';
+import {
+	ICON_IMPORT,
+	ICON_STATISTICS,
+	SIDE_MENU_MIN_WIDTH,
+	SIDE_MENU_RESIZE_HANDLE_Z_INDEX
+} from '../constants';
+import {getIngestionUrl, getMetricsUrl} from '@/feature-switch';
+import {Lang} from '@/widgets/langs';
 import {TooltipButton} from '../tooltip-button';
 import {ButtonInk, TooltipAlignment, TooltipPosition} from '../types';
 import {SideMenuItemContainer, SideMenuItemIcon} from './side-menu-item';
@@ -73,6 +80,20 @@ export const SideMenuSwitchWorkbench = (props: {
 }) => {
 	const {icon, visible = true, workbenches, ...rest} = props;
 
+	const onIngestionClicked = () => {
+		const url = getIngestionUrl();
+		if (url) {
+			window.open(url, '_blank');
+		}
+	};
+
+	const onMetricsClicked = () => {
+		const url = getMetricsUrl();
+		if (url) {
+			window.open(url, '_blank');
+		}
+	};
+
 	if (!visible || workbenches.length === 0) {
 		return null;
 	}
@@ -82,6 +103,14 @@ export const SideMenuSwitchWorkbench = (props: {
 			<FontAwesomeIcon icon={icon}/>
 		</SideMenuItemIcon>
 		<SideMenuItemLabel>
+			<TooltipButton tooltip={{
+				position: TooltipPosition.TOP,
+				alignment: TooltipAlignment.LEFT,
+				offsetX: -3,
+				label: Lang.CONSOLE.MENU.TO_INGESTION
+			}} ink={ButtonInk.PRIMARY} onClick={onIngestionClicked}>
+				<FontAwesomeIcon icon={ICON_IMPORT}/>
+			</TooltipButton>
 			{workbenches.map(wb => {
 				return <TooltipButton tooltip={{
 					position: TooltipPosition.TOP,
@@ -92,8 +121,25 @@ export const SideMenuSwitchWorkbench = (props: {
 					<FontAwesomeIcon icon={wb.icon}/>
 				</TooltipButton>;
 			})}
+			
+			<TooltipButton tooltip={{
+				position: TooltipPosition.TOP,
+				alignment: TooltipAlignment.LEFT,
+				offsetX: -3,
+				label: Lang.CONSOLE.MENU.TO_METRICS
+			}} ink={ButtonInk.PRIMARY} onClick={onMetricsClicked}>
+				<FontAwesomeIcon icon={ICON_STATISTICS}/>
+			</TooltipButton>
 		</SideMenuItemLabel>
 		<SideMenuItemLabel>
+			<TooltipButton tooltip={{
+				position: TooltipPosition.TOP,
+				alignment: TooltipAlignment.LEFT,
+				offsetX: -3,
+				label: Lang.CONSOLE.MENU.TO_INGESTION
+			}} ink={ButtonInk.PRIMARY} onClick={onIngestionClicked}>
+				<FontAwesomeIcon icon={ICON_IMPORT}/>
+			</TooltipButton>
 			{workbenches.map(wb => {
 				return <TooltipButton tooltip={{
 					position: TooltipPosition.TOP,
@@ -104,6 +150,15 @@ export const SideMenuSwitchWorkbench = (props: {
 					<FontAwesomeIcon icon={wb.icon}/>
 				</TooltipButton>;
 			})}
+			
+			<TooltipButton tooltip={{
+				position: TooltipPosition.TOP,
+				alignment: TooltipAlignment.LEFT,
+				offsetX: -3,
+				label: Lang.CONSOLE.MENU.TO_METRICS
+			}} ink={ButtonInk.PRIMARY} onClick={onMetricsClicked}>
+				<FontAwesomeIcon icon={ICON_STATISTICS}/>
+			</TooltipButton>
 		</SideMenuItemLabel>
 	</Container>;
 };

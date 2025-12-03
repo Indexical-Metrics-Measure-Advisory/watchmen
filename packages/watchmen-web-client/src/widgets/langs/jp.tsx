@@ -131,6 +131,8 @@ export const Jp: LanguageDeclareType = {
 			TO_ADMIN: '管理者に切り替える',
 			TO_DATA_QUALITY: 'データ品質センターに切り替える',
 			TO_INDICATOR: '指標ーワークベンチに切り替える',
+			TO_INGESTION: 'To Ingestion',
+			TO_METRICS: 'To Metrics',
 			LOGOUT: 'ログアウト'
 		},
 		FAVORITE: {

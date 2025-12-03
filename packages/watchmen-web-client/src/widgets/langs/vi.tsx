@@ -122,6 +122,8 @@ export const VI = {
 			TO_ADMIN: 'Quản trị',
 			TO_DATA_QUALITY: 'Tới trung tâm chất lượng số liệu',
 			TO_INDICATOR: 'Tới chỉ báo',
+			TO_INGESTION: 'To Ingestion',
+			TO_METRICS: 'To Metrics',
 			LOGOUT: 'Đăng xuất'
 		},
 		FAVORITE: {

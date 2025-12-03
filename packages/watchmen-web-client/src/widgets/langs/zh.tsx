@@ -131,6 +131,8 @@ export const Zh: LanguageDeclareType = {
 			TO_ADMIN: '转到管理台',
 			TO_DATA_QUALITY: '转到数据质量中心',
 			TO_INDICATOR: '转到指标工作台',
+			TO_INGESTION: '转到数据采集',
+			TO_METRICS: '转到数据指标',
 			LOGOUT: '登出'
 		},
 		FAVORITE: {

@@ -51,7 +51,7 @@ const App = () => (
             <AuthProvider>
               <FirstTimeOnboarding />
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={< BIAnalysisPage/>} />
                 <Route path="/challenges" element={<BusinessChallenges />} />
                 <Route path="/problems" element={<BusinessProblems />} />
                 <Route path="/hypotheses" element={<Hypotheses />} />

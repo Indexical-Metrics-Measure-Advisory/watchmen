@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field, ConfigDict
 from watchmen_utilities import ExtendedBaseModel
-from watchmen_model.common import TenantBasedTuple, Auditable, OptimisticLock
+from watchmen_model.common import TenantBasedTuple, Auditable, OptimisticLock, UserBasedTuple, LastVisit
 
 
 class BIMetricKind(str,Enum):
@@ -62,7 +62,7 @@ class BIChartCard(ExtendedBaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
 
-class BIAnalysis(ExtendedBaseModel, TenantBasedTuple, Auditable, OptimisticLock):
+class BIAnalysis(ExtendedBaseModel, UserBasedTuple, Auditable,LastVisit):
     id: str
     name: str
     description: Optional[str] = None

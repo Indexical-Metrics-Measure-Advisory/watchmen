@@ -7,6 +7,7 @@ import {
 	ICON_END_USER,
 	ICON_HOME,
 	ICON_IDW,
+	ICON_IMPORT,
 	ICON_LOGOUT,
 	ICON_RULE_DEFINE,
 	ICON_SETTINGS,
@@ -22,7 +23,8 @@ import {SideMenuSwitchWorkbench} from '@/widgets/basic/side-menu/side-menu-switc
 import {SideMenuUser} from '@/widgets/basic/side-menu/side-menu-user';
 import {useSideMenuRoutes} from '@/widgets/basic/side-menu/use-side-menu-routes';
 import {useSideMenuWidth} from '@/widgets/basic/side-menu/use-side-menu-width';
-import {isAdminAvailable, isConsoleAvailable, isIndicatorAvailable} from '@/widgets/common-settings/workbench-utils';
+import {isAdminAvailable, isConsoleAvailable, isIndicatorAvailable, isIngestionAvailable, isMetricsAvailable} from '@/widgets/common-settings/workbench-utils';
+import { Lang } from '@/widgets/langs';
 import React from 'react';
 import {matchPath, useLocation} from 'react-router-dom';
 import styled from 'styled-components';
@@ -58,15 +60,26 @@ export const DataQualityMenu = () => {
 	const {account, navigateTo, logout} = useSideMenuRoutes('Bye-bye now?');
 
 	const workbenches = [];
-	if (isConsoleAvailable()) {
-		workbenches.push({label: 'To Console', icon: ICON_CONSOLE, action: navigateTo(Router.CONSOLE)});
-	}
+
+	// if (isIngestionAvailable()) {
+	// 		workbenches.push({label: Lang.CONSOLE.MENU.TO_INGESTION, icon: ICON_IMPORT, action: navigateTo(Router.INGESTION)});
+	// }
+
 	if (isAdminAvailable()) {
 		workbenches.push({label: 'To Admin', icon: ICON_ADMIN, action: navigateTo(Router.ADMIN)});
 	}
-	if (isIndicatorAvailable()) {
-		workbenches.push({label: 'To Indicator Workbench', icon: ICON_IDW, action: navigateTo(Router.IDW)});
-	}
+	
+	// if (isMetricsAvailable()) {
+	// 		workbenches.push({label: Lang.CONSOLE.MENU.TO_METRICS, icon: ICON_STATISTICS, action: navigateTo(Router.METRICS)});
+	// }
+
+	// if (isConsoleAvailable()) {
+	// 	workbenches.push({label: 'To Console', icon: ICON_CONSOLE, action: navigateTo(Router.CONSOLE)});
+	// }
+	
+	// if (isIndicatorAvailable()) {
+	// 	workbenches.push({label: 'To Indicator Workbench', icon: ICON_IDW, action: navigateTo(Router.IDW)});
+	// }
 
 	return <DataQualityMenuContainer width={menuWidth}>
 		<SideMenuLogo title="Data Quality Center"/>

@@ -1,7 +1,15 @@
-import {isMultipleDataSourcesEnabled, isPluginEnabled, isWriteExternalEnabled} from '@/feature-switch';
+import {
+	getIngestionUrl,
+	isAiModelEnabled,
+	isMultipleDataSourcesEnabled,
+	isPipelineSimulatorEnabled,
+	isPluginEnabled,
+	isWriteExternalEnabled
+} from '@/feature-switch';
 import {Router} from '@/routes/types';
 import {isSuperAdmin} from '@/services/data/account';
 import {
+	ICON_AI_MODEL,
 	ICON_CONSOLE,
 	ICON_DATA_SOURCE,
 	ICON_DQC,
@@ -9,6 +17,7 @@ import {
 	ICON_EXTERNAL_WRITERS,
 	ICON_HOME,
 	ICON_IDW,
+	ICON_IMPORT,
 	ICON_LOGOUT,
 	ICON_MONITOR_LOGS,
 	ICON_PIPELINE,
@@ -17,6 +26,7 @@ import {
 	ICON_REPORT,
 	ICON_SETTINGS,
 	ICON_SPACE,
+	ICON_STATISTICS,
 	ICON_SWITCH_WORKBENCH,
 	ICON_TENANT,
 	ICON_TOOLBOX,
@@ -36,8 +46,11 @@ import {useSideMenuWidth} from '@/widgets/basic/side-menu/use-side-menu-width';
 import {
 	isConsoleAvailable,
 	isDataQualityAvailable,
-	isIndicatorAvailable
+	isIndicatorAvailable,
+	isIngestionAvailable,
+	isMetricsAvailable
 } from '@/widgets/common-settings/workbench-utils';
+import { Lang } from '@/widgets/langs';
 import React from 'react';
 import {matchPath, useLocation} from 'react-router-dom';
 import styled from 'styled-components';
@@ -73,13 +86,25 @@ export const AdminMenu = () => {
 	const {account, navigateTo, logout} = useSideMenuRoutes('Bye-bye now?');
 
 	const workbenches = [];
+
+	// if (isIngestionAvailable()) {
+	// 	workbenches.push({label: Lang.CONSOLE.MENU.TO_INGESTION,onclickUrl: getIngestionUrl(), icon: ICON_IMPORT, action: navigateTo(Router.INGESTION)});
+	// }
+
+
 	if (isConsoleAvailable()) {
-		workbenches.push({label: 'To Console', icon: ICON_CONSOLE, action: navigateTo(Router.CONSOLE)});
+		workbenches.push({label: Lang.CONSOLE.MENU.TO_CONSOLE, icon: ICON_CONSOLE, action: navigateTo(Router.CONSOLE)});
 	}
-	if (isIndicatorAvailable()) {
-		workbenches.push({label: 'To Indicator', icon: ICON_IDW, action: navigateTo(Router.IDW)});
-	}
+
+	// if (isMetricsAvailable()) {
+	// 	workbenches.push({label: Lang.CONSOLE.MENU.TO_METRICS, icon: ICON_STATISTICS, action: navigateTo(Router.METRICS)});
+	// }
+
+	// if (isIndicatorAvailable()) {
+	// 	workbenches.push({label: 'To Indicator', icon: ICON_IDW, action: navigateTo(Router.IDW)});
+	// }
 	if (isDataQualityAvailable()) {
+		//TODO DQC 
 		workbenches.push({label: 'To Data Quality Center', icon: ICON_DQC, action: navigateTo(Router.DQC)});
 	}
 
@@ -122,6 +147,10 @@ export const AdminMenu = () => {
 		              active={!!matchPath({path: Router.ADMIN_DATA_SOURCES}, location.pathname)}
 		              onClick={navigateTo(Router.ADMIN_DATA_SOURCES)}
 		              visible={isSuperAdmin() && isMultipleDataSourcesEnabled()}/>
+		<SideMenuItem icon={ICON_AI_MODEL} label="AI Models" showTooltip={showTooltip}
+		              active={!!matchPath({path: Router.ADMIN_AI_MODELS}, location.pathname)}
+		              onClick={navigateTo(Router.ADMIN_AI_MODELS)}
+		              visible={isSuperAdmin() && isAiModelEnabled()}/>
 		<SideMenuItem icon={ICON_EXTERNAL_WRITERS} label="External Writers" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.ADMIN_EXTERNAL_WRITERS}, location.pathname)}
 		              onClick={navigateTo(Router.ADMIN_EXTERNAL_WRITERS)}
@@ -137,7 +166,7 @@ export const AdminMenu = () => {
 		<SideMenuItem icon={ICON_PIPELINE_DEBUG} label="Simulator" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.ADMIN_SIMULATOR}, location.pathname)}
 		              onClick={navigateTo(Router.ADMIN_SIMULATOR)}
-		              visible={!isSuperAdmin()}/>
+		              visible={!isSuperAdmin() && isPipelineSimulatorEnabled()}/>
 		<SideMenuItem icon={ICON_MONITOR_LOGS} label="Monitor Logs" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.ADMIN_MONITOR_LOGS}, location.pathname)}
 		              onClick={navigateTo(Router.ADMIN_MONITOR_LOGS)}

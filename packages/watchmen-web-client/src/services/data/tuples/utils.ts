@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import {v4} from 'uuid';
+import {AiModel} from './ai-model-types';
 import {Bucket} from './bucket-types';
 import {Catalog} from './catalog-types';
 import {ConnectedSpace} from './connected-space-types';
@@ -93,6 +94,10 @@ export const isConvergence = (tuple: Tuple): tuple is Convergence => {
 	return !!(tuple as any).convergenceId;
 };
 
+export const isAiModel = (tuple: Tuple): tuple is AiModel => {
+	return !!(tuple as any).modelId;
+};
+
 export const generateUuid = (): string => `${FAKE_ID_PREFIX}${v4().replace(/-/g, '')}`;
 export const isFakedUuidForGraphics = (graphics: PipelinesGraphics): boolean => {
 	return graphics.pipelineGraphId.startsWith(FAKE_ID_PREFIX);
@@ -100,6 +105,8 @@ export const isFakedUuidForGraphics = (graphics: PipelinesGraphics): boolean => 
 export const isFakedUuid = (tuple: Tuple): boolean => {
 	if (isConvergence(tuple)) {
 		return tuple.convergenceId.startsWith(FAKE_ID_PREFIX);
+	} else if (isAiModel(tuple)) {
+		return tuple.modelId.startsWith(FAKE_ID_PREFIX);
 	} else if (isPlugin(tuple)) {
 		return tuple.pluginId.startsWith(FAKE_ID_PREFIX);
 	} else if (isTopicSnapshotScheduler(tuple)) {
@@ -159,7 +166,7 @@ export const prettifyDateTimeToMinute = (datetime?: string) => {
 	return datetime ? dayjs(datetime).format('YYYY/M/DD H:m') : '';
 };
 
-export const replaceKeys = (base: any, replacement: Record<string, string>) => {
+export const replaceKeys = (base: any, replacement: Record<string, string>): any => {
 	switch (true) {
 		case base == null:
 		case ['string', 'number', 'boolean', 'function', 'bigint', 'symbol'].includes(typeof base):
