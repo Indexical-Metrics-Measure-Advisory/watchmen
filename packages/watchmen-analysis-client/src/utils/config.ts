@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { getServiceHost } from './utils';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -12,7 +13,7 @@ interface AppConfig {
 }
 
 const config: AppConfig = {
-  apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:3000',
+  apiBaseUrl: getServiceHost(),
   useMockData: process.env.USE_MOCK_DATA === 'true',
   analyticsKey: process.env.ANALYTICS_KEY,
   authSecret: process.env.AUTH_SECRET,
