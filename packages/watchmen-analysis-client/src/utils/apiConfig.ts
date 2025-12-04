@@ -1,7 +1,8 @@
 // API configuration and header management
 import { authService } from '@/services/authService';
+import { getServiceHost } from './utils';
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3030';
+export const API_BASE_URL = getServiceHost();
 
 export interface ApiHeaders {
   'Content-Type': string;

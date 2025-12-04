@@ -45,7 +45,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+       <BrowserRouter basename={import.meta.env.VITE_WEB_CONTEXT ?? '/'}>
         <ThemeProvider>
           <SidebarProvider>
             <AuthProvider>
