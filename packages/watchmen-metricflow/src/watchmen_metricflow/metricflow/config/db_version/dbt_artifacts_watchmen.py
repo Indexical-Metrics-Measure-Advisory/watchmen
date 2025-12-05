@@ -37,7 +37,7 @@ raw_data = {
     },
     "time_spines": [
       {
-          ## data source todo
+          ##TODO data source todo
         "node_relation": {
           "alias": "all_days",
           "schema_name": "life_metrics",
@@ -66,9 +66,9 @@ class DBTArtifactsWatchmen(dbtArtifacts):
 
         adapter = get_adapter_by_type(project_metadata.profile.credentials.type)
 
-
+        # todo add schema info
         raw_semantic_manifest  = raw_data # load from file system semantic manifest.json
-
+        
         raw_semantic_manifest["semantic_models"] = semantic_models.model_dump() if hasattr(semantic_models, 'model_dump') else [item.model_dump() if hasattr(item, 'model_dump') else item for item in semantic_models]
         raw_semantic_manifest["metrics"] = metrics.model_dump() if hasattr(metrics, 'model_dump') else [item.model_dump() if hasattr(item, 'model_dump') else item for item in metrics]
 

@@ -11,6 +11,7 @@ import {
 	saveMockTopic
 } from '../mock/tuples/mock-topic';
 import {TuplePage} from '../query/tuple-page';
+import {Page, RowOfAny} from '../types';
 import {isMockService} from '../utils';
 import {DataSourceId} from './data-source-types';
 import {ParameterJoint} from './factor-calculator-types';
@@ -82,6 +83,24 @@ export const fetchTopicDataIds = async (topicId: TopicId, condition?: ParameterJ
 		return fetchMockTopicDataIds(topicId, condition);
 	} else {
 		return await post({api: Apis.TOPIC_DATA_IDS, search: {topicId}, data: condition});
+	}
+};
+
+export const fetchTopicData = async (topicId: TopicId, pageNumber: number, pageSize: number): Promise<Page<RowOfAny>> => {
+	if (isMockService()) {
+		return {
+			pageNumber,
+			pageSize,
+			itemCount: 0,
+			pageCount: 0,
+			data: []
+		};
+	} else {
+		return await post({
+			api: Apis.TOPIC_DATA,
+			search: {topicId},
+			data: {pageNumber, pageSize, topicId}
+		});
 	}
 };
 

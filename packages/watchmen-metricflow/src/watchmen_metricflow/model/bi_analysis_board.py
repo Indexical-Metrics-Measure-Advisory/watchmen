@@ -100,14 +100,3 @@ class BIAnalysisListItem(BaseModel):
 
     model_config = ConfigDict(use_enum_values=True)
 
-
-
-
-
-json = {"id":"","name":"aaa","description":"","cards":[{"id":"card_1764593251449","title":"total_claim_cases · Past 30 days","metricId":"total_claim_cases","chartType":"bar","size":"md","selection":{"dimensions":["claim_case__accept_decision_desc"],"timeRange":"Past 30 days"}}]}
-
-
-# 解析 JSON 字符串为 BIAnalysisInput 实例
-analysis_input = BIAnalysis(**json)
-
-print(analysis_input)

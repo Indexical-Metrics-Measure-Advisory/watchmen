@@ -37,16 +37,3 @@ def load_project(
     # partial.project_env_vars = project_renderer.ctx_obj.env_vars
     return partial.render(project_renderer)
 
-
-# if __name__ == "__main__":
-#
-#
-#     # Example usage
-#     project = load_project(
-#         project_root="/Users/yifeng/Documents/teams_chat/botbuilder-samples/samples/python/watchmen_metricflow-dbt/src",
-#         version_check=True,
-#         profile=  load_profile(),
-#         cli_vars=None
-#     )
-#
-#     print(project)

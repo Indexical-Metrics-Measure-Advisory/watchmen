@@ -9,7 +9,7 @@ import {
 } from '@/services/data/tuples/pipeline-utils';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {isTopicProfileAvailable} from '@/services/data/tuples/topic-utils';
-import {ICON_ADD, ICON_CLOSE, ICON_TOPIC_PROFILE} from '@/widgets/basic/constants';
+import {ICON_ADD, ICON_CLOSE, ICON_SUBJECT, ICON_TOPIC_PROFILE} from '@/widgets/basic/constants';
 import {TooltipAlignment} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -45,7 +45,7 @@ export const Navigator = (props: {
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireProfile} = useTopicProfileEventBus();
 	const {fire: firePipelines} = usePipelinesEventBus();
-	const {on, off} = useCatalogEventBus();
+	const {fire, on, off} = useCatalogEventBus();
 	const [visible, setVisible] = useState(false);
 	const [topic, setTopic] = useState<Topic | null>(null);
 	const [openPanel, setOpenPanel] = useState<OpenPanel>(OpenPanel.TOPIC);
@@ -72,6 +72,12 @@ export const Navigator = (props: {
 			return;
 		}
 		fireProfile(TopicProfileEventTypes.SHOW_PROFILE, topic, dayjs());
+	};
+	const onDataClicked = () => {
+		if (topic == null) {
+			return;
+		}
+		fire(CatalogEventTypes.SHOW_TOPIC_DATA, topic);
 	};
 	const onCloseClicked = (event: MouseEvent<HTMLButtonElement>) => {
 		event.preventDefault();
@@ -112,6 +118,10 @@ export const Navigator = (props: {
 				</NavigatorHeaderButton>
 				: null
 			}
+			<NavigatorHeaderButton tooltip={{label: 'Data', alignment: TooltipAlignment.CENTER}}
+			                       onClick={onDataClicked}>
+				<FontAwesomeIcon icon={ICON_SUBJECT}/>
+			</NavigatorHeaderButton>
 			<NavigatorHeaderButton tooltip={{label: 'Close', alignment: TooltipAlignment.RIGHT, offsetX: 4}}
 			                       onClick={onCloseClicked}>
 				<FontAwesomeIcon icon={ICON_CLOSE}/>

@@ -14,6 +14,7 @@ import {BlockRelations} from './relation/block-relations';
 import {BlockRelationsAnimation} from './relation/block-relations-animation';
 import {BlockSelection} from './selection';
 import {Thumbnail} from './thumbnail';
+import {TopicDataViewer} from './topic-data';
 import {TopicRect} from './topic/topic-rect';
 import {AssembledPipelinesGraphics, AssembledTopicGraphics, GraphicsRole} from './types';
 import {
@@ -294,5 +295,6 @@ export const CatalogBody = (props: {
 		<Navigator pipelines={pipelines} topics={topics}/>
 		<GraphicsSave graphics={graphics}/>
 		<MarkdownSvgPalette pipelines={pipelines}/>
+		<TopicDataViewer/>
 	</BodyContainer>;
 };

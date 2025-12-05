@@ -35,6 +35,7 @@ export const Apis = {
 	TOPIC_LIST_BY_NAME: 'topic/name?query_name=:search',
 	TOPIC_LIST_FOR_HOLDER_BY_NAME_NON_RAW: 'topic/list/name?query_name=:search&exclude_types=raw',
 	TOPIC_GET: 'topic?topic_id=:topicId',
+	TOPIC_DATA: 'topic/data?topic_id=:topicId',
 	TOPIC_ROW_COUNT: 'topic/data/count?topic_id=:topicId',
 	TOPIC_DATA_IDS: 'topic/data/ids?topic_id=:topicId',
 	TOPIC_CREATE: 'topic',

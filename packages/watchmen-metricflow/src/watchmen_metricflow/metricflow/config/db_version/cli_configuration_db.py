@@ -32,11 +32,12 @@ class CLIConfigurationDB(CLIConfiguration):
 
     def __init__(self, tenant_id, semantic_models, metrics, profile) -> None:  # noqa: D107
         super().__init__()
-        self._log_stream = None  # 用于内存日志的流对象
+        self._log_stream = None  
         self.tenant_id = tenant_id
         self.metrics = metrics
         self.semantic_models = semantic_models
         self.profile = profile
+        self.data_source = None
 
     @property
     def is_setup(self) -> bool:

@@ -19,7 +19,7 @@ from .meta_import import connected_space_import_router, dashboard_import_router,
 	user_group_import_router, user_import_router
 from .sso.sso_router import install_sso_router
 from .system import data_source_router, external_writer_router, pat_router, plugin_router, tenant_init_router, \
-	tenant_router, operation_router, package_version_router
+	tenant_router, operation_router, package_version_router, system_router
 from .webhook import webhook_router
 
 
@@ -36,7 +36,7 @@ ArrayHelper([
 	health_router.router,
 	authenticate_router.router, pat_router.router, operation_router.router, package_version_router.router,
 	tenant_router.router, data_source_router.router, external_writer_router.router, plugin_router.router,
-	tenant_init_router.router,
+	tenant_init_router.router, system_router.router,
 	# admin
 	user_router.router, user_group_router.router,
 	enumeration_router.router,
