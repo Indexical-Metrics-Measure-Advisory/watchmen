@@ -37,16 +37,20 @@ import {
 import { ChartCard } from '@/components/bi/ChartCard';
 import { AnalysisBoard } from '@/components/bi/AnalysisBoard';
 import { BIChartCard, BICardSize, BIMetric, BIChartType } from '@/model/biAnalysis';
-import { saveAnalysis, listAnalyses, getAnalysis, deleteAnalysis, updateAnalysis } from '@/services/biAnalysisService';
+import { saveAnalysis, listAnalyses, getAnalysis, deleteAnalysis, updateAnalysis, updateAnalysisTemplate } from '@/services/biAnalysisService';
 import { metricsService } from '@/services/metricsService';
 import { getCategories as getRealCategories, getMetrics as getAllMetrics, findDimensionsByMetric } from '@/services/metricsManagementService';
 import type { MetricDefinition, Category } from '@/model/metricsManagement';
 import type { MetricDimension } from '@/model/analysis';
 import type { MetricFlowResponse, MetricQueryRequest } from '@/model/metricFlow';
+import { useAuth } from '@/contexts/AuthContext';
 
 const BIAnalysisPage: React.FC = () => {
   const { toast } = useToast();
   const { collapsed } = useSidebar();
+  const { user } = useAuth();
+
+  console.log('user', user);
 
   // Current analysis ID being edited (null if new)
   const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(null);
@@ -79,7 +83,7 @@ const BIAnalysisPage: React.FC = () => {
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveName, setSaveName] = useState('');
   const [saveDesc, setSaveDesc] = useState('');
-  const [templates, setTemplates] = useState<Array<{ id: string; name: string; description?: string; updatedAt: string; isTemplate?: boolean }>>([]);
+  const [templates, setTemplates] = useState<Array<{ id: string; name: string; description?: string; isTemplate?: boolean }>>([]);
   // Collapse config: default collapsed, show saved templates first
   const [configCollapsed, setConfigCollapsed] = useState<boolean>(true);
 
@@ -315,7 +319,7 @@ const BIAnalysisPage: React.FC = () => {
 
   // templates list
   useEffect(() => {
-    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, updatedAt: i.updatedAt, isTemplate: i.isTemplate }))));
+    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, isTemplate: i.isTemplate }))));
   }, []);
 
   // Load dimensions by metric via MCP when metric changes
@@ -448,10 +452,10 @@ const BIAnalysisPage: React.FC = () => {
     }
 
     if (currentAnalysisId) {
-      await updateAnalysis({ id: currentAnalysisId, name: saveName.trim(), description: saveDesc.trim(), cards });
+      await updateAnalysis({ id: currentAnalysisId,userId:user.userId, name: saveName.trim(), description: saveDesc.trim(), cards });
       toast({ title: 'Updated', description: 'Analysis board has been updated' });
     } else {
-      const record = await saveAnalysis({ id: "", name: saveName.trim(), description: saveDesc.trim(), cards });
+      const record = await saveAnalysis({ id: "", name: saveName.trim(), description: saveDesc.trim(), cards, userId: user.userId });
       setCurrentAnalysisId(record.id);
       toast({ title: 'Saved', description: 'Analysis board has been saved' });
     }
@@ -462,7 +466,7 @@ const BIAnalysisPage: React.FC = () => {
     // But if we want to enforce "Save As" behavior for next save, we might need to be careful.
     // For now, let's NOT clear saveName/saveDesc so user can continue editing.
     
-    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, updatedAt: i.updatedAt, isTemplate: i.isTemplate }))));
+    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description,  isTemplate: i.isTemplate }))));
   };
 
   const handleSaveAsNew = async () => {
@@ -470,10 +474,10 @@ const BIAnalysisPage: React.FC = () => {
       toast({ title: 'Enter analysis name', description: 'Name cannot be empty' });
       return;
     }
-    const record = await saveAnalysis({ id: "", name: saveName.trim(), description: saveDesc.trim(), cards });
+    const record = await saveAnalysis({ id: "", name: saveName.trim(), description: saveDesc.trim(), cards ,userId:""});
     setCurrentAnalysisId(record.id);
     setSaveOpen(false);
-    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, updatedAt: i.updatedAt, isTemplate: i.isTemplate }))));
+    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, isTemplate: i.isTemplate }))));
     toast({ title: 'Saved', description: 'Analysis saved as new copy' });
   };
 
@@ -495,14 +499,20 @@ const BIAnalysisPage: React.FC = () => {
 
   const deleteTemplate = async (id: string) => {
     await deleteAnalysis(id);
-    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, updatedAt: i.updatedAt, isTemplate: i.isTemplate }))));
+    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description,  isTemplate: i.isTemplate }))));
     toast({ title: 'Deleted', description: 'Analysis deleted' });
   };
 
-  const toggleTemplate = async (id: string, currentStatus: boolean) => {
-    await updateAnalysis({ id, isTemplate: !currentStatus });
-    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, updatedAt: i.updatedAt, isTemplate: i.isTemplate }))));
-    toast({ title: 'Updated', description: `Analysis ${!currentStatus ? 'set as template' : 'removed from templates'}` });
+  const toggleTemplate = async (template: typeof templates[0]) => {
+    const newStatus = !template.isTemplate;
+    
+    // Directly update local state
+    setTemplates(prev => prev.map(t => t.id === template.id ? { ...t, isTemplate: newStatus } : t));
+
+    // Directly call update method
+    await updateAnalysisTemplate({ id: template.id, isTemplate: newStatus });
+    
+    toast({ title: 'Updated', description: `Analysis ${newStatus ? 'set as template' : 'removed from templates'}` });
   };
 
   return (
@@ -812,11 +822,7 @@ const BIAnalysisPage: React.FC = () => {
                         {t.description || 'No description provided'}
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="pb-3">
-                      <div className="text-xs text-muted-foreground">
-                        Last updated: {t.updatedAt ? new Date(t.updatedAt).toLocaleDateString() : 'Unknown'}
-                      </div>
-                    </CardContent>
+                    
                     <CardFooter className="pt-0 flex justify-between gap-2">
                       <Button variant="outline" size="sm" className="flex-1" onClick={() => loadTemplate(t.id)}>
                         Load
@@ -826,7 +832,7 @@ const BIAnalysisPage: React.FC = () => {
                         size="sm" 
                         className={t.isTemplate ? "text-primary bg-primary/10 hover:bg-primary/20" : "text-muted-foreground hover:text-primary"}
                         title={t.isTemplate ? "Unset as Template" : "Set as Template"}
-                        onClick={() => toggleTemplate(t.id, !!t.isTemplate)}
+                        onClick={() => toggleTemplate(t)}
                       >
                         <LayoutTemplate className="h-4 w-4" />
                       </Button>

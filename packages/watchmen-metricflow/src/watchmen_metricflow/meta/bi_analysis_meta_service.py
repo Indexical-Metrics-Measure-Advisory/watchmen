@@ -44,7 +44,8 @@ class BIAnalysisShaper(UserBasedTupleShaper):
             'id': analysis.id,
             'name': analysis.name,
             'description': analysis.description,
-            'cards': BIAnalysisShaper.serialize_cards(analysis.cards)
+            'cards': BIAnalysisShaper.serialize_cards(analysis.cards),
+            "isTemplate": analysis.isTemplate
         }
 
         # Append tenant and audit fields
@@ -53,7 +54,7 @@ class BIAnalysisShaper(UserBasedTupleShaper):
         # row = AuditableShaper.serialize(analysis, row)
         row = AuditableShaper.serialize(analysis, row)
         row = UserBasedTupleShaper.serialize(analysis, row)
-        row = LastVisitShaper.serialize(analysis, row)
+        # row = LastVisitShaper.serialize(analysis, row)
         return row
 
     def deserialize(self, row: EntityRow) -> BIAnalysis:
@@ -62,7 +63,8 @@ class BIAnalysisShaper(UserBasedTupleShaper):
             'id': row.get('id'),
             'name': row.get('name'),
             'description': row.get('description'),
-            'cards': row.get('cards') or []
+            'cards': row.get('cards') or [],
+            "isTemplate": row.get("isTemplate", False)
         }
 
         analysis = BIAnalysis.model_validate(analysis_data)
@@ -70,7 +72,7 @@ class BIAnalysisShaper(UserBasedTupleShaper):
         # noinspection PyTypeChecker
         analysis: BIAnalysis = AuditableShaper.deserialize(row, analysis)
         # noinspection PyTypeChecker
-        analysis: BIAnalysis = TupleShaper.deserialize_tenant_based(row, analysis)
+        analysis: BIAnalysis = UserBasedTupleShaper.deserialize(row, analysis)
         return analysis
 
 

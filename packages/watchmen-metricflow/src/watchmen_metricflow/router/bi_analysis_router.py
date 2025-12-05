@@ -9,7 +9,7 @@ from watchmen_rest.util import raise_400, raise_404
 from watchmen_utilities import is_blank
 
 from watchmen_metricflow.meta.bi_analysis_meta_service import BIAnalysisService
-from watchmen_metricflow.model.bi_analysis_board import BIAnalysis
+from watchmen_metricflow.model.bi_analysis_board import BIAnalysis, BIAnalysisInput
 from watchmen_metricflow.settings import ask_tuple_delete_enabled
 from watchmen_metricflow.util import trans, trans_readonly
 
@@ -104,6 +104,32 @@ async def update_bi_analysis(
         return service.update(analysis)
 
     return trans(service, action)
+
+
+@router.post('/metricflow/bi-analysis/update/template', tags=['ADMIN'], response_model=None)
+async def update_bi_analysis(
+        analysis_input: BIAnalysisInput,
+        principal_service: PrincipalService = Depends(get_admin_principal)
+) -> BIAnalysis:
+    """Update an existing BI analysis"""
+    if is_blank(analysis_input.id):
+        raise_400('BI analysis id is required.')
+
+    # Set tenant ID from principal
+
+    service = get_bi_analysis_service(principal_service)
+
+    def action() -> BIAnalysis:
+        # Check if analysis exists
+        existing_analysis :BIAnalysis = service.find_by_id(analysis_input.id)
+        if existing_analysis is None:
+            raise_404('BI analysis not found.')
+        existing_analysis.isTemplate = analysis_input.isTemplate
+        return service.update(existing_analysis)
+
+    return trans(service, action)
+
+
 
 
 @router.get('/metricflow/bi-analysis/delete/{analysis_id}', tags=['ADMIN'], response_model=None)

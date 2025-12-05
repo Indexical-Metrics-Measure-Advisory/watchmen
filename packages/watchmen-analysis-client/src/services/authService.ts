@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '@/utils/apiConfig';
+import { API_BASE_URL, WATCHMEN_API_BASE_URL } from '@/utils/apiConfig';
 
 // Types based on the backend models
 export enum SSOTypes {
@@ -20,7 +20,7 @@ export interface Token {
 }
 
 export interface User {
-  id: string;
+  userId: string;
   name: string;
   email?: string;
   role: string;
@@ -39,7 +39,7 @@ class AuthService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = API_BASE_URL;
+    this.baseUrl = WATCHMEN_API_BASE_URL;
   }
 
   /**

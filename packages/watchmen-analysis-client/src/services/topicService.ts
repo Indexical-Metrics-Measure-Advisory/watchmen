@@ -60,7 +60,7 @@ class TopicService {
    */
   async getDatamartTopics(): Promise<Topic[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/metricflow/metric/topics/mart`, {
+      const response = await fetch(`${this.baseUrl}/metricflow/topics/mart`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

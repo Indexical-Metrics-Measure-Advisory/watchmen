@@ -5,6 +5,7 @@ export interface TriggerEventRequest {
   startTime: string; // ISO datetime string
   endTime: string;   // ISO datetime string
   modelId: string;
+  tableNames: string[];
 }
 
 // Monitor events (paginated) request payload

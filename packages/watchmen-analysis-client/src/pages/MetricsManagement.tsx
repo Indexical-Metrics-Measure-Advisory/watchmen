@@ -31,6 +31,8 @@ import {
   createMetric,
   getCategories
 } from '@/services/metricsManagementService';
+import { getSemanticModels } from '@/services/semanticModelService';
+import { SemanticModel } from '@/model/semanticModel';
 import DerivedMetricParams from '@/components/DerivedMetricParams';
 import CategoryManagement from '@/components/metrics/CategoryManagement';
 import { useToast } from '@/hooks/use-toast';
@@ -40,6 +42,7 @@ const MetricsManagement: React.FC = () => {
   const navigate = useNavigate();
   const [metrics, setMetrics] = useState<MetricDefinition[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [availableMeasures, setAvailableMeasures] = useState<{name: string, label: string, modelName: string}[]>([]);
 
   const [selectedMetric, setSelectedMetric] = useState<MetricDefinition | null>(null);
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
@@ -104,6 +107,23 @@ const MetricsManagement: React.FC = () => {
     }
   }, []);
 
+  const loadSemanticModels = useCallback(async () => {
+    try {
+      const models = await getSemanticModels();
+      const measures = models.flatMap(model => 
+        model.measures.map(measure => ({
+          name: measure.name,
+          label: measure.label || measure.name,
+          modelName: model.name
+        }))
+      );
+      setAvailableMeasures(measures);
+    } catch (error) {
+      console.error('Error loading semantic models:', error);
+      setAvailableMeasures([]);
+    }
+  }, []);
+
   useEffect(() => {
     loadData();
   }, [filter, loadData]);
@@ -111,6 +131,10 @@ const MetricsManagement: React.FC = () => {
   useEffect(() => {
     loadCategories();
   }, [loadCategories]);
+
+  useEffect(() => {
+    loadSemanticModels();
+  }, [loadSemanticModels]);
 
 
 
@@ -848,14 +872,14 @@ const MetricsManagement: React.FC = () => {
             {editForm.type === 'simple' && (
               <div className="space-y-2">
                 <label className="text-sm font-medium">Measure</label>
-                <Input
+                <Select
                   value={editForm.type_params?.measure?.name || ''}
-                  onChange={(e) => setEditForm({ 
+                  onValueChange={(value) => setEditForm({ 
                     ...editForm, 
                     type_params: { 
                       ...editForm.type_params, 
                       measure: { 
-                        name: e.target.value,
+                        name: value,
                         join_to_timespine: editForm.type_params?.measure?.join_to_timespine || false,
                         filter: editForm.type_params?.measure?.filter,
                         alias: editForm.type_params?.measure?.alias,
@@ -863,8 +887,18 @@ const MetricsManagement: React.FC = () => {
                       }
                     }
                   })}
-                  placeholder="Enter measure name"
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select measure" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableMeasures.map((measure, index) => (
+                      <SelectItem key={`${measure.modelName}-${measure.name}-${index}`} value={measure.name}>
+                        {measure.label} ({measure.modelName})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
             </div>
@@ -1069,14 +1103,14 @@ const MetricsManagement: React.FC = () => {
             {createForm.type === 'simple' && (
               <div className="space-y-2">
                 <label className="text-sm font-medium">Measure</label>
-                <Input
+                <Select
                   value={createForm.type_params?.measure?.name || ''}
-                  onChange={(e) => setCreateForm({ 
+                  onValueChange={(value) => setCreateForm({ 
                     ...createForm, 
                     type_params: { 
                       ...createForm.type_params, 
                       measure: { 
-                        name: e.target.value,
+                        name: value,
                         join_to_timespine: createForm.type_params?.measure?.join_to_timespine || false,
                         filter: createForm.type_params?.measure?.filter,
                         alias: createForm.type_params?.measure?.alias,
@@ -1084,8 +1118,18 @@ const MetricsManagement: React.FC = () => {
                       }
                     }
                   })}
-                  placeholder="Enter measure name"
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select measure" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableMeasures.map((measure, index) => (
+                      <SelectItem key={`${measure.modelName}-${measure.name}-${index}`} value={measure.name}>
+                        {measure.label} ({measure.modelName})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
           </div>

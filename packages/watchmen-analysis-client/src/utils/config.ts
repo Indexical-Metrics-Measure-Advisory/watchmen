@@ -10,10 +10,12 @@ interface AppConfig {
   analyticsKey?: string;
   authSecret?: string;
   authExpire: number;
+  watchmenCore:string
 }
 
 const config: AppConfig = {
   apiBaseUrl: getServiceHost(),
+  watchmenCore :process.env.VITE_WATCHMEN_API_BASE_URL,
   useMockData: process.env.USE_MOCK_DATA === 'true',
   analyticsKey: process.env.ANALYTICS_KEY,
   authSecret: process.env.AUTH_SECRET,

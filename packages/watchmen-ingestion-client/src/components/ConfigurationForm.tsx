@@ -173,6 +173,7 @@ const ConfigurationForm = () => {
         startTime: formatToMySQLDateTime(startTime),
         endTime: formatToMySQLDateTime(endTime),
         modelId: selectedModel,
+        tableNames: selectedTables,
       };
       const response = await collectorService.triggerEventByModel(payload);
       

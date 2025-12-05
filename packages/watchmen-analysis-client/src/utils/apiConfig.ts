@@ -1,8 +1,11 @@
 // API configuration and header management
 import { authService } from '@/services/authService';
-import { getServiceHost } from './utils';
+import { getServiceHost, getWatchmenCoreHost } from './utils';
 
 export const API_BASE_URL = getServiceHost();
+export const WATCHMEN_API_BASE_URL = getWatchmenCoreHost();
+
+
 
 export interface ApiHeaders {
   'Content-Type': string;

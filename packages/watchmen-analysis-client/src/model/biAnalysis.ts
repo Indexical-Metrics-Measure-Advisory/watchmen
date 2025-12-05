@@ -37,10 +37,9 @@ export interface BIAnalysis {
   id: string;
   name: string;
   description?: string;
-  createdAt: string;
-  updatedAt: string;
   cards: BIChartCard[];
   isTemplate?: boolean;
+  userId: string;
 }
 
 export interface BIAnalysisInput {
@@ -51,11 +50,17 @@ export interface BIAnalysisInput {
   isTemplate?: boolean;
 }
 
-export interface BIAnalysisUpdate {
+// export interface BIAnalysisUpdate {
+//   id: string;
+//   name?: string;
+//   description?: string;
+//   cards?: BIChartCard[];
+//   isTemplate?: boolean;
+// }
+
+export interface BIAnalysisTemplate {
   id: string;
-  name?: string;
-  description?: string;
-  cards?: BIChartCard[];
+  
   isTemplate?: boolean;
 }
 
@@ -63,8 +68,7 @@ export interface BIAnalysisListItem {
   id: string;
   name: string;
   description?: string;
-  createdAt: string;
-  updatedAt: string;
+
   cardCount: number;
   isTemplate?: boolean;
 }

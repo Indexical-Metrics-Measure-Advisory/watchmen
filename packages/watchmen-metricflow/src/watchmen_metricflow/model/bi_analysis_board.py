@@ -62,9 +62,10 @@ class BIChartCard(ExtendedBaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
 
-class BIAnalysis(ExtendedBaseModel, UserBasedTuple, Auditable,LastVisit):
+class BIAnalysis(ExtendedBaseModel, UserBasedTuple, Auditable):
     id: str
     name: str
+    isTemplate: Optional[bool] = False
     description: Optional[str] = None
     cards: Optional[List[BIChartCard]] = []
 
@@ -74,11 +75,9 @@ class BIAnalysis(ExtendedBaseModel, UserBasedTuple, Auditable,LastVisit):
 
 
 class BIAnalysisInput(BaseModel):
-    name: str
-    description: Optional[str] = None
-    cards: List[BIChartCard] = Field(default_factory=list)
+    id: str
+    isTemplate: Optional[bool] = False
 
-    model_config = ConfigDict(use_enum_values=True)
 
 
 class BIAnalysisUpdate(BaseModel):

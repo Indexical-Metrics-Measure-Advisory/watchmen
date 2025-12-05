@@ -29,7 +29,7 @@ export const getCategories = async (filter?: CategoryFilter): Promise<Category[]
   await delay(200);
   
   try {
-    const response = await fetch(`${API_BASE_URL}/metricflow/metric/category/all`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/category/all`, {
       method: 'GET',
       headers: getDefaultHeaders()
     });
@@ -1260,7 +1260,7 @@ const fetchRealTimeMetrics = async () => {
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
     
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/metric/metrics/all`, {
+      const response = await fetch(`${API_BASE_URL}/metricflow/metrics/all`, {
         method: 'GET',
         headers: getDefaultHeaders(),
         signal: controller.signal
@@ -1298,7 +1298,7 @@ const isRealTimeMetricsAvailable = async (): Promise<boolean> => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout for health check
     
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/health`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/health`, {
       method: 'GET',
       headers: getDefaultHeaders(),
       signal: controller.signal
@@ -1325,7 +1325,7 @@ export interface DimensionListResponse {
 export const findDimensionsByMetric = async (metricName: string): Promise<DimensionListResponse> => {
   await delay(250);
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/dimensions_by_metric?metric_name=${metricName}`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/dimensions_by_metric?metric_name=${metricName}`, {
       method: 'GET',
       headers: getDefaultHeaders()
     });

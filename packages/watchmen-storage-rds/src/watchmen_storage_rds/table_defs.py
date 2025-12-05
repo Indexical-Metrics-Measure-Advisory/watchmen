@@ -648,7 +648,8 @@ table_bi_analysis = Table(
 	create_str('name', 128),
 	create_str('description', 1024),
 	create_json('cards'),
-	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+	create_bool("isTemplate"),
+	create_tenant_id(), *create_tuple_audit_columns(), create_user_id()
 )
 
 

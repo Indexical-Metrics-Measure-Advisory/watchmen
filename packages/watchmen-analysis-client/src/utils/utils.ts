@@ -9,6 +9,10 @@ export const getServiceHost = (): string => {
   }
 };
 
+export const getWatchmenCoreHost = (): string => {
+  return import.meta.env.VITE_WATCHMEN_API_BASE_URL!;
+};
+
 export const getClientHost = (): string => {
   const webContext = import.meta.env.VITE_WEB_CONTEXT || '';
   if (webContext.endsWith('/')) {

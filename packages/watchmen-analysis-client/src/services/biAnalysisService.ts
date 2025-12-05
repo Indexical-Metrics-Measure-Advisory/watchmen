@@ -1,9 +1,9 @@
-import { BIMetric, BICategory, BIChartType, BIAnalysis, BIAnalysisInput, BIAnalysisListItem, BIAnalysisUpdate, BIDimensionSelection } from '@/model/biAnalysis';
+import { BIMetric, BICategory, BIChartType, BIAnalysis, BIAnalysisInput, BIAnalysisListItem, BIDimensionSelection, BIAnalysisTemplate } from '@/model/biAnalysis';
 import { METRICS as CHAT_METRICS, generateMockData, TimeRange } from '@/services/chatMetricsService';
 import { API_BASE_URL, getDefaultHeaders, checkResponse } from '@/utils/apiConfig';
 
 const isMockMode = import.meta.env.VITE_USE_MOCK_DATA === 'true';
-const BASE_URL = `${API_BASE_URL}/watchmen/metric/bi-analysis`;
+const BASE_URL = `${API_BASE_URL}/metricflow/bi-analysis`;
 
 // ---- Categories (mock for now; plug API later) ----
 const BI_CATEGORIES: BICategory[] = [
@@ -117,16 +117,15 @@ const writeStore = (items: BIAnalysis[]) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
 };
 
-export const saveAnalysis = async (input: BIAnalysisInput): Promise<BIAnalysis> => {
+export const saveAnalysis = async (input: BIAnalysis): Promise<BIAnalysis> => {
   if (isMockMode) {
     const now = new Date().toISOString();
     const id = `bi_${Date.now()}`;
     const record: BIAnalysis = { 
       id, 
+      userId: input.userId,
       name: input.name, 
       description: input.description, 
-      createdAt: now, 
-      updatedAt: now, 
       cards: input.cards,
       isTemplate: input.isTemplate 
     };
@@ -150,8 +149,6 @@ export const listAnalyses = async (): Promise<BIAnalysisListItem[]> => {
       id: a.id, 
       name: a.name, 
       description: a.description, 
-      createdAt: a.createdAt, 
-      updatedAt: a.updatedAt, 
       cardCount: a.cards.length,
       isTemplate: a.isTemplate 
     }));
@@ -184,23 +181,10 @@ export const getAnalysis = async (id: string): Promise<BIAnalysis | undefined> =
   }
 };
 
-export const updateAnalysis = async (update: BIAnalysisUpdate): Promise<BIAnalysis | undefined> => {
-  if (isMockMode) {
-    const all = readStore();
-    const idx = all.findIndex(a => a.id === update.id);
-    if (idx === -1) return undefined;
-    const merged: BIAnalysis = {
-      ...all[idx],
-      ...(update.name ? { name: update.name } : {}),
-      ...(update.description ? { description: update.description } : {}),
-      ...(update.cards ? { cards: update.cards } : {}),
-      ...(update.isTemplate !== undefined ? { isTemplate: update.isTemplate } : {}),
-      updatedAt: new Date().toISOString(),
-    };
-    all[idx] = merged;
-    writeStore(all);
-    return merged;
-  }
+export const updateAnalysis = async (update: BIAnalysis): Promise<BIAnalysis | undefined> => {
+ 
+
+  console.log('update', update);
 
   const response = await fetch(`${BASE_URL}/update`, {
     method: 'POST', // Using POST for update as well, or could be PUT/PATCH
@@ -224,4 +208,18 @@ export const deleteAnalysis = async (id: string): Promise<boolean> => {
   });
   await checkResponse(response);
   return true;
+
+
+
+
 };
+export const updateAnalysisTemplate = async (update: BIAnalysisTemplate): Promise<BIAnalysis | undefined> => {
+  
+  const response = await fetch(`${BASE_URL}/update/template`, {
+    method: 'POST', // Using POST for update as well, or could be PUT/PATCH
+    headers: getDefaultHeaders(),
+    body: JSON.stringify(update),
+  });
+  return checkResponse(response);
+};
+
