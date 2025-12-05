@@ -79,6 +79,7 @@ class CLIConfigurationDB(CLIConfiguration):
                         "materialized": "table",
                         "quote": True,
                         "enabled": True,
+                        # TODO
                         "tags": [
                             "insurance",
                             "test"
