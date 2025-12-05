@@ -8,6 +8,8 @@ CREATE TABLE bi_analysis (
     created_by VARCHAR(50) NOT NULL,
     last_modified_at TIMESTAMP NOT NULL,
     last_modified_by VARCHAR(50) NOT NULL,
+    user_id VARCHAR(50) NOT NULL,
+    isTemplate BOOLEAN NOT NULL DEFAULT FALSE,
     version INT DEFAULT 1,
     PRIMARY KEY (id)
 );

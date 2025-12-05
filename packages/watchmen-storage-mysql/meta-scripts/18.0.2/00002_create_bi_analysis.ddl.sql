@@ -9,6 +9,7 @@ CREATE TABLE bi_analysis (
     last_modified_at DATETIME NOT NULL,
     last_modified_by VARCHAR(50) NOT NULL,
     user_id VARCHAR(50) NOT NULL,
+    isTemplate TINYINT NOT NULL DEFAULT 0,
     version INT DEFAULT 1,
     PRIMARY KEY (id),
     UNIQUE INDEX unique_bi_analysis_name (name, tenant_id),
