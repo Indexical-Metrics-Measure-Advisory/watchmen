@@ -49,7 +49,7 @@ def classify_topic(topic: Topic) -> str:
     return 'datamart'
 
 
-@router.get('/topics/mart', tags=['CONSOLE', 'ADMIN'], response_model=List[TopicWithClassification])
+@router.get('/metricflow/topics/mart', tags=['CONSOLE', 'ADMIN'], response_model=List[TopicWithClassification])
 async def get_topic_list(
         principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[TopicWithClassification]:

@@ -25,7 +25,7 @@ class QuerySemanticModelDataPage(DataPage):
     data: List[SemanticModel]
 
 
-@router.get('/semantic-model/{model_name}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/semantic-model/{model_name}', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_semantic_model_by_name(
         model_name: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -46,7 +46,7 @@ async def get_semantic_model_by_name(
     return trans_readonly(semantic_model_service, action)
 
 
-@router.post('/semantic-model', tags=['ADMIN'], response_model=None)
+@router.post('/metricflow/semantic-model', tags=['ADMIN'], response_model=None)
 async def create_semantic_model(
         semantic_model: SemanticModel,
         principal_service: PrincipalService = Depends(get_admin_principal)
@@ -72,7 +72,7 @@ async def create_semantic_model(
     return trans(semantic_model_service, action)
 
 
-@router.put('/semantic-model/{model_name}', tags=['ADMIN'], response_model=None)
+@router.put('/metricflow/semantic-model/{model_name}', tags=['ADMIN'], response_model=None)
 async def update_semantic_model(
         model_name: str,
         semantic_model: SemanticModel,
@@ -99,7 +99,7 @@ async def update_semantic_model(
     return trans(semantic_model_service, action)
 
 
-@router.delete('/semantic-model/{model_name}', tags=['ADMIN'], response_model=None)
+@router.delete('/metricflow/semantic-model/{model_name}', tags=['ADMIN'], response_model=None)
 async def delete_semantic_model(
         model_name: str,
         principal_service: PrincipalService = Depends(get_admin_principal)
@@ -127,7 +127,7 @@ async def delete_semantic_model(
     return trans(semantic_model_service, action)
 
 
-@router.get('/semantic-models/by-description/{description}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/semantic-models/by-description/{description}', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_semantic_models_by_description(
         description: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -145,7 +145,7 @@ async def get_semantic_models_by_description(
     return trans_readonly(semantic_model_service, action)
 
 
-@router.get('/semantic-models/by-primary-entity/{primary_entity}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/semantic-models/by-primary-entity/{primary_entity}', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_semantic_models_by_primary_entity(
         primary_entity: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -163,7 +163,7 @@ async def get_semantic_models_by_primary_entity(
     return trans_readonly(semantic_model_service, action)
 
 
-@router.get('/semantic-models/all', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/semantic-models/all', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_all_semantic_models(
         principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[SemanticModel]:
@@ -177,7 +177,7 @@ async def get_all_semantic_models(
     return trans_readonly(semantic_model_service, action)
 
 
-@router.post('/semantic-models/name', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.post('/metricflow/semantic-models/name', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def find_semantic_models_page_by_name(
         query_name: Optional[str], 
         pageable: Pageable = Body(...),
@@ -212,7 +212,7 @@ async def find_semantic_models_page_by_name(
     return trans_readonly(semantic_model_service, action)
 
 
-@router.get('/semantic-models/list/name', tags=['ADMIN'], response_model=None)
+@router.get('/metricflow/semantic-models/list/name', tags=['ADMIN'], response_model=None)
 async def find_semantic_models_by_name(
         query_name: Optional[str],
         principal_service: PrincipalService = Depends(get_admin_principal)
@@ -235,7 +235,7 @@ async def find_semantic_models_by_name(
 
 # Additional endpoints specific to semantic models
 
-@router.get('/semantic-model/{model_name}/entities', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/semantic-model/{model_name}/entities', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_semantic_model_entities(
         model_name: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -257,7 +257,7 @@ async def get_semantic_model_entities(
     return trans_readonly(semantic_model_service, action)
 
 
-@router.get('/semantic-model/{model_name}/measures', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/semantic-model/{model_name}/measures', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_semantic_model_measures(
         model_name: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -279,7 +279,7 @@ async def get_semantic_model_measures(
     return trans_readonly(semantic_model_service, action)
 
 
-@router.get('/semantic-model/{model_name}/dimensions', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/semantic-model/{model_name}/dimensions', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_semantic_model_dimensions(
         model_name: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -301,7 +301,7 @@ async def get_semantic_model_dimensions(
     return trans_readonly(semantic_model_service, action)
 
 
-@router.get('/semantic-model/{model_name}/time-dimensions', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/semantic-model/{model_name}/time-dimensions', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_semantic_model_time_dimensions(
         model_name: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -324,7 +324,7 @@ async def get_semantic_model_time_dimensions(
     return trans_readonly(semantic_model_service, action)
 
 
-@router.get('/semantic-model/{model_name}/categorical-dimensions', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/semantic-model/{model_name}/categorical-dimensions', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_semantic_model_categorical_dimensions(
         model_name: str,
         principal_service: PrincipalService = Depends(get_console_principal)

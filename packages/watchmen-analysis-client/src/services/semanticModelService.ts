@@ -5,7 +5,7 @@ const mockSemanticModels: SemanticModel[] = [];
 
 export const getSemanticModels = async (): Promise<SemanticModel[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/semantic-models/all`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/metric/semantic-models/all`, {
       method: 'GET',
       headers: getDefaultHeaders(),
     });
@@ -20,7 +20,7 @@ export const getSemanticModels = async (): Promise<SemanticModel[]> => {
 
 export const getSemanticModelById = async (id: string): Promise<SemanticModel | null> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/semantic-model/${encodeURIComponent(id)}`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/metric/semantic-model/${encodeURIComponent(id)}`, {
       method: 'GET',
       headers: getDefaultHeaders(),
     });
@@ -39,7 +39,7 @@ export const getSemanticModelById = async (id: string): Promise<SemanticModel | 
 
 export const createSemanticModel = async (model: SemanticModel): Promise<SemanticModel> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/semantic-model`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/metric/semantic-model`, {
       method: 'POST',
       headers: getDefaultHeaders(),
       body: JSON.stringify(model),
@@ -55,7 +55,7 @@ export const createSemanticModel = async (model: SemanticModel): Promise<Semanti
 
 export const updateSemanticModel = async (name: string, updates: Partial<SemanticModel>): Promise<SemanticModel> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/semantic-model/${encodeURIComponent(name)}`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/metric/semantic-model/${encodeURIComponent(name)}`, {
       method: 'PUT',
       headers: getDefaultHeaders(),
       body: JSON.stringify(updates),
@@ -71,7 +71,7 @@ export const updateSemanticModel = async (name: string, updates: Partial<Semanti
 
 export const deleteSemanticModel = async (name: string): Promise<void> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/semantic-models/${encodeURIComponent(name)}`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/metric/semantic-models/${encodeURIComponent(name)}`, {
       method: 'DELETE',
       headers: getDefaultHeaders(),
     });
@@ -85,7 +85,7 @@ export const deleteSemanticModel = async (name: string): Promise<void> => {
 
 export const getSemanticModelSummary = async (): Promise<SemanticModelSummary> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/semantic-models/summary`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/metric/semantic-models/summary`, {
       method: 'GET',
       headers: getDefaultHeaders(),
     });

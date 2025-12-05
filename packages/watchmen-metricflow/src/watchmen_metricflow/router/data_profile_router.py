@@ -24,7 +24,7 @@ class QueryDataProfileDataPage(DataPage):
     data: List[DataProfile]
 
 
-@router.get('/profile/{profile_name}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/profile/{profile_name}', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_data_profile_by_name(
         profile_name: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -45,7 +45,7 @@ async def get_data_profile_by_name(
     return trans_readonly(data_profile_service, action)
 
 
-@router.post('/profile', tags=['ADMIN'], response_model=None)
+@router.post('/metricflow/profile', tags=['ADMIN'], response_model=None)
 async def create_data_profile(
         data_profile: DataProfile,
         principal_service: PrincipalService = Depends(get_admin_principal)
@@ -71,7 +71,7 @@ async def create_data_profile(
     return trans(data_profile_service, action)
 
 
-@router.put('/data-profile/{profile_name}', tags=['ADMIN'], response_model=None)
+@router.put('/metricflow/data-profile/{profile_name}', tags=['ADMIN'], response_model=None)
 async def update_data_profile(
         profile_name: str,
         data_profile: DataProfile,
@@ -97,7 +97,7 @@ async def update_data_profile(
     return trans(data_profile_service, action)
 
 
-@router.delete('/data-profile/{profile_name}', tags=['ADMIN'], response_model=None)
+@router.delete('/metricflow/data-profile/{profile_name}', tags=['ADMIN'], response_model=None)
 async def delete_data_profile(
         profile_name: str,
         principal_service: PrincipalService = Depends(get_admin_principal)
@@ -125,7 +125,7 @@ async def delete_data_profile(
     return trans(data_profile_service, action)
 
 
-@router.get('/data-profiles/by-target/{target}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/data-profiles/by-target/{target}', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_data_profiles_by_target(
         target: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -143,7 +143,7 @@ async def get_data_profiles_by_target(
     return trans_readonly(data_profile_service, action)
 
 
-@router.get('/profile', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/profile', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_data_profile_by_tenant(
         principal_service: PrincipalService = Depends(get_console_principal)
 ) -> DataProfile:
@@ -164,7 +164,7 @@ async def get_data_profile_by_tenant(
     return trans_readonly(data_profile_service, action)
 
 
-@router.get('/data-profiles/all', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/data-profiles/all', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_all_data_profiles(
         principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[DataProfile]:
@@ -178,7 +178,7 @@ async def get_all_data_profiles(
     return trans_readonly(data_profile_service, action)
 
 
-@router.post('/data-profiles/name', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.post('/metricflow/data-profiles/name', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def find_data_profiles_page_by_name(
         query_name: Optional[str], 
         pageable: Pageable = Body(...),
@@ -213,7 +213,7 @@ async def find_data_profiles_page_by_name(
     return trans_readonly(data_profile_service, action)
 
 
-@router.get('/data-profiles/list/name', tags=['ADMIN'], response_model=None)
+@router.get('/metricflow/data-profiles/list/name', tags=['ADMIN'], response_model=None)
 async def find_data_profiles_by_name(
         query_name: Optional[str],
         principal_service: PrincipalService = Depends(get_admin_principal)
@@ -234,7 +234,7 @@ async def find_data_profiles_by_name(
     return trans_readonly(data_profile_service, action)
 
 
-@router.get('/data-profile/id/{profile_id}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/data-profile/id/{profile_id}', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_data_profile_by_id(
         profile_id: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -255,7 +255,7 @@ async def get_data_profile_by_id(
     return trans_readonly(data_profile_service, action)
 
 
-@router.put('/data-profile/id/{profile_id}', tags=['ADMIN'], response_model=None)
+@router.put('/metricflow/data-profile/id/{profile_id}', tags=['ADMIN'], response_model=None)
 async def update_data_profile_by_id(
         profile_id: str,
         data_profile: DataProfile,
@@ -281,7 +281,7 @@ async def update_data_profile_by_id(
     return trans(data_profile_service, action)
 
 
-@router.delete('/data-profile/id/{profile_id}', tags=['ADMIN'], response_model=None)
+@router.delete('/metricflow/data-profile/id/{profile_id}', tags=['ADMIN'], response_model=None)
 async def delete_data_profile_by_id(
         profile_id: str,
         principal_service: PrincipalService = Depends(get_admin_principal)

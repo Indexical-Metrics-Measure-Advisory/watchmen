@@ -20,7 +20,7 @@ def get_bi_analysis_service(principal_service: PrincipalService) -> BIAnalysisSe
     return BIAnalysisService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.get('/bi-analysis/all', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/bi-analysis/all', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_all_bi_analyses(
         principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[BIAnalysis]:
@@ -34,7 +34,7 @@ async def get_all_bi_analyses(
     return trans_readonly(service, action)
 
 
-@router.get('/bi-analysis/{analysis_id}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/bi-analysis/{analysis_id}', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_bi_analysis_by_name(
         analysis_id: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -55,7 +55,7 @@ async def get_bi_analysis_by_name(
     return trans_readonly(service, action)
 
 
-@router.post('/bi-analysis', tags=['ADMIN'], response_model=None)
+@router.post('/metricflow/bi-analysis', tags=['ADMIN'], response_model=None)
 async def create_bi_analysis(
         analysis: BIAnalysis,
         principal_service: PrincipalService = Depends(get_admin_principal)
@@ -81,7 +81,7 @@ async def create_bi_analysis(
     return trans(service, action)
 
 
-@router.post('/bi-analysis/update', tags=['ADMIN'], response_model=None)
+@router.post('/metricflow/bi-analysis/update', tags=['ADMIN'], response_model=None)
 async def update_bi_analysis(
         analysis: BIAnalysis,
         principal_service: PrincipalService = Depends(get_admin_principal)
@@ -106,7 +106,7 @@ async def update_bi_analysis(
     return trans(service, action)
 
 
-@router.get('/bi-analysis/delete/{analysis_id}', tags=['ADMIN'], response_model=None)
+@router.get('/metricflow/bi-analysis/delete/{analysis_id}', tags=['ADMIN'], response_model=None)
 async def delete_bi_analysis(
         analysis_id: str,
         principal_service: PrincipalService = Depends(get_admin_principal)

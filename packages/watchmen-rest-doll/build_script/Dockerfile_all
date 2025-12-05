@@ -19,7 +19,7 @@ RUN        apt-get update && apt-get install -y libaio1 wget unzip build-essenti
 
 WORKDIR /app
 ADD . .
-RUN pip install cx_Oracle && pip install poetry && poetry config virtualenvs.create false && poetry install --without dev -vv -E mongodb -E mysql -E mssql -E oracle -E postgresql -E trino -E rabbit -E s3 -E collector -E adls
+RUN pip install cx_Oracle && pip install poetry && poetry config virtualenvs.create false && poetry install --without dev -vv -E mongodb -E mysql -E mssql -E oracle -E postgresql -E rabbit -E s3 -E adls
 
 
 EXPOSE 8000
