@@ -15,7 +15,7 @@ bcrypt = "^4.2.0"
 python-multipart = "^0.0.9"
 watchmen-lineage = { path = "../watchmen-lineage", develop = true }
 watchmen-data-surface = { path = "../watchmen-data-surface", develop = true }
-watchmen-collector-surface = { path = "../watchmen-collector-surface", develop = true, optional = true }
+watchmen-collector-surface = { path = "../watchmen-collector-surface", develop = true }
 watchmen-pipeline-surface = { path = "../watchmen-pipeline-surface", develop = true }
 watchmen-inquiry-surface = { path = "../watchmen-inquiry-surface", develop = true }
 watchmen-inquiry-trino = { path = "../watchmen-inquiry-trino", develop = true, optional = true }
@@ -49,7 +49,6 @@ postgresql = ["watchmen-storage-postgresql"]
 oss = ["watchmen-storage-oss"]
 s3 = ["watchmen-storage-s3"]
 adls = ["watchmen-storage-adls"]
-collector = ["watchmen-collector-surface"]
 kafka = ["kafka-python", "aiokafka"]
 rabbit = ["aio-pika"]
 prometheus = ["starlette-prometheus"]

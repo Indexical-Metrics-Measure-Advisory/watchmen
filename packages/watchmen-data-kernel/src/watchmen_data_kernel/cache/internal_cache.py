@@ -34,7 +34,11 @@ class InternalCache:
 		return existing
 
 	def values(self) -> ValuesView:
-		return self.cache.values()
+		if ask_cache_enabled():
+			return self.cache.values()
+		else:
+			return dict().values()
+		
 
 	def clear(self) -> None:
 		if ask_cache_enabled():

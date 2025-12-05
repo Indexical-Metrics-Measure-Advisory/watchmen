@@ -113,7 +113,7 @@ jobs:
         run: |
           poetry config virtualenvs.create false
           poetry update
-          poetry install --without dev -vv -E mysql -E trino
+          poetry install --without dev -vv -E mysql
           uvicorn watchmen_rest_doll.main:app --host='0.0.0.0' --port='8000' > server.out 2>&1 &
       - name: waiting doll ready（health check）
         timeout-minutes: 5
