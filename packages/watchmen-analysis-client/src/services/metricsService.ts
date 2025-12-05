@@ -319,7 +319,7 @@ export class MetricsService implements IMetricsApi {
       //   return metric || null;
       // }
 
-      const response = await fetch(`${API_BASE_URL}/metric/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/metricflow/metric/${id}`, {
         headers: getDefaultHeaders()
       });
       
@@ -350,7 +350,7 @@ export class MetricsService implements IMetricsApi {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/metrics/suggest`, {
+      const response = await fetch(`${API_BASE_URL}/metricflow/metrics/suggest`, {
         method: 'POST',
         headers: getDefaultHeaders(),
         body: JSON.stringify({ title, description })
@@ -388,7 +388,7 @@ export class MetricsService implements IMetricsApi {
     // }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/metrics/all`,{
+      const response = await fetch(`${API_BASE_URL}/metricflow/metrics/all`,{
         headers: getDefaultHeaders()
       });
       if (!response.ok) throw new Error('Failed to fetch metrics');
@@ -408,7 +408,7 @@ export class MetricsService implements IMetricsApi {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/metrics/trend`);
+      const response = await fetch(`${API_BASE_URL}/metricflow/metrics/trend`);
       if (!response.ok) throw new Error('Failed to fetch trend data');
       return await response.json();
     } catch (error) {
@@ -426,7 +426,7 @@ export class MetricsService implements IMetricsApi {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/metrics/distribution`);
+      const response = await fetch(`${API_BASE_URL}/metricflow/metrics/distribution`);
       if (!response.ok) throw new Error('Failed to fetch distribution data');
       return await response.json();
     } catch (error) {
@@ -440,7 +440,7 @@ export class MetricsService implements IMetricsApi {
 
   async getMetricValue(req: MetricQueryRequest): Promise<MetricFlowResponse> {
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/metric/get_metric_value`, {
+      const response = await fetch(`${API_BASE_URL}/metricflow/get_metric_value`, {
         method: 'POST',
         headers: getDefaultHeaders(),
         body: JSON.stringify(req)

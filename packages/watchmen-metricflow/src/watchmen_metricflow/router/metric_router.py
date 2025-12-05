@@ -43,7 +43,7 @@ class MetricFlowResponse(ExtendedBaseModel):
 
 
 
-@router.get("/metrics/health")
+@router.get("/metricflow/health")
 async def health_check():
     """
     Health check endpoint to verify the service is running.
@@ -53,7 +53,7 @@ async def health_check():
 
 
 
-@router.get("/current_date",tags =["mcp"],operation_id="get_current_date")
+@router.get("/metricflow/current_date",tags =["mcp"],operation_id="get_current_date")
 async def get_current_date(principal_service: PrincipalService = Depends(get_admin_principal)):
     from datetime import date
 
@@ -63,7 +63,7 @@ async def get_current_date(principal_service: PrincipalService = Depends(get_adm
 
 
 
-@router.get("/list_metrics",tags =["mcp"],operation_id="list_metrics",response_model=MetricListResponse)
+@router.get("/metricflow/list_metrics",tags =["mcp"],operation_id="list_metrics",response_model=MetricListResponse)
 async def list_metrics(principal_service: PrincipalService = Depends(get_admin_principal))->MetricListResponse:
 
     """
@@ -77,7 +77,7 @@ async def list_metrics(principal_service: PrincipalService = Depends(get_admin_p
     return find_all_metrics(config)
 
 
-@router.get("/dimensions_by_metric", tags =["mcp"],operation_id="find_dimensions_by_metric",response_model=DimensionListResponse)
+@router.get("/metricflow/dimensions_by_metric", tags =["mcp"],operation_id="find_dimensions_by_metric",response_model=DimensionListResponse)
 async def find_dimensions_by_metric(metric_name: str,principal_service: PrincipalService = Depends(get_admin_principal))->DimensionListResponse:
     """
     Find common dimensions between a list of metrics and a list of dimensions.
@@ -89,7 +89,7 @@ async def find_dimensions_by_metric(metric_name: str,principal_service: Principa
 
 
 # find common dimensions between metrics and dimensions
-@router.post("/find_dimensions", tags =["mcp"],operation_id="find_dimensions",response_model=DimensionListResponse)
+@router.post("/metricflow/find_dimensions", tags =["mcp"],operation_id="find_dimensions",response_model=DimensionListResponse)
 async def find_dimensions(metrics: List[str],principal_service: PrincipalService = Depends(get_admin_principal))->DimensionListResponse:
     """
     Find common dimensions between a list of metrics and a list of dimensions.
@@ -135,7 +135,7 @@ async def convert_request(request: Request):
             body['group_by'] = [gb_str]
     return body
 
-@router.post("/get_metric_value",tags =["mcp"], operation_id="get_metric_value", response_model=MetricFlowResponse)
+@router.post("/metricflow/get_metric_value",tags =["mcp"], operation_id="get_metric_value", response_model=MetricFlowResponse)
 async def get_metric_value(req :MetricQueryRequest,
                         principal_service: PrincipalService = Depends(get_any_principal))->MetricFlowResponse:
 
@@ -158,7 +158,7 @@ async def get_metric_value(req :MetricQueryRequest,
 
 
 
-@router.post("/query_metrics", response_model=List[MetricFlowResponse])
+@router.post("/metricflow/query_metrics", response_model=List[MetricFlowResponse])
 async def query_metrics(request_list: List[MetricQueryRequest],
                         principal_service: PrincipalService = Depends(get_any_principal)):
     config = await build_metric_config(principal_service)

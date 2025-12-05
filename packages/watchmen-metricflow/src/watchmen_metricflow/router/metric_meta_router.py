@@ -24,7 +24,7 @@ class QueryMetricDataPage(DataPage):
     data: List[Metric]
 
 
-@router.get('/metric/{metric_name}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/metric/{metric_name}', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_metric_by_name(
         metric_name: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -45,7 +45,7 @@ async def get_metric_by_name(
     return trans_readonly(metric_service, action)
 
 
-@router.post('/metric', tags=['ADMIN'], response_model=None)
+@router.post('/metricflow/metric', tags=['ADMIN'], response_model=None)
 async def create_metric(
         metric: MetricWithCategory,
         principal_service: PrincipalService = Depends(get_admin_principal)
@@ -71,7 +71,7 @@ async def create_metric(
     return trans(metric_service, action)
 
 
-@router.put('/metric/{metric_name}', tags=['ADMIN'], response_model=None)
+@router.put('/metricflow/metric/{metric_name}', tags=['ADMIN'], response_model=None)
 async def update_metric(
         metric_name: str,
         metric: MetricWithCategory,
@@ -97,7 +97,7 @@ async def update_metric(
     return trans(metric_service, action)
 
 
-@router.delete('/metric/{metric_name}', tags=['ADMIN'], response_model=None)
+@router.delete('/metricflow/metric/{metric_name}', tags=['ADMIN'], response_model=None)
 async def delete_metric(
         metric_name: str,
         principal_service: PrincipalService = Depends(get_admin_principal)
@@ -124,7 +124,7 @@ async def delete_metric(
     return trans(metric_service, action)
 
 
-@router.get('/metrics/by-type/{metric_type}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/metrics/by-type/{metric_type}', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_metrics_by_type(
         metric_type: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -142,7 +142,7 @@ async def get_metrics_by_type(
     return trans_readonly(metric_service, action)
 
 
-@router.get('/metrics/by-label/{label}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/metrics/by-label/{label}', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_metrics_by_label(
         label: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -160,7 +160,7 @@ async def get_metrics_by_label(
     return trans_readonly(metric_service, action)
 
 
-@router.get('/metrics/all', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/metrics/all', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_all_metrics(
         principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[MetricWithCategory]:
@@ -174,7 +174,7 @@ async def get_all_metrics(
     return trans_readonly(metric_service, action)
 
 
-@router.post('/metrics/name', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.post('/metricflow/metrics/name', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def find_metrics_page_by_name(
         query_name: Optional[str], 
         pageable: Pageable = Body(...),
@@ -209,7 +209,7 @@ async def find_metrics_page_by_name(
     return trans_readonly(metric_service, action)
 
 
-@router.get('/metrics/list/name', tags=['ADMIN'], response_model=None)
+@router.get('/metricflow/metrics/list/name', tags=['ADMIN'], response_model=None)
 async def find_metrics_by_name(
         query_name: Optional[str],
         principal_service: PrincipalService = Depends(get_admin_principal)

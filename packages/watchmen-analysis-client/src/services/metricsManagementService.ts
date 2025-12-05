@@ -29,7 +29,7 @@ export const getCategories = async (filter?: CategoryFilter): Promise<Category[]
   await delay(200);
   
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/metric/category/all`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/metric/category/all`, {
       method: 'GET',
       headers: getDefaultHeaders()
     });
@@ -58,7 +58,7 @@ export const getCategory = async (categoryId: string): Promise<Category | null> 
 
   
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/categories/${encodeURIComponent(categoryId)}`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/category/${encodeURIComponent(categoryId)}`, {
       method: 'GET',
       headers: getDefaultHeaders()
     });
@@ -96,7 +96,7 @@ export const createCategory = async (categoryData: Partial<Category>): Promise<C
       };
     }
 
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/metric/category`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/category`, {
       method: 'POST',
       headers: getDefaultHeaders(),
       body: JSON.stringify(categoryData)
@@ -133,7 +133,7 @@ export const updateCategory = async (categoryId: string, updates: Partial<Catego
   await delay(350);
   
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/metric/category/${categoryId}`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/category/${categoryId}`, {
       method: 'PUT',
       headers: getDefaultHeaders(),
       body: JSON.stringify(updates)
@@ -169,7 +169,7 @@ export const deleteCategory = async (categoryId: string, forceDelete: boolean = 
   
   try {
     // const queryParams = forceDelete ? '?force=true' : '';
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/metric/category/delete/${categoryId}`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/category/delete/${categoryId}`, {
       method: 'GET',
       headers: getDefaultHeaders()
     });
@@ -210,7 +210,7 @@ export const getCategoryStats = async (): Promise<CategoryStats[]> => {
   await delay(250);
   
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/categories/stats`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/metric/categories/stats`, {
       method: 'GET',
       headers: getDefaultHeaders()
     });
@@ -235,7 +235,7 @@ export const assignMetricsToCategory = async (metricIds: string[], categoryId: s
   await delay(400);
   
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/categories/${encodeURIComponent(categoryId)}/metrics`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/categories/${encodeURIComponent(categoryId)}/metrics`, {
       method: 'POST',
       headers: getDefaultHeaders(),
       body: JSON.stringify({ metricIds })
@@ -268,7 +268,7 @@ export const removeMetricsFromCategory = async (metricIds: string[], categoryId:
   await delay(350);
   
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/categories/${encodeURIComponent(categoryId)}/metrics`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/categories/${encodeURIComponent(categoryId)}/metrics`, {
       method: 'DELETE',
       headers: getDefaultHeaders(),
       body: JSON.stringify({ metricIds })
@@ -301,7 +301,7 @@ export const performBulkCategoryOperation = async (operation: BulkCategoryOperat
   await delay(500);
   
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/categories/bulk-operation`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/categories/bulk-operation`, {
       method: 'POST',
       headers: getDefaultHeaders(),
       body: JSON.stringify(operation)
@@ -690,7 +690,7 @@ const validateCategoryData = (data: Partial<Category>): string[] => {
 // Get metric categories with optional real-time data
 export const getMetricCategories = async (): Promise<MetricCategory[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/metrics/categories`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/metric/metrics/categories`, {
       method: 'GET',
       headers: getDefaultHeaders()
     });
@@ -712,7 +712,7 @@ export const getMetricCategories = async (): Promise<MetricCategory[]> => {
 // Get metrics summary
 export const getMetricsSummary = async (): Promise<MetricsSummary> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/metrics/summary`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/metric/summary`, {
       method: 'GET',
       headers: getDefaultHeaders()
     });
@@ -734,7 +734,7 @@ export const getMetricsSummary = async (): Promise<MetricsSummary> => {
 // Get single metric
 export const getMetric = async (name: string): Promise<MetricDefinition | null> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/metrics/${encodeURIComponent(name)}`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/metric/${encodeURIComponent(name)}`, {
       method: 'GET',
       headers: getDefaultHeaders()
     });
@@ -761,7 +761,7 @@ export const getMetric = async (name: string): Promise<MetricDefinition | null> 
 export const createMetric = async (metric: Omit<MetricDefinition, 'createdAt' | 'updatedAt'>): Promise<MetricDefinition> => {
   try {
     metric.id = "fake";
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/metric`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/metric`, {
       method: 'POST',
       headers: getDefaultHeaders(),
       body: JSON.stringify(metric)
@@ -785,7 +785,7 @@ export const createMetric = async (metric: Omit<MetricDefinition, 'createdAt' | 
 export const updateMetric = async (name: string, updates: Partial<MetricDefinition>): Promise<MetricDefinition> => {
   try {
     // updates.id="fake"
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/metric/${name}`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/metric/${name}`, {
       method: 'PUT',
       headers: getDefaultHeaders(),
       body: JSON.stringify(updates)

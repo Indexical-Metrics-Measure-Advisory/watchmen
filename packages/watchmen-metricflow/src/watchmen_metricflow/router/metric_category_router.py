@@ -20,7 +20,7 @@ def get_category_service(principal_service: PrincipalService) -> CategoryService
     return CategoryService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.get('/metric/category/all', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/category/all', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_all_categories(
         principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[Category]:
@@ -34,7 +34,7 @@ async def get_all_categories(
     return trans_readonly(category_service, action)
 
 
-@router.get('/metric/category/{name}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/category/{name}', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_category_by_name(
         name: str,
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -55,7 +55,7 @@ async def get_category_by_name(
     return trans_readonly(category_service, action)
 
 
-@router.post('/metric/category', tags=['ADMIN'], response_model=None)
+@router.post('/metricflow/category', tags=['ADMIN'], response_model=None)
 async def create_category(
         category: Category,
         principal_service: PrincipalService = Depends(get_admin_principal)
@@ -81,7 +81,7 @@ async def create_category(
     return trans(category_service, action)
 
 
-@router.put('/metric/category/{category_id}', tags=['ADMIN'], response_model=None)
+@router.put('/metricflow/category/{category_id}', tags=['ADMIN'], response_model=None)
 async def update_category(
         category_id: str,
         category: Category,
@@ -111,7 +111,7 @@ async def update_category(
     return trans(category_service, action)
 
 
-@router.get('/metric/category/delete/{category_id}', tags=['ADMIN'], response_model=None)
+@router.get('/metricflow/category/delete/{category_id}', tags=['ADMIN'], response_model=None)
 async def delete_category(
         category_id: str,
         principal_service: PrincipalService = Depends(get_admin_principal)

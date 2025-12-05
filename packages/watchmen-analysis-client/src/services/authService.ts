@@ -48,7 +48,7 @@ class AuthService {
    */
   async loadLoginConfig(): Promise<LoginConfiguration> {
     try {
-      const response = await fetch(`${this.baseUrl}/watchmen/auth/config`, {
+      const response = await fetch(`${this.baseUrl}/auth/config`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ class AuthService {
       formData.append('password', credentials.password);
       
 
-      const response = await fetch(`${this.baseUrl}/watchmen/login`, {
+      const response = await fetch(`${this.baseUrl}/login`, {
         method: 'POST',
         body: formData,
       });
@@ -102,7 +102,7 @@ class AuthService {
    */
   async validateJwtToken(token: string): Promise<User> {
     try {
-      const response = await fetch(`${this.baseUrl}/watchmen/token/validate/jwt?token=${encodeURIComponent(token)}`, {
+      const response = await fetch(`${this.baseUrl}/token/validate/jwt?token=${encodeURIComponent(token)}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -127,7 +127,7 @@ class AuthService {
    */
   async exchangeUser(token: string): Promise<User | null> {
     try {
-      const response = await fetch(`${this.baseUrl}/watchmen/token/exchange-user`, {
+      const response = await fetch(`${this.baseUrl}/token/exchange-user`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
