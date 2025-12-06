@@ -233,6 +233,7 @@ async def build_metric_config(principal_service):
     profile = build_merged_profile(semantics, principal_service)
     config = CLIConfigurationDB(tenant_id, semantics, metrics_json, profile)
     # Cache configuration for this tenant
+
     metric_config_cache.put(tenant_id, config)
     return config
 

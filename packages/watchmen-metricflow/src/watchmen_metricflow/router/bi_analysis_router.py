@@ -29,7 +29,7 @@ async def get_all_bi_analyses(
 
     def action() -> List[BIAnalysis]:
         tenant_id: TenantId = principal_service.get_tenant_id()
-        return service.find_all(tenant_id)
+        return service.find_all_by_user_id(principal_service.userId,tenant_id)
 
     return trans_readonly(service, action)
 
@@ -46,8 +46,11 @@ async def get_bi_analysis_by_name(
     service = get_bi_analysis_service(principal_service)
 
     def action() -> BIAnalysis:
-        tenant_id: TenantId = principal_service.get_tenant_id()
+        # tenant_id: TenantId = principal_service.get_tenant_id()
         analysis = service.find_by_id(analysis_id)
+
+        #TODO add check for user access rights
+
         if analysis is None:
             raise_404()
         return analysis

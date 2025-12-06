@@ -89,3 +89,10 @@ class DBTArtifactsWatchmen(dbtArtifacts):
         pass
 
 
+    def build_schema_name(self) -> str:
+        return "public"
+
+    def build_relation_name(self):
+        return "watchmen_metricflow"
+
+
