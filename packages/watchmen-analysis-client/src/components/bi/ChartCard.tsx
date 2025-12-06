@@ -3,13 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { BIChartCard, BICardSize, BIChartType } from '@/model/biAnalysis';
-import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Download, Table as TableIcon, LineChart as LineChartIcon, Sparkles } from 'lucide-react';
+import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Download, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -136,8 +137,51 @@ export const ChartCard: React.FC<ChartCardProps> = ({
   onDragOver,
   onDrop,
 }) => {
+  const { toast } = useToast();
   const [lib, setLib] = useState<RechartsModule | null>(null);
   const [activeTab, setActiveTab] = useState<string>("chart");
+
+  const handleCopy = async () => {
+    try {
+      if (!data || data.length === 0) {
+        toast({
+          title: "No data",
+          description: "There is no data to copy",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Extract headers from the first data item
+      // Exclude 'color' or internal fields if any
+      const headers = Object.keys(data[0]).filter(k => k !== 'color' && k !== 'fill');
+      
+      // Create TSV content (Tab Separated Values) which works well with Excel paste
+      const headerRow = headers.join('\t');
+      const rows = data.map(row => {
+        return headers.map(header => {
+          const val = row[header];
+          // Handle null/undefined and escape tabs/newlines if necessary
+          if (val === null || val === undefined) return '';
+          return String(val).replace(/\t/g, ' ').replace(/\n/g, ' ');
+        }).join('\t');
+      });
+      
+      const tsvContent = [headerRow, ...rows].join('\n');
+
+      await navigator.clipboard.writeText(tsvContent);
+      toast({
+        title: "Copied to Clipboard",
+        description: "Data can be pasted directly into Excel",
+      });
+    } catch (err) {
+      toast({
+        title: "Failed to copy",
+        description: "Could not copy data to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -201,8 +245,8 @@ export const ChartCard: React.FC<ChartCardProps> = ({
           </div>
 
           <div className="flex items-center gap-1 flex-shrink-0">
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Download CSV">
-              <Download className="h-3.5 w-3.5" />
+            <Button variant="ghost" size="icon" onClick={handleCopy} className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Copy Data">
+              <Copy className="h-3.5 w-3.5" />
             </Button>
             
             <div className="w-px h-4 bg-border mx-1" />
