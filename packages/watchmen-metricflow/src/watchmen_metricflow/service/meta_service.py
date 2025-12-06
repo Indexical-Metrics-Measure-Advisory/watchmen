@@ -10,7 +10,7 @@ from watchmen_metricflow.meta.semantic_meta_service import SemanticModelService
 from watchmen_metricflow.model.metrics import Metric, MetricWithCategory
 from watchmen_metricflow.model.semantic import SemanticModel
 from watchmen_model.common import TenantId
-from watchmen_model.system import DataSource
+from watchmen_model.system import DataSource, DataSourceType
 
 
 def get_metric_service(principal_service: PrincipalService) -> MetricService:
@@ -50,7 +50,7 @@ async def load_semantic_models_by_tenant_id(principal_service) -> List[SemanticM
 
 
 def save_metric(principal_service: PrincipalService, metric: Metric) -> Metric:
-    """保存metric，如果存在则更新，否则创建"""
+    """Save metric, update if exists, otherwise create"""
     metric_service = get_metric_service(principal_service)
 
     def action() -> Metric:
@@ -58,17 +58,17 @@ def save_metric(principal_service: PrincipalService, metric: Metric) -> Metric:
         existing_metric = metric_service.find_by_name(metric.name, tenant_id)
 
         if existing_metric:
-            # 如果存在，调用更新逻辑
+            # If exists, call update logic
             return metric_service.update(metric)
         else:
-            # 如果不存在，调用创建逻辑
+            # If not exists, call create logic
             return metric_service.create(metric)
 
     return trans(metric_service, action)
 
 
 def save_semantic_model(principal_service: PrincipalService, semantic_model: SemanticModel) -> SemanticModel:
-    """保存semantic model，如果存在则更新，否则创建"""
+    """Save semantic model, update if exists, otherwise create"""
     semantic_model_service = get_semantic_model_service(principal_service)
 
     def action() -> SemanticModel:
@@ -76,43 +76,18 @@ def save_semantic_model(principal_service: PrincipalService, semantic_model: Sem
         existing_model = semantic_model_service.find_by_name(semantic_model.name, tenant_id)
 
         if existing_model:
-            # 如果存在，调用更新逻辑
+            # If exists, call update logic
             return semantic_model_service.update(semantic_model)
         else:
-            # 如果不存在，调用创建逻辑
+            # If not exists, call create logic
             return semantic_model_service.create(semantic_model)
 
     return trans(semantic_model_service, action)
 
 
-def build_profile(semantic_model: SemanticModel,principal_service: PrincipalService):
-    base_template = {
-        "name": "profile",
-        "target": "postgres",
-        "outputs": {
-            # "dev": {
-            #     "type": "duckdb",
-            #     "path": "./data/claim.duckdb"
-            # },
-            "postgres": {
-                "type": "postgres",
-                "host": "",
-                "user": "",
-                "password": "",
-                "port": None,
-                "dbname": "",
-                "schema": "",
-                "threads": 4,
-                "keepalives_idle": 0,
-                "connect_timeout": 10,
-                "retries": 1
-            }
-        }
-    }
-
+def build_profile(semantic_model: SemanticModel, principal_service: PrincipalService):
     source_type = semantic_model.sourceType
-    # print("semantic_model",semantic_model.id)
-    # print(source_type)
+
     if source_type == "topic":
         topic_service = get_topic_service(principal_service)
         data_source_service = get_data_source_service(principal_service)
@@ -121,31 +96,69 @@ def build_profile(semantic_model: SemanticModel,principal_service: PrincipalServ
             topic = topic_service.find_by_id(semantic_model.topicId)
             return topic
 
-        topic =  trans_readonly(topic_service,action)
+        topic = trans_readonly(topic_service, action)
 
         def read_data_source():
-            return  data_source_service.find_by_id(topic.dataSourceId)
-
+            return data_source_service.find_by_id(topic.dataSourceId)
 
         if topic is None:
             raise Exception("topic is not found ")
         else:
-            data_source:DataSource = trans_readonly(data_source_service, read_data_source)
-            database = base_template["outputs"]["postgres"]
-            database["host"] = data_source.host
-            database["user"] = data_source.username
-            database["password"] = data_source.password
-            database["port"] = int(data_source.port)
-            database["dbname"] = data_source.name
-            schema = next((param for param in data_source.params if param.name == "schema"), None)
-            if schema is None:
-                raise Exception("schema is not found in data source params")
-            database["schema"] = schema.value
-            
+            data_source: DataSource = trans_readonly(data_source_service, read_data_source)
 
+            # Common connection parameters
+            output_config = {
+                "host": data_source.host,
+                "user": data_source.username,
+                "password": data_source.password,
+                "port": int(data_source.port) if data_source.port else None,
+                "dbname": data_source.name,
+                "threads": 4,
+                "keepalives_idle": 0,
+                "connect_timeout": 10,
+                "retries": 1
+            }
 
-            return base_template
-            # build profile data
+            ds_type = data_source.dataSourceType
+            target_name = ""
+
+            if ds_type == DataSourceType.POSTGRESQL:
+                target_name = "postgres"
+                output_config["type"] = "postgres"
+                schema = next((param for param in data_source.params if param.name == "schema"), None)
+                if schema is None:
+                    raise Exception("schema is not found in data source params")
+                output_config["schema"] = schema.value
+
+            elif ds_type == DataSourceType.MYSQL:
+                target_name = "mysql"
+                output_config["type"] = "mysql"
+                schema = next((param for param in data_source.params if param.name == "schema"), None)
+                output_config["schema"] = schema.value if schema else data_source.name
+
+            elif ds_type == DataSourceType.MSSQL:
+                target_name = "mssql"
+                output_config["type"] = "mssql"
+                schema = next((param for param in data_source.params if param.name == "schema"), None)
+                output_config["schema"] = schema.value if schema else "dbo"
+
+            elif ds_type == DataSourceType.ORACLE:
+                target_name = "oracle"
+                output_config["type"] = "oracle"
+                schema = next((param for param in data_source.params if param.name == "schema"), None)
+                output_config["schema"] = schema.value if schema else data_source.username
+
+            else:
+                raise Exception(f"Unsupported data source type: {ds_type}")
+
+            return {
+                "name": "profile",
+                "target": target_name,
+                "outputs": {
+                    target_name: output_config
+                }
+            }
+
     elif source_type == "subject":
         ## load subject by subject id
         # todo

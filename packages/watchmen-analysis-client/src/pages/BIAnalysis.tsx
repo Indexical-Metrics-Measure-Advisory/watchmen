@@ -32,7 +32,8 @@ import {
   X,
   Loader2,
   Trash2,
-  LayoutTemplate
+  LayoutTemplate,
+  RotateCcw
 } from 'lucide-react';
 import { ChartCard } from '@/components/bi/ChartCard';
 import { AnalysisBoard } from '@/components/bi/AnalysisBoard';
@@ -538,8 +539,8 @@ const BIAnalysisPage: React.FC = () => {
                 {configCollapsed ? 'Expand Config' : 'Collapse Config'}
               </Button>
               <Button variant="ghost" onClick={resetBoard} className="gap-2">
-                <Plus className="h-4 w-4" />
-                New Analysis
+                <RotateCcw className="h-4 w-4" />
+                Reset
               </Button>
               <Button variant="default" onClick={() => setSaveOpen(true)} className="gap-2">
                 <Save className="h-4 w-4" />
