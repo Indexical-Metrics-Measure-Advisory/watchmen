@@ -17,32 +17,67 @@ import {
 } from 'lucide-react';
 import MetricCard from '@/components/ui/metric-card';
 import ActionTile from '@/components/ui/action-tile';
-import { tableService } from '@/services';
+import { tableService, modelService, moduleService } from '@/services';
 
 const Index = () => {
   const { user } = useAuth();
   const [totalTables, setTotalTables] = useState(0);
+  const [totalModels, setTotalModels] = useState(0);
+  const [totalModules, setTotalModules] = useState(0);
+
   useEffect(() => {
-    const loadTotalTables = async () => {
+    const loadStats = async () => {
+      // Load Table Stats
       try {
         const stats = await tableService.getTableStats();
         if (stats && typeof stats.total === 'number') {
           setTotalTables(stats.total);
-          return;
+        } else {
+           // Fallback to getAllTables
+           try {
+             const tables = await tableService.getAllTables();
+             setTotalTables(tables.length);
+           } catch {}
         }
-      } catch {}
+      } catch {
+         // Fallback to getAllTables if getTableStats fails
+         try {
+           const tables = await tableService.getAllTables();
+           setTotalTables(tables.length);
+         } catch {
+            // Last resort: collector configs
+            try {
+              const configs = await tableService.getAllCollectorConfigs();
+              setTotalTables(configs.length);
+            } catch {}
+         }
+      }
+
+      // Load Model Stats
       try {
-        const tables = await tableService.getAllTables();
-        setTotalTables(tables.length);
-        return;
-      } catch {}
+        const stats = await modelService.getModelStats();
+        setTotalModels(stats.total);
+      } catch {
+        try {
+          const models = await modelService.getAllModels();
+          setTotalModels(models.length);
+        } catch {}
+      }
+
+      // Load Module Stats
       try {
-        const configs = await tableService.getAllCollectorConfigs();
-        setTotalTables(configs.length);
-      } catch {}
+        const stats = await moduleService.getModuleStats();
+        setTotalModules(stats.total);
+      } catch {
+        try {
+          const modules = await moduleService.getAllModules();
+          setTotalModules(modules.length);
+        } catch {}
+      }
     };
+
     if (user) {
-      loadTotalTables();
+      loadStats();
     }
   }, [user]);
   
@@ -62,9 +97,6 @@ const Index = () => {
 
   // Mock statistics
   const stats = {
-    totalModules: 8,
-    // dashboard totals
-    totalModels: 12,
     activeIngestions: 3,
     lastUpdate: "2 minutes ago"
   };
@@ -91,8 +123,8 @@ const Index = () => {
 
       {/* Quick Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <MetricCard label="Total Modules" value={stats.totalModules} icon={<Database className="h-4 w-4" />} variant="module" aria-label="Total modules" />
-        <MetricCard label="Total Models" value={stats.totalModels} icon={<TrendingUp className="h-4 w-4" />} variant="model" aria-label="Total models" />
+        <MetricCard label="Total Modules" value={totalModules} icon={<Database className="h-4 w-4" />} variant="module" aria-label="Total modules" />
+        <MetricCard label="Total Models" value={totalModels} icon={<TrendingUp className="h-4 w-4" />} variant="model" aria-label="Total models" />
         <MetricCard label="Total Tables" value={totalTables} icon={<Activity className="h-4 w-4" />} variant="table" aria-label="Total tables" />
       </div>
 
