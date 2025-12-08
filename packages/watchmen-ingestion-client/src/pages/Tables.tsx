@@ -292,6 +292,11 @@ const Tables = () => {
   const [createLoading, setCreateLoading] = useState<boolean>(false);
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
   const [editFormErrors, setEditFormErrors] = useState<{[key: string]: string}>({});
+  
+  // Join keys raw JSON state
+  const [editJoinKeysJson, setEditJoinKeysJson] = useState<string>('');
+  const [createJoinKeysJson, setCreateJoinKeysJson] = useState<string>('');
+
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Data sources for dropdown
@@ -515,6 +520,7 @@ const Tables = () => {
       lastModifiedBy: table.lastModifiedBy,
       version: table.version
     });
+    setEditJoinKeysJson(table.joinKeys ? JSON.stringify(table.joinKeys, null, 2) : '[]');
     setEditDialogOpen(true);
   };
 
@@ -527,18 +533,27 @@ const Tables = () => {
       setLoading(true);
       setError(null);
 
+      // Parse join keys
+      let parsedJoinKeys;
+      try {
+        parsedJoinKeys = editJoinKeysJson ? JSON.parse(editJoinKeysJson) : [];
+      } catch (e) {
+        setError('Invalid JSON in Join Keys');
+        setLoading(false);
+        return;
+      }
+
+      const dataToSave = { ...editFormData, joinKeys: parsedJoinKeys };
+
       // Form validation
-      if (!validateForm(editFormData, true)) {
+      if (!validateForm(dataToSave, true)) {
   
         setLoading(false);
         return;
       }
 
-    
-
-
       // Call TableService to update table
-      const updatedTable = await tableService.updateTable(selectedTable.configId!, editFormData);
+      const updatedTable = await tableService.updateTable(selectedTable.configId!, dataToSave);
       
       // Update local state
       const updatedTables = tables.map(table => 
@@ -635,6 +650,7 @@ const Tables = () => {
       isList: false,
       triggered: false
     });
+    setCreateJoinKeysJson('[]');
     setFormErrors({});
     setSuccessMessage(null);
   };
@@ -758,13 +774,25 @@ const Tables = () => {
       setCreateLoading(true);
       setError(null);
 
-      // Form validation
-      if (!validateForm(createFormData, false)) {
+      // Parse join keys
+      let parsedJoinKeys;
+      try {
+        parsedJoinKeys = createJoinKeysJson ? JSON.parse(createJoinKeysJson) : [];
+      } catch (e) {
+        setError('Invalid JSON in Join Keys');
         setCreateLoading(false);
         return;
       }
 
-      await tableService.createTable(createFormData);
+      const dataToSave = { ...createFormData, joinKeys: parsedJoinKeys };
+
+      // Form validation
+      if (!validateForm(dataToSave, false)) {
+        setCreateLoading(false);
+        return;
+      }
+
+      await tableService.createTable(dataToSave);
       
       // Close dialog and refresh data after successful creation
       setCreateDialogOpen(false);
@@ -1422,15 +1450,8 @@ const Tables = () => {
                     {/* TODO: Add JoinConditionEditor component */}
                     <Textarea
                       placeholder="Enter join keys as JSON (e.g., [{&quot;parentKey&quot;: {&quot;field&quot;: &quot;id&quot;}, &quot;childKey&quot;: {&quot;field&quot;: &quot;parent_id&quot;}}])"
-                      value={editFormData.joinKeys ? JSON.stringify(editFormData.joinKeys, null, 2) : ''}
-                      onChange={(e) => {
-                        try {
-                          const parsed = e.target.value ? JSON.parse(e.target.value) : [];
-                          setEditFormData(prev => ({ ...prev, joinKeys: parsed }));
-                        } catch {
-                          // Keep the text value for editing, will validate on save
-                        }
-                      }}
+                      value={editJoinKeysJson}
+                      onChange={(e) => setEditJoinKeysJson(e.target.value)}
                       className="min-h-[100px]"
                     />
                   </div>
@@ -1715,15 +1736,8 @@ const Tables = () => {
                 <Label>Join Keys</Label>
                 <Textarea
                   placeholder="Enter join keys as JSON (e.g., [{&quot;parentKey&quot;: {&quot;field&quot;: &quot;id&quot;}, &quot;childKey&quot;: {&quot;field&quot;: &quot;parent_id&quot;}}])"
-                  value={createFormData.joinKeys ? JSON.stringify(createFormData.joinKeys, null, 2) : ''}
-                  onChange={(e) => {
-                    try {
-                      const parsed = e.target.value ? JSON.parse(e.target.value) : [];
-                      setCreateFormData(prev => ({ ...prev, joinKeys: parsed }));
-                    } catch {
-                      // Keep the text value for editing, will validate on save
-                    }
-                  }}
+                  value={createJoinKeysJson}
+                  onChange={(e) => setCreateJoinKeysJson(e.target.value)}
                   className="min-h-[100px]"
                 />
               </div>

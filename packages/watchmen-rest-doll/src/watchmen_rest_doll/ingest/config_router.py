@@ -43,7 +43,7 @@ async def load_table_config_by_id(
 	return action()
 
 
-@router.get('/ingest/config/table/all', tags=[UserRole.ADMIN])
+@router.get('/ingest/config/table/all', tags=[UserRole.ADMIN],response_model=None)
 async def load_table_config_list(
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> List[CollectorTableConfig]:

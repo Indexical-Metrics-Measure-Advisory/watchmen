@@ -149,6 +149,17 @@ export interface PaginatedTableResponse {
 
 export function constructCondition(condition: any): Condition | undefined {
   if (!condition) return undefined;
+
+  // Handle backend format where columnName/columnValue are used instead of field/value
+  if (condition.columnName !== undefined || condition.columnValue !== undefined) {
+    return {
+      field: condition.columnName,
+      operator: condition.operator,
+      value: condition.columnValue,
+      type: condition.type
+    } as Condition;
+  }
+
   if (typeof condition === 'object' && 'field' in condition) {
     return condition as Condition;
   }

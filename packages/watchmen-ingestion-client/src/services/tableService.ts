@@ -191,8 +191,17 @@ export class TableService {
         );
       }
       
-      const tableConfigList: CollectorTableConfig[] = await response.json();
-      return tableConfigList;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       const tableConfigList: any[] = await response.json();
+      
+      // Transform backend data to match frontend models
+      return tableConfigList.map(config => ({
+        ...config,
+        joinKeys: constructJoinConditions(config.joinKeys),
+        conditions: constructConditions(config.conditions),
+        dependOn: constructDependencies(config.dependOn),
+        jsonColumns: constructJsonColumns(config.jsonColumns)
+      })) as CollectorTableConfig[];
     } catch (error) {
       console.error('Error fetching tables:', error);
       // Fallback to mock data if enabled
