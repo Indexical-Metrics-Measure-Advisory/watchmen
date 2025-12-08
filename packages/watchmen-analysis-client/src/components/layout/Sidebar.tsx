@@ -182,7 +182,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           {SHOW_METRIC_AI_AGENT && (
             <NavItem to="/chat" icon={<MessageSquare size={16} />} label="Smart Metrics Chat" collapsed={collapsed} isSubItem={true} />
           )}
-          <NavItem to="/metrics/bi-analysis" icon={<BarChart3 size={16} />} label="BI Analysis" collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/metrics/bi-analysis" icon={<BarChart3 size={16} />} label="Metrics Analysis" collapsed={collapsed} isSubItem={true} />
           <NavItem to="/metrics/semantic-models" icon={<GitBranch size={16} />} label="Semantic Model Management" collapsed={collapsed} isSubItem={true} />
           <NavItem to="/metrics/management" icon={<TrendingUp size={16} />} label="Metrics Management" collapsed={collapsed} isSubItem={true} />
           {SHOW_METRIC_AI_AGENT && (

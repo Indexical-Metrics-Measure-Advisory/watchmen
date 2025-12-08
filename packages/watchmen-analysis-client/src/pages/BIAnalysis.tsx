@@ -529,7 +529,7 @@ const BIAnalysisPage: React.FC = () => {
             <div className="space-y-1">
               <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
                 <LayoutDashboard className="h-8 w-8 text-primary" />
-                BI Analysis
+                Metrics Analysis
               </h1>
               <p className="text-muted-foreground">Build multi-dimensional metrics, smart chart recommendations, and a card dashboard</p>
             </div>

@@ -32,6 +32,9 @@ class MetricConfigCache:
     def put(self, tenant_id: str, cfg: CLIConfigurationDB) -> Optional[CLIConfigurationDB]:
         return self.byTenantCache.put(tenant_id, cfg)
 
+    def remove(self, tenant_id: str):
+        self.byTenantCache.remove(tenant_id)
+
     def clear(self):
         self.byTenantCache.clear()
 

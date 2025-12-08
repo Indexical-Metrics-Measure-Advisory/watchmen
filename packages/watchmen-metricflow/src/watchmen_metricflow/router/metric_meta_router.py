@@ -12,6 +12,7 @@ from watchmen_rest.util import raise_400, raise_404
 from watchmen_metricflow.settings import ask_tuple_delete_enabled
 from watchmen_metricflow.util import trans, trans_readonly
 from watchmen_utilities import is_blank
+from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
 
 router = APIRouter()
 
@@ -66,7 +67,9 @@ async def create_metric(
         if existing_metric:
             raise_400(f'Metric with name "{metric.name}" already exists.')
         
-        return metric_service.create(metric)
+        metric_result = metric_service.create(metric)
+        metric_config_cache.remove(metric.tenantId)
+        return metric_result
     
     return trans(metric_service, action)
 
@@ -92,7 +95,9 @@ async def update_metric(
         if existing_metric is None:
             raise_404('Metric not found.')
         metric.id = existing_metric.id
-        return metric_service.update(metric)
+        metric_result = metric_service.update(metric)
+        metric_config_cache.remove(metric.tenantId)
+        return metric_result
     
     return trans(metric_service, action)
 
@@ -119,7 +124,9 @@ async def delete_metric(
         if existing_metric is None:
             raise_404('Metric not found.')
         
-        return metric_service.delete_by_name(metric_name, tenant_id)
+        metric_result = metric_service.delete_by_name(metric_name, tenant_id)
+        metric_config_cache.remove(tenant_id)
+        return metric_result
     
     return trans(metric_service, action)
 

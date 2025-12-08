@@ -12,6 +12,7 @@ from watchmen_rest.util import raise_400, raise_404
 from watchmen_metricflow.settings import ask_tuple_delete_enabled
 from watchmen_metricflow.util import trans, trans_readonly
 from watchmen_utilities import is_blank
+from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
 
 router = APIRouter()
 
@@ -67,7 +68,9 @@ async def create_semantic_model(
         if existing_model:
             raise_400(f'Semantic model with name "{semantic_model.name}" already exists.')
         
-        return semantic_model_service.create(semantic_model)
+        model_result = semantic_model_service.create(semantic_model)
+        metric_config_cache.remove(semantic_model.tenantId)
+        return model_result
     
     return trans(semantic_model_service, action)
 
@@ -94,7 +97,9 @@ async def update_semantic_model(
             raise_404('Semantic model not found.')
 
         semantic_model.id = existing_model.id
-        return semantic_model_service.update(semantic_model)
+        model_result = semantic_model_service.update(semantic_model)
+        metric_config_cache.remove(semantic_model.tenantId)
+        return model_result
     
     return trans(semantic_model_service, action)
 
@@ -122,6 +127,7 @@ async def delete_semantic_model(
             raise_404('Semantic model not found.')
         
         semantic_model_service.delete_by_name(model_name, tenant_id)
+        metric_config_cache.remove(tenant_id)
         return existing_model
     
     return trans(semantic_model_service, action)
