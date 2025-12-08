@@ -250,6 +250,319 @@ const JsonColumnEditor = ({
   );
 };
 
+const TableForm = ({
+  formData,
+  setFormData,
+  errors,
+  joinKeysJson,
+  setJoinKeysJson,
+  modelNames,
+  tables,
+  dataSources,
+  isEdit = false,
+  onSubmit,
+  onCancel,
+  loading
+}: {
+  formData: Partial<CollectorTableConfig>;
+  setFormData: (data: Partial<CollectorTableConfig>) => void;
+  errors: { [key: string]: string };
+  joinKeysJson: string;
+  setJoinKeysJson: (json: string) => void;
+  modelNames: string[];
+  tables: CollectorTableConfig[];
+  dataSources: any[];
+  isEdit?: boolean;
+  onSubmit: () => void;
+  onCancel: () => void;
+  loading: boolean;
+}) => {
+  return (
+    <div className="space-y-6">
+      {/* Basic Information */}
+      <div>
+        <h3 className="text-lg font-medium mb-4">Basic Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="form-name">Name *</Label>
+            <Input
+              id="form-name"
+              value={formData.name || ''}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Enter display name"
+              className={errors.name ? "border-red-500" : ""}
+            />
+            {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
+          </div>
+          
+          <div>
+            <Label htmlFor="form-table-name">Table Name</Label>
+            <Input
+              id="form-table-name"
+              value={formData.tableName || ''}
+              onChange={(e) => setFormData({ ...formData, tableName: e.target.value })}
+              placeholder="Enter database table name"
+              className={errors.tableName ? "border-red-500" : ""}
+            />
+            {errors.tableName && <p className="text-sm text-red-600 mt-1">{errors.tableName}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="form-model-name">Model Name *</Label>
+            <Select
+              value={formData.modelName || ''}
+              onValueChange={(value) => setFormData({ ...formData, modelName: value })}
+            >
+              <SelectTrigger id="form-model-name" className={errors.modelName ? "border-red-500" : ""}>
+                <SelectValue placeholder="Select model name" />
+              </SelectTrigger>
+              <SelectContent>
+                {modelNames.map((name) => (
+                  <SelectItem key={name} value={name}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.modelName && <p className="text-sm text-red-600 mt-1">{errors.modelName}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="form-parent-name">Parent Name</Label>
+            <Select
+              value={formData.parentName || ''}
+              onValueChange={(value) => setFormData({ ...formData, parentName: value })}
+            >
+              <SelectTrigger id="form-parent-name">
+                <SelectValue placeholder="Select parent table" />
+              </SelectTrigger>
+              <SelectContent>
+                {tables
+                  .filter(t => t.modelName === formData.modelName && t.configId !== formData.configId)
+                  .map((t) => (
+                    <SelectItem key={t.configId} value={t.name || ''}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            {errors.parentName && <p className="text-sm text-red-600 mt-1">{errors.parentName}</p>}
+          </div>
+
+          <div className="md:col-span-2">
+            <Label htmlFor="form-label">Label</Label>
+            <Textarea
+              id="form-label"
+              value={formData.label || ''}
+              onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+              placeholder="Enter table description"
+              rows={3}
+            />
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Key Configuration */}
+      <div>
+        <h3 className="text-lg font-medium mb-4">Key Configuration</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="form-primary-key">Primary Key</Label>
+            <Input
+              id="form-primary-key"
+              value={formData.primaryKey?.join(', ') || ''}
+              onChange={(e) => setFormData({ 
+                ...formData, 
+                primaryKey: e.target.value.split(',').map(k => k.trim()).filter(k => k) 
+              })}
+              placeholder="Enter primary keys (comma separated)"
+              className={errors.primaryKey ? "border-red-500" : ""}
+            />
+            {errors.primaryKey && <p className="text-sm text-red-600 mt-1">{errors.primaryKey}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="form-object-key">Object Key</Label>
+            <Input
+              id="form-object-key"
+              value={formData.objectKey || ''}
+              onChange={(e) => setFormData({ ...formData, objectKey: e.target.value })}
+              placeholder="Enter object key"
+              className={errors.objectKey ? "border-red-500" : ""}
+            />
+            {errors.objectKey && <p className="text-sm text-red-600 mt-1">{errors.objectKey}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="form-sequence-key">Sequence Key</Label>
+            <Input
+              id="form-sequence-key"
+              value={formData.sequenceKey || ''}
+              onChange={(e) => setFormData({ ...formData, sequenceKey: e.target.value })}
+              placeholder="Enter sequence key"
+              className={errors.sequenceKey ? "border-red-500" : ""}
+            />
+            {errors.sequenceKey && <p className="text-sm text-red-600 mt-1">{errors.sequenceKey}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="form-audit-column">Audit Column</Label>
+            <Input
+              id="form-audit-column"
+              value={formData.auditColumn || ''}
+              onChange={(e) => setFormData({ ...formData, auditColumn: e.target.value })}
+              placeholder="Enter audit column"
+              className={errors.auditColumn ? "border-red-500" : ""}
+            />
+            {errors.auditColumn && <p className="text-sm text-red-600 mt-1">{errors.auditColumn}</p>}
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Complex Configuration */}
+      <div>
+        <h3 className="text-lg font-medium mb-4">Complex Configuration</h3>
+        
+        {/* Join Keys */}
+        <div className="mb-6">
+          <Label className="text-sm font-medium mb-2 block">Join Keys</Label>
+          <div className="border rounded-lg p-4 bg-gray-50">
+            <p className="text-sm text-gray-600 mb-2">Configure join conditions for this table</p>
+            <Textarea
+              placeholder="Enter join keys as JSON"
+              value={joinKeysJson}
+              onChange={(e) => setJoinKeysJson(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+        </div>
+
+        {/* Dependencies */}
+        <div className="mb-6">
+          <Label className="text-sm font-medium mb-2 block">Dependencies</Label>
+          <DependenceEditor
+            dependencies={formData.dependOn || []}
+            onChange={(dependencies) => setFormData({ ...formData, dependOn: dependencies })}
+          />
+        </div>
+
+        {/* Conditions */}
+        <div className="mb-6">
+          <Label className="text-sm font-medium mb-2 block">Conditions</Label>
+          <ConditionEditor
+            conditions={formData.conditions || []}
+            onChange={(conditions) => setFormData({ ...formData, conditions })}
+          />
+        </div>
+
+        {/* JSON Columns */}
+        <div className="mb-6">
+          <Label className="text-sm font-medium mb-2 block">JSON Columns</Label>
+          <JsonColumnEditor
+            jsonColumns={formData.jsonColumns || []}
+            onChange={(jsonColumns) => setFormData({ ...formData, jsonColumns })}
+          />
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Flags and Data Source */}
+      <div>
+        <h3 className="text-lg font-medium mb-4">Flags and Data Source</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="form-data-source-id">Data Source</Label>
+            <Select
+              value={formData.dataSourceId || ''}
+              onValueChange={(value) => setFormData({ ...formData, dataSourceId: value })}
+            >
+              <SelectTrigger id="form-data-source-id" className={errors.dataSourceId ? "border-red-500" : ""}>
+                <SelectValue placeholder="Select data source" />
+              </SelectTrigger>
+              <SelectContent>
+                {dataSources.map((ds) => {
+                  const id = ds.dataSourceId ?? ds.id ?? ds.name;
+                  const label = ds.name ?? id;
+                  return (
+                    <SelectItem key={id} value={String(id)}>
+                      {label}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            {errors.dataSourceId && <p className="text-sm text-red-600 mt-1">{errors.dataSourceId}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="form-ignored-columns">Ignored Columns</Label>
+            <Input
+              id="form-ignored-columns"
+              value={formData.ignoredColumns?.join(', ') || ''}
+              onChange={(e) => setFormData({ 
+                ...formData, 
+                ignoredColumns: e.target.value.split(',').map(c => c.trim()).filter(c => c) 
+              })}
+              placeholder="Enter ignored columns (comma separated)"
+              className={errors.ignoredColumns ? "border-red-500" : ""}
+            />
+            {errors.ignoredColumns && <p className="text-sm text-red-600 mt-1">{errors.ignoredColumns}</p>}
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="form-is-list"
+              checked={formData.isList || false}
+              onCheckedChange={(checked) => setFormData({ ...formData, isList: checked as boolean })}
+            />
+            <Label htmlFor="form-is-list">Is List</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="form-triggered"
+              checked={formData.triggered || false}
+              onCheckedChange={(checked) => setFormData({ ...formData, triggered: checked as boolean })}
+            />
+            <Label htmlFor="form-triggered">Triggered</Label>
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex justify-end gap-2 pt-4 border-t">
+        <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onCancel}
+            disabled={loading}
+        >
+          Cancel
+        </Button>
+        <Button 
+            type="button"
+            onClick={onSubmit}
+            disabled={loading}
+        >
+          {loading ? (
+            <>
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              {isEdit ? 'Saving...' : 'Creating...'}
+            </>
+          ) : (
+            <>
+              {isEdit ? <Edit className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+              {isEdit ? 'Save Changes' : 'Create Table'}
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const Tables = () => {
   const [tables, setTables] = useState<CollectorTableConfig[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -1309,253 +1622,20 @@ const Tables = () => {
             </DialogDescription>
           </DialogHeader>
           {selectedTable && (
-            <div className="space-y-6">
-              {/* Basic Information */}
-              <div>
-                <h3 className="text-lg font-medium mb-4">Basic Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="edit-name">Name</Label>
-                    <Input
-                      id="edit-name"
-                      value={editFormData.name || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                      placeholder="Enter display name"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="edit-table-name">Table Name</Label>
-                    <Input
-                      id="edit-table-name"
-                      value={editFormData.tableName || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, tableName: e.target.value })}
-                      placeholder="Enter database table name"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="edit-model-name">Model Name</Label>
-                    <Select
-                      value={editFormData.modelName || ''}
-                      onValueChange={(value) => setEditFormData({ ...editFormData, modelName: value })}
-                    >
-                      <SelectTrigger id="edit-model-name">
-                        <SelectValue placeholder="Select model name" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {modelNames.map((name) => (
-                          <SelectItem key={name} value={name}>{name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="edit-parent-name">Parent Name</Label>
-                    <Select
-                      value={editFormData.parentName || ''}
-                      onValueChange={(value) => setEditFormData({ ...editFormData, parentName: value })}
-                    >
-                      <SelectTrigger id="edit-parent-name">
-                        <SelectValue placeholder="Select parent table" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {tables
-                          .filter(t => t.modelName === editFormData.modelName && t.configId !== editFormData.configId)
-                          .map((t) => (
-                            <SelectItem key={t.configId} value={t.name || ''}>
-                              {t.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <Label htmlFor="edit-label">Label</Label>
-                    <Textarea
-                      id="edit-label"
-                      value={editFormData.label || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, label: e.target.value })}
-                      placeholder="Enter table description"
-                      rows={3}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Key Configuration */}
-              <div>
-                <h3 className="text-lg font-medium mb-4">Key Configuration</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="edit-primary-key">Primary Key</Label>
-                    <Input
-                      id="edit-primary-key"
-                      value={editFormData.primaryKey?.join(', ') || ''}
-                      onChange={(e) => setEditFormData({ 
-                        ...editFormData, 
-                        primaryKey: e.target.value.split(',').map(k => k.trim()).filter(k => k) 
-                      })}
-                      placeholder="Enter primary keys (comma separated)"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="edit-object-key">Object Key</Label>
-                    <Input
-                      id="edit-object-key"
-                      value={editFormData.objectKey || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, objectKey: e.target.value })}
-                      placeholder="Enter object key"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="edit-sequence-key">Sequence Key</Label>
-                    <Input
-                      id="edit-sequence-key"
-                      value={editFormData.sequenceKey || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, sequenceKey: e.target.value })}
-                      placeholder="Enter sequence key"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="edit-audit-column">Audit Column</Label>
-                    <Input
-                      id="edit-audit-column"
-                      value={editFormData.auditColumn || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, auditColumn: e.target.value })}
-                      placeholder="Enter audit column"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Complex Configuration */}
-              <div>
-                <h3 className="text-lg font-medium mb-4">Complex Configuration</h3>
-                
-                {/* Join Keys */}
-                <div className="mb-6">
-                  <Label className="text-sm font-medium mb-2 block">Join Keys</Label>
-                  <div className="border rounded-lg p-4 bg-gray-50">
-                    <p className="text-sm text-gray-600 mb-2">Configure join conditions for this table</p>
-                    {/* TODO: Add JoinConditionEditor component */}
-                    <Textarea
-                      placeholder="Enter join keys as JSON (e.g., [{&quot;parentKey&quot;: {&quot;field&quot;: &quot;id&quot;}, &quot;childKey&quot;: {&quot;field&quot;: &quot;parent_id&quot;}}])"
-                      value={editJoinKeysJson}
-                      onChange={(e) => setEditJoinKeysJson(e.target.value)}
-                      className="min-h-[100px]"
-                    />
-                  </div>
-                </div>
-
-                {/* Dependencies */}
-                <div className="mb-6">
-                  <Label className="text-sm font-medium mb-2 block">Dependencies</Label>
-                  <DependenceEditor
-                    dependencies={editFormData.dependOn || []}
-                    onChange={(dependencies) => setEditFormData({ ...editFormData, dependOn: dependencies })}
-                  />
-                </div>
-
-                {/* Conditions */}
-                <div className="mb-6">
-                  <Label className="text-sm font-medium mb-2 block">Conditions</Label>
-                  <ConditionEditor
-                    conditions={editFormData.conditions || []}
-                    onChange={(conditions) => setEditFormData({ ...editFormData, conditions })}
-                  />
-                </div>
-
-                {/* JSON Columns */}
-                <div className="mb-6">
-                  <Label className="text-sm font-medium mb-2 block">JSON Columns</Label>
-                  <JsonColumnEditor
-                    jsonColumns={editFormData.jsonColumns || []}
-                    onChange={(jsonColumns) => setEditFormData({ ...editFormData, jsonColumns })}
-                  />
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Flags and Data Source */}
-              <div>
-                <h3 className="text-lg font-medium mb-4">Flags and Data Source</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="edit-data-source-id">Data Source</Label>
-                    <Select
-                      value={editFormData.dataSourceId || ''}
-                      onValueChange={(value) => setEditFormData({ ...editFormData, dataSourceId: value })}
-                    >
-                      <SelectTrigger id="edit-data-source-id">
-                        <SelectValue placeholder="Select data source" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {dataSources.map((ds) => {
-                          const id = ds.dataSourceId ?? ds.id ?? ds.name;
-                          const label = ds.name ?? id;
-                          return (
-                            <SelectItem key={id} value={String(id)}>
-                              {label}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="edit-ignored-columns">Ignored Columns</Label>
-                    <Input
-                      id="edit-ignored-columns"
-                      value={editFormData.ignoredColumns?.join(', ') || ''}
-                      onChange={(e) => setEditFormData({ 
-                        ...editFormData, 
-                        ignoredColumns: e.target.value.split(',').map(c => c.trim()).filter(c => c) 
-                      })}
-                      placeholder="Enter ignored columns (comma separated)"
-                    />
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="edit-is-list"
-                      checked={editFormData.isList || false}
-                      onCheckedChange={(checked) => setEditFormData({ ...editFormData, isList: checked as boolean })}
-                    />
-                    <Label htmlFor="edit-is-list">Is List</Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="edit-triggered"
-                      checked={editFormData.triggered || false}
-                      onCheckedChange={(checked) => setEditFormData({ ...editFormData, triggered: checked as boolean })}
-                    />
-                    <Label htmlFor="edit-triggered">Triggered</Label>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveEdit}>
-                  Save Changes
-                </Button>
-              </div>
-            </div>
+            <TableForm
+              formData={editFormData}
+              setFormData={setEditFormData}
+              errors={editFormErrors}
+              joinKeysJson={editJoinKeysJson}
+              setJoinKeysJson={setEditJoinKeysJson}
+              modelNames={modelNames}
+              tables={tables}
+              dataSources={dataSources}
+              isEdit={true}
+              onSubmit={handleSaveEdit}
+              onCancel={() => setEditDialogOpen(false)}
+              loading={loading}
+            />
           )}
         </DialogContent>
       </Dialog>
@@ -1599,268 +1679,23 @@ const Tables = () => {
               Provide required information and settings to create a new table.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-6">
-            {/* Basic Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium border-b pb-2">Basic Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name *</Label>
-                  <Input
-                    id="name"
-                    value={createFormData.name}
-                    onChange={(e) => setCreateFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter table name"
-                    className={formErrors.name ? "border-red-500" : ""}
-                  />
-                  {formErrors.name && (
-                    <p className="text-sm text-red-600">{formErrors.name}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="tableName">Table Name *</Label>
-                  <Input
-                    id="tableName"
-                    value={createFormData.tableName}
-                    onChange={(e) => setCreateFormData(prev => ({ ...prev, tableName: e.target.value }))}
-                    placeholder="Enter database table name"
-                    className={formErrors.tableName ? "border-red-500" : ""}
-                  />
-                  {formErrors.tableName && (
-                    <p className="text-sm text-red-600">{formErrors.tableName}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="modelName">Model Name *</Label>
-                  <Input
-                    id="modelName"
-                    value={createFormData.modelName}
-                    onChange={(e) => setCreateFormData(prev => ({ ...prev, modelName: e.target.value }))}
-                    placeholder="Enter model name"
-                    className={formErrors.modelName ? "border-red-500" : ""}
-                  />
-                  {formErrors.modelName && (
-                    <p className="text-sm text-red-600">{formErrors.modelName}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="parentName">Parent Name</Label>
-                  <Select
-                    value={createFormData.parentName || ''}
-                    onValueChange={(value) => setCreateFormData(prev => ({ ...prev, parentName: value }))}
-                    disabled={!createFormData.modelName}
-                  >
-                    <SelectTrigger id="parentName">
-                      <SelectValue placeholder="Select parent table" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {tables
-                        .filter(t => t.modelName && createFormData.modelName && t.modelName.toLowerCase() === createFormData.modelName.toLowerCase())
-                        .map((t) => (
-                          <SelectItem key={t.configId} value={t.name || ''}>
-                            {t.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="label">Label</Label>
-                <Textarea
-                  id="label"
-                  value={createFormData.label}
-                  onChange={(e) => setCreateFormData(prev => ({ ...prev, label: e.target.value }))}
-                  placeholder="Enter table description/label"
-                  rows={3}
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Key Configuration */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium border-b pb-2">Key Configuration</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="primaryKey">Primary Key</Label>
-                  <Input
-                    id="primaryKey"
-                    value={createFormData.primaryKey?.join(', ') || ''}
-                    onChange={(e) => setCreateFormData(prev => ({ 
-                      ...prev, 
-                      primaryKey: e.target.value.split(',').map(k => k.trim()).filter(k => k) 
-                    }))}
-                    placeholder="Enter primary keys (comma separated)"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="objectKey">Object Key</Label>
-                  <Input
-                    id="objectKey"
-                    value={createFormData.objectKey}
-                    onChange={(e) => setCreateFormData(prev => ({ ...prev, objectKey: e.target.value }))}
-                    placeholder="Enter object key"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="sequenceKey">Sequence Key</Label>
-                  <Input
-                    id="sequenceKey"
-                    value={createFormData.sequenceKey}
-                    onChange={(e) => setCreateFormData(prev => ({ ...prev, sequenceKey: e.target.value }))}
-                    placeholder="Enter sequence key"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="auditColumn">Audit Column</Label>
-                  <Input
-                    id="auditColumn"
-                    value={createFormData.auditColumn}
-                    onChange={(e) => setCreateFormData(prev => ({ ...prev, auditColumn: e.target.value }))}
-                    placeholder="Enter audit column"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Complex Fields */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium border-b pb-2">Complex Configuration</h3>
-              
-              {/* Join Keys */}
-              <div className="space-y-2">
-                <Label>Join Keys</Label>
-                <Textarea
-                  placeholder="Enter join keys as JSON (e.g., [{&quot;parentKey&quot;: {&quot;field&quot;: &quot;id&quot;}, &quot;childKey&quot;: {&quot;field&quot;: &quot;parent_id&quot;}}])"
-                  value={createJoinKeysJson}
-                  onChange={(e) => setCreateJoinKeysJson(e.target.value)}
-                  className="min-h-[100px]"
-                />
-              </div>
-
-              {/* Dependencies */}
-              <div className="space-y-2">
-                <Label>Dependencies</Label>
-                <DependenceEditor
-                  dependencies={createFormData.dependOn || []}
-                  onChange={(dependencies) => setCreateFormData(prev => ({ ...prev, dependOn: dependencies }))}
-                />
-              </div>
-
-              {/* Conditions */}
-              <div className="space-y-2">
-                <Label>Conditions</Label>
-                <ConditionEditor
-                  conditions={createFormData.conditions || []}
-                  onChange={(conditions) => setCreateFormData(prev => ({ ...prev, conditions }))}
-                />
-              </div>
-
-              {/* JSON Columns */}
-              <div className="space-y-2">
-                <Label>JSON Columns</Label>
-                <JsonColumnEditor
-                  jsonColumns={createFormData.jsonColumns || []}
-                  onChange={(jsonColumns) => setCreateFormData(prev => ({ ...prev, jsonColumns }))}
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Flags and Data Source */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium border-b pb-2">Flags and Data Source</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="dataSourceId">Data Source</Label>
-                  <Select
-                    value={createFormData.dataSourceId || ''}
-                    onValueChange={(value) => setCreateFormData(prev => ({ ...prev, dataSourceId: value }))}
-                  >
-                    <SelectTrigger id="dataSourceId">
-                      <SelectValue placeholder="Select data source" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {dataSources.map((ds) => {
-                        const id = ds.dataSourceId ?? ds.id ?? ds.name;
-                        const label = ds.name ?? id;
-                        return (
-                          <SelectItem key={id} value={String(id)}>
-                            {label}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ignoredColumns">Ignored Columns</Label>
-                  <Input
-                    id="ignoredColumns"
-                    value={createFormData.ignoredColumns?.join(', ') || ''}
-                    onChange={(e) => setCreateFormData(prev => ({ 
-                      ...prev, 
-                      ignoredColumns: e.target.value.split(',').map(c => c.trim()).filter(c => c) 
-                    }))}
-                    placeholder="Enter ignored columns (comma separated)"
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="isList"
-                    checked={createFormData.isList || false}
-                    onCheckedChange={(checked) => setCreateFormData(prev => ({ ...prev, isList: !!checked }))}
-                  />
-                  <Label htmlFor="isList">Is List</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="triggered"
-                    checked={createFormData.triggered || false}
-                    onCheckedChange={(checked) => setCreateFormData(prev => ({ ...prev, triggered: !!checked }))}
-                  />
-                  <Label htmlFor="triggered">Triggered</Label>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-3 pt-4 border-t">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => {
-                  setCreateDialogOpen(false);
-                  resetCreateForm();
-                }}
-                disabled={createLoading}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="button" 
-                onClick={handleCreateTable}
-                disabled={createLoading}
-              >
-                {createLoading ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Table
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
+          <TableForm
+            formData={createFormData}
+            setFormData={(data) => setCreateFormData(data as CollectorTableConfig)}
+            errors={formErrors}
+            joinKeysJson={createJoinKeysJson}
+            setJoinKeysJson={setCreateJoinKeysJson}
+            modelNames={modelNames}
+            tables={tables}
+            dataSources={dataSources}
+            isEdit={false}
+            onSubmit={handleCreateTable}
+            onCancel={() => {
+              setCreateDialogOpen(false);
+              resetCreateForm();
+            }}
+            loading={createLoading}
+          />
         </DialogContent>
       </Dialog>
 
