@@ -32,7 +32,6 @@ import {
   getCategories
 } from '@/services/metricsManagementService';
 import { getSemanticModels } from '@/services/semanticModelService';
-import { SemanticModel } from '@/model/semanticModel';
 import DerivedMetricParams from '@/components/DerivedMetricParams';
 import CategoryManagement from '@/components/metrics/CategoryManagement';
 import { useToast } from '@/hooks/use-toast';
