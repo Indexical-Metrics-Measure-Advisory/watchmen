@@ -3,6 +3,7 @@
  * 包含API调用和Mock数据
  */
 
+import { getServiceHost } from '@/utils/utils';
 import {
   DataProduct,
   DataCatalogQuery,
@@ -376,7 +377,7 @@ const mockStats: DataCatalogStats = {
  * 数据目录服务类
  */
 export class DataCatalogService {
-  private baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3030';
+  private baseUrl = getServiceHost();
 
   /**
    * 获取数据产品列表

@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { getServiceHost } from './utils';
+import { getServiceHost, getWatchmenCoreHost } from './utils';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -15,7 +15,7 @@ interface AppConfig {
 
 const config: AppConfig = {
   apiBaseUrl: getServiceHost(),
-  watchmenCore :process.env.VITE_WATCHMEN_API_BASE_URL,
+  watchmenCore : getWatchmenCoreHost(),
   useMockData: process.env.USE_MOCK_DATA === 'true',
   analyticsKey: process.env.ANALYTICS_KEY,
   authSecret: process.env.AUTH_SECRET,
