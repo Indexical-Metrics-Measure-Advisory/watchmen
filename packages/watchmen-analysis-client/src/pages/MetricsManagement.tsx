@@ -349,12 +349,17 @@ const MetricsManagement: React.FC = () => {
         
         <main className="flex-1 p-6 space-y-6 overflow-y-auto">
           {/* Top Header & Actions */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Metrics Library</h1>
-              <p className="text-muted-foreground mt-1">
-                Define, manage, and track your key performance indicators across {categories?.length || 0} categories.
-              </p>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-primary/10 rounded-xl">
+                <BarChart3 className="h-8 w-8 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold tracking-tight">Metrics Library</h1>
+                <p className="text-sm text-muted-foreground">
+                  Define, manage, and track your key performance indicators across {categories?.length || 0} categories.
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button 
