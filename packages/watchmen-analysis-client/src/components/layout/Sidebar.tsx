@@ -134,13 +134,30 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     )}>
       <div className="p-4 border-b border-border/50 relative">
         <div className={cn(
-          "text-lg font-medium flex items-center gap-2 px-2",
+          "flex items-center gap-3 px-2",
           collapsed && "justify-center"
         )}>
-          <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
-            <BrainCircuit className="h-4 w-4 text-white" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shrink-0 shadow-sm">
+            <svg 
+              width="20" 
+              height="20" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2.5" 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              className="text-white"
+            >
+              <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+            </svg>
           </div>
-          {!collapsed && <span>{import.meta.env.VITE_APP_TITLE || 'Watchmen'}</span>}
+          {!collapsed && (
+            <div className="flex flex-col">
+              <span className="text-xl font-bold tracking-tight text-foreground leading-none">{import.meta.env.VITE_APP_TITLE || 'Watchmen'}</span>
+              <span className="text-xs text-muted-foreground font-medium leading-tight mt-1">Analytics Platform</span>
+            </div>
+          )}
         </div>
         <button
           onClick={toggleSidebar}
