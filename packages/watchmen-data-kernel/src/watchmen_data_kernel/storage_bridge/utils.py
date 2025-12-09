@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -44,24 +44,55 @@ def get_value_from(
 			if isinstance(data, str):
 				return data
 			elif isinstance(data, list):
-				return ','.join(map(str, set(data)))
+				return ','.join(map(str, data))
+			else:
+				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
+		elif current_name == VariablePredefineFunctions.DISTINCT:
+			if isinstance(data, str):
+				return data
+			elif isinstance(data, list):
+				return list(set(data))
 			else:
 				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
 		elif current_name == VariablePredefineFunctions.MIN:
-			if isinstance(data, list):
+			if isinstance(data, str):
+				return data
+			elif isinstance(data, list):
 				new_data = [element for element in data if element is not None]
 				if len(new_data) == 0:
 					return None
 				else:
+					if not isinstance(new_data[0], (int, date, datetime, time)):
+						raise DataKernelException(
+							f'Invalid type for MIN function:[key={name}, current={current_name}] from [{data}].'
+						)
+					valid_type = type(new_data[0])
+					for elem in new_data[1:]:
+						if type(elem) != valid_type:
+							raise DataKernelException(
+								f'Type mismatch in MIN function:[key={name}, current={current_name}] from [{data}].'
+							)
 					return min(new_data)
 			else:
 				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
 		elif current_name == VariablePredefineFunctions.MAX:
-			if isinstance(data, list):
+			if isinstance(data, str):
+				return data
+			elif isinstance(data, list):
 				new_data = [element for element in data if element is not None]
 				if len(new_data) == 0:
 					return None
 				else:
+					if not isinstance(new_data[0], (int, date, datetime, time)):
+						raise DataKernelException(
+							f'Invalid type for MAX function:[key={name}, current={current_name}] from [{data}].'
+						)
+					valid_type = type(new_data[0])
+					for elem in new_data[1:]:
+						if type(elem) != valid_type:
+							raise DataKernelException(
+								f'Type mismatch in MAX function:[key={name}, current={current_name}] from [{data}].'
+							)
 					return max(new_data)
 			else:
 				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
