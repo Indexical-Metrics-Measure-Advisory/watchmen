@@ -40,6 +40,7 @@ class VariablePredefineFunctions(str, Enum):
 	MAX = '&max',
 	MIN = '&min',
 	FROM_PREVIOUS_TRIGGER_DATA = '&old',
+	DISTINCT = "&distinct"
 
 	DAY_DIFF = '&dayDiff',
 	MONTH_DIFF = '&monthDiff',
@@ -48,18 +49,6 @@ class VariablePredefineFunctions(str, Enum):
 	DATE_FORMAT = '&fmtDate'
 	NOW = '&now'
 	
-	LEN = '&len'
-	SLICE = '&slice'
-	FIND = '&find'
-	INDEX = '&index'
-	STARTSWITH = '&startswith'
-	ENDSWITH = '&endswith'
-	STRIP = '&strip'
-	REPLACE = '&replace'
-	UPPER = '&upper'
-	LOWER = '&lower'
-	CONTAINS = '&contains'
-	SPLIT = '&split'
 	
 	
 class ConstantParameter(Parameter):
