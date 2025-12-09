@@ -13,7 +13,7 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Database, Settings, Table, Layers, Home, Activity, Search } from 'lucide-react';
+import { Database, Settings, Table, Layers, Home, Activity, Search, Sparkles } from 'lucide-react';
 import { FEATURE_FLAGS } from '@/App';
 
 const menuItems = [
@@ -62,9 +62,14 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2">
-          <Database className="h-6 w-6 text-blue-600" />
-          <span className="font-bold text-lg">{appTitle}</span>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-600 text-white">
+            <Sparkles className="h-6 w-6" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-bold text-xl leading-none">{appTitle}</span>
+            <span className="text-xs font-medium text-muted-foreground">Ingestion Platform</span>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
