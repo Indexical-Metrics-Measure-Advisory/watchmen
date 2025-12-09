@@ -37,6 +37,11 @@ class TimeGranularity(Enum):
     YEAR = "year"
 
 
+class SemanticModelSourceType(str, Enum):
+    TOPIC = "topic"
+    SUBJECT = "subject"
+
+
 class ValidityParams(BaseModel):
     """Validity parameters"""
     model_config = ConfigDict(use_enum_values=True)
@@ -199,7 +204,7 @@ class SemanticModel(ExtendedBaseModel, TenantBasedTuple, Auditable,OptimisticLoc
     defaults: Optional[SemanticModelDefaults] = None
     primary_entity: Optional[str] = None
     topicId:Optional[str] = None
-    sourceType:Optional[str] = None
+    sourceType:Optional[SemanticModelSourceType] = None
 
 
     @classmethod

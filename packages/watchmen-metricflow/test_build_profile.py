@@ -10,7 +10,14 @@ sys.path.append(os.path.abspath("../watchmen-meta/src"))
 sys.path.append(os.path.abspath("../watchmen-auth/src"))
 sys.path.append(os.path.abspath("../watchmen-utilities/src"))
 sys.path.append(os.path.abspath("../watchmen-storage/src"))
+sys.path.append(os.path.abspath("../watchmen-storage-rds/src"))
+sys.path.append(os.path.abspath("../watchmen-storage-mysql/src"))
+sys.path.append(os.path.abspath("../watchmen-storage-postgresql/src"))
+sys.path.append(os.path.abspath("../watchmen-storage-mssql/src"))
+sys.path.append(os.path.abspath("../watchmen-storage-oracle/src"))
 sys.path.append(os.path.abspath("../watchmen-indicator-surface/src"))
+sys.path.append(os.path.abspath("../watchmen-indicator-kernel/src"))
+sys.path.append(os.path.abspath("../watchmen-data-kernel/src"))
 
 from watchmen_metricflow.service.meta_service import build_profile
 from watchmen_metricflow.model.semantic import SemanticModel

@@ -4,11 +4,12 @@ from watchmen_auth import PrincipalService
 from watchmen_indicator_surface.util import trans_readonly, trans
 from watchmen_meta.admin import TopicService
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
+from watchmen_meta.console import SubjectService
 from watchmen_meta.system import DataSourceService
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
 from watchmen_metricflow.meta.semantic_meta_service import SemanticModelService
 from watchmen_metricflow.model.metrics import Metric, MetricWithCategory
-from watchmen_metricflow.model.semantic import SemanticModel
+from watchmen_metricflow.model.semantic import SemanticModel, SemanticModelSourceType
 from watchmen_model.common import TenantId
 from watchmen_model.system import DataSource, DataSourceType
 
@@ -27,6 +28,9 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 
 def get_data_source_service(principal_service: PrincipalService) -> DataSourceService:
     return DataSourceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+def get_subject_service(principal_service: PrincipalService) -> SubjectService:
+    return SubjectService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
 async def load_metrics_by_tenant_id(principal_service) -> List[Metric]:
@@ -88,7 +92,7 @@ def save_semantic_model(principal_service: PrincipalService, semantic_model: Sem
 def build_profile(semantic_model: SemanticModel, principal_service: PrincipalService):
     source_type = semantic_model.sourceType
 
-    if source_type == "topic":
+    if source_type == SemanticModelSourceType.TOPIC:
         topic_service = get_topic_service(principal_service)
         data_source_service = get_data_source_service(principal_service)
 
@@ -159,7 +163,7 @@ def build_profile(semantic_model: SemanticModel, principal_service: PrincipalSer
                 }
             }
 
-    elif source_type == "subject":
+    elif source_type == SemanticModelSourceType.SUBJECT:
         ## load subject by subject id
         # todo
         pass
