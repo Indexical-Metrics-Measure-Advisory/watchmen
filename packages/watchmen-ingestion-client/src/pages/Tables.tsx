@@ -17,6 +17,7 @@ import {
 } from '@/models/table';
 import { tableService, TableServiceError } from '@/services/tableService';
 import dataSourceService from '@/services/dataSourceService';
+import { modelService } from '@/services/modelService';
 
 // Helper components for complex data structures
 const ConditionEditor = ({ 
@@ -618,12 +619,20 @@ const Tables = () => {
   const [dataSourcesError, setDataSourcesError] = useState<string | null>(null);
 
   // Unique model names for filter options
-  const modelNames = React.useMemo(() => {
-    const names = (tables || [])
-      .map(t => t.modelName)
-      .filter((n): n is string => !!n);
-    return Array.from(new Set(names));
-  }, [tables]);
+  const [modelNames, setModelNames] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const models = await modelService.getAllModels();
+        const names = models.map(m => m.modelName).filter((n): n is string => !!n);
+        setModelNames(Array.from(new Set(names)));
+      } catch (error) {
+        console.error('Failed to fetch models:', error);
+      }
+    };
+    fetchModels();
+  }, []);
 
   // Function to fetch table data
   const fetchTables = async () => {
