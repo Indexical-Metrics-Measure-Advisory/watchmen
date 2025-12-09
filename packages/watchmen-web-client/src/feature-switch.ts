@@ -14,8 +14,26 @@ export const isPluginEnabled = () => process.env.REACT_APP_PLUGIN === 'true';
 export const isPipelineSimulatorEnabled = () => process.env.REACT_APP_PIPELINE_SIMULATOR_ENABLED === 'true';
 export const isAiModelEnabled = () => process.env.REACT_APP_AI_MODEL_ENABLED === 'true';
 export const getWebAppEnvironment = () => process.env.REACT_APP_WEB_APP_ENV;
-export const getIngestionUrl = () => process.env.REACT_APP_INGESTION_URL;
-export const getMetricsUrl = () => process.env.REACT_APP_METRICS_URL;
+
+const isLocalhost = () => {
+	const hostname = window.location.hostname;
+	return hostname === 'localhost' || hostname === '127.0.0.1';
+};
+
+export const getIngestionUrl = () => {
+	if (isLocalhost()) {
+		return process.env.REACT_APP_INGESTION_URL;
+	} else {
+		return window.location.origin + '/ingest/';
+	}
+};
+export const getMetricsUrl = () => {
+	if (isLocalhost()) {
+		return process.env.REACT_APP_METRICS_URL;
+	} else {
+		return window.location.origin + '/analysis/';
+	}
+};
 const asNumber = (value: string | undefined, defaultValue: number): number => {
 	try {
 		const v = parseInt(value ?? '');
