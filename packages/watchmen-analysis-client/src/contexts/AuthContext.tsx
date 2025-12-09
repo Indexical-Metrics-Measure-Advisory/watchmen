@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { authService, User, Token, LoginCredentials, LoginConfiguration, SSOTypes } from '@/services/authService';
 
 interface AuthContextType {
@@ -28,6 +29,8 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loginConfig, setLoginConfig] = useState<LoginConfiguration | null>(null);
@@ -36,6 +39,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     initializeAuth();
   }, []);
+
+  useEffect(() => {
+    if (!isLoading && !user && location.pathname !== '/login') {
+      navigate('/login');
+    }
+  }, [isLoading, user, location.pathname, navigate]);
 
   const initializeAuth = async () => {
     setIsLoading(true);

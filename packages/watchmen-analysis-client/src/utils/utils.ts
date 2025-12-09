@@ -5,12 +5,19 @@ export const getServiceHost = (): string => {
   } else if (import.meta.env.VITE_FORCE_SERVICE_URL === 'true') {
       return import.meta.env.VITE_API_BASE_URL!;
   } else {
-      return `${window.location.protocol}//${window.location.host}/watchmen`;
+      return `${window.location.protocol}//${window.location.host}/watchmen/metric`;
   }
 };
 
 export const getWatchmenCoreHost = (): string => {
-  return import.meta.env.VITE_WATCHMEN_API_BASE_URL!;
+   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return import.meta.env.VITE_WATCHMEN_API_BASE_URL!;
+  } else if (import.meta.env.VITE_FORCE_SERVICE_URL === 'true') {
+      return import.meta.env.VITE_WATCHMEN_API_BASE_URL!;
+  } else {
+      return `${window.location.protocol}//${window.location.host}/watchmen`;
+  }
+ 
 };
 
 export const getClientHost = (): string => {
