@@ -4,8 +4,10 @@ from typing import Any, Callable, List, Optional, Tuple
 from sqlalchemy import select, Table, text
 
 from watchmen_model.admin import FactorType, Topic
-from watchmen_storage import as_table_name, EntityCriteria, EntityFinder, EntitySort, Literal
+from watchmen_storage import as_table_name, EntityCriteria, EntityFinder, EntitySort, Literal, EntityLimitedFinder, \
+	EntityList
 from watchmen_storage_rds import build_sort_for_statement, SQLAlchemyStatement, StorageRDS, TopicDataStorageRDS
+from watchmen_utilities import ArrayHelper
 from .table_creator import build_columns_script, build_indexes_script, build_unique_indexes_script, build_table_script
 from .where_build import build_criteria_for_statement, build_literal
 
@@ -13,6 +15,16 @@ logger = getLogger(__name__)
 
 
 class StorageMSSQL(StorageRDS):
+	
+	def find_for_update_skip_locked(self, finder: EntityLimitedFinder) -> EntityList:
+		table = self.find_table(finder.name)
+		statement = select(table).with_hint(table, "WITH (UPDLOCK, READPAST)", dialect_name="mssql")
+		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
+		statement = self.build_sort_for_statement(statement, finder.sort)
+		statement = self.build_offset_for_statement(statement, finder.limit, 1)
+		results = self.connection.execute(statement).mappings().all()
+		return ArrayHelper(results).map(lambda x: dict(x)).map(finder.shaper.deserialize).to_list()
+	
 	def build_criteria_for_statement(
 			self, tables: List[Table], statement: SQLAlchemyStatement,
 			criteria: EntityCriteria,
