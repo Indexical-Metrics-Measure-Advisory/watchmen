@@ -62,7 +62,7 @@ def get_value_from(
 				if len(new_data) == 0:
 					return None
 				else:
-					if not isinstance(new_data[0], (int, date, datetime, time)):
+					if not isinstance(new_data[0], (int, float, Decimal, date, datetime, time)):
 						raise DataKernelException(
 							f'Invalid type for MIN function:[key={name}, current={current_name}] from [{data}].'
 						)
@@ -83,7 +83,7 @@ def get_value_from(
 				if len(new_data) == 0:
 					return None
 				else:
-					if not isinstance(new_data[0], (int, date, datetime, time)):
+					if not isinstance(new_data[0], (int, float, Decimal, date, datetime, time)):
 						raise DataKernelException(
 							f'Invalid type for MAX function:[key={name}, current={current_name}] from [{data}].'
 						)
