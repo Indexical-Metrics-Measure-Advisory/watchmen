@@ -6,7 +6,7 @@ CREATE TABLE metrics
     type         VARCHAR(50) NOT NULL,
     type_params  JSONB,
     filter       TEXT,
-    category     VARCHAR(50),
+    categoryId     VARCHAR(50),
     metadata     JSONB,
     label        VARCHAR(255),
     config       JSONB,

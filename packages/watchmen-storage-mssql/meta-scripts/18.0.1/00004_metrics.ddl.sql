@@ -4,7 +4,7 @@ CREATE TABLE metrics
     name         VARCHAR(128) NOT NULL,
     description  NVARCHAR(MAX),
     type         VARCHAR(50) NOT NULL,
-    category     VARCHAR(50) ,
+    categoryId     VARCHAR(50) ,
     type_params  NVARCHAR(MAX),
     filter       NVARCHAR(MAX),
     metadata     NVARCHAR(MAX),

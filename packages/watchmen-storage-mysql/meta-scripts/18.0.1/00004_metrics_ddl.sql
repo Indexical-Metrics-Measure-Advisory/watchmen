@@ -5,7 +5,7 @@ CREATE TABLE metrics
     description  TEXT,
     type         VARCHAR(50) NOT NULL,
     type_params  JSON,
-    category     VARCHAR(50) ,
+    categoryId     VARCHAR(50) ,
     filter       TEXT,
     metadata     JSON,
     label        VARCHAR(255),
