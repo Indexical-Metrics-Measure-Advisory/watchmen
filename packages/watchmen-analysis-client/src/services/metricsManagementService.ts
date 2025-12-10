@@ -352,12 +352,11 @@ export const getMetrics = async (filter?: MetricFilter): Promise<MetricDefinitio
         const filtered = filter ? applyMetricFilters(metrics, filter) : metrics;
         // If real-time returns empty list, fall back to mock to keep UI useful
 
-        console.log('Real-time metrics:', filtered);
-        if (Array.isArray(filtered) && filtered.length > 0) {
-          return filtered;
-        }
-        const mock = getMockMetricDefinitions();
-        return filter ? applyMetricFilters(mock, filter) : mock;
+        // console.log('Real-time metrics:', filtered);
+       
+        return filtered;
+        // const mock = getMockMetricDefinitions();
+        // return filter ? applyMetricFilters(mock, filter) : mock;
       } catch (error) {
         console.warn('Failed to fetch real-time metrics, falling back to mock data:', error);
         // Fall through to mock data
