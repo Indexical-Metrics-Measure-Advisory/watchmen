@@ -3,11 +3,8 @@ import {
 	ICON_ADMIN,
 	ICON_CATALOG,
 	ICON_CONSANGUINITY,
-	ICON_CONSOLE,
 	ICON_END_USER,
 	ICON_HOME,
-	ICON_IDW,
-	ICON_IMPORT,
 	ICON_LOGOUT,
 	ICON_RULE_DEFINE,
 	ICON_SETTINGS,
@@ -23,8 +20,7 @@ import {SideMenuSwitchWorkbench} from '@/widgets/basic/side-menu/side-menu-switc
 import {SideMenuUser} from '@/widgets/basic/side-menu/side-menu-user';
 import {useSideMenuRoutes} from '@/widgets/basic/side-menu/use-side-menu-routes';
 import {useSideMenuWidth} from '@/widgets/basic/side-menu/use-side-menu-width';
-import {isAdminAvailable, isConsoleAvailable, isIndicatorAvailable, isIngestionAvailable, isMetricsAvailable} from '@/widgets/common-settings/workbench-utils';
-import { Lang } from '@/widgets/langs';
+import {isAdminAvailable} from '@/widgets/common-settings/workbench-utils';
 import React from 'react';
 import {matchPath, useLocation} from 'react-router-dom';
 import styled from 'styled-components';

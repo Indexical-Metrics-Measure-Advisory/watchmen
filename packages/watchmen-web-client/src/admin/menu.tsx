@@ -1,5 +1,4 @@
 import {
-	getIngestionUrl,
 	isAiModelEnabled,
 	isMultipleDataSourcesEnabled,
 	isPipelineSimulatorEnabled,
@@ -16,8 +15,6 @@ import {
 	ICON_ENUM,
 	ICON_EXTERNAL_WRITERS,
 	ICON_HOME,
-	ICON_IDW,
-	ICON_IMPORT,
 	ICON_LOGOUT,
 	ICON_MONITOR_LOGS,
 	ICON_PIPELINE,
@@ -26,7 +23,6 @@ import {
 	ICON_REPORT,
 	ICON_SETTINGS,
 	ICON_SPACE,
-	ICON_STATISTICS,
 	ICON_SWITCH_WORKBENCH,
 	ICON_TENANT,
 	ICON_TOOLBOX,
@@ -45,10 +41,7 @@ import {useSideMenuRoutes} from '@/widgets/basic/side-menu/use-side-menu-routes'
 import {useSideMenuWidth} from '@/widgets/basic/side-menu/use-side-menu-width';
 import {
 	isConsoleAvailable,
-	isDataQualityAvailable,
-	isIndicatorAvailable,
-	isIngestionAvailable,
-	isMetricsAvailable
+	isDataQualityAvailable
 } from '@/widgets/common-settings/workbench-utils';
 import { Lang } from '@/widgets/langs';
 import React from 'react';

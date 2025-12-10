@@ -7,7 +7,7 @@ import {GridEventBusProvider, useGridEventBus} from '@/widgets/dataset-grid/grid
 import {GridEventTypes} from '@/widgets/dataset-grid/grid-event-bus-types';
 import {ColumnDefs, ColumnSortBy, DataPage} from '@/widgets/dataset-grid/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useCatalogEventBus} from '../catalog-event-bus';
 import {CatalogEventTypes} from '../catalog-event-bus-types';
 import {
@@ -24,7 +24,7 @@ const TopicDataGrid = (props: { topic: Topic }) => {
 	// eslint-disable-next-line
 	const [loading, setLoading] = useState(false);
 
-	const loadData = async (pageNumber: number, pageSize: number) => {
+	const loadData = useCallback(async (pageNumber: number, pageSize: number) => {
 		setLoading(true);
 		try {
 			const page = await fetchTopicData(topic.topicId, pageNumber, pageSize);
@@ -65,11 +65,11 @@ const TopicDataGrid = (props: { topic: Topic }) => {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [topic, fire]);
 
 	useEffect(() => {
 		loadData(1, 100);
-	}, [topic]);
+	}, [loadData]);
 
 	return <Grid hasColumns={true} pageable={true} onPageChange={(pageNumber) => loadData(pageNumber, 100)}/>;
 };

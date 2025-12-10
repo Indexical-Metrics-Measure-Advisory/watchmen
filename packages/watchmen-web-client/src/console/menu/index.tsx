@@ -4,11 +4,8 @@ import {
 	ICON_DASHBOARD,
 	ICON_DQC,
 	ICON_HOME,
-	ICON_IDW,
-	ICON_IMPORT,
 	ICON_LOGOUT,
 	ICON_SETTINGS,
-	ICON_STATISTICS,
 	ICON_SWITCH_WORKBENCH
 } from '@/widgets/basic/constants';
 import {SideMenuItem} from '@/widgets/basic/side-menu/side-menu-item';
@@ -22,10 +19,7 @@ import {useSideMenuRoutes} from '@/widgets/basic/side-menu/use-side-menu-routes'
 import {useSideMenuWidth} from '@/widgets/basic/side-menu/use-side-menu-width';
 import {
 	isAdminAvailable,
-	isDataQualityAvailable,
-	isIndicatorAvailable,
-	isIngestionAvailable,
-	isMetricsAvailable
+	isDataQualityAvailable
 } from '@/widgets/common-settings/workbench-utils';
 import {Lang} from '@/widgets/langs';
 import React from 'react';

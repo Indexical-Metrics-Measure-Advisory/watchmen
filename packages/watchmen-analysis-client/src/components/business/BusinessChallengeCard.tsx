@@ -79,6 +79,7 @@ const BusinessChallengeCard: React.FC<BusinessChallengeCardProps> = ({
           }
         ],
         supportedContentTypes: ['text/plain', 'application/json'],
+        isConnecting: false,
         metadata: {
           businessChallengeId: id,
           businessChallengeTitle: title,

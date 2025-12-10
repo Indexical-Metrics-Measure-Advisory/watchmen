@@ -526,12 +526,14 @@ const BIAnalysisPage: React.FC = () => {
         <main className="container py-8 space-y-8">
           {/* Page Header */}
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 border-b pb-6">
-            <div className="space-y-1">
-              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-primary/10 rounded-xl">
                 <LayoutDashboard className="h-8 w-8 text-primary" />
-                Metrics Analysis
-              </h1>
-              <p className="text-muted-foreground">Build multi-dimensional metrics, smart chart recommendations, and a card dashboard</p>
+              </div>
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold tracking-tight">Metrics Analysis</h1>
+                <p className="text-sm text-muted-foreground">Build multi-dimensional metrics, smart chart recommendations, and a card dashboard</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setConfigCollapsed(v => !v)} className="gap-2">

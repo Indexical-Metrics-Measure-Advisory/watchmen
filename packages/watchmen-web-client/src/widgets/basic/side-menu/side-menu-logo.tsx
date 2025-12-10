@@ -32,6 +32,11 @@ const SideMenuLogoTitle = styled.div.attrs({'data-widget': 'side-menu-logo-title
 	white-space  : nowrap;
 	line-height  : 1;
 `;
+const PlatformLabel = styled.span`
+	font-size    : 0.7em;
+	font-variant : petite-caps;
+	opacity      : 0.7;
+`;
 const EnvTag = styled.div.attrs({'data-widget': 'side-menu-logo-env'})`
 	font-size      : 0.8em;
 	font-weight    : var(--font-bold);
@@ -55,6 +60,7 @@ export const SideMenuLogo = (props: { title?: string; }) => {
 		<SideMenuLogoImage/>
 		<SideMenuLogoTitleContainer>
 			<SideMenuLogoTitle>{title}</SideMenuLogoTitle>
+			<PlatformLabel>Development Platform</PlatformLabel>
 			{env ? <EnvTag data-env={env}>{env}</EnvTag> : null}
 		</SideMenuLogoTitleContainer>
 	</SideMenuLogoContainer>;

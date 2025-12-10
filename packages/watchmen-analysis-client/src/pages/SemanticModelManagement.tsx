@@ -323,12 +323,15 @@ const SemanticModelManagement: React.FC = () => {
         
         <main className="container py-6 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Semantic Model Management</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage and configure semantic model definitions
-          </p>
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 border-b pb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-primary/10 rounded-xl">
+            <Database className="h-8 w-8 text-primary" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight">Semantic Model Management</h1>
+            <p className="text-sm text-muted-foreground">Manage and configure semantic model definitions</p>
+          </div>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
