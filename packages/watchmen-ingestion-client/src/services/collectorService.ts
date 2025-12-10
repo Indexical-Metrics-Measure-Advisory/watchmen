@@ -5,7 +5,7 @@ export interface TriggerEventRequest {
   startTime: string; // ISO datetime string
   endTime: string;   // ISO datetime string
   modelId: string;
-  tableNames: string[];
+  tableName: string;
 }
 
 // Monitor events (paginated) request payload
@@ -15,8 +15,8 @@ export interface MonitorEventsRequest {
 }
 
 class CollectorService {
-  async triggerEventByModel(payload: TriggerEventRequest): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/collector/trigger/event/model`, {
+  async triggerEventByTable(payload: TriggerEventRequest): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/collector/trigger/event/table`, {
       method: 'POST',
       headers: getDefaultHeaders(),
       body: JSON.stringify(payload),

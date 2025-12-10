@@ -23,7 +23,7 @@ const ConfigurationForm = () => {
   const [startTime, setStartTime] = useState<string>('');
   const [endTime, setEndTime] = useState<string>('');
   const [activeStep, setActiveStep] = useState(1);
-  const [selectedTables, setSelectedTables] = useState<string[]>([]);
+  const [selectedTableName, setSelectedTableName] = useState<string>('');
   const [timeError, setTimeError] = useState<string | null>(null);
 
   // Helpers for friendlier time inputs
@@ -173,9 +173,9 @@ const ConfigurationForm = () => {
         startTime: formatToMySQLDateTime(startTime),
         endTime: formatToMySQLDateTime(endTime),
         modelId: selectedModel,
-        tableNames: selectedTables,
+        tableName: selectedTableName || '',
       };
-      const response = await collectorService.triggerEventByModel(payload);
+      const response = await collectorService.triggerEventByTable(payload);
       
       toast({
         title: "Test Completed",
@@ -194,7 +194,7 @@ const ConfigurationForm = () => {
     }
   };
 
-  const isConfigurationComplete = selectedModule && selectedModel && selectedTables.length > 0;
+  const isConfigurationComplete = selectedModule && selectedModel && selectedTableName;
   
   const handleNextStep = () => {
     if (activeStep < 3) {
@@ -215,7 +215,7 @@ const ConfigurationForm = () => {
     setStartTime('');
     setEndTime('');
     // Reset tables selection when model changes so Step 3 can default-select all
-    setSelectedTables([]);
+    setSelectedTableName('');
   }, [selectedModule, selectedModel]);
 
   return (
@@ -264,7 +264,7 @@ const ConfigurationForm = () => {
           </div>
           <div className={`text-center ${activeStep >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>
             <div className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center ${activeStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
-              {selectedTables.length > 0 ? <CheckCircle className="h-5 w-5" /> : "3"}
+              {selectedTableName ? <CheckCircle className="h-5 w-5" /> : "3"}
             </div>
             <div className="text-xs mt-1">Table</div>
           </div>
@@ -348,7 +348,7 @@ const ConfigurationForm = () => {
               3
             </div>
             <Label className="text-lg font-semibold">Select Table</Label>
-            {selectedTables.length > 0 && <CheckCircle className="h-5 w-5 text-green-600" />}
+            {selectedTableName && <CheckCircle className="h-5 w-5 text-green-600" />}
           </div>
           <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
             <CardContent className="p-6">
@@ -356,10 +356,10 @@ const ConfigurationForm = () => {
                 selectedModule={selectedModule}
                 selectedModel={selectedModel}
                 selectedModelName={selectedModelName}
-                selectedTables={selectedTables}
-                onTablesSelect={setSelectedTables}
+                selectedTables={selectedTableName ? [selectedTableName] : []}
+                onTablesSelect={(tables) => setSelectedTableName(tables[0] || '')}
                 aiEnabled={isAiEnabled}
-                defaultSelectAll
+                isSingleSelection={true}
               />
             </CardContent>
           </Card>

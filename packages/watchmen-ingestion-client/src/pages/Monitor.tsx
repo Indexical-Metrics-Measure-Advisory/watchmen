@@ -47,6 +47,18 @@ const Monitor = () => {
     recordsRenderMs: 0,
   });
 
+  const detailsSectionRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to details section when an event is selected
+  useEffect(() => {
+    if (selectedEvent && detailsSectionRef.current) {
+      // Small delay to ensure the container has started its transition and is visible
+      setTimeout(() => {
+        detailsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [selectedEvent]);
+
   // Fetch first-level events when pageNumber/pageSize changes
   useEffect(() => {
     const fetchEvents = async () => {
@@ -305,7 +317,10 @@ const Monitor = () => {
         </Card>
 
         {/* Second-level: Details (stacked below) */}
-        <div className={`transition-all duration-300 ease-in-out ${selectedEvent ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none h-0 overflow-hidden'}`}>
+        <div 
+          ref={detailsSectionRef}
+          className={`transition-all duration-300 ease-in-out ${selectedEvent ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none h-0 overflow-hidden'}`}
+        >
           <Suspense fallback={<Card><CardContent><div className="py-6 space-y-3"><Skeleton className="h-6 w-full" /><Skeleton className="h-6 w-full" /></div></CardContent></Card>}>
             <EventDetailsPanel selectedEvent={selectedEvent} records={records} loadingRecords={loadingRecords} />
           </Suspense>

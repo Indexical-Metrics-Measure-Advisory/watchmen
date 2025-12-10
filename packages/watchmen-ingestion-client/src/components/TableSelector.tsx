@@ -15,6 +15,7 @@ interface TableSelectorProps {
   onTablesSelect: (tables: string[]) => void;
   aiEnabled: boolean;
   defaultSelectAll?: boolean;
+  isSingleSelection?: boolean;
 }
 
 const TableSelector: React.FC<TableSelectorProps> = ({
@@ -24,7 +25,8 @@ const TableSelector: React.FC<TableSelectorProps> = ({
   selectedTables,
   onTablesSelect,
   aiEnabled,
-  defaultSelectAll = false
+  defaultSelectAll = false,
+  isSingleSelection = false
 }) => {
   // Available tables state (normalized shape)
   const [availableTables, setAvailableTables] = React.useState<Array<{ id: string; name: string; description?: string; required?: boolean; aiSuggested?: boolean }>>([]);
@@ -62,11 +64,19 @@ const TableSelector: React.FC<TableSelectorProps> = ({
         const all = await tableService.getAllTables();
         const normalized = all
           .filter(t => !selectedModelName || t.modelName === selectedModelName)
-          .map(t => ({ id: t.configId || t.tableName || t.name, name: t.name || t.tableName || t.configId, description: t.label }));
+          .map(t => ({ 
+            id: t.tableName || t.name || t.configId, 
+            name: t.name || t.tableName || t.configId, 
+            description: t.label 
+          }));
 
         if (normalized.length === 0 && selectedModelName) {
           // Explicit filter by name yielded none; fall back to all tables for visibility
-          const fallback = all.map(t => ({ id: t.configId || t.tableName || t.name, name: t.name || t.tableName || t.configId, description: t.label }));
+          const fallback = all.map(t => ({ 
+            id: t.tableName || t.name || t.configId, 
+            name: t.name || t.tableName || t.configId, 
+            description: t.label 
+          }));
           setAvailableTables(fallback);
         } else if (normalized.length > 0) {
           setAvailableTables(normalized);
@@ -84,17 +94,21 @@ const TableSelector: React.FC<TableSelectorProps> = ({
 
   // Auto-select all tables when model changes and defaultSelectAll is true
   React.useEffect(() => {
-    if (!defaultSelectAll) return;
+    if (!defaultSelectAll || isSingleSelection) return;
     if (selectedTables.length > 0) return;
     if (availableTables.length === 0) return;
     onTablesSelect(availableTables.map(t => t.id));
   }, [availableTables]);
 
   const handleTableToggle = (tableId: string) => {
-    const newSelection = selectedTables.includes(tableId)
-      ? selectedTables.filter(id => id !== tableId)
-      : [...selectedTables, tableId];
-    onTablesSelect(newSelection);
+    if (isSingleSelection) {
+      onTablesSelect([tableId]);
+    } else {
+      const newSelection = selectedTables.includes(tableId)
+        ? selectedTables.filter(id => id !== tableId)
+        : [...selectedTables, tableId];
+      onTablesSelect(newSelection);
+    }
   };
 
   const selectRecommended = () => {
@@ -105,7 +119,7 @@ const TableSelector: React.FC<TableSelectorProps> = ({
   const [autoSelectDone, setAutoSelectDone] = React.useState(false);
 
   React.useEffect(() => {
-    if (!defaultSelectAll) return;
+    if (!defaultSelectAll || isSingleSelection) return;
     if (autoSelectDone) return;
     if (selectedTables.length > 0) return;
     if (availableTables.length === 0) return;
@@ -144,17 +158,23 @@ const TableSelector: React.FC<TableSelectorProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <p className="text-sm text-gray-600">Select tables to include in your data extraction</p>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={selectAll}>Select All</Button>
-          <Button variant="outline" size="sm" onClick={clearSelection}>Clear Selection</Button>
-          {aiEnabled && (
-            <Button variant="outline" size="sm" onClick={selectRecommended} className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              Select AI Recommended
-            </Button>
-          )}
-        </div>
+        <p className="text-sm text-gray-600">
+          {isSingleSelection 
+            ? "Select a table to include in your data extraction" 
+            : "Select tables to include in your data extraction"}
+        </p>
+        {!isSingleSelection && (
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={selectAll}>Select All</Button>
+            <Button variant="outline" size="sm" onClick={clearSelection}>Clear Selection</Button>
+            {aiEnabled && (
+              <Button variant="outline" size="sm" onClick={selectRecommended} className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                Select AI Recommended
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -169,11 +189,15 @@ const TableSelector: React.FC<TableSelectorProps> = ({
             onClick={() => handleTableToggle(table.id)}
           >
             <div className="flex items-start gap-3">
-              <Checkbox
-                checked={selectedTables.includes(table.id)}
-                onChange={() => handleTableToggle(table.id)}
-                className="mt-1"
-              />
+              {isSingleSelection ? (
+                <div className={`mt-1 h-4 w-4 rounded-full border border-primary ${selectedTables.includes(table.id) ? 'bg-primary' : 'bg-transparent'}`} />
+              ) : (
+                <Checkbox
+                  checked={selectedTables.includes(table.id)}
+                  onChange={() => handleTableToggle(table.id)}
+                  className="mt-1"
+                />
+              )}
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-semibold text-gray-900">{table.name}</h4>
