@@ -374,7 +374,7 @@ table_collector_table_config = Table(
 table_trigger_event = Table(
 	'trigger_event', meta_data,
 	create_pk('event_trigger_id', Integer),
-	create_date('start_time'), create_date('end_time'),
+	create_datetime('start_time'), create_datetime('end_time'),
 	create_bool('is_finished', False), create_int('status', False),
 	create_int('type', False),
 	create_str('table_name', 50), create_json('records'), create_str('pipeline_id', 50),
