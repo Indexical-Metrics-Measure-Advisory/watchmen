@@ -115,16 +115,6 @@ const mockCollectorConfigs: CollectorTableConfig[] = [
 // Use CollectorTableConfig directly
 const mockTables: CollectorTableConfig[] = mockCollectorConfigs;
 
-const mockTableStats = {
-  total: 2,
-  active: 2,
-  inactive: 0,
-  pending: 0,
-  bySchema: {
-    'public': 1,
-    'inventory': 1
-  }
-};
 
 /**
  * Custom Error Class for Table Service
@@ -506,32 +496,6 @@ export class TableService {
     }
   }
 
-  /**
-   * Get table statistics
-   */
-  async getTableStats(): Promise<{
-    total: number;
-    active: number;
-    inactive: number;
-    pending: number;
-    bySchema: Record<string, number>;
-  }> {
-    if (this.useMockData) {
-      return mockTableStats;
-    }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/tables/stats`);
-      if (!response.ok) throw new Error('Failed to fetch table statistics');
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching table statistics:', error);
-      if (this.useMockData) {
-        return mockTableStats;
-      }
-      throw error;
-    }
-  }
 
   /**
    * Set mock data mode

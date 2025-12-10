@@ -39,6 +39,7 @@ const Models = () => {
   const [editLoading, setEditLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [syncingModelId, setSyncingModelId] = useState<string | null>(null);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -142,8 +143,8 @@ const Models = () => {
       rawTopicCode: '',
       isParalleled: false,
       tenantId: user?.tenantId || '',
-      createdBy: user?.name || 'current_user',
-      lastModifiedBy: user?.name || 'current_user',
+      createdBy: user?.id || 'current_user',
+      lastModifiedBy: user?.id || 'current_user',
       moduleId: '',
       priority: 1
     });
@@ -186,6 +187,30 @@ const Models = () => {
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  const handleSyncRawTopic = async (model: Model) => {
+    try {
+      setSyncingModelId(model.modelId);
+      await modelService.syncRawTopicStructure(model.modelName);
+      
+      toast({
+        title: "Sync Successful",
+        description: `Raw topic structure for ${model.modelName} has been synced.`
+      });
+      setSuccessMessage(`Raw topic structure for ${model.modelName} has been synced.`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      console.error('Failed to sync raw topic:', err);
+      toast({
+        title: "Sync Failed",
+        description: `Failed to sync raw topic structure for ${model.modelName}.`,
+        variant: "destructive"
+      });
+      setError(`Failed to sync raw topic structure for ${model.modelName}.`);
+    } finally {
+      setSyncingModelId(null);
+    }
   };
 
   const handleCreate = () => {
@@ -478,14 +503,27 @@ const Models = () => {
                     {model.modelId}
                   </CardDescription>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => handleEdit(model)}
-                >
-                  <Edit className="h-4 w-4 text-gray-500 hover:text-blue-600" />
-                </Button>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleSyncRawTopic(model)}
+                    disabled={syncingModelId === model.modelId}
+                    title="Sync Raw Topic Structure"
+                  >
+                    <RefreshCw className={`h-4 w-4 text-gray-500 hover:text-green-600 ${syncingModelId === model.modelId ? 'animate-spin' : ''}`} />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8"
+                    onClick={() => handleEdit(model)}
+                    title="Edit Model"
+                  >
+                    <Edit className="h-4 w-4 text-gray-500 hover:text-blue-600" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>

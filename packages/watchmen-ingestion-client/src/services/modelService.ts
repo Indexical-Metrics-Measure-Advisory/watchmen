@@ -704,6 +704,36 @@ export class ModelService {
   }
 
   /**
+   * Sync raw topic structure
+   */
+  async syncRawTopicStructure(modelName: string): Promise<void> {
+    if (this.useMockData) {
+      // Mock implementation
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/ingest/config/model/sync/raw/topic?modelName=${encodeURIComponent(modelName)}`, {
+        method: 'GET',
+        headers: getDefaultHeaders()
+      });
+
+      if (!response.ok) {
+        throw new ModelServiceError(
+          `Failed to sync raw topic structure: ${response.status} ${response.statusText}`,
+          response.status
+        );
+      }
+    } catch (error) {
+      console.error('Error syncing raw topic structure:', error);
+      if (this.useMockData) {
+        return;
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Set mock data mode
    */
   setMockDataMode(useMockData: boolean): void {

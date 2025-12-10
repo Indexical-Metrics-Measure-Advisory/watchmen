@@ -29,50 +29,26 @@ const Index = () => {
     const loadStats = async () => {
       // Load Table Stats
       try {
-        const stats = await tableService.getTableStats();
-        if (stats && typeof stats.total === 'number') {
-          setTotalTables(stats.total);
-        } else {
-           // Fallback to getAllTables
-           try {
-             const tables = await tableService.getAllTables();
-             setTotalTables(tables.length);
-           } catch {}
-        }
+        const tables = await tableService.getAllTables();
+        setTotalTables(tables.length);
       } catch {
-         // Fallback to getAllTables if getTableStats fails
-         try {
-           const tables = await tableService.getAllTables();
-           setTotalTables(tables.length);
-         } catch {
-            // Last resort: collector configs
-            try {
-              const configs = await tableService.getAllCollectorConfigs();
-              setTotalTables(configs.length);
-            } catch {}
-         }
+        console.error('Error loading tables:');
       }
 
       // Load Model Stats
       try {
-        const stats = await modelService.getModelStats();
-        setTotalModels(stats.total);
+        const models = await modelService.getAllModels();
+        setTotalModels(models.length);
       } catch {
-        try {
-          const models = await modelService.getAllModels();
-          setTotalModels(models.length);
-        } catch {}
+         console.error('Error loading models:');
       }
 
       // Load Module Stats
       try {
-        const stats = await moduleService.getModuleStats();
-        setTotalModules(stats.total);
-      } catch {
-        try {
-          const modules = await moduleService.getAllModules();
+        const modules = await moduleService.getAllModules();
           setTotalModules(modules.length);
-        } catch {}
+      } catch {
+        console.error('Error loading modules:');
       }
     };
 
