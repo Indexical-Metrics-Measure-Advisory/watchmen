@@ -100,8 +100,8 @@ class SemanticModelShaper(UserBasedTupleShaper):
             'dimensions': SemanticModelShaper.serialize_dimensions(semantic_model.dimensions),
             'defaults': SemanticModelShaper.serialize_semantic_model_defaults(semantic_model.defaults) if semantic_model.defaults else None,
             'primary_entity': semantic_model.primary_entity,
-            "topicId":semantic_model.topicId,
-            "sourceType":semantic_model.sourceType
+            "topic_id":semantic_model.topicId,
+            "source_type":semantic_model.sourceType
         }
 
         row = TupleShaper.serialize_tenant_based(semantic_model, row)
@@ -121,8 +121,8 @@ class SemanticModelShaper(UserBasedTupleShaper):
             'dimensions': row.get('dimensions', []),
             'defaults': row.get('defaults'),
             'primary_entity': row.get('primary_entity'),
-            'topicId': row.get('topicId'),
-            'sourceType': row.get('sourceType'),
+            'topicId': row.get('topic_id'),
+            'sourceType': row.get('source_type'),
             
 
         }

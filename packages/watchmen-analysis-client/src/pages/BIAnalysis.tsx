@@ -33,11 +33,16 @@ import {
   Loader2,
   Trash2,
   LayoutTemplate,
-  RotateCcw
+  RotateCcw,
+  AlertTriangle,
+  Bell,
+  Webhook,
+  Mail,
+  PlayCircle
 } from 'lucide-react';
 import { ChartCard } from '@/components/bi/ChartCard';
 import { AnalysisBoard } from '@/components/bi/AnalysisBoard';
-import { BIChartCard, BICardSize, BIMetric, BIChartType } from '@/model/biAnalysis';
+import { BIChartCard, BICardSize, BIMetric, BIChartType, AlertConfig } from '@/model/biAnalysis';
 import { saveAnalysis, listAnalyses, getAnalysis, deleteAnalysis, updateAnalysis, updateAnalysisTemplate } from '@/services/biAnalysisService';
 import { metricsService } from '@/services/metricsService';
 import { getCategories as getRealCategories, getMetrics as getAllMetrics, findDimensionsByMetric } from '@/services/metricsManagementService';
@@ -75,6 +80,15 @@ const BIAnalysisPage: React.FC = () => {
   // preview
   const [previewData, setPreviewData] = useState<any[]>([]);
   const [previewType, setPreviewType] = useState<BIChartType>('line');
+
+  // Alert Configuration State
+  const [creationMode, setCreationMode] = useState<'chart' | 'alert'>('chart');
+  const [alertEnabled, setAlertEnabled] = useState(false);
+  const [alertOperator, setAlertOperator] = useState<'>' | '<' | '>=' | '<=' | '==' | '!='>('>');
+  const [alertValue, setAlertValue] = useState<string>('');
+  const [alertActionType, setAlertActionType] = useState<'email' | 'webhook' | 'notification' | 'process'>('notification');
+  const [alertActionTarget, setAlertActionTarget] = useState('');
+  const [alertDecision, setAlertDecision] = useState('');
 
   // board
   const [cards, setCards] = useState<BIChartCard[]>([]);
@@ -194,10 +208,11 @@ const BIAnalysisPage: React.FC = () => {
   const loadCardDataFor = async (card: BIChartCard) => {
     try {
       // If no dimensions selected, do not load data and keep empty
-      if (!card.selection.dimensions || card.selection.dimensions.length === 0) {
-        setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
-        return;
-      }
+    // Exception: Alert cards need data even without dimensions (aggregated total)
+    if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert') {
+      setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
+      return;
+    }
       const { start, end } = timeRangeToBounds(card.selection.timeRange);
       const req: MetricQueryRequest = {
         metric: card.metricId,
@@ -279,7 +294,8 @@ const BIAnalysisPage: React.FC = () => {
       }
 
       // If no dimensions selected, do not show chart/data
-      if (!selectedDims || selectedDims.length === 0) {
+      // Exception: Alert mode needs data (aggregated total)
+      if ((!selectedDims || selectedDims.length === 0) && creationMode !== 'alert') {
         if (alive) {
           setPreviewData([]);
           setPreviewType('bar');
@@ -291,7 +307,7 @@ const BIAnalysisPage: React.FC = () => {
         const { start, end } = timeRangeToBounds(timeRange);
         const req: MetricQueryRequest = {
           metric: selectedMetric.name,
-          group_by: selectedDims.length > 0 ? selectedDims : undefined,
+          group_by: (creationMode !== 'alert' && selectedDims.length > 0) ? selectedDims : undefined,
           start_time: start,
           end_time: end,
           order: ['asc'],
@@ -301,9 +317,15 @@ const BIAnalysisPage: React.FC = () => {
         const data = transformMetricFlowToChartData(resp);
         if (alive) {
           setPreviewData(data);
-          if (isTimeData(data)) setPreviewType('line');
-          else if (isGroupedData(data)) setPreviewType('groupedBar');
-          else setPreviewType('bar');
+          if (creationMode === 'alert') {
+            setPreviewType('alert');
+          } else if (isTimeData(data)) {
+            setPreviewType('line');
+          } else if (isGroupedData(data)) {
+            setPreviewType('groupedBar');
+          } else {
+            setPreviewType('bar');
+          }
         }
       } catch (e) {
         console.warn('Preview: failed to load real data, showing empty.', e);
@@ -316,7 +338,7 @@ const BIAnalysisPage: React.FC = () => {
     };
     loadPreview();
     return () => { alive = false; };
-  }, [selectedMetric, selectedDims, timeRange, selectedMetricDef]);
+  }, [selectedMetric, selectedDims, timeRange, selectedMetricDef, creationMode]);
 
   // templates list
   useEffect(() => {
@@ -375,29 +397,58 @@ const BIAnalysisPage: React.FC = () => {
       toast({ title: 'Please select a metric', description: 'Select a metric on the left before adding a card' });
       return;
     }
-    if (!selectedDims || selectedDims.length === 0) {
-      toast({ title: 'Select dimensions', description: 'Please select at least one dimension before adding to board' });
-      return;
-    }
-    // Prefer data-driven type; if no preview data yet, infer from selected dimensions
-    let chartTypeForBoard: BIChartType = chartTypeFromDims(selectedDims, availableDimsDetailed);
-    if (previewData.length > 0) {
-       if (isTimeData(previewData)) chartTypeForBoard = 'line';
-       else if (isGroupedData(previewData)) chartTypeForBoard = 'groupedBar';
-       else chartTypeForBoard = 'bar';
+
+    let newCard: BIChartCard;
+
+    if (creationMode === 'alert') {
+      const alertConfig: AlertConfig = {
+        enabled: true,
+        condition: {
+          operator: alertOperator,
+          value: Number(alertValue) || 0
+        },
+        nextAction: {
+          type: alertActionType,
+          target: alertActionTarget
+        },
+        decision: alertDecision
+      };
+
+      newCard = {
+        id: `card_${Date.now()}`,
+        title: `${selectedMetric.name} · Alert`,
+        metricId: selectedMetric.name,
+        chartType: 'alert',
+        size: 'md',
+        selection: { dimensions: [], timeRange: 'Past 30 days' },
+        alert: alertConfig
+      };
+    } else {
+      if (!selectedDims || selectedDims.length === 0) {
+        toast({ title: 'Select dimensions', description: 'Please select at least one dimension before adding to board' });
+        return;
+      }
+      // Prefer data-driven type; if no preview data yet, infer from selected dimensions
+      let chartTypeForBoard: BIChartType = chartTypeFromDims(selectedDims, availableDimsDetailed);
+      if (previewData.length > 0) {
+         if (isTimeData(previewData)) chartTypeForBoard = 'line';
+         else if (isGroupedData(previewData)) chartTypeForBoard = 'groupedBar';
+         else chartTypeForBoard = 'bar';
+      }
+  
+      newCard = {
+        id: `card_${Date.now()}`,
+        title: `${selectedMetric.name} · ${timeRange}`,
+        // Use metric name for backend metricFlow API compatibility
+        metricId: selectedMetric.name,
+        chartType: chartTypeForBoard,
+        size: 'md',
+        selection: { dimensions: selectedDims, timeRange }
+      };
     }
 
-    const newCard: BIChartCard = {
-      id: `card_${Date.now()}`,
-      title: `${selectedMetric.name} · ${timeRange}`,
-      // Use metric name for backend metricFlow API compatibility
-      metricId: selectedMetric.name,
-      chartType: chartTypeForBoard,
-      size: 'md',
-      selection: { dimensions: selectedDims, timeRange },
-    };
     setCards(prev => [...prev, newCard]);
-    toast({ title: 'Added', description: 'Card has been added to the analysis board' });
+    toast({ title: 'Added', description: `${creationMode === 'alert' ? 'Alert' : 'Chart'} has been added to the analysis board` });
     // Load real data for the newly added card
     void loadCardDataFor(newCard);
   };
@@ -422,6 +473,9 @@ const BIAnalysisPage: React.FC = () => {
 
   const resizeCard = (index: number, size: BICardSize) => {
     setCards(prev => prev.map((c, i) => i === index ? { ...c, size } : c));
+  };
+  const updateCard = (index: number, updatedCard: BIChartCard) => {
+    setCards(prev => prev.map((c, i) => i === index ? updatedCard : c));
   };
   const removeCard = (index: number) => {
     setCards(prev => prev.filter((_, i) => i !== index));
@@ -639,76 +693,152 @@ const BIAnalysisPage: React.FC = () => {
 
                 {/* Dimension Selection */}
                 {selectedMetric ? (
-                  <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-semibold text-muted-foreground uppercase">Dimensions</Label>
-                      {selectedDims.length > 0 && (
-                        <Badge variant="secondary" className="text-xs">
-                          {selectedDims.length} selected
-                        </Badge>
-                      )}
-                    </div>
+                  <Tabs value={creationMode} onValueChange={(v: any) => setCreationMode(v)} className="w-full">
+                    <TabsList className="w-full grid grid-cols-2 mb-4">
+                      <TabsTrigger value="chart" className="gap-2"><BarChart3 className="h-4 w-4"/> Analysis Chart</TabsTrigger>
+                      <TabsTrigger value="alert" className="gap-2"><AlertTriangle className="h-4 w-4"/> Alert Component</TabsTrigger>
+                    </TabsList>
 
-                    <Tabs value={selectedDimType || 'CATEGORICAL'} onValueChange={setSelectedDimType} className="w-full">
-                      <TabsList className="w-full grid grid-cols-2 mb-2">
-                        {Array.from(new Set(availableDimsDetailed.map(inferType))).sort().map(t => (
-                          <TabsTrigger key={t} value={t} className="text-xs">
-                            {t === 'TIME' ? 'Time' : 'Categorical'}
-                          </TabsTrigger>
-                        ))}
-                      </TabsList>
-                      
-                      <div className="relative mb-2">
-                         <Search className="absolute left-2 top-2.5 h-3 w-3 text-muted-foreground" />
-                         <Input
-                           value={dimSearch}
-                           onChange={(e) => setDimSearch(e.target.value)}
-                           placeholder="Filter dimensions..."
-                           className="h-8 pl-7 text-xs"
-                         />
+                    <TabsContent value="chart" className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase">Dimensions</Label>
+                        {selectedDims.length > 0 && (
+                          <Badge variant="secondary" className="text-xs">
+                            {selectedDims.length} selected
+                          </Badge>
+                        )}
                       </div>
 
-                      <ScrollArea className="h-[180px] rounded-md border p-2">
-                        <div className="grid grid-cols-1 gap-1">
-                          {filteredDims.map((d) => {
-                            const val = d.qualified_name || d.name;
-                            const label = d.description || d.qualified_name || d.name;
-                            const isChecked = selectedDims.includes(val);
-                            return (
-                              <label
-                                key={val}
-                                className={`flex items-center gap-2 px-2 py-1.5 rounded-sm cursor-pointer text-sm transition-colors ${
-                                  isChecked ? 'bg-accent/50' : 'hover:bg-accent/20'
-                                }`}
-                              >
-                                <Checkbox 
-                                  checked={isChecked} 
-                                  onCheckedChange={() => toggleDim(val)}
-                                  className="h-4 w-4"
-                                />
-                                <span className="truncate flex-1" title={label}>{label}</span>
-                              </label>
-                            );
-                          })}
+                      <Tabs value={selectedDimType || 'CATEGORICAL'} onValueChange={setSelectedDimType} className="w-full">
+                        <TabsList className="w-full grid grid-cols-2 mb-2">
+                          {Array.from(new Set(availableDimsDetailed.map(inferType))).sort().map(t => (
+                            <TabsTrigger key={t} value={t} className="text-xs">
+                              {t === 'TIME' ? 'Time' : 'Categorical'}
+                            </TabsTrigger>
+                          ))}
+                        </TabsList>
+                        
+                        <div className="relative mb-2">
+                           <Search className="absolute left-2 top-2.5 h-3 w-3 text-muted-foreground" />
+                           <Input
+                             value={dimSearch}
+                             onChange={(e) => setDimSearch(e.target.value)}
+                             placeholder="Filter dimensions..."
+                             className="h-8 pl-7 text-xs"
+                           />
                         </div>
-                      </ScrollArea>
-                    </Tabs>
 
-                    <div className="space-y-2">
-                      <Label className="text-xs font-semibold text-muted-foreground uppercase">Time Range</Label>
-                      <Select value={timeRange} onValueChange={setTimeRange}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Past 7 days">Past 7 days</SelectItem>
-                          <SelectItem value="Past 30 days">Past 30 days</SelectItem>
-                          <SelectItem value="Past 90 days">Past 90 days</SelectItem>
-                          <SelectItem value="Past year">Past year</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                        <ScrollArea className="h-[180px] rounded-md border p-2">
+                          <div className="grid grid-cols-1 gap-1">
+                            {filteredDims.map((d) => {
+                              const val = d.qualified_name || d.name;
+                              const label = d.description || d.qualified_name || d.name;
+                              const isChecked = selectedDims.includes(val);
+                              return (
+                                <label
+                                  key={val}
+                                  className={`flex items-center gap-2 px-2 py-1.5 rounded-sm cursor-pointer text-sm transition-colors ${
+                                    isChecked ? 'bg-accent/50' : 'hover:bg-accent/20'
+                                  }`}
+                                >
+                                  <Checkbox 
+                                    checked={isChecked} 
+                                    onCheckedChange={() => toggleDim(val)}
+                                    className="h-4 w-4"
+                                  />
+                                  <span className="truncate flex-1" title={label}>{label}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </ScrollArea>
+                      </Tabs>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase">Time Range</Label>
+                        <Select value={timeRange} onValueChange={setTimeRange}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Past 7 days">Past 7 days</SelectItem>
+                            <SelectItem value="Past 30 days">Past 30 days</SelectItem>
+                            <SelectItem value="Past 90 days">Past 90 days</SelectItem>
+                            <SelectItem value="Past year">Past year</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="alert" className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                      <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold text-muted-foreground uppercase">Condition</Label>
+                          <div className="flex gap-2">
+                            <Select value={alertOperator} onValueChange={(v: any) => setAlertOperator(v)}>
+                              <SelectTrigger className="w-[80px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value=">">{">"}</SelectItem>
+                                <SelectItem value="<">{"<"}</SelectItem>
+                                <SelectItem value=">=">{">="}</SelectItem>
+                                <SelectItem value="<=">{"<="}</SelectItem>
+                                <SelectItem value="==">{"="}</SelectItem>
+                                <SelectItem value="!=">{"!="}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Input 
+                              type="number" 
+                              placeholder="Threshold value" 
+                              value={alertValue} 
+                              onChange={e => setAlertValue(e.target.value)}
+                              className="flex-1"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold text-muted-foreground uppercase">Next Action</Label>
+                          <Select value={alertActionType} onValueChange={(v: any) => setAlertActionType(v)}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="notification">
+                                <div className="flex items-center gap-2"><Bell className="h-4 w-4"/> In-App Notification</div>
+                              </SelectItem>
+                              <SelectItem value="email">
+                                <div className="flex items-center gap-2"><Mail className="h-4 w-4"/> Email</div>
+                              </SelectItem>
+                              <SelectItem value="webhook">
+                                <div className="flex items-center gap-2"><Webhook className="h-4 w-4"/> Webhook</div>
+                              </SelectItem>
+                              <SelectItem value="process">
+                                <div className="flex items-center gap-2"><PlayCircle className="h-4 w-4"/> Trigger Process</div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Input 
+                            placeholder={alertActionType === 'email' ? 'Enter email address...' : alertActionType === 'webhook' ? 'Enter webhook URL...' : 'Target ID/User...'}
+                            value={alertActionTarget}
+                            onChange={e => setAlertActionTarget(e.target.value)}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold text-muted-foreground uppercase">Decision / Recommendation</Label>
+                          <textarea 
+                            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                            placeholder="Describe the recommended action or decision to be taken when this alert fires..."
+                            value={alertDecision}
+                            onChange={e => setAlertDecision(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+
                 ) : (
                   <div className="text-center py-8 text-muted-foreground bg-muted/30 rounded-lg border border-dashed">
                     <p className="text-sm">Select a metric above to configure dimensions</p>
@@ -723,16 +853,17 @@ const BIAnalysisPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      {previewType === 'line' ? <LineChart className="h-5 w-5 text-blue-500" /> : 
+                      {creationMode === 'alert' ? <AlertTriangle className="h-5 w-5 text-amber-500" /> :
+                       previewType === 'line' ? <LineChart className="h-5 w-5 text-blue-500" /> : 
                        previewType === 'pie' ? <PieChart className="h-5 w-5 text-purple-500" /> : 
                        <BarChart3 className="h-5 w-5 text-green-500" />}
-                      Preview Analysis
+                      Preview {creationMode === 'alert' ? 'Alert' : 'Analysis'}
                     </CardTitle>
                     <CardDescription>
-                      Real-time preview based on selected metrics and dimensions
+                      {creationMode === 'alert' ? 'Preview of the alert configuration' : 'Real-time preview based on selected metrics and dimensions'}
                     </CardDescription>
                   </div>
-                  {selectedMetric && selectedDims.length > 0 && (
+                  {creationMode !== 'alert' && selectedMetric && selectedDims.length > 0 && (
                     <Badge variant="outline" className="text-xs font-mono">
                       Type: {previewType}
                     </Badge>
@@ -741,16 +872,22 @@ const BIAnalysisPage: React.FC = () => {
               </CardHeader>
               <CardContent className="flex-1 p-6 min-h-[400px] flex flex-col">
                 {selectedMetric ? (
-                  selectedDims.length > 0 ? (
+                  (creationMode === 'alert' || selectedDims.length > 0) ? (
                     <div className="flex-1 w-full h-full min-h-[350px]">
                       <ChartCard
                         card={{ 
                           id: 'preview', 
-                          title: `${selectedMetric.name} · ${timeRange}`, 
+                          title: `${selectedMetric.name} · ${creationMode === 'alert' ? 'Alert' : timeRange}`, 
                           metricId: selectedMetric.name, 
-                          chartType: previewType, 
+                          chartType: creationMode === 'alert' ? 'alert' : previewType, 
                           size: 'lg', 
-                          selection: { dimensions: selectedDims, timeRange } 
+                          selection: { dimensions: selectedDims, timeRange },
+                          alert: creationMode === 'alert' ? {
+                            enabled: true,
+                            condition: { operator: alertOperator, value: Number(alertValue) || 0 },
+                            nextAction: { type: alertActionType, target: alertActionTarget },
+                            decision: alertDecision
+                          } : undefined
                         }}
                         data={previewData}
                       />
@@ -774,11 +911,11 @@ const BIAnalysisPage: React.FC = () => {
               </CardContent>
               <CardFooter className="border-t bg-muted/10 py-4 flex justify-between items-center">
                 <div className="text-sm text-muted-foreground">
-                  {previewData.length > 0 ? `${previewData.length} data points loaded` : 'No data loaded'}
+                  {creationMode === 'chart' && (previewData.length > 0 ? `${previewData.length} data points loaded` : 'No data loaded')}
                 </div>
                 <Button 
                   onClick={addCardToBoard} 
-                  disabled={!selectedMetric || selectedDims.length === 0}
+                  disabled={!selectedMetric || (creationMode === 'chart' && selectedDims.length === 0)}
                   className="gap-2"
                   size="lg"
                 >
@@ -800,6 +937,7 @@ const BIAnalysisPage: React.FC = () => {
             onDrop={onDrop}
             onResize={resizeCard}
             onRemove={removeCard}
+            onUpdate={updateCard}
           />
 
           <Separator className="my-8" />

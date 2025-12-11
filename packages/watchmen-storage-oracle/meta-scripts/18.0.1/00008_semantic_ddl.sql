@@ -14,8 +14,8 @@ CREATE TABLE semantic_models
     created_by   VARCHAR2(50) NOT NULL,
     last_modified_at   TIMESTAMP    NOT NULL,
     last_modified_by   VARCHAR2(50) NOT NULL,
-    topicId         VARCHAR2(50) NOT NULL,
-    sourceType      VARCHAR2(50) NOT NULL,
+    topic_id         VARCHAR2(50) NOT NULL,
+    source_type      VARCHAR2(50) NOT NULL,
     -- OptimisticLock field
     version      NUMBER(19) NOT NULL,
     -- Tenant field

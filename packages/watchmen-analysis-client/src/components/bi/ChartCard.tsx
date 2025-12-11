@@ -3,7 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { BIChartCard, BICardSize, BIChartType } from '@/model/biAnalysis';
-import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Download, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy } from 'lucide-react';
+import { AlertCard } from './AlertCard';
+import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Download, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy, AlertTriangle, Settings } from 'lucide-react';
+import { AlertConfigurationModal } from './AlertConfigurationModal';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,6 +48,7 @@ export interface ChartCardProps {
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragOver?: (e: React.DragEvent<HTMLDivElement>) => void;
   onDrop?: (e: React.DragEvent<HTMLDivElement>) => void;
+  onUpdate?: (card: BIChartCard) => void;
 }
 
 const sizeClass = (size: BICardSize) => {
@@ -136,10 +139,12 @@ export const ChartCard: React.FC<ChartCardProps> = ({
   onDragStart,
   onDragOver,
   onDrop,
+  onUpdate,
 }) => {
   const { toast } = useToast();
   const [lib, setLib] = useState<RechartsModule | null>(null);
   const [activeTab, setActiveTab] = useState<string>("chart");
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   const handleCopy = async () => {
     try {
@@ -239,12 +244,30 @@ export const ChartCard: React.FC<ChartCardProps> = ({
             </TabsList>
             
             {/* Optional: Show title next to tabs if there's space, or tooltip */}
-            <div className="hidden sm:block text-xs font-medium text-muted-foreground truncate ml-2 border-l pl-2 max-w-[120px]">
-              {card.title}
+            <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-muted-foreground ml-2 border-l pl-2 max-w-[200px]">
+              <span className="truncate">{card.title}</span>
+              {card.alert?.enabled && (
+                <div className="flex items-center gap-1 text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0" title={`Alert: ${card.alert.condition.operator} ${card.alert.condition.value}`}>
+                  <AlertTriangle className="h-3 w-3" />
+                  <span className="hidden xl:inline">Alert On</span>
+                </div>
+              )}
             </div>
           </div>
 
           <div className="flex items-center gap-1 flex-shrink-0">
+            {card.chartType === 'alert' && onUpdate && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsConfigOpen(true)} 
+                className="h-7 w-7 text-muted-foreground hover:text-foreground" 
+                title="Configure Rule"
+              >
+                <Settings className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            
             <Button variant="ghost" size="icon" onClick={handleCopy} className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Copy Data">
               <Copy className="h-3.5 w-3.5" />
             </Button>
@@ -290,7 +313,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
               </div>
             ) : (
               <div className="h-full w-full min-h-[250px]">
-                <Chart lib={lib} type={card.chartType} data={data} />
+                <Chart lib={lib} card={card} data={data} />
               </div>
             )}
           </TabsContent>
@@ -300,12 +323,28 @@ export const ChartCard: React.FC<ChartCardProps> = ({
           </TabsContent>
         </CardContent>
       </Tabs>
+
+      {onUpdate && (
+        <AlertConfigurationModal 
+          open={isConfigOpen} 
+          onOpenChange={setIsConfigOpen} 
+          card={card} 
+          onSave={onUpdate} 
+        />
+      )}
     </Card>
   );
 };
 
-const Chart: React.FC<{ lib: RechartsModule; type: BIChartType; data: any[] }> = ({ lib, type, data }) => {
+
+const Chart: React.FC<{ lib: RechartsModule; card: BIChartCard; data: any[] }> = ({ lib, card, data }) => {
+  const { type: chartType } = { type: card.chartType };
   const { ResponsiveContainer, LineChart, Line, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, BarChart, Bar, PieChart, Pie, Cell, Legend } = lib;
+  
+  if (chartType === 'alert') {
+    return <AlertCard card={card} data={data} />;
+  }
+
   const isTime = data.length > 0 && typeof data[0].date === 'string';
   const xKey = isTime ? 'date' : 'name';
   
@@ -337,7 +376,7 @@ const Chart: React.FC<{ lib: RechartsModule; type: BIChartType; data: any[] }> =
     className: "opacity-10 dark:opacity-20",
   };
 
-  if (type === 'groupedBar' || type === 'stackedBar') {
+  if (chartType === 'groupedBar' || chartType === 'stackedBar') {
     const keys = data.length > 0 ? Object.keys(data[0]).filter(k => k !== 'name' && k !== 'date' && k !== 'value' && k !== 'fill' && k !== 'color') : [];
     return (
       <ResponsiveContainer width="100%" height="100%">
@@ -351,9 +390,9 @@ const Chart: React.FC<{ lib: RechartsModule; type: BIChartType; data: any[] }> =
             <Bar 
               key={key} 
               dataKey={key} 
-              stackId={type === 'stackedBar' ? 'a' : undefined}
+              stackId={chartType === 'stackedBar' ? 'a' : undefined}
               fill={COLORS[index % COLORS.length]} 
-              radius={type === 'stackedBar' 
+              radius={chartType === 'stackedBar' 
                 ? [0, 0, 0, 0] // Stacked bars usually don't have radius except top one, simplification here
                 : [4, 4, 0, 0]}
               maxBarSize={50}
@@ -364,7 +403,7 @@ const Chart: React.FC<{ lib: RechartsModule; type: BIChartType; data: any[] }> =
     );
   }
 
-  if (type === 'pie' && !isTime) {
+  if (chartType === 'pie' && !isTime) {
     return (
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
@@ -391,7 +430,7 @@ const Chart: React.FC<{ lib: RechartsModule; type: BIChartType; data: any[] }> =
     );
   }
 
-  if (type === 'bar') {
+  if (chartType === 'bar') {
     return (
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -410,7 +449,7 @@ const Chart: React.FC<{ lib: RechartsModule; type: BIChartType; data: any[] }> =
     );
   }
 
-  if (type === 'area') {
+  if (chartType === 'area') {
     return (
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>

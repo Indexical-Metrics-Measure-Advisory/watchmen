@@ -564,8 +564,8 @@ table_semantic_models = Table(
 	create_json('measures'),
 	create_json('dimensions'),
 	create_json('defaults'),
-	create_str('topicId', 128),
-	create_str('sourceType', 128),
+	create_str('topic_id', 128),
+	create_str('source_type', 128),
 	create_str('primary_entity', 128),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )

@@ -104,7 +104,7 @@ async def update_semantic_model(
     return trans(semantic_model_service, action)
 
 
-@router.delete('/metricflow/semantic-model/{model_name}', tags=['ADMIN'], response_model=None)
+@router.delete('/metricflow/semantic-models/{model_name}', tags=['ADMIN'], response_model=None)
 async def delete_semantic_model(
         model_name: str,
         principal_service: PrincipalService = Depends(get_admin_principal)

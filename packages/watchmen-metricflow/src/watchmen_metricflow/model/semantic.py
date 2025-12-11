@@ -40,6 +40,7 @@ class TimeGranularity(Enum):
 class SemanticModelSourceType(str, Enum):
     TOPIC = "topic"
     SUBJECT = "subject"
+    DB_DIRECT = "db_source"
 
 
 class ValidityParams(BaseModel):

@@ -150,7 +150,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-xl font-bold tracking-tight text-foreground leading-none">{import.meta.env.VITE_APP_TITLE || 'Watchmen'}</span>
+              <span className="text-xl font-bold tracking-tight text-foreground leading-none">{import.meta.env.VITE_APP_TITLE || 'DataMO'}</span>
               <span className="text-xs text-muted-foreground font-medium leading-tight mt-1">Analytics Platform</span>
             </div>
           )}

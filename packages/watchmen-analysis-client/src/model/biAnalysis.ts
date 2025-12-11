@@ -1,4 +1,4 @@
-export type BIChartType = 'line' | 'bar' | 'stackedBar' | 'pie' | 'area' | 'groupedBar';
+export type BIChartType = 'line' | 'bar' | 'stackedBar' | 'pie' | 'area' | 'groupedBar' | 'alert';
 
 export type BICardSize = 'sm' | 'md' | 'lg';
 
@@ -24,6 +24,34 @@ export interface BIDimensionSelection {
   timeRange?: string; // e.g., Past 7 days, Past 30 days
 }
 
+export interface AlertAction {
+  type: 'email' | 'webhook' | 'notification' | 'process';
+  target?: string;
+  template?: string;
+}
+
+export interface AlertCondition {
+  field?: string; // Metric ID or 'value'
+  operator: '>' | '<' | '>=' | '<=' | '==' | '!=';
+  value: number | string;
+}
+
+export interface AlertConfig {
+  enabled: boolean;
+  name?: string;
+  priority?: 'high' | 'medium' | 'low';
+  description?: string;
+  conditionLogic?: 'and' | 'or';
+  conditions?: AlertCondition[];
+  // Legacy support
+  condition: {
+    operator: '>' | '<' | '>=' | '<=' | '==' | '!=';
+    value: number;
+  };
+  nextAction: AlertAction;
+  decision?: string; // Description of the decision/recommendation
+}
+
 export interface BIChartCard {
   id: string;
   title: string;
@@ -31,6 +59,7 @@ export interface BIChartCard {
   chartType: BIChartType;
   size: BICardSize;
   selection: BIDimensionSelection;
+  alert?: AlertConfig;
 }
 
 export interface BIAnalysis {

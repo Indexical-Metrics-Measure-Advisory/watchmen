@@ -14,6 +14,7 @@ interface AnalysisBoardProps {
   onDrop: (index: number) => (e: React.DragEvent<HTMLDivElement>) => void;
   onResize: (index: number, size: BICardSize) => void;
   onRemove: (index: number) => void;
+  onUpdate?: (index: number, card: BIChartCard) => void;
 }
 
 export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
@@ -24,6 +25,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
   onDrop,
   onResize,
   onRemove,
+  onUpdate,
 }) => {
   const decideType = (data: ChartDataPoint[]): BIChartType => {
     if (!data || data.length === 0) return 'bar';
@@ -107,7 +109,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
             const data = cardDataMap[card.id] ?? [];
             
             // If no dimensions selected for this card
-            if (!card.selection.dimensions || card.selection.dimensions.length === 0) {
+            if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert') {
               return (
                 <div key={card.id} className={cn("transition-all duration-200", sizeClass(card.size))}>
                    <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-muted-foreground border border-border/50 rounded-xl bg-card/30 p-8 text-center shadow-sm gap-3">
@@ -121,7 +123,10 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
               );
             }
             
-            const renderCard = { ...card, chartType: decideType(data) };
+            const renderCard = { 
+              ...card, 
+              chartType: card.chartType === 'alert' ? 'alert' : decideType(data) 
+            };
             
             return (
               <ChartCard
@@ -134,6 +139,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
                 onDrop={onDrop(index)}
                 onResize={(size) => onResize(index, size)}
                 onRemove={() => onRemove(index)}
+                onUpdate={(updatedCard) => onUpdate?.(index, updatedCard)}
               />
             );
           })}
