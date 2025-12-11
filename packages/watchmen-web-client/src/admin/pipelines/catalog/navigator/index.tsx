@@ -7,7 +7,7 @@ import {
 	findPipelinesTriggerByTopic,
 	findPipelinesWriteToTopic
 } from '@/services/data/tuples/pipeline-utils';
-import {Topic} from '@/services/data/tuples/topic-types';
+import {Topic, TopicType} from '@/services/data/tuples/topic-types';
 import {isTopicProfileAvailable} from '@/services/data/tuples/topic-utils';
 import {ICON_ADD, ICON_CLOSE, ICON_SUBJECT, ICON_TOPIC_PROFILE} from '@/widgets/basic/constants';
 import {TooltipAlignment} from '@/widgets/basic/types';
@@ -118,10 +118,12 @@ export const Navigator = (props: {
 				</NavigatorHeaderButton>
 				: null
 			}
-			<NavigatorHeaderButton tooltip={{label: 'Data', alignment: TooltipAlignment.CENTER}}
-			                       onClick={onDataClicked}>
-				<FontAwesomeIcon icon={ICON_SUBJECT}/>
-			</NavigatorHeaderButton>
+			{topic?.type !== TopicType.RAW
+				? <NavigatorHeaderButton tooltip={{label: 'Data', alignment: TooltipAlignment.CENTER}}
+				                         onClick={onDataClicked}>
+					<FontAwesomeIcon icon={ICON_SUBJECT}/>
+				</NavigatorHeaderButton>
+				: null}
 			<NavigatorHeaderButton tooltip={{label: 'Close', alignment: TooltipAlignment.RIGHT, offsetX: 4}}
 			                       onClick={onCloseClicked}>
 				<FontAwesomeIcon icon={ICON_CLOSE}/>
