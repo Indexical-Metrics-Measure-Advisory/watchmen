@@ -14,9 +14,9 @@ class AgentCardShaper(UserBasedTupleShaper):
             'description': agent.description,
             'role': agent.role,
             'capabilities': agent.capabilities,
-            'supportedContentTypes': agent.supportedContentTypes,
+            'supported_content_types': agent.supportedContentTypes,
             'metadata': agent.metadata,
-            "isConnecting": agent.isConnecting
+            "is_connecting": agent.isConnecting
         }
 
         row = AuditableShaper.serialize(agent, row)
@@ -30,9 +30,9 @@ class AgentCardShaper(UserBasedTupleShaper):
             description=row.get('description'),
             role=row.get('role'),
             capabilities=row.get('capabilities'),
-            supportedContentTypes=row.get('supportedContentTypes'),
+            supportedContentTypes=row.get('supported_content_types'),
             metadata=row.get('metadata'),
-            isConnecting = row.get('isConnecting', False)
+            isConnecting = row.get('is_connecting', False)
 
         )
         # noinspection PyTypeChecker

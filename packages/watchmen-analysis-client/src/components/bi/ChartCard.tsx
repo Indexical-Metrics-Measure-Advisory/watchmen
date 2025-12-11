@@ -218,30 +218,32 @@ export const ChartCard: React.FC<ChartCardProps> = ({
                </div>
             )}
             
-            <TabsList className="h-8 bg-muted/50 p-0.5">
-              <TabsTrigger 
-                value="chart" 
-                className="h-7 text-xs px-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm"
-              >
-                <LineChartIcon className="w-3.5 h-3.5 mr-1.5" />
-                Chart
-              </TabsTrigger>
-              <TabsTrigger 
-                value="data" 
-                className="h-7 text-xs px-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm"
-              >
-                <TableIcon className="w-3.5 h-3.5 mr-1.5" />
-                Data
-              </TabsTrigger>
-              <TabsTrigger 
-                value="insights" 
-                disabled
-                className="h-7 text-xs px-2.5 opacity-50 cursor-not-allowed"
-              >
-                <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                Insights
-              </TabsTrigger>
-            </TabsList>
+            {card.chartType !== 'alert' && (
+              <TabsList className="h-8 bg-muted/50 p-0.5">
+                <TabsTrigger 
+                  value="chart" 
+                  className="h-7 text-xs px-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                >
+                  <LineChartIcon className="w-3.5 h-3.5 mr-1.5" />
+                  Chart
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="data" 
+                  className="h-7 text-xs px-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                >
+                  <TableIcon className="w-3.5 h-3.5 mr-1.5" />
+                  Data
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="insights" 
+                  disabled
+                  className="h-7 text-xs px-2.5 opacity-50 cursor-not-allowed"
+                >
+                  <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                  Insights
+                </TabsTrigger>
+              </TabsList>
+            )}
             
             {/* Optional: Show title next to tabs if there's space, or tooltip */}
             <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-muted-foreground ml-2 border-l pl-2 max-w-[200px]">
@@ -313,7 +315,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
               </div>
             ) : (
               <div className="h-full w-full min-h-[250px]">
-                <Chart lib={lib} card={card} data={data} />
+                <Chart lib={lib} card={card} data={data} onUpdate={onUpdate} />
               </div>
             )}
           </TabsContent>
@@ -337,12 +339,12 @@ export const ChartCard: React.FC<ChartCardProps> = ({
 };
 
 
-const Chart: React.FC<{ lib: RechartsModule; card: BIChartCard; data: any[] }> = ({ lib, card, data }) => {
+const Chart: React.FC<{ lib: RechartsModule; card: BIChartCard; data: any[]; onUpdate?: (card: BIChartCard) => void }> = ({ lib, card, data, onUpdate }) => {
   const { type: chartType } = { type: card.chartType };
   const { ResponsiveContainer, LineChart, Line, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, BarChart, Bar, PieChart, Pie, Cell, Legend } = lib;
   
   if (chartType === 'alert') {
-    return <AlertCard card={card} data={data} />;
+    return <AlertCard card={card} data={data} onUpdate={onUpdate} />;
   }
 
   const isTime = data.length > 0 && typeof data[0].date === 'string';

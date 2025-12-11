@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Clock, Zap, PlayCircle, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Activity, PlayCircle, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import type { BIChartCard, AlertConfig, AlertAction } from '@/model/biAnalysis';
 export interface AlertCardProps {
   card: BIChartCard;
   data: any[];
+  onUpdate?: (card: BIChartCard) => void;
 }
 
 const checkSingleCondition = (value: number, condition: { operator: string; value: number | string }) => {
@@ -33,7 +34,7 @@ const checkAlert = (value: number, config: AlertConfig) => {
   return checkSingleCondition(value, config.condition);
 };
 
-export const AlertCard: React.FC<AlertCardProps> = ({ card, data }) => {
+export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate }) => {
   const value = data.length > 0 ? (typeof data[0].value === 'number' ? data[0].value : 0) : 0;
   const alertConfig = card.alert;
   
@@ -41,10 +42,19 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data }) => {
     return <div className="flex items-center justify-center h-full text-muted-foreground">No alert configuration</div>;
   }
 
+  const handleToggle = (enabled: boolean) => {
+    if (onUpdate && card.alert) {
+      onUpdate({
+        ...card,
+        alert: {
+          ...card.alert,
+          enabled
+        }
+      });
+    }
+  };
+
   const isTriggered = checkAlert(value, alertConfig);
-  // Mock last trigger time for UI demo purposes, or use current time if triggered
-  const lastTriggered = isTriggered ? "Just now" : "2 hours ago";
-  const triggerCount = isTriggered ? 128 : 127;
 
   const priorityColor = {
     critical: "bg-destructive/10 text-destructive border-destructive/20",
@@ -82,7 +92,12 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data }) => {
           </div>
         </div>
         <div className="flex flex-col items-end gap-2">
-           <Switch checked={alertConfig.enabled} disabled aria-label="Toggle alert" />
+           <Switch 
+             checked={alertConfig.enabled} 
+             onCheckedChange={handleToggle}
+             disabled={!onUpdate}
+             aria-label="Toggle alert" 
+           />
            {alertConfig.priority && (
              <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-5", priorityColor[alertConfig.priority])}>
                {alertConfig.priority.toUpperCase()}
@@ -156,8 +171,8 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data }) => {
                   </div>
                 )}
 
-                {(action.riskLevel === 'high' || action.riskLevel === 'critical') && (
-                  <Button size="sm" className="w-full gap-2 mt-2" variant="destructive">
+                {(action.riskLevel === 'medium' || action.riskLevel === 'high' || action.riskLevel === 'critical') && (
+                  <Button size="sm" className="w-full gap-2 mt-2" variant={action.riskLevel === 'medium' ? "default" : "destructive"}>
                     <PlayCircle className="w-4 h-4" />
                     Execute Manually
                   </Button>
@@ -186,17 +201,6 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data }) => {
               Normal
             </Badge>
           )}
-        </div>
-
-        <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-           <div className="flex items-center gap-1" title="Trigger Count">
-              <span className="font-medium text-foreground">{triggerCount}</span>
-              <span>triggers</span>
-           </div>
-           <div className="flex items-center gap-1" title="Last Triggered">
-              <Clock className="w-3 h-3" />
-              <span>{lastTriggered}</span>
-           </div>
         </div>
       </div>
     </div>

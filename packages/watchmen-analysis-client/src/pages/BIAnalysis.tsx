@@ -262,6 +262,13 @@ const BIAnalysisPage: React.FC = () => {
       setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
       return;
     }
+
+    if (card.chartType === 'alert' && card.alert) {
+      const data = await alertService.fetchAlertData(card.alert as GlobalAlertRule);
+      setCardDataMap(prev => ({ ...prev, [card.id]: data }));
+      return;
+    }
+
       const { start, end } = timeRangeToBounds(card.selection.timeRange);
       const req: MetricQueryRequest = {
         metric: card.metricId,

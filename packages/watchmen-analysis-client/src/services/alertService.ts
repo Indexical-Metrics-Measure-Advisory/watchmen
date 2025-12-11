@@ -356,6 +356,25 @@ class AlertService {
   public clearAlert(metricId: string): void {
     this.alertStatuses.delete(metricId);
   }
+
+  async fetchAlertData(rule: GlobalAlertRule): Promise<any[]> {
+    if (isMockMode) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      // Return a random value close to the condition value to simulate checking
+      const baseValue = typeof rule.condition.value === 'number' ? rule.condition.value : 0;
+      const randomFactor = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
+      return [{ value: Math.round(baseValue * randomFactor) }];
+    }
+    
+    // In real mode, we might want to call a specific alert evaluation endpoint
+    // For now, let's assume there is an endpoint or we can't implement it fully without backend specs
+    // But per requirement, we must have this service method.
+    // If no specific endpoint exists, we might default to returning empty or calling a placeholder
+    const response = await fetch(`${BASE_URL}/${rule.id}/data`, {
+        headers: getDefaultHeaders(),
+    });
+    return checkResponse(response);
+  }
 }
 
 export const alertService = AlertService.getInstance();

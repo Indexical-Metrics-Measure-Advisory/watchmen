@@ -577,9 +577,9 @@ table_agent_cards = Table(
 	create_str('name', 128),
 	create_str('description', 1024),
 	create_str('role', 50),
-	create_bool("isConnecting"),
+	create_bool("is_connecting"),
 	create_json('capabilities'),
-	create_json('supportedContentTypes'),
+	create_json('supported_content_types'),
 	create_json('metadata'),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(), create_user_id()
 )
