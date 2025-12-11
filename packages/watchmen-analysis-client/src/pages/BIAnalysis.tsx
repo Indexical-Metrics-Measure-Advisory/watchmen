@@ -37,7 +37,9 @@ import {
   Bell,
   Webhook,
   Mail,
-  PlayCircle
+  PlayCircle,
+  Share2,
+  Copy
 } from 'lucide-react';
 import { ChartCard } from '@/components/bi/ChartCard';
 import { AnalysisBoard } from '@/components/bi/AnalysisBoard';
@@ -147,6 +149,7 @@ const BIAnalysisPage: React.FC = () => {
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveName, setSaveName] = useState('');
   const [saveDesc, setSaveDesc] = useState('');
+  const [shareOpen, setShareOpen] = useState(false);
   const [templates, setTemplates] = useState<Array<{ id: string; name: string; description?: string; isTemplate?: boolean }>>([]);
   // Collapse config: default collapsed, show saved templates first
   const [configCollapsed, setConfigCollapsed] = useState<boolean>(true);
@@ -582,6 +585,13 @@ const BIAnalysisPage: React.FC = () => {
     toast({ title: 'Updated', description: `Analysis ${newStatus ? 'set as template' : 'removed from templates'}` });
   };
 
+  const copyShareLink = () => {
+    if (!currentAnalysisId) return;
+    const url = `${window.location.origin}/share/analysis/${currentAnalysisId}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: 'Copied', description: 'Share link copied to clipboard' });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
@@ -609,6 +619,10 @@ const BIAnalysisPage: React.FC = () => {
               <Button variant="ghost" onClick={resetBoard} className="gap-2">
                 <RotateCcw className="h-4 w-4" />
                 Reset
+              </Button>
+              <Button variant="outline" onClick={() => setShareOpen(true)} className="gap-2" disabled={!currentAnalysisId}>
+                <Share2 className="h-4 w-4" />
+                Share
               </Button>
               <Button variant="default" onClick={() => setSaveOpen(true)} className="gap-2">
                 <Save className="h-4 w-4" />
@@ -978,6 +992,29 @@ const BIAnalysisPage: React.FC = () => {
           </DialogFooter>
         </DialogContent>
           </Dialog>
+
+      {/* Share Dialog */}
+      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Share Analysis</DialogTitle>
+            <DialogDescription>
+              Share this analysis with external users. Anyone with the link can view it.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+             <div className="flex items-center space-x-2">
+                <Input value={`${window.location.origin}/share/analysis/${currentAnalysisId}`} readOnly />
+                <Button size="icon" onClick={copyShareLink}>
+                   <Copy className="h-4 w-4" />
+                </Button>
+             </div>
+          </div>
+          <DialogFooter>
+             <Button onClick={() => window.open(`/share/analysis/${currentAnalysisId}`, '_blank')}>Open Link</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
         </main>
       </div>
     </div>

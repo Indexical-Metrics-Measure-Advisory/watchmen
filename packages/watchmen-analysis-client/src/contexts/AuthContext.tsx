@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (!isLoading && !user && location.pathname !== '/login') {
+    if (!isLoading && !user && location.pathname !== '/login' && !location.pathname.startsWith('/share/analysis/')) {
       navigate('/login');
     }
   }, [isLoading, user, location.pathname, navigate]);

@@ -17,6 +17,7 @@ interface AnalysisBoardProps {
   onRemove: (index: number) => void;
   onUpdate?: (index: number, card: BIChartCard) => void;
   onAddAlert?: () => void;
+  readOnly?: boolean;
 }
 
 export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
@@ -29,6 +30,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
   onRemove,
   onUpdate,
   onAddAlert,
+  readOnly = false,
 }) => {
   const decideType = (data: ChartDataPoint[]): BIChartType => {
     if (!data || data.length === 0) return 'bar';
@@ -90,7 +92,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {onAddAlert && (
+          {!readOnly && onAddAlert && (
             <Button variant="outline" size="sm" onClick={onAddAlert} className="gap-2 h-8">
               <BellPlus className="w-4 h-4" />
               Add Alert
@@ -144,13 +146,13 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
                 key={card.id}
                 card={renderCard}
                 data={data}
-                draggable
-                onDragStart={onDragStart(index)}
-                onDragOver={onDragOver}
-                onDrop={onDrop(index)}
-                onResize={(size) => onResize(index, size)}
-                onRemove={() => onRemove(index)}
-                onUpdate={(updatedCard) => onUpdate?.(index, updatedCard)}
+                draggable={!readOnly}
+                onDragStart={!readOnly ? onDragStart(index) : undefined}
+                onDragOver={!readOnly ? onDragOver : undefined}
+                onDrop={!readOnly ? onDrop(index) : undefined}
+                onResize={!readOnly ? (size) => onResize(index, size) : undefined}
+                onRemove={!readOnly ? () => onRemove(index) : undefined}
+                onUpdate={!readOnly ? (updatedCard) => onUpdate?.(index, updatedCard) : undefined}
               />
             );
           })}

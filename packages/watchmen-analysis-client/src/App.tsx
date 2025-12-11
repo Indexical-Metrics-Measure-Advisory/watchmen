@@ -35,6 +35,7 @@ import ChatPage from "./pages/chat";
 import AnalysisAssistantConfigPage from './pages/AnalysisAssistantConfig';
 import BIAnalysisPage from './pages/BIAnalysis';
 import { AlertConfigurationPage } from './pages/AlertConfigurationPage';
+import SharedAnalysisPage from './pages/SharedAnalysisPage';
 
 
 const queryClient = new QueryClient();
@@ -81,6 +82,7 @@ const App = () => (
                   <Route path="/chat" element={<ChatPage />} />
                 )}
                 <Route path="/bi-analysis" element={<BIAnalysisPage />} />
+                <Route path="/share/analysis/:id" element={<SharedAnalysisPage />} />
                 {/* <Route path="/evaluation/online" element={<OnlineEvaluation />} /> */}
                 {/* <Route path="/data-profiles" element={<DataProfileManagement />} /> */}
             
