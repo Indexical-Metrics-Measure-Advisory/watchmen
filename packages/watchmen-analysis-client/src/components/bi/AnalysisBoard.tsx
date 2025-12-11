@@ -1,7 +1,8 @@
 import React from 'react';
 import { ChartCard } from '@/components/bi/ChartCard';
 import type { BIChartCard, BICardSize, BIChartType } from '@/model/biAnalysis';
-import { LayoutDashboard, PlusCircle, AlertCircle } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, AlertCircle, BellPlus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 type ChartDataPoint = any;
@@ -15,6 +16,7 @@ interface AnalysisBoardProps {
   onResize: (index: number, size: BICardSize) => void;
   onRemove: (index: number) => void;
   onUpdate?: (index: number, card: BIChartCard) => void;
+  onAddAlert?: () => void;
 }
 
 export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
@@ -26,6 +28,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
   onResize,
   onRemove,
   onUpdate,
+  onAddAlert,
 }) => {
   const decideType = (data: ChartDataPoint[]): BIChartType => {
     if (!data || data.length === 0) return 'bar';
@@ -86,8 +89,16 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
             <p className="text-sm text-muted-foreground">Visualize insights and patterns</p>
           </div>
         </div>
-        <div className="text-xs text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full">
-          {cards.length} {cards.length === 1 ? 'Visualization' : 'Visualizations'}
+        <div className="flex items-center gap-2">
+          {onAddAlert && (
+            <Button variant="outline" size="sm" onClick={onAddAlert} className="gap-2 h-8">
+              <BellPlus className="w-4 h-4" />
+              Add Alert
+            </Button>
+          )}
+          <div className="text-xs text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full">
+            {cards.length} {cards.length === 1 ? 'Visualization' : 'Visualizations'}
+          </div>
         </div>
       </div>
       

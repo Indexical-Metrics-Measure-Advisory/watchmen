@@ -15,6 +15,7 @@ import {
   Database,
   TestTube,
   GitBranch,
+  AlertTriangle,
   TrendingUp,
   FolderOpen,
   Sliders
@@ -198,6 +199,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           <NavItem to="/metrics/bi-analysis" icon={<BarChart3 size={16} />} label="Metrics Analysis" collapsed={collapsed} isSubItem={true} />
           <NavItem to="/metrics/semantic-models" icon={<GitBranch size={16} />} label="Semantic Model Management" collapsed={collapsed} isSubItem={true} />
           <NavItem to="/metrics/management" icon={<TrendingUp size={16} />} label="Metrics Management" collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/metrics/alert-configuration" icon={<AlertTriangle size={16} />} label="Alert Configuration" collapsed={collapsed} isSubItem={true} />
           {SHOW_METRIC_AI_AGENT && (
             <NavItem to="/metrics/assistant-config" icon={<Sliders size={16} />} label="Assistant Config" collapsed={collapsed} isSubItem={true} />
           )}

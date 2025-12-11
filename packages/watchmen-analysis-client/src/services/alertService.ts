@@ -1,5 +1,10 @@
-import { AlertRule, AlertStatus, MetricAnomaly, AlertConfig } from '@/model/AlertConfig';
+import { AlertRule, AlertStatus, MetricAnomaly, AlertConfig as ServiceAlertConfig } from '@/model/AlertConfig';
+import { GlobalAlertRule } from '@/model/biAnalysis';
 import { MetricType } from '@/model/Metric';
+import { API_BASE_URL, getDefaultHeaders, checkResponse } from '@/utils/apiConfig';
+
+const isMockMode = true;
+const BASE_URL = `${API_BASE_URL}/metricflow/alert/global-rules`;
 
 // Mock数据 - 在实际项目中应该从API获取
 const mockAlertRules: AlertRule[] = [
@@ -55,6 +60,21 @@ const mockAlertRules: AlertRule[] = [
   }
 ];
 
+const mockGlobalAlertRules: GlobalAlertRule[] = [
+  {
+    id: 'global-rule-1',
+    metricId: 'total_revenue',
+    enabled: true,
+    condition: { operator: '>', value: 100000 },
+    nextAction: { type: 'notification' },
+    name: 'High Revenue Alert',
+    priority: 'high',
+    description: 'Alert when revenue exceeds 100k',
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
+  }
+];
+
 const mockAlertStatuses: AlertStatus[] = [
   {
     id: 'alert-1',
@@ -103,7 +123,7 @@ const mockAnomalies: MetricAnomaly[] = [
 
 class AlertService {
   private static instance: AlertService;
-  private alertConfigs: Map<string, AlertConfig> = new Map();
+  private alertConfigs: Map<string, ServiceAlertConfig> = new Map();
   private alertStatuses: Map<string, AlertStatus> = new Map();
 
   private constructor() {}
@@ -113,6 +133,79 @@ class AlertService {
       AlertService.instance = new AlertService();
     }
     return AlertService.instance;
+  }
+
+  // Global Alert Rule Methods
+  async getGlobalAlertRules(): Promise<GlobalAlertRule[]> {
+    if (isMockMode) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return mockGlobalAlertRules;
+    }
+    const response = await fetch(`${BASE_URL}`, {
+      headers: getDefaultHeaders(),
+    });
+    return checkResponse(response);
+  }
+
+  async createGlobalAlertRule(rule: Omit<GlobalAlertRule, 'id' | 'createdAt' | 'updatedAt'>): Promise<GlobalAlertRule> {
+    if (isMockMode) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const newRule: GlobalAlertRule = {
+        ...rule,
+        id: `global-rule-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      mockGlobalAlertRules.push(newRule);
+      return newRule;
+    }
+    const response = await fetch(`${BASE_URL}`, {
+      method: 'POST',
+      headers: getDefaultHeaders(),
+      body: JSON.stringify(rule),
+    });
+    return checkResponse(response);
+  }
+
+  async updateGlobalAlertRule(id: string, updates: Partial<GlobalAlertRule>): Promise<GlobalAlertRule> {
+    if (isMockMode) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const index = mockGlobalAlertRules.findIndex(rule => rule.id === id);
+      if (index === -1) {
+        throw new Error('Global alert rule not found');
+      }
+      
+      mockGlobalAlertRules[index] = {
+        ...mockGlobalAlertRules[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+      
+      return mockGlobalAlertRules[index];
+    }
+    const response = await fetch(`${BASE_URL}/${id}`, {
+      method: 'PUT',
+      headers: getDefaultHeaders(),
+      body: JSON.stringify(updates),
+    });
+    return checkResponse(response);
+  }
+
+  async deleteGlobalAlertRule(id: string): Promise<void> {
+    if (isMockMode) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const index = mockGlobalAlertRules.findIndex(rule => rule.id === id);
+      if (index === -1) {
+        throw new Error('Global alert rule not found');
+      }
+      mockGlobalAlertRules.splice(index, 1);
+      return;
+    }
+    const response = await fetch(`${BASE_URL}/${id}`, {
+      method: 'DELETE',
+      headers: getDefaultHeaders(),
+    });
+    return checkResponse(response);
   }
 
   // 新的API方法
@@ -199,11 +292,11 @@ class AlertService {
   }
 
   // 原有的方法保持兼容性
-  public setAlertConfig(config: AlertConfig): void {
+  public setAlertConfig(config: ServiceAlertConfig): void {
     this.alertConfigs.set(config.metricId, config);
   }
 
-  public getAlertConfig(metricId: string): AlertConfig | undefined {
+  public getAlertConfig(metricId: string): ServiceAlertConfig | undefined {
     return this.alertConfigs.get(metricId);
   }
 

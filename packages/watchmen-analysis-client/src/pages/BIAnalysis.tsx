@@ -34,7 +34,6 @@ import {
   Trash2,
   LayoutTemplate,
   RotateCcw,
-  AlertTriangle,
   Bell,
   Webhook,
   Mail,
@@ -42,9 +41,10 @@ import {
 } from 'lucide-react';
 import { ChartCard } from '@/components/bi/ChartCard';
 import { AnalysisBoard } from '@/components/bi/AnalysisBoard';
-import { BIChartCard, BICardSize, BIMetric, BIChartType, AlertConfig } from '@/model/biAnalysis';
+import { BIChartCard, BICardSize, BIMetric, BIChartType, GlobalAlertRule } from '@/model/biAnalysis';
 import { saveAnalysis, listAnalyses, getAnalysis, deleteAnalysis, updateAnalysis, updateAnalysisTemplate } from '@/services/biAnalysisService';
 import { metricsService } from '@/services/metricsService';
+import { alertService } from '@/services/alertService';
 import { getCategories as getRealCategories, getMetrics as getAllMetrics, findDimensionsByMetric } from '@/services/metricsManagementService';
 import type { MetricDefinition, Category } from '@/model/metricsManagement';
 import type { MetricDimension } from '@/model/analysis';
@@ -81,14 +81,63 @@ const BIAnalysisPage: React.FC = () => {
   const [previewData, setPreviewData] = useState<any[]>([]);
   const [previewType, setPreviewType] = useState<BIChartType>('line');
 
-  // Alert Configuration State
-  const [creationMode, setCreationMode] = useState<'chart' | 'alert'>('chart');
-  const [alertEnabled, setAlertEnabled] = useState(false);
-  const [alertOperator, setAlertOperator] = useState<'>' | '<' | '>=' | '<=' | '==' | '!='>('>');
-  const [alertValue, setAlertValue] = useState<string>('');
-  const [alertActionType, setAlertActionType] = useState<'email' | 'webhook' | 'notification' | 'process'>('notification');
-  const [alertActionTarget, setAlertActionTarget] = useState('');
-  const [alertDecision, setAlertDecision] = useState('');
+  // Alert Configuration State (Removed)
+  const [addAlertOpen, setAddAlertOpen] = useState(false);
+  const [alertRuleId, setAlertRuleId] = useState('');
+  const [dialogRules, setDialogRules] = useState<GlobalAlertRule[]>([]);
+
+  // Fetch rules when alert metric changes
+  useEffect(() => {
+    if (addAlertOpen) {
+      alertService.getGlobalAlertRules().then(rules => {
+        setDialogRules(rules);
+        setAlertRuleId('');
+      });
+    } else {
+      setDialogRules([]);
+    }
+  }, [addAlertOpen]);
+
+  const confirmAddAlert = () => {
+     if (!alertRuleId) return;
+     const rule = dialogRules.find(r => r.id === alertRuleId);
+     if (!rule) return;
+     
+     const newCard: BIChartCard = {
+        id: `card_${Date.now()}`,
+        title: rule.name || `${rule.metricId} · Alert`,
+        metricId: rule.metricId,
+        chartType: 'alert',
+        size: 'md',
+        selection: { dimensions: [], timeRange: 'Past 30 days' },
+        alert: rule
+     };
+     setCards(prev => [...prev, newCard]);
+     toast({ title: 'Added', description: 'Alert card added to dashboard' });
+     void loadCardDataFor(newCard);
+     setAddAlertOpen(false);
+     setAlertRuleId('');
+  };
+
+  const selectedMetric: BIMetric | null = useMemo(() => {
+    const m = selectedMetricDef;
+    if (!m) return null;
+    const unit = (m.unit || '').toLowerCase();
+    const kind: 'rate' | 'amount' | 'count' = m.type === 'ratio' || unit.includes('%')
+      ? 'rate'
+      : (unit.includes('hkd') || unit.includes('usd') || unit.includes('¥') || unit.includes('$')) ? 'amount' : 'count';
+    const dims = availableDims;
+    return {
+      id: m.id ?? m.name,
+      name:  m.name,
+      description: m.description ?? '',
+      categoryId: (m as any).categoryId ?? '',
+      kind,
+      dimensions: dims
+    };
+  }, [selectedMetricDef, availableDims]);
+
+
 
   // board
   const [cards, setCards] = useState<BIChartCard[]>([]);
@@ -265,23 +314,7 @@ const BIAnalysisPage: React.FC = () => {
     return () => { alive = false; };
   }, [search, categoryId, configCollapsed]);
 
-  const selectedMetric: BIMetric | null = useMemo(() => {
-    const m = selectedMetricDef;
-    if (!m) return null;
-    const unit = (m.unit || '').toLowerCase();
-    const kind: 'rate' | 'amount' | 'count' = m.type === 'ratio' || unit.includes('%')
-      ? 'rate'
-      : (unit.includes('hkd') || unit.includes('usd') || unit.includes('¥') || unit.includes('$')) ? 'amount' : 'count';
-    const dims = availableDims;
-    return {
-      id: m.id ?? m.name,
-      name:  m.name,
-      description: m.description ?? '',
-      categoryId: (m as any).categoryId ?? '',
-      kind,
-      dimensions: dims
-    };
-  }, [selectedMetricDef, availableDims]);
+
 
   // Preview update with real data and data-driven chart type
   useEffect(() => {
@@ -294,8 +327,7 @@ const BIAnalysisPage: React.FC = () => {
       }
 
       // If no dimensions selected, do not show chart/data
-      // Exception: Alert mode needs data (aggregated total)
-      if ((!selectedDims || selectedDims.length === 0) && creationMode !== 'alert') {
+      if (!selectedDims || selectedDims.length === 0) {
         if (alive) {
           setPreviewData([]);
           setPreviewType('bar');
@@ -307,7 +339,7 @@ const BIAnalysisPage: React.FC = () => {
         const { start, end } = timeRangeToBounds(timeRange);
         const req: MetricQueryRequest = {
           metric: selectedMetric.name,
-          group_by: (creationMode !== 'alert' && selectedDims.length > 0) ? selectedDims : undefined,
+          group_by: selectedDims.length > 0 ? selectedDims : undefined,
           start_time: start,
           end_time: end,
           order: ['asc'],
@@ -317,9 +349,7 @@ const BIAnalysisPage: React.FC = () => {
         const data = transformMetricFlowToChartData(resp);
         if (alive) {
           setPreviewData(data);
-          if (creationMode === 'alert') {
-            setPreviewType('alert');
-          } else if (isTimeData(data)) {
+          if (isTimeData(data)) {
             setPreviewType('line');
           } else if (isGroupedData(data)) {
             setPreviewType('groupedBar');
@@ -338,7 +368,7 @@ const BIAnalysisPage: React.FC = () => {
     };
     loadPreview();
     return () => { alive = false; };
-  }, [selectedMetric, selectedDims, timeRange, selectedMetricDef, creationMode]);
+  }, [selectedMetric, selectedDims, timeRange, selectedMetricDef]);
 
   // templates list
   useEffect(() => {
@@ -400,55 +430,30 @@ const BIAnalysisPage: React.FC = () => {
 
     let newCard: BIChartCard;
 
-    if (creationMode === 'alert') {
-      const alertConfig: AlertConfig = {
-        enabled: true,
-        condition: {
-          operator: alertOperator,
-          value: Number(alertValue) || 0
-        },
-        nextAction: {
-          type: alertActionType,
-          target: alertActionTarget
-        },
-        decision: alertDecision
-      };
-
-      newCard = {
-        id: `card_${Date.now()}`,
-        title: `${selectedMetric.name} · Alert`,
-        metricId: selectedMetric.name,
-        chartType: 'alert',
-        size: 'md',
-        selection: { dimensions: [], timeRange: 'Past 30 days' },
-        alert: alertConfig
-      };
-    } else {
-      if (!selectedDims || selectedDims.length === 0) {
-        toast({ title: 'Select dimensions', description: 'Please select at least one dimension before adding to board' });
-        return;
-      }
-      // Prefer data-driven type; if no preview data yet, infer from selected dimensions
-      let chartTypeForBoard: BIChartType = chartTypeFromDims(selectedDims, availableDimsDetailed);
-      if (previewData.length > 0) {
-         if (isTimeData(previewData)) chartTypeForBoard = 'line';
-         else if (isGroupedData(previewData)) chartTypeForBoard = 'groupedBar';
-         else chartTypeForBoard = 'bar';
-      }
-  
-      newCard = {
-        id: `card_${Date.now()}`,
-        title: `${selectedMetric.name} · ${timeRange}`,
-        // Use metric name for backend metricFlow API compatibility
-        metricId: selectedMetric.name,
-        chartType: chartTypeForBoard,
-        size: 'md',
-        selection: { dimensions: selectedDims, timeRange }
-      };
+    if (!selectedDims || selectedDims.length === 0) {
+      toast({ title: 'Select dimensions', description: 'Please select at least one dimension before adding to board' });
+      return;
+    }
+    // Prefer data-driven type; if no preview data yet, infer from selected dimensions
+    let chartTypeForBoard: BIChartType = chartTypeFromDims(selectedDims, availableDimsDetailed);
+    if (previewData.length > 0) {
+       if (isTimeData(previewData)) chartTypeForBoard = 'line';
+       else if (isGroupedData(previewData)) chartTypeForBoard = 'groupedBar';
+       else chartTypeForBoard = 'bar';
     }
 
+    newCard = {
+      id: `card_${Date.now()}`,
+      title: `${selectedMetric.name} · ${timeRange}`,
+      // Use metric name for backend metricFlow API compatibility
+      metricId: selectedMetric.name,
+      chartType: chartTypeForBoard,
+      size: 'md',
+      selection: { dimensions: selectedDims, timeRange }
+    };
+
     setCards(prev => [...prev, newCard]);
-    toast({ title: 'Added', description: `${creationMode === 'alert' ? 'Alert' : 'Chart'} has been added to the analysis board` });
+    toast({ title: 'Added', description: 'Chart has been added to the analysis board' });
     // Load real data for the newly added card
     void loadCardDataFor(newCard);
   };
@@ -693,13 +698,7 @@ const BIAnalysisPage: React.FC = () => {
 
                 {/* Dimension Selection */}
                 {selectedMetric ? (
-                  <Tabs value={creationMode} onValueChange={(v: any) => setCreationMode(v)} className="w-full">
-                    <TabsList className="w-full grid grid-cols-2 mb-4">
-                      <TabsTrigger value="chart" className="gap-2"><BarChart3 className="h-4 w-4"/> Analysis Chart</TabsTrigger>
-                      <TabsTrigger value="alert" className="gap-2"><AlertTriangle className="h-4 w-4"/> Alert Component</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="chart" className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
                       <div className="flex items-center justify-between">
                         <Label className="text-xs font-semibold text-muted-foreground uppercase">Dimensions</Label>
                         {selectedDims.length > 0 && (
@@ -768,77 +767,7 @@ const BIAnalysisPage: React.FC = () => {
                           </SelectContent>
                         </Select>
                       </div>
-                    </TabsContent>
-
-                    <TabsContent value="alert" className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
-                      <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-semibold text-muted-foreground uppercase">Condition</Label>
-                          <div className="flex gap-2">
-                            <Select value={alertOperator} onValueChange={(v: any) => setAlertOperator(v)}>
-                              <SelectTrigger className="w-[80px]">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value=">">{">"}</SelectItem>
-                                <SelectItem value="<">{"<"}</SelectItem>
-                                <SelectItem value=">=">{">="}</SelectItem>
-                                <SelectItem value="<=">{"<="}</SelectItem>
-                                <SelectItem value="==">{"="}</SelectItem>
-                                <SelectItem value="!=">{"!="}</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Input 
-                              type="number" 
-                              placeholder="Threshold value" 
-                              value={alertValue} 
-                              onChange={e => setAlertValue(e.target.value)}
-                              className="flex-1"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label className="text-xs font-semibold text-muted-foreground uppercase">Next Action</Label>
-                          <Select value={alertActionType} onValueChange={(v: any) => setAlertActionType(v)}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="notification">
-                                <div className="flex items-center gap-2"><Bell className="h-4 w-4"/> In-App Notification</div>
-                              </SelectItem>
-                              <SelectItem value="email">
-                                <div className="flex items-center gap-2"><Mail className="h-4 w-4"/> Email</div>
-                              </SelectItem>
-                              <SelectItem value="webhook">
-                                <div className="flex items-center gap-2"><Webhook className="h-4 w-4"/> Webhook</div>
-                              </SelectItem>
-                              <SelectItem value="process">
-                                <div className="flex items-center gap-2"><PlayCircle className="h-4 w-4"/> Trigger Process</div>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Input 
-                            placeholder={alertActionType === 'email' ? 'Enter email address...' : alertActionType === 'webhook' ? 'Enter webhook URL...' : 'Target ID/User...'}
-                            value={alertActionTarget}
-                            onChange={e => setAlertActionTarget(e.target.value)}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label className="text-xs font-semibold text-muted-foreground uppercase">Decision / Recommendation</Label>
-                          <textarea 
-                            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                            placeholder="Describe the recommended action or decision to be taken when this alert fires..."
-                            value={alertDecision}
-                            onChange={e => setAlertDecision(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-
+                  </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground bg-muted/30 rounded-lg border border-dashed">
                     <p className="text-sm">Select a metric above to configure dimensions</p>
@@ -853,17 +782,16 @@ const BIAnalysisPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      {creationMode === 'alert' ? <AlertTriangle className="h-5 w-5 text-amber-500" /> :
-                       previewType === 'line' ? <LineChart className="h-5 w-5 text-blue-500" /> : 
+                      {previewType === 'line' ? <LineChart className="h-5 w-5 text-blue-500" /> : 
                        previewType === 'pie' ? <PieChart className="h-5 w-5 text-purple-500" /> : 
                        <BarChart3 className="h-5 w-5 text-green-500" />}
-                      Preview {creationMode === 'alert' ? 'Alert' : 'Analysis'}
+                      Preview Analysis
                     </CardTitle>
                     <CardDescription>
-                      {creationMode === 'alert' ? 'Preview of the alert configuration' : 'Real-time preview based on selected metrics and dimensions'}
+                      Real-time preview based on selected metrics and dimensions
                     </CardDescription>
                   </div>
-                  {creationMode !== 'alert' && selectedMetric && selectedDims.length > 0 && (
+                  {selectedMetric && selectedDims.length > 0 && (
                     <Badge variant="outline" className="text-xs font-mono">
                       Type: {previewType}
                     </Badge>
@@ -872,22 +800,16 @@ const BIAnalysisPage: React.FC = () => {
               </CardHeader>
               <CardContent className="flex-1 p-6 min-h-[400px] flex flex-col">
                 {selectedMetric ? (
-                  (creationMode === 'alert' || selectedDims.length > 0) ? (
+                  (selectedDims.length > 0) ? (
                     <div className="flex-1 w-full h-full min-h-[350px]">
                       <ChartCard
                         card={{ 
                           id: 'preview', 
-                          title: `${selectedMetric.name} · ${creationMode === 'alert' ? 'Alert' : timeRange}`, 
+                          title: `${selectedMetric.name} · ${timeRange}`, 
                           metricId: selectedMetric.name, 
-                          chartType: creationMode === 'alert' ? 'alert' : previewType, 
+                          chartType: previewType, 
                           size: 'lg', 
-                          selection: { dimensions: selectedDims, timeRange },
-                          alert: creationMode === 'alert' ? {
-                            enabled: true,
-                            condition: { operator: alertOperator, value: Number(alertValue) || 0 },
-                            nextAction: { type: alertActionType, target: alertActionTarget },
-                            decision: alertDecision
-                          } : undefined
+                          selection: { dimensions: selectedDims, timeRange }
                         }}
                         data={previewData}
                       />
@@ -911,11 +833,11 @@ const BIAnalysisPage: React.FC = () => {
               </CardContent>
               <CardFooter className="border-t bg-muted/10 py-4 flex justify-between items-center">
                 <div className="text-sm text-muted-foreground">
-                  {creationMode === 'chart' && (previewData.length > 0 ? `${previewData.length} data points loaded` : 'No data loaded')}
+                  {previewData.length > 0 ? `${previewData.length} data points loaded` : 'No data loaded'}
                 </div>
                 <Button 
                   onClick={addCardToBoard} 
-                  disabled={!selectedMetric || (creationMode === 'chart' && selectedDims.length === 0)}
+                  disabled={!selectedMetric || selectedDims.length === 0}
                   className="gap-2"
                   size="lg"
                 >
@@ -938,6 +860,7 @@ const BIAnalysisPage: React.FC = () => {
             onResize={resizeCard}
             onRemove={removeCard}
             onUpdate={updateCard}
+            onAddAlert={() => setAddAlertOpen(true)}
           />
 
           <Separator className="my-8" />
@@ -986,6 +909,38 @@ const BIAnalysisPage: React.FC = () => {
               </div>
             )}
           </div>
+
+          <Dialog open={addAlertOpen} onOpenChange={setAddAlertOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Alert Card</DialogTitle>
+            <DialogDescription>
+              Select an alert rule to add to the dashboard.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+             <div className="space-y-2">
+               <Label>Alert Rule</Label>
+               <Select value={alertRuleId} onValueChange={setAlertRuleId}>
+                 <SelectTrigger>
+                   <SelectValue placeholder="Select rule..." />
+                 </SelectTrigger>
+                 <SelectContent>
+                   {dialogRules.map(r => (
+                     <SelectItem key={r.id} value={r.id}>
+                       {r.name} ({r.priority})
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+             </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddAlertOpen(false)}>Cancel</Button>
+            <Button onClick={confirmAddAlert} disabled={!alertRuleId}>Add Alert</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
           {/* Save dialog */}
         <Dialog open={saveOpen} onOpenChange={setSaveOpen}>

@@ -542,7 +542,7 @@ table_metrics = Table(
     create_pk('id'),
     create_str('name', 128, False),
     create_str('description', 1024),
-	create_str('categoryId', 200),
+	create_str('category_id', 200),
     create_str('type', 50, False),
     create_json('type_params'),
     create_str('filter', 1024),

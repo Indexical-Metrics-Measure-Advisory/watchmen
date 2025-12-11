@@ -5,7 +5,7 @@ CREATE TABLE metrics
     description  CLOB,
     type         VARCHAR2(50) NOT NULL,
     type_params  CLOB,
-    categoryId     VARCHAR2(50),
+    category_id     VARCHAR2(50),
     filter       CLOB,
     metadata     CLOB,
     label        VARCHAR2(255),

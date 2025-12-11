@@ -34,6 +34,7 @@ import OnlineEvaluation from "./pages/OnlineEvaluation";
 import ChatPage from "./pages/chat";
 import AnalysisAssistantConfigPage from './pages/AnalysisAssistantConfig';
 import BIAnalysisPage from './pages/BIAnalysis';
+import { AlertConfigurationPage } from './pages/AlertConfigurationPage';
 
 
 const queryClient = new QueryClient();
@@ -62,6 +63,7 @@ const App = () => (
                   <Route path="/metrics/assistant-config" element={<AnalysisAssistantConfigPage />} />
                 )}
                 <Route path="/metrics/bi-analysis" element={<BIAnalysisPage />} />
+                <Route path="/metrics/alert-configuration" element={<AlertConfigurationPage />} />
                 <Route path="/metrics/data-profiles" element={<DataProfileManagement />} />
                 <Route path="/data-catalog" element={<DataCatalog />} />
                 {/* <Route path="/metric-detail" element={<MetricDetail />} /> */}

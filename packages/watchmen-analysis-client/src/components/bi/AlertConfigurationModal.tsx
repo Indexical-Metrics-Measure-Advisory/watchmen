@@ -7,8 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Play, Save, Plus, Trash2, GripVertical, Activity, Beaker, Lightbulb, Zap, Mail, Webhook, Bell, Workflow, CheckCircle2, XCircle } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Play, Save, Plus, Trash2, GripVertical, Activity, Beaker, Lightbulb, Zap, Mail, Webhook, Bell, Workflow, CheckCircle2, XCircle, Check, ChevronsUpDown, Target, Layers } from 'lucide-react';
 import { BIChartCard, AlertConfig, AlertCondition, AlertAction } from '@/model/biAnalysis';
+import { metricsService } from '@/services/metricsService';
+import { MetricType } from '@/model/Metric';
 import { cn } from '@/lib/utils';
 
 interface AlertConfigurationModalProps {
@@ -18,6 +22,61 @@ interface AlertConfigurationModalProps {
   onSave: (updatedCard: BIChartCard) => void;
 }
 
+interface MetricSelectorProps {
+  value: string;
+  onChange: (value: string) => void;
+  metrics: MetricType[];
+}
+
+const MetricSelector: React.FC<MetricSelectorProps> = ({ value, onChange, metrics }) => {
+  const [open, setOpen] = useState(false);
+  const selectedMetric = metrics.find(m => m.id === value);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between font-normal"
+        >
+          {selectedMetric ? selectedMetric.name : "Select Metric..."}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[300px] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search metric..." />
+          <CommandList>
+            <CommandEmpty>No metric found.</CommandEmpty>
+            <CommandGroup>
+              {metrics.map((metric) => (
+                <CommandItem
+                  key={metric.id}
+                  value={metric.name}
+                  onSelect={() => {
+                    onChange(metric.id);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === metric.id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {metric.name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = ({
   open,
   onOpenChange,
@@ -25,6 +84,7 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
   onSave
 }) => {
   const [activeTab, setActiveTab] = useState("config");
+  const [metrics, setMetrics] = useState<MetricType[]>([]);
   const [testResult, setTestResult] = useState<{ triggered: boolean; message: string } | null>(null);
   const [testValue, setTestValue] = useState<number>(0);
   const [config, setConfig] = useState<AlertConfig>({
@@ -41,6 +101,18 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
 
   // Initialize conditions if empty but legacy condition exists
   useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const data = await metricsService.getMetrics();
+        setMetrics(data);
+      } catch (error) {
+        console.error("Failed to fetch metrics", error);
+      }
+    };
+    fetchMetrics();
+  }, []);
+
+  useEffect(() => {
     if (open) {
       const initialConfig = {
         enabled: true,
@@ -50,7 +122,8 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
         name: card.title || '',
         priority: 'medium',
         description: '',
-        ...card.alert
+        ...card.alert,
+        actions: card.alert?.actions || (card.alert?.nextAction ? [card.alert.nextAction] : [])
       } as AlertConfig;
 
       if (!initialConfig.conditions || initialConfig.conditions.length === 0) {
@@ -63,6 +136,10 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
 
       if (!initialConfig.nextAction) {
         initialConfig.nextAction = { type: 'notification' };
+      }
+      
+      if (!initialConfig.actions) {
+        initialConfig.actions = [];
       }
 
       setConfig(initialConfig);
@@ -103,14 +180,29 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
     });
   };
 
-  const handleActionChange = (field: keyof AlertAction, value: any) => {
+  const handleAddAction = () => {
     setConfig(prev => ({
       ...prev,
-      nextAction: {
-        ...prev.nextAction,
-        [field]: value
-      }
+      actions: [
+        ...(prev.actions || []),
+        { type: 'notification', riskLevel: 'medium', name: '', content: '', expectedEffect: '' }
+      ]
     }));
+  };
+
+  const handleRemoveAction = (index: number) => {
+    setConfig(prev => ({
+      ...prev,
+      actions: prev.actions?.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleActionChange = (index: number, field: keyof AlertAction, value: any) => {
+    setConfig(prev => {
+      const newActions = [...(prev.actions || [])];
+      newActions[index] = { ...newActions[index], [field]: value };
+      return { ...prev, actions: newActions };
+    });
   };
 
   const runTest = () => {
@@ -272,20 +364,11 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
                              <GripVertical className="w-4 h-4" />
                            </div>
                            <div className="col-span-4">
-                             <Select 
-                               value={cond.field || card.metricId} 
-                               onValueChange={(val) => handleConditionChange(index, 'field', val)}
-                             >
-                               <SelectTrigger>
-                                 <SelectValue placeholder="Select Metric" />
-                               </SelectTrigger>
-                               <SelectContent>
-                                 <SelectItem value={card.metricId}>{card.metricId} (Current)</SelectItem>
-                                 <SelectItem value="loss_ratio">Loss Ratio</SelectItem>
-                                 <SelectItem value="claim_count">Claim Count</SelectItem>
-                                 <SelectItem value="premium_total">Total Premium</SelectItem>
-                               </SelectContent>
-                             </Select>
+                             <MetricSelector
+                               value={cond.field || card.metricId}
+                               onChange={(val) => handleConditionChange(index, 'field', val)}
+                               metrics={metrics}
+                             />
                            </div>
                            <div className="col-span-3">
                              <Select 
@@ -421,74 +504,155 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
               </TabsContent>
 
               <TabsContent value="action" className="mt-0 min-h-[400px]">
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <Label>Action Type</Label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      {[
-                        { id: 'notification', label: 'Notification', icon: Bell },
-                        { id: 'email', label: 'Email', icon: Mail },
-                        { id: 'webhook', label: 'Webhook', icon: Webhook },
-                        { id: 'process', label: 'Process', icon: Workflow },
-                      ].map((type) => (
-                        <div 
-                          key={type.id}
-                          className={cn(
-                            "cursor-pointer border rounded-lg p-4 flex flex-col items-center justify-center gap-2 hover:bg-muted/50 transition-colors",
-                            config.nextAction.type === type.id 
-                              ? "border-primary bg-primary/5 text-primary ring-1 ring-primary" 
-                              : "border-border text-muted-foreground"
-                          )}
-                          onClick={() => handleActionChange('type', type.id)}
-                        >
-                          <type.icon className="w-6 h-6" />
-                          <span className="text-xs font-medium">{type.label}</span>
+                <Tabs defaultValue="config" className="w-full">
+                  <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent gap-2 mb-4">
+                    <TabsTrigger 
+                      value="config" 
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-md px-4 py-2 border border-b-0"
+                    >
+                      <Target className="w-4 h-4 mr-2" />
+                      Suggested Action Config
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="types"
+                      className="data-[state=active]:bg-muted rounded-t-md px-4 py-2 border border-b-0"
+                    >
+                      <Layers className="w-4 h-4 mr-2" />
+                      Action Type Management
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="config" className="space-y-6">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-medium flex items-center">
+                        <Target className="w-5 h-5 mr-2 text-primary" />
+                        Suggested Action Config
+                      </h3>
+                      <Button onClick={handleAddAction} size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Action
+                      </Button>
+                    </div>
+
+                    {config.actions?.map((action, index) => (
+                      <div key={index} className="border rounded-lg p-4 space-y-4 bg-muted/10 relative">
+                        <div className="flex justify-between items-center">
+                           <div className="flex items-center gap-2">
+                              <div className="bg-primary/10 p-2 rounded-full">
+                                 <Bell className="w-4 h-4 text-primary" />
+                              </div>
+                              <span className="font-medium bg-secondary px-2 py-1 rounded text-sm">Action #{index + 1}</span>
+                           </div>
+                           <Button variant="ghost" size="icon" onClick={() => handleRemoveAction(index)} className="absolute top-4 right-4">
+                             <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                           </Button>
                         </div>
-                      ))}
-                    </div>
-                  </div>
 
-                  <div className="space-y-4 pt-4 border-t border-border/50">
-                    <div className="space-y-2">
-                      <Label>
-                        {config.nextAction.type === 'email' ? 'Recipient Email(s)' :
-                         config.nextAction.type === 'webhook' ? 'Webhook URL' :
-                         config.nextAction.type === 'process' ? 'Process ID' :
-                         'Target User/Group'}
-                      </Label>
-                      <Input 
-                        value={config.nextAction.target || ''} 
-                        onChange={(e) => handleActionChange('target', e.target.value)}
-                        placeholder={
-                          config.nextAction.type === 'email' ? 'user@example.com' :
-                          config.nextAction.type === 'webhook' ? 'https://api.example.com/webhook' :
-                          config.nextAction.type === 'process' ? 'Process definition ID' :
-                          'User ID or Group Name'
-                        }
-                      />
-                    </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Action Type</Label>
+                            <Select 
+                              value={action.type} 
+                              onValueChange={(val: any) => handleActionChange(index, 'type', val)}
+                            >
+                              <SelectTrigger>
+                                 {action.type === 'notification' && <Bell className="w-4 h-4 mr-2" />}
+                                 {action.type === 'email' && <Mail className="w-4 h-4 mr-2" />}
+                                 {action.type === 'webhook' && <Webhook className="w-4 h-4 mr-2" />}
+                                 {action.type === 'process' && <Workflow className="w-4 h-4 mr-2" />}
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="notification">
+                                  <div className="flex items-center"><Bell className="w-4 h-4 mr-2"/> Notification</div>
+                                </SelectItem>
+                                <SelectItem value="email">
+                                  <div className="flex items-center"><Mail className="w-4 h-4 mr-2"/> Email</div>
+                                </SelectItem>
+                                <SelectItem value="webhook">
+                                  <div className="flex items-center"><Webhook className="w-4 h-4 mr-2"/> Webhook</div>
+                                </SelectItem>
+                                <SelectItem value="process">
+                                  <div className="flex items-center"><Workflow className="w-4 h-4 mr-2"/> Process</div>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Risk Level</Label>
+                            <Select 
+                              value={action.riskLevel || 'medium'} 
+                              onValueChange={(val: any) => handleActionChange(index, 'riskLevel', val)}
+                            >
+                              <SelectTrigger>
+                                 <div className={cn("px-2 py-0.5 rounded text-xs font-medium", 
+                                    action.riskLevel === 'low' ? "bg-green-100 text-green-700" :
+                                    action.riskLevel === 'medium' ? "bg-yellow-100 text-yellow-700" :
+                                    action.riskLevel === 'high' ? "bg-orange-100 text-orange-700" :
+                                    "bg-red-100 text-red-700"
+                                 )}>
+                                   {action.riskLevel === 'low' ? 'Low Risk' : 
+                                    action.riskLevel === 'medium' ? 'Medium Risk' :
+                                    action.riskLevel === 'high' ? 'High Risk' : 'Critical Risk'}
+                                 </div>
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="low">Low Risk</SelectItem>
+                                <SelectItem value="medium">Medium Risk</SelectItem>
+                                <SelectItem value="high">High Risk</SelectItem>
+                                <SelectItem value="critical">Critical Risk</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
 
-                    <div className="space-y-2">
-                      <Label>
-                        {config.nextAction.type === 'webhook' ? 'Payload Template (JSON)' :
-                         config.nextAction.type === 'process' ? 'Input Parameters (JSON)' :
-                         'Message Template'}
-                      </Label>
-                      <Textarea 
-                        value={config.nextAction.template || ''} 
-                        onChange={(e) => handleActionChange('template', e.target.value)}
-                        className="font-mono text-sm min-h-[120px]"
-                        placeholder={
-                          config.nextAction.type === 'webhook' ? '{\n  "alert": "${alert_name}",\n  "value": ${current_value}\n}' :
-                          "Alert detected: ${alert_name}. Value is ${current_value}."
-                        }
-                      />
-                      <p className="text-[10px] text-muted-foreground">
-                        Available variables: <code className="bg-muted px-1 rounded">${`{alert_name}`}</code>, <code className="bg-muted px-1 rounded">${`{current_value}`}</code>, <code className="bg-muted px-1 rounded">${`{metric_name}`}</code>
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                        <div className="space-y-2">
+                          <Label>Action Name</Label>
+                          <Input 
+                            value={action.name || ''} 
+                            onChange={(e) => handleActionChange(index, 'name', e.target.value)}
+                            placeholder="e.g. Send High Payment Warning"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Execution Content</Label>
+                          <Textarea 
+                            value={action.content || ''} 
+                            onChange={(e) => handleActionChange(index, 'content', e.target.value)}
+                            placeholder="Describe what this action will do..."
+                            className="min-h-[80px]"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                           <Label className="flex items-center text-primary">
+                              <Activity className="w-4 h-4 mr-2" />
+                              Expected Effect
+                           </Label>
+                           <Input 
+                             value={action.expectedEffect || ''} 
+                             onChange={(e) => handleActionChange(index, 'expectedEffect', e.target.value)}
+                             placeholder="e.g. Alert 24h in advance, reduce loss by 15%"
+                           />
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {(!config.actions || config.actions.length === 0) && (
+                      <div className="text-center py-8 text-muted-foreground border rounded-lg border-dashed">
+                        No actions configured. Click "Add Action" to start.
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="types">
+                     <div className="text-center py-12 text-muted-foreground">
+                       Action Type Management coming soon...
+                     </div>
+                  </TabsContent>
+                </Tabs>
               </TabsContent>
             </div>
 
