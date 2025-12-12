@@ -43,7 +43,7 @@ const menuItems = [
     icon: Search,
   },
   {
-    title: "Configuration",
+    title: "Run Ingestion",
     url: "/config",
     icon: Settings,
   },
