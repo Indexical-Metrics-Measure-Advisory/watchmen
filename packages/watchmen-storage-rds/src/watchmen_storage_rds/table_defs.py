@@ -654,6 +654,22 @@ table_bi_analysis = Table(
 
 
 
+table_global_alert_rules = Table(
+	'global_alert_rules', meta_data,
+	create_pk('id'),
+	create_str('name', 128),
+	create_str('metric_id', 50),
+	create_bool('enabled'),
+	create_str('priority', 20),
+	create_str('description', 1024),
+	create_str('condition_logic', 10),
+	create_json('conditions'),
+	create_json('condition'),
+	create_json('actions'),
+	create_json('next_action'),
+	create_str('decision', 1024),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(), create_user_id()
+)
 
 
 
@@ -739,6 +755,7 @@ tables: Dict[str, Table] = {
 	'data_profiles': table_data_profiles,
 	'metric_categories': table_metric_categories,
 	'bi_analysis': table_bi_analysis,
+	'global_alert_rules': table_global_alert_rules,
 }
 
 

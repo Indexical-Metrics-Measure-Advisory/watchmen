@@ -1,19 +1,19 @@
 CREATE TABLE trigger_online (
 	online_trigger_id   BIGINT              NOT NULL,
-	code                VARCHAR(50),
-	record              JSON,
-	status              TINYINT,
+	code                NVARCHAR(50),
+	record              NVARCHAR(MAX),
+	status              SMALLINT,
 	trace_id            BIGINT,
-	result              JSON,
-	tenant_id           VARCHAR(50)         NOT NULL,
+	result              NVARCHAR(MAX),
+	tenant_id           NVARCHAR(50)         NOT NULL,
     created_at          DATETIME            NOT NULL,
-    created_by          VARCHAR(50)         NOT NULL,
+    created_by          NVARCHAR(50)         NOT NULL,
     last_modified_at    DATETIME            NOT NULL,
-    last_modified_by    VARCHAR(50)         NOT NULL,
-	PRIMARY KEY (online_trigger_id),
-    INDEX (tenant_id),
-    INDEX (created_at),
-    INDEX (created_by),
-    INDEX (last_modified_at),
-    INDEX (last_modified_by)
+    last_modified_by    NVARCHAR(50)         NOT NULL,
+	CONSTRAINT pk_trigger_online PRIMARY KEY (online_trigger_id)
 );
+CREATE INDEX i_trigger_online_1 ON trigger_online (tenant_id);
+CREATE INDEX i_trigger_online_2 ON trigger_online (created_at);
+CREATE INDEX i_trigger_online_3 ON trigger_online (created_by);
+CREATE INDEX i_trigger_online_4 ON trigger_online (last_modified_at);
+CREATE INDEX i_trigger_online_5 ON trigger_online (last_modified_by);

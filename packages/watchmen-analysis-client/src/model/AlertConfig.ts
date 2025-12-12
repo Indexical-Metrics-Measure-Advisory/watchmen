@@ -8,12 +8,12 @@ export interface AlertRule {
   severity: 'info' | 'warning' | 'critical';
   enabled: boolean;
   description?: string;
-  // 变化率检测配置
+  // Change rate configuration
   changeRateConfig?: {
     timeWindow: '1h' | '24h' | '7d' | '30d';
-    changeThreshold: number; // 百分比变化阈值
+    changeThreshold: number; // Percentage change threshold
   };
-  // 异常检测配置
+  // Anomaly detection configuration
   anomalyConfig?: {
     sensitivity: 'low' | 'medium' | 'high';
     historicalPeriod: '7d' | '30d' | '90d';
@@ -56,7 +56,7 @@ export interface MetricAnomaly {
     min: number;
     max: number;
   };
-  anomalyScore: number; // 0-1, 越高越异常
+  anomalyScore: number; // 0-1, higher value means more anomalous
   detectedAt: string;
   description: string;
 }
