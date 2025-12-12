@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,8 @@ const SemanticModelManagement: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isTopicsLoading, setIsTopicsLoading] = useState(false);
   const { toast } = useToast();
+  const dimensionsEndRef = useRef<HTMLDivElement>(null);
+  const measuresEndRef = useRef<HTMLDivElement>(null);
 
   // Form state for create/edit
   const [formData, setFormData] = useState<SemanticModel>({
@@ -244,6 +246,9 @@ const SemanticModelManagement: React.FC = () => {
         label: null
       }]
     }));
+    setTimeout(() => {
+      measuresEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   const removeMeasure = (index: number) => {
@@ -279,6 +284,9 @@ const SemanticModelManagement: React.FC = () => {
         label: null
       }]
     }));
+    setTimeout(() => {
+      dimensionsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   const removeDimension = (index: number) => {
@@ -1759,6 +1767,7 @@ const SemanticModelManagement: React.FC = () => {
                     <Button variant="link" onClick={addMeasure}>Add your first measure</Button>
                   </div>
                 )}
+                <div ref={measuresEndRef} />
               </ScrollArea>
             </TabsContent>
             
@@ -1864,6 +1873,7 @@ const SemanticModelManagement: React.FC = () => {
                     <Button variant="link" onClick={addDimension}>Add your first dimension</Button>
                   </div>
                 )}
+                <div ref={dimensionsEndRef} />
               </ScrollArea>
             </TabsContent>
           </Tabs>
