@@ -9,13 +9,29 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { cn } from '@/lib/utils';
 import Header from '@/components/layout/Header';
-import { Sun, Moon, ArrowLeft, Key, Search, Plus, Github, Database, Figma, MessageSquare, GitBranch } from 'lucide-react';
+import { Sun, Moon, ArrowLeft, Key, Search, Plus, Github, Database, Figma, MessageSquare, GitBranch, Sparkles } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Toaster } from '@/components/ui/toaster';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { Separator } from '@/components/ui/separator';
 import MCPServerConfigModal from '@/components/settings/MCPServerConfigModal';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const AI_MODELS = [
+  { id: 'gpt-4o', name: 'GPT-4o', provider: 'OpenAI' },
+  { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', provider: 'OpenAI' },
+  { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', provider: 'OpenAI' },
+  { id: 'claude-3-5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'Anthropic' },
+  { id: 'claude-3-opus', name: 'Claude 3 Opus', provider: 'Anthropic' },
+  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'Google' },
+];
 
 const Settings = () => {
   const { theme, toggleTheme } = useTheme();
@@ -23,6 +39,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const [mcpToken, setMcpToken] = React.useState('');
   const [mcpUrl, setMcpUrl] = React.useState('');
+  const [aiModel, setAiModel] = React.useState('gpt-4o');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [showManualConfig, setShowManualConfig] = React.useState(false);
   const [configModalOpen, setConfigModalOpen] = React.useState(false);
@@ -104,13 +121,26 @@ const Settings = () => {
   React.useEffect(() => {
     const storedToken = localStorage.getItem('mcp_token');
     const storedUrl = localStorage.getItem('mcp_url');
+    const storedModel = localStorage.getItem('ai_model');
     if (storedToken) {
       setMcpToken(storedToken);
     }
     if (storedUrl) {
       setMcpUrl(storedUrl);
     }
+    if (storedModel) {
+      setAiModel(storedModel);
+    }
   }, []);
+
+  const handleModelChange = (value: string) => {
+    setAiModel(value);
+    localStorage.setItem('ai_model', value);
+    toast({
+      title: "Model Updated",
+      description: `AI model set to ${AI_MODELS.find(m => m.id === value)?.name}`,
+    });
+  };
 
   const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newToken = e.target.value;
@@ -182,6 +212,38 @@ const Settings = () => {
         
         
         
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>AI Configuration</CardTitle>
+            <CardDescription>Configure AI model settings</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <div>
+                  <Label>LLM Model</Label>
+                  <p className="text-sm text-muted-foreground">Select the AI model for analysis</p>
+                </div>
+              </div>
+              <div className="w-[200px]">
+                <Select value={aiModel} onValueChange={handleModelChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AI_MODELS.map(model => (
+                      <SelectItem key={model.id} value={model.id}>
+                        {model.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
       </main>
       
       {/* MCP Server Configuration Modal */}

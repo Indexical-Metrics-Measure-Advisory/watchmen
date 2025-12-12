@@ -75,7 +75,7 @@ export const AlertConfigurationPage: React.FC = () => {
               <p className="text-muted-foreground">Manage global alert rules and notifications.</p>
             </div>
             <Button onClick={handleCreate}>
-              <Plus className="mr-2 h-4 w-4" /> New Rule
+              <Plus className="mr-2 h-4 w-4" /> New Alert Rule
             </Button>
           </div>
 

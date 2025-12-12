@@ -614,7 +614,7 @@ const BIAnalysisPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setConfigCollapsed(v => !v)} className="gap-2">
                 {configCollapsed ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
-                {configCollapsed ? 'Expand Config' : 'Collapse Config'}
+                {configCollapsed ? 'Expand Add Metric' : 'Collapse Add Metric'}
               </Button>
               <Button variant="ghost" onClick={resetBoard} className="gap-2">
                 <RotateCcw className="h-4 w-4" />

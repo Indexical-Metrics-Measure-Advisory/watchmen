@@ -186,7 +186,7 @@ const AlertRuleSettings: React.FC<AlertRuleSettingsProps> = ({ className, onClos
             {!isEditing && (
               <Button onClick={handleCreateRule} size="sm">
                 <Plus className="h-4 w-4 mr-1" />
-                New Rule
+                New Alert Rule
               </Button>
             )}
             {onClose && (
