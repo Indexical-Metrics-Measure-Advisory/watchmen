@@ -1045,6 +1045,7 @@ const Tables = () => {
     // Validate complex structures
     if (formData.conditions && Array.isArray(formData.conditions)) {
       formData.conditions.forEach((condition: any, index: number) => {
+        // console.log(condition)
         if (!condition.field?.trim()) {
           errors[`condition_${index}_field`] = `Condition ${index + 1}: Field is required`;
         }
@@ -1068,14 +1069,17 @@ const Tables = () => {
       });
     }
 
+    
+
     if (formData.jsonColumns && Array.isArray(formData.jsonColumns)) {
       formData.jsonColumns.forEach((col: any, index: number) => {
-        if (!col.name?.trim()) {
+        
+        if (!col.columnName?.trim()) {
           errors[`json_column_${index}_name`] = `JSON Column ${index + 1}: Name is required`;
         }
-        if (!col.path?.trim()) {
-          errors[`json_column_${index}_path`] = `JSON Column ${index + 1}: Path is required`;
-        }
+        // if (!col.path?.trim()) {
+        //   errors[`json_column_${index}_path`] = `JSON Column ${index + 1}: Path is required`;
+        // }
       });
     }
 
