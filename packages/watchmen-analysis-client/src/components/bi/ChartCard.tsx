@@ -270,9 +270,11 @@ export const ChartCard: React.FC<ChartCardProps> = ({
               </Button>
             )}
             
-            <Button variant="ghost" size="icon" onClick={handleCopy} className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Copy Data">
-              <Copy className="h-3.5 w-3.5" />
-            </Button>
+            {card.chartType !== 'alert' && (
+              <Button variant="ghost" size="icon" onClick={handleCopy} className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Copy Data">
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+            )}
             
             <div className="w-px h-4 bg-border mx-1" />
 
