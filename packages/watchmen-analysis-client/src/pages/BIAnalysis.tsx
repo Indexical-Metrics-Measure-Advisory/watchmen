@@ -286,7 +286,8 @@ const BIAnalysisPage: React.FC = () => {
       setCardDataMap(prev => ({ ...prev, [card.id]: data }));
     } catch (e) {
       console.warn(`Card ${card.id}: failed to load data.`, e);
-      setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
+      // Do not set empty array on error, so it can be retried by useEffect when conditions change
+      // setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
     }
   };
 
@@ -491,6 +492,12 @@ const BIAnalysisPage: React.FC = () => {
   };
   const updateCard = (index: number, updatedCard: BIChartCard) => {
     setCards(prev => prev.map((c, i) => i === index ? updatedCard : c));
+    // Clear data for this card to force reload
+    setCardDataMap(prev => {
+      const next = { ...prev };
+      delete next[updatedCard.id];
+      return next;
+    });
   };
   const removeCard = (index: number) => {
     setCards(prev => prev.filter((_, i) => i !== index));
@@ -555,6 +562,8 @@ const BIAnalysisPage: React.FC = () => {
     const tpl = await getAnalysis(id);
     if (!tpl) return;
     setCards(tpl.cards);
+    setCardDataMap({});
+    tpl.cards.forEach(c => { void loadCardDataFor(c); });
     // If template, treat as new copy (cannot modify original)
     if (tpl.isTemplate) {
       setCurrentAnalysisId(null);
