@@ -117,20 +117,6 @@ class BIAnalysisListItem(BaseModel):
 
 
 
-bi_analysis = """
-{"id":"","name":"alert 1","description":"","cards":[{"id":"card_1765460401411","title":"High Revenue Alert","metricId":"total_revenue","chartType":"alert","size":"md","selection":{"dimensions":[],"timeRange":"Past 30 days"},"alert":{"id":"global-rule-1","metricId":"total_revenue","enabled":true,"condition":{"operator":">","value":100000},"nextAction":{"type":"notification"},"name":"High Revenue Alert","priority":"high","description":"Alert when revenue exceeds 100k","createdAt":"2024-01-01T00:00:00Z","updatedAt":"2024-01-01T00:00:00Z"}}],"userId":"1071081977535114240"}
-"""
-
-# test BIAnalysis 
-# Parse the JSON string into a Python dict
-data = json.loads(bi_analysis)
-
-# Convert dict to BIAnalysis model instance
-analysis = BIAnalysis(**data)
-
-# Pretty-print the model to verify correctness
-pprint(analysis.model_dump())
-
 
 
 

@@ -46,7 +46,7 @@ import { AnalysisBoard } from '@/components/bi/AnalysisBoard';
 import { BIChartCard, BICardSize, BIMetric, BIChartType, GlobalAlertRule } from '@/model/biAnalysis';
 import { saveAnalysis, listAnalyses, getAnalysis, deleteAnalysis, updateAnalysis, updateAnalysisTemplate } from '@/services/biAnalysisService';
 import { metricsService } from '@/services/metricsService';
-import { alertService } from '@/services/alertService';
+import { globalAlertService } from '@/services/globalAlertService';
 import { getCategories as getRealCategories, getMetrics as getAllMetrics, findDimensionsByMetric } from '@/services/metricsManagementService';
 import type { MetricDefinition, Category } from '@/model/metricsManagement';
 import type { MetricDimension } from '@/model/analysis';
@@ -91,7 +91,7 @@ const BIAnalysisPage: React.FC = () => {
   // Fetch rules when alert metric changes
   useEffect(() => {
     if (addAlertOpen) {
-      alertService.getGlobalAlertRules().then(rules => {
+      globalAlertService.getGlobalAlertRules().then(rules => {
         setDialogRules(rules);
         setAlertRuleId('');
       });
@@ -105,10 +105,13 @@ const BIAnalysisPage: React.FC = () => {
      const rule = dialogRules.find(r => r.id === alertRuleId);
      if (!rule) return;
      
+     const metricId = rule.conditions?.[0]?.metricId || '';
+     const metricName = rule.conditions?.[0]?.metricName || metricId;
+
      const newCard: BIChartCard = {
         id: `card_${Date.now()}`,
-        title: rule.name || `${rule.metricId} · Alert`,
-        metricId: rule.metricId,
+        title: rule.name || `${metricName} · Alert`,
+        metricId: metricId,
         chartType: 'alert',
         size: 'md',
         selection: { dimensions: [], timeRange: 'Past 30 days' },
@@ -267,7 +270,11 @@ const BIAnalysisPage: React.FC = () => {
     }
 
     if (card.chartType === 'alert' && card.alert) {
-      const data = await alertService.fetchAlertData(card.alert as GlobalAlertRule);
+      if (!card.alert.enabled) {
+        setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
+        return;
+      }
+      const data = await globalAlertService.fetchAlertData(card.alert as GlobalAlertRule);
       setCardDataMap(prev => ({ ...prev, [card.id]: data }));
       return;
     }

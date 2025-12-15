@@ -1,10 +1,9 @@
 import { AlertRule, AlertStatus, MetricAnomaly, AlertConfig as ServiceAlertConfig } from '@/model/AlertConfig';
-import { GlobalAlertRule } from '@/model/biAnalysis';
 import { MetricType } from '@/model/Metric';
 import { API_BASE_URL, getDefaultHeaders, checkResponse } from '@/utils/apiConfig';
 
 const isMockMode = true;
-const BASE_URL = `${API_BASE_URL}/metricflow/alert/global-rules`;
+const BASE_URL = `${API_BASE_URL}/metricflow/alert/rules`; // Updated base URL for alert rules
 
 // Mock数据 - 在实际项目中应该从API获取
 const mockAlertRules: AlertRule[] = [
@@ -60,50 +59,49 @@ const mockAlertRules: AlertRule[] = [
   }
 ];
 
-const mockGlobalAlertRules: GlobalAlertRule[] = [
-  {
-    id: 'global-rule-1',
-    metricId: 'total_revenue',
-    enabled: true,
-    condition: { operator: '>', value: 100000 },
-    nextAction: { type: 'notification' },
-    name: 'High Revenue Alert',
-    priority: 'high',
-    description: 'Alert when revenue exceeds 100k',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  }
-];
-
 const mockAlertStatuses: AlertStatus[] = [
   {
     id: 'alert-1',
     ruleId: 'rule-1',
     ruleName: 'Premium Revenue Abnormal Decline',
     triggered: true,
-    currentValue: 45000000,
-    thresholdValue: 50000000,
     triggeredAt: '2024-01-15T10:30:00Z',
     severity: 'critical',
     message: 'Total premium revenue (45 million) is below alert threshold (50 million)',
-    metricName: 'Total Premium Underwritten',
-    acknowledged: false
+    acknowledged: false,
+    conditionResults: [
+      {
+        metricId: 'total_premium',
+        metricName: 'Total Premium Underwritten',
+        operator: '<',
+        value: 50000000,
+        currentValue: 45000000,
+        triggered: true,
+      },
+    ],
   },
   {
     id: 'alert-2',
     ruleId: 'rule-2',
     ruleName: 'Application Volume Abnormal Growth',
     triggered: true,
-    currentValue: 1250,
-    thresholdValue: 1000,
     triggeredAt: '2024-01-15T14:20:00Z',
     severity: 'warning',
     message: 'Application volume grew 25% (1250 vs 1000) within 24 hours, approaching alert threshold of 30%',
-    metricName: 'Application Count',
     acknowledged: true,
     acknowledgedBy: 'analyst@company.com',
-    acknowledgedAt: '2024-01-15T15:00:00Z'
-  }
+    acknowledgedAt: '2024-01-15T15:00:00Z',
+    conditionResults: [
+      {
+        metricId: 'application_count',
+        metricName: 'Application Count',
+        operator: 'change_rate',
+        value: 30,
+        currentValue: 25,
+        triggered: true,
+      },
+    ],
+  },
 ];
 
 const mockAnomalies: MetricAnomaly[] = [
@@ -133,79 +131,6 @@ class AlertService {
       AlertService.instance = new AlertService();
     }
     return AlertService.instance;
-  }
-
-  // Global Alert Rule Methods
-  async getGlobalAlertRules(): Promise<GlobalAlertRule[]> {
-    if (isMockMode) {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return mockGlobalAlertRules;
-    }
-    const response = await fetch(`${BASE_URL}`, {
-      headers: getDefaultHeaders(),
-    });
-    return checkResponse(response);
-  }
-
-  async createGlobalAlertRule(rule: Omit<GlobalAlertRule, 'id' | 'createdAt' | 'updatedAt'>): Promise<GlobalAlertRule> {
-    if (isMockMode) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const newRule: GlobalAlertRule = {
-        ...rule,
-        id: `global-rule-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      mockGlobalAlertRules.push(newRule);
-      return newRule;
-    }
-    const response = await fetch(`${BASE_URL}`, {
-      method: 'POST',
-      headers: getDefaultHeaders(),
-      body: JSON.stringify(rule),
-    });
-    return checkResponse(response);
-  }
-
-  async updateGlobalAlertRule(id: string, updates: Partial<GlobalAlertRule>): Promise<GlobalAlertRule> {
-    if (isMockMode) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const index = mockGlobalAlertRules.findIndex(rule => rule.id === id);
-      if (index === -1) {
-        throw new Error('Global alert rule not found');
-      }
-      
-      mockGlobalAlertRules[index] = {
-        ...mockGlobalAlertRules[index],
-        ...updates,
-        updatedAt: new Date().toISOString()
-      };
-      
-      return mockGlobalAlertRules[index];
-    }
-    const response = await fetch(`${BASE_URL}/${id}`, {
-      method: 'PUT',
-      headers: getDefaultHeaders(),
-      body: JSON.stringify(updates),
-    });
-    return checkResponse(response);
-  }
-
-  async deleteGlobalAlertRule(id: string): Promise<void> {
-    if (isMockMode) {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const index = mockGlobalAlertRules.findIndex(rule => rule.id === id);
-      if (index === -1) {
-        throw new Error('Global alert rule not found');
-      }
-      mockGlobalAlertRules.splice(index, 1);
-      return;
-    }
-    const response = await fetch(`${BASE_URL}/${id}`, {
-      method: 'DELETE',
-      headers: getDefaultHeaders(),
-    });
-    return checkResponse(response);
   }
 
   // 新的API方法
@@ -314,13 +239,20 @@ class AlertService {
         ruleId: metric.id,
         ruleName: `Alert for ${metric.name}`,
         triggered: true,
-        currentValue: metric.value,
-        thresholdValue: config.thresholdValue,
         triggeredAt: new Date().toISOString(),
         severity: config.severity,
         message: `${metric.name} is ${config.thresholdType} threshold`,
-        metricName: metric.name,
-        acknowledged: false
+        acknowledged: false,
+        conditionResults: [
+          {
+            metricId: metric.id,
+            metricName: metric.name,
+            operator: config.thresholdType === 'above' ? '>' : '<',
+            value: config.thresholdValue,
+            currentValue: metric.value,
+            triggered: true,
+          },
+        ],
       };
       this.alertStatuses.set(metric.id, status);
       this.notifyAlert(metric, status);
@@ -337,7 +269,7 @@ class AlertService {
     config.notificationChannels.forEach(channel => {
       switch (channel) {
         case 'in-app':
-          console.log(`In-app alert for ${metric.name}: ${status.currentValue}${metric.unit}`);
+          console.log(`In-app alert for ${metric.name}: ${metric.value}${metric.unit}`);
           break;
         case 'email':
           console.log(`Email alert for ${metric.name}`);
@@ -355,25 +287,6 @@ class AlertService {
 
   public clearAlert(metricId: string): void {
     this.alertStatuses.delete(metricId);
-  }
-
-  async fetchAlertData(rule: GlobalAlertRule): Promise<any[]> {
-    if (isMockMode) {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      // Return a random value close to the condition value to simulate checking
-      const baseValue = typeof rule.condition.value === 'number' ? rule.condition.value : 0;
-      const randomFactor = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
-      return [{ value: Math.round(baseValue * randomFactor) }];
-    }
-    
-    // In real mode, we might want to call a specific alert evaluation endpoint
-    // For now, let's assume there is an endpoint or we can't implement it fully without backend specs
-    // But per requirement, we must have this service method.
-    // If no specific endpoint exists, we might default to returning empty or calling a placeholder
-    const response = await fetch(`${BASE_URL}/${rule.id}/data`, {
-        headers: getDefaultHeaders(),
-    });
-    return checkResponse(response);
   }
 }
 

@@ -2,7 +2,6 @@ CREATE TABLE global_alert_rules
 (
     id                VARCHAR(50)   NOT NULL,
     name              VARCHAR(128),
-    metric_id         VARCHAR(50),
     enabled           TINYINT,
     priority          VARCHAR(20),
     description       VARCHAR(1024),
@@ -17,7 +16,7 @@ CREATE TABLE global_alert_rules
     created_by        VARCHAR(50)   NOT NULL,
     last_modified_at  DATETIME      NOT NULL,
     last_modified_by  VARCHAR(50)   NOT NULL,
-    version           INTEGER       NOT NULL,
+    version           INTEGER       DEFAULT 1,
     user_id           VARCHAR(50)   NOT NULL,
     PRIMARY KEY (id),
     INDEX (tenant_id),
@@ -25,6 +24,5 @@ CREATE TABLE global_alert_rules
     INDEX (created_by),
     INDEX (last_modified_at),
     INDEX (last_modified_by),
-    INDEX (user_id),
-    INDEX (metric_id)
+    INDEX (user_id)
 );

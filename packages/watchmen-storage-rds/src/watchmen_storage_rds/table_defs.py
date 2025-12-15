@@ -658,7 +658,6 @@ table_global_alert_rules = Table(
 	'global_alert_rules', meta_data,
 	create_pk('id'),
 	create_str('name', 128),
-	create_str('metric_id', 50),
 	create_bool('enabled'),
 	create_str('priority', 20),
 	create_str('description', 1024),

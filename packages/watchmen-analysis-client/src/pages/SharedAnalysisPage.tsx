@@ -88,7 +88,11 @@ const SharedAnalysisPage: React.FC = () => {
       }
 
       if (card.chartType === 'alert' && card.alert) {
-        const data = await alertService.fetchAlertData(card.alert as GlobalAlertRule);
+        if (!card.alert.enabled) {
+          setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
+          return;
+        }
+        const data = await globalAlertService.fetchAlertData(card.alert as GlobalAlertRule);
         setCardDataMap(prev => ({ ...prev, [card.id]: data }));
         return;
       }

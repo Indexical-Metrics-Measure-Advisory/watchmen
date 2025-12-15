@@ -12,27 +12,26 @@ class AlertRuleShaper(UserBasedTupleShaper):
     def serialize_conditions(conditions: Optional[List[AlertCondition]]) -> Optional[list]:
         if conditions is None:
             return None
-        return ArrayHelper(conditions).map(lambda x: x.model_dump()).to_list()
+        return ArrayHelper(conditions).map(lambda x: x if isinstance(x, dict) else x.model_dump()).to_list()
 
     @staticmethod
     def serialize_actions(actions: Optional[List[AlertAction]]) -> Optional[list]:
         if actions is None:
             return None
-        return ArrayHelper(actions).map(lambda x: x.model_dump()).to_list()
+        return ArrayHelper(actions).map(lambda x: x if isinstance(x, dict) else x.model_dump()).to_list()
 
     def serialize(self, alert_rule: GlobalAlertRule) -> EntityRow:
         row = {
             'id': alert_rule.id,
-            'metric_id': alert_rule.metricId,
             'enabled': alert_rule.enabled,
             'name': alert_rule.name,
             'priority': alert_rule.priority,
             'description': alert_rule.description,
             'condition_logic': alert_rule.conditionLogic,
             'conditions': AlertRuleShaper.serialize_conditions(alert_rule.conditions),
-            'condition': alert_rule.condition.model_dump() if alert_rule.condition else None,
+            'condition': (alert_rule.condition if isinstance(alert_rule.condition, dict) else alert_rule.condition.model_dump()) if alert_rule.condition else None,
             'actions': AlertRuleShaper.serialize_actions(alert_rule.actions),
-            'next_action': alert_rule.nextAction.model_dump() if alert_rule.nextAction else None,
+            'next_action': (alert_rule.nextAction if isinstance(alert_rule.nextAction, dict) else alert_rule.nextAction.model_dump()) if alert_rule.nextAction else None,
             'decision': alert_rule.decision
         }
         row = AuditableShaper.serialize(alert_rule, row)
@@ -42,7 +41,6 @@ class AlertRuleShaper(UserBasedTupleShaper):
     def deserialize(self, row: EntityRow) -> GlobalAlertRule:
         alert_rule_data = {
             'id': row.get('id'),
-            'metricId': row.get('metric_id'),
             'enabled': row.get('enabled'),
             'name': row.get('name'),
             'priority': row.get('priority'),
@@ -90,8 +88,10 @@ class AlertRuleService(UserBasedTupleService):
             criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
         return self.storage.find(self.get_entity_finder(criteria=criteria))
 
-    def find_by_metric_id(self, metric_id: str, tenant_id: Optional[TenantId] = None) -> List[GlobalAlertRule]:
-        criteria = [EntityCriteriaExpression(left=ColumnNameLiteral(columnName='metric_id'), right=metric_id)]
-        if tenant_id is not None and len(tenant_id.strip()) != 0:
-            criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
-        return self.storage.find(self.get_entity_finder(criteria=criteria))
+    # def find_by_metric_id(self, metric_id: str, tenant_id: Optional[TenantId] = None) -> List[GlobalAlertRule]:
+    #     # Since metric_id is moved to conditions JSON, we fetch all and filter in memory
+    #     all_rules = self.find_all(tenant_id)
+    #     return [
+    #         rule for rule in all_rules
+    #         if rule.conditions and any(c.metricId == metric_id for c in rule.conditions)
+    #     ]

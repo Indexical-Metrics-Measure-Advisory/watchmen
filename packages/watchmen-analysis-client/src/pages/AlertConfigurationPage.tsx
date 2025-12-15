@@ -3,13 +3,13 @@ import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { Button } from "@/components/ui/button";
-import { Plus, Edit, Trash2, Search, Bell, AlertTriangle } from 'lucide-react';
-import { Input } from "@/components/ui/input";
+import { Plus, Edit, Trash2, Bell } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { GlobalAlertRule } from '@/model/biAnalysis';
 import { alertService } from '@/services/alertService';
 import { GlobalAlertConfigurationModal } from '@/components/bi/GlobalAlertConfigurationModal';
 import { Badge } from "@/components/ui/badge";
+import { globalAlertService } from '@/services/globalAlertService';
 
 export const AlertConfigurationPage: React.FC = () => {
   const { collapsed } = useSidebar();
@@ -26,7 +26,7 @@ export const AlertConfigurationPage: React.FC = () => {
     try {
       setLoading(true);
   
-      const data = await alertService.getGlobalAlertRules();
+      const data = await globalAlertService.getGlobalAlertRules();
       setRules(data);
     } catch (error) {
       console.error("Failed to fetch alert rules", error);
@@ -47,16 +47,16 @@ export const AlertConfigurationPage: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this rule?')) {
-      await alertService.deleteGlobalAlertRule(id);
+      await globalAlertService.deleteGlobalAlertRule(id);
       fetchRules();
     }
   };
 
   const handleSave = async (rule: GlobalAlertRule) => {
     if (editingRule) {
-      await alertService.updateGlobalAlertRule(rule.id, rule);
+      await globalAlertService.updateGlobalAlertRule(rule.id, rule);
     } else {
-      await alertService.createGlobalAlertRule(rule);
+      await globalAlertService.createGlobalAlertRule(rule);
     }
     fetchRules();
     setIsModalOpen(false);

@@ -5,11 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import type { BIChartCard, AlertConfig, AlertAction } from '@/model/biAnalysis';
+import type { AlertStatus } from '@/model/AlertConfig';
 
 export interface AlertCardProps {
   card: BIChartCard;
   data: any[];
   onUpdate?: (card: BIChartCard) => void;
+  alertStatus?: AlertStatus;
+  onAcknowledge?: (alertId: string) => void;
 }
 
 const checkSingleCondition = (value: number, condition: { operator: string; value: number | string }) => {
@@ -34,7 +37,7 @@ const checkAlert = (value: number, config: AlertConfig) => {
   return checkSingleCondition(value, config.condition);
 };
 
-export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate }) => {
+export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, alertStatus, onAcknowledge }) => {
   const value = data.length > 0 ? (typeof data[0].value === 'number' ? data[0].value : 0) : 0;
   const alertConfig = card.alert;
   
@@ -54,7 +57,8 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate }) =>
     }
   };
 
-  const isTriggered = checkAlert(value, alertConfig);
+  const isTriggeredLocal = alertConfig.enabled ? checkAlert(value, alertConfig) : false;
+  const isTriggered = alertConfig.enabled ? (alertStatus ? alertStatus.triggered : isTriggeredLocal) : false;
 
   const priorityColor = {
     critical: "bg-destructive/10 text-destructive border-destructive/20",
@@ -120,18 +124,21 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate }) =>
                )}
              </div>
              
-             <div className="space-y-1.5">
-               {(alertConfig.conditions && alertConfig.conditions.length > 0 ? alertConfig.conditions : [{ ...alertConfig.condition, field: card.metricId }]).map((cond: any, idx: number) => (
-                 <div key={idx} className="flex items-center gap-1.5 flex-wrap">
-                   <span className="bg-background px-1.5 py-0.5 rounded border border-border shadow-sm text-foreground truncate max-w-[100px]" title={cond.field || card.metricId}>
-                     {cond.field || card.metricId}
-                   </span>
-                   <span className="font-bold text-primary">{cond.operator}</span>
-                   <span className="bg-background px-1.5 py-0.5 rounded border border-border shadow-sm text-foreground">
-                     {cond.value}
-                   </span>
-                 </div>
-               ))}
+            <div className="space-y-1.5">
+               {(alertConfig.conditions && alertConfig.conditions.length > 0 ? alertConfig.conditions : [{ ...alertConfig.condition, field: card.metricId, metricId: card.metricId, metricName: card.title }]).map((cond: any, idx: number) => {
+                 const metricLabel = cond.metricName || cond.field || cond.metricId || card.metricId;
+                 return (
+                <div key={idx} className="flex items-center gap-1.5 flex-wrap">
+                  <span className="bg-background px-1.5 py-0.5 rounded border border-border shadow-sm text-foreground" title={metricLabel}>
+                    {metricLabel}
+                  </span>
+                  <span className="font-bold text-primary">{cond.operator}</span>
+                  <span className="bg-background px-1.5 py-0.5 rounded border border-border shadow-sm text-foreground">
+                    {cond.value}
+                  </span>
+                </div>
+                 );
+              })}
              </div>
            </div>
         </div>
@@ -144,8 +151,52 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate }) =>
             <AlertTriangle className="w-4 h-4 text-destructive" />
             <span className="text-sm font-semibold text-destructive">Alert Triggered</span>
           </div>
-          
+
           <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+            {/* Detailed Condition Results */}
+            {alertStatus?.conditionResults && alertStatus.conditionResults.length > 0 && (
+               <div className="space-y-2 mb-2">
+                 {alertStatus.conditionResults.map((result, idx) => (
+                   <div key={idx} className="bg-muted/30 border rounded-md p-2 text-xs">
+                      <div className="flex items-center justify-between mb-1">
+                         <span className="font-medium truncate max-w-[120px]" title={result.metricName || result.metricId}>
+                           {result.metricName || result.metricId}
+                         </span>
+                         {result.triggered ? 
+                           <Badge variant="destructive" className="text-[10px] h-4 px-1">Triggered</Badge> : 
+                           <Badge variant="outline" className="text-[10px] h-4 px-1">Safe</Badge>
+                         }
+                      </div>
+                      <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
+                         <div>Curr: <span className="font-mono text-foreground">{result.currentValue}</span></div>
+                         <div>Thr: <span className="font-mono text-foreground">{result.operator} {result.value}</span></div>
+                      </div>
+                   </div>
+                 ))}
+               </div>
+            )}
+
+            {/* Acknowledge Button */}
+            {alertStatus && isTriggered && (
+              <div className="mb-2">
+                 {alertStatus.acknowledged ? (
+                    <div className="text-xs text-emerald-600 flex items-center gap-1.5 bg-emerald-500/10 p-2 rounded border border-emerald-500/20">
+                       <CheckCircle2 className="w-3 h-3" />
+                       <span>Acknowledged by {alertStatus.acknowledgedBy || 'User'}</span>
+                    </div>
+                 ) : (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full h-7 text-xs border-destructive/30 hover:bg-destructive/10 hover:text-destructive" 
+                      onClick={() => onAcknowledge?.(alertStatus.id)}
+                    >
+                       Acknowledge Alert
+                    </Button>
+                 )}
+              </div>
+            )}
+            
             {actions.map((action, idx) => (
               <div key={idx} className="bg-muted/30 border rounded-md p-3 space-y-2">
                 <div className="flex items-center justify-between">

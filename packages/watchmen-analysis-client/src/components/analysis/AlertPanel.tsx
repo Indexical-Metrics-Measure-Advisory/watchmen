@@ -94,6 +94,11 @@ const AlertPanel: React.FC<AlertPanelProps> = ({ className }) => {
     return value.toLocaleString();
   };
 
+  const getPrimaryCondition = (alert: AlertStatus) =>
+    alert.conditionResults && alert.conditionResults.length > 0
+      ? alert.conditionResults[0]
+      : undefined;
+
   if (loading) {
     return (
       <Card className={`${className} animate-pulse`}>
@@ -171,52 +176,70 @@ const AlertPanel: React.FC<AlertPanelProps> = ({ className }) => {
               <Bell className="h-4 w-4" />
               Active Alerts ({activeAlerts.length})
             </h4>
-            {activeAlerts.map((alert) => (
-              <div
-                key={alert.id}
-                className={`p-3 rounded-lg border ${getSeverityColor(alert.severity)} transition-all hover:shadow-sm`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      {getSeverityIcon(alert.severity)}
-                      <span className="font-medium text-sm">{alert.ruleName}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {alert.metricName}
-                      </Badge>
+            {activeAlerts.map((alert) => {
+              const primaryCondition = getPrimaryCondition(alert);
+              const currentValue =
+                primaryCondition && typeof primaryCondition.currentValue === 'number'
+                  ? primaryCondition.currentValue
+                  : undefined;
+              const thresholdValue =
+                primaryCondition && typeof primaryCondition.value === 'number'
+                  ? primaryCondition.value
+                  : undefined;
+
+              return (
+                <div
+                  key={alert.id}
+                  className={`p-3 rounded-lg border ${getSeverityColor(alert.severity)} transition-all hover:shadow-sm`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        {getSeverityIcon(alert.severity)}
+                        <span className="font-medium text-sm">{alert.ruleName}</span>
+                        {primaryCondition && (
+                          <Badge variant="outline" className="text-xs">
+                            {primaryCondition.metricName || primaryCondition.metricId}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {alert.message}
+                      </p>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {alert.triggeredAt && formatDistanceToNow(new Date(alert.triggeredAt), {
+                            addSuffix: true
+                          })}
+                        </span>
+                        {typeof currentValue === 'number' && (
+                          <span>
+                            Current: <span className="font-medium">{formatValue(currentValue)}</span>
+                          </span>
+                        )}
+                        {typeof thresholdValue === 'number' && (
+                          <span>
+                            Threshold: <span className="font-medium">{formatValue(thresholdValue)}</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {alert.message}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {alert.triggeredAt && formatDistanceToNow(new Date(alert.triggeredAt), {
-                          addSuffix: true
-                        })}
-                      </span>
-                      <span>
-                        Current: <span className="font-medium">{formatValue(alert.currentValue)}</span>
-                      </span>
-                      <span>
-                        Threshold: <span className="font-medium">{formatValue(alert.thresholdValue)}</span>
-                      </span>
+                    <div className="flex items-center gap-2 ml-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleAcknowledgeAlert(alert.id)}
+                        className="text-xs"
+                      >
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Acknowledge
+                      </Button>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleAcknowledgeAlert(alert.id)}
-                      className="text-xs"
-                    >
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Acknowledge
-                    </Button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

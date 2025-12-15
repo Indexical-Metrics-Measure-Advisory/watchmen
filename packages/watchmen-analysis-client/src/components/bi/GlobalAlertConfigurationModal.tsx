@@ -89,9 +89,6 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
   const [testValue, setTestValue] = useState<number>(0);
   const [config, setConfig] = useState<GlobalAlertRule>({
     id: '',
-    metricId: '',
-    createdAt: '',
-    updatedAt: '',
     enabled: true,
     condition: { operator: '>', value: 0 },
     nextAction: { type: 'notification' },
@@ -122,7 +119,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
         const initialConfig = {
           ...rule,
           conditions: rule.conditions || [{
-            field: rule.metricId,
+            metricId: '',
             operator: rule.condition.operator,
             value: rule.condition.value
           }],
@@ -134,14 +131,11 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
         // Creating new rule
         setConfig({
           id: '',
-          metricId: '',
-          createdAt: '',
-          updatedAt: '',
           enabled: true,
           condition: { operator: '>', value: 0 },
           nextAction: { type: 'notification' },
           actions: [],
-          conditions: [{ field: '', operator: '>', value: 0 }],
+          conditions: [{ metricId: '', operator: '>', value: 0 }],
           conditionLogic: 'and',
           name: '',
           priority: 'medium',
@@ -182,7 +176,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
       ...prev,
       conditions: [
         ...(prev.conditions || []),
-        { field: '', operator: '>', value: 0 }
+        { metricId: '', operator: '>', value: 0 }
       ]
     }));
   };
@@ -217,8 +211,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
   const handleSave = () => {
     // Ensure metricId is set for compatibility, using the first condition's metric if available
     const updatedConfig = {
-      ...config,
-      metricId: config.metricId || config.conditions?.[0]?.field || ''
+      ...config
     };
     onSave(updatedConfig);
     onOpenChange(false);
@@ -334,8 +327,12 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                   <GripVertical className="w-4 h-4 text-muted-foreground cursor-move" />
                   <div className="flex-1 grid grid-cols-3 gap-2">
                     <MetricSelector
-                      value={condition.field || ''}
-                      onChange={(val) => handleConditionChange(index, 'field', val)}
+                      value={condition.metricId || ''}
+                      onChange={(val) => {
+                        handleConditionChange(index, 'metricId', val);
+                        const m = metrics.find(x => x.id === val);
+                        if (m) handleConditionChange(index, 'metricName', m.name);
+                      }}
                       metrics={metrics}
                     />
                     <Select 

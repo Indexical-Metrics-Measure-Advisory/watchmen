@@ -1,3 +1,5 @@
+export type AlertSeverity = 'info' | 'warning' | 'critical';
+
 export interface AlertRule {
   id: string;
   name: string;
@@ -5,7 +7,7 @@ export interface AlertRule {
   metricName: string;
   thresholdValue: number;
   thresholdType: 'above' | 'below' | 'change_rate' | 'anomaly';
-  severity: 'info' | 'warning' | 'critical';
+  severity: AlertSeverity;
   enabled: boolean;
   description?: string;
   // Change rate configuration
@@ -32,20 +34,27 @@ export interface AlertConfig {
   notificationChannels: Array<'email' | 'sms' | 'in-app'>;
 }
 
+export interface AlertConditionResult {
+  metricId: string;
+  metricName: string;
+  operator: string;
+  value: number | string;
+  currentValue: number | string;
+  triggered: boolean;
+}
+
 export interface AlertStatus {
   id: string;
   ruleId: string;
   ruleName: string;
   triggered: boolean;
-  currentValue: number;
-  thresholdValue: number;
   triggeredAt?: string;
-  severity: 'info' | 'warning' | 'critical';
+  severity: AlertSeverity;
   message: string;
-  metricName: string;
   acknowledged: boolean;
   acknowledgedBy?: string;
   acknowledgedAt?: string;
+  conditionResults?: AlertConditionResult[];
 }
 
 export interface MetricAnomaly {

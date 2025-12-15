@@ -1,9 +1,16 @@
+import json
+
 from enum import Enum
 from typing import List, Optional, Union
 from datetime import datetime
 
 from pydantic import ConfigDict
-from watchmen_utilities import ExtendedBaseModel,Auditable, UserBasedTuple
+
+from watchmen_model.common import UserBasedTuple, Auditable
+from watchmen_utilities import ExtendedBaseModel
+
+
+
 
 
 class AlertPriority(str, Enum):
@@ -35,7 +42,8 @@ class AlertActionType(str, Enum):
 
 
 class AlertCondition(ExtendedBaseModel):
-    field: Optional[str] = None
+    metricId: Optional[str] = None
+    metricName: Optional[str] = None
     operator: Optional[AlertOperator] = None
     value: Optional[Union[float, str]] = None
 
@@ -72,6 +80,35 @@ class AlertConfig(ExtendedBaseModel, UserBasedTuple, Auditable):
 
 class GlobalAlertRule(AlertConfig):
     id: str
-    metricId: str
-    createdAt: Optional[datetime] = None
-    updatedAt: Optional[datetime] = None
+
+
+
+
+
+class AlertSeverity(str, Enum):
+    INFO = "info"
+    WARNING = "warning"
+    CRITICAL = "critical"
+
+
+class AlertConditionResult(ExtendedBaseModel):
+    metricId: Optional[str] = None
+    metricName: Optional[str] = None
+    operator: Optional[AlertOperator] = None
+    value: Optional[Union[float, str]] = None
+    currentValue: Optional[float] = None
+    triggered: bool
+
+
+class AlertStatus(ExtendedBaseModel):
+    id: str
+    ruleId: str
+    ruleName: str
+    triggered: bool
+    triggeredAt: Optional[datetime] = None
+    severity: AlertSeverity
+    message: str
+    acknowledged: bool
+    acknowledgedBy: Optional[str] = None
+    acknowledgedAt: Optional[datetime] = None
+    conditionResults: Optional[List[AlertConditionResult]] = None

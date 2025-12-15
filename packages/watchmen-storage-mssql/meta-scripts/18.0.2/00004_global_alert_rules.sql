@@ -2,7 +2,6 @@ CREATE TABLE global_alert_rules
 (
     id                NVARCHAR(50)   NOT NULL,
     name              NVARCHAR(128),
-    metric_id         NVARCHAR(50),
     enabled           SMALLINT,
     priority          NVARCHAR(20),
     description       NVARCHAR(1024),
@@ -27,4 +26,3 @@ CREATE INDEX i_global_alert_rules_3 ON global_alert_rules (created_by);
 CREATE INDEX i_global_alert_rules_4 ON global_alert_rules (last_modified_at);
 CREATE INDEX i_global_alert_rules_5 ON global_alert_rules (last_modified_by);
 CREATE INDEX i_global_alert_rules_6 ON global_alert_rules (user_id);
-CREATE INDEX i_global_alert_rules_7 ON global_alert_rules (metric_id);

@@ -35,7 +35,9 @@ export interface AlertAction {
 }
 
 export interface AlertCondition {
-  field?: string; // Metric ID or 'value'
+  metricId?: string; // Moved from GlobalAlertRule
+  metricName?: string; // Optional, for display purposes
+  
   operator: '>' | '<' | '>=' | '<=' | '==' | '!=';
   value: number | string;
 }
@@ -59,9 +61,6 @@ export interface AlertConfig {
 
 export interface GlobalAlertRule extends AlertConfig {
   id: string;
-  metricId: string; // The metric this rule applies to
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface BIChartCard {

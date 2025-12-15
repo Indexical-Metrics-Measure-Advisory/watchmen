@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { BIChartCard, BICardSize, BIChartType } from '@/model/biAnalysis';
+import type { AlertStatus } from '@/model/AlertConfig';
 import { AlertCard } from './AlertCard';
 import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Download, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy, AlertTriangle, Settings } from 'lucide-react';
 import { AlertConfigurationModal } from './AlertConfigurationModal';
@@ -49,6 +50,8 @@ export interface ChartCardProps {
   onDragOver?: (e: React.DragEvent<HTMLDivElement>) => void;
   onDrop?: (e: React.DragEvent<HTMLDivElement>) => void;
   onUpdate?: (card: BIChartCard) => void;
+  alertStatus?: AlertStatus;
+  onAcknowledge?: (alertId: string) => void;
 }
 
 const sizeClass = (size: BICardSize) => {
@@ -140,6 +143,8 @@ export const ChartCard: React.FC<ChartCardProps> = ({
   onDragOver,
   onDrop,
   onUpdate,
+  alertStatus,
+  onAcknowledge,
 }) => {
   const { toast } = useToast();
   const [lib, setLib] = useState<RechartsModule | null>(null);
@@ -317,7 +322,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
               </div>
             ) : (
               <div className="h-full w-full min-h-[250px]">
-                <Chart lib={lib} card={card} data={data} onUpdate={onUpdate} />
+                <Chart lib={lib} card={card} data={data} onUpdate={onUpdate} alertStatus={alertStatus} onAcknowledge={onAcknowledge} />
               </div>
             )}
           </TabsContent>
@@ -341,12 +346,19 @@ export const ChartCard: React.FC<ChartCardProps> = ({
 };
 
 
-const Chart: React.FC<{ lib: RechartsModule; card: BIChartCard; data: any[]; onUpdate?: (card: BIChartCard) => void }> = ({ lib, card, data, onUpdate }) => {
+const Chart: React.FC<{ 
+  lib: RechartsModule; 
+  card: BIChartCard; 
+  data: any[]; 
+  onUpdate?: (card: BIChartCard) => void;
+  alertStatus?: AlertStatus;
+  onAcknowledge?: (alertId: string) => void;
+}> = ({ lib, card, data, onUpdate, alertStatus, onAcknowledge }) => {
   const { type: chartType } = { type: card.chartType };
   const { ResponsiveContainer, LineChart, Line, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, BarChart, Bar, PieChart, Pie, Cell, Legend } = lib;
   
   if (chartType === 'alert') {
-    return <AlertCard card={card} data={data} onUpdate={onUpdate} />;
+    return <AlertCard card={card} data={data} onUpdate={onUpdate} alertStatus={alertStatus} onAcknowledge={onAcknowledge} />;
   }
 
   const isTime = data.length > 0 && typeof data[0].date === 'string';

@@ -9,9 +9,10 @@ from watchmen_rest.util import raise_400, raise_404
 from watchmen_utilities import is_blank
 
 from watchmen_metricflow.meta.alert_rule_meta_service import AlertRuleService
-from watchmen_metricflow.model.alert_rule import GlobalAlertRule
+from watchmen_metricflow.model.alert_rule import GlobalAlertRule, AlertStatus
 from watchmen_metricflow.settings import ask_tuple_delete_enabled
 from watchmen_metricflow.util import trans, trans_readonly
+from watchmen_metricflow.service.alert_trigger_servcie import AlertTriggerService
 
 router = APIRouter()
 
@@ -54,22 +55,24 @@ async def get_alert_rule_by_id(
     return trans_readonly(service, action)
 
 
-@router.get('/metricflow/alert-rule/metric/{metric_id}', tags=['CONSOLE', 'ADMIN'], response_model=None)
-async def get_alert_rules_by_metric(
-        metric_id: str,
-        principal_service: PrincipalService = Depends(get_console_principal)
-) -> List[GlobalAlertRule]:
-    """Get alert rules for a specific metric"""
-    if is_blank(metric_id):
-        raise_400('Metric id is required.')
+# @router.get('/metricflow/alert-rule/metric/{metric_id}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+# async def get_alert_rules_by_metric_id(
+#         metric_id: str,
+#         principal_service: PrincipalService = Depends(get_console_principal)
+# ) -> List[GlobalAlertRule]:
+#     """Get alert rules by metric id"""
+#     if is_blank(metric_id):
+#         raise_400('Metric id is required.')
+#
+#     service = get_alert_rule_service(principal_service)
+#
+#     def action() -> List[GlobalAlertRule]:
+#         tenant_id: TenantId = principal_service.get_tenant_id()
+#         return service.find_by_metric_id(metric_id, tenant_id)
+#
+#     return trans_readonly(service, action)
 
-    service = get_alert_rule_service(principal_service)
 
-    def action() -> List[GlobalAlertRule]:
-        tenant_id: TenantId = principal_service.get_tenant_id()
-        return service.find_by_metric_id(metric_id, tenant_id)
-
-    return trans_readonly(service, action)
 
 
 @router.post('/metricflow/alert-rule', tags=['ADMIN'], response_model=None)
@@ -78,11 +81,11 @@ async def create_alert_rule(
         principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> GlobalAlertRule:
     """Create a new alert rule"""
-    if is_blank(alert_rule.metricId):
-        raise_400('Metric id is required.')
+
 
     # Set tenant ID from principal
     alert_rule.tenantId = principal_service.get_tenant_id()
+    alert_rule.userId = principal_service.userId
 
     service = get_alert_rule_service(principal_service)
     alert_rule.id = str(service.snowflakeGenerator.next_id())
@@ -140,3 +143,19 @@ async def delete_alert_rule(
         return service.delete_by_id(rule_id)
 
     return trans(service, action)
+
+
+
+@router.get('/metricflow/alert-rule/run/{rule_id}', tags=['CONSOLE', 'ADMIN'], response_model=AlertStatus)
+async def run_alert_rule(
+        rule_id: str,
+        principal_service: PrincipalService = Depends(get_console_principal)
+) -> AlertStatus:
+    """ find alert metrics data and run alert rule """
+    alert_trigger_service = AlertTriggerService(principal_service)
+    return await alert_trigger_service.run_alert_rule(rule_id)
+
+    
+
+    
+    

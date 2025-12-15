@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChartCard } from '@/components/bi/ChartCard';
 import type { BIChartCard, BICardSize, BIChartType } from '@/model/biAnalysis';
+import type { AlertStatus } from '@/model/AlertConfig';
 import { LayoutDashboard, PlusCircle, AlertCircle, BellPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -18,6 +19,8 @@ interface AnalysisBoardProps {
   onUpdate?: (index: number, card: BIChartCard) => void;
   onAddAlert?: () => void;
   readOnly?: boolean;
+  alertStatusMap?: Record<string, AlertStatus>;
+  onAcknowledge?: (alertId: string) => void;
 }
 
 export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
@@ -31,6 +34,8 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
   onUpdate,
   onAddAlert,
   readOnly = false,
+  alertStatusMap,
+  onAcknowledge,
 }) => {
   const decideType = (data: ChartDataPoint[]): BIChartType => {
     if (!data || data.length === 0) return 'bar';
@@ -153,6 +158,8 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
                 onResize={!readOnly ? (size) => onResize(index, size) : undefined}
                 onRemove={!readOnly ? () => onRemove(index) : undefined}
                 onUpdate={!readOnly ? (updatedCard) => onUpdate?.(index, updatedCard) : undefined}
+                alertStatus={alertStatusMap?.[card.id]}
+                onAcknowledge={onAcknowledge}
               />
             );
           })}

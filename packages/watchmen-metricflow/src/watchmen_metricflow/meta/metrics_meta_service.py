@@ -158,7 +158,7 @@ class MetricService(UserBasedTupleService):
         return storable
 
     def get_storable_id_column_name(self) -> str:
-        return 'name'
+        return 'id'
 
     def find_all(self, tenant_id: Optional[TenantId] = None) -> List[MetricWithCategory]:
         
