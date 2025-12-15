@@ -76,7 +76,7 @@ const MetricsManagement: React.FC = () => {
       
       const metricsData = await getMetrics(filterParams);
 
-      console.log('loadData metrics:', metricsData);
+      // console.log('loadData metrics:', metricsData);
 
       setMetrics(metricsData || []);
     } catch (error) {

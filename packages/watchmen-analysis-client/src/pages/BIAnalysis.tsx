@@ -52,13 +52,15 @@ import type { MetricDefinition, Category } from '@/model/metricsManagement';
 import type { MetricDimension } from '@/model/analysis';
 import type { MetricFlowResponse, MetricQueryRequest } from '@/model/metricFlow';
 import { useAuth } from '@/contexts/AuthContext';
+import { DateRange } from "react-day-picker";
+import { DatePickerWithRange } from '@/components/ui/date-range-picker';
+import { addDays, format } from "date-fns";
 
 const BIAnalysisPage: React.FC = () => {
   const { toast } = useToast();
   const { collapsed } = useSidebar();
   const { user } = useAuth();
 
-  console.log('user', user);
 
   // Current analysis ID being edited (null if new)
   const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(null);
@@ -78,9 +80,14 @@ const BIAnalysisPage: React.FC = () => {
   const [dimSearch, setDimSearch] = useState<string>('');
   const [showTopOnly, setShowTopOnly] = useState<boolean>(true);
   const [timeRange, setTimeRange] = useState<string>('Past 30 days');
+  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -30),
+    to: new Date(),
+  });
 
   // preview
   const [previewData, setPreviewData] = useState<any[]>([]);
+  const [previewRawData, setPreviewRawData] = useState<MetricFlowResponse | null>(null);
   const [previewType, setPreviewType] = useState<BIChartType>('line');
 
   // Alert Configuration State (Removed)
@@ -146,7 +153,7 @@ const BIAnalysisPage: React.FC = () => {
 
   // board
   const [cards, setCards] = useState<BIChartCard[]>([]);
-  const [cardDataMap, setCardDataMap] = useState<Record<string, any[]>>({});
+  const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: any[]; rawData: MetricFlowResponse | null }>>({});
 
   // saving
   const [saveOpen, setSaveOpen] = useState(false);
@@ -170,6 +177,29 @@ const BIAnalysisPage: React.FC = () => {
 
   // Map UI time range to ISO date bounds (YYYY-MM-DD)
   const timeRangeToBounds = (range: string): { start: string; end: string } => {
+    // Handle Custom range string format "Custom:YYYY-MM-DD:YYYY-MM-DD"
+    if (range.startsWith('Custom:')) {
+      const parts = range.split(':');
+      if (parts.length === 3) {
+         return { start: parts[1], end: parts[2] };
+      }
+    }
+    
+    // Handle "Custom" literal (from UI state)
+    if (range === 'Custom') {
+        if (customDateRange?.from && customDateRange?.to) {
+            return { 
+                start: format(customDateRange.from, 'yyyy-MM-dd'), 
+                end: format(customDateRange.to, 'yyyy-MM-dd') 
+            };
+        }
+        // Fallback if custom range is invalid
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - 30);
+        return { start: format(start, 'yyyy-MM-dd'), end: format(end, 'yyyy-MM-dd') };
+    }
+
     const endDate = new Date();
     const startDate = new Date(endDate);
     switch (range) {
@@ -249,7 +279,7 @@ const BIAnalysisPage: React.FC = () => {
   const isGroupedData = (data: any[]) => data.length > 0 && !data[0].hasOwnProperty('value') && !data[0].hasOwnProperty('date');
   
   const chartTypeFromDims = (dims: string[], detailed: MetricDimension[]): BIChartType => {
-    if (!Array.isArray(dims) || dims.length === 0) return 'bar';
+    if (!Array.isArray(dims) || dims.length === 0) return 'kpi';
     const hasTimeDim = dims.some(val => {
       const found = detailed.find(d => (d.qualified_name || d.name) === val);
       return found ? inferType(found) === 'TIME' : false;
@@ -262,20 +292,14 @@ const BIAnalysisPage: React.FC = () => {
   // Fetch and cache card data
   const loadCardDataFor = async (card: BIChartCard) => {
     try {
-      // If no dimensions selected, do not load data and keep empty
-    // Exception: Alert cards need data even without dimensions (aggregated total)
-    if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert') {
-      setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
-      return;
-    }
-
+    
     if (card.chartType === 'alert' && card.alert) {
       if (!card.alert.enabled) {
-        setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
+        setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], rawData: null } }));
         return;
       }
       const data = await globalAlertService.fetchAlertData(card.alert as GlobalAlertRule);
-      setCardDataMap(prev => ({ ...prev, [card.id]: data }));
+      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: data, rawData: null } }));
       return;
     }
 
@@ -290,7 +314,7 @@ const BIAnalysisPage: React.FC = () => {
       };
       const resp = await metricsService.getMetricValue(req);
       const data = transformMetricFlowToChartData(resp);
-      setCardDataMap(prev => ({ ...prev, [card.id]: data }));
+      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: data, rawData: resp } }));
     } catch (e) {
       console.warn(`Card ${card.id}: failed to load data.`, e);
       // Do not set empty array on error, so it can be retried by useEffect when conditions change
@@ -340,16 +364,8 @@ const BIAnalysisPage: React.FC = () => {
     const loadPreview = async () => {
       if (!selectedMetric) {
         if (alive) setPreviewData([]);
+        if (alive) setPreviewRawData(null);
         if (alive) setPreviewType('bar');
-        return;
-      }
-
-      // If no dimensions selected, do not show chart/data
-      if (!selectedDims || selectedDims.length === 0) {
-        if (alive) {
-          setPreviewData([]);
-          setPreviewType('bar');
-        }
         return;
       }
 
@@ -367,10 +383,13 @@ const BIAnalysisPage: React.FC = () => {
         const data = transformMetricFlowToChartData(resp);
         if (alive) {
           setPreviewData(data);
+          setPreviewRawData(resp);
           if (isTimeData(data)) {
             setPreviewType('line');
           } else if (isGroupedData(data)) {
             setPreviewType('groupedBar');
+          } else if (!selectedDims || selectedDims.length === 0) {
+            setPreviewType('kpi');
           } else {
             setPreviewType('bar');
           }
@@ -379,6 +398,7 @@ const BIAnalysisPage: React.FC = () => {
         console.warn('Preview: failed to load real data, showing empty.', e);
         if (alive) {
           setPreviewData([]);
+          setPreviewRawData(null);
           // fall back to dims to decide chart type
           setPreviewType(chartTypeFromDims(selectedDims, availableDimsDetailed));
         }
@@ -386,7 +406,7 @@ const BIAnalysisPage: React.FC = () => {
     };
     loadPreview();
     return () => { alive = false; };
-  }, [selectedMetric, selectedDims, timeRange, selectedMetricDef]);
+  }, [selectedMetric, selectedDims, timeRange, selectedMetricDef, customDateRange]);
 
   // templates list
   useEffect(() => {
@@ -446,28 +466,39 @@ const BIAnalysisPage: React.FC = () => {
       return;
     }
 
+    let finalTimeRange = timeRange;
+    if (timeRange === 'Custom') {
+       if (customDateRange?.from && customDateRange?.to) {
+          finalTimeRange = `Custom:${format(customDateRange.from, 'yyyy-MM-dd')}:${format(customDateRange.to, 'yyyy-MM-dd')}`;
+       } else {
+          toast({ title: "Invalid Date Range", description: "Please select start and end dates" });
+          return;
+       }
+    }
+
     let newCard: BIChartCard;
 
-    if (!selectedDims || selectedDims.length === 0) {
-      toast({ title: 'Select dimensions', description: 'Please select at least one dimension before adding to board' });
-      return;
-    }
     // Prefer data-driven type; if no preview data yet, infer from selected dimensions
     let chartTypeForBoard: BIChartType = chartTypeFromDims(selectedDims, availableDimsDetailed);
     if (previewData.length > 0) {
        if (isTimeData(previewData)) chartTypeForBoard = 'line';
        else if (isGroupedData(previewData)) chartTypeForBoard = 'groupedBar';
+       else if (!selectedDims || selectedDims.length === 0) chartTypeForBoard = 'kpi';
        else chartTypeForBoard = 'bar';
     }
 
+    const titleTimeRange = timeRange === 'Custom' && customDateRange?.from && customDateRange?.to
+      ? `${format(customDateRange.from, 'yyyy-MM-dd')} to ${format(customDateRange.to, 'yyyy-MM-dd')}`
+      : timeRange;
+
     newCard = {
       id: `card_${Date.now()}`,
-      title: `${selectedMetric.name} · ${timeRange}`,
+      title: `${selectedMetric.name} · ${titleTimeRange}`,
       // Use metric name for backend metricFlow API compatibility
       metricId: selectedMetric.name,
       chartType: chartTypeForBoard,
       size: 'md',
-      selection: { dimensions: selectedDims, timeRange }
+      selection: { dimensions: selectedDims, timeRange: finalTimeRange }
     };
 
     setCards(prev => [...prev, newCard]);
@@ -801,8 +832,19 @@ const BIAnalysisPage: React.FC = () => {
                             <SelectItem value="Past 30 days">Past 30 days</SelectItem>
                             <SelectItem value="Past 90 days">Past 90 days</SelectItem>
                             <SelectItem value="Past year">Past year</SelectItem>
+                            <SelectItem value="Custom">Custom Range</SelectItem>
                           </SelectContent>
                         </Select>
+
+                        {timeRange === 'Custom' && (
+                           <div className="pt-1 animate-in fade-in slide-in-from-top-1">
+                             <DatePickerWithRange 
+                               date={customDateRange} 
+                               onSelect={setCustomDateRange} 
+                               className="w-full"
+                             />
+                           </div>
+                        )}
                       </div>
                   </div>
                 ) : (
@@ -828,7 +870,7 @@ const BIAnalysisPage: React.FC = () => {
                       Real-time preview based on selected metrics and dimensions
                     </CardDescription>
                   </div>
-                  {selectedMetric && selectedDims.length > 0 && (
+                  {selectedMetric && (
                     <Badge variant="outline" className="text-xs font-mono">
                       Type: {previewType}
                     </Badge>
@@ -837,7 +879,6 @@ const BIAnalysisPage: React.FC = () => {
               </CardHeader>
               <CardContent className="flex-1 p-6 min-h-[400px] flex flex-col">
                 {selectedMetric ? (
-                  (selectedDims.length > 0) ? (
                     <div className="flex-1 w-full h-full min-h-[350px]">
                       <ChartCard
                         card={{ 
@@ -849,16 +890,9 @@ const BIAnalysisPage: React.FC = () => {
                           selection: { dimensions: selectedDims, timeRange }
                         }}
                         data={previewData}
+                        sourceData={previewRawData ?? undefined}
                       />
                     </div>
-                  ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground space-y-4">
-                      <div className="p-4 bg-muted rounded-full">
-                        <Settings2 className="h-8 w-8 opacity-50" />
-                      </div>
-                      <p>Select at least one dimension to generate a preview</p>
-                    </div>
-                  )
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground space-y-4">
                     <div className="p-4 bg-muted rounded-full">
@@ -874,7 +908,7 @@ const BIAnalysisPage: React.FC = () => {
                 </div>
                 <Button 
                   onClick={addCardToBoard} 
-                  disabled={!selectedMetric || selectedDims.length === 0}
+                  disabled={!selectedMetric}
                   className="gap-2"
                   size="lg"
                 >

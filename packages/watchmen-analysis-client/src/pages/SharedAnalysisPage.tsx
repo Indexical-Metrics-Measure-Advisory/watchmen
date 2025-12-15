@@ -9,17 +9,26 @@ import type { MetricFlowResponse, MetricQueryRequest } from '@/model/metricFlow'
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
+import { globalAlertService } from '@/services/globalAlertService';
 
 const SharedAnalysisPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [cards, setCards] = useState<BIChartCard[]>([]);
-  const [cardDataMap, setCardDataMap] = useState<Record<string, any[]>>({});
+  const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: any[]; rawData: MetricFlowResponse | null }>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [analysisName, setAnalysisName] = useState('');
   const { toast } = useToast();
 
   const timeRangeToBounds = (range: string): { start: string; end: string } => {
+    // Handle Custom range string format "Custom:YYYY-MM-DD:YYYY-MM-DD"
+    if (range && range.startsWith('Custom:')) {
+      const parts = range.split(':');
+      if (parts.length === 3) {
+         return { start: parts[1], end: parts[2] };
+      }
+    }
+
     const endDate = new Date();
     const startDate = new Date(endDate);
     switch (range) {
@@ -82,18 +91,18 @@ const SharedAnalysisPage: React.FC = () => {
 
   const loadCardDataFor = async (card: BIChartCard) => {
     try {
-      if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert') {
-        setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
+      if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert' && card.chartType !== 'kpi') {
+        setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], rawData: null } }));
         return;
       }
 
       if (card.chartType === 'alert' && card.alert) {
         if (!card.alert.enabled) {
-          setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
+          setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], rawData: null } }));
           return;
         }
         const data = await globalAlertService.fetchAlertData(card.alert as GlobalAlertRule);
-        setCardDataMap(prev => ({ ...prev, [card.id]: data }));
+        setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: data, rawData: null } }));
         return;
       }
 
@@ -108,10 +117,10 @@ const SharedAnalysisPage: React.FC = () => {
       };
       const resp = await metricsService.getMetricValue(req);
       const data = transformMetricFlowToChartData(resp);
-      setCardDataMap(prev => ({ ...prev, [card.id]: data }));
+      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: data, rawData: resp } }));
     } catch (e) {
       console.warn(`Card ${card.id}: failed to load data.`, e);
-      setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
+      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], rawData: null } }));
     }
   };
 

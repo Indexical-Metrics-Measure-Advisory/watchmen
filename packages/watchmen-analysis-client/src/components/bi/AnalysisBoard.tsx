@@ -2,6 +2,7 @@ import React from 'react';
 import { ChartCard } from '@/components/bi/ChartCard';
 import type { BIChartCard, BICardSize, BIChartType } from '@/model/biAnalysis';
 import type { AlertStatus } from '@/model/AlertConfig';
+import type { MetricFlowResponse } from '@/model/metricFlow';
 import { LayoutDashboard, PlusCircle, AlertCircle, BellPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -10,7 +11,7 @@ type ChartDataPoint = any;
 
 interface AnalysisBoardProps {
   cards: BIChartCard[];
-  cardDataMap: Record<string, ChartDataPoint[]>;
+  cardDataMap: Record<string, { chartData: ChartDataPoint[]; rawData: MetricFlowResponse | null }>;
   onDragStart: (index: number) => (e: React.DragEvent<HTMLDivElement>) => void;
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
   onDrop: (index: number) => (e: React.DragEvent<HTMLDivElement>) => void;
@@ -124,10 +125,10 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
       ) : (
         <div className="grid grid-cols-12 gap-6">
           {cards.map((card, index) => {
-            const data = cardDataMap[card.id] ?? [];
+            const { chartData, rawData } = cardDataMap[card.id] ?? { chartData: [], rawData: null };
             
             // If no dimensions selected for this card
-            if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert') {
+            if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert' && card.chartType !== 'kpi') {
               return (
                 <div key={card.id} className={cn("transition-all duration-200", sizeClass(card.size))}>
                    <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-muted-foreground border border-border/50 rounded-xl bg-card/30 p-8 text-center shadow-sm gap-3">
@@ -143,14 +144,15 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
             
             const renderCard = { 
               ...card, 
-              chartType: card.chartType === 'alert' ? 'alert' : decideType(data) 
+              chartType: (card.chartType === 'alert' || card.chartType === 'kpi') ? card.chartType : decideType(chartData) 
             };
             
             return (
               <ChartCard
                 key={card.id}
                 card={renderCard}
-                data={data}
+                data={chartData}
+                sourceData={rawData ?? undefined}
                 draggable={!readOnly}
                 onDragStart={!readOnly ? onDragStart(index) : undefined}
                 onDragOver={!readOnly ? onDragOver : undefined}

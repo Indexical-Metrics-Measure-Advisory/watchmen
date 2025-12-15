@@ -53,6 +53,7 @@ export const AlertConfigurationPage: React.FC = () => {
   };
 
   const handleSave = async (rule: GlobalAlertRule) => {
+    
     if (editingRule) {
       await globalAlertService.updateGlobalAlertRule(rule.id, rule);
     } else {

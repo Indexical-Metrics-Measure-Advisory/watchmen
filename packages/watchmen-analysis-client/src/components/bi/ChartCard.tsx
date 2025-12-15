@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { BIChartCard, BICardSize, BIChartType } from '@/model/biAnalysis';
+import type { MetricFlowResponse } from '@/model/metricFlow';
 import type { AlertStatus } from '@/model/AlertConfig';
 import { AlertCard } from './AlertCard';
 import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Download, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy, AlertTriangle, Settings } from 'lucide-react';
@@ -42,6 +43,7 @@ const COLORS = [
 export interface ChartCardProps {
   card: BIChartCard;
   data: any[];
+  sourceData?: MetricFlowResponse;
   onResize?: (size: BICardSize) => void;
   onRemove?: () => void;
   className?: string;
@@ -93,7 +95,46 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 // Data Table Component
-const DataTable: React.FC<{ data: any[] }> = ({ data }) => {
+const DataTable: React.FC<{ data: any[], sourceData?: MetricFlowResponse }> = ({ data, sourceData }) => {
+  // Prefer sourceData (raw response) if available
+  if (sourceData && Array.isArray(sourceData.column_names) && Array.isArray(sourceData.data)) {
+    const headers = sourceData.column_names;
+    const rows = sourceData.data;
+
+    if (rows.length === 0) {
+      return <div className="flex items-center justify-center h-full text-muted-foreground text-sm">No data available</div>;
+    }
+
+    return (
+      <ScrollArea className="h-full w-full rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
+              {headers.map((header, idx) => (
+                <TableHead key={idx} className="capitalize min-w-[100px]">
+                  {header}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((row, i) => (
+              <TableRow key={i} className="hover:bg-muted/50">
+                {row.map((cell, j) => (
+                  <TableCell key={`${i}-${j}`} className="font-medium">
+                    {typeof cell === 'number' 
+                      ? cell.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                      : (cell === null || cell === undefined ? '-' : String(cell))}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </ScrollArea>
+    );
+  }
+
   if (!data || data.length === 0) {
     return <div className="flex items-center justify-center h-full text-muted-foreground text-sm">No data available</div>;
   }
@@ -145,6 +186,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
   onUpdate,
   alertStatus,
   onAcknowledge,
+  sourceData,
 }) => {
   const { toast } = useToast();
   const [lib, setLib] = useState<RechartsModule | null>(null);
@@ -328,7 +370,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
           </TabsContent>
           
           <TabsContent value="data" className="h-full w-full mt-0 overflow-hidden">
-            <DataTable data={data} />
+            <DataTable data={data} sourceData={sourceData} />
           </TabsContent>
         </CardContent>
       </Tabs>
@@ -359,6 +401,24 @@ const Chart: React.FC<{
   
   if (chartType === 'alert') {
     return <AlertCard card={card} data={data} onUpdate={onUpdate} alertStatus={alertStatus} onAcknowledge={onAcknowledge} />;
+  }
+
+  if (chartType === 'kpi') {
+    const value = data.length > 0 ? data[0].value : 0;
+    const formattedValue = typeof value === 'number' 
+      ? value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+      : value;
+    
+    return (
+      <div className="flex flex-col items-center justify-center h-full w-full p-6">
+        <div className="text-4xl sm:text-5xl font-bold tracking-tight text-primary">
+          {formattedValue}
+        </div>
+        <div className="mt-2 text-sm text-muted-foreground font-medium">
+          Total Value
+        </div>
+      </div>
+    );
   }
 
   const isTime = data.length > 0 && typeof data[0].date === 'string';

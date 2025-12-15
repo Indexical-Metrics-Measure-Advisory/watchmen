@@ -25,6 +25,7 @@ class BIChartType(str, Enum):
     AREA = "area"
     GROUPED_BAR = "groupedBar"
     ALERT = "alert"
+    KPI = "kpi"
     
 
 
@@ -114,6 +115,15 @@ class BIAnalysisListItem(BaseModel):
 
     model_config = ConfigDict(use_enum_values=True)
 
+
+if __name__ == "__main__":
+    json ="""
+    {"id":"","name":"test","description":"","cards":[{"id":"card_1765811833931","title":"unique_policies_with_claims · Past year","metricId":"unique_policies_with_claims","chartType":"kpi","size":"md","selection":{"dimensions":[],"timeRange":"Past year"}}],"userId":"1071081977535114240"}
+    """
+
+    analysis = BIAnalysis.model_validate_json(json)
+    pprint(analysis)
+    
 
 
 

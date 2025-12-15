@@ -169,7 +169,9 @@ async def query_metrics(request_list: List[MetricQueryRequest],
         query_result: MetricFlowQueryResult = query(
             cfg=config,
             metrics=request.metrics,
-            group_by=request.group_by
+            group_by=request.group_by,
+            start_time=request.start_time,
+            end_time=request.end_time
         )
         res = MetricFlowResponse(data=query_result.result_df.rows, column_names=query_result.result_df.column_names)
         response_list.append(res)

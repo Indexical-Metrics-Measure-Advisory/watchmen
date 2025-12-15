@@ -1,4 +1,4 @@
-export type BIChartType = 'line' | 'bar' | 'stackedBar' | 'pie' | 'area' | 'groupedBar' | 'alert';
+export type BIChartType = 'line' | 'bar' | 'stackedBar' | 'pie' | 'area' | 'groupedBar' | 'alert' | 'kpi';
 
 export type BICardSize = 'sm' | 'md' | 'lg';
 
