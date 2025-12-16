@@ -7,7 +7,8 @@ from watchmen_model.common import EnumId, FactorId, Storable
 
 class FactorType(str, Enum):
 	SEQUENCE = 'sequence',
-
+	UUID = 'uuid',
+	
 	NUMBER = 'number',
 	UNSIGNED = 'unsigned',  # 0 & positive
 
