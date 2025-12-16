@@ -3,10 +3,13 @@ from fastapi import Depends, Body
 from typing import List, Optional
 
 from watchmen_auth import PrincipalService
+from watchmen_meta.admin import TopicService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
+from watchmen_meta.system import DataSourceService
 from watchmen_metricflow.meta.semantic_meta_service import SemanticModelService
-from watchmen_metricflow.model.semantic import SemanticModel
+from watchmen_metricflow.model.semantic import SemanticModel, NodeRelation
 from watchmen_model.common import DataPage, Pageable, TenantId
+from watchmen_model.system import DataSourceType
 from watchmen_rest import get_admin_principal, get_console_principal
 from watchmen_rest.util import raise_400, raise_404
 from watchmen_metricflow.settings import ask_tuple_delete_enabled
@@ -20,6 +23,60 @@ router = APIRouter()
 
 def get_semantic_model_service(principal_service: PrincipalService) -> SemanticModelService:
     return SemanticModelService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_topic_service(principal_service: PrincipalService) -> TopicService:
+    return TopicService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_data_source_service(principal_service: PrincipalService) -> DataSourceService:
+    return DataSourceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def add_topic_prefix(topic_name: str) -> str:
+    return f"topic_{topic_name}"
+
+def _build_node_relation_by_topic_id(topic_id: str, principal_service: PrincipalService) -> Optional[NodeRelation]:
+    topic_service = get_topic_service(principal_service)
+    
+    def load_topic():
+        return topic_service.find_by_id(topic_id)
+        
+    topic = trans_readonly(topic_service, load_topic)
+    
+    if not topic:
+        return None
+
+    data_source_service = get_data_source_service(principal_service)
+    
+    def load_data_source():
+        return data_source_service.find_by_id(topic.dataSourceId)
+        
+    data_source = trans_readonly(data_source_service, load_data_source)
+    
+    if not data_source:
+        return None
+        
+    schema_name = ""
+    ds_type = data_source.dataSourceType
+    schema_param = next((param for param in data_source.params if param.name == "schema"), None)
+    
+    if ds_type == DataSourceType.POSTGRESQL:
+        schema_name = schema_param.value if schema_param else "public"
+    elif ds_type == DataSourceType.MYSQL:
+        schema_name = schema_param.value if schema_param else data_source.name
+    elif ds_type == DataSourceType.MSSQL:
+        schema_name = schema_param.value if schema_param else "dbo"
+    elif ds_type == DataSourceType.ORACLE:
+        schema_name = schema_param.value if schema_param else data_source.username
+    
+    return NodeRelation(
+        alias=add_topic_prefix(topic.name),
+        schema_name=schema_name,
+        database=data_source.name,
+        relation_name=add_topic_prefix(topic.name)
+    )
+
 
 
 class QuerySemanticModelDataPage(DataPage):
@@ -62,6 +119,11 @@ async def create_semantic_model(
     semantic_model_service = get_semantic_model_service(principal_service)
     semantic_model.id = str(semantic_model_service.snowflakeGenerator.next_id())
     
+    if semantic_model.topicId:
+        node_relation = _build_node_relation_by_topic_id(semantic_model.topicId, principal_service)
+        if node_relation:
+            semantic_model.node_relation = node_relation
+            
     def action() -> SemanticModel:
         # Check if semantic model with same name already exists
         existing_model = semantic_model_service.find_by_name(semantic_model.name, semantic_model.tenantId)
@@ -89,6 +151,11 @@ async def update_semantic_model(
     semantic_model.tenantId = principal_service.get_tenant_id()
     
     semantic_model_service = get_semantic_model_service(principal_service)
+
+    if semantic_model.topicId:
+        node_relation = _build_node_relation_by_topic_id(semantic_model.topicId, principal_service)
+        if node_relation:
+            semantic_model.node_relation = node_relation
     
     def action() -> SemanticModel:
         # Check if semantic model exists
