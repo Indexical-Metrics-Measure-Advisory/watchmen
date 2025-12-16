@@ -1,1 +1,1 @@
-ALTER TABLE tenants ADD enable_ai NUMBER(1) NULL DEFAULT 0;
+ALTER TABLE tenants ADD enable_ai NUMBER(1) DEFAULT 0 NULL;

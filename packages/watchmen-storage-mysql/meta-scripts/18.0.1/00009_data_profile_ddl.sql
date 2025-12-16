@@ -3,7 +3,7 @@ CREATE TABLE data_profiles
     id           VARCHAR(50) NOT NULL,
     name         VARCHAR(128) NOT NULL,
     target       VARCHAR(128) NOT NULL,
-    outputs      JSON NOT NULL,
+    outputs      CLOB NOT NULL,
     description  TEXT,
     -- Auditable fields
     created_at   DATETIME    NOT NULL,

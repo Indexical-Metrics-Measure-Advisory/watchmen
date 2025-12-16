@@ -5,20 +5,17 @@ CREATE TABLE metrics
     description  CLOB,
     type         VARCHAR2(50) NOT NULL,
     type_params  CLOB,
-    category_id     VARCHAR2(50),
+    category_id  VARCHAR2(50),
     filter       CLOB,
     metadata     CLOB,
     label        VARCHAR2(255),
     config       CLOB,
     time_granularity VARCHAR2(50),
-    -- Auditable fields
-    created_at   TIMESTAMP    NOT NULL,
+    created_at   DATE    NOT NULL,
     created_by   VARCHAR2(50) NOT NULL,
-    last_modified_at   TIMESTAMP    NOT NULL,
+    last_modified_at   DATE    NOT NULL,
     last_modified_by   VARCHAR2(50) NOT NULL,
-    -- OptimisticLock field
-    version      NUMBER(19) NOT NULL,
-    -- Tenant field
+    version      NUMBER(20) NOT NULL
     tenant_id    VARCHAR2(50) NOT NULL,
     CONSTRAINT pk_metrics PRIMARY KEY (id)
 );

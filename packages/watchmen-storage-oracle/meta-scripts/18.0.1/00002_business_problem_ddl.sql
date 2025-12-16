@@ -9,12 +9,12 @@ CREATE TABLE business_problems
     aiAnswer        VARCHAR2(2000) NOT NULL,
     user_id         VARCHAR2(50)  NOT NULL,
     tenant_id       VARCHAR2(50)  NOT NULL,
-    created_at      TIMESTAMP    NOT NULL,
+    created_at      DATE    NOT NULL,
     created_by      VARCHAR2(50)  NOT NULL,
-    last_modified_at TIMESTAMP   NOT NULL,
+    last_modified_at DATE   NOT NULL,
     last_modified_by VARCHAR2(50) NOT NULL,
-    dataset_end_date TIMESTAMP ,
-    dataset_start_date TIMESTAMP,
+    dataset_end_date DATE ,
+    dataset_start_date DATE,
     version         NUMBER(10),
     CONSTRAINT pk_business_problems PRIMARY KEY (id)
 );

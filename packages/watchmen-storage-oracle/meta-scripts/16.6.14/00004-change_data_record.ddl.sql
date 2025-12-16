@@ -1,2 +1,3 @@
 CREATE INDEX idx_record_module_trigger_id ON change_data_record(module_trigger_id);
+DROP INDEX I_CHANGE_DATA_RECORD_7;
 CREATE INDEX idx_record_model_trigger_id ON change_data_record(model_trigger_id);

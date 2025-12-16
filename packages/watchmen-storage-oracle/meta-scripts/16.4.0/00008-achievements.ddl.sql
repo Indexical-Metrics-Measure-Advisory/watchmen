@@ -1,2 +1,2 @@
 ALTER TABLE achievements
-    ADD plugin_ids VARCHAR2(2048) NULL;
+    ADD plugin_ids CLOB NULL;
