@@ -158,6 +158,8 @@ class TopicDataStoragePostgreSQL(StoragePostgreSQL, TopicDataStorageRDS):
 			return FactorType.OBJECT, None
 		elif data_type in ['BOOLEAN', 'BOOL']:
 			return FactorType.BOOLEAN, None
+		elif data_type in ['UUID']:
+			return FactorType.UUID, None
 		else:
 			return FactorType.TEXT, None
 

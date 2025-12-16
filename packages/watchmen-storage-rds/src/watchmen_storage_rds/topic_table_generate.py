@@ -7,6 +7,7 @@ from watchmen_model.admin import Factor, FactorType, Topic, TopicKind
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import as_table_name, UnexpectedStorageException, DataSourceHelper
 from watchmen_utilities import ArrayHelper, is_blank
+from .ext_types import UUIDToString
 from .table_defs_helper import create_bool, create_datetime, create_int, create_json, create_pk, \
 	create_tuple_id_column, meta_data
 
@@ -122,6 +123,8 @@ def create_column(factor: Factor) -> Column:
 		return Column(factor_name, String, nullable=True)
 	elif factor_type == FactorType.OBJECT or factor_type == FactorType.ARRAY:
 		return create_json(factor_name)
+	elif factor_type == FactorType.UUID:
+		return Column(factor_name, UUIDToString, nullable=True)
 	else:
 		raise UnexpectedStorageException(f'Factor type[{factor_type}] is not supported.')
 
