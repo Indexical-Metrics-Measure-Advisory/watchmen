@@ -15,7 +15,7 @@ CREATE TABLE metrics
     created_by   VARCHAR2(50) NOT NULL,
     last_modified_at   DATE    NOT NULL,
     last_modified_by   VARCHAR2(50) NOT NULL,
-    version      NUMBER(20) NOT NULL
+    version      NUMBER(20) NOT NULL,
     tenant_id    VARCHAR2(50) NOT NULL,
     CONSTRAINT pk_metrics PRIMARY KEY (id)
 );
