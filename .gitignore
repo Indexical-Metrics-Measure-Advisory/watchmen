@@ -135,3 +135,6 @@ packages/watchmen-ai-copilot/src/watchmen_ai/utils/__pycache__/utils.cpython-312
 *.pyc
 *.txn
 *.txn
+packages/watchmen-auth/.run/app ai.run.xml
+packages/watchmen-auth/.run/app.run.xml
+packages/watchmen-auth/.run/metricflow.run.xml

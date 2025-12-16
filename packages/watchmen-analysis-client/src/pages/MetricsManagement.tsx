@@ -96,7 +96,7 @@ const MetricsManagement: React.FC = () => {
   const loadCategories = useCallback(async () => {
     try {
       const categoriesData = await getCategories();
-      console.log('loadCategories result:', categoriesData);
+      // console.log('loadCategories result:', categoriesData);
       // Ensure we always set a valid array
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
     } catch (error) {
