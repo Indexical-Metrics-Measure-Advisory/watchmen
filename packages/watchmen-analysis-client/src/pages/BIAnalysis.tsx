@@ -51,6 +51,7 @@ import { getCategories as getRealCategories, getMetrics as getAllMetrics, findDi
 import type { MetricDefinition, Category } from '@/model/metricsManagement';
 import type { MetricDimension } from '@/model/analysis';
 import type { MetricFlowResponse, MetricQueryRequest } from '@/model/metricFlow';
+import type { AlertStatus } from '@/model/AlertConfig';
 import { useAuth } from '@/contexts/AuthContext';
 import { DateRange } from "react-day-picker";
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
@@ -124,6 +125,8 @@ const BIAnalysisPage: React.FC = () => {
         selection: { dimensions: [], timeRange: 'Past 30 days' },
         alert: rule
      };
+
+     console.log('newCard:', newCard);
      setCards(prev => [...prev, newCard]);
      toast({ title: 'Added', description: 'Alert card added to dashboard' });
      void loadCardDataFor(newCard);
@@ -154,6 +157,7 @@ const BIAnalysisPage: React.FC = () => {
   // board
   const [cards, setCards] = useState<BIChartCard[]>([]);
   const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: any[]; rawData: MetricFlowResponse | null }>>({});
+  const [alertStatusMap, setAlertStatusMap] = useState<Record<string, AlertStatus>>({});
 
   // saving
   const [saveOpen, setSaveOpen] = useState(false);
@@ -298,8 +302,43 @@ const BIAnalysisPage: React.FC = () => {
         setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], rawData: null } }));
         return;
       }
-      const data = await globalAlertService.fetchAlertData(card.alert as GlobalAlertRule);
-      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: data, rawData: null } }));
+      const resp = await globalAlertService.fetchAlertData(card.alert as GlobalAlertRule);
+      
+      let chartData: any[] = [];
+      if (resp && Array.isArray(resp.data)) {
+         chartData = resp.data;
+      } else if (Array.isArray(resp)) {
+         chartData = resp;
+      }
+
+      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: chartData, rawData: null } }));
+      
+      if (resp && typeof resp.triggered === 'boolean') {
+         // It has triggered status. 
+         let status: AlertStatus;
+         if (resp.alertStatus) {
+            status = resp.alertStatus;
+         } else {
+            const alertRule = card.alert as GlobalAlertRule;
+            const priority = alertRule.priority || 'medium';
+            let severity: 'info' | 'warning' | 'critical' = 'info';
+            if (priority === 'critical') severity = 'critical';
+            else if (priority === 'high') severity = 'warning';
+            
+            // Construct minimal status if backend only returns { triggered: true, ... }
+            status = {
+              id: `alert-status-${card.id}`, 
+              ruleId: alertRule.id || card.id,
+              ruleName: alertRule.name || 'Alert',
+              triggered: resp.triggered,
+              severity: severity,
+              message: resp.message || (resp.triggered ? 'Alert Triggered' : 'Normal'),
+              acknowledged: resp.acknowledged || false,
+              conditionResults: resp.conditionResults || []
+            };
+         }
+         setAlertStatusMap(prev => ({ ...prev, [card.id]: status }));
+      }
       return;
     }
 
@@ -639,6 +678,33 @@ const BIAnalysisPage: React.FC = () => {
     toast({ title: 'Copied', description: 'Share link copied to clipboard' });
   };
 
+  const handleAcknowledge = async (alertId: string) => {
+    try {
+      await globalAlertService.acknowledgeAlert(alertId);
+      
+      // Update local state to reflect acknowledgment
+      setAlertStatusMap(prev => {
+        const next = { ...prev };
+        // Find which card has this alert status
+        const cardId = Object.keys(next).find(k => next[k].id === alertId);
+        if (cardId && next[cardId]) {
+           next[cardId] = {
+             ...next[cardId],
+             acknowledged: true,
+             acknowledgedBy: user?.name || 'User', // Assuming user object has name
+             acknowledgedAt: new Date().toISOString()
+           };
+        }
+        return next;
+      });
+      
+      toast({ title: 'Acknowledged', description: 'Alert has been acknowledged' });
+    } catch (e) {
+      console.error('Failed to acknowledge alert', e);
+      toast({ title: 'Error', description: 'Failed to acknowledge alert', variant: 'destructive' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
@@ -932,6 +998,8 @@ const BIAnalysisPage: React.FC = () => {
             onRemove={removeCard}
             onUpdate={updateCard}
             onAddAlert={() => setAddAlertOpen(true)}
+            alertStatusMap={alertStatusMap}
+            onAcknowledge={handleAcknowledge}
           />
 
           <Separator className="my-8" />
