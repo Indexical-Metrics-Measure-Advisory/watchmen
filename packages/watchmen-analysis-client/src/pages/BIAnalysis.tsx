@@ -95,6 +95,11 @@ const BIAnalysisPage: React.FC = () => {
   const [addAlertOpen, setAddAlertOpen] = useState(false);
   const [alertRuleId, setAlertRuleId] = useState('');
   const [dialogRules, setDialogRules] = useState<GlobalAlertRule[]>([]);
+  const [alertTimeRange, setAlertTimeRange] = useState<string>('Past 30 days');
+  const [alertCustomDateRange, setAlertCustomDateRange] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -30),
+    to: new Date(),
+  });
 
   // Fetch rules when alert metric changes
   useEffect(() => {
@@ -116,13 +121,18 @@ const BIAnalysisPage: React.FC = () => {
      const metricId = rule.conditions?.[0]?.metricId || '';
      const metricName = rule.conditions?.[0]?.metricName || metricId;
 
+     let rangeStr = alertTimeRange;
+     if (alertTimeRange === 'Custom' && alertCustomDateRange?.from && alertCustomDateRange?.to) {
+         rangeStr = `Custom:${format(alertCustomDateRange.from, 'yyyy-MM-dd')}:${format(alertCustomDateRange.to, 'yyyy-MM-dd')}`;
+     }
+
      const newCard: BIChartCard = {
         id: `card_${Date.now()}`,
         title: rule.name || `${metricName} · Alert`,
         metricId: metricId,
         chartType: 'alert',
         size: 'md',
-        selection: { dimensions: [], timeRange: 'Past 30 days' },
+        selection: { dimensions: [], timeRange: rangeStr },
         alert: rule
      };
 
@@ -132,6 +142,7 @@ const BIAnalysisPage: React.FC = () => {
      void loadCardDataFor(newCard);
      setAddAlertOpen(false);
      setAlertRuleId('');
+     setAlertTimeRange('Past 30 days');
   };
 
   const selectedMetric: BIMetric | null = useMemo(() => {
@@ -1072,6 +1083,32 @@ const BIAnalysisPage: React.FC = () => {
                    ))}
                  </SelectContent>
                </Select>
+             </div>
+
+             <div className="space-y-2">
+                <Label>Time Range</Label>
+                <Select value={alertTimeRange} onValueChange={setAlertTimeRange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select time range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Past 7 days">Past 7 days</SelectItem>
+                    <SelectItem value="Past 30 days">Past 30 days</SelectItem>
+                    <SelectItem value="Past 90 days">Past 90 days</SelectItem>
+                    <SelectItem value="Past year">Past year</SelectItem>
+                    <SelectItem value="Custom">Custom Range</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {alertTimeRange === 'Custom' && (
+                   <div className="pt-1 animate-in fade-in slide-in-from-top-1">
+                     <DatePickerWithRange 
+                       date={alertCustomDateRange} 
+                       onSelect={setAlertCustomDateRange} 
+                       className="w-full"
+                     />
+                   </div>
+                )}
              </div>
           </div>
           <DialogFooter>
