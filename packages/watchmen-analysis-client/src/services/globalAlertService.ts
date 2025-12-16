@@ -110,13 +110,37 @@ class GlobalAlertService {
     return checkResponse(response);
   }
 
-  async fetchAlertData(rule: GlobalAlertRule): Promise<any[]> {
+  async fetchAlertData(rule: GlobalAlertRule): Promise<any> {
     if (isMockMode) {
       await new Promise(resolve => setTimeout(resolve, 300));
       // Return a random value close to the condition value to simulate checking
       const baseValue = typeof rule.condition.value === 'number' ? rule.condition.value : 0;
       const randomFactor = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
-      return [{ value: Math.round(baseValue * randomFactor) }];
+      // Mock response structure with triggered status
+      const value = Math.round(baseValue * randomFactor);
+      const isTriggered = rule.condition.operator === '>' ? value > rule.condition.value : value < rule.condition.value;
+      
+      return {
+        triggered: isTriggered,
+        data: [{ value }],
+        alertStatus: {
+           id: `alert-${Date.now()}`,
+           ruleId: rule.id,
+           ruleName: rule.name,
+           triggered: isTriggered,
+           severity: rule.priority,
+           message: isTriggered ? `Rule ${rule.name} triggered` : 'Normal',
+           acknowledged: false,
+           conditionResults: [{
+             metricId: rule.conditions?.[0]?.metricId || '',
+             metricName: rule.conditions?.[0]?.metricName || '',
+             operator: rule.condition.operator,
+             value: rule.condition.value,
+             currentValue: value,
+             triggered: isTriggered
+           }]
+        }
+      };
     }
     
     // In real mode, we might want to call a specific alert evaluation endpoint

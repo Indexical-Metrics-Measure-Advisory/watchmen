@@ -6,6 +6,7 @@ import { metricsService } from '@/services/metricsService';
 import { alertService } from '@/services/alertService';
 import { BIChartCard, GlobalAlertRule } from '@/model/biAnalysis';
 import type { MetricFlowResponse, MetricQueryRequest } from '@/model/metricFlow';
+import type { AlertStatus } from '@/model/AlertConfig';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -15,6 +16,7 @@ const SharedAnalysisPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [cards, setCards] = useState<BIChartCard[]>([]);
   const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: any[]; rawData: MetricFlowResponse | null }>>({});
+  const [alertStatusMap, setAlertStatusMap] = useState<Record<string, AlertStatus>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [analysisName, setAnalysisName] = useState('');
@@ -101,8 +103,43 @@ const SharedAnalysisPage: React.FC = () => {
           setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], rawData: null } }));
           return;
         }
-        const data = await globalAlertService.fetchAlertData(card.alert as GlobalAlertRule);
-        setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: data, rawData: null } }));
+        const resp = await globalAlertService.fetchAlertData(card.alert as GlobalAlertRule);
+        
+        let chartData: any[] = [];
+        if (resp && Array.isArray(resp.data)) {
+           chartData = resp.data;
+        } else if (Array.isArray(resp)) {
+           chartData = resp;
+        }
+
+        setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: chartData, rawData: null } }));
+
+        if (resp && typeof resp.triggered === 'boolean') {
+           // It has triggered status. 
+           let status: AlertStatus;
+           if (resp.alertStatus) {
+              status = resp.alertStatus;
+           } else {
+              const alertRule = card.alert as GlobalAlertRule;
+              const priority = alertRule.priority || 'medium';
+              let severity: 'info' | 'warning' | 'critical' = 'info';
+              if (priority === 'critical') severity = 'critical';
+              else if (priority === 'high') severity = 'warning';
+
+              // Construct minimal status if backend only returns { triggered: true, ... }
+              status = {
+                id: `alert-status-${card.id}`, 
+                ruleId: alertRule.id || card.id,
+                ruleName: alertRule.name || 'Alert',
+                triggered: resp.triggered,
+                severity: severity,
+                message: resp.message || (resp.triggered ? 'Alert Triggered' : 'Normal'),
+                acknowledged: resp.acknowledged || false,
+                conditionResults: resp.conditionResults || []
+              };
+           }
+           setAlertStatusMap(prev => ({ ...prev, [card.id]: status }));
+        }
         return;
       }
 
@@ -184,6 +221,7 @@ const SharedAnalysisPage: React.FC = () => {
           onDrop={() => () => {}}
           onResize={() => {}}
           onRemove={() => {}}
+          alertStatusMap={alertStatusMap}
        />
     </div>
   )
