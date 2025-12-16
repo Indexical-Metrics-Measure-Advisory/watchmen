@@ -46,6 +46,7 @@ export interface Topic {
   classification: string;
   createdAt: string;
   lastModifiedAt: string;
+  factors: TopicFactor[];
 }
 
 class TopicService {
@@ -84,7 +85,8 @@ class TopicService {
         kind: item.topic.kind,
         classification: item.classification,
         createdAt: item.topic.createdAt,
-        lastModifiedAt: item.topic.lastModifiedAt
+        lastModifiedAt: item.topic.lastModifiedAt,
+        factors: item.topic.factors
       }));
     } catch (error) {
       console.error('Error fetching datamart topics:', error);
@@ -120,7 +122,8 @@ class TopicService {
         kind: 'business',
         classification: 'dm',
         createdAt: '2024-01-01T00:00:00Z',
-        lastModifiedAt: '2024-01-15T10:30:00Z'
+        lastModifiedAt: '2024-01-15T10:30:00Z',
+        factors: []
       },
       {
         id: 'policy-data-mart',
@@ -130,7 +133,8 @@ class TopicService {
         kind: 'business',
         classification: 'dm',
         createdAt: '2024-01-01T00:00:00Z',
-        lastModifiedAt: '2024-01-15T10:30:00Z'
+        lastModifiedAt: '2024-01-15T10:30:00Z',
+        factors: []
       },
       {
         id: 'claims-data-mart',
@@ -140,7 +144,8 @@ class TopicService {
         kind: 'business',
         classification: 'dm',
         createdAt: '2024-01-01T00:00:00Z',
-        lastModifiedAt: '2024-01-15T10:30:00Z'
+        lastModifiedAt: '2024-01-15T10:30:00Z',
+        factors: []
       },
       {
         id: 'financial-data-mart',
@@ -150,7 +155,8 @@ class TopicService {
         kind: 'business',
         classification: 'dm',
         createdAt: '2024-01-01T00:00:00Z',
-        lastModifiedAt: '2024-01-15T10:30:00Z'
+        lastModifiedAt: '2024-01-15T10:30:00Z',
+        factors: []
       },
       {
         id: 'risk-assessment-mart',
@@ -160,7 +166,8 @@ class TopicService {
         kind: 'business',
         classification: 'dm',
         createdAt: '2024-01-01T00:00:00Z',
-        lastModifiedAt: '2024-01-15T10:30:00Z'
+        lastModifiedAt: '2024-01-15T10:30:00Z',
+        factors: []
       }
     ];
   }
