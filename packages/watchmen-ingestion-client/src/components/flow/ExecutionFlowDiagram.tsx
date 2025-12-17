@@ -484,20 +484,37 @@ function ExecutionFlowDiagram(props: ExecutionFlowDiagramProps) {
           newAnimatingNodes.delete(node.id);
           
           return {
+            ...prev,
             expandedModules: newExpandedModules,
             animatingNodes: newAnimatingNodes,
-            highlightedModules: prev.highlightedModules,
           };
         });
-      }, 50);
-      
+      }, 300);
+
+      // Trigger external click handler for modules
+      onNodeClick?.(node);
+    } else if (nodeData.type === 'model') {
+      const modelData = nodeData as ModelNodeData;
       toast({
-        title: isExpanded ? "Module Collapsed" : "Module Expanded",
-        description: nodeData.label,
+        title: `Model: ${modelData.label}`,
+        description: (
+          <div className="flex flex-col gap-1 mt-1">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500">Raw Topic:</span>
+              <span className="font-medium font-mono text-xs">{modelData.topicName || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500">Table Count:</span>
+              <span className="font-medium">{modelData.childCount || 0}</span>
+            </div>
+          </div>
+        ),
       });
+      // Do NOT trigger external click handler for models to prevent toast override
+    } else {
+      // For other node types, trigger external handler
+      onNodeClick?.(node);
     }
-    
-    onNodeClick?.(node);
   }, [state, toast, onNodeClick]);
 
   // Handle refresh

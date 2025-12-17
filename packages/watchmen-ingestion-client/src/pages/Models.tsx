@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Database, Loader2, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search, Filter, RefreshCw, Download } from 'lucide-react';
+import { Plus, Edit, Database, Loader2, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search, Filter, RefreshCw, Download, FileJson } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Model } from '@/models/model';
@@ -30,13 +30,16 @@ const Models = () => {
   // Dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [viewTopicDialogOpen, setViewTopicDialogOpen] = useState(false);
   const [selectedModel, setSelectedModel] = useState<Model | null>(null);
+  const [selectedTopicData, setSelectedTopicData] = useState<any>(null);
   
   // Form states
   const [createFormData, setCreateFormData] = useState<Partial<Model>>({});
   const [editFormData, setEditFormData] = useState<Partial<Model>>({});
   const [createLoading, setCreateLoading] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
+  const [viewTopicLoading, setViewTopicLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [syncingModelId, setSyncingModelId] = useState<string | null>(null);
@@ -335,6 +338,36 @@ const Models = () => {
     }
   };
 
+  const handleViewRawTopic = async (model: Model) => {
+    if (!model.rawTopicCode) {
+      toast({
+        title: "No Raw Topic Code",
+        description: "This model does not have a raw topic code.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setViewTopicLoading(true);
+      // We'll use the model name for the toast/dialog title
+      setSelectedModel(model);
+      
+      const data = await modelService.fetchRawTopic(model.rawTopicCode);
+      setSelectedTopicData(data);
+      setViewTopicDialogOpen(true);
+    } catch (err) {
+      console.error('Failed to fetch raw topic:', err);
+      toast({
+        title: "Error",
+        description: "Failed to fetch raw topic data.",
+        variant: "destructive"
+      });
+    } finally {
+      setViewTopicLoading(false);
+    }
+  };
+
   return (
     <div className="p-8 max-w-[1600px] mx-auto space-y-8">
       {/* Header */}
@@ -513,6 +546,20 @@ const Models = () => {
                     title="Sync Raw Topic Structure"
                   >
                     <RefreshCw className={`h-4 w-4 text-gray-500 hover:text-green-600 ${syncingModelId === model.modelId ? 'animate-spin' : ''}`} />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8"
+                    onClick={() => handleViewRawTopic(model)}
+                    disabled={viewTopicLoading && selectedModel?.modelId === model.modelId}
+                    title="View Raw Topic JSON"
+                  >
+                    {viewTopicLoading && selectedModel?.modelId === model.modelId ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+                    ) : (
+                      <FileJson className="h-4 w-4 text-gray-500 hover:text-blue-600" />
+                    )}
                   </Button>
                   <Button 
                     variant="ghost" 
@@ -816,6 +863,34 @@ const Models = () => {
               Save Changes
             </Button>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Topic Dialog */}
+      <Dialog open={viewTopicDialogOpen} onOpenChange={setViewTopicDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Raw Topic: {selectedModel?.rawTopicCode}</DialogTitle>
+            <DialogDescription>
+              View the raw JSON structure of the topic associated with model "{selectedModel?.modelName}".
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            {selectedTopicData ? (
+              <div className="bg-gray-50 p-4 rounded-md overflow-x-auto border border-gray-200">
+                <pre className="text-xs font-mono text-gray-800 whitespace-pre-wrap">
+                  {JSON.stringify(selectedTopicData, null, 2)}
+                </pre>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end mt-6">
+            <Button variant="outline" onClick={() => setViewTopicDialogOpen(false)}>Close</Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -734,6 +734,49 @@ export class ModelService {
   }
 
   /**
+   * Fetch raw topic definition by code
+   */
+  async fetchRawTopic(topicCode: string): Promise<any> {
+    if (this.useMockData) {
+      // Mock implementation
+      return {
+        topicId: 'mock-topic-id',
+        name: topicCode,
+        type: 'raw',
+        factors: [
+          { factorId: 'f1', name: 'id', type: 'text' },
+          { factorId: 'f2', name: 'name', type: 'text' },
+          { factorId: 'f3', name: 'amount', type: 'number' }
+        ]
+      };
+    }
+
+    try {
+      // Assuming endpoint pattern based on syncRawTopicStructure
+      // Using /ingest/config/topic/name/{name} pattern which is common in this project
+      const response = await fetch(`${API_BASE_URL}/ingest/config/topic/name/${encodeURIComponent(topicCode)}`, {
+        method: 'GET',
+        headers: getDefaultHeaders()
+      });
+
+      if (!response.ok) {
+        throw new ModelServiceError(
+          `Failed to fetch raw topic: ${response.status} ${response.statusText}`,
+          response.status
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching raw topic:', error);
+      if (this.useMockData) {
+        return { error: 'Mock data: Failed to fetch topic' };
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Set mock data mode
    */
   setMockDataMode(useMockData: boolean): void {

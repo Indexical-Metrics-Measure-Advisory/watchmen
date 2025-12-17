@@ -72,6 +72,17 @@ export const useFlowData = (autoFetch = true): UseFlowDataState => {
     });
     const priorities = Array.from(modulesByPriority.keys()).sort((a, b) => a - b);
 
+    // Calculate table counts for each model
+    const tableCountsByModel = new Map<string, number>();
+    if (rawData.tables) {
+      rawData.tables.forEach(table => {
+        if (table.modelName) {
+          const currentCount = tableCountsByModel.get(table.modelName) || 0;
+          tableCountsByModel.set(table.modelName, currentCount + 1);
+        }
+      });
+    }
+
     const moduleNodes: Node<ModuleNodeData>[] = [];
     const moduleNodesByPriority = new Map<number, Node<ModuleNodeData>[]>();
 
@@ -131,6 +142,7 @@ export const useFlowData = (autoFetch = true): UseFlowDataState => {
           topicName: (model as any).rawTopicCode || model.rawTopicCode,
           level: 1,
           isExpanded: false,
+          childCount: tableCountsByModel.get(model.modelName) || 0,
           parentModuleId: model.moduleId,
         } as ModelNodeData,
       };

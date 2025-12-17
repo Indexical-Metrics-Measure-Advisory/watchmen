@@ -9,9 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { DateRange } from 'react-day-picker';
+import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { cn } from '@/lib/utils';
 
-type ChartDataPoint = any;
+type ChartDataPoint = unknown;
 
 interface AnalysisBoardProps {
   cards: BIChartCard[];
@@ -30,6 +33,10 @@ interface AnalysisBoardProps {
   globalFilterValues?: Record<string, string>;
   onGlobalFilterChange?: (dimensionKey: string, value: string) => void;
   onClearGlobalFilters?: () => void;
+  globalTimeRange?: string;
+  globalCustomDateRange?: DateRange;
+  onGlobalTimeRangeChange?: (range: string) => void;
+  onGlobalCustomDateRangeChange?: (range: DateRange) => void;
 }
 
 export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
@@ -49,6 +56,10 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
   globalFilterValues,
   onGlobalFilterChange,
   onClearGlobalFilters,
+  globalTimeRange,
+  globalCustomDateRange,
+  onGlobalTimeRangeChange,
+  onGlobalCustomDateRangeChange,
 }) => {
   const [filtersHidden, setFiltersHidden] = React.useState(true);
 
@@ -56,14 +67,18 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
     return (globalFilterDimensions ?? []).map(d => d.qualified_name || d.name);
   }, [globalFilterDimensions]);
 
-  const hasGlobalFilters = globalFilterKeys.length > 0;
+  const hasGlobalFilters = globalFilterKeys.length > 0 || Boolean(onGlobalTimeRangeChange);
+  const timeRangeValue = globalTimeRange ?? '__card__';
 
   const decideType = (data: ChartDataPoint[]): BIChartType => {
     if (!data || data.length === 0) return 'bar';
-    
+
     const firstItem = data[0];
-    const keys = Object.keys(firstItem).filter(k => k !== 'name' && k !== 'date' && k !== 'value' && k !== 'color');
-    const hasDate = 'date' in firstItem;
+    if (!firstItem || typeof firstItem !== 'object') return 'bar';
+
+    const record = firstItem as Record<string, unknown>;
+    const keys = Object.keys(record).filter(k => k !== 'name' && k !== 'date' && k !== 'value' && k !== 'color');
+    const hasDate = 'date' in record;
     
     // Time series data
     if (hasDate) {
@@ -211,6 +226,33 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="space-y-1">
+                <Label className="text-xs">Time Range</Label>
+                <Select value={timeRangeValue} onValueChange={v => onGlobalTimeRangeChange?.(v)}>
+                  <SelectTrigger className="h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__card__">Per card</SelectItem>
+                    <SelectItem value="Past 7 days">Past 7 days</SelectItem>
+                    <SelectItem value="Past 30 days">Past 30 days</SelectItem>
+                    <SelectItem value="Past 90 days">Past 90 days</SelectItem>
+                    <SelectItem value="Past year">Past year</SelectItem>
+                    <SelectItem value="Custom">Custom Range</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {timeRangeValue === 'Custom' && (
+                  <div className="pt-1">
+                    <DatePickerWithRange
+                      date={globalCustomDateRange}
+                      onSelect={onGlobalCustomDateRangeChange ?? (() => undefined)}
+                      className="w-full"
+                    />
+                  </div>
+                )}
+              </div>
+
               {globalFilterKeys.map(key => {
                 const d = (globalFilterDimensions ?? []).find(x => (x.qualified_name || x.name) === key);
                 const label = d?.name || key;

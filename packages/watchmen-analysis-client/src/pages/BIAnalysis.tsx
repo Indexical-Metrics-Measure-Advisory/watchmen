@@ -162,6 +162,9 @@ const BIAnalysisPage: React.FC = () => {
   const [alertStatusMap, setAlertStatusMap] = useState<Record<string, AlertStatus>>({});
   const [commonFilterDimensions, setCommonFilterDimensions] = useState<MetricDimension[]>([]);
   const [globalFilterValues, setGlobalFilterValues] = useState<Record<string, string>>({});
+  const GLOBAL_TIME_RANGE_PER_CARD = '__card__';
+  const [globalTimeRange, setGlobalTimeRange] = useState<string>(GLOBAL_TIME_RANGE_PER_CARD);
+  const [globalCustomDateRange, setGlobalCustomDateRange] = useState<DateRange | undefined>(undefined);
 
   // saving
   const [saveOpen, setSaveOpen] = useState(false);
@@ -340,6 +343,18 @@ const BIAnalysisPage: React.FC = () => {
     return { start: toDateStr(startDate), end: toDateStr(endDate) };
   };
 
+  const resolveTimeRange = (card: BIChartCard, rangeOverride?: string) => {
+    const range = rangeOverride ?? globalTimeRange;
+    if (range === GLOBAL_TIME_RANGE_PER_CARD) return card.selection.timeRange;
+    if (range === 'Custom') {
+      if (globalCustomDateRange?.from && globalCustomDateRange?.to) {
+        return `Custom:${format(globalCustomDateRange.from, 'yyyy-MM-dd')}:${format(globalCustomDateRange.to, 'yyyy-MM-dd')}`;
+      }
+      return 'Past 30 days';
+    }
+    return range;
+  };
+
   const buildGlobalWhere = (filters: Record<string, string>): string | undefined => {
     const parts = Object.entries(filters)
       .map(([k, v]) => [k.trim(), v.trim()] as const)
@@ -431,7 +446,7 @@ const BIAnalysisPage: React.FC = () => {
   };
 
   // Fetch and cache card data
-  const loadCardDataFor = async (card: BIChartCard, filtersOverride?: Record<string, string>) => {
+  const loadCardDataFor = async (card: BIChartCard, filtersOverride?: Record<string, string>, timeRangeOverride?: string) => {
     try {
     
     if (card.chartType === 'alert' && card.alert) {
@@ -478,7 +493,7 @@ const BIAnalysisPage: React.FC = () => {
       }
       return;
     }
-      const { start, end } = timeRangeToBounds(card.selection.timeRange);
+      const { start, end } = timeRangeToBounds(resolveTimeRange(card, timeRangeOverride));
       const groupBy = card.selection.dimensions && card.selection.dimensions.length > 0 ? card.selection.dimensions : undefined;
       const where = groupBy ? buildGlobalWhere(filtersOverride ?? globalFilterValues) : undefined;
       const req: MetricQueryRequest = {
@@ -730,13 +745,38 @@ const BIAnalysisPage: React.FC = () => {
     });
   };
 
-  const clearGlobalFilters = () => {
-    const next: Record<string, string> = {};
-    setGlobalFilterValues(next);
+  const handleGlobalTimeRangeChange = (range: string) => {
+    setGlobalTimeRange(range);
     setCardDataMap({});
     setAlertStatusMap({});
     cards.forEach(c => {
-      void loadCardDataFor(c, next);
+      const override = range === GLOBAL_TIME_RANGE_PER_CARD ? c.selection.timeRange : range;
+      void loadCardDataFor(c, globalFilterValues, override);
+    });
+  };
+
+  const handleGlobalCustomDateRangeChange = (range: DateRange) => {
+    setGlobalCustomDateRange(range);
+    if (globalTimeRange !== 'Custom') return;
+
+    if (!range?.from || !range?.to) return;
+    const override = `Custom:${format(range.from, 'yyyy-MM-dd')}:${format(range.to, 'yyyy-MM-dd')}`;
+    setCardDataMap({});
+    setAlertStatusMap({});
+    cards.forEach(c => {
+      void loadCardDataFor(c, globalFilterValues, override);
+    });
+  };
+
+  const clearGlobalFilters = () => {
+    const next: Record<string, string> = {};
+    setGlobalFilterValues(next);
+    setGlobalTimeRange(GLOBAL_TIME_RANGE_PER_CARD);
+    setGlobalCustomDateRange(undefined);
+    setCardDataMap({});
+    setAlertStatusMap({});
+    cards.forEach(c => {
+      void loadCardDataFor(c, next, c.selection.timeRange);
     });
   };
 
@@ -935,6 +975,10 @@ const BIAnalysisPage: React.FC = () => {
                   globalFilterValues={globalFilterValues}
                   onGlobalFilterChange={handleGlobalFilterChange}
                   onClearGlobalFilters={clearGlobalFilters}
+                  globalTimeRange={globalTimeRange}
+                  globalCustomDateRange={globalCustomDateRange}
+                  onGlobalTimeRangeChange={handleGlobalTimeRangeChange}
+                  onGlobalCustomDateRangeChange={handleGlobalCustomDateRangeChange}
                 />
               </div>
             </TabsContent>
