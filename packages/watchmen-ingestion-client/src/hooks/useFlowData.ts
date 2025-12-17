@@ -127,7 +127,7 @@ export const useFlowData = (autoFetch = true): UseFlowDataState => {
           priority: model.priority || 0,
           modelId: model.modelId,
           moduleId: model.moduleId,
-          dependOn: model.dependOn,
+          dependOn: model.dependOn ? (Array.isArray(model.dependOn) ? model.dependOn.join(', ') : model.dependOn) : undefined,
           topicName: (model as any).rawTopicCode || model.rawTopicCode,
           level: 1,
           isExpanded: false,
@@ -181,10 +181,12 @@ export const useFlowData = (autoFetch = true): UseFlowDataState => {
 
     // Create edges: model dependencies
     modelNodes.forEach(modelNode => {
-      if (modelNode.data.dependOn) {
+      const dependencies = modelNode.data.dependOn ? modelNode.data.dependOn.split(', ') : [];
+      
+      dependencies.forEach(depName => {
         const dependentModel = modelNodes.find(node => 
-          node.data.label === modelNode.data.dependOn ||
-          node.data.modelId === modelNode.data.dependOn
+          node.data.label === depName ||
+          node.data.modelId === depName
         );
         
         if (dependentModel) {
@@ -211,7 +213,7 @@ export const useFlowData = (autoFetch = true): UseFlowDataState => {
             },
           });
         }
-      }
+      });
     });
 
     // Create priority-based edges between modules (connect each priority group to the next)

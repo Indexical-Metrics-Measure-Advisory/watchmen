@@ -241,7 +241,7 @@ const Models = () => {
       const createData = {
         modelId: createFormData.modelId!,
         modelName: createFormData.modelName!,
-        dependOn: '',
+        dependOn: [],
         rawTopicCode: createFormData.rawTopicCode || '',
         isParalleled: createFormData.isParalleled || false,
         version: '1.0.0', // Default version for new models
@@ -256,7 +256,7 @@ const Models = () => {
       const createdModel = await modelService.createModel(createData);
       
       // Update local state with the created model
-      setModels(prev => [...prev, createdModel]);
+      setModels(prev => [createdModel, ...prev]);
       setCreateDialogOpen(false);
       resetCreateForm();
       setSuccessMessage(`Model "${createdModel.modelName}" created successfully!`);

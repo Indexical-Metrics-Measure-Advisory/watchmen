@@ -69,7 +69,7 @@ const mockModels: Model[] = [
   {
     modelId: 'policy_001',
     modelName: 'Policy',
-    dependOn: '',
+    dependOn: [],
     rawTopicCode: 'POLICY_TOPIC',
     isParalleled: true,
     version: '1.0.0',
@@ -84,7 +84,7 @@ const mockModels: Model[] = [
   {
     modelId: 'customer_001',
     modelName: 'Customer',
-    dependOn: '',
+    dependOn: [],
     rawTopicCode: 'CUSTOMER_TOPIC',
     isParalleled: false,
     version: '1.2.0',
@@ -99,7 +99,7 @@ const mockModels: Model[] = [
   {
     modelId: 'order_001',
     modelName: 'Order',
-    dependOn: 'customer_001',
+    dependOn: ['customer_001'],
     rawTopicCode: 'ORDER_TOPIC',
     isParalleled: true,
     version: '1.1.0',
@@ -230,7 +230,7 @@ export class ModelService {
       const searchLower = params.search.toLowerCase();
       filteredModels = filteredModels.filter(model => 
         (model.modelName || '').toLowerCase().includes(searchLower) ||
-        (model.dependOn || '').toLowerCase().includes(searchLower) ||
+        (Array.isArray(model.dependOn) ? model.dependOn.join(' ') : (model.dependOn || '')).toLowerCase().includes(searchLower) ||
         (model.rawTopicCode || '').toLowerCase().includes(searchLower)
       );
     }
@@ -596,7 +596,7 @@ export class ModelService {
         const queryLower = params.query.toLowerCase();
         filteredModels = filteredModels.filter(model => 
           (model.modelName || '').toLowerCase().includes(queryLower) ||
-          (model.dependOn || '').toLowerCase().includes(queryLower) ||
+          (Array.isArray(model.dependOn) ? model.dependOn.join(' ') : (model.dependOn || '')).toLowerCase().includes(queryLower) ||
           (model.rawTopicCode || '').toLowerCase().includes(queryLower)
         );
       }
@@ -651,7 +651,7 @@ export class ModelService {
           const queryLower = params.query.toLowerCase();
           filteredModels = filteredModels.filter(model => 
             (model.modelName || '').toLowerCase().includes(queryLower) ||
-            (model.dependOn || '').toLowerCase().includes(queryLower) ||
+            (Array.isArray(model.dependOn) ? model.dependOn.join(' ') : (model.dependOn || '')).toLowerCase().includes(queryLower) ||
             (model.rawTopicCode || '').toLowerCase().includes(queryLower)
           );
         }

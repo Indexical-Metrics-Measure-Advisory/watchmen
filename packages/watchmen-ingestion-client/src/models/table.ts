@@ -177,14 +177,14 @@ export function constructCondition(condition: any): Condition | undefined {
     } as Condition;
   }
 
-  // Handle legacy frontend format (field/value) - convert to new format
-  if (condition.field !== undefined) {
-    return {
-      columnName: condition.field,
-      operator: condition.operator || EntityCriteriaOperator.EQUALS,
-      columnValue: condition.value
-    } as Condition;
-  }
+  // // Handle legacy frontend format (field/value) - convert to new format
+  // if (condition.field !== undefined) {
+  //   return {
+  //     columnName: condition.field,
+  //     operator: condition.operator || EntityCriteriaOperator.EQUALS,
+  //     columnValue: condition.value
+  //   } as Condition;
+  // }
 
   return condition as Condition;
 }

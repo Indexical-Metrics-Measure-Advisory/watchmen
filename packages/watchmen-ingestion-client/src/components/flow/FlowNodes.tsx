@@ -126,7 +126,7 @@ const ModuleNodeComponent: React.FC<NodeProps<ModuleNodeData>> = ({ data, select
 // Model Node Component
 const ModelNodeComponent: React.FC<NodeProps<ModelNodeData>> = ({ data, selected }) => {
   const hasChildren = (data.childCount || 0) > 0;
-  const hasDependency = Boolean(data.dependOn);
+  const hasDependency = Boolean(data.dependOn && data.dependOn.length > 0);
   const isAnimating = data.isAnimating || false;
   
   return (
@@ -158,7 +158,8 @@ const ModelNodeComponent: React.FC<NodeProps<ModelNodeData>> = ({ data, selected
             </div>
             <div className="text-xs text-green-600">
               Model • Priority: {data.priority}
-              {data.dependOn && ` • Depends on: ${data.dependOn}`}
+              {data.modelId && ` • ID: ${data.modelId}`}
+              {data.dependOn && ` • Dependencies: ${data.dependOn}`}
               {data.topicName && ` • Topic: ${data.topicName}`}
             </div>
           </div>

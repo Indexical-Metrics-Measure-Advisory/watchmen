@@ -1,7 +1,7 @@
 export interface Model {
     modelId: string;
     modelName: string;
-    dependOn: string;
+    dependOn?: string[];
     rawTopicCode: string;
     isParalleled: boolean;
     version: string;
