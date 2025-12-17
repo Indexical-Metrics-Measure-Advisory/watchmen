@@ -11,11 +11,13 @@ from watchmen_data_kernel.storage_bridge import parse_condition_for_storage, Pip
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_data_surface.settings import ask_truncate_topic_data
 from watchmen_model.admin import PipelineTriggerType, User, UserRole
-from watchmen_model.common import DataPage, Pageable, ParameterJoint, TenantId, TopicId
+from watchmen_model.common import DataPage, Pageable, ParameterJoint, TenantId, TopicId, \
+	ConstantParameter, ParameterExpression, ParameterExpressionOperator, ParameterJointType, ParameterKind, \
+	TopicFactorParameter
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
-from watchmen_rest import get_any_admin_principal
+from watchmen_rest import get_any_admin_principal, get_admin_principal
 from watchmen_rest.util import raise_400, raise_404
-from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, ExtendedBaseModel
 
 # noinspection DuplicatedCode
 router = APIRouter()
@@ -77,12 +79,15 @@ async def fetch_topic_data(
 	else:
 		schema = get_topic_schema(topic_name, tenant_id, principal_service)
 
+	if schema is None:
+		raise_400('Topic not found.')
+
 	storage = ask_topic_storage(schema, principal_service)
 	service = ask_topic_data_service(schema, storage, principal_service)
 
 	pageable = Pageable(
 		pageNumber=1 if criteria is None or criteria.pageNumber is None or criteria.pageNumber <= 0 else criteria.pageNumber,
-		pageSize=100 if criteria is None or criteria.pageSize is None or criteria.pageSize <= 0 else criteria.pageSize
+		pageSize=20 if criteria is None or criteria.pageSize is None or criteria.pageSize <= 0 else criteria.pageSize
 	)
 	if criteria is None or is_blank(criteria.jointType) or criteria.filters is None:
 		page = service.page_and_unwrap(None, pageable)
@@ -230,3 +235,59 @@ async def clean_and_import_data(
 	service.truncate()
 	# noinspection PyTypeChecker
 	ArrayHelper(data).each(lambda x: service.trigger_by_insert(x))
+
+
+class FetchUniqueDataRequest(ExtendedBaseModel):
+	topicName: str = None
+	factorName: str = None
+	value: Any = None
+
+
+@router.post('/topic/data/unique', tags=[UserRole.ADMIN], response_model=Optional[Dict[str, Any]])
+async def fetch_unique_data(
+		request: FetchUniqueDataRequest,
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Optional[Dict[str, Any]]:
+	if is_blank(request.topicName):
+		raise_400('Topic name is required.')
+	if is_blank(request.factorName):
+		raise_400('Factor name is required.')
+	if request.value is None:
+		raise_400('Value is required.')
+
+	tenant_id = validate_tenant_id(request.tenantId, principal_service)
+
+	schema = get_topic_schema(request.topicName, tenant_id, principal_service)
+	# find factor
+	factor = ArrayHelper(schema.get_topic().factors).find(lambda x: x.name == request.factorName)
+	if factor is None:
+		raise_400(f'Factor[{request.factorName}] not found in topic[{request.topicName}].')
+
+	# build criteria
+	criteria = ParameterJoint(
+		jointType=ParameterJointType.AND,
+		filters=[
+			ParameterExpression(
+				left=TopicFactorParameter(
+					kind=ParameterKind.TOPIC,
+					topicId=schema.get_topic().topicId,
+					factorId=factor.factorId
+				),
+				operator=ParameterExpressionOperator.EQUALS,
+				right=ConstantParameter(
+					kind=ParameterKind.CONSTANT,
+					value=str(request.value)
+				)
+			)
+		]
+	)
+
+	storage = ask_topic_storage(schema, principal_service)
+	service = ask_topic_data_service(schema, storage, principal_service)
+	parsed_criteria = parse_condition_for_storage(criteria, [schema], principal_service, False)
+	empty_variables = PipelineVariables(None, None, None)
+	return service.find_one([parsed_criteria.run(empty_variables, principal_service)])
+
+
+
+

@@ -297,6 +297,7 @@ class TopicDataService(TopicStructureService):
 		finally:
 			storage.close()
 
+
 	def find_and_lock_by_id(self, data_id: int) -> Optional[Dict[str, Any]]:
 		"""
 		no storage connect and close, it must be done outside
