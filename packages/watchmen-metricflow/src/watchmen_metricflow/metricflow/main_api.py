@@ -121,7 +121,7 @@ def query(
         raise Exception(f"❌ The `decimals` option was set to {decimals!r}, but it should be a non-negative integer.")
 
 
-
+  
 
     mf_request = MetricFlowQueryRequest.create_with_random_request_id(
         saved_query_name=saved_query,
@@ -133,6 +133,8 @@ def query(
         where_constraints=[where] if where else None,
         order_by_names=order,
     )
+
+
 
     # explain_result: Optional[MetricFlowExplainResult] = None
     # query_result: Optional[MetricFlowQueryResult] = None

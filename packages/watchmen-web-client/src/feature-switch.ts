@@ -13,6 +13,7 @@ export const isOidcMockEnabled = () => process.env.REACT_APP_MOCK_OIDC === 'true
 export const isPluginEnabled = () => process.env.REACT_APP_PLUGIN === 'true';
 export const isPipelineSimulatorEnabled = () => process.env.REACT_APP_PIPELINE_SIMULATOR_ENABLED === 'true';
 export const isAiModelEnabled = () => process.env.REACT_APP_AI_MODEL_ENABLED === 'true';
+export const getAdminMenuTitle = () => process.env.REACT_APP_ADMIN_MENU_TITLE;
 export const getWebAppEnvironment = () => process.env.REACT_APP_WEB_APP_ENV;
 
 const isLocalhost = () => {

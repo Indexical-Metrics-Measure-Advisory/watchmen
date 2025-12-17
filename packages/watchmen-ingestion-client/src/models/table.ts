@@ -4,15 +4,33 @@
  */
 
 /**
+ * Entity criteria operators
+ */
+export enum EntityCriteriaOperator {
+  EQUALS = 'equals',
+  NOT_EQUALS = 'not-equals',
+  LESS = 'less',
+  GREATER = 'more',
+  LESS_EQUALS = 'less-equals',
+  GREATER_EQUALS = 'more-equals',
+  IS_EMPTY = 'empty',
+  IS_NOT_EMPTY = 'not-empty',
+  IS_BLANK = 'blank',
+  IS_NOT_BLANK = 'not-blank',
+  LIKE = 'like',
+  NOT_LIKE = 'not-like',
+  IN = 'in',
+  NOT_IN = 'not-in'
+}
+
+/**
  * Condition interface - base condition structure
  * Corresponds to Python Condition model
  */
 export interface Condition {
-  // Basic condition properties - extend as needed based on actual Condition implementation
-  field?: string;
-  operator?: string;
-  value?: any;
-  type?: string;
+  columnName: string;
+  operator: EntityCriteriaOperator;
+  columnValue?: number[] | string[] | number | string | null;
 }
 
 /**
@@ -150,20 +168,25 @@ export interface PaginatedTableResponse {
 export function constructCondition(condition: any): Condition | undefined {
   if (!condition) return undefined;
 
-  // Handle backend format where columnName/columnValue are used instead of field/value
-  if (condition.columnName !== undefined || condition.columnValue !== undefined) {
+  // Handle backend format (columnName/columnValue)
+  if (condition.columnName !== undefined) {
     return {
-      field: condition.columnName,
-      operator: condition.operator,
-      value: condition.columnValue,
-      type: condition.type
+      columnName: condition.columnName,
+      operator: condition.operator || EntityCriteriaOperator.EQUALS,
+      columnValue: condition.columnValue
     } as Condition;
   }
 
-  if (typeof condition === 'object' && 'field' in condition) {
-    return condition as Condition;
+  // Handle legacy frontend format (field/value) - convert to new format
+  if (condition.field !== undefined) {
+    return {
+      columnName: condition.field,
+      operator: condition.operator || EntityCriteriaOperator.EQUALS,
+      columnValue: condition.value
+    } as Condition;
   }
-  return condition;
+
+  return condition as Condition;
 }
 
 export function constructConditions(conditions?: any[]): Condition[] | undefined {

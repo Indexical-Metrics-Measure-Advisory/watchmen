@@ -9,6 +9,7 @@ import {
   JoinCondition,
   Dependence,
   JsonColumn,
+  EntityCriteriaOperator,
   constructConditions,
   constructJoinConditions,
   constructDependencies,
@@ -34,15 +35,15 @@ const mockCollectorConfigs: CollectorTableConfig[] = [
     label: 'User Management',
     joinKeys: [
       {
-        parentKey: { field: 'parent_id', operator: '=', value: null, type: 'string' },
-        childKey: { field: 'child_id', operator: '=', value: null, type: 'string' }
+        parentKey: { columnName: 'parent_id', operator: EntityCriteriaOperator.EQUALS, columnValue: null },
+        childKey: { columnName: 'child_id', operator: EntityCriteriaOperator.EQUALS, columnValue: null }
       }
     ],
     dependOn: [
       { modelName: 'BaseModel', objectKey: 'base_id' }
     ],
     conditions: [
-      { field: 'status', operator: '=', value: 'active', type: 'string' }
+      { columnName: 'status', operator: EntityCriteriaOperator.EQUALS, columnValue: 'active' }
     ],
     jsonColumns: [
       {
@@ -77,8 +78,8 @@ const mockCollectorConfigs: CollectorTableConfig[] = [
     label: 'Product Catalog',
     joinKeys: [
       {
-        parentKey: { field: 'category_id', operator: '=', value: null, type: 'integer' },
-        childKey: { field: 'product_category_id', operator: '=', value: null, type: 'integer' }
+        parentKey: { columnName: 'category_id', operator: EntityCriteriaOperator.EQUALS, columnValue: null },
+        childKey: { columnName: 'product_category_id', operator: EntityCriteriaOperator.EQUALS, columnValue: null }
       }
     ],
     dependOn: [
@@ -86,8 +87,8 @@ const mockCollectorConfigs: CollectorTableConfig[] = [
       { modelName: 'InventoryModel', objectKey: 'inventory_id' }
     ],
     conditions: [
-      { field: 'is_active', operator: '=', value: true, type: 'boolean' },
-      { field: 'price', operator: '>', value: 0, type: 'decimal' }
+      { columnName: 'is_active', operator: EntityCriteriaOperator.EQUALS, columnValue: 1 },
+      { columnName: 'price', operator: EntityCriteriaOperator.GREATER, columnValue: 0 }
     ],
     jsonColumns: [
       {

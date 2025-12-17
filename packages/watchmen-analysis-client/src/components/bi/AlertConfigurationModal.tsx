@@ -128,7 +128,8 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
 
       if (!initialConfig.conditions || initialConfig.conditions.length === 0) {
         initialConfig.conditions = [{
-          field: card.metricId,
+          metricId: card.metricId,
+          metricName: card.title || card.metricId,
           operator: initialConfig.condition.operator,
           value: initialConfig.condition.value
         }];
@@ -152,7 +153,7 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
       ...prev,
       conditions: [
         ...(prev.conditions || []),
-        { field: card.metricId, operator: '>', value: 0 }
+        { metricId: card.metricId, metricName: card.title || card.metricId, operator: '>', value: 0 }
       ]
     }));
   };
@@ -365,8 +366,12 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
                            </div>
                            <div className="col-span-4">
                              <MetricSelector
-                               value={cond.field || card.metricId}
-                               onChange={(val) => handleConditionChange(index, 'field', val)}
+                               value={cond.metricId || card.metricId}
+                               onChange={(val) => {
+                                 handleConditionChange(index, 'metricId', val);
+                                 const m = metrics.find(x => x.id === val);
+                                 if (m) handleConditionChange(index, 'metricName', m.name);
+                               }}
                                metrics={metrics}
                              />
                            </div>
@@ -494,7 +499,7 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
                       <ul className="list-disc pl-4 mt-1 space-y-1">
                         {config.conditions?.map((c, i) => (
                           <li key={i}>
-                            {c.field || 'Metric'} {c.operator} {c.value}
+                            {c.metricName || c.metricId || 'Metric'} {c.operator} {c.value}
                           </li>
                         ))}
                       </ul>

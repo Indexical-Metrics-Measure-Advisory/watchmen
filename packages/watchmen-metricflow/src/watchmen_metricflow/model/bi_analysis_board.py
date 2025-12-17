@@ -118,7 +118,7 @@ class BIAnalysisListItem(BaseModel):
 
 if __name__ == "__main__":
     json ="""
-    {"id":"","name":"test","description":"","cards":[{"id":"card_1765811833931","title":"unique_policies_with_claims · Past year","metricId":"unique_policies_with_claims","chartType":"kpi","size":"md","selection":{"dimensions":[],"timeRange":"Past year"}}],"userId":"1071081977535114240"}
+    {"id":"","name":"test analysis 2","description":"","cards":[{"id":"card_1765037388947","size":"md","title":"total_claim_cases · Past 30 days","metricId":"total_claim_cases","chartType":"bar","selection":{"timeRange":"Past 30 days","dimensions":["claim_case__accept_decision"]}},{"id":"card_1765902710607","title":"total_claim_cases · Past 30 days","metricId":"total_claim_cases","chartType":"bar","size":"md","selection":{"dimensions":["claim_case__accept_decision_desc"],"timeRange":"Past 30 days"}},{"id":"card_1765902722272","title":"unique_policies_with_claims · Past 30 days","metricId":"unique_policies_with_claims","chartType":"bar","size":"md","selection":{"dimensions":["claim_case__accept_decision_desc"],"timeRange":"Past 30 days"}}],"userId":"1071081977535114240","globalFilters":{}}
     """
 
     analysis = BIAnalysis.model_validate_json(json)

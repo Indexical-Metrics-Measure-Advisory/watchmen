@@ -1,4 +1,5 @@
 import {
+	getAdminMenuTitle,
 	isAiModelEnabled,
 	isMultipleDataSourcesEnabled,
 	isPipelineSimulatorEnabled,
@@ -102,7 +103,7 @@ export const AdminMenu = () => {
 	}
 
 	return <AdminMenuContainer width={menuWidth}>
-		<SideMenuLogo title="Watchmen Admin"/>
+		<SideMenuLogo title={getAdminMenuTitle() ?? "Watchmen Admin"}/>
 		<SideMenuItem icon={ICON_HOME} label="Home" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.ADMIN_HOME}, location.pathname)}
 		              onClick={navigateTo(Router.ADMIN_HOME)}

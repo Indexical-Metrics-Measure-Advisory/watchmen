@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   CollectorTableConfig, Condition, Dependence,
-  JsonColumn
+  JsonColumn, EntityCriteriaOperator
 } from '@/models/table';
 import { tableService, TableServiceError } from '@/services/tableService';
 import dataSourceService from '@/services/dataSourceService';
@@ -28,7 +28,11 @@ const ConditionEditor = ({
   onChange: (conditions: Condition[]) => void 
 }) => {
   const addCondition = () => {
-    onChange([...conditions, { field: '', operator: '', value: '', type: '' }]);
+    onChange([...conditions, { 
+      columnName: '', 
+      operator: EntityCriteriaOperator.EQUALS, 
+      columnValue: '' 
+    }]);
   };
 
   const updateCondition = (index: number, field: keyof Condition, value: any) => {
@@ -47,36 +51,36 @@ const ConditionEditor = ({
         <div key={index} className="flex gap-2 items-end">
           <div className="flex-1">
             <Input
-              placeholder="Field"
-              value={condition.field || ''}
-              onChange={(e) => updateCondition(index, 'field', e.target.value)}
+              placeholder="Column Name"
+              value={condition.columnName || ''}
+              onChange={(e) => updateCondition(index, 'columnName', e.target.value)}
             />
           </div>
           <div className="flex-1">
             <Select
-              value={condition.operator || ''}
-              onValueChange={(value) => updateCondition(index, 'operator', value)}
+              value={condition.operator || EntityCriteriaOperator.EQUALS}
+              onValueChange={(value) => updateCondition(index, 'operator', value as EntityCriteriaOperator)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Operator" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="=">=</SelectItem>
-                <SelectItem value="!=">!=</SelectItem>
-                <SelectItem value=">">&gt;</SelectItem>
-                <SelectItem value="<">&lt;</SelectItem>
-                <SelectItem value=">=">&gt;=</SelectItem>
-                <SelectItem value="<=">&lt;=</SelectItem>
-                <SelectItem value="LIKE">LIKE</SelectItem>
-                <SelectItem value="IN">IN</SelectItem>
+                <SelectItem value={EntityCriteriaOperator.EQUALS}>=</SelectItem>
+                <SelectItem value={EntityCriteriaOperator.NOT_EQUALS}>!=</SelectItem>
+                <SelectItem value={EntityCriteriaOperator.GREATER}>&gt;</SelectItem>
+                <SelectItem value={EntityCriteriaOperator.LESS}>&lt;</SelectItem>
+                <SelectItem value={EntityCriteriaOperator.GREATER_EQUALS}>&gt;=</SelectItem>
+                <SelectItem value={EntityCriteriaOperator.LESS_EQUALS}>&lt;=</SelectItem>
+                <SelectItem value={EntityCriteriaOperator.LIKE}>LIKE</SelectItem>
+                <SelectItem value={EntityCriteriaOperator.IN}>IN</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="flex-1">
             <Input
               placeholder="Value"
-              value={condition.value || ''}
-              onChange={(e) => updateCondition(index, 'value', e.target.value)}
+              value={(condition.columnValue as string) || ''}
+              onChange={(e) => updateCondition(index, 'columnValue', e.target.value)}
             />
           </div>
           <Button
@@ -1046,13 +1050,13 @@ const Tables = () => {
     if (formData.conditions && Array.isArray(formData.conditions)) {
       formData.conditions.forEach((condition: any, index: number) => {
         // console.log(condition)
-        if (!condition.field?.trim()) {
+        if (!condition.columnName?.trim()) {
           errors[`condition_${index}_field`] = `Condition ${index + 1}: Field is required`;
         }
         if (!condition.operator?.trim()) {
           errors[`condition_${index}_operator`] = `Condition ${index + 1}: Operator is required`;
         }
-        if (condition.value === undefined || condition.value === null || condition.value === '') {
+        if (condition.columnValue === undefined || condition.columnValue === null || condition.columnValue === '') {
           errors[`condition_${index}_value`] = `Condition ${index + 1}: Value is required`;
         }
       });
@@ -1060,11 +1064,11 @@ const Tables = () => {
 
     if (formData.dependOn && Array.isArray(formData.dependOn)) {
       formData.dependOn.forEach((dep: any, index: number) => {
-        if (!dep.table?.trim()) {
-          errors[`dependency_${index}_table`] = `Dependency ${index + 1}: Table is required`;
+        if (!dep.modelName?.trim()) {
+          errors[`dependency_${index}_modelName`] = `Dependency ${index + 1}: Model name is required`;  
         }
-        if (!dep.field?.trim()) {
-          errors[`dependency_${index}_field`] = `Dependency ${index + 1}: Field is required`;
+        if (!dep.objectKey?.trim()) {
+          errors[`dependency_${index}_objectKey`] = `Dependency ${index + 1}: Object key is required`;
         }
       });
     }

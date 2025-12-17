@@ -147,7 +147,11 @@ async def get_metric_value(req :MetricQueryRequest,
     query_result: MetricFlowQueryResult = query(
         cfg=config,
         metrics=[req.metric],
-        group_by=req.group_by
+        group_by=req.group_by,
+        start_time = req.start_time,
+        end_time = req.end_time,
+        where = req.where,
+        # order = req.order
     )
     res = MetricFlowResponse(data=query_result.result_df.rows, column_names=query_result.result_df.column_names)
     return res
@@ -171,7 +175,9 @@ async def query_metrics(request_list: List[MetricQueryRequest],
             metrics=request.metrics,
             group_by=request.group_by,
             start_time=request.start_time,
-            end_time=request.end_time
+            end_time=request.end_time,
+            where = request.where,
+            order= request.order
         )
         res = MetricFlowResponse(data=query_result.result_df.rows, column_names=query_result.result_df.column_names)
         response_list.append(res)
