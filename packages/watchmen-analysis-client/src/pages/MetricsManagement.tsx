@@ -12,6 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import Header from '@/components/layout/Header';
@@ -61,6 +62,16 @@ const MetricsManagement: React.FC = () => {
     searchTerm: ''
   });
   const { toast } = useToast();
+
+  const normalizeMeasure = (measure?: MetricTypeParams['measure']) => {
+    return {
+      name: measure?.name ?? '',
+      join_to_timespine: measure?.join_to_timespine ?? false,
+      filter: measure?.filter ?? '',
+      alias: measure?.alias ?? '',
+      fill_nulls_with: measure?.fill_nulls_with ?? ''
+    };
+  };
 
   const loadData = useCallback(async () => {
     try {
@@ -283,7 +294,16 @@ const MetricsManagement: React.FC = () => {
       type: 'simple',
       unit: '',
       format: 'number',
-      type_params: {}
+      type_params: {
+        measure: { name: '', join_to_timespine: false, filter: '', alias: '', fill_nulls_with: '' },
+        expr: '',
+        window: {},
+        grain_to_date: {},
+        metrics: [],
+        conversion_type_params: {},
+        cumulative_type_params: {},
+        input_measures: []
+      }
     });
     setIsCreateDialogOpen(true);
   };
@@ -317,7 +337,16 @@ const MetricsManagement: React.FC = () => {
         type: 'simple',
         unit: '',
         format: 'number',
-        type_params: {}
+        type_params: {
+          measure: { name: '', join_to_timespine: false, filter: '', alias: '', fill_nulls_with: '' },
+          expr: '',
+          window: {},
+          grain_to_date: {},
+          metrics: [],
+          conversion_type_params: {},
+          cumulative_type_params: {},
+          input_measures: []
+        }
       });
       await loadData();
       toast({
@@ -687,7 +716,7 @@ const MetricsManagement: React.FC = () => {
           )}
           </div>
 
-      {/* 编辑指标对话框 */}
+ 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh]">
           <DialogHeader>
@@ -883,11 +912,8 @@ const MetricsManagement: React.FC = () => {
                     type_params: { 
                       ...editForm.type_params, 
                       measure: { 
-                        name: value,
-                        join_to_timespine: editForm.type_params?.measure?.join_to_timespine || false,
-                        filter: editForm.type_params?.measure?.filter,
-                        alias: editForm.type_params?.measure?.alias,
-                        fill_nulls_with: editForm.type_params?.measure?.fill_nulls_with
+                        ...normalizeMeasure(editForm.type_params?.measure),
+                        name: value
                       }
                     }
                   })}
@@ -903,6 +929,86 @@ const MetricsManagement: React.FC = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between rounded-md border px-3 py-2">
+                    <span className="text-sm">Join to Timespine</span>
+                    <Switch
+                      checked={normalizeMeasure(editForm.type_params?.measure).join_to_timespine}
+                      onCheckedChange={(checked) =>
+                        setEditForm({
+                          ...editForm,
+                          type_params: {
+                            ...editForm.type_params,
+                            measure: {
+                              ...normalizeMeasure(editForm.type_params?.measure),
+                              join_to_timespine: checked
+                            }
+                          }
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Alias</label>
+                    <Input
+                      value={normalizeMeasure(editForm.type_params?.measure).alias}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          type_params: {
+                            ...editForm.type_params,
+                            measure: {
+                              ...normalizeMeasure(editForm.type_params?.measure),
+                              alias: e.target.value
+                            }
+                          }
+                        })
+                      }
+                      placeholder="Optional alias"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Fill Nulls With</label>
+                    <Input
+                      value={String(normalizeMeasure(editForm.type_params?.measure).fill_nulls_with)}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          type_params: {
+                            ...editForm.type_params,
+                            measure: {
+                              ...normalizeMeasure(editForm.type_params?.measure),
+                              fill_nulls_with: e.target.value
+                            }
+                          }
+                        })
+                      }
+                      placeholder="Optional value"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Filter</label>
+                    <Textarea
+                      value={normalizeMeasure(editForm.type_params?.measure).filter || ''}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          type_params: {
+                            ...editForm.type_params,
+                            measure: {
+                              ...normalizeMeasure(editForm.type_params?.measure),
+                              filter: e.target.value
+                            }
+                          }
+                        })
+                      }
+                      placeholder="Optional filter expression"
+                      rows={2}
+                    />
+                  </div>
+                </div>
               </div>
             )}
             </div>
@@ -1029,7 +1135,9 @@ const MetricsManagement: React.FC = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Derived Metric Parameters</label>
                 <DerivedMetricParams
-                  params={createForm.type_params || {}}
+                  params={createForm.type_params || {
+                    
+                  }}
                   onChange={updateCreateFormTypeParams}
                 />
               </div>
@@ -1114,11 +1222,8 @@ const MetricsManagement: React.FC = () => {
                     type_params: { 
                       ...createForm.type_params, 
                       measure: { 
-                        name: value,
-                        join_to_timespine: createForm.type_params?.measure?.join_to_timespine || false,
-                        filter: createForm.type_params?.measure?.filter,
-                        alias: createForm.type_params?.measure?.alias,
-                        fill_nulls_with: createForm.type_params?.measure?.fill_nulls_with
+                        ...normalizeMeasure(createForm.type_params?.measure),
+                        name: value
                       }
                     }
                   })}
@@ -1134,6 +1239,86 @@ const MetricsManagement: React.FC = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between rounded-md border px-3 py-2">
+                    <span className="text-sm">Join to Timespine</span>
+                    <Switch
+                      checked={normalizeMeasure(createForm.type_params?.measure).join_to_timespine}
+                      onCheckedChange={(checked) =>
+                        setCreateForm({
+                          ...createForm,
+                          type_params: {
+                            ...createForm.type_params,
+                            measure: {
+                              ...normalizeMeasure(createForm.type_params?.measure),
+                              join_to_timespine: checked
+                            }
+                          }
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Alias</label>
+                    <Input
+                      value={normalizeMeasure(createForm.type_params?.measure).alias}
+                      onChange={(e) =>
+                        setCreateForm({
+                          ...createForm,
+                          type_params: {
+                            ...createForm.type_params,
+                            measure: {
+                              ...normalizeMeasure(createForm.type_params?.measure),
+                              alias: e.target.value
+                            }
+                          }
+                        })
+                      }
+                      placeholder="Optional alias"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Fill Nulls With</label>
+                    <Input
+                      value={String(normalizeMeasure(createForm.type_params?.measure).fill_nulls_with)}
+                      onChange={(e) =>
+                        setCreateForm({
+                          ...createForm,
+                          type_params: {
+                            ...createForm.type_params,
+                            measure: {
+                              ...normalizeMeasure(createForm.type_params?.measure),
+                              fill_nulls_with: e.target.value
+                            }
+                          }
+                        })
+                      }
+                      placeholder="Optional value"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Filter</label>
+                    <Textarea
+                      value={normalizeMeasure(createForm.type_params?.measure).filter || ''}
+                      onChange={(e) =>
+                        setCreateForm({
+                          ...createForm,
+                          type_params: {
+                            ...createForm.type_params,
+                            measure: {
+                              ...normalizeMeasure(createForm.type_params?.measure),
+                              filter: e.target.value
+                            }
+                          }
+                        })
+                      }
+                      placeholder="Optional filter expression"
+                      rows={2}
+                    />
+                  </div>
+                </div>
               </div>
             )}
           </div>

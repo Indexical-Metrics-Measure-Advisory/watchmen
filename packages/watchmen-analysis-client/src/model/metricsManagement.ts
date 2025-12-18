@@ -73,7 +73,7 @@ export interface MetricDefinition {
   type: 'simple' | 'ratio' | 'derived';
   label?: string;
   type_params: MetricTypeParams;
-  // 兼容历史字段（部分页面仍使用）：
+
   categoryId?: string;
   unit?: string;
   format?: string;
@@ -83,14 +83,14 @@ export interface MetricDefinition {
   updatedAt?: string;
   createdBy?: string;
   updatedBy?: string;
-  // 基于后端模型新增：
+
   filter?: string;
   metadata?: Record<string, any>;
   config?: MetricConfig;
   time_granularity?: string;
 }
 
-// 兼容型配置占位，具体结构由后端定义
+// Compatible configuration placeholder, specific structure defined by backend
 export interface MetricConfig {
   [key: string]: any;
 }
@@ -102,8 +102,8 @@ export interface MetricCategory {
   color: string;
   icon: string;
   metrics: MetricDefinition[];
-  isActive?: boolean; // 新增：激活状态
-  sortOrder?: number; // 新增：排序
+  isActive?: boolean; // New: Active status
+  sortOrder?: number; // New: Sort order
   createdAt?: string;
   updatedAt?: string;
 }
@@ -112,7 +112,7 @@ export interface MetricsSummary {
   totalMetrics: number;
   activeMetrics: number;
   categories: number;
-  activeCategories?: number; // 新增：激活的分类数量
+  activeCategories?: number; // New: Number of active categories
   lastUpdated: string;
 }
 
@@ -126,14 +126,14 @@ export interface MetricValue {
 }
 
 export interface MetricFilter {
-  categoryId?: string; // 新增：按分类ID筛选
+  categoryId?: string; // New: Filter by category ID
   type?: string;
   searchTerm?: string;
-  tags?: string[]; // 新增：按标签筛选
-  isActive?: boolean; // 新增：按激活状态筛选
+  tags?: string[]; // New: Filter by tags
+  isActive?: boolean; // New: Filter by active status
 }
 
-// 新增：分类操作相关接口
+// New: Category operation related interfaces
 export interface CategoryOperationResult {
   success: boolean;
   message: string;
@@ -162,7 +162,7 @@ export interface CategoryValidationRule {
   message: string;
 }
 
-// 新增：分类导入导出接口
+// New: Category import/export interfaces
 export interface CategoryExportData {
   categories: Category[];
   metrics: MetricDefinition[];

@@ -86,7 +86,7 @@ async def find_tables_page_by_name(
 
 
 @router.post('/ingest/table/config', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
-             response_model=CollectorTableConfig)
+             response_model=None)
 async def save_table_config(
 		config: CollectorTableConfig, principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> CollectorTableConfig:
@@ -94,8 +94,11 @@ async def save_table_config(
 	collector_table_config_service = get_collector_table_config_service(ask_meta_storage(),
 	                                                                    ask_snowflake_generator(),
 	                                                                    principal_service)
+	print(config)
 	action = ask_save_table_config_action(collector_table_config_service, principal_service)
-	return action(config)
+	result=  action(config)
+	print(result)
+	return result
 
 
 # noinspection PyUnusedLocal
@@ -161,7 +164,7 @@ def ask_save_model_config_action(
 
 
 @router.post('/ingest/module/config', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
-             response_model=CollectorModuleConfig)
+             response_model=None)
 async def save_module_config(config: CollectorModuleConfig,
                              principal_service: PrincipalService = Depends(
 	                             get_any_admin_principal)) -> CollectorModuleConfig:

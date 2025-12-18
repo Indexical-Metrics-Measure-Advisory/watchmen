@@ -46,6 +46,8 @@ async def get_metric_by_name(
     return trans_readonly(metric_service, action)
 
 
+
+
 @router.post('/metricflow/metric', tags=['ADMIN'], response_model=None)
 async def create_metric(
         metric: MetricWithCategory,
@@ -57,6 +59,8 @@ async def create_metric(
     
     # Set tenant ID from principal
     metric.tenantId = principal_service.tenantId
+
+    # metric = add_input_measure(metric)
 
     
     metric_service = get_metric_service(principal_service)
@@ -91,10 +95,11 @@ async def update_metric(
     
     def action() -> Metric:
         # Check if metric exists
-        existing_metric = metric_service.find_by_name(metric_name, metric.tenantId)
-        if existing_metric is None:
-            raise_404('Metric not found.')
-        metric.id = existing_metric.id
+        # existing_metric = metric_service.find_by_name(metric_name, metric.tenantId)
+        # if existing_metric is None:
+        #     raise_404('Metric not found.')
+        # metric.id = existing_metric.id
+        print(metric)
         metric_result = metric_service.update(metric)
         metric_config_cache.remove(metric.tenantId)
         return metric_result

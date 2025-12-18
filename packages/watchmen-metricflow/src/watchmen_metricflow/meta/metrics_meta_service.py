@@ -151,10 +151,10 @@ class MetricService(UserBasedTupleService):
         return METRIC_ENTITY_SHAPER
 
     def get_storable_id(self, storable: MetricWithCategory) -> str:
-        return storable.name
+        return storable.id
 
     def set_storable_id(self, storable: MetricWithCategory, storable_id: str) -> MetricWithCategory:
-        storable.name = storable_id
+        storable.id = storable_id
         return storable
 
     def get_storable_id_column_name(self) -> str:
