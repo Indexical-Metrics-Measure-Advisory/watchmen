@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
 import {getWebAppEnvironment} from '../../../feature-switch';
 import {Logo} from '../logo';
@@ -54,7 +54,10 @@ const EnvTag = styled.div.attrs({'data-widget': 'side-menu-logo-env'})`
 
 export const SideMenuLogo = (props: { title?: string; }) => {
 	const {title = 'Watchmen'} = props;
-	const env = getWebAppEnvironment();
+	const [env, setEnv] = useState<string>();
+	useEffect(() => {
+		getWebAppEnvironment().then(setEnv);
+	}, []);
 
 	return <SideMenuLogoContainer>
 		<SideMenuLogoImage/>

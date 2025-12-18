@@ -13,8 +13,10 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
 import { Database, Settings, Table, Layers, Home, Activity, Search, Sparkles } from 'lucide-react';
 import { FEATURE_FLAGS } from '@/App';
+import { systemService } from '@/services/systemService';
 
 const menuItems = [
   {
@@ -58,6 +60,15 @@ const menuItems = [
 export function AppSidebar() {
   const location = useLocation();
   const appTitle = import.meta.env.VITE_APP_TITLE ?? 'Watchmen Ingestion';
+  const [envTag, setEnvTag] = React.useState<string>('');
+
+  React.useEffect(() => {
+    systemService.fetchSystemEnv().then((tag) => {
+      if (tag) {
+        setEnvTag(tag);
+      }
+    });
+  }, []);
 
   return (
     <Sidebar>
@@ -69,6 +80,7 @@ export function AppSidebar() {
           <div className="flex flex-col">
             <span className="font-bold text-xl leading-none">{appTitle}</span>
             <span className="text-xs font-medium text-muted-foreground">Ingestion Platform</span>
+            {envTag && <Badge variant="secondary" className="mt-1 w-fit bg-[#5b6b8c] hover:bg-[#4a5a7a] text-white text-[10px] px-1.5 py-0 h-4 rounded-sm uppercase">{envTag}</Badge>}
           </div>
         </div>
       </SidebarHeader>

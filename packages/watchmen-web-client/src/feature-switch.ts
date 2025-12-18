@@ -1,3 +1,5 @@
+import {fetchSystemEnv} from './services/data/account/system';
+
 export const isHideDataSourcePwdEnabled = () => process.env.REACT_APP_HIDE_DATASOURCE_PWD === 'true';
 export const isDataQualityCenterEnabled = () => process.env.REACT_APP_DQC_ENABLED === 'true';
 export const isSynonymDQCEnabled = () => isDataQualityCenterEnabled() && process.env.REACT_APP_SYNONYM_DQC_ENABLED === 'true';
@@ -14,7 +16,7 @@ export const isPluginEnabled = () => process.env.REACT_APP_PLUGIN === 'true';
 export const isPipelineSimulatorEnabled = () => process.env.REACT_APP_PIPELINE_SIMULATOR_ENABLED === 'true';
 export const isAiModelEnabled = () => process.env.REACT_APP_AI_MODEL_ENABLED === 'true';
 export const getAdminMenuTitle = () => process.env.REACT_APP_ADMIN_MENU_TITLE;
-export const getWebAppEnvironment = () => process.env.REACT_APP_WEB_APP_ENV;
+export const getWebAppEnvironment = async () => await fetchSystemEnv();
 
 const isLocalhost = () => {
 	const hostname = window.location.hostname;
