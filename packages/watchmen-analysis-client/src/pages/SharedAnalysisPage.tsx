@@ -149,7 +149,7 @@ const SharedAnalysisPage: React.FC = () => {
         group_by: card.selection.dimensions && card.selection.dimensions.length > 0 ? card.selection.dimensions : undefined,
         start_time: start,
         end_time: end,
-        order: ['asc'],
+        order: [],
         limit: 500
       };
       const resp = await metricsService.getMetricValue(req);

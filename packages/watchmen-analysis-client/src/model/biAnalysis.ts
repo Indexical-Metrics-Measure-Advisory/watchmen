@@ -22,6 +22,7 @@ export interface BIMetric {
 export interface BIDimensionSelection {
   dimensions: string[]; // selected analysis dimensions
   timeRange?: string; // e.g., Past 7 days, Past 30 days
+  timeGranularity?: string;
 }
 
 export interface AlertAction {

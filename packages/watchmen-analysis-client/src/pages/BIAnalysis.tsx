@@ -34,6 +34,8 @@ import {
 } from 'lucide-react';
 import { ChartCard } from '@/components/bi/ChartCard';
 import { AnalysisBoard } from '@/components/bi/AnalysisBoard';
+import { MetricBuilderSheet } from '@/components/bi/MetricBuilderSheet';
+import { inferType, DimUIType } from '@/components/bi/utils';
 import { BIChartCard, BICardSize, BIMetric, BIChartType, GlobalAlertRule } from '@/model/biAnalysis';
 import { saveAnalysis, listAnalyses, getAnalysis, deleteAnalysis, updateAnalysis, updateAnalysisTemplate } from '@/services/biAnalysisService';
 import { metricsService } from '@/services/metricsService';
@@ -47,6 +49,155 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DateRange } from "react-day-picker";
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { addDays, format } from "date-fns";
+
+const GLOBAL_TIME_RANGE_PER_CARD = '__card__';
+
+const toDimKey = (d: MetricDimension) => d.qualified_name || d.name;
+
+const formatDate = (d: Date) => format(d, 'yyyy-MM-dd');
+
+const toCustomRangeString = (range?: DateRange): string | null => {
+  if (range?.from && range?.to) return `Custom:${formatDate(range.from)}:${formatDate(range.to)}`;
+  return null;
+};
+
+const toTimeRangeValue = (range: string, customDateRange?: DateRange): string | null => {
+  if (range !== 'Custom') return range;
+  return toCustomRangeString(customDateRange);
+};
+
+const timeRangeToBounds = (range: string, customDateRange?: DateRange): { start: string; end: string } => {
+  if (range.startsWith('Custom:')) {
+    const parts = range.split(':');
+    if (parts.length === 3) return { start: parts[1], end: parts[2] };
+  }
+
+  if (range === 'Custom') {
+    const custom = toCustomRangeString(customDateRange);
+    if (custom) {
+      const [, start, end] = custom.split(':');
+      return { start, end };
+    }
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 30);
+    return { start: formatDate(start), end: formatDate(end) };
+  }
+
+  const endDate = new Date();
+  const startDate = new Date(endDate);
+  switch (range) {
+    case 'Past 7 days':
+      startDate.setDate(endDate.getDate() - 7);
+      break;
+    case 'Past 30 days':
+      startDate.setDate(endDate.getDate() - 30);
+      break;
+    case 'Past 90 days':
+      startDate.setDate(endDate.getDate() - 90);
+      break;
+    case 'Past year':
+      startDate.setFullYear(endDate.getFullYear() - 1);
+      break;
+    default:
+      startDate.setDate(endDate.getDate() - 30);
+  }
+
+  const toDateStr = (d: Date) => d.toISOString().slice(0, 10);
+  return { start: toDateStr(startDate), end: toDateStr(endDate) };
+};
+
+const resolveTimeRange = (
+  card: BIChartCard,
+  globalTimeRange: string,
+  globalCustomDateRange: DateRange | undefined,
+  timeRangeOverride?: string
+) => {
+  const range = timeRangeOverride ?? globalTimeRange;
+  if (range === GLOBAL_TIME_RANGE_PER_CARD) return card.selection.timeRange;
+  if (range === 'Custom') return toCustomRangeString(globalCustomDateRange) ?? 'Past 30 days';
+  return range;
+};
+
+const buildGlobalWhere = (filters: Record<string, string>): string | undefined => {
+  const parts = Object.entries(filters)
+    .map(([k, v]) => [k.trim(), v.trim()] as const)
+    .filter(([k, v]) => k.length > 0 && v.length > 0)
+    .map(([k, v]) => `${k} = '${v.replace(/'/g, "''")}'`);
+  return parts.length > 0 ? parts.join(' AND ') : undefined;
+};
+
+const transformMetricFlowToChartData = (resp: MetricFlowResponse): unknown[] => {
+  if (!resp || !Array.isArray(resp.column_names) || !Array.isArray(resp.data)) return [];
+  const cols = resp.column_names;
+  const valueIdx = Math.max(cols.lastIndexOf('value'), cols.length - 1);
+  const dimIdxs = cols.map((_, i) => i).filter(i => i !== valueIdx);
+  const timeKeywords = ['date', 'day', 'month', 'week', 'hour', 'time', 'timestamp', 'datetime', 'created_at', 'updated_at'];
+  const timeIdx = dimIdxs.find(i => timeKeywords.some(k => String(cols[i] ?? '').toLowerCase().includes(k)));
+
+  const fmt = (v: unknown) => (v === null || v === undefined) ? 'Null' : String(v);
+
+  if (typeof timeIdx === 'number') {
+    const acc = new Map<string, number>();
+    for (const row of resp.data) {
+      const t = fmt(row[timeIdx]);
+      const v = Number(row[valueIdx] ?? 0);
+      acc.set(t, (acc.get(t) ?? 0) + v);
+    }
+    const entries = Array.from(acc.entries());
+    const parsed = entries.map(([t, v]) => ({ t, v, d: Date.parse(t) }));
+    parsed.sort((a, b) => (Number.isFinite(a.d) && Number.isFinite(b.d)) ? a.d - b.d : a.t.localeCompare(b.t));
+    return parsed.map(p => ({ date: p.t, value: p.v }));
+  }
+
+  if (dimIdxs.length >= 2) {
+    const pivotMap = new Map<string, Record<string, unknown>>();
+    for (const row of resp.data) {
+      const name = fmt(row[dimIdxs[0]]);
+      const group = fmt(row[dimIdxs[1]]);
+      const val = Number(row[valueIdx] ?? 0);
+
+      if (!pivotMap.has(name)) pivotMap.set(name, { name });
+      const record = pivotMap.get(name)!;
+      const cur = record[group];
+      record[group] = (typeof cur === 'number' ? cur : 0) + val;
+    }
+    return Array.from(pivotMap.values());
+  }
+
+  return resp.data.map(row => {
+    const nameParts = dimIdxs.map(i => fmt(row[i])).filter(s => s.length > 0);
+    const name = nameParts.length > 0 ? nameParts.join(' · ') : 'Total';
+    const value = Number(row[valueIdx] ?? 0);
+    return { name, value };
+  });
+};
+
+const isTimeData = (data: unknown[]) => {
+  if (data.length === 0) return false;
+  const first = data[0];
+  if (!first || typeof first !== 'object') return false;
+  return typeof (first as Record<string, unknown>).date === 'string';
+};
+
+const isGroupedData = (data: unknown[]) => {
+  if (data.length === 0) return false;
+  const first = data[0];
+  if (!first || typeof first !== 'object') return false;
+  const r = first as Record<string, unknown>;
+  return !('value' in r) && !('date' in r);
+};
+
+const chartTypeFromDims = (dims: string[], detailed: MetricDimension[]): BIChartType => {
+  if (!Array.isArray(dims) || dims.length === 0) return 'kpi';
+  const hasTimeDim = dims.some(val => {
+    const found = detailed.find(d => (d.qualified_name || d.name) === val);
+    return found ? inferType(found) === 'TIME' : false;
+  });
+  if (hasTimeDim) return 'line';
+  if (dims.length >= 2) return 'groupedBar';
+  return 'bar';
+};
 
 const BIAnalysisPage: React.FC = () => {
   const { toast } = useToast();
@@ -70,8 +221,9 @@ const BIAnalysisPage: React.FC = () => {
   const [selectedDimType, setSelectedDimType] = useState<string>('');
   const [selectedDims, setSelectedDims] = useState<string[]>([]);
   const [dimSearch, setDimSearch] = useState<string>('');
-  const [showTopOnly] = useState<boolean>(true);
+  const showTopOnly = true;
   const [timeRange, setTimeRange] = useState<string>('Past 30 days');
+  const [timeGranularity, setTimeGranularity] = useState<string>('day');
   const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>({
     from: addDays(new Date(), -30),
     to: new Date(),
@@ -112,9 +264,10 @@ const BIAnalysisPage: React.FC = () => {
      const metricId = rule.conditions?.[0]?.metricId || '';
      const metricName = rule.conditions?.[0]?.metricName || metricId;
 
-     let rangeStr = alertTimeRange;
-     if (alertTimeRange === 'Custom' && alertCustomDateRange?.from && alertCustomDateRange?.to) {
-         rangeStr = `Custom:${format(alertCustomDateRange.from, 'yyyy-MM-dd')}:${format(alertCustomDateRange.to, 'yyyy-MM-dd')}`;
+     const rangeStr = toTimeRangeValue(alertTimeRange, alertCustomDateRange);
+     if (rangeStr === null) {
+       toast({ title: 'Invalid Date Range', description: 'Please select start and end dates' });
+       return;
      }
 
      const newCard: BIChartCard = {
@@ -127,7 +280,6 @@ const BIAnalysisPage: React.FC = () => {
         alert: rule
      };
 
-     console.log('newCard:', newCard);
      setCards(prev => [...prev, newCard]);
      toast({ title: 'Added', description: 'Alert card added to dashboard' });
      void loadCardDataFor(newCard);
@@ -162,7 +314,6 @@ const BIAnalysisPage: React.FC = () => {
   const [alertStatusMap, setAlertStatusMap] = useState<Record<string, AlertStatus>>({});
   const [commonFilterDimensions, setCommonFilterDimensions] = useState<MetricDimension[]>([]);
   const [globalFilterValues, setGlobalFilterValues] = useState<Record<string, string>>({});
-  const GLOBAL_TIME_RANGE_PER_CARD = '__card__';
   const [globalTimeRange, setGlobalTimeRange] = useState<string>(GLOBAL_TIME_RANGE_PER_CARD);
   const [globalCustomDateRange, setGlobalCustomDateRange] = useState<DateRange | undefined>(undefined);
 
@@ -184,20 +335,8 @@ const BIAnalysisPage: React.FC = () => {
     setPendingScrollToDashboard(false);
   }, [activeSection, pendingScrollToDashboard]);
 
-  // Only two user-facing types: CATEGORICAL and TIME
-  const inferType = (d: MetricDimension): 'CATEGORICAL' | 'TIME' => {
-    const raw = (d.dimensionType ?? '').toString().toUpperCase();
-    if (raw === 'TIME') return 'TIME';
-    // Prefer explicit backend type, but allow overriding via common time keywords
-    const s = `${d.description ?? ''} ${d.qualified_name ?? ''} ${d.name ?? ''}`.toLowerCase();
-    const timeHints = ['date', 'time', 'month', 'year', 'quarter', 'week', 'day', 'hour', 'period', 'window', 'timestamp', 'datetime', 'created_at', 'updated_at'];
-    if (timeHints.some(h => s.includes(h))) return 'TIME';
-    return 'CATEGORICAL';
-  };
-
   useEffect(() => {
     let alive = true;
-    const toDimKey = (d: MetricDimension) => d.qualified_name || d.name;
     const loadCommon = async () => {
       const selectedDimSets = cards
         .map(c => (Array.isArray(c.selection?.dimensions) ? c.selection.dimensions : []))
@@ -296,155 +435,6 @@ const BIAnalysisPage: React.FC = () => {
     };
   }, [cards]);
 
-  // Map UI time range to ISO date bounds (YYYY-MM-DD)
-  const timeRangeToBounds = (range: string): { start: string; end: string } => {
-    // Handle Custom range string format "Custom:YYYY-MM-DD:YYYY-MM-DD"
-    if (range.startsWith('Custom:')) {
-      const parts = range.split(':');
-      if (parts.length === 3) {
-         return { start: parts[1], end: parts[2] };
-      }
-    }
-    
-    // Handle "Custom" literal (from UI state)
-    if (range === 'Custom') {
-        if (customDateRange?.from && customDateRange?.to) {
-            return { 
-                start: format(customDateRange.from, 'yyyy-MM-dd'), 
-                end: format(customDateRange.to, 'yyyy-MM-dd') 
-            };
-        }
-        // Fallback if custom range is invalid
-        const end = new Date();
-        const start = new Date();
-        start.setDate(end.getDate() - 30);
-        return { start: format(start, 'yyyy-MM-dd'), end: format(end, 'yyyy-MM-dd') };
-    }
-
-    const endDate = new Date();
-    const startDate = new Date(endDate);
-    switch (range) {
-      case 'Past 7 days':
-        startDate.setDate(endDate.getDate() - 7);
-        break;
-      case 'Past 30 days':
-        startDate.setDate(endDate.getDate() - 30);
-        break;
-      case 'Past 90 days':
-        startDate.setDate(endDate.getDate() - 90);
-        break;
-      case 'Past year':
-        startDate.setFullYear(endDate.getFullYear() - 1);
-        break;
-      default:
-        startDate.setDate(endDate.getDate() - 30);
-    }
-    const toDateStr = (d: Date) => d.toISOString().slice(0, 10);
-    return { start: toDateStr(startDate), end: toDateStr(endDate) };
-  };
-
-  const resolveTimeRange = (card: BIChartCard, rangeOverride?: string) => {
-    const range = rangeOverride ?? globalTimeRange;
-    if (range === GLOBAL_TIME_RANGE_PER_CARD) return card.selection.timeRange;
-    if (range === 'Custom') {
-      if (globalCustomDateRange?.from && globalCustomDateRange?.to) {
-        return `Custom:${format(globalCustomDateRange.from, 'yyyy-MM-dd')}:${format(globalCustomDateRange.to, 'yyyy-MM-dd')}`;
-      }
-      return 'Past 30 days';
-    }
-    return range;
-  };
-
-  const buildGlobalWhere = (filters: Record<string, string>): string | undefined => {
-    const parts = Object.entries(filters)
-      .map(([k, v]) => [k.trim(), v.trim()] as const)
-      .filter(([k, v]) => k.length > 0 && v.length > 0)
-      .map(([k, v]) => {
-        const escaped = v.replace(/'/g, "''");
-        return `${k} = '${escaped}'`;
-      });
-    return parts.length > 0 ? parts.join(' AND ') : undefined;
-  };
-
-  // Convert MetricFlowResponse to chart-friendly data
-  const transformMetricFlowToChartData = (resp: MetricFlowResponse): unknown[] => {
-    if (!resp || !Array.isArray(resp.column_names) || !Array.isArray(resp.data)) return [];
-    const cols = resp.column_names;
-    const valueIdx = Math.max(cols.lastIndexOf('value'), cols.length - 1);
-    const dimIdxs = cols.map((_, i) => i).filter(i => i !== valueIdx);
-    const timeKeywords = ['date', 'day', 'month', 'week', 'hour', 'time', 'timestamp', 'datetime', 'created_at', 'updated_at'];
-    const timeIdx = dimIdxs.find(i => timeKeywords.some(k => String(cols[i] ?? '').toLowerCase().includes(k)));
-
-    const fmt = (v: unknown) => (v === null || v === undefined) ? 'Null' : String(v);
-
-    // Time series: aggregate by time only (sum values across other dims)
-    if (typeof timeIdx === 'number') {
-      const acc = new Map<string, number>();
-      for (const row of resp.data) {
-        const t = fmt(row[timeIdx]);
-        const v = Number(row[valueIdx] ?? 0);
-        acc.set(t, (acc.get(t) ?? 0) + v);
-      }
-      // Sort by time ascending when parsable, otherwise keep insertion order
-      const entries = Array.from(acc.entries());
-      const parsed = entries.map(([t, v]) => ({ t, v, d: Date.parse(t) }));
-      parsed.sort((a, b) => (Number.isFinite(a.d) && Number.isFinite(b.d)) ? a.d - b.d : a.t.localeCompare(b.t));
-      return parsed.map(p => ({ date: p.t, value: p.v }));
-    }
-
-    // New logic: If 2+ dims (and no time), pivot for grouped bar
-    if (dimIdxs.length >= 2) {
-      const pivotMap = new Map<string, Record<string, unknown>>();
-      for (const row of resp.data) {
-        const name = fmt(row[dimIdxs[0]]);
-        const group = fmt(row[dimIdxs[1]]);
-        const val = Number(row[valueIdx] ?? 0);
-        
-        if (!pivotMap.has(name)) {
-          pivotMap.set(name, { name });
-        }
-        const record = pivotMap.get(name)!;
-        const cur = record[group];
-        record[group] = (typeof cur === 'number' ? cur : 0) + val;
-      }
-      return Array.from(pivotMap.values());
-    }
-
-    // Categorical: combine dims into one name label
-    return resp.data.map(row => {
-      const nameParts = dimIdxs.map(i => fmt(row[i])).filter(s => s.length > 0);
-      const name = nameParts.length > 0 ? nameParts.join(' · ') : 'Total';
-      const value = Number(row[valueIdx] ?? 0);
-      return { name, value };
-    });
-  };
-
-  // Decide chart type based on data or selected dimensions
-  const isTimeData = (data: unknown[]) => {
-    if (data.length === 0) return false;
-    const first = data[0];
-    if (!first || typeof first !== 'object') return false;
-    return typeof (first as Record<string, unknown>).date === 'string';
-  };
-  const isGroupedData = (data: unknown[]) => {
-    if (data.length === 0) return false;
-    const first = data[0];
-    if (!first || typeof first !== 'object') return false;
-    const r = first as Record<string, unknown>;
-    return !('value' in r) && !('date' in r);
-  };
-  
-  const chartTypeFromDims = (dims: string[], detailed: MetricDimension[]): BIChartType => {
-    if (!Array.isArray(dims) || dims.length === 0) return 'kpi';
-    const hasTimeDim = dims.some(val => {
-      const found = detailed.find(d => (d.qualified_name || d.name) === val);
-      return found ? inferType(found) === 'TIME' : false;
-    });
-    if (hasTimeDim) return 'line';
-    if (dims.length >= 2) return 'groupedBar';
-    return 'bar';
-  };
-
   // Fetch and cache card data
   const loadCardDataFor = async (card: BIChartCard, filtersOverride?: Record<string, string>, timeRangeOverride?: string) => {
     try {
@@ -493,16 +483,30 @@ const BIAnalysisPage: React.FC = () => {
       }
       return;
     }
-      const { start, end } = timeRangeToBounds(resolveTimeRange(card, timeRangeOverride));
-      const groupBy = card.selection.dimensions && card.selection.dimensions.length > 0 ? card.selection.dimensions : undefined;
+      const resolvedRange = resolveTimeRange(card, globalTimeRange, globalCustomDateRange, timeRangeOverride);
+      const { start, end } = timeRangeToBounds(resolvedRange);
+      let groupBy = card.selection.dimensions && card.selection.dimensions.length > 0 ? [...card.selection.dimensions] : undefined;
+      
+      // If time granularity is selected, append it to time dimensions in group_by
+      if (card.selection.timeGranularity && groupBy) {
+        groupBy = groupBy.map(dim => {
+          // heuristic check if dimension is time-based since we don't have full object here
+          if (inferType({ name: dim } as MetricDimension) === 'TIME') {
+            return `${dim}__${card.selection.timeGranularity}`;
+          }
+          return dim;
+        });
+      }
+
       const where = groupBy ? buildGlobalWhere(filtersOverride ?? globalFilterValues) : undefined;
+      
       const req: MetricQueryRequest = {
         metric: card.metricId,
         group_by: groupBy,
         where,
         start_time: start,
         end_time: end,
-        order: ['asc'],
+        order: [],
         limit: 500
       };
       const resp = await metricsService.getMetricValue(req);
@@ -562,13 +566,19 @@ const BIAnalysisPage: React.FC = () => {
       }
 
       try {
-        const { start, end } = timeRangeToBounds(timeRange);
+        const { start, end } = timeRangeToBounds(timeRange, customDateRange);
+        
+        let groupBy = selectedDims.length > 0 ? [...selectedDims] : undefined;
+        if (selectedDimType === 'TIME' && timeGranularity && groupBy) {
+          groupBy = groupBy.map(dim => `${dim}__${timeGranularity}`);
+        }
+
         const req: MetricQueryRequest = {
           metric: selectedMetric.name,
-          group_by: selectedDims.length > 0 ? selectedDims : undefined,
+          group_by: groupBy,
           start_time: start,
           end_time: end,
-          order: ['asc'],
+          order: [],
           limit: 500
         };
         const resp = await metricsService.getMetricValue(req);
@@ -598,7 +608,7 @@ const BIAnalysisPage: React.FC = () => {
     };
     loadPreview();
     return () => { alive = false; };
-  }, [selectedMetric, selectedDims, timeRange, selectedMetricDef, customDateRange]);
+  }, [selectedMetric, selectedDims, timeRange, customDateRange, availableDimsDetailed, selectedDimType, timeGranularity]);
 
   // templates list
   useEffect(() => {
@@ -658,14 +668,10 @@ const BIAnalysisPage: React.FC = () => {
       return;
     }
 
-    let finalTimeRange = timeRange;
-    if (timeRange === 'Custom') {
-       if (customDateRange?.from && customDateRange?.to) {
-          finalTimeRange = `Custom:${format(customDateRange.from, 'yyyy-MM-dd')}:${format(customDateRange.to, 'yyyy-MM-dd')}`;
-       } else {
-          toast({ title: "Invalid Date Range", description: "Please select start and end dates" });
-          return;
-       }
+    const finalTimeRange = toTimeRangeValue(timeRange, customDateRange);
+    if (finalTimeRange === null) {
+      toast({ title: 'Invalid Date Range', description: 'Please select start and end dates' });
+      return;
     }
 
     // Prefer data-driven type; if no preview data yet, infer from selected dimensions
@@ -688,7 +694,11 @@ const BIAnalysisPage: React.FC = () => {
       metricId: selectedMetric.name,
       chartType: chartTypeForBoard,
       size: 'md',
-      selection: { dimensions: selectedDims, timeRange: finalTimeRange }
+      selection: { 
+        dimensions: selectedDims, 
+        timeRange: finalTimeRange,
+        timeGranularity: selectedDimType === 'TIME' ? timeGranularity : undefined 
+      }
     };
 
     setCards(prev => [...prev, newCard]);
@@ -806,7 +816,7 @@ const BIAnalysisPage: React.FC = () => {
     }
 
     if (currentAnalysisId) {
-      await updateAnalysis({ id: currentAnalysisId,userId:user.userId, name: saveName.trim(), description: saveDesc.trim(), cards });
+      await updateAnalysis({ id: currentAnalysisId, userId: user.userId, name: saveName.trim(), description: saveDesc.trim(), cards });
       toast({ title: 'Updated', description: 'Analysis board has been updated' });
     } else {
       const record = await saveAnalysis({ id: "", name: saveName.trim(), description: saveDesc.trim(), cards, userId: user.userId });
@@ -828,7 +838,7 @@ const BIAnalysisPage: React.FC = () => {
       toast({ title: 'Enter analysis name', description: 'Name cannot be empty' });
       return;
     }
-    const record = await saveAnalysis({ id: "", name: saveName.trim(), description: saveDesc.trim(), cards ,userId:""});
+    const record = await saveAnalysis({ id: "", name: saveName.trim(), description: saveDesc.trim(), cards, userId: user.userId });
     setCurrentAnalysisId(record.id);
     setSaveOpen(false);
     listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, isTemplate: i.isTemplate }))));
@@ -1035,372 +1045,258 @@ const BIAnalysisPage: React.FC = () => {
             </TabsContent>
           </Tabs>
 
-          <Sheet open={metricBuilderOpen} onOpenChange={setMetricBuilderOpen}>
-            <SheetContent side="right" className="w-[95vw] sm:max-w-[1100px] p-0">
-              <div className="flex h-full flex-col">
-                <SheetHeader className="px-6 pt-6 pb-4 border-b">
-                  <SheetTitle className="flex items-center gap-2">
-                    <Filter className="h-5 w-5 text-muted-foreground" />
-                    Build a Chart
-                  </SheetTitle>
-                  <SheetDescription>
-                    Choose a metric, dimensions, and time range, then add it to the dashboard.
-                  </SheetDescription>
-                </SheetHeader>
+          <MetricBuilderSheet
+            open={metricBuilderOpen}
+            onOpenChange={setMetricBuilderOpen}
+            search={search}
+            onSearchChange={setSearch}
+            categoryId={categoryId}
+            onCategoryIdChange={setCategoryId}
+            categories={categories}
+            metricsLoading={metricsLoading}
+            metricsList={metricsList}
+            selectedMetricId={selectedMetricId}
+            onSelectMetric={(id, def) => {
+              setSelectedMetricId(id);
+              setSelectedMetricDef(def);
+            }}
+            selectedMetric={selectedMetric}
+            availableDimsDetailed={availableDimsDetailed}
+            selectedDimType={selectedDimType}
+            onSelectedDimTypeChange={setSelectedDimType}
+            dimSearch={dimSearch}
+            onDimSearchChange={setDimSearch}
+            filteredDims={filteredDims}
+            selectedDims={selectedDims}
+            onToggleDim={toggleDim}
+            timeRange={timeRange}
+            onTimeRangeChange={setTimeRange}
+            timeGranularity={timeGranularity}
+            onTimeGranularityChange={setTimeGranularity}
+            customDateRange={customDateRange}
+            onCustomDateRangeChange={setCustomDateRange}
+            previewType={previewType}
+            previewData={previewData}
+            previewRawData={previewRawData}
+            onAddToDashboard={addCardToBoard}
+          />
 
-                <div className="flex-1 overflow-y-auto p-6">
-                  <div className="grid grid-cols-12 gap-6">
-                    <Card className="col-span-12 lg:col-span-4 h-fit border-l-4 border-l-primary/20">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          Metric Configuration
-                        </CardTitle>
-                        <CardDescription>Select metrics and dimensions to analyze</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label className="text-xs font-semibold text-muted-foreground uppercase">Metric Filter</Label>
-                            <div className="flex gap-2">
-                              <div className="relative flex-1">
-                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  placeholder="Search metrics..."
-                                  value={search}
-                                  onChange={(e) => setSearch(e.target.value)}
-                                  className="pl-8"
-                                />
-                              </div>
-                              <Select value={categoryId === '' ? 'all' : categoryId} onValueChange={(v) => setCategoryId(v === 'all' ? '' : v)}>
-                                <SelectTrigger className="w-[140px]"><SelectValue placeholder="Category" /></SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="all">All Categories</SelectItem>
-                                  {categories.map(c => (
-                                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
+          <AddAlertCardDialog
+            open={addAlertOpen}
+            onOpenChange={setAddAlertOpen}
+            alertRuleId={alertRuleId}
+            onAlertRuleIdChange={setAlertRuleId}
+            dialogRules={dialogRules}
+            alertTimeRange={alertTimeRange}
+            onAlertTimeRangeChange={setAlertTimeRange}
+            alertCustomDateRange={alertCustomDateRange}
+            onAlertCustomDateRangeChange={setAlertCustomDateRange}
+            onConfirm={confirmAddAlert}
+          />
 
-                          <div className="space-y-2">
-                            <Label className="text-xs font-semibold text-muted-foreground uppercase">Available Metrics</Label>
-                            <ScrollArea className="h-[200px] rounded-md border p-2">
-                              {metricsLoading ? (
-                                <div className="flex items-center justify-center h-full text-muted-foreground">
-                                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                                  Loading...
-                                </div>
-                              ) : metricsList.length === 0 ? (
-                                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-                                  No metrics found
-                                </div>
-                              ) : (
-                                <div className="space-y-1">
-                                  {metricsList.map(m => {
-                                    const id = m.id ?? m.name;
-                                    const isSelected = selectedMetricId === id;
-                                    return (
-                                      <button
-                                        key={id}
-                                        onClick={() => { setSelectedMetricId(id); setSelectedMetricDef(m); }}
-                                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between group ${
-                                          isSelected
-                                            ? 'bg-primary text-primary-foreground shadow-sm'
-                                            : 'hover:bg-accent hover:text-accent-foreground'
-                                        }`}
-                                      >
-                                        <div className="flex-1 min-w-0">
-                                          <div className="font-medium truncate">{m.label || m.name}</div>
-                                          {m.description && (
-                                            <div className={`text-xs truncate ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
-                                              {m.description}
-                                            </div>
-                                          )}
-                                        </div>
-                                        {isSelected && <ArrowRight className="h-4 w-4 ml-2 flex-shrink-0" />}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </ScrollArea>
-                          </div>
-                        </div>
+          <SaveAnalysisDialog
+            open={saveOpen}
+            onOpenChange={setSaveOpen}
+            currentAnalysisId={currentAnalysisId}
+            saveName={saveName}
+            onSaveNameChange={setSaveName}
+            saveDesc={saveDesc}
+            onSaveDescChange={setSaveDesc}
+            onSave={handleSave}
+            onSaveAsNew={handleSaveAsNew}
+          />
 
-                        <Separator />
-
-                        {selectedMetric ? (
-                          <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
-                            <div className="flex items-center justify-between">
-                              <Label className="text-xs font-semibold text-muted-foreground uppercase">Dimensions</Label>
-                              {selectedDims.length > 0 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {selectedDims.length} selected
-                                </Badge>
-                              )}
-                            </div>
-
-                            <Tabs value={selectedDimType || 'CATEGORICAL'} onValueChange={setSelectedDimType} className="w-full">
-                              <TabsList className="w-full grid grid-cols-2 mb-2">
-                                {Array.from(new Set(availableDimsDetailed.map(inferType))).sort().map(t => (
-                                  <TabsTrigger key={t} value={t} className="text-xs">
-                                    {t === 'TIME' ? 'Time' : 'Categorical'}
-                                  </TabsTrigger>
-                                ))}
-                              </TabsList>
-
-                              <div className="relative mb-2">
-                                <Search className="absolute left-2 top-2.5 h-3 w-3 text-muted-foreground" />
-                                <Input
-                                  value={dimSearch}
-                                  onChange={(e) => setDimSearch(e.target.value)}
-                                  placeholder="Filter dimensions..."
-                                  className="h-8 pl-7 text-xs"
-                                />
-                              </div>
-
-                              <ScrollArea className="h-[180px] rounded-md border p-2">
-                                <div className="grid grid-cols-1 gap-1">
-                                  {filteredDims.map((d) => {
-                                    const val = d.qualified_name || d.name;
-                                    const label = d.description || d.qualified_name || d.name;
-                                    const isChecked = selectedDims.includes(val);
-                                    return (
-                                      <label
-                                        key={val}
-                                        className={`flex items-center gap-2 px-2 py-1.5 rounded-sm cursor-pointer text-sm transition-colors ${
-                                          isChecked ? 'bg-accent/50' : 'hover:bg-accent/20'
-                                        }`}
-                                      >
-                                        <Checkbox
-                                          checked={isChecked}
-                                          onCheckedChange={() => toggleDim(val)}
-                                          className="h-4 w-4"
-                                        />
-                                        <span className="truncate flex-1" title={label}>{label}</span>
-                                      </label>
-                                    );
-                                  })}
-                                </div>
-                              </ScrollArea>
-                            </Tabs>
-
-                            <div className="space-y-2">
-                              <Label className="text-xs font-semibold text-muted-foreground uppercase">Time Range</Label>
-                              <Select value={timeRange} onValueChange={setTimeRange}>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="Past 7 days">Past 7 days</SelectItem>
-                                  <SelectItem value="Past 30 days">Past 30 days</SelectItem>
-                                  <SelectItem value="Past 90 days">Past 90 days</SelectItem>
-                                  <SelectItem value="Past year">Past year</SelectItem>
-                                  <SelectItem value="Custom">Custom Range</SelectItem>
-                                </SelectContent>
-                              </Select>
-
-                              {timeRange === 'Custom' && (
-                                <div className="pt-1 animate-in fade-in slide-in-from-top-1">
-                                  <DatePickerWithRange
-                                    date={customDateRange}
-                                    onSelect={setCustomDateRange}
-                                    className="w-full"
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-center py-8 text-muted-foreground bg-muted/30 rounded-lg border border-dashed">
-                            <p className="text-sm">Select a metric above to configure dimensions</p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-
-                    <Card className="col-span-12 lg:col-span-8 h-full flex flex-col border-l-4 border-l-blue-500/20">
-                      <CardHeader className="pb-2 border-b">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-1">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              {previewType === 'line' ? <LineChart className="h-5 w-5 text-blue-500" /> :
-                                previewType === 'pie' ? <PieChart className="h-5 w-5 text-purple-500" /> :
-                                  <BarChart3 className="h-5 w-5 text-green-500" />}
-                              Preview
-                            </CardTitle>
-                            <CardDescription>
-                              Real-time preview based on selected metrics and dimensions
-                            </CardDescription>
-                          </div>
-                          {selectedMetric && (
-                            <Badge variant="outline" className="text-xs font-mono">
-                              Type: {previewType}
-                            </Badge>
-                          )}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="flex-1 p-6 min-h-[400px] flex flex-col">
-                        {selectedMetric ? (
-                          <div className="flex-1 w-full h-full min-h-[350px]">
-                            <ChartCard
-                              card={{
-                                id: 'preview',
-                                title: `${selectedMetric.name} · ${timeRange}`,
-                                metricId: selectedMetric.name,
-                                chartType: previewType,
-                                size: 'lg',
-                                selection: { dimensions: selectedDims, timeRange }
-                              }}
-                              data={previewData}
-                              sourceData={previewRawData ?? undefined}
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground space-y-4">
-                            <div className="p-4 bg-muted rounded-full">
-                              <BarChart3 className="h-8 w-8 opacity-50" />
-                            </div>
-                            <p>Start by selecting a metric from the configuration panel</p>
-                          </div>
-                        )}
-                      </CardContent>
-                      <CardFooter className="border-t bg-muted/10 py-4 flex justify-between items-center">
-                        <div className="text-sm text-muted-foreground">
-                          {previewData.length > 0 ? `${previewData.length} data points loaded` : 'No data loaded'}
-                        </div>
-                        <Button
-                          onClick={addCardToBoard}
-                          disabled={!selectedMetric}
-                          className="gap-2"
-                          size="lg"
-                        >
-                          <Plus className="h-4 w-4" />
-                          Add to Dashboard
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </div>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-
-          <Dialog open={addAlertOpen} onOpenChange={setAddAlertOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Alert Card</DialogTitle>
-            <DialogDescription>
-              Select an alert rule to add to the dashboard.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-             <div className="space-y-2">
-               <Label>Alert Rule</Label>
-               <Select value={alertRuleId} onValueChange={setAlertRuleId}>
-                 <SelectTrigger>
-                   <SelectValue placeholder="Select rule..." />
-                 </SelectTrigger>
-                 <SelectContent>
-                   {dialogRules.map(r => (
-                     <SelectItem key={r.id} value={r.id}>
-                       {r.name} ({r.priority})
-                     </SelectItem>
-                   ))}
-                 </SelectContent>
-               </Select>
-             </div>
-
-             <div className="space-y-2">
-                <Label>Time Range</Label>
-                <Select value={alertTimeRange} onValueChange={setAlertTimeRange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select time range" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Past 7 days">Past 7 days</SelectItem>
-                    <SelectItem value="Past 30 days">Past 30 days</SelectItem>
-                    <SelectItem value="Past 90 days">Past 90 days</SelectItem>
-                    <SelectItem value="Past year">Past year</SelectItem>
-                    <SelectItem value="Custom">Custom Range</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {alertTimeRange === 'Custom' && (
-                   <div className="pt-1 animate-in fade-in slide-in-from-top-1">
-                     <DatePickerWithRange 
-                       date={alertCustomDateRange} 
-                       onSelect={setAlertCustomDateRange} 
-                       className="w-full"
-                     />
-                   </div>
-                )}
-             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddAlertOpen(false)}>Cancel</Button>
-            <Button onClick={confirmAddAlert} disabled={!alertRuleId}>Add Alert</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-          {/* Save dialog */}
-        <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{currentAnalysisId ? 'Update Analysis' : 'Save New Analysis'}</DialogTitle>
-            <DialogDescription>
-              {currentAnalysisId ? 'Update the existing analysis or save as a new copy' : 'Save the current board as a reusable template'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm">Name</label>
-              <Input value={saveName} onChange={(e) => setSaveName(e.target.value)} placeholder="Enter analysis name" />
-            </div>
-            <div>
-              <label className="text-sm">Description</label>
-              <Input value={saveDesc} onChange={(e) => setSaveDesc(e.target.value)} placeholder="Optional: brief description of purpose" />
-            </div>
-          </div>
-          <DialogFooter>
-            {currentAnalysisId && (
-              <Button variant="outline" onClick={handleSaveAsNew}>
-                Save as New
-              </Button>
-            )}
-            <Button onClick={handleSave}>{currentAnalysisId ? 'Update' : 'Save'}</Button>
-          </DialogFooter>
-        </DialogContent>
-          </Dialog>
-
-      {/* Share Dialog */}
-      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Share Analysis</DialogTitle>
-            <DialogDescription>
-              Share this analysis with external users. Anyone with the link can view it.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-             <div className="flex items-center space-x-2">
-                <Input value={`${window.location.origin}/share/analysis/${currentAnalysisId}`} readOnly />
-                <Button size="icon" onClick={copyShareLink}>
-                   <Copy className="h-4 w-4" />
-                </Button>
-             </div>
-          </div>
-          <DialogFooter>
-             <Button onClick={() => window.open(`/share/analysis/${currentAnalysisId}`, '_blank')}>Open Link</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <ShareAnalysisDialog
+            open={shareOpen}
+            onOpenChange={setShareOpen}
+            currentAnalysisId={currentAnalysisId}
+            onCopyLink={copyShareLink}
+          />
         </main>
       </div>
     </div>
   );
 };
+
+
+
+type AddAlertCardDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  alertRuleId: string;
+  onAlertRuleIdChange: (id: string) => void;
+  dialogRules: GlobalAlertRule[];
+  alertTimeRange: string;
+  onAlertTimeRangeChange: (value: string) => void;
+  alertCustomDateRange: DateRange | undefined;
+  onAlertCustomDateRangeChange: (range: DateRange | undefined) => void;
+  onConfirm: () => void;
+};
+
+function AddAlertCardDialog({
+  open,
+  onOpenChange,
+  alertRuleId,
+  onAlertRuleIdChange,
+  dialogRules,
+  alertTimeRange,
+  onAlertTimeRangeChange,
+  alertCustomDateRange,
+  onAlertCustomDateRangeChange,
+  onConfirm
+}: AddAlertCardDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Alert Card</DialogTitle>
+          <DialogDescription>
+            Select an alert rule to add to the dashboard.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>Alert Rule</Label>
+            <Select value={alertRuleId} onValueChange={onAlertRuleIdChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select rule..." />
+              </SelectTrigger>
+              <SelectContent>
+                {dialogRules.map(r => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.name} ({r.priority})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Time Range</Label>
+            <Select value={alertTimeRange} onValueChange={onAlertTimeRangeChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select time range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Past 7 days">Past 7 days</SelectItem>
+                <SelectItem value="Past 30 days">Past 30 days</SelectItem>
+                <SelectItem value="Past 90 days">Past 90 days</SelectItem>
+                <SelectItem value="Past year">Past year</SelectItem>
+                <SelectItem value="Custom">Custom Range</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {alertTimeRange === 'Custom' && (
+              <div className="pt-1 animate-in fade-in slide-in-from-top-1">
+                <DatePickerWithRange
+                  date={alertCustomDateRange}
+                  onSelect={onAlertCustomDateRangeChange}
+                  className="w-full"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button onClick={onConfirm} disabled={!alertRuleId}>Add Alert</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+type SaveAnalysisDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  currentAnalysisId: string | null;
+  saveName: string;
+  onSaveNameChange: (value: string) => void;
+  saveDesc: string;
+  onSaveDescChange: (value: string) => void;
+  onSave: () => void;
+  onSaveAsNew: () => void;
+};
+
+function SaveAnalysisDialog({
+  open,
+  onOpenChange,
+  currentAnalysisId,
+  saveName,
+  onSaveNameChange,
+  saveDesc,
+  onSaveDescChange,
+  onSave,
+  onSaveAsNew
+}: SaveAnalysisDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{currentAnalysisId ? 'Update Analysis' : 'Save New Analysis'}</DialogTitle>
+          <DialogDescription>
+            {currentAnalysisId ? 'Update the existing analysis or save as a new copy' : 'Save the current board as a reusable template'}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm">Name</label>
+            <Input value={saveName} onChange={(e) => onSaveNameChange(e.target.value)} placeholder="Enter analysis name" />
+          </div>
+          <div>
+            <label className="text-sm">Description</label>
+            <Input value={saveDesc} onChange={(e) => onSaveDescChange(e.target.value)} placeholder="Optional: brief description of purpose" />
+          </div>
+        </div>
+        <DialogFooter>
+          {currentAnalysisId && (
+            <Button variant="outline" onClick={onSaveAsNew}>
+              Save as New
+            </Button>
+          )}
+          <Button onClick={onSave}>{currentAnalysisId ? 'Update' : 'Save'}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+type ShareAnalysisDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  currentAnalysisId: string | null;
+  onCopyLink: () => void;
+};
+
+function ShareAnalysisDialog({
+  open,
+  onOpenChange,
+  currentAnalysisId,
+  onCopyLink
+}: ShareAnalysisDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Share Analysis</DialogTitle>
+          <DialogDescription>
+            Share this analysis with external users. Anyone with the link can view it.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="flex items-center space-x-2">
+            <Input value={`${window.location.origin}/share/analysis/${currentAnalysisId}`} readOnly />
+            <Button size="icon" onClick={onCopyLink}>
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={() => window.open(`/share/analysis/${currentAnalysisId}`, '_blank')}>Open Link</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default BIAnalysisPage;
