@@ -151,6 +151,8 @@ export const Apis = {
 	PAT_CREATE: 'pat/create',
 	PAT_DELETE: 'pat/delete?pat_id=:patId',
 
+	SYSTEM_ENV: 'system/env',
+
 	// any
 	DASHBOARD_SHARE_GET: 'dashboard/shared?dashboard_id=:dashboardId&token=:token',
 	DERIVED_OBJECTIVE_SHARE_GET: 'indicator/derived-objective/shared?derived_objective_id=:derivedObjectiveId&token=:token',
