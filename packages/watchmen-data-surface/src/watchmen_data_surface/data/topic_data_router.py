@@ -239,8 +239,7 @@ async def clean_and_import_data(
 
 class FetchUniqueDataRequest(ExtendedBaseModel):
 	topicName: str = None
-	factorName: str = None
-	value: Any = None
+	criteria: Dict[str, Any] = None
 
 
 @router.post('/topic/data/unique', tags=[UserRole.ADMIN], response_model=Optional[Dict[str, Any]])
@@ -250,36 +249,35 @@ async def fetch_unique_data(
 ) -> Optional[Dict[str, Any]]:
 	if is_blank(request.topicName):
 		raise_400('Topic name is required.')
-	if is_blank(request.factorName):
-		raise_400('Factor name is required.')
-	if request.value is None:
-		raise_400('Value is required.')
+	if request.criteria is None or len(request.criteria) == 0:
+		raise_400('Criteria is required.')
 
 	tenant_id = validate_tenant_id(request.tenantId, principal_service)
 
 	schema = get_topic_schema(request.topicName, tenant_id, principal_service)
-	# find factor
-	factor = ArrayHelper(schema.get_topic().factors).find(lambda x: x.name == request.factorName)
-	if factor is None:
-		raise_400(f'Factor[{request.factorName}] not found in topic[{request.topicName}].')
-
 	# build criteria
+	filters = []
+	for key, value in request.criteria.items():
+		factor = ArrayHelper(schema.get_topic().factors).find(lambda x: x.name == key)
+		if factor is None:
+			raise_400(f'Factor[{key}] not found in topic[{request.topicName}].')
+
+		filters.append(ParameterExpression(
+			left=TopicFactorParameter(
+				kind=ParameterKind.TOPIC,
+				topicId=schema.get_topic().topicId,
+				factorId=factor.factorId
+			),
+			operator=ParameterExpressionOperator.EQUALS,
+			right=ConstantParameter(
+				kind=ParameterKind.CONSTANT,
+				value=str(value)
+			)
+		))
+
 	criteria = ParameterJoint(
 		jointType=ParameterJointType.AND,
-		filters=[
-			ParameterExpression(
-				left=TopicFactorParameter(
-					kind=ParameterKind.TOPIC,
-					topicId=schema.get_topic().topicId,
-					factorId=factor.factorId
-				),
-				operator=ParameterExpressionOperator.EQUALS,
-				right=ConstantParameter(
-					kind=ParameterKind.CONSTANT,
-					value=str(request.value)
-				)
-			)
-		]
+		filters=filters
 	)
 
 	storage = ask_topic_storage(schema, principal_service)
