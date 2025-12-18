@@ -1,3 +1,4 @@
+import uuid
 import json
 import traceback
 from abc import abstractmethod
@@ -5,7 +6,7 @@ from logging import getLogger
 from threading import Thread
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import delete, distinct, func, insert, select, Table, text, update
+from sqlalchemy import delete, distinct, func, insert, select, Table, text, update, RowMapping
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.sql.elements import literal_column
 from time import sleep, time
@@ -324,7 +325,7 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
 		statement = self.build_sort_for_statement(statement, finder.sort)
 		results = self.connection.execute(statement).mappings().all()
-		return ArrayHelper(results).map(lambda x: dict(x)).map(finder.shaper.deserialize).to_list()
+		return ArrayHelper(results).map(lambda x: self.row_to_dict(x)).map(finder.shaper.deserialize).to_list()
 
 	def find(self, finder: EntityFinder) -> EntityList:
 		table = self.find_table(finder.name)
@@ -338,7 +339,7 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = self.build_sort_for_statement(statement, finder.sort)
 		statement = self.build_offset_for_statement(statement, finder.limit, 1)
 		results = self.connection.execute(statement).mappings().all()
-		return ArrayHelper(results).map(lambda x: dict(x)).map(finder.shaper.deserialize).to_list()
+		return ArrayHelper(results).map(lambda x: self.row_to_dict(x)).map(finder.shaper.deserialize).to_list()
 	
 	def find_limited_straight_values(self, finder: EntityLimitedStraightValuesFinder) -> EntityList:
 		table = self.find_table(finder.name)
@@ -350,7 +351,7 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = self.build_sort_for_statement(statement, finder.sort)
 		statement = self.build_offset_for_statement(statement, finder.limit, 1)
 		results = self.connection.execute(statement).mappings().all()
-		return ArrayHelper(results).map(lambda x: dict(x)).to_list()
+		return ArrayHelper(results).map(lambda x: self.row_to_dict(x)).to_list()
 
 	def find_for_update_skip_locked(self, finder: EntityLimitedFinder) -> EntityList:
 		table = self.find_table(finder.name)
@@ -359,7 +360,7 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = self.build_sort_for_statement(statement, finder.sort)
 		statement = self.build_offset_for_statement(statement, finder.limit, 1)
 		results = self.connection.execute(statement).mappings().all()
-		return ArrayHelper(results).map(lambda x: dict(x)).map(finder.shaper.deserialize).to_list()
+		return ArrayHelper(results).map(lambda x: self.row_to_dict(x)).map(finder.shaper.deserialize).to_list()
 
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		table = self.find_table(finder.name)
@@ -373,7 +374,7 @@ class StorageRDS(TransactionalStorageSPI):
 		if finder.limit:
 			statement = self.build_offset_for_statement(statement, finder.limit, 1)
 		results = self.connection.execute(statement).mappings().all()
-		return ArrayHelper(results).map(lambda x: dict(x)).map(finder.shaper.deserialize).to_list()
+		return ArrayHelper(results).map(lambda x: self.row_to_dict(x)).map(finder.shaper.deserialize).to_list()
 		
 	# noinspection PyMethodMayBeStatic
 	def get_alias_from_straight_column(self, straight_column: EntityStraightColumn) -> Any:
@@ -429,7 +430,7 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = self.translate_straight_group_bys(statement, finder.straightColumns)
 		statement = self.build_sort_for_statement(statement, finder.sort)
 		results = self.connection.execute(statement).mappings().all()
-		return ArrayHelper(results).map(lambda x: dict(x)).to_list()
+		return ArrayHelper(results).map(lambda x: self.row_to_dict(x)).to_list()
 	
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		return self.find(EntityFinder(name=helper.name, shaper=helper.shaper))
@@ -482,7 +483,7 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = self.build_sort_for_statement(statement, pager.sort)
 		statement = self.build_offset_for_statement(statement, page_size, page_number)
 		results = self.connection.execute(statement).mappings().all()
-		entity_list = ArrayHelper(results).map(lambda x: dict(x)).map(pager.shaper.deserialize).to_list()
+		entity_list = ArrayHelper(results).map(lambda x: self.row_to_dict(x)).map(pager.shaper.deserialize).to_list()
 		return DataPage(
 			data=entity_list,
 			pageNumber=page_number,
@@ -505,3 +506,13 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
 		count, _ = self.execute_page_count(statement, 1)
 		return count
+	
+	def row_to_dict(self, row_mapping: RowMapping) -> Dict:
+		result = {}
+		for key, value in row_mapping.items():
+			if isinstance(value, uuid.UUID):
+				result[key] = str(value)
+			else:
+				result[key] = value
+		return result
+	
