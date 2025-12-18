@@ -160,8 +160,8 @@ const TableSelector: React.FC<TableSelectorProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <p className="text-sm text-gray-600">
           {isSingleSelection 
-            ? "Select a table to include in your data extraction" 
-            : "Select tables to include in your data extraction"}
+            ? "Select the base table for CDC change tracking" 
+            : "Select base tables for CDC change tracking. Multiple selection supported"}
         </p>
         {!isSingleSelection && (
           <div className="flex flex-wrap gap-2">
