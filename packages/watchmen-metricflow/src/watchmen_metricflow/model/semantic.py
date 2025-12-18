@@ -28,7 +28,7 @@ class DimensionType(Enum):
     CATEGORICAL = "categorical"
 
 
-class TimeGranularity(Enum):
+class TimeGranularity(str, Enum):
     """Time granularity enumeration"""
     DAY = "day"
     WEEK = "week"

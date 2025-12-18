@@ -74,7 +74,8 @@ def _build_node_relation_by_topic_id(topic_id: str, principal_service: Principal
         alias=add_topic_prefix(topic.name),
         schema_name=schema_name,
         database=data_source.name,
-        relation_name=add_topic_prefix(topic.name)
+        # relation_name=add_topic_prefix(topic.name)
+        relation_name = f"{data_source.name}.{schema_name}.{add_topic_prefix(topic.name)}"
     )
 
 

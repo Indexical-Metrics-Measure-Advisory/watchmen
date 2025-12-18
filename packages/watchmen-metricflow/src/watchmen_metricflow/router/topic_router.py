@@ -28,25 +28,25 @@ class QueryTopicDataPage(DataPage):
     data: List[TopicWithClassification]
 
 
-def classify_topic(topic: Topic) -> str:
-    """
-    Classify topic as 'dm' or 'datamart' based on topic name and type
-    Logic:
-    - If topic name contains 'dm_' or starts with 'dm', classify as 'dm'
-    - If topic type is AGGREGATE, RATIO, or TIME, classify as 'datamart'
-    - Otherwise, classify as 'datamart' (default)
-    """
-    if topic.name:
-        name_lower = topic.name.lower()
-        if 'dm_' in name_lower or name_lower.startswith('dm'):
-            return 'dm'
+# def classify_topic(topic: Topic) -> str:
+#     """
+#     Classify topic as 'dm' or 'datamart' based on topic name and type
+#     Logic:
+#     - If topic name contains 'dm_' or starts with 'dm', classify as 'dm'
+#     - If topic type is AGGREGATE, RATIO, or TIME, classify as 'datamart'
+#     - Otherwise, classify as 'datamart' (default)
+#     """
+#     if topic.name:
+#         name_lower = topic.name.lower()
+#         if 'dm_' in name_lower or name_lower.startswith('dm') or 'datamart_' in name_lower:
+#             return 'datamart'
     
-    # Check topic type for datamart classification
-    if topic.type in [TopicType.AGGREGATE, TopicType.RATIO, TopicType.TIME]:
-        return 'datamart'
+#     # Check topic type for datamart classification
+#     if topic.type in [TopicType.AGGREGATE, TopicType.RATIO, TopicType.TIME]:
+#         return 'datamart'
     
-    # Default classification
-    return 'datamart'
+#     # Default classification
+#     return 'datamart'
 
 
 @router.get('/metricflow/topics/mart', tags=['CONSOLE', 'ADMIN'], response_model=List[TopicWithClassification])
@@ -69,11 +69,11 @@ async def get_topic_list(
         classified_topics = []
         for topic in topics:
             ## if name start with dm or datamart
-            if topic.name and (topic.name.lower().startswith('dm') or 'dm_' in topic.name.lower() or 'datamart' in topic.name.lower()):
-                classification = classify_topic(topic)
+            if topic.name and (topic.name.lower().startswith('dm') or 'dm_' in topic.name.lower() or 'datamart_' in topic.name.lower()):
+                # classification = classify_topic(topic)
                 classified_topics.append(TopicWithClassification(
                 topic=topic,
-                classification=classification
+                classification='datamart'
             ))
             
         return classified_topics
