@@ -884,14 +884,13 @@ const SemanticModelManagement: React.FC = () => {
                     <Label htmlFor="datasource-sourceType">Source Type</Label>
                     <Select 
                       value={formData.sourceType || 'topic'} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, sourceType: value as 'topic' | 'subject' | 'db_source' }))}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, sourceType: value as 'topic' | 'db_source' }))}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select source type" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="topic">Topic</SelectItem>
-                        <SelectItem value="subject">Subject</SelectItem>
                         <SelectItem value="db_source">Direct DB Source</SelectItem>
                       </SelectContent>
                     </Select>
@@ -1393,14 +1392,13 @@ const SemanticModelManagement: React.FC = () => {
                   <Label htmlFor="edit-sourceType">Source Type</Label>
                   <Select 
                     value={formData.sourceType || 'topic'} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, sourceType: value as 'topic' | 'subject' | 'db_source' }))}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, sourceType: value as 'topic' | 'db_source' }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select source type" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="topic">Topic</SelectItem>
-                      <SelectItem value="subject">Subject</SelectItem>
                       <SelectItem value="db_source">DB Source</SelectItem>
                     </SelectContent>
                   </Select>
@@ -1575,14 +1573,13 @@ const SemanticModelManagement: React.FC = () => {
                       <Label htmlFor="datasource-sourceType">Source Type</Label>
                       <Select 
                         value={formData.sourceType || 'topic'} 
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, sourceType: value as 'topic' | 'subject' | 'db_source' }))}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, sourceType: value as 'topic' | 'db_source' }))}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select source type" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="topic">Topic</SelectItem>
-                          <SelectItem value="subject">Subject</SelectItem>
                           <SelectItem value="db_source">Direct DB Source</SelectItem>
                         </SelectContent>
                       </Select>

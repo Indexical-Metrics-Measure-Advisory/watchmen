@@ -1,41 +1,29 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { 
-  BarChart3, 
-  LineChart, 
-  PieChart, 
   LayoutDashboard, 
   Plus, 
   Save, 
-  Search,
-  Filter,
-  ArrowRight,
-  Loader2,
-  Trash2,
-  LayoutTemplate,
-  RotateCcw,
-  Share2,
+  Trash2, 
+  LayoutTemplate, 
+  RotateCcw, 
+  Share2, 
   Copy
 } from 'lucide-react';
-import { ChartCard } from '@/components/bi/ChartCard';
 import { AnalysisBoard } from '@/components/bi/AnalysisBoard';
 import { MetricBuilderSheet } from '@/components/bi/MetricBuilderSheet';
-import { inferType, DimUIType } from '@/components/bi/utils';
+import { inferType } from '@/components/bi/utils';
 import { BIChartCard, BICardSize, BIMetric, BIChartType, GlobalAlertRule } from '@/model/biAnalysis';
 import { saveAnalysis, listAnalyses, getAnalysis, deleteAnalysis, updateAnalysis, updateAnalysisTemplate } from '@/services/biAnalysisService';
 import { metricsService } from '@/services/metricsService';
@@ -244,6 +232,26 @@ const BIAnalysisPage: React.FC = () => {
     to: new Date(),
   });
 
+  // board
+  const [cards, setCards] = useState<BIChartCard[]>([]);
+  const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: unknown[], rawData: MetricFlowResponse | null }>>({});
+  const [alertStatusMap, setAlertStatusMap] = useState<Record<string, AlertStatus>>({});
+  const [metricBuilderOpen, setMetricBuilderOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<'dashboard' | 'saved'>('dashboard');
+  const dashboardViewRef = useRef<HTMLDivElement>(null);
+  const [pendingScrollToDashboard, setPendingScrollToDashboard] = useState(false);
+  
+  const [commonFilterDimensions, setCommonFilterDimensions] = useState<MetricDimension[]>([]);
+  const [globalFilterValues, setGlobalFilterValues] = useState<Record<string, string>>({});
+  const [globalTimeRange, setGlobalTimeRange] = useState<string>(GLOBAL_TIME_RANGE_PER_CARD);
+  const [globalCustomDateRange, setGlobalCustomDateRange] = useState<DateRange | undefined>();
+
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [saveName, setSaveName] = useState('');
+  const [saveDesc, setSaveDesc] = useState('');
+  const [shareOpen, setShareOpen] = useState(false);
+  const [templates, setTemplates] = useState<{ id: string; name: string; description?: string; isTemplate?: boolean }[]>([]);
+
   // Fetch rules when alert metric changes
   useEffect(() => {
     if (addAlertOpen) {
@@ -256,7 +264,91 @@ const BIAnalysisPage: React.FC = () => {
     }
   }, [addAlertOpen]);
 
-  const confirmAddAlert = () => {
+  // Fetch and cache card data
+  const loadCardDataFor = useCallback(async (card: BIChartCard, filtersOverride?: Record<string, string>, timeRangeOverride?: string) => {
+    try {
+    
+    if (card.chartType === 'alert' && card.alert) {
+      if (!card.alert.enabled) {
+        setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], rawData: null } }));
+        return;
+      }
+      const resp = await globalAlertService.fetchAlertData(card.alert as GlobalAlertRule);
+      
+      let chartData: unknown[] = [];
+      if (resp && Array.isArray(resp.data)) {
+         chartData = resp.data;
+      } else if (Array.isArray(resp)) {
+         chartData = resp;
+      }
+
+      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: chartData, rawData: null } }));
+      
+      if (resp && typeof resp.triggered === 'boolean') {
+         // It has triggered status. 
+         let status: AlertStatus;
+         if (resp.alertStatus) {
+            status = resp.alertStatus;
+         } else {
+            const alertRule = card.alert as GlobalAlertRule;
+            const priority = alertRule.priority || 'medium';
+            let severity: 'info' | 'warning' | 'critical' = 'info';
+            if (priority === 'critical') severity = 'critical';
+            else if (priority === 'high') severity = 'warning';
+            
+            // Construct minimal status if backend only returns { triggered: true, ... }
+            status = {
+              id: `alert-status-${card.id}`, 
+              ruleId: alertRule.id || card.id,
+              ruleName: alertRule.name || 'Alert',
+              triggered: resp.triggered,
+              severity: severity,
+              message: resp.message || (resp.triggered ? 'Alert Triggered' : 'Normal'),
+              acknowledged: resp.acknowledged || false,
+              conditionResults: resp.conditionResults || []
+            };
+         }
+         setAlertStatusMap(prev => ({ ...prev, [card.id]: status }));
+      }
+      return;
+    }
+      const resolvedRange = resolveTimeRange(card, globalTimeRange, globalCustomDateRange, timeRangeOverride);
+      const { start, end } = timeRangeToBounds(resolvedRange);
+      let groupBy = card.selection.dimensions && card.selection.dimensions.length > 0 ? [...card.selection.dimensions] : undefined;
+      
+      // If time granularity is selected, append it to time dimensions in group_by
+      if (card.selection.timeGranularity && groupBy) {
+        groupBy = groupBy.map(dim => {
+          // heuristic check if dimension is time-based since we don't have full object here
+          if (inferType({ name: dim } as MetricDimension) === 'TIME') {
+            return `${dim}__${card.selection.timeGranularity}`;
+          }
+          return dim;
+        });
+      }
+
+      const where = groupBy ? buildGlobalWhere(filtersOverride ?? globalFilterValues) : undefined;
+      
+      const req: MetricQueryRequest = {
+        metric: card.metricId,
+        group_by: groupBy,
+        where,
+        start_time: start,
+        end_time: end,
+        order: [],
+        limit: 500
+      };
+      const resp = await metricsService.getMetricValue(req);
+      const data = transformMetricFlowToChartData(resp);
+      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: data, rawData: resp } }));
+    } catch (e) {
+      console.warn(`Card ${card.id}: failed to load data.`, e);
+      // Do not set empty array on error, so it can be retried by useEffect when conditions change
+      // setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
+    }
+  }, [globalTimeRange, globalCustomDateRange, globalFilterValues]);
+
+  const confirmAddAlert = useCallback(() => {
      if (!alertRuleId) return;
      const rule = dialogRules.find(r => r.id === alertRuleId);
      if (!rule) return;
@@ -286,7 +378,12 @@ const BIAnalysisPage: React.FC = () => {
      setAddAlertOpen(false);
      setAlertRuleId('');
      setAlertTimeRange('Past 30 days');
-  };
+  }, [alertRuleId, dialogRules, alertTimeRange, alertCustomDateRange, loadCardDataFor, toast]);
+
+  const refreshData = useCallback(() => {
+    toast({ title: 'Refreshing', description: 'Refreshing all cards...' });
+    cards.forEach(card => void loadCardDataFor(card));
+  }, [cards, loadCardDataFor, toast]);
 
   const selectedMetric: BIMetric | null = useMemo(() => {
     const m = selectedMetricDef;
@@ -308,25 +405,7 @@ const BIAnalysisPage: React.FC = () => {
 
 
 
-  // board
-  const [cards, setCards] = useState<BIChartCard[]>([]);
-  const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: unknown[]; rawData: MetricFlowResponse | null }>>({});
-  const [alertStatusMap, setAlertStatusMap] = useState<Record<string, AlertStatus>>({});
-  const [commonFilterDimensions, setCommonFilterDimensions] = useState<MetricDimension[]>([]);
-  const [globalFilterValues, setGlobalFilterValues] = useState<Record<string, string>>({});
-  const [globalTimeRange, setGlobalTimeRange] = useState<string>(GLOBAL_TIME_RANGE_PER_CARD);
-  const [globalCustomDateRange, setGlobalCustomDateRange] = useState<DateRange | undefined>(undefined);
 
-  // saving
-  const [saveOpen, setSaveOpen] = useState(false);
-  const [saveName, setSaveName] = useState('');
-  const [saveDesc, setSaveDesc] = useState('');
-  const [shareOpen, setShareOpen] = useState(false);
-  const [templates, setTemplates] = useState<Array<{ id: string; name: string; description?: string; isTemplate?: boolean }>>([]);
-  const [metricBuilderOpen, setMetricBuilderOpen] = useState<boolean>(false);
-  const [activeSection, setActiveSection] = useState<'dashboard' | 'saved'>('dashboard');
-  const dashboardViewRef = useRef<HTMLDivElement | null>(null);
-  const [pendingScrollToDashboard, setPendingScrollToDashboard] = useState(false);
 
   useEffect(() => {
     if (activeSection !== 'dashboard') return;
@@ -435,89 +514,7 @@ const BIAnalysisPage: React.FC = () => {
     };
   }, [cards]);
 
-  // Fetch and cache card data
-  const loadCardDataFor = async (card: BIChartCard, filtersOverride?: Record<string, string>, timeRangeOverride?: string) => {
-    try {
-    
-    if (card.chartType === 'alert' && card.alert) {
-      if (!card.alert.enabled) {
-        setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], rawData: null } }));
-        return;
-      }
-      const resp = await globalAlertService.fetchAlertData(card.alert as GlobalAlertRule);
-      
-      let chartData: unknown[] = [];
-      if (resp && Array.isArray(resp.data)) {
-         chartData = resp.data;
-      } else if (Array.isArray(resp)) {
-         chartData = resp;
-      }
 
-      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: chartData, rawData: null } }));
-      
-      if (resp && typeof resp.triggered === 'boolean') {
-         // It has triggered status. 
-         let status: AlertStatus;
-         if (resp.alertStatus) {
-            status = resp.alertStatus;
-         } else {
-            const alertRule = card.alert as GlobalAlertRule;
-            const priority = alertRule.priority || 'medium';
-            let severity: 'info' | 'warning' | 'critical' = 'info';
-            if (priority === 'critical') severity = 'critical';
-            else if (priority === 'high') severity = 'warning';
-            
-            // Construct minimal status if backend only returns { triggered: true, ... }
-            status = {
-              id: `alert-status-${card.id}`, 
-              ruleId: alertRule.id || card.id,
-              ruleName: alertRule.name || 'Alert',
-              triggered: resp.triggered,
-              severity: severity,
-              message: resp.message || (resp.triggered ? 'Alert Triggered' : 'Normal'),
-              acknowledged: resp.acknowledged || false,
-              conditionResults: resp.conditionResults || []
-            };
-         }
-         setAlertStatusMap(prev => ({ ...prev, [card.id]: status }));
-      }
-      return;
-    }
-      const resolvedRange = resolveTimeRange(card, globalTimeRange, globalCustomDateRange, timeRangeOverride);
-      const { start, end } = timeRangeToBounds(resolvedRange);
-      let groupBy = card.selection.dimensions && card.selection.dimensions.length > 0 ? [...card.selection.dimensions] : undefined;
-      
-      // If time granularity is selected, append it to time dimensions in group_by
-      if (card.selection.timeGranularity && groupBy) {
-        groupBy = groupBy.map(dim => {
-          // heuristic check if dimension is time-based since we don't have full object here
-          if (inferType({ name: dim } as MetricDimension) === 'TIME') {
-            return `${dim}__${card.selection.timeGranularity}`;
-          }
-          return dim;
-        });
-      }
-
-      const where = groupBy ? buildGlobalWhere(filtersOverride ?? globalFilterValues) : undefined;
-      
-      const req: MetricQueryRequest = {
-        metric: card.metricId,
-        group_by: groupBy,
-        where,
-        start_time: start,
-        end_time: end,
-        order: [],
-        limit: 500
-      };
-      const resp = await metricsService.getMetricValue(req);
-      const data = transformMetricFlowToChartData(resp);
-      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: data, rawData: resp } }));
-    } catch (e) {
-      console.warn(`Card ${card.id}: failed to load data.`, e);
-      // Do not set empty array on error, so it can be retried by useEffect when conditions change
-      // setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
-    }
-  };
 
   // init categories
   useEffect(() => {
@@ -643,9 +640,9 @@ const BIAnalysisPage: React.FC = () => {
     loadDims();
   }, [selectedMetricDef]);
 
-  const toggleDim = (dim: string) => {
+  const toggleDim = useCallback((dim: string) => {
     setSelectedDims(prev => prev.includes(dim) ? prev.filter(d => d !== dim) : [...prev, dim]);
-  };
+  }, []);
 
   const filteredDims = useMemo(() => {
     const term = dimSearch.trim().toLowerCase();
@@ -662,7 +659,7 @@ const BIAnalysisPage: React.FC = () => {
     return sorted;
   }, [availableDimsDetailed, selectedDimType, dimSearch, showTopOnly]);
 
-  const addCardToBoard = () => {
+  const addCardToBoard = useCallback(() => {
     if (!selectedMetric) {
       toast({ title: 'Please select a metric', description: 'Select a metric on the left before adding a card' });
       return;
@@ -707,7 +704,7 @@ const BIAnalysisPage: React.FC = () => {
     void loadCardDataFor(newCard);
     setActiveSection('dashboard');
     setMetricBuilderOpen(false);
-  };
+  }, [selectedMetric, timeRange, customDateRange, selectedDims, availableDimsDetailed, previewData, selectedDimType, timeGranularity, loadCardDataFor, toast]);
 
   // drag-and-drop reorder
   const onDragStart = (index: number) => (e: React.DragEvent<HTMLDivElement>) => {
@@ -989,6 +986,7 @@ const BIAnalysisPage: React.FC = () => {
                   globalCustomDateRange={globalCustomDateRange}
                   onGlobalTimeRangeChange={handleGlobalTimeRangeChange}
                   onGlobalCustomDateRangeChange={handleGlobalCustomDateRangeChange}
+                  onRefresh={refreshData}
                 />
               </div>
             </TabsContent>

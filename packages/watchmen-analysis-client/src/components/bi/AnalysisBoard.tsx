@@ -4,7 +4,7 @@ import type { BIChartCard, BICardSize, BIChartType } from '@/model/biAnalysis';
 import type { AlertStatus } from '@/model/AlertConfig';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import type { MetricDimension } from '@/model/analysis';
-import { LayoutDashboard, PlusCircle, AlertCircle, BellPlus, SlidersHorizontal, ChevronRight, X } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, AlertCircle, BellPlus, SlidersHorizontal, ChevronRight, X, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,7 @@ interface AnalysisBoardProps {
   globalCustomDateRange?: DateRange;
   onGlobalTimeRangeChange?: (range: string) => void;
   onGlobalCustomDateRangeChange?: (range: DateRange) => void;
+  onRefresh?: () => void;
 }
 
 export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
@@ -60,6 +61,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
   globalCustomDateRange,
   onGlobalTimeRangeChange,
   onGlobalCustomDateRangeChange,
+  onRefresh,
 }) => {
   const [filtersHidden, setFiltersHidden] = React.useState(true);
 
@@ -132,6 +134,17 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {onRefresh && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRefresh}
+              className="gap-2 h-8"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh
+            </Button>
+          )}
           {hasGlobalFilters && (
             <Button
               variant="outline"
