@@ -15,7 +15,7 @@ passlib = "^1.7.4"
 bcrypt = "^4.2.0"
 python-multipart = "^0.0.9"
 dbt-metricflow = ">=0.8.2,<0.9.0"
-dbt-postgres = ">=1.8.0,<2.0.0"
+dbt-postgres = "^1.9"
 fastapi-mcp = ">=0.4.0,<0.5.0"
 watchmen-lineage = { path = "../watchmen-lineage", develop = true }
 watchmen-model = { path = "../watchmen-model", develop = true }
@@ -28,6 +28,8 @@ watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, o
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
 watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
 watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
+dbt-core = "^1.8.0"
+pymysql = "^1.1.2"
 
 
 [tool.poetry.group.dev.dependencies]
