@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "~3.12"
-cx-Oracle = "^8.3.0"
+oracledb = "^3.4.1"
 watchmen-storage-rds = { path = "../watchmen-storage-rds", develop = true }
 
 [tool.poetry.group.dev.dependencies]

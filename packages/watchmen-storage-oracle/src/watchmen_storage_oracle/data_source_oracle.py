@@ -1,6 +1,7 @@
 from typing import List, Optional
 
-from cx_Oracle import init_oracle_client, makedsn, SessionPool, SPOOL_ATTRVAL_WAIT
+from oracledb import init_oracle_client, makedsn, SessionPool, SPOOL_ATTRVAL_WAIT
+
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import NullPool
@@ -12,7 +13,7 @@ from watchmen_utilities import is_decimal, is_not_blank
 from .storage_oracle import StorageOracle, TopicDataStorageOracle
 
 
-init_oracle_client(lib_dir=r"/opt/oracle/instantclient_21_3")
+init_oracle_client(lib_dir=r"/opt/oracle/instantclient_23_26")
 
 
 def redress_url_by_cxoracle(url: str) -> str:
@@ -81,7 +82,7 @@ class OracleDataSourceHelper(DataSourceHelper):
             encoding='UTF-8')
         
         return create_engine(
-            'oracle+cx_oracle://', creator=pool.acquire,
+            'oracle+oracledb://', creator=pool.acquire,
             poolclass=NullPool, coerce_to_decimal=False, echo=params.echo, optimize_limits=True,
             future=True)
     
