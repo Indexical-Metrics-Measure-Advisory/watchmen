@@ -1,0 +1,1 @@
+UPDATE achievements SET compare_with_prev_cycle = compare_with_prev_time_range;

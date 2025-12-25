@@ -1,0 +1,65 @@
+version: '3'
+services:
+  watchmen-web-client:
+    image: ghcr.io/indexical-metrics-measure-advisory/watchmen-web-client:18.0.0
+    volumes:
+      - "./nginx/nginx-compose.conf:/etc/nginx/nginx.conf"
+    ports:
+      - 3030:80
+    depends_on:
+      - watchmen_doll
+
+  watchmen-ingest-client:
+    image: ghcr.io/indexical-metrics-measure-advisory/watchmen-ingestion-client:18.0.0
+    volumes:
+      - "./nginx/nginx-compose.conf:/etc/nginx/nginx.conf"
+    ports:
+      - 3031:80
+    depends_on:
+      - watchmen_doll
+
+  watchmen_doll:
+    image: ghcr.io/indexical-metrics-measure-advisory/watchmen-matryoshka-doll-postgres:18.0.0
+    container_name: watchmen_doll
+    depends_on:
+      postgresdb:
+        condition: service_healthy
+    ports:
+      - 8000:8000
+    environment:
+      CREATE_DQC_TOPICS_ON_TENANT_CREATE: "true"
+      ENGINE_INDEX: "false"
+      META_STORAGE_ECHO: "false"
+      META_STORAGE_HOST: postgresdb
+      META_STORAGE_PORT: 5432
+      META_STORAGE_USER_NAME: admin
+      META_STORAGE_PASSWORD: admin-pwd
+      META_STORAGE_NAME: watchmen
+      USE_STORAGE_DIRECTLY: "true"
+      REPLACE_TOPIC_TO_STORAGE: "true"
+      SYNC_TOPIC_TO_STORAGE: "true"
+      
+    volumes:
+      - "./watchmen-doll/log/rotating.log:/app/temp/rotating.log"
+
+  postgresdb:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_DB: watchmen
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin-pwd
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./postgres/init.sh:/docker-entrypoint-initdb.d/init.sh
+      - ./postgres/init-scripts:/docker-entrypoint-initdb.d/init-scripts
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d watchmen"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

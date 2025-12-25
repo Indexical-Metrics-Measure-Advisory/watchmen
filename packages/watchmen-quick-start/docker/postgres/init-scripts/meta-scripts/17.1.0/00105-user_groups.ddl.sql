@@ -1,0 +1,1 @@
+ALTER TABLE user_groups ALTER COLUMN version TYPE INTEGER USING version::INTEGER;

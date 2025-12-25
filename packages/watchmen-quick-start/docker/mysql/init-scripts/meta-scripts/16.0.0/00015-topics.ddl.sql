@@ -1,0 +1,27 @@
+CREATE TABLE topics
+(
+    topic_id         VARCHAR(50) NOT NULL,
+    name             VARCHAR(50) NOT NULL,
+    description      VARCHAR(1024),
+    type             VARCHAR(20) NOT NULL,
+    kind             VARCHAR(20) NOT NULL,
+    data_source_id   VARCHAR(50),
+    factors          JSON,
+    tenant_id        VARCHAR(50) NOT NULL,
+    created_at       DATETIME    NOT NULL,
+    created_by       VARCHAR(50) NOT NULL,
+    last_modified_at DATETIME    NOT NULL,
+    last_modified_by VARCHAR(50) NOT NULL,
+    version          BIGINT,
+    PRIMARY KEY (topic_id),
+    INDEX (name),
+    INDEX (type),
+    INDEX (kind),
+    INDEX (data_source_id),
+    UNIQUE INDEX (name, tenant_id),
+    INDEX (tenant_id),
+    INDEX (created_at),
+    INDEX (created_by),
+    INDEX (last_modified_at),
+    INDEX (last_modified_by)
+);

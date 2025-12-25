@@ -267,7 +267,7 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
         <div className="p-1">
           <Tabs defaultValue="config" value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex items-center justify-between px-4 pt-4 pb-2">
-              <TabsList className="grid w-[400px] grid-cols-3 bg-muted/50">
+              <TabsList className="grid w-[540px] grid-cols-4 bg-muted/50">
                 <TabsTrigger value="config" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
                   <Activity className="w-4 h-4" />
                   Rule Config
@@ -279,6 +279,10 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
                 <TabsTrigger value="action" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
                   <Lightbulb className="w-4 h-4" />
                   Suggested Action
+                </TabsTrigger>
+                <TabsTrigger value="action-params" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  <Layers className="w-4 h-4" />
+                  Action Params
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -508,156 +512,249 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
                 </div>
               </TabsContent>
 
-              <TabsContent value="action" className="mt-0 min-h-[400px]">
-                <Tabs defaultValue="config" className="w-full">
-                  <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent gap-2 mb-4">
-                    <TabsTrigger 
-                      value="config" 
-                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-md px-4 py-2 border border-b-0"
-                    >
-                      <Target className="w-4 h-4 mr-2" />
-                      Suggested Action Config
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="types"
-                      className="data-[state=active]:bg-muted rounded-t-md px-4 py-2 border border-b-0"
-                    >
-                      <Layers className="w-4 h-4 mr-2" />
-                      Action Type Management
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="config" className="space-y-6">
+              <TabsContent value="action" className="mt-0 min-h-[400px] space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium flex items-center">
+                    <Target className="w-5 h-5 mr-2 text-primary" />
+                    Suggested Action Config
+                  </h3>
+                  <Button onClick={handleAddAction} size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Action
+                  </Button>
+                </div>
+
+                {config.actions?.map((action, index) => (
+                  <div key={index} className="border rounded-lg p-4 space-y-4 bg-muted/10 relative">
                     <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-medium flex items-center">
-                        <Target className="w-5 h-5 mr-2 text-primary" />
-                        Suggested Action Config
-                      </h3>
-                      <Button onClick={handleAddAction} size="sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Action
-                      </Button>
+                       <div className="flex items-center gap-2">
+                          <div className="bg-primary/10 p-2 rounded-full">
+                             <Bell className="w-4 h-4 text-primary" />
+                          </div>
+                          <span className="font-medium bg-secondary px-2 py-1 rounded text-sm">Action #{index + 1}</span>
+                       </div>
+                       <Button variant="ghost" size="icon" onClick={() => handleRemoveAction(index)} className="absolute top-4 right-4">
+                         <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                       </Button>
                     </div>
 
-                    {config.actions?.map((action, index) => (
-                      <div key={index} className="border rounded-lg p-4 space-y-4 bg-muted/10 relative">
-                        <div className="flex justify-between items-center">
-                           <div className="flex items-center gap-2">
-                              <div className="bg-primary/10 p-2 rounded-full">
-                                 <Bell className="w-4 h-4 text-primary" />
-                              </div>
-                              <span className="font-medium bg-secondary px-2 py-1 rounded text-sm">Action #{index + 1}</span>
-                           </div>
-                           <Button variant="ghost" size="icon" onClick={() => handleRemoveAction(index)} className="absolute top-4 right-4">
-                             <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
-                           </Button>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>Action Type</Label>
-                            <Select 
-                              value={action.type} 
-                              onValueChange={(val: any) => handleActionChange(index, 'type', val)}
-                            >
-                              <SelectTrigger>
-                                 {action.type === 'notification' && <Bell className="w-4 h-4 mr-2" />}
-                                 {action.type === 'email' && <Mail className="w-4 h-4 mr-2" />}
-                                 {action.type === 'webhook' && <Webhook className="w-4 h-4 mr-2" />}
-                                 {action.type === 'process' && <Workflow className="w-4 h-4 mr-2" />}
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="notification">
-                                  <div className="flex items-center"><Bell className="w-4 h-4 mr-2"/> Notification</div>
-                                </SelectItem>
-                                <SelectItem value="email">
-                                  <div className="flex items-center"><Mail className="w-4 h-4 mr-2"/> Email</div>
-                                </SelectItem>
-                                <SelectItem value="webhook">
-                                  <div className="flex items-center"><Webhook className="w-4 h-4 mr-2"/> Webhook</div>
-                                </SelectItem>
-                                <SelectItem value="process">
-                                  <div className="flex items-center"><Workflow className="w-4 h-4 mr-2"/> Process</div>
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label>Risk Level</Label>
-                            <Select 
-                              value={action.riskLevel || 'medium'} 
-                              onValueChange={(val: any) => handleActionChange(index, 'riskLevel', val)}
-                            >
-                              <SelectTrigger>
-                                 <div className={cn("px-2 py-0.5 rounded text-xs font-medium", 
-                                    action.riskLevel === 'low' ? "bg-green-100 text-green-700" :
-                                    action.riskLevel === 'medium' ? "bg-yellow-100 text-yellow-700" :
-                                    action.riskLevel === 'high' ? "bg-orange-100 text-orange-700" :
-                                    "bg-red-100 text-red-700"
-                                 )}>
-                                   {action.riskLevel === 'low' ? 'Low Risk' : 
-                                    action.riskLevel === 'medium' ? 'Medium Risk' :
-                                    action.riskLevel === 'high' ? 'High Risk' : 'Critical Risk'}
-                                 </div>
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="low">Low Risk</SelectItem>
-                                <SelectItem value="medium">Medium Risk</SelectItem>
-                                <SelectItem value="high">High Risk</SelectItem>
-                                <SelectItem value="critical">Critical Risk</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Action Name</Label>
-                          <Input 
-                            value={action.name || ''} 
-                            onChange={(e) => handleActionChange(index, 'name', e.target.value)}
-                            placeholder="e.g. Send High Payment Warning"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Execution Content</Label>
-                          <Textarea 
-                            value={action.content || ''} 
-                            onChange={(e) => handleActionChange(index, 'content', e.target.value)}
-                            placeholder="Describe what this action will do..."
-                            className="min-h-[80px]"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                           <Label className="flex items-center text-primary">
-                              <Activity className="w-4 h-4 mr-2" />
-                              Expected Effect
-                           </Label>
-                           <Input 
-                             value={action.expectedEffect || ''} 
-                             onChange={(e) => handleActionChange(index, 'expectedEffect', e.target.value)}
-                             placeholder="e.g. Alert 24h in advance, reduce loss by 15%"
-                           />
-                        </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Action Type</Label>
+                        <Select 
+                          value={action.type} 
+                          onValueChange={(val: any) => handleActionChange(index, 'type', val)}
+                        >
+                          <SelectTrigger>
+                             {action.type === 'notification' && <Bell className="w-4 h-4 mr-2" />}
+                             {action.type === 'email' && <Mail className="w-4 h-4 mr-2" />}
+                             {action.type === 'webhook' && <Webhook className="w-4 h-4 mr-2" />}
+                             {action.type === 'process' && <Workflow className="w-4 h-4 mr-2" />}
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="notification">
+                              <div className="flex items-center"><Bell className="w-4 h-4 mr-2"/> Notification</div>
+                            </SelectItem>
+                            <SelectItem value="email">
+                              <div className="flex items-center"><Mail className="w-4 h-4 mr-2"/> Email</div>
+                            </SelectItem>
+                            <SelectItem value="webhook">
+                              <div className="flex items-center"><Webhook className="w-4 h-4 mr-2"/> Webhook</div>
+                            </SelectItem>
+                            <SelectItem value="process">
+                              <div className="flex items-center"><Workflow className="w-4 h-4 mr-2"/> Process</div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                    ))}
-                    
-                    {(!config.actions || config.actions.length === 0) && (
-                      <div className="text-center py-8 text-muted-foreground border rounded-lg border-dashed">
-                        No actions configured. Click "Add Action" to start.
+                      
+                      <div className="space-y-2">
+                        <Label>Risk Level</Label>
+                        <Select 
+                          value={action.riskLevel || 'medium'} 
+                          onValueChange={(val: any) => handleActionChange(index, 'riskLevel', val)}
+                        >
+                          <SelectTrigger>
+                             <div className={cn("px-2 py-0.5 rounded text-xs font-medium", 
+                                action.riskLevel === 'low' ? "bg-green-100 text-green-700" :
+                                action.riskLevel === 'medium' ? "bg-yellow-100 text-yellow-700" :
+                                action.riskLevel === 'high' ? "bg-orange-100 text-orange-700" :
+                                "bg-red-100 text-red-700"
+                             )}>
+                               {action.riskLevel === 'low' ? 'Low Risk' : 
+                                action.riskLevel === 'medium' ? 'Medium Risk' :
+                                action.riskLevel === 'high' ? 'High Risk' : 'Critical Risk'}
+                             </div>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Low Risk</SelectItem>
+                            <SelectItem value="medium">Medium Risk</SelectItem>
+                            <SelectItem value="high">High Risk</SelectItem>
+                            <SelectItem value="critical">Critical Risk</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                    )}
-                  </TabsContent>
-                  
-                  <TabsContent value="types">
-                     <div className="text-center py-12 text-muted-foreground">
-                       Action Type Management coming soon...
-                     </div>
-                  </TabsContent>
-                </Tabs>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Action Name</Label>
+                      <Input 
+                        value={action.name || ''} 
+                        onChange={(e) => handleActionChange(index, 'name', e.target.value)}
+                        placeholder="e.g. Send High Payment Warning"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Execution Content</Label>
+                      <Textarea 
+                        value={action.content || ''} 
+                        onChange={(e) => handleActionChange(index, 'content', e.target.value)}
+                        placeholder="Describe what this action will do..."
+                        className="min-h-[80px]"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                       <Label className="flex items-center text-primary">
+                          <Activity className="w-4 h-4 mr-2" />
+                          Expected Effect
+                       </Label>
+                       <Input 
+                         value={action.expectedEffect || ''} 
+                         onChange={(e) => handleActionChange(index, 'expectedEffect', e.target.value)}
+                         placeholder="e.g. Alert 24h in advance, reduce loss by 15%"
+                       />
+                    </div>
+                  </div>
+                ))}
+                
+                {(!config.actions || config.actions.length === 0) && (
+                  <div className="text-center py-8 text-muted-foreground border rounded-lg border-dashed">
+                    No actions configured. Click "Add Action" to start.
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="action-params" className="mt-0 min-h-[400px] space-y-6">
+                 <div className="flex justify-between items-center mb-4">
+                   <h3 className="text-lg font-medium flex items-center">
+                     <Layers className="w-5 h-5 mr-2 text-primary" />
+                     Action Type Parameters
+                   </h3>
+                 </div>
+
+                 {(!config.actions || config.actions.length === 0) ? (
+                    <div className="text-center py-8 text-muted-foreground border rounded-lg border-dashed">
+                      No actions configured. Go to "Suggested Action Config" to add actions first.
+                    </div>
+                 ) : (
+                    <div className="space-y-8">
+                      {config.actions.map((action, index) => (
+                        <div key={index} className="space-y-4">
+                          <div className="flex items-center gap-2 mb-2 pb-2 border-b">
+                             <div className="bg-primary/10 p-2 rounded-full">
+                                {action.type === 'email' && <Mail className="w-4 h-4 text-primary" />}
+                                {action.type === 'webhook' && <Webhook className="w-4 h-4 text-primary" />}
+                                {action.type === 'notification' && <Bell className="w-4 h-4 text-primary" />}
+                                {action.type === 'process' && <Workflow className="w-4 h-4 text-primary" />}
+                             </div>
+                             <span className="font-medium text-lg">Action #{index + 1}: {action.type.charAt(0).toUpperCase() + action.type.slice(1)} Configuration</span>
+                          </div>
+
+                          <div className="pl-4 border-l-2 border-primary/20 space-y-4">
+                           {action.type === 'email' && (
+                             <>
+                               <div className="space-y-2">
+                                 <Label>Recipient Email(s)</Label>
+                                 <Input 
+                                   value={action.target || ''} 
+                                   onChange={(e) => handleActionChange(index, 'target', e.target.value)}
+                                   placeholder="e.g. admin@example.com, manager@example.com"
+                                 />
+                                 <p className="text-xs text-muted-foreground">Comma separated email addresses</p>
+                               </div>
+                               <div className="space-y-2">
+                                 <Label>Email Subject Template</Label>
+                                 <Input 
+                                   value={action.template || ''} 
+                                   onChange={(e) => handleActionChange(index, 'template', e.target.value)}
+                                   placeholder="e.g. Alert: High Risk Detected"
+                                 />
+                               </div>
+                             </>
+                           )}
+
+                           {action.type === 'webhook' && (
+                             <>
+                               <div className="space-y-2">
+                                 <Label>Webhook URL</Label>
+                                 <Input 
+                                   value={action.target || ''} 
+                                   onChange={(e) => handleActionChange(index, 'target', e.target.value)}
+                                   placeholder="https://api.example.com/webhook"
+                                 />
+                               </div>
+                               <div className="space-y-2">
+                                 <Label>Payload Template (JSON)</Label>
+                                 <Textarea 
+                                   value={action.template || ''} 
+                                   onChange={(e) => handleActionChange(index, 'template', e.target.value)}
+                                   placeholder='{ "alert": "{{alert_name}}", "value": {{value}} }'
+                                   className="font-mono text-xs"
+                                 />
+                               </div>
+                             </>
+                           )}
+
+                           {action.type === 'notification' && (
+                             <>
+                               <div className="space-y-2">
+                                 <Label>Target User/Group ID</Label>
+                                 <Input 
+                                   value={action.target || ''} 
+                                   onChange={(e) => handleActionChange(index, 'target', e.target.value)}
+                                   placeholder="e.g. user:123 or group:admins"
+                                 />
+                               </div>
+                               <div className="space-y-2">
+                                 <Label>Notification Message Template</Label>
+                                 <Textarea 
+                                   value={action.template || ''} 
+                                   onChange={(e) => handleActionChange(index, 'template', e.target.value)}
+                                   placeholder="Alert triggered by {{metric_name}}"
+                                 />
+                               </div>
+                             </>
+                           )}
+
+                           {action.type === 'process' && (
+                             <>
+                               <div className="space-y-2">
+                                 <Label>Process Definition ID</Label>
+                                 <Input 
+                                   value={action.target || ''} 
+                                   onChange={(e) => handleActionChange(index, 'target', e.target.value)}
+                                   placeholder="e.g. process-payment-hold"
+                                 />
+                               </div>
+                               <div className="space-y-2">
+                                 <Label>Process Input Variables (JSON)</Label>
+                                 <Textarea 
+                                   value={action.template || ''} 
+                                   onChange={(e) => handleActionChange(index, 'template', e.target.value)}
+                                   placeholder='{ "reason": "risk_alert" }'
+                                   className="font-mono text-xs"
+                                 />
+                               </div>
+                             </>
+                           )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                 )}
               </TabsContent>
             </div>
 
