@@ -5,7 +5,7 @@ Before starting, execute dbscript.sh copy script to mysql directory
 
 ```shell
 cd docker 
-docker compose -f docker-compose-mysql.yml up
+docker compose -f docker-compose-mysql.yml up -d
 ```
 
 go to url localhost:3030
