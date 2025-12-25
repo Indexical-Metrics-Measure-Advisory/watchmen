@@ -1,11 +1,20 @@
 # watchmen-quick-start
 
+### MySQL
 Before starting, execute dbscript.sh copy script to mysql directory
 
 
 ```shell
 cd docker 
 docker compose -f docker-compose-mysql.yml up -d
+```
+
+### PostgreSQL
+Before starting, execute dbscript_pg.sh copy script to postgres directory
+
+```shell
+cd docker
+docker compose -f docker-compose-pg.yml up -d
 ```
 
 go to url localhost:3030
@@ -23,6 +32,10 @@ go to url localhost:3030
 - login with admin user 
   - create topics and pipelines 
   - test pipelines with simulator 
+  - config data ingestion  
+    - config module , model and table
+    - run test  
+    - monitor data ingestion status
   - Create pat and import test data
   - Create spaces and assign to your user group
 - login with console user 
@@ -32,7 +45,7 @@ go to url localhost:3030
 
 
 ```
-- DQC and indicator services are not included 
+- DQC and metrics  services are not included 
 ```
 
 #### Tips 
