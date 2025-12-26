@@ -1,0 +1,1 @@
+ALTER TABLE competitive_lock ALTER COLUMN lock_id TYPE BIGINT USING lock_id::BIGINT;

@@ -82,11 +82,13 @@ const TableSelector: React.FC<TableSelectorProps> = ({
           setAvailableTables(normalized);
         } else {
           // No backend tables; use local fallback by module
-          setAvailableTables(fallbackTablesForModel(selectedModule, selectedModel));
+          setAvailableTables([]);
+          
         }
       } catch {
         // Backend not available; use local fallback by module
-        setAvailableTables(fallbackTablesForModel(selectedModule, selectedModel));
+        console.error('Failed to load tables from backend; using local fallback');
+        // setAvailableTables(fallbackTablesForModel(selectedModule, selectedModel));
       }
     };
     load();

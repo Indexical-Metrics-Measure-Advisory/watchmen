@@ -1,0 +1,28 @@
+CREATE TABLE pipeline_index
+(
+    pipeline_index_id     VARCHAR(50) NOT NULL,
+    pipeline_id           VARCHAR(50) NOT NULL,
+    pipeline_name         VARCHAR(50),
+    stage_id              VARCHAR(50) NOT NULL,
+    stage_name            VARCHAR(100),
+    unit_id               VARCHAR(50) NOT NULL,
+    unit_name             VARCHAR(100),
+    action_id             VARCHAR(50) NOT NULL,
+    mapping_to_topic_id   VARCHAR(50),
+    mapping_to_factor_id  VARCHAR(50),
+    source_from_topic_id  VARCHAR(50),
+    source_from_factor_id VARCHAR(50),
+    tenant_id             VARCHAR(50) NOT NULL,
+    created_at            DATETIME    NOT NULL,
+    last_modified_at      DATETIME    NOT NULL,
+    PRIMARY KEY (pipeline_index_id),
+    INDEX (pipeline_id),
+    INDEX (pipeline_name),
+    INDEX (mapping_to_topic_id),
+    INDEX (mapping_to_factor_id),
+    INDEX (source_from_topic_id),
+    INDEX (source_from_factor_id),
+    INDEX (tenant_id),
+    INDEX (created_at),
+    INDEX (last_modified_at)
+);

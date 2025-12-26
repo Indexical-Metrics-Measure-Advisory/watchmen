@@ -1,0 +1,1 @@
+ALTER TABLE convergences ALTER COLUMN version TYPE INTEGER USING version::INTEGER;

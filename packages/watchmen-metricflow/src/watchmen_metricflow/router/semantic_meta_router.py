@@ -16,6 +16,8 @@ from watchmen_metricflow.settings import ask_tuple_delete_enabled
 from watchmen_metricflow.util import trans, trans_readonly
 from watchmen_utilities import is_blank
 from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
+from watchmen_metricflow.service.space_auth_service import get_console_user_topic_ids, \
+    find_semantic_models_by_topic_ids
 
 router = APIRouter()
 
@@ -243,38 +245,47 @@ async def get_all_semantic_models(
 ) -> List[SemanticModel]:
     """Get all semantic models"""
     semantic_model_service = get_semantic_model_service(principal_service)
-    
+
     def action() -> List[SemanticModel]:
         tenant_id: TenantId = principal_service.get_tenant_id()
-        return semantic_model_service.find_all(tenant_id)
-    
+        if principal_service.is_tenant_admin() or principal_service.is_super_admin():
+            return semantic_model_service.find_all(tenant_id)
+        else:
+            topic_ids = get_console_user_topic_ids(principal_service)
+            return find_semantic_models_by_topic_ids(principal_service, topic_ids, tenant_id)
+
     return trans_readonly(semantic_model_service, action)
 
 
 @router.post('/metricflow/semantic-models/name', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def find_semantic_models_page_by_name(
-        query_name: Optional[str], 
+        query_name: Optional[str],
         pageable: Pageable = Body(...),
         principal_service: PrincipalService = Depends(get_console_principal)
 ) -> QuerySemanticModelDataPage:
     """Find semantic models by name with pagination"""
     semantic_model_service = get_semantic_model_service(principal_service)
-    
+
     def action() -> QuerySemanticModelDataPage:
         tenant_id: TenantId = principal_service.get_tenant_id()
-        
+
+        if principal_service.is_tenant_admin() or principal_service.is_super_admin():
+            all_models = semantic_model_service.find_all(tenant_id)
+        else:
+            topic_ids = get_console_user_topic_ids(principal_service)
+            all_models = find_semantic_models_by_topic_ids(principal_service, topic_ids, tenant_id)
+
         if is_blank(query_name):
-            semantic_models = semantic_model_service.find_all(tenant_id)
+            semantic_models = all_models
         else:
             # For partial name matching, we'll get all semantic models and filter
-            all_models = semantic_model_service.find_all(tenant_id)
             semantic_models = [m for m in all_models if query_name.lower() in m.name.lower()]
-        
+
         # Simple pagination simulation
         start = (pageable.pageNumber - 1) * pageable.pageSize
         end = start + pageable.pageSize
         page_data = semantic_models[start:end] if start < len(semantic_models) else []
-        
+
         return QuerySemanticModelDataPage(
             data=page_data,
             itemCount=len(page_data),
@@ -282,7 +293,7 @@ async def find_semantic_models_page_by_name(
             pageSize=pageable.pageSize,
             pageCount=(len(semantic_models) + pageable.pageSize - 1) // pageable.pageSize
         )
-    
+
     return trans_readonly(semantic_model_service, action)
 
 

@@ -1,0 +1,1 @@
+ALTER TABLE subjects ALTER COLUMN auto_refresh_interval TYPE INTEGER USING auto_refresh_interval::INTEGER;

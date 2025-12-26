@@ -1,0 +1,1 @@
+ALTER TABLE collector_table_config ALTER COLUMN version TYPE INTEGER USING version::INTEGER;

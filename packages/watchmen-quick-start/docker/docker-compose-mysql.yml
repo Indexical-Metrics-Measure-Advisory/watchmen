@@ -1,19 +1,33 @@
+version: '3'
 services:
-
-  watchmen-ui:
-    image: ghcr.io/indexical-metrics-measure-advisory/watchmen-web-client:16.1.5
-    volumes:
-      - "./nginx/nginx.conf:/etc/nginx/nginx.conf"
+  watchmen-web-client:
+    image: ghcr.io/indexical-metrics-measure-advisory/watchmen-web-client:18.0.1
+    container_name: watchmen-web-client
+    restart: always
     ports:
       - 3030:80
+    volumes:
+      - "./nginx/nginx-compose.conf:/etc/nginx/nginx.conf"
+    depends_on:
+      - watchmen_doll
+
+  watchmen-ingest-client:
+    image: ghcr.io/indexical-metrics-measure-advisory/watchmen-ingestion-client:18.0.1
+    container_name: watchmen-ingest-client
+    restart: always
+    ports:
+      - 3031:80
+    volumes:
+      - "./nginx/nginx-compose.conf:/etc/nginx/nginx.conf"
+    depends_on:
+      - watchmen_doll
 
   watchmen_doll:
-    image: ghcr.io/indexical-metrics-measure-advisory/watchmen-matryoshka-doll-mysql:16.1.5
+    image: ghcr.io/indexical-metrics-measure-advisory/watchmen-matryoshka-doll-mysql:18.0.1
     container_name: watchmen_doll
     depends_on:
       mysqldb:
         condition: service_healthy
-
     ports:
       - 8000:8000
     environment:
@@ -22,59 +36,39 @@ services:
       META_STORAGE_ECHO: "false"
       META_STORAGE_HOST: mysqldb
       META_STORAGE_PORT: 3306
-      META_STORAGE_USER_NAME: root
+      META_STORAGE_USER_NAME: admin
       META_STORAGE_PASSWORD: admin-pwd
       META_STORAGE_NAME: watchmen
       USE_STORAGE_DIRECTLY: "true"
       REPLACE_TOPIC_TO_STORAGE: "true"
       SYNC_TOPIC_TO_STORAGE: "true"
+      
     volumes:
       - "./watchmen-doll/log/rotating.log:/app/temp/rotating.log"
 
   mysqldb:
-    image: mysql:8.0.21
+    image: mysql:8.0
     restart: always
     cap_add:
       - SYS_NICE
     command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci','--lower_case_table_names=1','--character-set-client-handshake=false']
     environment:
       MYSQL_DATABASE: watchmen
-      # So you don't have to use root, but you can if you like
-      MYSQL_USER: 'admin'
-       # You can use whatever password you like
-      MYSQL_PASSWORD: 'admin'
-      # Password for root access
-      MYSQL_ROOT_PASSWORD: 'admin-pwd'
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin-pwd
+      MYSQL_ROOT_PASSWORD: admin-pwd
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     ports:
-      # <Port exposed> : < MySQL Port running inside container>
-      - '3309:3306'
-    expose:
-      # Opens port 3306 on the container
-      - '3306'
+      - '3307:3306'
     volumes:
-      - type: bind
-        source: ./mysql/
-        target: /docker-entrypoint-initdb.d/
+      - ./mysql/init.sh:/docker-entrypoint-initdb.d/init.sh
+      - ./mysql/init-scripts:/docker-entrypoint-initdb.d/init-scripts
+      - mysqldata:/var/lib/mysql
     healthcheck:
       test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-## ref to https://imma-watchmen.com/docs/16.0/installation/config USE_STORAGE_DIRECTLY
-#  trino:
-#    #    hostname: trino
-#    image: 'trinodb/trino'
-#    depends_on:
-#      mysqldb:
-#        condition: service_healthy
-#    ports:
-#      - '8088:8080'
-#    volumes:
-#      - type: bind
-#        source: ./presto/mysql/etc/catalog
-#        target: /etc/trino/catalog
-
-
-
-
-
-
+volumes:
+  mysqldata:

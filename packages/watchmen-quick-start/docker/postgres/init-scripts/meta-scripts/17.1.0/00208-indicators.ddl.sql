@@ -1,0 +1,1 @@
+ALTER TABLE indicators ALTER COLUMN version TYPE INTEGER USING version::INTEGER;

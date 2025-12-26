@@ -1,0 +1,25 @@
+CREATE TABLE derived_objectives
+(
+    derived_objective_id VARCHAR(50)  NOT NULL,
+    name                 VARCHAR(100) NOT NULL,
+    description          VARCHAR(1024),
+    objective_id         VARCHAR(50)  NOT NULL,
+    definition           JSON,
+    breakdown_targets    JSON,
+    user_id              VARCHAR(50)  NOT NULL,
+    tenant_id            VARCHAR(50)  NOT NULL,
+    last_visit_time      DATETIME     NOT NULL,
+    created_at           DATETIME     NOT NULL,
+    created_by           VARCHAR(50)  NOT NULL,
+    last_modified_at     DATETIME     NOT NULL,
+    last_modified_by     VARCHAR(50)  NOT NULL,
+    PRIMARY KEY (derived_objective_id),
+    INDEX (name),
+    INDEX (objective_id),
+    INDEX (user_id),
+    INDEX (tenant_id),
+    INDEX (created_at),
+    INDEX (created_by),
+    INDEX (last_modified_at),
+    INDEX (last_modified_by)
+);

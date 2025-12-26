@@ -1,0 +1,1 @@
+ALTER TABLE change_data_json_history ALTER COLUMN resource_id TYPE VARCHAR(500);

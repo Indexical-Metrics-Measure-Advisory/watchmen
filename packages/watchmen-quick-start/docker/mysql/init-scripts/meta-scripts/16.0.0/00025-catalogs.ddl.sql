@@ -1,0 +1,25 @@
+CREATE TABLE catalogs
+(
+    catalog_id       VARCHAR(50) NOT NULL,
+    name             VARCHAR(50) NOT NULL,
+    topic_ids        JSON,
+    tech_owner_id    VARCHAR(50),
+    biz_owner_id     VARCHAR(50),
+    tags             JSON,
+    description      VARCHAR(1024),
+    tenant_id        VARCHAR(50) NOT NULL,
+    created_at       DATETIME    NOT NULL,
+    created_by       VARCHAR(50) NOT NULL,
+    last_modified_at DATETIME    NOT NULL,
+    last_modified_by VARCHAR(50) NOT NULL,
+    version          BIGINT,
+    PRIMARY KEY (catalog_id),
+    INDEX (name),
+    INDEX (tech_owner_id),
+    INDEX (biz_owner_id),
+    INDEX (tenant_id),
+    INDEX (created_at),
+    INDEX (created_by),
+    INDEX (last_modified_at),
+    INDEX (last_modified_by)
+);

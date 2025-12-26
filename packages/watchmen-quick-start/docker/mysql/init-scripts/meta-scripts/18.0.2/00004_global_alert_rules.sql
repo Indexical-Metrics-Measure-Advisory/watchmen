@@ -1,0 +1,28 @@
+CREATE TABLE global_alert_rules
+(
+    id                VARCHAR(50)   NOT NULL,
+    name              VARCHAR(128),
+    enabled           TINYINT,
+    priority          VARCHAR(20),
+    description       VARCHAR(1024),
+    condition_logic   VARCHAR(10),
+    conditions        JSON,
+    `condition`       JSON,
+    actions           JSON,
+    next_action       JSON,
+    decision          VARCHAR(1024),
+    tenant_id         VARCHAR(50)   NOT NULL,
+    created_at        DATETIME      NOT NULL,
+    created_by        VARCHAR(50)   NOT NULL,
+    last_modified_at  DATETIME      NOT NULL,
+    last_modified_by  VARCHAR(50)   NOT NULL,
+    version           INTEGER       DEFAULT 1,
+    user_id           VARCHAR(50)   NOT NULL,
+    PRIMARY KEY (id),
+    INDEX (tenant_id),
+    INDEX (created_at),
+    INDEX (created_by),
+    INDEX (last_modified_at),
+    INDEX (last_modified_by),
+    INDEX (user_id)
+);
