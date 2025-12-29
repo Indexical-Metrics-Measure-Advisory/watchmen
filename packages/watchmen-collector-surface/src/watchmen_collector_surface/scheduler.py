@@ -6,7 +6,7 @@ from watchmen_collector_surface.cdc.post_json import PostJsonService
 from watchmen_collector_surface.cdc.record_to_json import RecordToJsonService
 from watchmen_collector_surface.cdc.table_extractor import TableExtractor
 from watchmen_collector_surface.connects import S3Connector
-from watchmen_collector_surface.task import TaskListener, CleanOfTimeout
+from watchmen_collector_surface.task import TaskListener, CleanOfTimeout, create_collector_cache_update_thread
 
 
 class JobScheduler:
@@ -20,6 +20,9 @@ class JobScheduler:
 		PostJsonService().create_thread(self.scheduler)
 		CollectorEventListener().create_thread(self.scheduler)
 
+	def init_collector_cache_update(self):
+		create_collector_cache_update_thread(self.scheduler)
+	
 	def init_task_jobs(self):
 		TaskListener().create_thread(self.scheduler)
 

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from watchmen_model.admin import Topic
 
@@ -39,5 +39,7 @@ class CollectorTopicCache:
 	def clear(self) -> None:
 		self.ByIdCache.clear()
 
-
+	def all(self) -> List[Topic]:
+		return list(self.ByIdCache.values())
+	
 collector_topic_cache = CollectorTopicCache()

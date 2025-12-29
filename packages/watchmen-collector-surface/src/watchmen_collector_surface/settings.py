@@ -42,6 +42,9 @@ class CollectorSurfaceSettings(ExtendedBaseSettings):
 	POST_JSON_WAIT: int = 3
 	TASK_SCHEDULE_WAIT: int = 3
 	MONITOR_EVENT_WAIT: int = 60
+	
+	COLLECTOR_CACHE_HEART_BEAT_ENABLED: bool = False
+	COLLECTOR_CACHE_HEART_BEAT_INTERVAL: int = 60
 
 
 settings = CollectorSurfaceSettings()
@@ -100,3 +103,11 @@ def ask_s3_connector_settings():
 
 def ask_s3_connector_wait() -> int:
 	return settings.S3_COLLECTOR_WAIT
+
+
+def ask_collector_cache_heart_beat_enabled():
+	return settings.COLLECTOR_CACHE_HEART_BEAT_ENABLED
+
+
+def ask_collector_cache_heart_beat_interval():
+	return settings.COLLECTOR_CACHE_HEART_BEAT_INTERVAL

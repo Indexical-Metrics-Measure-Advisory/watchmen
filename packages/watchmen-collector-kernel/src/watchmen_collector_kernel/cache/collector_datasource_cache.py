@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from watchmen_data_kernel.cache import InternalCache
 from watchmen_model.system import DataSource
@@ -38,6 +38,9 @@ class CollectorDatasourceCache:
 
     def clear(self) -> None:
         self.ByTenantIdCache.clear()
+
+    def all(self) -> List[DataSource]:
+        return list(self.ByTenantIdCache.values())
 
 
 collector_datasource_cache = CollectorDatasourceCache()
