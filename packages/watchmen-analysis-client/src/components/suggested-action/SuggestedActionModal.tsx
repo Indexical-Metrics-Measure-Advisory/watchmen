@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SuggestedAction, ActionType, ActionExecutionMode, ActionPriority, ActionRiskLevel } from '@/model/suggestedAction';
+import { SuggestedAction, ActionType, ActionExecutionMode, ActionPriority, ActionRiskLevel, SuggestedActionCondition, ActionTypeParameter } from '@/model/suggestedAction';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +36,11 @@ export const SuggestedActionModal: React.FC<SuggestedActionModalProps> = ({
     executionMode: 'auto'
   });
 
-  const [conditionInput, setConditionInput] = useState('');
+  const [newCondition, setNewCondition] = useState<SuggestedActionCondition>({
+    metricName: '',
+    operator: '>',
+    value: ''
+  });
 
   useEffect(() => {
     if (open) {
@@ -65,13 +69,16 @@ export const SuggestedActionModal: React.FC<SuggestedActionModalProps> = ({
     onOpenChange(false);
   };
 
-  const addCondition = () => {
-    if (conditionInput.trim()) {
+  const addCondition = (e?: React.MouseEvent | React.KeyboardEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+    if (newCondition.metricName.trim() && newCondition.value.toString().trim()) {
       setFormData(prev => ({
         ...prev,
-        conditions: [...(prev.conditions || []), conditionInput.trim()]
+        conditions: [...(prev.conditions || []), { ...newCondition }]
       }));
-      setConditionInput('');
+      setNewCondition({ metricName: '', operator: '>', value: '' });
     }
   };
 
@@ -82,7 +89,48 @@ export const SuggestedActionModal: React.FC<SuggestedActionModalProps> = ({
     }));
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addCondition(e);
+    }
+  };
+
   const selectedType = types.find(t => t.id === formData.typeId);
+
+  const renderParameterInput = (param: ActionTypeParameter) => {
+    const value = formData.parameters?.[param.name] ?? '';
+    const handleChange = (val: any) => {
+        setFormData(prev => ({
+            ...prev,
+            parameters: {
+                ...(prev.parameters || {}),
+                [param.name]: val
+            }
+        }));
+    };
+
+    if (param.type === 'boolean') {
+         return (
+             <div className="flex items-center space-x-2">
+                <Switch 
+                    checked={!!value}
+                    onCheckedChange={handleChange}
+                />
+                <span className="text-sm text-muted-foreground">{value ? 'Yes' : 'No'}</span>
+             </div>
+         );
+    }
+
+    return (
+        <Input 
+            type={param.type === 'number' ? 'number' : 'text'}
+            value={value}
+            onChange={(e) => handleChange(e.target.value)}
+            placeholder={`Enter ${param.name}...`}
+        />
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -169,23 +217,68 @@ export const SuggestedActionModal: React.FC<SuggestedActionModalProps> = ({
             />
           </div>
 
+          {selectedType?.parameters && selectedType.parameters.length > 0 && (
+            <div className="space-y-4 border-t pt-4 border-b pb-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Action Parameters ({selectedType.name})</h3>
+                <div className="grid grid-cols-2 gap-4">
+                    {selectedType.parameters.map(param => (
+                        <div key={param.name} className="space-y-2">
+                            <Label>
+                                {param.name} 
+                                {param.required && <span className="text-red-500 ml-1">*</span>}
+                            </Label>
+                            {renderParameterInput(param)}
+                            {param.description && <p className="text-xs text-muted-foreground">{param.description}</p>}
+                        </div>
+                    ))}
+                </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>Trigger Conditions</Label>
-            <div className="flex gap-2">
-              <Input 
-                value={conditionInput}
-                onChange={(e) => setConditionInput(e.target.value)}
-                placeholder="Add trigger condition..."
-                onKeyDown={(e) => e.key === 'Enter' && addCondition()}
-              />
-              <Button onClick={addCondition} variant="outline" size="icon">
-                <Plus className="h-4 w-4" />
-              </Button>
+            <div className="flex gap-2 items-end">
+                <div className="flex-1 space-y-1">
+                    <Input 
+                        placeholder="Metric Name" 
+                        value={newCondition.metricName}
+                        onChange={(e) => setNewCondition({...newCondition, metricName: e.target.value})}
+                    />
+                </div>
+                <div className="w-[140px] space-y-1">
+                    <Select 
+                        value={newCondition.operator} 
+                        onValueChange={(val) => setNewCondition({...newCondition, operator: val})}
+                    >
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value=">">&gt; Greater</SelectItem>
+                            <SelectItem value="<">&lt; Less</SelectItem>
+                            <SelectItem value=">=">&ge; GTE</SelectItem>
+                            <SelectItem value="<=">&le; LTE</SelectItem>
+                            <SelectItem value="==">= Equals</SelectItem>
+                            <SelectItem value="!=">&ne; Not Eq</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex-1 space-y-1">
+                    <Input 
+                        placeholder="Value" 
+                        value={newCondition.value}
+                        onChange={(e) => setNewCondition({...newCondition, value: e.target.value})}
+                        onKeyDown={handleKeyDown}
+                    />
+                </div>
+                <Button onClick={addCondition} type="button" variant="outline" size="icon">
+                    <Plus className="h-4 w-4" />
+                </Button>
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
               {formData.conditions?.map((condition, index) => (
                 <Badge key={index} variant="secondary" className="pl-2 pr-1 py-1 gap-1">
-                  {condition}
+                  {condition.metricName} {condition.operator} {condition.value}
                   <button onClick={() => removeCondition(index)} className="hover:text-red-600">
                     <Trash2 className="h-3 w-3" />
                   </button>

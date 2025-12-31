@@ -359,15 +359,21 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                       type="number" 
                       value={condition.value} 
                       onChange={(e) => handleConditionChange(index, 'value', e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddCondition();
+                        }
+                      }}
                     />
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => handleRemoveCondition(index)}>
+                  <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveCondition(index)}>
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
                 </div>
               ))}
 
-              <Button variant="outline" size="sm" onClick={handleAddCondition} className="w-full">
+              <Button type="button" variant="outline" size="sm" onClick={handleAddCondition} className="w-full">
                 <Plus className="w-4 h-4 mr-2" /> Add Condition
               </Button>
             </div>

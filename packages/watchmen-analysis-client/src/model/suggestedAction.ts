@@ -3,6 +3,13 @@ export type ActionExecutionMode = 'auto' | 'manual' | 'approval';
 export type ActionRiskLevel = 'low' | 'medium' | 'high' | 'critical';
 export type ActionPriority = 'low' | 'medium' | 'high';
 
+export interface ActionTypeParameter {
+  name: string;
+  type: 'string' | 'number' | 'boolean' | 'email' | 'url';
+  required: boolean;
+  description?: string;
+}
+
 export interface ActionType {
   id: string;
   name: string;
@@ -11,6 +18,13 @@ export interface ActionType {
   requiresApproval?: boolean;
   enabled: boolean;
   category: string; // e.g. 'Notification', 'Policy Operation'
+  parameters?: ActionTypeParameter[];
+}
+
+export interface SuggestedActionCondition {
+  metricName: string;
+  operator: string; // '>', '<', '>=', '<=', '==', '!='
+  value: string | number;
 }
 
 export interface SuggestedAction {
@@ -20,7 +34,7 @@ export interface SuggestedAction {
   riskLevel: ActionRiskLevel;
   description: string;
   expectedOutcome?: string;
-  conditions: string[]; // Simplified for now, or use AlertCondition[]
+  conditions: SuggestedActionCondition[]; 
   executionMode: ActionExecutionMode;
   priority: ActionPriority;
   enabled: boolean;
@@ -29,4 +43,6 @@ export interface SuggestedAction {
   executionCount?: number;
   successRate?: number;
   lastExecuted?: string;
+  
+  parameters?: Record<string, any>;
 }

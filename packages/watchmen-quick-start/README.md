@@ -1,63 +1,115 @@
-# watchmen-quick-start
+# Watchmen Quick Start
 
-### MySQL
-Before starting, execute dbscript.sh copy script to mysql directory
+Welcome to the Watchmen playground! This guide will help you set up a local environment to explore the platform's features.
 
+> **⚠️ Important**: This environment is designed for **testing and demonstration purposes only**. It is NOT suitable for production use.
+> For production deployment, please refer to the [Production Environment Deployment Guide](https://imma-watchmen.com/docs/16.0/installation/deploy#production-environment).
 
-```shell
-cd docker 
-docker compose -f docker-compose-mysql.yml up -d
-```
+---
 
-### PostgreSQL
-Before starting, execute dbscript_pg.sh copy script to postgres directory
+## 🚀 Installation & Setup
 
-```shell
-cd docker
-docker compose -f docker-compose-pg.yml up -d
-```
+You can run Watchmen using either **MySQL** or **PostgreSQL** as the storage engine. Choose the option that fits your needs.
 
-go to url localhost:3030
+### Option 1: Using MySQL
 
-#### login with 
-- super user ：imma-super/change-me
-- admin user  ： imma-admin/1234abcd
-- console user ：imma-user/1234abcd
+1.  **Navigate to the docker directory**:
+    ```bash
+    cd docker
+    ```
 
+2.  **Initialize database scripts**:
+    ```bash
+    chmod +x dbscript.sh
+    ./dbscript.sh
+    ```
 
+3.  **Start services**:
+    ```bash
+    docker compose -f docker-compose-mysql.yml up -d
+    ```
 
-#### General process of playground 
-- login with super user
-  - create datasource  
-- login with admin user 
-  - create topics and pipelines 
-  - test pipelines with simulator 
-  - config data ingestion  
-    - config module , model and table
-    - run test  
-    - monitor data ingestion status
-  - Create pat and import test data
-  - Create spaces and assign to your user group
-- login with console user 
-  - connect to space 
-  - create dataset and chart 
-  - create dashboard
+### Option 2: Using PostgreSQL
 
+1.  **Navigate to the docker directory**:
+    ```bash
+    cd docker
+    ```
 
-```
-- DQC and metrics  services are not included 
-```
+2.  **Initialize database scripts**:
+    ```bash
+    chmod +x dbscript_pg.sh
+    ./dbscript_pg.sh
+    ```
 
-#### Tips 
-The current environment will automatically create table in instance database . 
-f you modify the topic structure, it will be deleted and recreated.
-ref to documentation [SYNC_TOPIC_TO_STORAGE](https://imma-watchmen.com/docs/16.1/installation/config/)  
+3.  **Start services**:
+    ```bash
+    docker compose -f docker-compose-pg.yml up -d
+    ```
 
-If it is not a Mac, please modify docker.for.mac.localhost parameter is configured in nginx
+---
 
-This cannot be used in a production environment
-If you need to deploy the production environment, please refer to the document production environment deployment
-https://imma-watchmen.com/docs/16.0/installation/deploy#production-environment
+## 💻 Accessing the Platform
 
+Once the services are up and running, you can access the web console at:
 
+👉 **[http://localhost:3030](http://localhost:3030)**
 
+### Default Accounts
+
+Use the following credentials to log in and explore different roles:
+
+| Role | Username | Password | ID |
+| :--- | :--- | :--- | :--- |
+| **Super User** | `imma-super` | `change-me` | 1 |
+| **Admin User** | `imma-admin` | `1234abcd` | 2 |
+| **Console User** | `imma-user` | `1234abcd` | 3 |
+
+---
+
+## 🎮 Playground Workflow
+
+Follow this general process to experience the full data lifecycle in Watchmen.
+
+### 1. Super User Actions
+*Login as `imma-super`*
+- **Create Datasource**: Define connections to your external databases.
+
+### 2. Admin User Actions
+*Login as `imma-admin`*
+- **Data Ingestion (Collection)**:
+  - Access the Ingestion Client at **[http://localhost:3031](http://localhost:3031)**.
+  - Configure **Modules**, **Models**, and **Tables**.
+  - Run tests and monitor data ingestion status.
+- **Data Management**:
+  - Create **Topics** and **Pipelines**.
+  - Test pipelines using the built-in Simulator.
+  - Create **PAT** (Personal Access Token) and import test data.
+- **Space Management**:
+  - Create **Spaces** and assign them to User Groups.
+
+### 3. Console User Actions
+*Login as `imma-user`*
+- **Visualization & Analysis**:
+  - Connect to a Space.
+  - Create **Datasets** and **Charts**.
+  - Build and share **Dashboards**.
+
+---
+
+## 📝 Notes & Limitations
+
+- **Included Services**: This quick start includes the core platform. **DQC** (Data Quality Center) and **Indicator** services are *not* included.
+- **Data Persistence**:
+  - Tables are automatically created in the instance database.
+  - **Warning**: Modifying a Topic's structure will cause the underlying table to be **dropped and recreated**, resulting in data loss.
+- **Configuration**:
+  - **Non-Mac Users**: You may need to modify the `docker.for.mac.localhost` parameter in the Nginx configuration.
+  - For more details on storage synchronization, refer to the [SYNC_TOPIC_TO_STORAGE documentation](https://imma-watchmen.com/docs/16.1/installation/config/).
+
+---
+
+## 📚 Resources
+
+- **Official Documentation**: [imma-watchmen.com](https://imma-watchmen.com/)
+- **Production Deployment**: [Deployment Guide](https://imma-watchmen.com/docs/16.0/installation/deploy#production-environment)

@@ -6,6 +6,7 @@ import { suggestedActionService } from '@/services/suggestedActionService';
 import { SuggestedActionList } from '@/components/suggested-action/SuggestedActionList';
 import { ActionTypeManagement } from '@/components/suggested-action/ActionTypeManagement';
 import { SuggestedActionModal } from '@/components/suggested-action/SuggestedActionModal';
+import { ActionTypeModal } from '@/components/suggested-action/ActionTypeModal';
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -18,6 +19,10 @@ export const SuggestedActionManagement: React.FC = () => {
   const [currentView, setCurrentView] = useState<'list' | 'types'>('list');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAction, setEditingAction] = useState<SuggestedAction | null>(null);
+
+  // Type Modal State
+  const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
+  const [editingType, setEditingType] = useState<ActionType | null>(null);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -74,11 +79,19 @@ export const SuggestedActionManagement: React.FC = () => {
   
   // Action Type Handlers
   const handleAddType = () => {
-    alert("To be implemented: Open Type Modal");
+    setEditingType(null);
+    setIsTypeModalOpen(true);
   };
 
   const handleEditType = (type: ActionType) => {
-    alert(`To be implemented: Edit Type ${type.name}`);
+    setEditingType(type);
+    setIsTypeModalOpen(true);
+  };
+
+  const handleSaveType = async (type: ActionType) => {
+    await suggestedActionService.saveActionType(type);
+    fetchData();
+    setIsTypeModalOpen(false);
   };
 
   const handleDeleteType = async (id: string) => {
@@ -199,6 +212,13 @@ export const SuggestedActionManagement: React.FC = () => {
         action={editingAction}
         types={types}
         onSave={handleSave}
+      />
+
+      <ActionTypeModal 
+        open={isTypeModalOpen}
+        onOpenChange={setIsTypeModalOpen}
+        type={editingType}
+        onSave={handleSaveType}
       />
     </div>
   );

@@ -47,7 +47,10 @@ const mockSuggestedActions: SuggestedAction[] = [
     riskLevel: 'low',
     description: 'Send notification when compensation rate exceeds threshold',
     expectedOutcome: 'Pre-warn 24h ahead, expected loss reduction 15%',
-    conditions: ['Loss Ratio > 80%', 'Continuous 3 days increase'],
+    conditions: [
+      { metricName: 'Loss Ratio', operator: '>', value: '80%' },
+      { metricName: 'Growth Rate', operator: '>', value: '0' } // continuous increase implies > 0
+    ],
     executionMode: 'auto',
     priority: 'high',
     enabled: true,
@@ -62,7 +65,7 @@ const mockSuggestedActions: SuggestedAction[] = [
     riskLevel: 'high',
     description: 'Suggest term adjustments for identified high-risk policies',
     expectedOutcome: 'Reduce high risk exposure',
-    conditions: ['Risk Score > 90'],
+    conditions: [{ metricName: 'Risk Score', operator: '>', value: 90 }],
     executionMode: 'approval',
     priority: 'high',
     enabled: true,
