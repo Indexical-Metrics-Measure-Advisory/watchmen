@@ -17,7 +17,12 @@ class DataSourceCache:
 		self.builderByIdCache = InternalCache(cache=get_data_storage_builder_by_id_cache)
 
 	def put(self, data_source: DataSource) -> Optional[DataSource]:
-		return self.byIdCache.put(data_source.dataSourceId, data_source)
+		existing: Optional[DataSource] = self.byIdCache.put(data_source.dataSourceId, data_source)
+		if existing:
+			builder = self.get_builder(existing.dataSourceId)
+			if builder is not None:
+				self.builderByIdCache.remove(existing.dataSourceId)
+		return existing
 
 	def put_builder(
 			self, data_source_id: DataSourceId, builder: Callable[[], TopicDataStorageSPI]

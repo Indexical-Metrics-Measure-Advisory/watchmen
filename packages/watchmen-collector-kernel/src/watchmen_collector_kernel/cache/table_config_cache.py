@@ -77,5 +77,7 @@ class TableConfigCache:
 		self.ByTenantAndNameCache.clear()
 		self.ByTenantAndParentNameCache.clear()
 
+	def all(self) -> List[CollectorTableConfig]:
+		return list(self.ByTenantAndNameCache.values())
 
 table_config_cache = TableConfigCache()

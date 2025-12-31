@@ -1,6 +1,6 @@
 from typing import List, Optional
 import urllib.parse
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, NullPool
 from sqlalchemy.engine import Engine
 
 from watchmen_model.common import DataModel
@@ -35,7 +35,8 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 			future=True,
 			pool_recycle=params.poolRecycle,
 			json_serializer=serialize_to_json,
-			supports_native_boolean=False
+			supports_native_boolean=False,
+			poolclass=NullPool
 		)
 
 	# noinspection DuplicatedCode
