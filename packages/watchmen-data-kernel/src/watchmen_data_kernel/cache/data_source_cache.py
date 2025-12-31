@@ -18,8 +18,10 @@ class DataSourceCache:
 
 	def put(self, data_source: DataSource) -> Optional[DataSource]:
 		existing: Optional[DataSource] = self.byIdCache.put(data_source.dataSourceId, data_source)
-		if self.get_builder(existing.dataSourceId) is not None:
-			self.builderByIdCache.remove(existing.dataSourceId)
+		if existing:
+			builder = self.get_builder(existing.dataSourceId)
+			if builder is not None:
+				self.builderByIdCache.remove(existing.dataSourceId)
 		return existing
 
 	def put_builder(
