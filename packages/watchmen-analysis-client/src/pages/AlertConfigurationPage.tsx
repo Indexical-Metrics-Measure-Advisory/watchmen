@@ -5,10 +5,11 @@ import { useSidebar } from '@/contexts/SidebarContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GlobalAlertRuleList } from '@/components/alert/GlobalAlertRuleList';
 import { SuggestedActionManagement } from '@/components/suggested-action/SuggestedActionManagement';
+import { ActionTypeConfiguration } from '@/components/suggested-action/ActionTypeConfiguration';
 
 export const AlertConfigurationPage: React.FC = () => {
   const { collapsed } = useSidebar();
-  const [activeTab, setActiveTab] = useState("suggested-actions");
+  const [activeTab, setActiveTab] = useState("alert-rules");
 
   return (
     <div className="min-h-screen bg-background">
@@ -25,13 +26,19 @@ export const AlertConfigurationPage: React.FC = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="suggested-actions">Suggested Actions</TabsTrigger>
+            <TabsList className="grid w-full max-w-2xl grid-cols-3">
               <TabsTrigger value="alert-rules">Alert Rules</TabsTrigger>
+              <TabsTrigger value="suggested-actions">Suggested Actions</TabsTrigger>
+              <TabsTrigger value="action-types">Action Types</TabsTrigger>
+         
             </TabsList>
             
             <TabsContent value="suggested-actions" className="mt-6">
               <SuggestedActionManagement />
+            </TabsContent>
+
+            <TabsContent value="action-types" className="mt-6">
+              <ActionTypeConfiguration />
             </TabsContent>
             
             <TabsContent value="alert-rules" className="mt-6">

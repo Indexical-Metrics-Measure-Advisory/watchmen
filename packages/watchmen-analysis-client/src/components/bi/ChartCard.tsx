@@ -296,7 +296,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
             <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-muted-foreground ml-2 border-l pl-2 max-w-[200px]">
               <span className="truncate">{card.title}</span>
               {card.alert?.enabled && (
-                <div className="flex items-center gap-1 text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0" title={`Alert: ${card.alert.condition.operator} ${card.alert.condition.value}`}>
+                <div className="flex items-center gap-1 text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0" title="Alert On">
                   <AlertTriangle className="h-3 w-3" />
                   <span className="hidden xl:inline">Alert On</span>
                 </div>

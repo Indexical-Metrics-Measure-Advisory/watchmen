@@ -147,7 +147,7 @@ export const SuggestedActionList: React.FC<SuggestedActionListProps> = ({
                          <p className="text-sm text-muted-foreground mb-3">{action.description}</p>
                          
                          <div className="flex items-center gap-2 flex-wrap mt-2">
-                            {action.conditions.map((cond, idx) => (
+                            {action.conditions && action.conditions.map((cond, idx) => (
                                 <Badge key={idx} variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-slate-200 font-normal border border-slate-200">
                                     {cond.metricName} {cond.operator} {cond.value}
                                 </Badge>

@@ -79,7 +79,8 @@ const mockModels: Model[] = [
     lastModifiedAt: '2024-01-15T10:00:00Z',
     lastModifiedBy: 'admin',
     moduleId: 'policy_mgmt_001',
-    priority: 1
+    priority: 1,
+    sendType: 'raw-topic'
   },
   {
     modelId: 'customer_001',
@@ -94,7 +95,9 @@ const mockModels: Model[] = [
     lastModifiedAt: '2024-01-20T14:15:00Z',
     lastModifiedBy: 'system',
     moduleId: 'customer_mgmt_001',
-    priority: 2
+    priority: 2,
+    sendType: 'cloud-file',
+    dataSourceId: 'ds-3'
   },
   {
     modelId: 'order_001',

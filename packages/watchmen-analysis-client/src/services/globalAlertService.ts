@@ -9,7 +9,6 @@ const mockGlobalAlertRules: GlobalAlertRule[] = [
   {
     id: 'global-rule-1',
     enabled: true,
-    condition: { operator: '>', value: 100000 },
     conditions: [{ metricId: 'total_revenue', metricName: 'Total Revenue', operator: '>', value: 100000 }],
     nextAction: { type: 'notification' },
     name: 'High Revenue Alert',
@@ -114,11 +113,45 @@ class GlobalAlertService {
     if (isMockMode) {
       await new Promise(resolve => setTimeout(resolve, 300));
       // Return a random value close to the condition value to simulate checking
-      const baseValue = typeof rule.condition.value === 'number' ? rule.condition.value : 0;
+      const firstCondition = rule.conditions?.[0];
+      const baseValue = firstCondition && typeof firstCondition.value === 'number' ? Number(firstCondition.value) : 0;
       const randomFactor = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
       // Mock response structure with triggered status
       const value = Math.round(baseValue * randomFactor);
-      const isTriggered = rule.condition.operator === '>' ? value > rule.condition.value : value < rule.condition.value;
+      
+      let isTriggered = false;
+      const results: any[] = [];
+      
+      if (rule.conditions && rule.conditions.length > 0) {
+          rule.conditions.forEach(cond => {
+             const condValue = Number(cond.value);
+             let triggered = false;
+             switch (cond.operator) {
+                 case '>': triggered = value > condValue; break;
+                 case '<': triggered = value < condValue; break;
+                 case '>=': triggered = value >= condValue; break;
+                 case '<=': triggered = value <= condValue; break;
+                 case '==': triggered = value === condValue; break;
+                 case '!=': triggered = value !== condValue; break;
+             }
+             results.push({
+                 metricId: cond.metricId || '',
+                 metricName: cond.metricName || '',
+                 operator: cond.operator,
+                 value: cond.value,
+                 currentValue: value,
+                 triggered
+             });
+          });
+          
+          if (rule.conditionLogic === 'or') {
+              isTriggered = results.some(r => r.triggered);
+          } else {
+              isTriggered = results.every(r => r.triggered);
+          }
+      } else {
+          isTriggered = false;
+      }
       
       return {
         triggered: isTriggered,
@@ -131,14 +164,7 @@ class GlobalAlertService {
            severity: rule.priority,
            message: isTriggered ? `Rule ${rule.name} triggered` : 'Normal',
            acknowledged: false,
-           conditionResults: [{
-             metricId: rule.conditions?.[0]?.metricId || '',
-             metricName: rule.conditions?.[0]?.metricName || '',
-             operator: rule.condition.operator,
-             value: rule.condition.value,
-             currentValue: value,
-             triggered: isTriggered
-           }]
+           conditionResults: results
         }
       };
     }

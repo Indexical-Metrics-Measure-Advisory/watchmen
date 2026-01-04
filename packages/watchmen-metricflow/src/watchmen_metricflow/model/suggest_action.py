@@ -61,9 +61,9 @@ class SuggestedAction(ExtendedBaseModel, TenantBasedTuple, Auditable, Optimistic
     name: str = None
     typeId: str = None  # Reference to ActionType
     riskLevel: ActionRiskLevel = None
-    description: str = None
+    description: Optional[str] = None
     expectedOutcome: Optional[str] = None
-    conditions: List[SuggestedActionCondition] = None
+    conditions: Optional[List[SuggestedActionCondition]] = None
     executionMode: ActionExecutionMode = None
     priority: ActionPriority = None
     enabled: bool = False

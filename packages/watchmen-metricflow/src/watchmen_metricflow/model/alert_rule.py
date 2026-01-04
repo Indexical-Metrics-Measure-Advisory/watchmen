@@ -54,7 +54,7 @@ class LegacyAlertCondition(ExtendedBaseModel):
 
 
 class AlertAction(ExtendedBaseModel):
-    type: Optional[AlertActionType] = AlertActionType.NOTIFICATION
+    type: Optional[str] = None
     riskLevel: Optional[AlertPriority] = None
     name: Optional[str] = None
     content: Optional[str] = None
@@ -70,9 +70,9 @@ class AlertConfig(ExtendedBaseModel, UserBasedTuple, Auditable):
     description: Optional[str] = None
     conditionLogic: Optional[AlertConditionLogic] = None
     conditions: Optional[List[AlertCondition]] = None
-    condition: Optional[LegacyAlertCondition] = None
+    # condition: Optional[LegacyAlertCondition] = None
     actions: Optional[List[AlertAction]] = None
-    nextAction: Optional[AlertAction] = None
+    # nextAction: Optional[AlertAction] = None
     decision: Optional[str] = None
 
     model_config = ConfigDict(use_enum_values=True)

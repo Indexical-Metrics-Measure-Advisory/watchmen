@@ -6,6 +6,7 @@ import { GlobalAlertRule } from '@/model/biAnalysis';
 import { GlobalAlertConfigurationModal } from '@/components/bi/GlobalAlertConfigurationModal';
 import { Badge } from "@/components/ui/badge";
 import { globalAlertService } from '@/services/globalAlertService';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export const GlobalAlertRuleList: React.FC = () => {
   const [rules, setRules] = useState<GlobalAlertRule[]>([]);
@@ -111,12 +112,14 @@ export const GlobalAlertRuleList: React.FC = () => {
         )}
       </div>
       
-      <GlobalAlertConfigurationModal 
-        open={isModalOpen} 
-        onOpenChange={setIsModalOpen}
-        rule={editingRule}
-        onSave={handleSave}
-      />
+      <ErrorBoundary>
+        <GlobalAlertConfigurationModal 
+          open={isModalOpen} 
+          onOpenChange={setIsModalOpen}
+          rule={editingRule}
+          onSave={handleSave}
+        />
+      </ErrorBoundary>
     </div>
   );
 };

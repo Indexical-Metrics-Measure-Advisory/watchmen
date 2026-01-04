@@ -1,8 +1,10 @@
 from typing import List, Optional
 
 from watchmen_meta.common import TupleService, TupleShaper
-from watchmen_storage import EntityShaper, EntityRow
-from watchmen_utilities import ArrayHelper
+from watchmen_model.common import TenantId, Pageable, DataPage
+from watchmen_storage import EntityShaper, EntityRow, EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaJoint, \
+    EntityCriteriaJointConjunction, EntityCriteriaOperator
+from watchmen_utilities import ArrayHelper, is_not_blank
 
 from ..model.suggest_action import ActionType, SuggestedAction, ActionTypeParameter, SuggestedActionCondition
 
@@ -63,6 +65,45 @@ class ActionTypeService(TupleService):
 
     def get_storable_id_column_name(self) -> str:
         return 'action_type_id'
+
+    def find_all_by_tenant_id(self, tenant_id: TenantId) -> List[ActionType]:
+        criteria = []
+        if is_not_blank(tenant_id):
+            criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+        # noinspection PyTypeChecker
+        return self.storage.find(self.get_entity_finder(criteria))
+
+    def find_page_by_text(self, text: Optional[str], pageable: Pageable) -> DataPage:
+        criteria = []
+        if is_not_blank(text):
+            criteria.append(EntityCriteriaJoint(
+                conjunction=EntityCriteriaJointConjunction.OR,
+                children=[
+                    EntityCriteriaExpression(
+                        left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text),
+                    EntityCriteriaExpression(
+                        left=ColumnNameLiteral(columnName='description'), operator=EntityCriteriaOperator.LIKE,
+                        right=text)
+                ]
+            ))
+        tenant_id = self.principalService.get_tenant_id()
+        if is_not_blank(tenant_id):
+            criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+        return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
+
+    def find_page_by_criteria(self, criteria: dict, pageable: Pageable) -> DataPage:
+        # Basic implementation for now, assuming criteria is simple dictionary mapping to columns
+        storage_criteria = []
+        for key, value in criteria.items():
+            if is_not_blank(value):
+                storage_criteria.append(
+                    EntityCriteriaExpression(left=ColumnNameLiteral(columnName=key), right=value))
+        
+        tenant_id = self.principalService.get_tenant_id()
+        if is_not_blank(tenant_id):
+            storage_criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+        
+        return self.storage.page(self.get_entity_pager(criteria=storage_criteria, pageable=pageable))
 
 
 class SuggestedActionShaper(EntityShaper):
@@ -133,3 +174,41 @@ class SuggestedActionService(TupleService):
 
     def get_storable_id_column_name(self) -> str:
         return 'suggested_action_id'
+
+    def find_all_by_tenant_id(self, tenant_id: TenantId) -> List[SuggestedAction]:
+        criteria = []
+        if is_not_blank(tenant_id):
+            criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+        # noinspection PyTypeChecker
+        return self.storage.find(self.get_entity_finder(criteria))
+
+    def find_page_by_text(self, text: Optional[str], pageable: Pageable) -> DataPage:
+        criteria = []
+        if is_not_blank(text):
+            criteria.append(EntityCriteriaJoint(
+                conjunction=EntityCriteriaJointConjunction.OR,
+                children=[
+                    EntityCriteriaExpression(
+                        left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text),
+                    EntityCriteriaExpression(
+                        left=ColumnNameLiteral(columnName='description'), operator=EntityCriteriaOperator.LIKE,
+                        right=text)
+                ]
+            ))
+        tenant_id = self.principalService.get_tenant_id()
+        if is_not_blank(tenant_id):
+            criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+        return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
+
+    def find_page_by_criteria(self, criteria: dict, pageable: Pageable) -> DataPage:
+        storage_criteria = []
+        for key, value in criteria.items():
+            if is_not_blank(value):
+                storage_criteria.append(
+                    EntityCriteriaExpression(left=ColumnNameLiteral(columnName=key), right=value))
+
+        tenant_id = self.principalService.get_tenant_id()
+        if is_not_blank(tenant_id):
+            storage_criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+
+        return self.storage.page(self.get_entity_pager(criteria=storage_criteria, pageable=pageable))

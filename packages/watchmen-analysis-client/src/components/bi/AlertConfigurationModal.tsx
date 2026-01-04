@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -89,7 +89,6 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
   const [testValue, setTestValue] = useState<number>(0);
   const [config, setConfig] = useState<AlertConfig>({
     enabled: true,
-    condition: { operator: '>', value: 0 },
     nextAction: { type: 'notification' },
     conditions: [],
     conditionLogic: 'and',
@@ -116,7 +115,6 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
     if (open) {
       const initialConfig = {
         enabled: true,
-        condition: { operator: '>', value: 0 },
         nextAction: { type: 'notification' },
         conditionLogic: 'and',
         name: card.title || '',
@@ -130,8 +128,8 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
         initialConfig.conditions = [{
           metricId: card.metricId,
           metricName: card.title || card.metricId,
-          operator: initialConfig.condition.operator,
-          value: initialConfig.condition.value
+          operator: '>',
+          value: 0
         }];
       }
 
@@ -170,14 +168,7 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
       const newConditions = [...(prev.conditions || [])];
       newConditions[index] = { ...newConditions[index], [field]: value };
       
-      // Sync legacy condition if it's the first one
-      let legacyCondition = prev.condition;
-      if (index === 0) {
-        if (field === 'operator') legacyCondition = { ...legacyCondition, operator: value };
-        if (field === 'value') legacyCondition = { ...legacyCondition, value: Number(value) };
-      }
-
-      return { ...prev, conditions: newConditions, condition: legacyCondition };
+      return { ...prev, conditions: newConditions };
     });
   };
 
@@ -231,16 +222,7 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
         triggered = results.some(r => r);
       }
     } else {
-      // Fallback to legacy
-      const val = Number(config.condition.value);
-      switch (config.condition.operator) {
-        case '>': triggered = testValue > val; break;
-        case '<': triggered = testValue < val; break;
-        case '>=': triggered = testValue >= val; break;
-        case '<=': triggered = testValue <= val; break;
-        case '==': triggered = testValue === val; break;
-        case '!=': triggered = testValue !== val; break;
-      }
+      triggered = false;
     }
 
     setTestResult({

@@ -12,4 +12,6 @@ export interface Model {
     lastModifiedBy: string;
     moduleId: string;
     priority: number;
+    sendType?: string;
+    dataSourceId?: string;
   }

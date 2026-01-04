@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SuggestedAction, ActionType, ActionExecutionMode, ActionPriority, ActionRiskLevel, SuggestedActionCondition, ActionTypeParameter } from '@/model/suggestedAction';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,8 +42,11 @@ export const SuggestedActionModal: React.FC<SuggestedActionModalProps> = ({
     value: ''
   });
 
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     if (open) {
+      setError(null);
       if (action) {
         setFormData({ ...action });
       } else {
@@ -137,6 +140,9 @@ export const SuggestedActionModal: React.FC<SuggestedActionModalProps> = ({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{action ? 'Edit Suggested Action' : 'New Suggested Action'}</DialogTitle>
+          <DialogDescription>
+            Define a suggested action to be triggered by specific conditions.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
@@ -332,9 +338,12 @@ export const SuggestedActionModal: React.FC<SuggestedActionModalProps> = ({
 
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSave}>Save</Button>
+        <DialogFooter className="sm:justify-between">
+          <div className="text-sm text-red-500 font-medium">{error}</div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button onClick={handleSave}>Save</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

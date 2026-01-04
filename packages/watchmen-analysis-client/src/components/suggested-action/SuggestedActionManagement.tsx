@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Plus, Settings, List } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { SuggestedAction, ActionType } from '@/model/suggestedAction';
 import { suggestedActionService } from '@/services/suggestedActionService';
+import { actionTypeService } from '@/services/actionTypeService';
 import { SuggestedActionList } from '@/components/suggested-action/SuggestedActionList';
-import { ActionTypeManagement } from '@/components/suggested-action/ActionTypeManagement';
 import { SuggestedActionModal } from '@/components/suggested-action/SuggestedActionModal';
-import { ActionTypeModal } from '@/components/suggested-action/ActionTypeModal';
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export const SuggestedActionManagement: React.FC = () => {
   const [actions, setActions] = useState<SuggestedAction[]>([]);
@@ -16,13 +16,10 @@ export const SuggestedActionManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   
   // View State
-  const [currentView, setCurrentView] = useState<'list' | 'types'>('list');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAction, setEditingAction] = useState<SuggestedAction | null>(null);
 
-  // Type Modal State
-  const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
-  const [editingType, setEditingType] = useState<ActionType | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,7 +35,7 @@ export const SuggestedActionManagement: React.FC = () => {
       setLoading(true);
       const [actionsData, typesData] = await Promise.all([
         suggestedActionService.getSuggestedActions(),
-        suggestedActionService.getActionTypes()
+        actionTypeService.getActionTypes()
       ]);
       setActions(actionsData);
       setTypes(typesData);
@@ -59,10 +56,15 @@ export const SuggestedActionManagement: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this action?')) {
-      await suggestedActionService.deleteSuggestedAction(id);
-      fetchData();
+  const handleDelete = (id: string) => {
+    setDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteId) {
+        await suggestedActionService.deleteSuggestedAction(deleteId);
+        fetchData();
+        setDeleteId(null);
     }
   };
 
@@ -76,35 +78,6 @@ export const SuggestedActionManagement: React.FC = () => {
      await suggestedActionService.saveSuggestedAction({ ...action, enabled: !action.enabled });
      fetchData();
   };
-  
-  // Action Type Handlers
-  const handleAddType = () => {
-    setEditingType(null);
-    setIsTypeModalOpen(true);
-  };
-
-  const handleEditType = (type: ActionType) => {
-    setEditingType(type);
-    setIsTypeModalOpen(true);
-  };
-
-  const handleSaveType = async (type: ActionType) => {
-    await suggestedActionService.saveActionType(type);
-    fetchData();
-    setIsTypeModalOpen(false);
-  };
-
-  const handleDeleteType = async (id: string) => {
-     if (confirm('Delete this action type?')) {
-        await suggestedActionService.deleteActionType(id);
-        fetchData();
-     }
-  };
-  
-  const handleToggleType = async (type: ActionType) => {
-      await suggestedActionService.saveActionType({ ...type, enabled: !type.enabled });
-      fetchData();
-  }
 
   // Filter Logic
   const filteredActions = actions.filter(action => {
@@ -131,80 +104,49 @@ export const SuggestedActionManagement: React.FC = () => {
       </div>
 
       <div className="flex items-center justify-between gap-4">
-         <div className="flex bg-muted p-1 rounded-lg">
-            <Button 
-                variant={currentView === 'list' ? 'default' : 'ghost'} 
-                size="sm"
-                onClick={() => setCurrentView('list')}
-            >
-                <List className="h-4 w-4 mr-2" /> Action List
-            </Button>
-            <Button 
-                variant={currentView === 'types' ? 'default' : 'ghost'} 
-                size="sm"
-                onClick={() => setCurrentView('types')}
-            >
-                <Settings className="h-4 w-4 mr-2" /> Type Management
-            </Button>
+         <div className="flex-1 flex items-center gap-4">
+            <div className="flex-1">
+                <Input 
+                    placeholder="Search action name or description..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+            </Select>
+            <Select value={riskFilter} onValueChange={setRiskFilter}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="All Risk Levels" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Risk Levels</SelectItem>
+                    <SelectItem value="low">Low Risk</SelectItem>
+                    <SelectItem value="medium">Medium Risk</SelectItem>
+                    <SelectItem value="high">High Risk</SelectItem>
+                    <SelectItem value="critical">Critical Risk</SelectItem>
+                </SelectContent>
+            </Select>
          </div>
          
-         {currentView === 'list' && (
-             <Button onClick={handleCreate}>
-                <Plus className="mr-2 h-4 w-4" /> New Action
-             </Button>
-         )}
+         <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" /> New Action
+         </Button>
       </div>
 
-      {currentView === 'list' ? (
-        <>
-            <div className="flex items-center gap-4">
-                <div className="flex-1">
-                    <Input 
-                        placeholder="Search action name or description..." 
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="All Categories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-                <Select value={riskFilter} onValueChange={setRiskFilter}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="All Risk Levels" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Risk Levels</SelectItem>
-                        <SelectItem value="low">Low Risk</SelectItem>
-                        <SelectItem value="medium">Medium Risk</SelectItem>
-                        <SelectItem value="high">High Risk</SelectItem>
-                        <SelectItem value="critical">Critical Risk</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-
-            <SuggestedActionList 
-                actions={filteredActions} 
-                types={types}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onToggle={handleToggleAction}
-            />
-        </>
-      ) : (
-        <ActionTypeManagement 
-            types={types}
-            onAdd={handleAddType}
-            onEdit={handleEditType}
-            onDelete={handleDeleteType}
-            onToggle={handleToggleType}
-        />
-      )}
+      <SuggestedActionList 
+        actions={filteredActions} 
+        types={types}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onToggle={handleToggleAction}
+      />
       
       <SuggestedActionModal 
         open={isModalOpen} 
@@ -214,12 +156,20 @@ export const SuggestedActionManagement: React.FC = () => {
         onSave={handleSave}
       />
 
-      <ActionTypeModal 
-        open={isTypeModalOpen}
-        onOpenChange={setIsTypeModalOpen}
-        type={editingType}
-        onSave={handleSaveType}
-      />
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the suggested action.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
     </div>
   );
 };

@@ -10,13 +10,14 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Database, Loader2, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search, Filter, RefreshCw, Download, FileJson } from 'lucide-react';
+import { Plus, Edit, Database, Loader2, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search, Filter, RefreshCw, Download, FileText } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Model } from '@/models/model';
 import { Module } from '@/models/module';
 import { modelService } from '@/services/modelService';
 import { moduleService } from '@/services/moduleService';
+import dataSourceService from '@/services/dataSourceService';
 
 const Models = () => {
   // Auth context
@@ -24,6 +25,7 @@ const Models = () => {
   
   const [models, setModels] = useState<Model[]>([]);
   const [availableModules, setAvailableModules] = useState<Module[]>([]);
+  const [dataSources, setDataSources] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -60,12 +62,14 @@ const Models = () => {
       try {
         setLoading(true);
         setError(null);
-        const [fetchedModels, fetchedModules] = await Promise.all([
+        const [fetchedModels, fetchedModules, fetchedDataSources] = await Promise.all([
           modelService.getAllModels(),
-          moduleService.getAllModules()
+          moduleService.getAllModules(),
+          dataSourceService.getAllDataSources()
         ]);
         setModels(fetchedModels);
         setAvailableModules(fetchedModules);
+        setDataSources(fetchedDataSources);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch data');
         console.error('Error fetching data:', err);
@@ -149,7 +153,8 @@ const Models = () => {
       createdBy: user?.id || 'current_user',
       lastModifiedBy: user?.id || 'current_user',
       moduleId: '',
-      priority: 1
+      priority: 1,
+      sendType: 'raw-topic'
     });
     setFormErrors({});
     setSuccessMessage(null);
@@ -252,7 +257,9 @@ const Models = () => {
         createdBy: user?.name || 'current_user',
         lastModifiedBy: user?.name || 'current_user',
         moduleId: createFormData.moduleId!,
-        priority: createFormData.priority || 1
+        priority: createFormData.priority || 1,
+        sendType: createFormData.sendType,
+        dataSourceId: createFormData.dataSourceId
       };
 
       // Call service layer to create model
@@ -305,7 +312,9 @@ const Models = () => {
         tenantId: editFormData.tenantId,
         lastModifiedBy: user?.name || 'current_user',
         moduleId: editFormData.moduleId,
-        priority: editFormData.priority
+        priority: editFormData.priority,
+        sendType: editFormData.sendType,
+        dataSourceId: editFormData.dataSourceId
       };
 
       // console.log('Update data prepared:', updateData);
@@ -367,6 +376,8 @@ const Models = () => {
       setViewTopicLoading(false);
     }
   };
+
+  const cloudDataSources = dataSources.filter(ds => ['s3', 'azure-blob', 'ali-oss'].includes(ds.type));
 
   return (
     <div className="p-8 max-w-[1600px] mx-auto space-y-8">
@@ -558,7 +569,7 @@ const Models = () => {
                     {viewTopicLoading && selectedModel?.modelId === model.modelId ? (
                       <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
                     ) : (
-                      <FileJson className="h-4 w-4 text-gray-500 hover:text-blue-600" />
+                      <FileText className="h-4 w-4 text-gray-500 hover:text-blue-600" />
                     )}
                   </Button>
                   <Button 
@@ -575,7 +586,7 @@ const Models = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-3 gap-3 text-sm">
                   <div className="space-y-1">
                     <p className="text-xs text-gray-500 font-medium uppercase">Priority</p>
                     <Badge variant="outline" className="font-normal">
@@ -587,6 +598,19 @@ const Models = () => {
                     <p className="text-gray-700 truncate" title={model.rawTopicCode || '-'}>
                       {model.rawTopicCode || '-'}
                     </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-500 font-medium uppercase">Send Type</p>
+                    <div className="flex flex-col gap-1">
+                      <Badge variant="outline" className="font-normal bg-blue-50 text-blue-700 border-blue-100 w-fit">
+                        {model.sendType || 'raw-topic'}
+                      </Badge>
+                      {model.sendType === 'cloud-file' && model.dataSourceId && (
+                        <span className="text-xs text-gray-500 truncate max-w-[100px]" title={dataSources.find(ds => ds.dataSourceId === model.dataSourceId)?.name}>
+                          DS: {dataSources.find(ds => ds.dataSourceId === model.dataSourceId)?.name || model.dataSourceId}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
@@ -769,6 +793,42 @@ const Models = () => {
                 onChange={(e) => setCreateFormData(prev => ({ ...prev, priority: parseInt(e.target.value) }))}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-sendType">Send Type</Label>
+              <Select
+                value={createFormData.sendType || 'raw-topic'}
+                onValueChange={(value) => setCreateFormData(prev => ({ ...prev, sendType: value, dataSourceId: value === 'raw-topic' ? undefined : prev.dataSourceId }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select send type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="raw-topic">Raw Topic</SelectItem>
+                  <SelectItem value="cloud-file">Cloud File</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {createFormData.sendType === 'cloud-file' && (
+              <div className="space-y-2">
+                <Label htmlFor="create-dataSourceId">Data Source</Label>
+                <Select
+                  value={createFormData.dataSourceId || ''}
+                  onValueChange={(value) => setCreateFormData(prev => ({ ...prev, dataSourceId: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select data source" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cloudDataSources.map((ds) => (
+                      <SelectItem key={ds.dataSourceId} value={ds.dataSourceId}>
+                        {ds.name} ({ds.type})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="flex items-center space-x-2 md:col-span-2">
               <Checkbox
@@ -847,6 +907,42 @@ const Models = () => {
                 onChange={(e) => setEditFormData(prev => ({ ...prev, priority: parseInt(e.target.value) }))}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-sendType">Send Type</Label>
+              <Select
+                value={editFormData.sendType || 'raw-topic'}
+                onValueChange={(value) => setEditFormData(prev => ({ ...prev, sendType: value, dataSourceId: value === 'raw-topic' ? undefined : prev.dataSourceId }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select send type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="raw-topic">Raw Topic</SelectItem>
+                  <SelectItem value="cloud-file">Cloud File</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {editFormData.sendType === 'cloud-file' && (
+              <div className="space-y-2">
+                <Label htmlFor="edit-dataSourceId">Data Source</Label>
+                <Select
+                  value={editFormData.dataSourceId || ''}
+                  onValueChange={(value) => setEditFormData(prev => ({ ...prev, dataSourceId: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select data source" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cloudDataSources.map((ds) => (
+                      <SelectItem key={ds.dataSourceId} value={ds.dataSourceId}>
+                        {ds.name} ({ds.type})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="flex items-center space-x-2 md:col-span-2">
               <Checkbox

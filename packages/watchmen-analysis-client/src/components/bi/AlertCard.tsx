@@ -34,7 +34,7 @@ const checkAlert = (value: number, config: AlertConfig) => {
     if (config.conditionLogic === 'or') return results.some(r => r);
     return results.every(r => r);
   }
-  return checkSingleCondition(value, config.condition);
+  return false;
 };
 
 export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, alertStatus, onAcknowledge }) => {
@@ -125,7 +125,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, aler
              </div>
              
             <div className="space-y-1.5">
-               {(alertConfig.conditions && alertConfig.conditions.length > 0 ? alertConfig.conditions : [{ ...alertConfig.condition, field: card.metricId, metricId: card.metricId, metricName: card.title }]).map((cond: any, idx: number) => {
+               {(alertConfig.conditions || []).map((cond: any, idx: number) => {
                  const metricLabel = cond.metricName || cond.field || cond.metricId || card.metricId;
                  return (
                 <div key={idx} className="flex items-center gap-1.5 flex-wrap">

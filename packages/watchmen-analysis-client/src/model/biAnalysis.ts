@@ -26,13 +26,15 @@ export interface BIDimensionSelection {
 }
 
 export interface AlertAction {
-  type: 'email' | 'webhook' | 'notification' | 'process';
+  type: string;
+  suggestedActionId?: string;
   target?: string;
   template?: string;
   riskLevel?: 'low' | 'medium' | 'high' | 'critical';
   name?: string;
   content?: string;
   expectedEffect?: string;
+  parameters?: Record<string, any>;
 }
 
 export interface AlertCondition {
@@ -50,11 +52,6 @@ export interface AlertConfig {
   description?: string;
   conditionLogic?: 'and' | 'or';
   conditions?: AlertCondition[];
-  // Legacy support
-  condition: {
-    operator: '>' | '<' | '>=' | '<=' | '==' | '!=';
-    value: number;
-  };
   actions?: AlertAction[];
   nextAction?: AlertAction;
   decision?: string; // Description of the decision/recommendation

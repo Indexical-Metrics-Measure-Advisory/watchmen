@@ -50,6 +50,30 @@ export class DataSourceService {
           tenantId: 'tenant-1',
           createdAt: '2024-01-02T00:00:00Z',
           createdBy: 'admin'
+        },
+        {
+          dataSourceId: 'ds-3',
+          name: 'S3 Bucket',
+          type: 's3',
+          tenantId: 'tenant-1',
+          createdAt: '2024-01-03T00:00:00Z',
+          createdBy: 'admin'
+        },
+        {
+          dataSourceId: 'ds-4',
+          name: 'Azure Blob Storage',
+          type: 'azure-blob',
+          tenantId: 'tenant-1',
+          createdAt: '2024-01-04T00:00:00Z',
+          createdBy: 'admin'
+        },
+        {
+          dataSourceId: 'ds-5',
+          name: 'Aliyun OSS',
+          type: 'ali-oss',
+          tenantId: 'tenant-1',
+          createdAt: '2024-01-05T00:00:00Z',
+          createdBy: 'admin'
         }
       ];
     }

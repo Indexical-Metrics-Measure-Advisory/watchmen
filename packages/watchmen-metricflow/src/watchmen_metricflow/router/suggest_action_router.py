@@ -43,16 +43,35 @@ async def create_action_type(
     action_type_service = get_action_type_service(principal_service)
 
     def action() -> ActionType:
-        action_type_service.begin_transaction()
-        try:
+
             action_type.tenantId = principal_service.get_tenant_id()
             action_type.id = str(action_type_service.snowflakeGenerator.next_id())
             created_action_type = action_type_service.create(action_type)
-            action_type_service.commit_transaction()
+
             return created_action_type
-        except Exception as e:
-            action_type_service.rollback_transaction()
-            raise e
+
+    return trans(action_type_service, action)
+
+
+@router.post('/metricflow/action-type/delete', tags=['ADMIN'], response_model=ActionType)
+async def delete_action_type_by_id(
+        action_type_id: Optional[str] = None,
+        principal_service: PrincipalService = Depends(get_admin_principal)
+) -> ActionType:
+    if is_blank(action_type_id):
+        raise_400('Action type ID is required.')
+
+    action_type_service = get_action_type_service(principal_service)
+
+    def action() -> ActionType:
+        # verify existence and tenant
+        existing_action_type = action_type_service.find_by_id(action_type_id)
+        if existing_action_type is None:
+            raise_404()
+        if existing_action_type.tenantId != principal_service.get_tenant_id():
+            raise_400('Tenant ID mismatch.')
+
+        return action_type_service.delete(action_type_id)
 
     return trans(action_type_service, action)
 
@@ -68,8 +87,7 @@ async def update_action_type(
     action_type_service = get_action_type_service(principal_service)
 
     def action() -> ActionType:
-        action_type_service.begin_transaction()
-        try:
+
             action_type.tenantId = principal_service.get_tenant_id()
             existing_action_type = action_type_service.find_by_id(action_type.id)
             if existing_action_type is None:
@@ -79,11 +97,9 @@ async def update_action_type(
                 raise_400('Tenant ID mismatch.')
             
             updated_action_type = action_type_service.update(action_type)
-            action_type_service.commit_transaction()
+
             return updated_action_type
-        except Exception as e:
-            action_type_service.rollback_transaction()
-            raise e
+
 
     return trans(action_type_service, action)
 
@@ -148,16 +164,35 @@ async def create_suggested_action(
     suggested_action_service = get_suggested_action_service(principal_service)
 
     def action() -> SuggestedAction:
-        suggested_action_service.begin_transaction()
-        try:
+
             suggested_action.tenantId = principal_service.get_tenant_id()
             suggested_action.id = str(suggested_action_service.snowflakeGenerator.next_id())
             created_suggested_action = suggested_action_service.create(suggested_action)
-            suggested_action_service.commit_transaction()
             return created_suggested_action
-        except Exception as e:
-            suggested_action_service.rollback_transaction()
-            raise e
+
+
+    return trans(suggested_action_service, action)
+
+
+@router.post('/metricflow/suggested-action/delete', tags=['ADMIN'], response_model=SuggestedAction)
+async def delete_suggested_action_by_id(
+        suggested_action_id: Optional[str] = None,
+        principal_service: PrincipalService = Depends(get_admin_principal)
+) -> SuggestedAction:
+    if is_blank(suggested_action_id):
+        raise_400('Suggested action ID is required.')
+
+    suggested_action_service = get_suggested_action_service(principal_service)
+
+    def action() -> SuggestedAction:
+        # verify existence and tenant
+        existing_action = suggested_action_service.find_by_id(suggested_action_id)
+        if existing_action is None:
+            raise_404()
+        if existing_action.tenantId != principal_service.get_tenant_id():
+            raise_400('Tenant ID mismatch.')
+
+        return suggested_action_service.delete(suggested_action_id)
 
     return trans(suggested_action_service, action)
 
@@ -173,8 +208,7 @@ async def update_suggested_action(
     suggested_action_service = get_suggested_action_service(principal_service)
 
     def action() -> SuggestedAction:
-        suggested_action_service.begin_transaction()
-        try:
+
             suggested_action.tenantId = principal_service.get_tenant_id()
             existing_action = suggested_action_service.find_by_id(suggested_action.id)
             if existing_action is None:
@@ -183,11 +217,9 @@ async def update_suggested_action(
                 raise_400('Tenant ID mismatch.')
 
             updated_suggested_action = suggested_action_service.update(suggested_action)
-            suggested_action_service.commit_transaction()
+
             return updated_suggested_action
-        except Exception as e:
-            suggested_action_service.rollback_transaction()
-            raise e
+
 
     return trans(suggested_action_service, action)
 
