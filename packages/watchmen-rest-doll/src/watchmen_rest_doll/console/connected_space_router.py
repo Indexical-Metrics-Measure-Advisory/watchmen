@@ -21,6 +21,7 @@ from watchmen_rest import get_admin_principal, get_console_principal, get_super_
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityStraightColumn, EntityStraightValuesFinder
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_not_blank, ExtendedBaseModel
 
 router = APIRouter()
@@ -597,6 +598,37 @@ async def find_subjects_by_id(
 			logger.error(f"process subject {subject_with_type.subjectId}, error: {e}", exc_info=True)
 
 	return validate_subjects
+
+
+@router.get('/connected_space/subjects/name', tags=[UserRole.ADMIN], response_model=None)
+async def find_subjects_name_by_id(
+		principal_service: PrincipalService = Depends(
+			get_admin_principal)) -> List[dict]:
+	connected_space_service = get_connected_space_service(principal_service)
+
+	def action() -> List[dict]:
+		connected_spaces: List[ConnectedSpace] = connected_space_service.find_all(principal_service.get_tenant_id())
+		subject_service: SubjectService = get_subject_service(connected_space_service)
+		return ArrayHelper(connected_spaces) \
+			.map(lambda x: subject_service.storage.find_straight_values(
+			EntityStraightValuesFinder(
+				name=subject_service.get_entity_name(),
+				shaper=subject_service.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='connect_id'), right=x.connectId),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
+					                         right=principal_service.get_tenant_id())
+				],
+				straightColumns=[
+					EntityStraightColumn(columnName='subject_id'),
+					EntityStraightColumn(columnName='name')
+				]
+			)
+		)) \
+			.flatten() \
+			.to_list()
+
+	return trans_readonly(connected_space_service, action)
 
 
 def filter_unfinished_subjects(subjects: List[Subject]) -> List[Subject]:
