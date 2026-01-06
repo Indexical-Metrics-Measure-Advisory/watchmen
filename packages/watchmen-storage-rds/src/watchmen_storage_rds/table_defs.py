@@ -695,7 +695,6 @@ table_global_alert_rules = Table(
 	create_str('description', 1024),
 	create_str('condition_logic', 10),
 	create_json('conditions'),
-	create_json('condition'),
 	create_json('actions'),
 	create_json('next_action'),
 	create_str('decision', 1024),

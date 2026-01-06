@@ -9,7 +9,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from '@/components/ui/label';
 import { 
   LayoutDashboard, 
@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { AnalysisBoard } from '@/components/bi/AnalysisBoard';
 import { MetricBuilderSheet } from '@/components/bi/MetricBuilderSheet';
+import { SubscriptionModal } from '@/components/bi/SubscriptionModal';
 import { inferType } from '@/components/bi/utils';
 import { BIChartCard, BICardSize, BIMetric, BIChartType, GlobalAlertRule } from '@/model/biAnalysis';
 import { saveAnalysis, listAnalyses, getAnalysis, deleteAnalysis, updateAnalysis, updateAnalysisTemplate } from '@/services/biAnalysisService';
@@ -250,6 +251,7 @@ const BIAnalysisPage: React.FC = () => {
   const [saveName, setSaveName] = useState('');
   const [saveDesc, setSaveDesc] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
+  const [subscriptionOpen, setSubscriptionOpen] = useState(false);
   const [templates, setTemplates] = useState<{ id: string; name: string; description?: string; isTemplate?: boolean }[]>([]);
 
   // Fetch rules when alert metric changes
@@ -880,9 +882,14 @@ const BIAnalysisPage: React.FC = () => {
     toast({ title: 'Updated', description: `Analysis ${newStatus ? 'set as template' : 'removed from templates'}` });
   };
 
+  const { token } = useAuth();
+
   const copyShareLink = () => {
     if (!currentAnalysisId) return;
-    const url = `${window.location.origin}/share/analysis/${currentAnalysisId}`;
+    let url = `${window.location.origin}/share/analysis/${currentAnalysisId}`;
+    if (token) {
+      url += `?token=${token}`;
+    }
     navigator.clipboard.writeText(url);
     toast({ title: 'Copied', description: 'Share link copied to clipboard' });
   };
@@ -976,6 +983,7 @@ const BIAnalysisPage: React.FC = () => {
                   onRemove={removeCard}
                   onUpdate={updateCard}
                   onAddAlert={() => setAddAlertOpen(true)}
+                  onSubscription={currentAnalysisId ? () => setSubscriptionOpen(true) : undefined}
                   alertStatusMap={alertStatusMap}
                   onAcknowledge={handleAcknowledge}
                   globalFilterDimensions={commonFilterDimensions}
@@ -1109,6 +1117,13 @@ const BIAnalysisPage: React.FC = () => {
             onOpenChange={setShareOpen}
             currentAnalysisId={currentAnalysisId}
             onCopyLink={copyShareLink}
+            token={token || undefined}
+          />
+
+          <SubscriptionModal
+            open={subscriptionOpen}
+            onOpenChange={setSubscriptionOpen}
+            analysisId={currentAnalysisId || ''}
           />
         </main>
       </div>
@@ -1264,33 +1279,44 @@ type ShareAnalysisDialogProps = {
   onOpenChange: (open: boolean) => void;
   currentAnalysisId: string | null;
   onCopyLink: () => void;
+  token?: string;
 };
 
 function ShareAnalysisDialog({
   open,
   onOpenChange,
   currentAnalysisId,
-  onCopyLink
+  onCopyLink,
+  token,
 }: ShareAnalysisDialogProps) {
+  const shareLink = useMemo(() => {
+    if (!currentAnalysisId) return '';
+    let url = `${window.location.origin}/share/analysis/${currentAnalysisId}`;
+    if (token) {
+      url += `?token=${token}`;
+    }
+    return url;
+  }, [currentAnalysisId, token]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Share Analysis</DialogTitle>
           <DialogDescription>
-            Share this analysis with external users. Anyone with the link can view it.
+            Share this analysis with external users. {token ? 'The link includes your current authentication token.' : 'Please log in to generate a secure link.'}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="flex items-center space-x-2">
-            <Input value={`${window.location.origin}/share/analysis/${currentAnalysisId}`} readOnly />
-            <Button size="icon" onClick={onCopyLink}>
+            <Input value={shareLink} readOnly />
+            <Button size="icon" onClick={onCopyLink} disabled={!shareLink}>
               <Copy className="h-4 w-4" />
             </Button>
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={() => window.open(`/share/analysis/${currentAnalysisId}`, '_blank')}>Open Link</Button>
+          <Button onClick={() => window.open(shareLink, '_blank')} disabled={!shareLink}>Open Link</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

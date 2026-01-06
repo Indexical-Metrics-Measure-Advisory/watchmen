@@ -7,7 +7,6 @@ CREATE TABLE global_alert_rules
     description       VARCHAR2(1024),
     condition_logic   VARCHAR2(10),
     conditions        CLOB,
-    "condition"       CLOB,
     actions           CLOB,
     next_action       CLOB,
     decision          VARCHAR2(1024),

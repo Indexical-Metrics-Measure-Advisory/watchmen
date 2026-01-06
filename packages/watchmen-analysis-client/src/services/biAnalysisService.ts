@@ -127,7 +127,7 @@ export const saveAnalysis = async (input: BIAnalysis): Promise<BIAnalysis> => {
       name: input.name, 
       description: input.description, 
       cards: input.cards,
-      isTemplate: input.isTemplate 
+      isTemplate: input.isTemplate
     };
     const all = readStore();
     writeStore([record, ...all]);
@@ -182,7 +182,15 @@ export const getAnalysis = async (id: string): Promise<BIAnalysis | undefined> =
 };
 
 export const updateAnalysis = async (update: BIAnalysis): Promise<BIAnalysis | undefined> => {
- 
+  if (isMockMode) {
+    const all = readStore();
+    const index = all.findIndex(a => a.id === update.id);
+    if (index === -1) return undefined;
+    
+    all[index] = { ...all[index], ...update };
+    writeStore(all);
+    return all[index];
+  }
 
   console.log('update', update);
 
@@ -213,7 +221,7 @@ export const deleteAnalysis = async (id: string): Promise<boolean> => {
 
 
 };
-export const updateAnalysisTemplate = async (update: BIAnalysisTemplate): Promise<BIAnalysis | undefined> => {
+export const updateAnalysisTemplate = async (update: Partial<BIAnalysisTemplate> & { id: string }): Promise<BIAnalysis | undefined> => {
   
   const response = await fetch(`${BASE_URL}/update/template`, {
     method: 'POST', // Using POST for update as well, or could be PUT/PATCH
@@ -223,3 +231,20 @@ export const updateAnalysisTemplate = async (update: BIAnalysisTemplate): Promis
   return checkResponse(response);
 };
 
+export const getSharedAnalysis = async (id: string, token?: string): Promise<BIAnalysis | undefined> => {
+  if (isMockMode) {
+    const all = readStore();
+    return all.find(a => a.id === id);
+  }
+
+  const headers = getDefaultHeaders();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${BASE_URL}/${id}`, {
+    method: 'GET',
+    headers,
+  });
+  return checkResponse(response);
+};

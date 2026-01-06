@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { AnalysisBoard } from '@/components/bi/AnalysisBoard';
-import { getAnalysis } from '@/services/biAnalysisService';
+import { getAnalysis, getSharedAnalysis } from '@/services/biAnalysisService';
 import { metricsService } from '@/services/metricsService';
 import { alertService } from '@/services/alertService';
 import { BIChartCard, GlobalAlertRule } from '@/model/biAnalysis';
@@ -12,8 +12,19 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { globalAlertService } from '@/services/globalAlertService';
 
+import { authService } from '@/services/authService';
+
 const SharedAnalysisPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+
+  useEffect(() => {
+    if (token && !authService.getStoredToken()) {
+      localStorage.setItem('authToken', token);
+    }
+  }, [token]);
+
   const [cards, setCards] = useState<BIChartCard[]>([]);
   const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: any[]; rawData: MetricFlowResponse | null }>>({});
   const [alertStatusMap, setAlertStatusMap] = useState<Record<string, AlertStatus>>({});
@@ -167,7 +178,7 @@ const SharedAnalysisPage: React.FC = () => {
       setLoading(false);
       return;
     }
-    getAnalysis(id).then(analysis => {
+    getSharedAnalysis(id, token || undefined).then(analysis => {
       if (analysis) {
          setCards(analysis.cards);
          setAnalysisName(analysis.name);
@@ -176,10 +187,10 @@ const SharedAnalysisPage: React.FC = () => {
       }
       setLoading(false);
     }).catch(e => {
-       setError('Failed to load analysis');
+       setError(e.message || 'Failed to load analysis');
        setLoading(false);
     });
-  }, [id]);
+  }, [id, token]);
 
   useEffect(() => {
      cards.forEach(card => {

@@ -98,8 +98,28 @@ export interface BIAnalysisInput {
 
 export interface BIAnalysisTemplate {
   id: string;
-  
+  name: string;
+  description?: string;
+  cards: BIChartCard[];
+  previewImage?: string;
+  tags?: string[];
   isTemplate?: boolean;
+}
+
+export interface Subscription {
+  id: string;
+  analysisId: string;
+  frequency: 'once' | 'day' | 'week' | 'biweekly' | 'month' | 'year';
+  interval?: number;
+  time?: string; // HH:MM
+  date?: string; // YYYY-MM-DD (for 'once')
+  weekday?: string; // 'mon', 'tue', ... for 'week', 'biweekly'
+  dayOfMonth?: number; // 1-31 for 'month'
+  month?: string; // 'jan', 'feb', ... for 'year'
+  recipients: string[];
+  enabled: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface BIAnalysisListItem {

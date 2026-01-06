@@ -4,7 +4,7 @@ import type { BIChartCard, BICardSize, BIChartType } from '@/model/biAnalysis';
 import type { AlertStatus } from '@/model/AlertConfig';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import type { MetricDimension } from '@/model/analysis';
-import { LayoutDashboard, PlusCircle, AlertCircle, BellPlus, SlidersHorizontal, ChevronRight, X, RefreshCw } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, AlertCircle, BellPlus, SlidersHorizontal, ChevronRight, X, RefreshCw, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,7 @@ interface AnalysisBoardProps {
   onRemove: (index: number) => void;
   onUpdate?: (index: number, card: BIChartCard) => void;
   onAddAlert?: () => void;
+  onSubscription?: () => void;
   readOnly?: boolean;
   alertStatusMap?: Record<string, AlertStatus>;
   onAcknowledge?: (alertId: string) => void;
@@ -50,6 +51,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
   onRemove,
   onUpdate,
   onAddAlert,
+  onSubscription,
   readOnly = false,
   alertStatusMap,
   onAcknowledge,
@@ -160,6 +162,12 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
             <Button variant="outline" size="sm" onClick={onAddAlert} className="gap-2 h-8">
               <BellPlus className="w-4 h-4" />
               Add Alert
+            </Button>
+          )}
+          {!readOnly && onSubscription && (
+            <Button variant="outline" size="sm" onClick={onSubscription} className="gap-2 h-8">
+              <Clock className="w-4 h-4" />
+              Subscriptions
             </Button>
           )}
           <div className="text-xs text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full">

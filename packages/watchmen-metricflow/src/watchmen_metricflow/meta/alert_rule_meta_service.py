@@ -29,7 +29,6 @@ class AlertRuleShaper(UserBasedTupleShaper):
             'description': alert_rule.description,
             'condition_logic': alert_rule.conditionLogic,
             'conditions': AlertRuleShaper.serialize_conditions(alert_rule.conditions),
-            'condition': (alert_rule.condition if isinstance(alert_rule.condition, dict) else alert_rule.condition.model_dump()) if alert_rule.condition else None,
             'actions': AlertRuleShaper.serialize_actions(alert_rule.actions),
             'next_action': (alert_rule.nextAction if isinstance(alert_rule.nextAction, dict) else alert_rule.nextAction.model_dump()) if alert_rule.nextAction else None,
             'decision': alert_rule.decision
@@ -47,7 +46,6 @@ class AlertRuleShaper(UserBasedTupleShaper):
             'description': row.get('description'),
             'conditionLogic': row.get('condition_logic'),
             'conditions': row.get('conditions'),
-            'condition': row.get('condition'),
             'actions': row.get('actions'),
             'nextAction': row.get('next_action'),
             'decision': row.get('decision')

@@ -4,7 +4,7 @@ import {QueryUserGroupForHolder} from '@/services/data/tuples/query-user-group-t
 import {User, UserRole} from '@/services/data/tuples/user-types';
 import {DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
-import {TuplePropertyDropdown, TuplePropertyInput, TuplePropertyLabel} from '@/widgets/tuple-workbench/tuple-editor';
+import {TuplePropertyCheckBox, TuplePropertyDropdown, TuplePropertyInput, TuplePropertyLabel} from '@/widgets/tuple-workbench/tuple-editor';
 import {useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes, TupleState} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import React, {ChangeEvent} from 'react';
@@ -40,6 +40,11 @@ const UserEditor = (props: { user: User, codes?: HoldByUser }) => {
 		fire(TupleEventTypes.CHANGE_TUPLE_STATE, TupleState.CHANGED);
 		forceUpdate();
 	};
+	const onIsActiveChange = (value: boolean) => {
+		user.isActive = value;
+		fire(TupleEventTypes.CHANGE_TUPLE_STATE, TupleState.CHANGED);
+		forceUpdate();
+	};
 
 	// guard data
 	user.userGroupIds = user.userGroupIds || [];
@@ -65,6 +70,8 @@ const UserEditor = (props: { user: User, codes?: HoldByUser }) => {
 		<TuplePropertyDropdown value={user.role || UserRole.CONSOLE} options={roleOptions} onChange={onRoleChange}/>
 		{isSuperAdmin()
 			? <>
+				<TuplePropertyLabel>Is Active:</TuplePropertyLabel>
+				<TuplePropertyCheckBox value={user.isActive !== false} onChange={onIsActiveChange}/>
 				<TuplePropertyLabel>Data Zone:</TuplePropertyLabel>
 				<TuplePropertyDropdown value={user.tenantId} options={tenantOptions} onChange={onTenantChange}/>
 			</>

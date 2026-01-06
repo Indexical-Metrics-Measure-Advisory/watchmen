@@ -64,7 +64,7 @@ class BIDimensionSelection(BaseModel):
 
 
 
-from watchmen_metricflow.model.alert_rule import AlertConfig, AlertPriority, AlertOperator, AlertConditionLogic, AlertCondition, LegacyAlertCondition, AlertAction
+from watchmen_metricflow.model.alert_rule import AlertConfig, AlertPriority, AlertOperator, AlertConditionLogic, AlertCondition, AlertAction
 
 
 class BIChartCard(ExtendedBaseModel):

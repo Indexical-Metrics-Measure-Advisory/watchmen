@@ -7,7 +7,6 @@ CREATE TABLE global_alert_rules
     description       VARCHAR(1024),
     condition_logic   VARCHAR(10),
     conditions        JSON,
-    `condition`       JSON,
     actions           JSON,
     next_action       JSON,
     decision          VARCHAR(1024),

@@ -152,6 +152,36 @@ def build_profile(semantic_model: SemanticModel, principal_service: PrincipalSer
                 schema = next((param for param in data_source.params if param.name == "schema"), None)
                 output_config["schema"] = schema.value if schema else data_source.username
 
+            elif ds_type == DataSourceType.SNOWFLAKE:
+                target_name = "snowflake"
+                output_config["type"] = "snowflake"
+                output_config["account"] = data_source.host
+                output_config["database"] = data_source.name
+                output_config.pop("host", None)
+                output_config.pop("dbname", None)
+                output_config.pop("port", None)
+                output_config.pop("keepalives_idle", None)
+                output_config.pop("connect_timeout", None)
+                output_config.pop("retries", None)
+
+                role = next((param for param in data_source.params if param.name == "role"), None)
+                if role:
+                    output_config["role"] = role.value
+
+                warehouse = next((param for param in data_source.params if param.name == "warehouse"), None)
+                if warehouse:
+                    output_config["warehouse"] = warehouse.value
+
+                schema = next((param for param in data_source.params if param.name == "schema"), None)
+                output_config["schema"] = schema.value if schema else "PUBLIC"
+
+                client_session_keep_alive = next(
+                    (param for param in data_source.params if param.name == "client_session_keep_alive"), None)
+                if client_session_keep_alive:
+                    output_config["client_session_keep_alive"] = client_session_keep_alive.value
+                else:
+                    output_config["client_session_keep_alive"] = False
+
             else:
                 raise Exception(f"Unsupported data source type: {ds_type}")
 

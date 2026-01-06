@@ -16,6 +16,7 @@ class DataSourceType(str, Enum):
 	MONGODB = 'mongodb',
 	MSSQL = 'mssql',
 	POSTGRESQL = 'postgresql',
+	SNOWFLAKE = 'snowflake',
 	OSS = 'oss',
 	S3 = 's3',
 	ADLS = 'adls'  # Azure Data Lake Storage

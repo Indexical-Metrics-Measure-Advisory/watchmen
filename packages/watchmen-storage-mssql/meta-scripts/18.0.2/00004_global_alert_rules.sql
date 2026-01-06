@@ -7,7 +7,6 @@ CREATE TABLE global_alert_rules
     description       NVARCHAR(1024),
     condition_logic   NVARCHAR(10),
     conditions        NVARCHAR(MAX),
-    condition         NVARCHAR(MAX),
     actions           NVARCHAR(MAX),
     next_action       NVARCHAR(MAX),
     decision          NVARCHAR(1024),
