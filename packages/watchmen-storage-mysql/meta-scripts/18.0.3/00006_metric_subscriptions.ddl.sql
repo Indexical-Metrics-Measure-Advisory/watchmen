@@ -1,0 +1,23 @@
+CREATE TABLE metric_subscriptions (
+    id VARCHAR(50) NOT NULL,
+    analysis_id VARCHAR(50) NOT NULL,
+    frequency VARCHAR(20) NOT NULL,
+    `interval` INT,
+    time VARCHAR(10),
+    date VARCHAR(20),
+    weekday VARCHAR(10),
+    day_of_month INT,
+    month VARCHAR(10),
+    recipients JSON,
+    enabled TINYINT DEFAULT 1,
+    tenant_id VARCHAR(50) NOT NULL,
+    user_id VARCHAR(50) NOT NULL,
+    created_at DATETIME NOT NULL,
+    created_by VARCHAR(50) NOT NULL,
+    last_modified_at DATETIME NOT NULL,
+    last_modified_by VARCHAR(50) NOT NULL,
+    PRIMARY KEY (id),
+    INDEX index_subscription_analysis_id (analysis_id),
+    INDEX index_subscription_tenant_id (tenant_id),
+    INDEX index_subscription_user_id (user_id)
+);
