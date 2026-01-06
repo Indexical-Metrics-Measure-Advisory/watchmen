@@ -1,5 +1,5 @@
 from watchmen_meta.common import UserBasedTupleService, UserBasedTupleShaper, AuditableShaper
-from watchmen_storage import EntityShaper, EntityRow
+from watchmen_storage import EntityShaper, EntityRow, EntityCriteriaExpression, ColumnNameLiteral
 from ..model.metric_subscription import Subscription
 
 
@@ -57,9 +57,20 @@ class SubscriptionService(UserBasedTupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return SUBSCRIPTION_ENTITY_SHAPER
 
+	def get_storable_id_column_name(self) -> str:
+		return 'id'
+
 	def get_storable_id(self, storable: Subscription) -> str:
 		return storable.id
 
 	def set_storable_id(self, storable: Subscription, storable_id: str) -> Subscription:
 		storable.id = storable_id
 		return storable
+
+	def find_by_analysis_id(self, analysis_id: str, tenant_id: str) -> list[Subscription]:
+		return self.storage.find(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='analysis_id'), right=analysis_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+			]
+		))

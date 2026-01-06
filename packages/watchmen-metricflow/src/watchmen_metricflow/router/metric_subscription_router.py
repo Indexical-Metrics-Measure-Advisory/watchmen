@@ -65,6 +65,7 @@ async def create_subscription(
 	"""Create a new subscription"""
 	# Set tenant ID from principal
 	subscription.tenantId = principal_service.get_tenant_id()
+	subscription.userId = principal_service.userId
 	
 	service = get_subscription_service(principal_service)
 	subscription.id = str(service.snowflakeGenerator.next_id())

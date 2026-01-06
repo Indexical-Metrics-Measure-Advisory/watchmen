@@ -1,8 +1,8 @@
 import { Subscription } from '@/model/biAnalysis';
 import { API_BASE_URL, getDefaultHeaders, checkResponse } from '@/utils/apiConfig';
 
-const isMockMode = true; // Default to mock for now
-const BASE_URL = `${API_BASE_URL}/subscription`;
+const isMockMode = import.meta.env.VITE_USE_MOCK_DATA === 'true';; // Default to mock for now
+const BASE_URL = `${API_BASE_URL}/metricflow/subscription`;
 
 const mockSubscriptions: Subscription[] = [];
 
@@ -83,8 +83,22 @@ class SubscriptionService {
       mockSubscriptions.splice(index, 1);
       return;
     }
-    const response = await fetch(`${BASE_URL}/delete/${id}`, {
-      method: 'GET',
+    const response = await fetch(`${BASE_URL}/delete?subscription_id=${id}`, {
+      method: 'DELETE',
+      headers: getDefaultHeaders(),
+    });
+    return checkResponse(response);
+  }
+
+  async runSubscription(id: string): Promise<void> {
+    if (isMockMode) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const sub = mockSubscriptions.find(s => s.id === id);
+      if (!sub) throw new Error('Subscription not found');
+      return;
+    }
+    const response = await fetch(`${BASE_URL}/run/${id}`, {
+      method: 'POST',
       headers: getDefaultHeaders(),
     });
     return checkResponse(response);

@@ -684,7 +684,21 @@ table_bi_analysis = Table(
 	create_tenant_id(), *create_tuple_audit_columns(), create_user_id()
 )
 
-
+table_metric_subscriptions = Table(
+	'metric_subscriptions', meta_data,
+	create_pk('id'),
+	create_str('analysis_id', 50, False),
+	create_str('frequency', 20, False),
+	create_int('interval'),
+	create_str('time', 10),
+	create_str('date', 20),
+	create_str('weekday', 10),
+	create_int('day_of_month'),
+	create_str('month', 10),
+	create_json('recipients'),
+	create_bool('enabled', False),
+	create_tenant_id(), *create_tuple_audit_columns(), create_user_id()
+)
 
 table_global_alert_rules = Table(
 	'global_alert_rules', meta_data,
@@ -792,6 +806,7 @@ tables: Dict[str, Table] = {
 	'data_profiles': table_data_profiles,
 	'metric_categories': table_metric_categories,
 	'bi_analysis': table_bi_analysis,
+	'metric_subscriptions': table_metric_subscriptions,
 	'global_alert_rules': table_global_alert_rules,
 	'action_types': table_action_types,
 	'suggested_actions': table_suggested_actions,

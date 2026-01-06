@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Mail, Save, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Mail, Save, Loader2, Play } from 'lucide-react';
 import { Subscription } from '@/model/biAnalysis';
 import { subscriptionService } from '@/services/subscriptionService';
 import { useToast } from "@/components/ui/use-toast";
@@ -23,6 +23,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 }) => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(false);
+  const [runningId, setRunningId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchSubscriptions = async () => {
@@ -98,6 +99,21 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
       }
     } catch (error) {
       toast({ title: "Error", description: "Failed to save subscription", variant: "destructive" });
+    }
+  };
+
+  const handleRunSubscription = async (index: number) => {
+    const sub = subscriptions[index];
+    if (sub.id.startsWith('temp-')) return;
+    
+    setRunningId(sub.id);
+    try {
+      await subscriptionService.runSubscription(sub.id);
+      toast({ title: "Success", description: "Subscription triggered successfully" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to run subscription", variant: "destructive" });
+    } finally {
+      setRunningId(null);
     }
   };
 
@@ -268,6 +284,19 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   </div>
 
                   <div className="flex justify-end gap-2">
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      onClick={() => handleRunSubscription(index)}
+                      disabled={sub.id.startsWith('temp-') || runningId === sub.id}
+                    >
+                      {runningId === sub.id ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Play className="h-4 w-4 mr-2" />
+                      )}
+                      Test Run
+                    </Button>
                     <Button variant="destructive" size="sm" onClick={() => handleDeleteSubscription(index)}>
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete
