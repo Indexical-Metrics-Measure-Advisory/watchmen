@@ -40,6 +40,12 @@ const checkAlert = (value: number, config: AlertConfig) => {
 export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, alertStatus, onAcknowledge }) => {
   const value = data.length > 0 ? (typeof data[0].value === 'number' ? data[0].value : 0) : 0;
   const alertConfig = card.alert;
+  const isAcknowledged = alertStatus?.acknowledged;
+  const [showDetails, setShowDetails] = React.useState(!isAcknowledged);
+
+  React.useEffect(() => {
+    setShowDetails(!isAcknowledged);
+  }, [isAcknowledged]);
   
   if (!alertConfig) {
     return <div className="flex items-center justify-center h-full text-muted-foreground">No alert configuration</div>;
@@ -110,7 +116,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, aler
         </div>
       </div>
 
-      {/* Rule Condition Box */}
+      {/* Rule Condition Box - Shown when NOT triggered */}
       {!isTriggered && (
         <div className="bg-muted/40 p-3 rounded-md border border-border/40 font-mono text-xs mb-auto relative overflow-hidden group">
            <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary/50 group-hover:bg-primary transition-colors" />
@@ -147,12 +153,28 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, aler
       {/* Action Section - Only visible when triggered */}
       {isTriggered && (
         <div className="flex-1 flex flex-col gap-2 overflow-hidden">
-          <div className="flex items-center gap-2 px-1">
-            <AlertTriangle className="w-4 h-4 text-destructive" />
-            <span className="text-sm font-semibold text-destructive">Alert Triggered</span>
-          </div>
+          {isAcknowledged ? (
+             <div className="flex items-center justify-between bg-emerald-500/10 p-3 rounded border border-emerald-500/20">
+                 <div className="flex items-center gap-2 text-emerald-600">
+                     <CheckCircle2 className="w-5 h-5" />
+                     <div className="flex flex-col">
+                        <span className="font-medium text-sm">Acknowledged</span>
+                        <span className="text-[10px] opacity-80">by {alertStatus?.acknowledgedBy || 'User'}</span>
+                     </div>
+                 </div>
+                 <Button variant="ghost" size="sm" onClick={() => setShowDetails(!showDetails)} className="h-7 text-xs px-2 hover:bg-emerald-500/20 hover:text-emerald-700">
+                     {showDetails ? 'Hide Details' : 'Show Details'}
+                 </Button>
+             </div>
+          ) : (
+             <div className="flex items-center gap-2 px-1">
+                <AlertTriangle className="w-4 h-4 text-destructive" />
+                <span className="text-sm font-semibold text-destructive">Alert Triggered</span>
+             </div>
+          )}
 
-          <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+          {(showDetails || !isAcknowledged) && (
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1 animate-in slide-in-from-top-2 duration-200">
             {/* Detailed Condition Results */}
             {alertStatus?.conditionResults && alertStatus.conditionResults.length > 0 && (
                <div className="space-y-2 mb-2">
@@ -177,23 +199,16 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, aler
             )}
 
             {/* Acknowledge Button */}
-            {alertStatus && isTriggered && (
+            {alertStatus && isTriggered && !isAcknowledged && (
               <div className="mb-2">
-                 {alertStatus.acknowledged ? (
-                    <div className="text-xs text-emerald-600 flex items-center gap-1.5 bg-emerald-500/10 p-2 rounded border border-emerald-500/20">
-                       <CheckCircle2 className="w-3 h-3" />
-                       <span>Acknowledged by {alertStatus.acknowledgedBy || 'User'}</span>
-                    </div>
-                 ) : (
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="w-full h-7 text-xs border-destructive/30 hover:bg-destructive/10 hover:text-destructive" 
-                      onClick={() => onAcknowledge?.(alertStatus.id)}
-                    >
-                       Acknowledge Alert
-                    </Button>
-                 )}
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="w-full h-7 text-xs border-destructive/30 hover:bg-destructive/10 hover:text-destructive" 
+                  onClick={() => onAcknowledge?.(alertStatus.id)}
+                >
+                   Acknowledge Alert
+                </Button>
               </div>
             )}
             
@@ -206,13 +221,34 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, aler
                     </Badge>
                     <span className="font-medium text-sm">{action.name || 'Suggested Action'}</span>
                   </div>
-                  <Badge variant="secondary" className="text-[10px]">{action.type}</Badge>
+                  <Badge variant="secondary" className="text-[10px]" title={action.type}>
+                    {action.typeName || (action.type.length > 20 || (/^\d+$/.test(action.type) && action.type.length > 15) ? 'Action' : action.type)}
+                  </Badge>
                 </div>
                 
                 {action.content && (
-                  <p className="text-xs text-muted-foreground bg-background/50 p-2 rounded border border-dashed">
-                    {action.content}
-                  </p>
+                  <div className="bg-background/50 p-2 rounded border border-dashed space-y-1">
+                    <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Description</div>
+                    <p className="text-xs text-muted-foreground">
+                      {action.content}
+                    </p>
+                  </div>
+                )}
+
+                {action.parameters && Object.keys(action.parameters).length > 0 && (
+                  <div className="bg-background/50 p-2 rounded border border-dashed space-y-1">
+                     <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Parameters</div>
+                     <div className="grid gap-1">
+                        {Object.entries(action.parameters).map(([key, value]) => (
+                           <div key={key} className="flex text-[10px]">
+                              <span className="text-muted-foreground w-24 shrink-0 truncate" title={key}>{key}</span>
+                              <span className="font-mono text-foreground truncate flex-1" title={typeof value === 'object' ? JSON.stringify(value) : String(value)}>
+                                {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                              </span>
+                           </div>
+                        ))}
+                     </div>
+                  </div>
                 )}
 
                 {action.expectedEffect && (
@@ -222,10 +258,10 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, aler
                   </div>
                 )}
 
-                {(action.riskLevel === 'medium' || action.riskLevel === 'high' || action.riskLevel === 'critical') && (
+                {(action.executionMode === 'manual' || action.executionMode === 'approval' || (!action.executionMode && (action.riskLevel === 'medium' || action.riskLevel === 'high' || action.riskLevel === 'critical'))) && (
                   <Button size="sm" className="w-full gap-2 mt-2" variant={action.riskLevel === 'medium' ? "default" : "destructive"}>
                     <PlayCircle className="w-4 h-4" />
-                    Execute Manually
+                    {action.executionMode === 'approval' ? 'Request Execution' : 'Execute Manually'}
                   </Button>
                 )}
               </div>
@@ -237,6 +273,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, aler
               </div>
             )}
           </div>
+          )}
         </div>
       )}
 
@@ -244,9 +281,15 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, aler
       <div className="flex items-center justify-between mt-auto pt-2 border-t">
         <div className="flex items-center gap-2">
           {isTriggered ? (
-            <Badge variant="destructive" className="px-2 py-0.5 text-[10px] font-medium animate-pulse">
-              Active
-            </Badge>
+             isAcknowledged ? (
+               <Badge variant="outline" className="px-2 py-0.5 text-[10px] font-medium text-emerald-600 bg-emerald-50 border-emerald-200">
+                 Resolved
+               </Badge>
+             ) : (
+               <Badge variant="destructive" className="px-2 py-0.5 text-[10px] font-medium animate-pulse">
+                 Active
+               </Badge>
+             )
           ) : (
             <Badge variant="outline" className="px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted/50">
               Normal

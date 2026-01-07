@@ -27,7 +27,9 @@ export interface BIDimensionSelection {
 
 export interface AlertAction {
   type: string;
+  typeName?: string; // Human readable type name
   suggestedActionId?: string;
+  executionMode?: 'auto' | 'manual' | 'approval';
   target?: string;
   template?: string;
   riskLevel?: 'low' | 'medium' | 'high' | 'critical';

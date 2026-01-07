@@ -807,7 +807,7 @@ export const updateMetric = async (name: string, updates: Partial<MetricDefiniti
 // Delete metric
 export const deleteMetric = async (name: string): Promise<void> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/metric/metrics/${encodeURIComponent(name)}`, {
+    const response = await fetch(`${API_BASE_URL}/metricflow/metric/${encodeURIComponent(name)}`, {
       method: 'DELETE',
       headers: getDefaultHeaders()
     });

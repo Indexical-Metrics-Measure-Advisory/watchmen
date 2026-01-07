@@ -6,7 +6,7 @@ import type { BIChartCard, BICardSize, BIChartType } from '@/model/biAnalysis';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import type { AlertStatus } from '@/model/AlertConfig';
 import { AlertCard } from './AlertCard';
-import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Download, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy, AlertTriangle, Settings } from 'lucide-react';
+import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Download, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy, AlertTriangle, Settings, CheckCircle2, Activity } from 'lucide-react';
 import { AlertConfigurationModal } from './AlertConfigurationModal';
 import {
   DropdownMenu,
@@ -296,10 +296,26 @@ export const ChartCard: React.FC<ChartCardProps> = ({
             <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-muted-foreground ml-2 border-l pl-2 max-w-[200px]">
               <span className="truncate">{card.title}</span>
               {card.alert?.enabled && (
-                <div className="flex items-center gap-1 text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0" title="Alert On">
-                  <AlertTriangle className="h-3 w-3" />
-                  <span className="hidden xl:inline">Alert On</span>
-                </div>
+                <>
+                  {alertStatus?.triggered ? (
+                    alertStatus.acknowledged ? (
+                      <div className="flex items-center gap-1 text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0" title="Alert Acknowledged">
+                        <CheckCircle2 className="h-3 w-3" />
+                        <span className="hidden xl:inline">Acked</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 text-destructive bg-destructive/10 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0 animate-pulse" title="Alert Triggered">
+                        <AlertTriangle className="h-3 w-3" />
+                        <span className="hidden xl:inline">Triggered</span>
+                      </div>
+                    )
+                  ) : (
+                    <div className="flex items-center gap-1 text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0" title="Monitoring Active">
+                      <Activity className="h-3 w-3" />
+                      <span className="hidden xl:inline">Monitoring</span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

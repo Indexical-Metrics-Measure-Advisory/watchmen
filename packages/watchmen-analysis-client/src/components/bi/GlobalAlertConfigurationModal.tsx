@@ -506,13 +506,16 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                       onValueChange={(val: any) => {
                         const selectedAction = suggestedActions.find(sa => sa.id === val);
                         if (selectedAction) {
+                            const actionType = actionTypes.find(t => t.id === selectedAction.typeId);
                             setConfig(prev => {
                                 const newActions = [...(prev.actions || [])];
                                 newActions[index] = {
                                     ...newActions[index],
                                     suggestedActionId: selectedAction.id,
                                     type: selectedAction.typeId,
+                                    typeName: actionType?.name,
                                     name: selectedAction.name,
+                                    executionMode: selectedAction.executionMode,
                                     riskLevel: selectedAction.riskLevel,
                                     content: selectedAction.description,
                                     expectedEffect: selectedAction.expectedOutcome,
