@@ -85,6 +85,9 @@ class BIAnalysis(ExtendedBaseModel, UserBasedTuple, Auditable):
     description: Optional[str] = None
     cards: Optional[List[BIChartCard]] = []
 
+
+
+
     # 审计字段由 Auditable 混入提供：createdAt, createdBy, lastModifiedAt, lastModifiedBy
     # 乐观锁字段由 OptimisticLock 混入提供：version
     model_config = ConfigDict(use_enum_values=True)
@@ -116,14 +119,7 @@ class BIAnalysisListItem(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
 
-if __name__ == "__main__":
-    json ="""
-    {"id":"","name":"test analysis 2","description":"","cards":[{"id":"card_1765037388947","size":"md","title":"total_claim_cases · Past 30 days","metricId":"total_claim_cases","chartType":"bar","selection":{"timeRange":"Past 30 days","dimensions":["claim_case__accept_decision"]}},{"id":"card_1765902710607","title":"total_claim_cases · Past 30 days","metricId":"total_claim_cases","chartType":"bar","size":"md","selection":{"dimensions":["claim_case__accept_decision_desc"],"timeRange":"Past 30 days"}},{"id":"card_1765902722272","title":"unique_policies_with_claims · Past 30 days","metricId":"unique_policies_with_claims","chartType":"bar","size":"md","selection":{"dimensions":["claim_case__accept_decision_desc"],"timeRange":"Past 30 days"}}],"userId":"1071081977535114240","globalFilters":{}}
-    """
 
-    analysis = BIAnalysis.model_validate_json(json)
-    pprint(analysis)
-    
 
 
 

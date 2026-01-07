@@ -756,6 +756,22 @@ const BIAnalysisPage: React.FC = () => {
 
   const handleGlobalTimeRangeChange = (range: string) => {
     setGlobalTimeRange(range);
+
+    // Sync to cards if not "Per Card" and not "Custom" (Custom is handled in date change)
+    if (range !== GLOBAL_TIME_RANGE_PER_CARD && range !== 'Custom') {
+      setCards(prev => prev.map(c => ({
+        ...c,
+        selection: { ...c.selection, timeRange: range }
+      })));
+    } else if (range === 'Custom' && globalCustomDateRange?.from && globalCustomDateRange?.to) {
+       // If switching to Custom and we already have a range, sync it
+       const customStr = `Custom:${format(globalCustomDateRange.from, 'yyyy-MM-dd')}:${format(globalCustomDateRange.to, 'yyyy-MM-dd')}`;
+       setCards(prev => prev.map(c => ({
+        ...c,
+        selection: { ...c.selection, timeRange: customStr }
+      })));
+    }
+
     setCardDataMap({});
     setAlertStatusMap({});
     cards.forEach(c => {
@@ -770,6 +786,13 @@ const BIAnalysisPage: React.FC = () => {
 
     if (!range?.from || !range?.to) return;
     const override = `Custom:${format(range.from, 'yyyy-MM-dd')}:${format(range.to, 'yyyy-MM-dd')}`;
+    
+    // Sync to cards
+    setCards(prev => prev.map(c => ({
+      ...c,
+      selection: { ...c.selection, timeRange: override }
+    })));
+
     setCardDataMap({});
     setAlertStatusMap({});
     cards.forEach(c => {

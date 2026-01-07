@@ -74,3 +74,10 @@ class SubscriptionService(UserBasedTupleService):
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
 			]
 		))
+
+	def find_by_tenant_id(self, tenant_id: str) -> list[Subscription]:
+		return self.storage.find(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+			]
+		))

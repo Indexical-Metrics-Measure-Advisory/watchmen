@@ -10,6 +10,7 @@ from watchmen_utilities import is_blank
 
 from watchmen_metricflow.meta.metric_subscription_meta_service import SubscriptionService
 from watchmen_metricflow.model.metric_subscription import Subscription
+from watchmen_metricflow.service.subscription_runner import SubscriptionRunner
 from watchmen_metricflow.util import trans, trans_readonly
 
 router = APIRouter()
@@ -123,3 +124,25 @@ async def delete_subscription(
 		return subscription
 
 	return trans(service, action)
+	return trans(service, action)
+
+
+@router.post('/metricflow/subscription/run', tags=['CONSOLE', 'ADMIN'], response_model=None)
+async def run_subscription(
+		principal_service: PrincipalService = Depends(get_console_principal)
+):
+	"""Run subscriptions for the current tenant based on current time"""
+	runner = SubscriptionRunner(principal_service)
+	await runner.run()
+
+
+@router.post('/metricflow/subscription/run/{subscription_id}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+async def run_subscription_by_id(
+		subscription_id: str,
+		principal_service: PrincipalService = Depends(get_console_principal)
+):
+	"""Test run a specific subscription immediately"""
+	runner = SubscriptionRunner(principal_service)
+	await runner.run_by_id(subscription_id)
+
+

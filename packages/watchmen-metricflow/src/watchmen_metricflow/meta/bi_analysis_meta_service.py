@@ -68,6 +68,13 @@ class BIAnalysisShaper(UserBasedTupleShaper):
         }
 
         analysis = BIAnalysis.model_validate(analysis_data)
+        
+        # Ensure cards are converted to objects (Pydantic should do this, but just in case)
+        if analysis.cards:
+            analysis.cards = [
+                BIChartCard.model_validate(card) if isinstance(card, dict) else card
+                for card in analysis.cards
+            ]
 
         # noinspection PyTypeChecker
         analysis: BIAnalysis = AuditableShaper.deserialize(row, analysis)
