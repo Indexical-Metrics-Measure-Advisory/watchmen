@@ -166,7 +166,7 @@ def build_profile(semantic_model: SemanticModel, principal_service: PrincipalSer
 
                 role = next((param for param in data_source.params if param.name == "role"), None)
                 if role:
-                    output_config["role"] = role.value
+                    output_config["role"] = role.value if role else "PUBLIC"
 
                 warehouse = next((param for param in data_source.params if param.name == "warehouse"), None)
                 if warehouse:
@@ -197,6 +197,69 @@ def build_profile(semantic_model: SemanticModel, principal_service: PrincipalSer
         ## load subject by subject id
         # todo
         pass
+    elif source_type == SemanticModelSourceType.DB_DIRECT:
+        node_relation = semantic_model.node_relation
+        ds_type = node_relation.get("databaseType")
+
+        print(node_relation)
+        
+        output_config = {
+             "host": node_relation.get("host"),
+             "user": node_relation.get("username"),
+             "password": node_relation.get("password"),
+             "port": node_relation.get("port"),
+             "dbname": node_relation.get("database"),
+             "threads": 4,
+             "keepalives_idle": 0,
+             "connect_timeout": 10,
+             "retries": 1
+        }
+        
+        target_name = ""
+
+        if ds_type == 'pgsql':
+            target_name = "postgres"
+            output_config["type"] = "postgres"
+            output_config["schema"] = node_relation.get("schema_name")
+        elif ds_type == 'mysql':
+            target_name = "mysql"
+            output_config["type"] = "mysql"
+            output_config["schema"] = node_relation.get("schema_name")
+        elif ds_type == 'mssql':
+            target_name = "mssql"
+            output_config["type"] = "mssql"
+            output_config["schema"] = node_relation.get("schema_name")
+        elif ds_type == 'oracle':
+            target_name = "oracle"
+            output_config["type"] = "oracle"
+            output_config["schema"] = node_relation.get("schema_name")
+        elif ds_type == 'snowflake':
+            target_name = "snowflake"
+            output_config["type"] = "snowflake"
+            output_config["account"] = node_relation.get("account")
+            output_config["database"] = node_relation.get("database")
+            output_config["warehouse"] = node_relation.get("warehouse")
+            output_config["role"] = node_relation.get("role") or "PUBLIC"
+            output_config["schema"] = node_relation.get("schema_name") or "PUBLIC"
+            
+            output_config.pop("host", None)
+            output_config.pop("dbname", None)
+            output_config.pop("port", None)
+            output_config.pop("keepalives_idle", None)
+            output_config.pop("connect_timeout", None)
+            output_config.pop("retries", None)
+        else:
+             raise Exception(f"Unsupported data source type: {ds_type}")
+
+        return {
+            "name": "profile",
+            "target": target_name,
+            "outputs": {
+                target_name: output_config
+            }
+        }
+
     else:
         # raise ValueError(f"unsupported source type {source_type}")
         pass
+

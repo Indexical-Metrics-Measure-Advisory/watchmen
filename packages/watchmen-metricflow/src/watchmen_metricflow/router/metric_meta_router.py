@@ -16,6 +16,7 @@ from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
 from watchmen_metricflow.service.space_auth_service import get_console_user_topic_ids, \
     find_metrics_by_topic_ids
 
+
 router = APIRouter()
 
 

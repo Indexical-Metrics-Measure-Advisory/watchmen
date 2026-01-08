@@ -188,10 +188,13 @@ async def query_metrics(request_list: List[MetricQueryRequest],
 
 
 
-def get_data_source_key(profile_data: Dict) -> Optional[Tuple]:
-    if profile_data and "outputs" in profile_data and "postgres" in profile_data["outputs"]:
-        conn = profile_data["outputs"]["postgres"]
-        return (conn.get('host'), conn.get('port'), conn.get('dbname'), conn.get('schema'), conn.get('user'))
+def get_data_source_key(profile_data: Dict) -> Optional[str]:
+    if profile_data and "outputs" in profile_data:
+        target = profile_data.get("target")
+        if target:
+            conn = profile_data["outputs"].get(target)
+            if conn:
+                return json.dumps(conn, sort_keys=True)
     return None
 
 
@@ -205,23 +208,31 @@ def build_merged_profile(semantics: List[SemanticModel], principal_service: Prin
 
     if len(profiles_map) > 2:
         raise HTTPException(status_code=400, detail="Too many data sources. Maximum 2 allowed.")
-
+    print("profiles_map",profiles_map)
     if not profiles_map:
         return None
 
     final_profile_inner = {
         "name": "profile",
-        "target": "postgres",
+        "target": "",
         "outputs": {}
     }
     for i, p_data in enumerate(profiles_map.values()):
+        src_target = p_data.get("target")
         src_outputs = p_data.get("outputs", {})
+
+        if i == 0:
+            final_profile_inner["target"] = src_target
+
         for out_key, out_val in src_outputs.items():
             if i == 0:
                 final_profile_inner["outputs"][out_key] = out_val
             else:
-                new_key = f"{out_key}_{i}"
-                final_profile_inner["outputs"][new_key] = out_val
+                if out_key in final_profile_inner["outputs"]:
+                    new_key = f"{out_key}_{i}"
+                    final_profile_inner["outputs"][new_key] = out_val
+                else:
+                    final_profile_inner["outputs"][out_key] = out_val
     
     return {"profile": final_profile_inner}
 
@@ -239,6 +250,8 @@ async def build_metric_config(principal_service):
     semantics: List[SemanticModel] = await  load_semantic_models_by_tenant_id(principal_service)
     ## load datasource list
     profile = build_merged_profile(semantics, principal_service)
+
+    print("profile",profile)
     config = CLIConfigurationDB(tenant_id, semantics, metrics_json, profile)
     # Cache configuration for this tenant
 

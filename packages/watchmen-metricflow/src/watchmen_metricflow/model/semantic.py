@@ -76,6 +76,16 @@ class NodeRelation(BaseModel):
     database: str
     relation_name: str
 
+    databaseType: Optional[str] = None
+    host: Optional[str] = None
+    port: Optional[int] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
+    # Snowflake specific 
+    account: Optional[str] = None
+    warehouse: Optional[str] = None
+    role: Optional[str] = None
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'NodeRelation':
        
@@ -83,7 +93,15 @@ class NodeRelation(BaseModel):
             alias=data['alias'],
             schema_name=data['schema_name'],
             database=data['database'],
-            relation_name=data['relation_name']
+            relation_name=data['relation_name'],
+            databaseType=data.get('databaseType'),
+            host=data.get('host'),
+            port=data.get('port'),
+            username=data.get('username'),
+            password=data.get('password'),
+            account=data.get('account'),
+            warehouse=data.get('warehouse'),
+            role=data.get('role')
         )
 
 
@@ -206,6 +224,8 @@ class SemanticModel(ExtendedBaseModel, TenantBasedTuple, Auditable,OptimisticLoc
     primary_entity: Optional[str] = None
     topicId:Optional[str] = None
     sourceType:Optional[SemanticModelSourceType] = None
+
+
 
 
     @classmethod

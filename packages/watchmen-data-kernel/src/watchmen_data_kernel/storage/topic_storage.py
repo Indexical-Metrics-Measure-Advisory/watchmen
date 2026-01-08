@@ -74,6 +74,9 @@ def build_topic_data_storage(data_source: DataSource) -> Callable[[], TopicDataS
 		return build_s3_storage(data_source)
 	if data_source.dataSourceType == DataSourceType.ADLS:
 		return build_adls_storage(data_source)
+	if data_source.dataSourceType == DataSourceType.SNOWFLAKE:
+		return build_postgresql_storage(data_source)
+
 
 	raise DataKernelException(
 		f'Topic data storage[id={data_source.dataSourceId}, name={data_source.name} type={data_source.dataSourceType}] '

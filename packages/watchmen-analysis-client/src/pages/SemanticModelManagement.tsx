@@ -895,12 +895,13 @@ const SemanticModelManagement: React.FC = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  {(formData.sourceType || 'topic') === 'topic' && (
                   <div>
                     <Label htmlFor="datasource-topicId">Topic ID</Label>
                     <Select
                       value={formData.topicId || ''}
                       onValueChange={(value) => setFormData(prev => ({ ...prev, topicId: value }))}
-                      disabled={formData.sourceType !== 'topic' || isTopicsLoading}
+                      disabled={isTopicsLoading}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={isTopicsLoading ? "Loading topics..." : "Select a topic"}>
@@ -986,6 +987,7 @@ const SemanticModelManagement: React.FC = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  )}
                 </div>
               </div>
               
@@ -1681,9 +1683,136 @@ const SemanticModelManagement: React.FC = () => {
                 {formData.sourceType === 'db_source' && (
                   <div>
                     <h4 className="text-sm font-medium mb-4">Database Connection</h4>
-                    <div className="grid grid-cols-2 gap-4">
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="col-span-2">
+                        <Label htmlFor="datasource-type">Database Type</Label>
+                        <Select 
+                          value={formData.node_relation.databaseType || 'pgsql'} 
+                          onValueChange={(value) => setFormData(prev => ({ 
+                            ...prev, 
+                            node_relation: { ...prev.node_relation, databaseType: value as any }
+                          }))}
+                        >
+                          <SelectTrigger id="datasource-type">
+                            <SelectValue placeholder="Select database type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pgsql">PostgreSQL</SelectItem>
+                            <SelectItem value="snowflake">Snowflake</SelectItem>
+                            <SelectItem value="oracle">Oracle</SelectItem>
+                            <SelectItem value="mysql">MySQL</SelectItem>
+                            <SelectItem value="mssql">SQL Server</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-4 p-4 border rounded-md bg-muted/20">
+                      <h5 className="col-span-2 text-xs font-semibold uppercase text-muted-foreground mb-2">Connection Details</h5>
+                      
+                      {formData.node_relation.databaseType === 'snowflake' && (
+                        <>
+                          <div>
+                            <Label htmlFor="datasource-account">Account</Label>
+                            <Input
+                              id="datasource-account"
+                              value={formData.node_relation.account || ''}
+                              onChange={(e) => setFormData(prev => ({ 
+                                ...prev, 
+                                node_relation: { ...prev.node_relation, account: e.target.value }
+                              }))}
+                              placeholder="e.g. xy12345.us-east-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="datasource-warehouse">Warehouse</Label>
+                            <Input
+                              id="datasource-warehouse"
+                              value={formData.node_relation.warehouse || ''}
+                              onChange={(e) => setFormData(prev => ({ 
+                                ...prev, 
+                                node_relation: { ...prev.node_relation, warehouse: e.target.value }
+                              }))}
+                              placeholder="Enter warehouse name"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Label htmlFor="datasource-role">Role</Label>
+                            <Input
+                              id="datasource-role"
+                              value={formData.node_relation.role || ''}
+                              onChange={(e) => setFormData(prev => ({ 
+                                ...prev, 
+                                node_relation: { ...prev.node_relation, role: e.target.value }
+                              }))}
+                              placeholder="Enter role name"
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {formData.node_relation.databaseType !== 'snowflake' && (
+                        <>
+                          <div>
+                            <Label htmlFor="datasource-host">Host</Label>
+                            <Input
+                              id="datasource-host"
+                              value={formData.node_relation.host || ''}
+                              onChange={(e) => setFormData(prev => ({ 
+                                ...prev, 
+                                node_relation: { ...prev.node_relation, host: e.target.value }
+                              }))}
+                              placeholder="Enter host"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="datasource-port">Port</Label>
+                            <Input
+                              id="datasource-port"
+                              type="number"
+                              value={formData.node_relation.port || ''}
+                              onChange={(e) => setFormData(prev => ({ 
+                                ...prev, 
+                                node_relation: { ...prev.node_relation, port: parseInt(e.target.value) || undefined }
+                              }))}
+                              placeholder="Enter port"
+                            />
+                          </div>
+                        </>
+                      )}
+                      
                       <div>
-                        <Label htmlFor="datasource-database">Database</Label>
+                        <Label htmlFor="datasource-username">Username</Label>
+                        <Input
+                          id="datasource-username"
+                          value={formData.node_relation.username || ''}
+                          onChange={(e) => setFormData(prev => ({ 
+                            ...prev, 
+                            node_relation: { ...prev.node_relation, username: e.target.value }
+                          }))}
+                          placeholder="Enter username"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="datasource-password">Password</Label>
+                        <Input
+                          id="datasource-password"
+                          type="password"
+                          value={formData.node_relation.password || ''}
+                          onChange={(e) => setFormData(prev => ({ 
+                            ...prev, 
+                            node_relation: { ...prev.node_relation, password: e.target.value }
+                          }))}
+                          placeholder="Enter password"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <h5 className="col-span-2 text-xs font-semibold uppercase text-muted-foreground mb-2">Object Identification</h5>
+                      <div>
+                        <Label htmlFor="datasource-database">Database Name</Label>
                         <Input
                           id="datasource-database"
                           value={formData.node_relation.database}
@@ -1719,7 +1848,7 @@ const SemanticModelManagement: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="datasource-relation">Relation Name</Label>
+                        <Label htmlFor="datasource-relation">Relation (Table) Name</Label>
                         <Input
                           id="datasource-relation"
                           value={formData.node_relation.relation_name}

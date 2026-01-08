@@ -7,7 +7,7 @@ from watchmen_meta.admin import TopicService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.system import DataSourceService
 from watchmen_metricflow.meta.semantic_meta_service import SemanticModelService
-from watchmen_metricflow.model.semantic import SemanticModel, NodeRelation
+from watchmen_metricflow.model.semantic import SemanticModel, NodeRelation, SemanticModelSourceType
 from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_model.system import DataSourceType
 from watchmen_rest import get_admin_principal, get_console_principal
@@ -155,7 +155,7 @@ async def update_semantic_model(
     
     semantic_model_service = get_semantic_model_service(principal_service)
 
-    if semantic_model.topicId:
+    if semantic_model.topicId and semantic_model.sourceType == SemanticModelSourceType.TOPIC:
         node_relation = _build_node_relation_by_topic_id(semantic_model.topicId, principal_service)
         if node_relation:
             semantic_model.node_relation = node_relation

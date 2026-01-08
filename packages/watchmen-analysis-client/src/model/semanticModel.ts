@@ -40,6 +40,16 @@ export interface SemanticModelNodeRelation {
   schema_name: string;
   database: string;
   relation_name: string;
+  // Connection details
+  databaseType?: 'pgsql' | 'snowflake' | 'oracle' | 'mysql' | 'mssql';
+  host?: string;
+  port?: number;
+  username?: string;
+  password?: string;
+  // Snowflake specific
+  account?: string;
+  warehouse?: string;
+  role?: string;
 }
 
 export interface SemanticModelDefaults {

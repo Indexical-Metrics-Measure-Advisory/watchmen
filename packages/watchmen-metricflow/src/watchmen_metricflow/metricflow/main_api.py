@@ -78,7 +78,7 @@ def load_dimensions_by_metrics(metrics:List[str], cfg: CLIConfiguration) -> Dime
     dimension_infos = [
         DimensionInfo(
             name=dimension.name,
-            qualified_name=dimension.qualified_name,
+            qualified_name=dimension.dunder_name,
             description=dimension.description,
             type=dimension.type.name,
         )

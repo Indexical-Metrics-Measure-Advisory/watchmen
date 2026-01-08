@@ -828,6 +828,7 @@ const BIAnalysisPage: React.FC = () => {
     setCurrentAnalysisId(null);
     setSaveName('');
     setSaveDesc('');
+    localStorage.removeItem('watchmen_bi_last_analysis_id');
     toast({ title: 'Board Reset', description: 'Started a new analysis' });
   };
 
@@ -867,7 +868,7 @@ const BIAnalysisPage: React.FC = () => {
     toast({ title: 'Saved', description: 'Analysis saved as new copy' });
   };
 
-  const loadTemplate = async (id: string) => {
+  const loadTemplate = useCallback(async (id: string) => {
     const tpl = await getAnalysis(id);
     if (!tpl) return;
     setCards(tpl.cards);
@@ -876,16 +877,30 @@ const BIAnalysisPage: React.FC = () => {
     // If template, treat as new copy (cannot modify original)
     if (tpl.isTemplate) {
       setCurrentAnalysisId(null);
+      localStorage.removeItem('watchmen_bi_last_analysis_id');
       toast({ title: 'Template loaded', description: `Loaded "${tpl.name}" as a new board` });
     } else {
       setCurrentAnalysisId(tpl.id);
+      localStorage.setItem('watchmen_bi_last_analysis_id', tpl.id);
       toast({ title: 'Analysis loaded', description: `Board switched to "${tpl.name}"` });
     }
     setSaveName(tpl.name);
     setSaveDesc(tpl.description || '');
     setActiveSection('dashboard');
     setPendingScrollToDashboard(true);
-  };
+  }, [loadCardDataFor, toast]);
+  
+  // Load last visited analysis on mount
+  const initialLoadDone = useRef(false);
+  useEffect(() => {
+    if (initialLoadDone.current) return;
+    initialLoadDone.current = true;
+    
+    const lastId = localStorage.getItem('watchmen_bi_last_analysis_id');
+    if (lastId) {
+      void loadTemplate(lastId);
+    }
+  }, [loadTemplate]);
 
   const deleteTemplate = async (id: string) => {
     await deleteAnalysis(id);
