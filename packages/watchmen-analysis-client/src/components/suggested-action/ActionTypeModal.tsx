@@ -122,11 +122,19 @@ export const ActionTypeModal: React.FC<ActionTypeModalProps> = ({
                     </div>
                     <div className="space-y-2">
                         <Label>Category *</Label>
-                        <Input 
-                            value={formData.category} 
-                            onChange={(e) => setFormData({...formData, category: e.target.value})}
-                            placeholder="e.g. Notification"
-                        />
+                        <Select
+                            value={formData.category}
+                            onValueChange={(value) => setFormData({ ...formData, category: value })}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Notification">Notification</SelectItem>
+                                <SelectItem value="API Call">API Call</SelectItem>
+                                <SelectItem value="Data Modification">Data Modification</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
 

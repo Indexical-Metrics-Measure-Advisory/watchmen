@@ -81,35 +81,41 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
     if (!firstItem || typeof firstItem !== 'object') return 'bar';
 
     const record = firstItem as Record<string, unknown>;
-    const keys = Object.keys(record).filter(k => k !== 'name' && k !== 'date' && k !== 'value' && k !== 'color');
+    // Exclude standard keys to find series keys
+    const keys = Object.keys(record).filter(k => !['name', 'date', 'value', 'color', 'fill'].includes(k));
     const hasDate = 'date' in record;
-    
-    // Time series data
+    const dataCount = data.length;
+    const seriesCount = keys.length;
+
+    // 1. Time Series Data (Evolution)
+    // https://www.data-to-viz.com/#line
     if (hasDate) {
-      // If we have multiple metrics/series over time
-      if (keys.length > 0) {
-        // If many series, line is cleaner than stacked bar
-        return keys.length > 3 ? 'line' : 'stackedBar';
-      }
-      // Single metric over time -> Area chart looks better for trends
-      return 'area';
+      // Single metric: Area chart emphasizes volume/trend
+      if (seriesCount <= 1) return 'area';
+      
+      // Multiple metrics: Line chart avoids clutter compared to bars
+      // StackedBar is okay for few dates, but Line is safer for general time series
+      return 'line';
     }
 
-    // Categorical data with multiple series
-    if (keys.length > 0) {
-      return keys.length > 4 ? 'stackedBar' : 'groupedBar';
+    // 2. Categorical Data (Distribution/Ranking/Part-to-whole)
+    // https://www.data-to-viz.com/#barplot
+    
+    // Single Series
+    if (seriesCount <= 1) {
+      // Very few items: Pie is acceptable for composition (Part-to-whole)
+      // https://www.data-to-viz.com/caveat/pie.html
+      if (dataCount <= 5) return 'pie';
+      
+      // Default to Bar (Ranking/Distribution)
+      // ChartCard handles horizontal layout for many items
+      return 'bar';
     }
 
-    // Simple categorical data (name + value)
-    if (data.length <= 5) {
-      // Few items -> Pie chart is acceptable for distribution, but bar is safer. 
-      // Let's use Bar for now as it's more precise, or Pie if it looks like a distribution (not implemented logic).
-      // Let's stick to Bar but maybe 'pie' if explicitly requested? 
-      // For auto-decision, Bar is safe.
-      return 'bar'; 
-    }
-
-    return 'bar';
+    // Multiple Series (Comparison vs Composition)
+    // Few series: Grouped Bar allows precise comparison
+    // Many series: Stacked Bar prevents visual clutter
+    return seriesCount > 3 ? 'stackedBar' : 'groupedBar';
   };
 
   const sizeClass = (size: BICardSize) => {

@@ -329,7 +329,7 @@ export function MetricBuilderSheet({
                           metricId: selectedMetric.name,
                           chartType: previewType,
                           size: 'lg',
-                          selection: { dimensions: selectedDims, timeRange }
+                          selection: { dimensions: selectedDims, timeRange, timeGranularity }
                         }}
                         data={previewData}
                         sourceData={previewRawData ?? undefined}

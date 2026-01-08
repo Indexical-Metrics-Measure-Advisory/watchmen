@@ -14,6 +14,7 @@ class NotificationType(str, Enum):
 	EMAIL = "email"
 	WEB_URL = "url"
 	SLACK = "slack"
+	TEAMS = "teams"
 	FEISHU = "feishu"
 
 

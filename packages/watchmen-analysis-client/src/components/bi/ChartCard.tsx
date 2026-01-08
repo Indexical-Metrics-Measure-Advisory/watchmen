@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { format, isValid } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -404,43 +405,62 @@ export const ChartCard: React.FC<ChartCardProps> = ({
 };
 
 
-const Chart: React.FC<{ 
-  lib: RechartsModule; 
-  card: BIChartCard; 
-  data: any[]; 
-  onUpdate?: (card: BIChartCard) => void;
-  alertStatus?: AlertStatus;
-  onAcknowledge?: (alertId: string) => void;
-}> = ({ lib, card, data, onUpdate, alertStatus, onAcknowledge }) => {
-  const { type: chartType } = { type: card.chartType };
-  const { ResponsiveContainer, LineChart, Line, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, BarChart, Bar, PieChart, Pie, Cell, Legend } = lib;
-  
-  if (chartType === 'alert') {
-    return <AlertCard card={card} data={data} onUpdate={onUpdate} alertStatus={alertStatus} onAcknowledge={onAcknowledge} />;
-  }
-
-  if (chartType === 'kpi') {
-    const value = data.length > 0 ? data[0].value : 0;
-    const formattedValue = typeof value === 'number' 
-      ? value.toLocaleString(undefined, { maximumFractionDigits: 2 })
-      : value;
-    
-    return (
-      <div className="flex flex-col items-center justify-center h-full w-full p-6">
-        <div className="text-4xl sm:text-5xl font-bold tracking-tight text-primary">
-          {formattedValue}
-        </div>
-        <div className="mt-2 text-sm text-muted-foreground font-medium">
-          Total Value
-        </div>
-      </div>
-    );
-  }
-
+// Helper hook for axis configuration
+const useChartAxis = (card: BIChartCard, data: any[]) => {
   const isTime = data.length > 0 && typeof data[0].date === 'string';
   const xKey = isTime ? 'date' : 'name';
-  
-  // Common axis props for consistency
+
+  const formatTimeAxis = (value: any) => {
+    if (!isTime || !value) return value;
+
+    const granularity = card.selection?.timeGranularity;
+
+    if (typeof value === 'string') {
+      // Handle Year specifically to avoid timezone shifts for "YYYY" string
+      if (granularity === 'year' && /^\d{4}$/.test(value)) {
+        return value;
+      }
+      
+      // Handle Quarter specifically for "YYYY/Q" or "YYYY-Q" format (e.g. 2023/1, 2023-2)
+      if (granularity === 'quarter') {
+        const quarterMatch = value.match(/^(\d{4})[-/](\d{1})$/);
+        if (quarterMatch) {
+          const year = parseInt(quarterMatch[1]);
+          const quarter = parseInt(quarterMatch[2]);
+          if (quarter >= 1 && quarter <= 4) {
+             return format(new Date(year, (quarter - 1) * 3, 1), 'yyyy-QQQ');
+          }
+        }
+      }
+    }
+
+    try {
+      const date = new Date(value);
+      if (!isValid(date)) return value;
+
+      switch (granularity) {
+        case 'year':
+          return format(date, 'yyyy');
+        case 'month':
+          return format(date, 'yyyy-MM');
+        case 'quarter':
+          return format(date, 'yyyy-QQQ');
+        case 'week':
+          return format(date, 'yyyy-wo');
+        case 'day':
+          return format(date, 'MM-dd');
+        case 'hour':
+          return format(date, 'HH:mm');
+        case 'minute':
+          return format(date, 'HH:mm');
+        default:
+          return format(date, 'yyyy-MM-dd');
+      }
+    } catch (e) {
+      return value;
+    }
+  };
+
   const commonXAxisProps = {
     dataKey: xKey,
     stroke: "#888888",
@@ -450,6 +470,7 @@ const Chart: React.FC<{
     tickMargin: 10,
     minTickGap: 30,
     dy: 5,
+    tickFormatter: isTime ? formatTimeAxis : undefined
   };
 
   const commonYAxisProps = {
@@ -468,108 +489,195 @@ const Chart: React.FC<{
     className: "opacity-10 dark:opacity-20",
   };
 
-  if (chartType === 'groupedBar' || chartType === 'stackedBar') {
-    const keys = data.length > 0 ? Object.keys(data[0]).filter(k => k !== 'name' && k !== 'date' && k !== 'value' && k !== 'fill' && k !== 'color') : [];
-    return (
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid {...commonGridProps} />
-          <XAxis {...commonXAxisProps} />
-          <YAxis {...commonYAxisProps} />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} />
-          <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} />
-          {keys.map((key, index) => (
-            <Bar 
-              key={key} 
-              dataKey={key} 
-              stackId={chartType === 'stackedBar' ? 'a' : undefined}
-              fill={COLORS[index % COLORS.length]} 
-              radius={chartType === 'stackedBar' 
-                ? [0, 0, 0, 0] // Stacked bars usually don't have radius except top one, simplification here
-                : [4, 4, 0, 0]}
-              maxBarSize={50}
-            />
-          ))}
-        </BarChart>
-      </ResponsiveContainer>
-    );
-  }
+  return { commonXAxisProps, commonYAxisProps, commonGridProps, isTime };
+};
 
-  if (chartType === 'pie' && !isTime) {
-    return (
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Tooltip content={<CustomTooltip />} />
-          <Legend wrapperStyle={{ fontSize: '12px' }} />
-          <Pie 
-            data={data} 
-            dataKey="value" 
-            nameKey="name" 
-            cx="50%" 
-            cy="50%" 
-            innerRadius={60} 
-            outerRadius={90} 
-            paddingAngle={2}
-            strokeWidth={2}
-            stroke="hsl(var(--card))"
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
-    );
-  }
+const KPIView = ({ data }: { data: any[] }) => {
+  const value = data.length > 0 ? data[0].value : 0;
+  const formattedValue = typeof value === 'number' 
+    ? value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+    : value;
+  
+  return (
+    <div className="flex flex-col items-center justify-center h-full w-full p-6 animate-in fade-in zoom-in-50 duration-500">
+      <div className="text-4xl sm:text-5xl font-bold tracking-tight text-primary">
+        {formattedValue}
+      </div>
+      <div className="mt-2 text-sm text-muted-foreground font-medium uppercase tracking-wider">
+        Total Value
+      </div>
+    </div>
+  );
+};
 
-  if (chartType === 'bar') {
-    return (
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid {...commonGridProps} />
-          <XAxis {...commonXAxisProps} />
-          <YAxis {...commonYAxisProps} />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} />
+const BarChartView = ({ lib, data, chartType, axisProps }: { lib: RechartsModule, data: any[], chartType: string, axisProps: any }) => {
+  const { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar } = lib;
+  const { commonXAxisProps, commonYAxisProps, commonGridProps, isTime } = axisProps;
+  
+  const isStacked = chartType === 'stackedBar';
+  const isGrouped = chartType === 'groupedBar';
+  
+  // Data-to-viz: Use horizontal bars for long labels or many items (ranking)
+  const isHorizontalLayout = !isTime && (
+    data.length > 12 || 
+    data.some(d => String(d.name || '').length > 10)
+  );
+
+  const keys = (isGrouped || isStacked) && data.length > 0 
+    ? Object.keys(data[0]).filter(k => k !== 'name' && k !== 'date' && k !== 'value' && k !== 'fill' && k !== 'color') 
+    : ['value'];
+
+  // Adjust axis props for layout
+  const xAxisProps = isHorizontalLayout 
+    ? { ...commonYAxisProps, type: 'number' as const, dataKey: undefined, width: undefined, tickFormatter: undefined } 
+    : commonXAxisProps;
+
+  const yAxisProps = isHorizontalLayout
+    ? { 
+        ...commonXAxisProps, 
+        type: 'category' as const, 
+        width: 120, // Give more space for labels
+        tickFormatter: (v: any) => typeof v === 'string' && v.length > 15 ? `${v.slice(0, 15)}...` : v
+      }
+    : commonYAxisProps;
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart 
+        data={data} 
+        layout={isHorizontalLayout ? 'vertical' : 'horizontal'}
+        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+      >
+        <CartesianGrid {...commonGridProps} />
+        <XAxis {...xAxisProps} />
+        <YAxis {...yAxisProps} />
+        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} />
+        {(isGrouped || isStacked) && <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} />}
+        {keys.map((key, index) => (
           <Bar 
-            dataKey="value" 
-            fill={COLORS[0]} 
-            radius={[4, 4, 0, 0]} 
+            key={key} 
+            dataKey={key} 
+            stackId={isStacked ? 'a' : undefined}
+            fill={COLORS[index % COLORS.length]} 
+            radius={
+              isHorizontalLayout 
+                ? (isStacked ? [0, 0, 0, 0] : [0, 4, 4, 0]) // Right rounded for horizontal
+                : (isStacked ? [0, 0, 0, 0] : [4, 4, 0, 0]) // Top rounded for vertical
+            }
             maxBarSize={60}
           />
-        </BarChart>
-      </ResponsiveContainer>
-    );
-  }
+        ))}
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
 
-  if (chartType === 'area') {
-    return (
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <defs>
-            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={COLORS[0]} stopOpacity={0.3}/>
-              <stop offset="95%" stopColor={COLORS[0]} stopOpacity={0}/>
+const PieChartView = ({ lib, data }: { lib: RechartsModule, data: any[] }) => {
+  const { ResponsiveContainer, PieChart, Tooltip, Legend, Pie, Cell } = lib;
+
+  // Data-to-viz: Too many slices make pie charts unreadable. Group small slices into "Others".
+  const processedData = React.useMemo(() => {
+    if (data.length <= 8) return data;
+    
+    const sorted = [...data].sort((a, b) => (b.value || 0) - (a.value || 0));
+    const top = sorted.slice(0, 7);
+    const others = sorted.slice(7);
+    
+    if (others.length === 0) return top;
+    
+    const otherValue = others.reduce((sum, item) => sum + (item.value || 0), 0);
+    return [
+      ...top,
+      { name: 'Others', value: otherValue }
+    ];
+  }, [data]);
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart>
+        <Tooltip content={<CustomTooltip />} />
+        <Legend wrapperStyle={{ fontSize: '12px' }} />
+        <Pie 
+          data={processedData} 
+          dataKey="value" 
+          nameKey="name" 
+          cx="50%" 
+          cy="50%" 
+          innerRadius={60} 
+          outerRadius={90} 
+          paddingAngle={2}
+          strokeWidth={2}
+          stroke="hsl(var(--card))"
+        >
+          {processedData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+      </PieChart>
+    </ResponsiveContainer>
+  );
+};
+
+const AreaChartView = ({ lib, data, axisProps }: { lib: RechartsModule, data: any[], axisProps: any }) => {
+  const { ResponsiveContainer, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Area, Legend } = lib;
+  const { commonXAxisProps, commonYAxisProps, commonGridProps } = axisProps;
+  
+  // Identify keys for multiple series
+  const extractedKeys = data.length > 0 
+    ? Object.keys(data[0]).filter(k => k !== 'name' && k !== 'date' && k !== 'value' && k !== 'fill' && k !== 'color') 
+    : [];
+  
+  const keys = extractedKeys.length > 0 ? extractedKeys : ['value'];
+  
+  const hasMultipleSeries = keys.length > 1 || (keys.length === 1 && keys[0] !== 'value');
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+        <defs>
+          {keys.map((key, index) => (
+            <linearGradient key={key} id={`colorValue-${index}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.3}/>
+              <stop offset="95%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0}/>
             </linearGradient>
-          </defs>
-          <CartesianGrid {...commonGridProps} />
-          <XAxis {...commonXAxisProps} />
-          <YAxis {...commonYAxisProps} />
-          <Tooltip content={<CustomTooltip />} />
+          ))}
+        </defs>
+        <CartesianGrid {...commonGridProps} />
+        <XAxis {...commonXAxisProps} />
+        <YAxis {...commonYAxisProps} />
+        <Tooltip content={<CustomTooltip />} />
+        {hasMultipleSeries && <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />}
+        {keys.map((key, index) => (
           <Area 
+            key={key}
             type="monotone" 
-            dataKey="value" 
-            stroke={COLORS[0]} 
+            dataKey={key} 
+            stroke={COLORS[index % COLORS.length]} 
             fillOpacity={1} 
-            fill="url(#colorValue)" 
+            fill={`url(#colorValue-${index})`} 
             strokeWidth={2}
-            activeDot={{ r: 4, strokeWidth: 0, fill: COLORS[0] }}
+            activeDot={{ r: 4, strokeWidth: 0, fill: COLORS[index % COLORS.length] }}
+            stackId="1" 
           />
-        </AreaChart>
-      </ResponsiveContainer>
-    );
-  }
+        ))}
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+};
 
-  // default to line
+const LineChartView = ({ lib, data, axisProps }: { lib: RechartsModule, data: any[], axisProps: any }) => {
+  const { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Line, Legend } = lib;
+  const { commonXAxisProps, commonYAxisProps, commonGridProps } = axisProps;
+
+  // Identify keys for multiple series
+  const extractedKeys = data.length > 0 
+    ? Object.keys(data[0]).filter(k => k !== 'name' && k !== 'date' && k !== 'value' && k !== 'fill' && k !== 'color') 
+    : [];
+
+  const keys = extractedKeys.length > 0 ? extractedKeys : ['value'];
+
+  const hasMultipleSeries = keys.length > 1 || (keys.length === 1 && keys[0] !== 'value');
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -577,17 +685,56 @@ const Chart: React.FC<{
         <XAxis {...commonXAxisProps} />
         <YAxis {...commonYAxisProps} />
         <Tooltip content={<CustomTooltip />} />
-        <Line 
-          type="monotone" 
-          dataKey="value" 
-          stroke={COLORS[0]} 
-          strokeWidth={2.5} 
-          dot={false}
-          activeDot={{ r: 6, strokeWidth: 0, fill: COLORS[0] }}
-        />
+        {hasMultipleSeries && <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />}
+        {keys.map((key, index) => (
+          <Line 
+            key={key}
+            type="monotone" 
+            dataKey={key} 
+            stroke={COLORS[index % COLORS.length]} 
+            strokeWidth={2.5} 
+            dot={false}
+            activeDot={{ r: 6, strokeWidth: 0, fill: COLORS[index % COLORS.length] }}
+          />
+        ))}
       </LineChart>
     </ResponsiveContainer>
   );
+};
+
+const Chart: React.FC<{ 
+  lib: RechartsModule; 
+  card: BIChartCard; 
+  data: any[]; 
+  onUpdate?: (card: BIChartCard) => void;
+  alertStatus?: AlertStatus;
+  onAcknowledge?: (alertId: string) => void;
+}> = ({ lib, card, data, onUpdate, alertStatus, onAcknowledge }) => {
+  const { type: chartType } = { type: card.chartType };
+  const axisProps = useChartAxis(card, data);
+
+  if (chartType === 'alert') {
+    return <AlertCard card={card} data={data} onUpdate={onUpdate} alertStatus={alertStatus} onAcknowledge={onAcknowledge} />;
+  }
+
+  if (chartType === 'kpi') {
+    return <KPIView data={data} />;
+  }
+
+  if (['bar', 'groupedBar', 'stackedBar'].includes(chartType)) {
+    return <BarChartView lib={lib} data={data} chartType={chartType} axisProps={axisProps} />;
+  }
+
+  if (chartType === 'pie' && !axisProps.isTime) {
+    return <PieChartView lib={lib} data={data} />;
+  }
+
+  if (chartType === 'area') {
+    return <AreaChartView lib={lib} data={data} axisProps={axisProps} />;
+  }
+
+  // Default to line
+  return <LineChartView lib={lib} data={data} axisProps={axisProps} />;
 };
 
 export default ChartCard;
