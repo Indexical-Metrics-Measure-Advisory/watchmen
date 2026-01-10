@@ -623,12 +623,15 @@ const AreaChartView = ({ lib, data, axisProps }: { lib: RechartsModule, data: an
   const { commonXAxisProps, commonYAxisProps, commonGridProps } = axisProps;
   
   // Identify keys for multiple series
-  const extractedKeys = data.length > 0 
-    ? Object.keys(data[0]).filter(k => k !== 'name' && k !== 'date' && k !== 'value' && k !== 'fill' && k !== 'color') 
-    : [];
-  
-  const keys = extractedKeys.length > 0 ? extractedKeys : ['value'];
-  
+  const keys = React.useMemo(() => {
+    if (!data || data.length === 0) return ['value'];
+    const extractedKeys = Object.keys(data[0]).filter(k => 
+      k !== 'name' && k !== 'date' && k !== 'value' && k !== 'fill' && k !== 'color' &&
+      (typeof data[0][k] === 'number' || data[0][k] === null)
+    );
+    return extractedKeys.length > 0 ? extractedKeys : ['value'];
+  }, [data]);
+
   const hasMultipleSeries = keys.length > 1 || (keys.length === 1 && keys[0] !== 'value');
 
   return (
@@ -670,11 +673,14 @@ const LineChartView = ({ lib, data, axisProps }: { lib: RechartsModule, data: an
   const { commonXAxisProps, commonYAxisProps, commonGridProps } = axisProps;
 
   // Identify keys for multiple series
-  const extractedKeys = data.length > 0 
-    ? Object.keys(data[0]).filter(k => k !== 'name' && k !== 'date' && k !== 'value' && k !== 'fill' && k !== 'color') 
-    : [];
-
-  const keys = extractedKeys.length > 0 ? extractedKeys : ['value'];
+  const keys = React.useMemo(() => {
+    if (!data || data.length === 0) return ['value'];
+    const extractedKeys = Object.keys(data[0]).filter(k => 
+      k !== 'name' && k !== 'date' && k !== 'value' && k !== 'fill' && k !== 'color' &&
+      (typeof data[0][k] === 'number' || data[0][k] === null)
+    );
+    return extractedKeys.length > 0 ? extractedKeys : ['value'];
+  }, [data]);
 
   const hasMultipleSeries = keys.length > 1 || (keys.length === 1 && keys[0] !== 'value');
 

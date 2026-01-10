@@ -18,12 +18,14 @@ import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import {
-  Plus, Edit, Trash2, BarChart3, GitBranch, Calculator, Search, Filter, Eye, Folder, FolderOpen, Tag, MoreHorizontal, LayoutGrid, List as ListIcon, Clock
+  Plus, Edit, Trash2, BarChart3, GitBranch, Calculator, Search, Filter, Eye, Folder, FolderOpen, Tag, MoreHorizontal, LayoutGrid, List as ListIcon, Clock, Timer, RefreshCcw
 } from 'lucide-react';
 import {
   MetricDefinition,
   MetricFilter,
-  MetricTypeParams, Category
+  MetricTypeParams, Category,
+  CumulativeTypeParams,
+  ConversionTypeParams
 } from '@/model/metricsManagement';
 import {
   getMetrics,
@@ -34,6 +36,8 @@ import {
 } from '@/services/metricsManagementService';
 import { getSemanticModels } from '@/services/semanticModelService';
 import DerivedMetricParams from '@/components/DerivedMetricParams';
+import CumulativeMetricParams from '@/components/metrics/CumulativeMetricParams';
+import ConversionMetricParams from '@/components/metrics/ConversionMetricParams';
 import CategoryManagement from '@/components/metrics/CategoryManagement';
 import { useToast } from '@/hooks/use-toast';
 
@@ -69,7 +73,7 @@ const MetricsManagement: React.FC = () => {
       join_to_timespine: measure?.join_to_timespine ?? false,
       filter: measure?.filter ?? '',
       alias: measure?.alias ?? '',
-      fill_nulls_with: measure?.fill_nulls_with ?? ''
+      fill_nulls_with: measure?.fill_nulls_with ?? undefined
     };
   };
 
@@ -221,8 +225,105 @@ const MetricsManagement: React.FC = () => {
         errors.push('Derived metric requires at least one metric reference');
       }
     }
+
+    if (form.type === 'cumulative') {
+      if (!form.type_params?.cumulative_type_params?.metric?.name) {
+        errors.push('Cumulative metric requires a base metric');
+      }
+    }
+
+    if (form.type === 'conversion') {
+      if (!form.type_params?.conversion_type_params?.base_measure?.name && !form.type_params?.conversion_type_params?.base_metric?.name) {
+        errors.push('Conversion metric requires a base measure or metric');
+      }
+      if (!form.type_params?.conversion_type_params?.conversion_measure?.name && !form.type_params?.conversion_type_params?.conversion_metric?.name) {
+        errors.push('Conversion metric requires a conversion measure or metric');
+      }
+      if (!form.type_params?.conversion_type_params?.entity?.trim()) {
+        errors.push('Conversion metric requires an entity');
+      }
+    }
     
     return errors;
+  };
+
+  const cleanTypeParams = (params: MetricTypeParams | undefined, type: string | undefined): MetricTypeParams | undefined => {
+    if (!params) return undefined;
+    
+    // Helper to convert empty/undefined to null
+    const toNull = (val: any) => (val === undefined || val === '' ? null : val);
+
+    const cleaned: any = { ...params };
+    
+    // Clean window
+    if (cleaned.window && (!cleaned.window.count || !cleaned.window.granularity)) {
+      cleaned.window = null;
+    }
+
+    if (type === 'simple') {
+      // Ensure specific structure for simple metrics
+      cleaned.expr = null;
+      cleaned.window = null;
+      cleaned.numerator = null;
+      cleaned.denominator = null;
+      cleaned.grain_to_date = null;
+      cleaned.metrics = [];
+      cleaned.conversion_type_params = null;
+      cleaned.cumulative_type_params = null;
+
+      if (cleaned.measure) {
+        // Clean measure fields
+        cleaned.measure = {
+          ...cleaned.measure,
+          alias: toNull(cleaned.measure.alias),
+          filter: toNull(cleaned.measure.filter),
+          fill_nulls_with: toNull(cleaned.measure.fill_nulls_with)
+        };
+
+        // Populate input_measures
+        if (cleaned.measure.name) {
+          cleaned.input_measures = [{
+            name: cleaned.measure.name,
+            alias: cleaned.measure.alias,
+            filter: cleaned.measure.filter,
+            fill_nulls_with: cleaned.measure.fill_nulls_with,
+            join_to_timespine: cleaned.measure.join_to_timespine
+          }];
+        } else {
+          cleaned.input_measures = [];
+        }
+      } else {
+        cleaned.input_measures = [];
+      }
+    } else {
+        // Clean conversion params if not conversion type
+        if (type !== 'conversion') {
+          cleaned.conversion_type_params = undefined;
+        } else {
+            // Clean nested window in conversion params if invalid
+            if (cleaned.conversion_type_params?.window && (!cleaned.conversion_type_params.window.count || !cleaned.conversion_type_params.window.granularity)) {
+                cleaned.conversion_type_params = {
+                    ...cleaned.conversion_type_params,
+                    window: undefined
+                };
+            }
+        }
+        
+        // Clean cumulative params if not cumulative type
+        if (type !== 'cumulative') {
+          cleaned.cumulative_type_params = undefined;
+        } else {
+            // Clean nested window in cumulative params if invalid
+            if (cleaned.cumulative_type_params?.window && (!cleaned.cumulative_type_params.window.count || !cleaned.cumulative_type_params.window.granularity)) {
+                cleaned.cumulative_type_params = {
+                    ...cleaned.cumulative_type_params,
+                    window: undefined
+                };
+            }
+        }
+    }
+
+    return cleaned;
   };
 
   const handleSaveEdit = async () => {
@@ -242,7 +343,8 @@ const MetricsManagement: React.FC = () => {
       // Handle "none" categoryId by converting it to undefined
       const formDataToSubmit = {
         ...editForm,
-        categoryId: editForm.categoryId === 'none' ? undefined : editForm.categoryId
+        categoryId: editForm.categoryId === 'none' ? undefined : editForm.categoryId,
+        type_params: cleanTypeParams(editForm.type_params, editForm.type)
       };
       
       await updateMetric(metricToEdit.name, formDataToSubmit);
@@ -280,6 +382,8 @@ const MetricsManagement: React.FC = () => {
         return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
       case 'conversion':
         return 'bg-orange-100 text-orange-800 hover:bg-orange-200';
+      case 'cumulative':
+        return 'bg-teal-100 text-teal-800 hover:bg-teal-200';
       default:
         return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }
@@ -295,13 +399,13 @@ const MetricsManagement: React.FC = () => {
       unit: '',
       format: 'number',
       type_params: {
-        measure: { name: '', join_to_timespine: false, filter: '', alias: '', fill_nulls_with: '' },
+        measure: { name: '', join_to_timespine: false, filter: '', alias: '', fill_nulls_with: undefined },
         expr: '',
-        window: {},
-        grain_to_date: null,
+        window: undefined,
+        grain_to_date: undefined,
         metrics: [],
-        conversion_type_params: {},
-        cumulative_type_params: {},
+        conversion_type_params: undefined,
+        cumulative_type_params: undefined,
         input_measures: []
       }
     });
@@ -325,7 +429,8 @@ const MetricsManagement: React.FC = () => {
       // Handle "none" categoryId by converting it to undefined
       const formDataToSubmit = {
         ...createForm,
-        categoryId: createForm.categoryId === 'none' ? undefined : createForm.categoryId
+        categoryId: createForm.categoryId === 'none' ? undefined : createForm.categoryId,
+        type_params: cleanTypeParams(createForm.type_params, createForm.type)
       } as Omit<MetricDefinition, 'createdAt' | 'updatedAt'>;
       
       await createMetric(formDataToSubmit);
@@ -338,13 +443,11 @@ const MetricsManagement: React.FC = () => {
         unit: '',
         format: 'number',
         type_params: {
-          measure: { name: '', join_to_timespine: false, filter: '', alias: '', fill_nulls_with: '' },
+          
+          measure: { name: '', join_to_timespine: false, filter: '', alias: '', fill_nulls_with: undefined },
           expr: '',
-          window: {},
-          grain_to_date: null,
+          grain_to_date: undefined,
           metrics: [],
-          conversion_type_params: {},
-          cumulative_type_params: {},
           input_measures: []
         }
       });
@@ -768,6 +871,8 @@ const MetricsManagement: React.FC = () => {
                     <SelectItem value="simple">Simple Metric</SelectItem>
                     <SelectItem value="ratio">Ratio Metric</SelectItem>
                     <SelectItem value="derived">Derived Metric</SelectItem>
+                    <SelectItem value="cumulative">Cumulative Metric</SelectItem>
+                    <SelectItem value="conversion">Conversion Metric</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -829,6 +934,26 @@ const MetricsManagement: React.FC = () => {
                 <DerivedMetricParams
                   params={editForm.type_params || {}}
                   onChange={updateEditFormTypeParams}
+                />
+              </div>
+            )}
+
+            {editForm.type === 'cumulative' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Cumulative Metric Parameters</label>
+                <CumulativeMetricParams
+                  params={editForm.type_params?.cumulative_type_params || {}}
+                  onChange={(params) => updateEditFormTypeParams({ ...editForm.type_params, cumulative_type_params: params })}
+                />
+              </div>
+            )}
+
+            {editForm.type === 'conversion' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Conversion Metric Parameters</label>
+                <ConversionMetricParams
+                  params={editForm.type_params?.conversion_type_params || {}}
+                  onChange={(params) => updateEditFormTypeParams({ ...editForm.type_params, conversion_type_params: params })}
                 />
               </div>
             )}
@@ -972,19 +1097,21 @@ const MetricsManagement: React.FC = () => {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Fill Nulls With</label>
                     <Input
-                      value={String(normalizeMeasure(editForm.type_params?.measure).fill_nulls_with)}
-                      onChange={(e) =>
+                      type="number"
+                      value={normalizeMeasure(editForm.type_params?.measure).fill_nulls_with ?? ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
                         setEditForm({
                           ...editForm,
                           type_params: {
                             ...editForm.type_params,
                             measure: {
                               ...normalizeMeasure(editForm.type_params?.measure),
-                              fill_nulls_with: e.target.value
+                              fill_nulls_with: val === '' ? undefined : Number(val)
                             }
                           }
-                        })
-                      }
+                        });
+                      }}
                       placeholder="Optional value"
                     />
                   </div>
@@ -1075,6 +1202,8 @@ const MetricsManagement: React.FC = () => {
                     <SelectItem value="simple">Simple Metric</SelectItem>
                     <SelectItem value="ratio">Ratio Metric</SelectItem>
                     <SelectItem value="derived">Derived Metric</SelectItem>
+                    <SelectItem value="cumulative">Cumulative Metric</SelectItem>
+                    <SelectItem value="conversion">Conversion Metric</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1139,6 +1268,26 @@ const MetricsManagement: React.FC = () => {
                     
                   }}
                   onChange={updateCreateFormTypeParams}
+                />
+              </div>
+            )}
+
+            {createForm.type === 'cumulative' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Cumulative Metric Parameters</label>
+                <CumulativeMetricParams
+                  params={createForm.type_params?.cumulative_type_params || {}}
+                  onChange={(params) => updateCreateFormTypeParams({ ...createForm.type_params, cumulative_type_params: params })}
+                />
+              </div>
+            )}
+
+            {createForm.type === 'conversion' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Conversion Metric Parameters</label>
+                <ConversionMetricParams
+                  params={createForm.type_params?.conversion_type_params || {}}
+                  onChange={(params) => updateCreateFormTypeParams({ ...createForm.type_params, conversion_type_params: params })}
                 />
               </div>
             )}
@@ -1282,19 +1431,21 @@ const MetricsManagement: React.FC = () => {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Fill Nulls With</label>
                     <Input
-                      value={String(normalizeMeasure(createForm.type_params?.measure).fill_nulls_with)}
-                      onChange={(e) =>
+                      type="number"
+                      value={normalizeMeasure(createForm.type_params?.measure).fill_nulls_with ?? ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
                         setCreateForm({
                           ...createForm,
                           type_params: {
                             ...createForm.type_params,
                             measure: {
                               ...normalizeMeasure(createForm.type_params?.measure),
-                              fill_nulls_with: e.target.value
+                              fill_nulls_with: val === '' ? undefined : Number(val)
                             }
                           }
-                        })
-                      }
+                        });
+                      }}
                       placeholder="Optional value"
                     />
                   </div>

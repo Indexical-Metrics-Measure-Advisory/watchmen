@@ -1,3 +1,5 @@
+import { strict } from "assert";
+
 export interface OffsetWindow {
   count: number;
   granularity: string;
@@ -8,15 +10,15 @@ export interface MetricReference {
   filter?: any;
   alias: string;
   offset_window?: OffsetWindow;
-  offset_to_grain?: any;
-}
+  offset_to_grain?: string;
+} 
 
 export interface InputMeasure {
   name: string;
   filter?: any;
   alias?: string;
   join_to_timespine: boolean;
-  fill_nulls_with?: any;
+  fill_nulls_with?: number;
 }
 
 export interface MeasureReference {
@@ -24,19 +26,67 @@ export interface MeasureReference {
   filter?: string;
   alias?: string;
   join_to_timespine: boolean;
-  fill_nulls_with?: any;
+  fill_nulls_with?: number;
+}
+
+export interface WindowParams {
+  count?: number;
+  granularity?: string;
+  window_string?: string;
+  is_standard_granularity?: boolean;
+}
+
+export enum TimeGranularity {
+  NANOSECOND = "nanosecond",
+  MICROSECOND = "microsecond",
+  MILLISECOND = "millisecond",
+  SECOND = "second",
+  MINUTE = "minute",
+  HOUR = "hour",
+  DAY = "day",
+  WEEK = "week",
+  MONTH = "month",
+  QUARTER = "quarter",
+  YEAR = "year"
+}
+
+export interface ConstantPropertyInput {
+  property?: string;
+  value?: string;
+}
+
+export type ConversionCalculationType = string;
+
+export interface ConversionTypeParams {
+  base_measure?: InputMeasure;
+  conversion_measure?: InputMeasure;
+  base_metric?: MetricReference;
+  conversion_metric?: MetricReference;
+  entity?: string;
+  calculation?: ConversionCalculationType;
+  window?: WindowParams;
+  constant_properties?: ConstantPropertyInput[];
+}
+
+export type PeriodAggregation = string;
+
+export interface CumulativeTypeParams {
+  window?: WindowParams;
+  grain_to_date?: TimeGranularity;
+  period_agg?: PeriodAggregation;
+  metric?: MetricReference;
 }
 
 export interface MetricTypeParams {
   measure?: MeasureReference;
-  numerator?: MeasureReference;
-  denominator?: MeasureReference;
+  numerator?: InputMeasure;
+  denominator?: InputMeasure;
   expr?: string;
-  window?: any;
-  grain_to_date?: any;
+  window?: WindowParams;
+  grain_to_date?: TimeGranularity;
   metrics?: MetricReference[];
-  conversion_type_params?: any;
-  cumulative_type_params?: any;
+  conversion_type_params?: ConversionTypeParams;
+  cumulative_type_params?: CumulativeTypeParams;
   input_measures?: InputMeasure[];
 }
 
@@ -70,7 +120,7 @@ export interface MetricDefinition {
   id?: string;
   name: string;
   description?: string;
-  type: 'simple' | 'ratio' | 'derived';
+  type: 'simple' | 'ratio' | 'derived' | 'cumulative' | 'conversion';
   label?: string;
   type_params: MetricTypeParams;
 

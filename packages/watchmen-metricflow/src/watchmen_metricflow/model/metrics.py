@@ -38,16 +38,15 @@ class CumulativeTypeParams(BaseModel):
     
     model_config = ConfigDict(use_enum_values=True)
 
-    
-    pass
-
 
 class WindowParams(BaseModel):
-   
+
+    count : int =None
+    granularity :str =None
+    window_string :str =None
+    is_standard_granularity: bool =None
     model_config = ConfigDict(use_enum_values=True)
 
-    
-    pass
 
 class OffsetWindow(BaseModel):
     count: int  =None
