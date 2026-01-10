@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime
 from dbt.adapters.factory import get_adapter_by_type
 from dbt_metricflow.cli.dbt_connectors.dbt_config_accessor import dbtArtifacts, dbtProjectMetadata
@@ -61,6 +62,26 @@ raw_data = {
 
 class DBTArtifactsWatchmen(dbtArtifacts):
 
+    @staticmethod
+    def _process_derived_metrics(metrics_list):
+        for metric in metrics_list:
+            if metric.get('type') == 'derived':
+                type_params = metric.get('type_params')
+                if type_params:
+                    expr = type_params.get('expr')
+                    input_metrics = type_params.get('metrics')
+                    if expr and input_metrics:
+                        for input_metric in input_metrics:
+                            alias = input_metric.get('alias')
+                            name = input_metric.get('name')
+                            if alias and name:
+                                pattern = r'(?<![a-zA-Z0-9_])' + re.escape(alias) + r'(?![a-zA-Z0-9_])'
+                                expr = re.sub(pattern, name, expr)
+                                print(expr)
+                                del input_metric['alias']
+                        type_params['expr'] = expr
+        return metrics_list
+
     @classmethod
     def load_from_project_metadata(cls: Type[Self], project_metadata: dbtProjectMetadata,semantic_models , metrics ) -> Self:
 
@@ -70,7 +91,8 @@ class DBTArtifactsWatchmen(dbtArtifacts):
         raw_semantic_manifest  = raw_data # load from file system semantic manifest.json
         
         raw_semantic_manifest["semantic_models"] = semantic_models.model_dump() if hasattr(semantic_models, 'model_dump') else [item.model_dump() if hasattr(item, 'model_dump') else item for item in semantic_models]
-        raw_semantic_manifest["metrics"] = metrics.model_dump() if hasattr(metrics, 'model_dump') else [item.model_dump() if hasattr(item, 'model_dump') else item for item in metrics]
+        metrics_data = metrics.model_dump() if hasattr(metrics, 'model_dump') else [item.model_dump() if hasattr(item, 'model_dump') else item for item in metrics]
+        raw_semantic_manifest["metrics"] = cls._process_derived_metrics(metrics_data)
 
         # print(raw_semantic_manifest)
         # load semantic_manifest from watchmen config

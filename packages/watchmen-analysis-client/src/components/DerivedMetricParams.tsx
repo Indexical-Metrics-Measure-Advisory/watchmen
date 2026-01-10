@@ -150,7 +150,33 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
                   <label className="text-sm font-medium">Metric Name</label>
                   <Select
                     value={metric.name}
-                    onValueChange={(value) => updateMetricReference(index, { name: value })}
+                    onValueChange={(value) => {
+                      const selectedMetric = availableMetrics.find(m => m.name === value);
+                      const updatedMetrics = [...(params.metrics || [])];
+                      updatedMetrics[index] = { ...updatedMetrics[index], name: value };
+                      
+                      let updatedInputMeasures = [...(params.input_measures || [])];
+                      
+                      if (selectedMetric?.type === 'simple' && selectedMetric.type_params.measure) {
+                        const measure = selectedMetric.type_params.measure;
+                        // Check if measure already exists to avoid duplicates
+                        const exists = updatedInputMeasures.some(im => im.name === measure.name);
+                        if (!exists) {
+                          updatedInputMeasures.push({
+                            name: measure.name,
+                            filter: measure.filter,
+                            alias: measure.alias || null,
+                            join_to_timespine: measure.join_to_timespine,
+                            fill_nulls_with: measure.fill_nulls_with || null
+                          });
+                        }
+                      }
+                      
+                      updateParams({ 
+                        metrics: updatedMetrics,
+                        input_measures: updatedInputMeasures
+                      });
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={isLoadingMetrics ? "Loading metrics..." : "Select metric name"} />
