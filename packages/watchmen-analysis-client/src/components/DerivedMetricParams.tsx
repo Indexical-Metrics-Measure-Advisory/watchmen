@@ -51,9 +51,9 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
   const addMetricReference = () => {
     const newMetric: MetricReference = {
       name: '',
-      alias: '',
+      alias: null as any,
       filter: null,
-      offset_window: undefined,
+      offset_window: null as any,
       offset_to_grain: null
     };
     updateParams({
@@ -157,7 +157,7 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
                     </SelectTrigger>
                     <SelectContent>
                       {isLoadingMetrics ? (
-                        <SelectItem value="" disabled>Loading metrics...</SelectItem>
+                        <SelectItem value="loading" disabled>Loading metrics...</SelectItem>
                       ) : availableMetrics.length > 0 ? (
                         availableMetrics.map((availableMetric) => (
                           <SelectItem key={availableMetric.name} value={availableMetric.name}>
@@ -168,7 +168,7 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="" disabled>No metrics available</SelectItem>
+                        <SelectItem value="no_metrics" disabled>No metrics available</SelectItem>
                       )}
                     </SelectContent>
                   </Select>

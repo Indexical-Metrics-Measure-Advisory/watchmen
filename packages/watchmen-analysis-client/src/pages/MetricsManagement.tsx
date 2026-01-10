@@ -295,6 +295,44 @@ const MetricsManagement: React.FC = () => {
       } else {
         cleaned.input_measures = [];
       }
+    } else if (type === 'derived') {
+      // Ensure specific structure for derived metrics
+      cleaned.measure = null;
+      cleaned.numerator = null;
+      cleaned.denominator = null;
+      cleaned.window = null;
+      cleaned.grain_to_date = null;
+      cleaned.conversion_type_params = null;
+      cleaned.cumulative_type_params = null;
+      
+      // Clean metrics
+      if (cleaned.metrics) {
+        cleaned.metrics = cleaned.metrics.map((metric: any) => ({
+          ...metric,
+          alias: toNull(metric.alias),
+          filter: toNull(metric.filter),
+          offset_window: metric.offset_window ? {
+            ...metric.offset_window,
+            count: metric.offset_window.count || 0,
+            granularity: metric.offset_window.granularity
+          } : null,
+          offset_to_grain: toNull(metric.offset_to_grain)
+        }));
+      } else {
+        cleaned.metrics = [];
+      }
+
+      // Clean input_measures
+      if (cleaned.input_measures) {
+        cleaned.input_measures = cleaned.input_measures.map((measure: any) => ({
+          ...measure,
+          alias: toNull(measure.alias),
+          filter: toNull(measure.filter),
+          fill_nulls_with: toNull(measure.fill_nulls_with)
+        }));
+      } else {
+        cleaned.input_measures = [];
+      }
     } else {
         // Clean conversion params if not conversion type
         if (type !== 'conversion') {
