@@ -18,7 +18,7 @@ init_oracle_client(lib_dir=r"/opt/oracle/instantclient_23_26")
 
 def redress_url_by_cxoracle(url: str) -> str:
     if url.startswith('oracle://'):
-        return url.replace('oracle://', 'oracle+cx_oracle://')
+        return url.replace('oracle://', 'oracle+oracledb://')
     else:
         return url
 
