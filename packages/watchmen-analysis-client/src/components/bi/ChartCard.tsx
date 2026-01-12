@@ -96,7 +96,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 // Data Table Component
-const DataTable: React.FC<{ data: any[], sourceData?: MetricFlowResponse }> = ({ data, sourceData }) => {
+export const DataTable: React.FC<{ data: any[], sourceData?: MetricFlowResponse }> = ({ data, sourceData }) => {
   // Prefer sourceData (raw response) if available
   if (sourceData && Array.isArray(sourceData.column_names) && Array.isArray(sourceData.data)) {
     const headers = sourceData.column_names;
@@ -193,6 +193,9 @@ export const ChartCard: React.FC<ChartCardProps> = ({
   const [lib, setLib] = useState<RechartsModule | null>(null);
   const [activeTab, setActiveTab] = useState<string>("chart");
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  
+  const dimensionsCount = card.selection?.dimensions?.length || 0;
+  const isTooManyDimensions = dimensionsCount > 5;
 
   const handleCopy = async () => {
     try {
@@ -374,7 +377,16 @@ export const ChartCard: React.FC<ChartCardProps> = ({
 
         <CardContent className="p-4 pt-4 flex-1 min-h-[250px] relative overflow-hidden">
           <TabsContent value="chart" className="h-full w-full mt-0 data-[state=active]:flex flex-col">
-            {!lib ? (
+            {isTooManyDimensions ? (
+               <div className="h-full w-full flex flex-col">
+                 <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 text-xs text-yellow-600 dark:text-yellow-400 text-center border-b border-yellow-100 dark:border-yellow-900/30 mb-2 rounded-sm">
+                   Chart hidden: Too many dimensions selected (max 5)
+                 </div>
+                 <div className="flex-1 overflow-hidden">
+                    <DataTable data={data} sourceData={sourceData} />
+                 </div>
+               </div>
+            ) : !lib ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground animate-pulse gap-2">
                 <BarChart2 className="w-8 h-8 opacity-20" />
                 <span className="text-xs font-medium">Loading visualization...</span>

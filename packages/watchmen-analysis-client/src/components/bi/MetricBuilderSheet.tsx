@@ -22,7 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { DateRange } from "react-day-picker";
-import { ChartCard } from '@/components/bi/ChartCard';
+import { ChartCard, DataTable } from '@/components/bi/ChartCard';
 import { BIMetric, BIChartType } from '@/model/biAnalysis';
 import type { MetricDefinition } from '@/model/metricsManagement';
 import type { MetricDimension } from '@/model/analysis';
@@ -320,7 +320,16 @@ export function MetricBuilderSheet({
                   </div>
                 </CardHeader>
                 <CardContent className="flex-1 p-6 min-h-[400px] flex flex-col">
-                  {selectedMetric ? (
+                  {selectedDims.length > 5 ? (
+                    <div className="h-full w-full flex flex-col">
+                      <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 text-xs text-yellow-600 dark:text-yellow-400 text-center border-b border-yellow-100 dark:border-yellow-900/30 mb-2 rounded-sm">
+                        Chart hidden: Too many dimensions selected (max 5)
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                        <DataTable data={previewData} sourceData={previewRawData ?? undefined} />
+                      </div>
+                    </div>
+                  ) : selectedMetric ? (
                     <div className="flex-1 w-full h-full min-h-[350px]">
                       <ChartCard
                         card={{

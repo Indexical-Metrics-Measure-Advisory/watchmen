@@ -121,12 +121,13 @@ const transformMetricFlowToChartData = (resp: MetricFlowResponse): unknown[] => 
   const cols = resp.column_names;
   const valueIdx = Math.max(cols.lastIndexOf('value'), cols.length - 1);
   const dimIdxs = cols.map((_, i) => i).filter(i => i !== valueIdx);
-  const timeKeywords = ['date', 'day', 'month', 'week', 'hour', 'time', 'timestamp', 'datetime', 'created_at', 'updated_at'];
+  const timeKeywords = ['date', 'day', 'month', 'week', 'quarter', 'year', 'hour', 'minute', 'second', 'time', 'timestamp', 'datetime', 'created_at', 'updated_at'];
   const timeIdx = dimIdxs.find(i => timeKeywords.some(k => String(cols[i] ?? '').toLowerCase().includes(k)));
 
   const fmt = (v: unknown) => (v === null || v === undefined) ? 'Null' : String(v);
 
-  if (typeof timeIdx === 'number') {
+  // Case: Time Series (Single Dimension)
+  if (dimIdxs.length === 1 && typeof timeIdx === 'number') {
     const acc = new Map<string, number>();
     for (const row of resp.data) {
       const t = fmt(row[timeIdx]);
@@ -139,21 +140,54 @@ const transformMetricFlowToChartData = (resp: MetricFlowResponse): unknown[] => 
     return parsed.map(p => ({ date: p.t, value: p.v }));
   }
 
+  // Case: Multi-dimensional (Pivot)
   if (dimIdxs.length >= 2) {
+    let mainAxisIdx = dimIdxs[0];
+    let groupIdx = dimIdxs[1];
+    let isTimeAxis = false;
+
+    // If there is a time dimension, force it to be the X-axis
+    if (typeof timeIdx === 'number') {
+      mainAxisIdx = timeIdx;
+      // Use the first non-time dimension as the grouping key
+      const nonTimeIdx = dimIdxs.find(i => i !== timeIdx);
+      if (nonTimeIdx !== undefined) {
+        groupIdx = nonTimeIdx;
+      }
+      isTimeAxis = true;
+    }
+
     const pivotMap = new Map<string, Record<string, unknown>>();
     for (const row of resp.data) {
-      const name = fmt(row[dimIdxs[0]]);
-      const group = fmt(row[dimIdxs[1]]);
+      const axisVal = fmt(row[mainAxisIdx]);
+      const groupVal = fmt(row[groupIdx]);
       const val = Number(row[valueIdx] ?? 0);
 
-      if (!pivotMap.has(name)) pivotMap.set(name, { name });
-      const record = pivotMap.get(name)!;
-      const cur = record[group];
-      record[group] = (typeof cur === 'number' ? cur : 0) + val;
+      if (!pivotMap.has(axisVal)) {
+        pivotMap.set(axisVal, { [isTimeAxis ? 'date' : 'name']: axisVal });
+      }
+      const record = pivotMap.get(axisVal)!;
+      // Accumulate if there are duplicate entries for the same axis+group
+      const cur = record[groupVal];
+      record[groupVal] = (typeof cur === 'number' ? cur : 0) + val;
     }
-    return Array.from(pivotMap.values());
+    
+    const result = Array.from(pivotMap.values());
+    
+    // Sort by time if it is a time axis
+    if (isTimeAxis) {
+       result.sort((a, b) => {
+         const da = Date.parse(String(a.date));
+         const db = Date.parse(String(b.date));
+         if (Number.isFinite(da) && Number.isFinite(db)) return da - db;
+         return String(a.date).localeCompare(String(b.date));
+       });
+    }
+
+    return result;
   }
 
+  // Case: Single non-time dimension
   return resp.data.map(row => {
     const nameParts = dimIdxs.map(i => fmt(row[i])).filter(s => s.length > 0);
     const name = nameParts.length > 0 ? nameParts.join(' · ') : 'Total';
@@ -254,6 +288,9 @@ const BIAnalysisPage: React.FC = () => {
   const [subscriptionOpen, setSubscriptionOpen] = useState(false);
   const [templates, setTemplates] = useState<{ id: string; name: string; description?: string; isTemplate?: boolean }[]>([]);
 
+  // Cache for metric dimensions to avoid re-fetching
+  const metricDimsCache = useRef<Map<string, MetricDimension[]>>(new Map());
+
   // Fetch rules when alert metric changes
   useEffect(() => {
     if (addAlertOpen) {
@@ -267,61 +304,53 @@ const BIAnalysisPage: React.FC = () => {
   }, [addAlertOpen]);
 
   // Fetch and cache card data
-  const loadCardDataFor = useCallback(async (card: BIChartCard, filtersOverride?: Record<string, string>, timeRangeOverride?: string) => {
+  const fetchCardData = useCallback(async (card: BIChartCard, filtersOverride?: Record<string, string>, timeRangeOverride?: string) => {
     try {
-    
-    if (card.chartType === 'alert' && card.alert) {
-      if (!card.alert.enabled) {
-        setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], rawData: null } }));
-        return;
-      }
-      const resp = await globalAlertService.fetchAlertData(card.alert as GlobalAlertRule);
-      
-      let chartData: unknown[] = [];
-      if (resp && Array.isArray(resp.data)) {
-         chartData = resp.data;
-      } else if (Array.isArray(resp)) {
-         chartData = resp;
+      if (card.chartType === 'alert' && card.alert) {
+        if (!card.alert.enabled) {
+          return { id: card.id, type: 'alert', data: [], rawData: null, status: null };
+        }
+        const resp = await globalAlertService.fetchAlertData(card.alert as GlobalAlertRule);
+        
+        let chartData: unknown[] = [];
+        if (resp && Array.isArray(resp.data)) {
+           chartData = resp.data;
+        } else if (Array.isArray(resp)) {
+           chartData = resp;
+        }
+
+        let status: AlertStatus | null = null;
+        if (resp && typeof resp.triggered === 'boolean') {
+           if (resp.alertStatus) {
+              status = resp.alertStatus;
+           } else {
+              const alertRule = card.alert as GlobalAlertRule;
+              const priority = alertRule.priority || 'medium';
+              let severity: 'info' | 'warning' | 'critical' = 'info';
+              if (priority === 'critical') severity = 'critical';
+              else if (priority === 'high') severity = 'warning';
+              
+              status = {
+                id: `alert-status-${card.id}`, 
+                ruleId: alertRule.id || card.id,
+                ruleName: alertRule.name || 'Alert',
+                triggered: resp.triggered,
+                severity: severity,
+                message: resp.message || (resp.triggered ? 'Alert Triggered' : 'Normal'),
+                acknowledged: resp.acknowledged || false,
+                conditionResults: resp.conditionResults || []
+              };
+           }
+        }
+        return { id: card.id, type: 'alert', data: chartData, rawData: null, status };
       }
 
-      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: chartData, rawData: null } }));
-      
-      if (resp && typeof resp.triggered === 'boolean') {
-         // It has triggered status. 
-         let status: AlertStatus;
-         if (resp.alertStatus) {
-            status = resp.alertStatus;
-         } else {
-            const alertRule = card.alert as GlobalAlertRule;
-            const priority = alertRule.priority || 'medium';
-            let severity: 'info' | 'warning' | 'critical' = 'info';
-            if (priority === 'critical') severity = 'critical';
-            else if (priority === 'high') severity = 'warning';
-            
-            // Construct minimal status if backend only returns { triggered: true, ... }
-            status = {
-              id: `alert-status-${card.id}`, 
-              ruleId: alertRule.id || card.id,
-              ruleName: alertRule.name || 'Alert',
-              triggered: resp.triggered,
-              severity: severity,
-              message: resp.message || (resp.triggered ? 'Alert Triggered' : 'Normal'),
-              acknowledged: resp.acknowledged || false,
-              conditionResults: resp.conditionResults || []
-            };
-         }
-         setAlertStatusMap(prev => ({ ...prev, [card.id]: status }));
-      }
-      return;
-    }
       const resolvedRange = resolveTimeRange(card, globalTimeRange, globalCustomDateRange, timeRangeOverride);
       const { start, end } = timeRangeToBounds(resolvedRange);
       let groupBy = card.selection.dimensions && card.selection.dimensions.length > 0 ? [...card.selection.dimensions] : undefined;
       
-      // If time granularity is selected, append it to time dimensions in group_by
       if (card.selection.timeGranularity && groupBy) {
         groupBy = groupBy.map(dim => {
-          // heuristic check if dimension is time-based since we don't have full object here
           if (inferType({ name: dim } as MetricDimension) === 'TIME') {
             return `${dim}__${card.selection.timeGranularity}`;
           }
@@ -342,13 +371,26 @@ const BIAnalysisPage: React.FC = () => {
       };
       const resp = await metricsService.getMetricValue(req);
       const data = transformMetricFlowToChartData(resp);
-      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: data, rawData: resp } }));
+      return { id: card.id, type: 'chart', data, rawData: resp };
     } catch (e) {
       console.warn(`Card ${card.id}: failed to load data.`, e);
-      // Do not set empty array on error, so it can be retried by useEffect when conditions change
-      // setCardDataMap(prev => ({ ...prev, [card.id]: [] }));
+      return null;
     }
   }, [globalTimeRange, globalCustomDateRange, globalFilterValues]);
+
+  const loadCardDataFor = useCallback(async (card: BIChartCard, filtersOverride?: Record<string, string>, timeRangeOverride?: string) => {
+    const result = await fetchCardData(card, filtersOverride, timeRangeOverride);
+    if (!result) return;
+
+    if (result.type === 'alert') {
+      setCardDataMap(prev => ({ ...prev, [result.id]: { chartData: result.data, rawData: result.rawData } }));
+      if (result.status) {
+        setAlertStatusMap(prev => ({ ...prev, [result.id]: result.status! }));
+      }
+    } else {
+      setCardDataMap(prev => ({ ...prev, [result.id]: { chartData: result.data, rawData: result.rawData as MetricFlowResponse } }));
+    }
+  }, [fetchCardData]);
 
   const confirmAddAlert = useCallback(() => {
      if (!alertRuleId) return;
@@ -382,10 +424,30 @@ const BIAnalysisPage: React.FC = () => {
      setAlertTimeRange('Past 30 days');
   }, [alertRuleId, dialogRules, alertTimeRange, alertCustomDateRange, loadCardDataFor, toast]);
 
-  const refreshData = useCallback(() => {
+  const refreshData = useCallback(async () => {
     toast({ title: 'Refreshing', description: 'Refreshing all cards...' });
-    cards.forEach(card => void loadCardDataFor(card));
-  }, [cards, loadCardDataFor, toast]);
+    const results = await Promise.all(cards.map(c => fetchCardData(c)));
+
+    setCardDataMap(prev => {
+      const next = { ...prev };
+      results.forEach(r => {
+        if (r) next[r.id] = { chartData: r.data, rawData: r.rawData as MetricFlowResponse };
+      });
+      return next;
+    });
+
+    setAlertStatusMap(prev => {
+      const next = { ...prev };
+      let hasUpdates = false;
+      results.forEach(r => {
+        if (r && r.type === 'alert' && r.status) {
+          next[r.id] = r.status;
+          hasUpdates = true;
+        }
+      });
+      return hasUpdates ? next : prev;
+    });
+  }, [cards, fetchCardData, toast]);
 
   const selectedMetric: BIMetric | null = useMemo(() => {
     const m = selectedMetricDef;
@@ -463,9 +525,17 @@ const BIAnalysisPage: React.FC = () => {
       }
 
       try {
-        const responses = await Promise.all(metricIds.map(id => findDimensionsByMetric(id)));
-        const maps = responses.map(r => {
-          const dims = Array.isArray(r?.dimensions) ? r.dimensions : [];
+        const missingIds = metricIds.filter(id => !metricDimsCache.current.has(id));
+        if (missingIds.length > 0) {
+          const responses = await Promise.all(missingIds.map(id => findDimensionsByMetric(id)));
+          responses.forEach((r, i) => {
+            const dims = Array.isArray(r?.dimensions) ? r.dimensions : [];
+            metricDimsCache.current.set(missingIds[i], dims);
+          });
+        }
+
+        const maps = metricIds.map(id => {
+          const dims = metricDimsCache.current.get(id) || [];
           return new Map(dims.map(d => [toDimKey(d), d] as const));
         });
 
@@ -547,8 +617,12 @@ const BIAnalysisPage: React.FC = () => {
         if (alive) setMetricsLoading(false);
       }
     };
-    load();
-    return () => { alive = false; };
+
+    const timer = setTimeout(load, 300);
+    return () => { 
+      alive = false; 
+      clearTimeout(timer);
+    };
   }, [search, categoryId, metricBuilderOpen]);
 
 
@@ -742,19 +816,36 @@ const BIAnalysisPage: React.FC = () => {
     setCards(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleGlobalFilterChange = (dimensionKey: string, value: string) => {
-    setGlobalFilterValues(prev => {
-      const next = { ...prev, [dimensionKey]: value };
-      setCardDataMap({});
-      setAlertStatusMap({});
-      cards.forEach(c => {
-        void loadCardDataFor(c, next);
+  const handleGlobalFilterChange = async (dimensionKey: string, value: string) => {
+    const next = { ...globalFilterValues, [dimensionKey]: value };
+    setGlobalFilterValues(next);
+    setCardDataMap({});
+    setAlertStatusMap({});
+
+    const results = await Promise.all(cards.map(c => fetchCardData(c, next)));
+
+    setCardDataMap(prev => {
+      const map = { ...prev };
+      results.forEach(r => {
+        if (r) map[r.id] = { chartData: r.data, rawData: r.rawData as MetricFlowResponse };
       });
-      return next;
+      return map;
+    });
+
+    setAlertStatusMap(prev => {
+      const map = { ...prev };
+      let hasUpdates = false;
+      results.forEach(r => {
+        if (r && r.type === 'alert' && r.status) {
+          map[r.id] = r.status;
+          hasUpdates = true;
+        }
+      });
+      return hasUpdates ? map : prev;
     });
   };
 
-  const handleGlobalTimeRangeChange = (range: string) => {
+  const handleGlobalTimeRangeChange = async (range: string) => {
     setGlobalTimeRange(range);
 
     // Sync to cards if not "Per Card" and not "Custom" (Custom is handled in date change)
@@ -774,13 +865,34 @@ const BIAnalysisPage: React.FC = () => {
 
     setCardDataMap({});
     setAlertStatusMap({});
-    cards.forEach(c => {
+    
+    const results = await Promise.all(cards.map(c => {
       const override = range === GLOBAL_TIME_RANGE_PER_CARD ? c.selection.timeRange : range;
-      void loadCardDataFor(c, globalFilterValues, override);
+      return fetchCardData(c, globalFilterValues, override);
+    }));
+
+    setCardDataMap(prev => {
+      const map = { ...prev };
+      results.forEach(r => {
+        if (r) map[r.id] = { chartData: r.data, rawData: r.rawData as MetricFlowResponse };
+      });
+      return map;
+    });
+
+    setAlertStatusMap(prev => {
+      const map = { ...prev };
+      let hasUpdates = false;
+      results.forEach(r => {
+        if (r && r.type === 'alert' && r.status) {
+          map[r.id] = r.status;
+          hasUpdates = true;
+        }
+      });
+      return hasUpdates ? map : prev;
     });
   };
 
-  const handleGlobalCustomDateRangeChange = (range: DateRange) => {
+  const handleGlobalCustomDateRangeChange = async (range: DateRange) => {
     setGlobalCustomDateRange(range);
     if (globalTimeRange !== 'Custom') return;
 
@@ -795,20 +907,58 @@ const BIAnalysisPage: React.FC = () => {
 
     setCardDataMap({});
     setAlertStatusMap({});
-    cards.forEach(c => {
-      void loadCardDataFor(c, globalFilterValues, override);
+    
+    const results = await Promise.all(cards.map(c => fetchCardData(c, globalFilterValues, override)));
+
+    setCardDataMap(prev => {
+      const map = { ...prev };
+      results.forEach(r => {
+        if (r) map[r.id] = { chartData: r.data, rawData: r.rawData as MetricFlowResponse };
+      });
+      return map;
+    });
+
+    setAlertStatusMap(prev => {
+      const map = { ...prev };
+      let hasUpdates = false;
+      results.forEach(r => {
+        if (r && r.type === 'alert' && r.status) {
+          map[r.id] = r.status;
+          hasUpdates = true;
+        }
+      });
+      return hasUpdates ? map : prev;
     });
   };
 
-  const clearGlobalFilters = () => {
+  const clearGlobalFilters = async () => {
     const next: Record<string, string> = {};
     setGlobalFilterValues(next);
     setGlobalTimeRange(GLOBAL_TIME_RANGE_PER_CARD);
     setGlobalCustomDateRange(undefined);
     setCardDataMap({});
     setAlertStatusMap({});
-    cards.forEach(c => {
-      void loadCardDataFor(c, next, c.selection.timeRange);
+    
+    const results = await Promise.all(cards.map(c => fetchCardData(c, next, c.selection.timeRange)));
+
+    setCardDataMap(prev => {
+      const map = { ...prev };
+      results.forEach(r => {
+        if (r) map[r.id] = { chartData: r.data, rawData: r.rawData as MetricFlowResponse };
+      });
+      return map;
+    });
+
+    setAlertStatusMap(prev => {
+      const map = { ...prev };
+      let hasUpdates = false;
+      results.forEach(r => {
+        if (r && r.type === 'alert' && r.status) {
+          map[r.id] = r.status;
+          hasUpdates = true;
+        }
+      });
+      return hasUpdates ? map : prev;
     });
   };
 
