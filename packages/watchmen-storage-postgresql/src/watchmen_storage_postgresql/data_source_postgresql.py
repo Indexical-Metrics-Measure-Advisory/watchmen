@@ -20,6 +20,7 @@ def redress_url_by_psycopg2(url: str) -> str:
 class PostgreSQLDataSourceParams(DataModel):
 	echo: bool = False
 	poolRecycle: int = 3600
+	schema: str = ""
 
 
 class PostgreSQLDataSourceHelper(DataSourceHelper):
@@ -29,15 +30,27 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 
 	@staticmethod
 	def acquire_engine_by_url(url: str, params: PostgreSQLDataSourceParams) -> Engine:
-		return create_engine(
-			redress_url_by_psycopg2(url),
-			echo=params.echo,
-			future=True,
-			pool_recycle=params.poolRecycle,
-			json_serializer=serialize_to_json,
-			supports_native_boolean=False
-		)
-
+		
+		if params.schema:
+			return create_engine(
+				redress_url_by_psycopg2(url),
+				echo=params.echo,
+				future=True,
+				pool_recycle=params.poolRecycle,
+				json_serializer=serialize_to_json,
+				supports_native_boolean=False,
+				connect_args={"options": f"-c search_path={params.schema}"},
+			)
+		else:
+			return create_engine(
+				redress_url_by_psycopg2(url),
+				echo=params.echo,
+				future=True,
+				pool_recycle=params.poolRecycle,
+				json_serializer=serialize_to_json,
+				supports_native_boolean=False
+			)
+	
 	# noinspection DuplicatedCode
 	@staticmethod
 	def find_param(params: Optional[List[DataSourceParam]], key: str) -> Optional[str]:
@@ -72,17 +85,11 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 			params: PostgreSQLDataSourceParams
 	) -> Engine:
 		url_params = PostgreSQLDataSourceHelper.build_url_params(data_source_params)
-
-		# please set search_path for current user who connect to db, make sure the default one is what you need.
-		# otherwise, might incorrect schema used.
-		# options = PostgreSQLDataSourceHelper.find_param(data_source_params, 'options')
-		# if is_blank(options):
-		# 	raise UnexpectedStorageException(
-		# 		f'Parameter [options] must be specified for PostgreSQL data source [{name}].')
-		# elif options.find('search_path') == -1:
-		# 	raise UnexpectedStorageException(
-		# 		f'Parameter [search_path] must be specified for PostgreSQL data source [{name}].')
-
+		
+		for param in data_source_params:
+			if param.name == "schema":
+				params.schema = param.value
+    
 		search = PostgreSQLDataSourceHelper.build_url_search(url_params)
 		if is_not_blank(search):
 			search = f'?{search}'
