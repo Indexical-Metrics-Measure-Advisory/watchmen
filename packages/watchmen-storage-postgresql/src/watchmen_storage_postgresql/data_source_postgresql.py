@@ -39,7 +39,7 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 				pool_recycle=params.poolRecycle,
 				json_serializer=serialize_to_json,
 				supports_native_boolean=False,
-				connect_args={"options": f"-c search_path= {params.schema}"},
+				connect_args={"options": f"-csearch_path={params.schema}"},
 			)
 		else:
 			return create_engine(
