@@ -20,7 +20,6 @@ def redress_url_by_psycopg2(url: str) -> str:
 class PostgreSQLDataSourceParams(DataModel):
 	echo: bool = False
 	poolRecycle: int = 3600
-	schema: str = ""
 
 
 class PostgreSQLDataSourceHelper(DataSourceHelper):
@@ -30,26 +29,14 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 
 	@staticmethod
 	def acquire_engine_by_url(url: str, params: PostgreSQLDataSourceParams) -> Engine:
-		
-		if params.schema:
-			return create_engine(
-				redress_url_by_psycopg2(url),
-				echo=params.echo,
-				future=True,
-				pool_recycle=params.poolRecycle,
-				json_serializer=serialize_to_json,
-				supports_native_boolean=False,
-				connect_args={"options": f"-csearch_path={params.schema}"},
-			)
-		else:
-			return create_engine(
-				redress_url_by_psycopg2(url),
-				echo=params.echo,
-				future=True,
-				pool_recycle=params.poolRecycle,
-				json_serializer=serialize_to_json,
-				supports_native_boolean=False
-			)
+		return create_engine(
+			redress_url_by_psycopg2(url),
+			echo=params.echo,
+			future=True,
+			pool_recycle=params.poolRecycle,
+			json_serializer=serialize_to_json,
+			supports_native_boolean=False
+		)
 	
 	# noinspection DuplicatedCode
 	@staticmethod
@@ -85,16 +72,6 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 			params: PostgreSQLDataSourceParams
 	) -> Engine:
 		url_params = PostgreSQLDataSourceHelper.build_url_params(data_source_params)
-		
-		def find_schema(param: DataSourceParam) -> bool:
-			if param.name == "schema":
-				return True
-			else:
-				return False
-		
-		schema_param = ArrayHelper(data_source_params).find(find_schema)
-		if schema_param:
-			params.schema = schema_param.value
 		search = PostgreSQLDataSourceHelper.build_url_search(url_params)
 		if is_not_blank(search):
 			search = f'?{search}'
@@ -109,7 +86,9 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 		def filter_param(param: DataSourceParam):
 			if param.name == "client_encoding":
 				url_params.append(param)
-
+			if param.name == "options":
+				url_params.append(param)
+				
 		ArrayHelper(data_source_params).each(lambda param: filter_param(param))
 
 		charset = PostgreSQLDataSourceHelper.find_param(url_params, 'client_encoding')
