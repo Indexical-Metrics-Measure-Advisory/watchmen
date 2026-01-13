@@ -59,6 +59,25 @@ class CacheService:
 		CacheService.key_store().clear()
 
 
+def heart_beat_on_pipelines_by_topic() -> None:
+	topic_ids = CacheService.pipelines_by_topic().keys()
+	pipeline_service = PipelineService(ask_meta_storage(), ask_snowflake_generator(), ask_super_admin())
+	pipeline_service.begin_transaction()
+	try:
+		for topic_id in topic_ids:
+			# noinspection PyTypeChecker
+			pipelines: List[Pipeline] = pipeline_service.find_pipelines_by_topic_id(topic_id)
+			cached_pipelines = CacheService.pipelines_by_topic().get(topic_id)
+			if cached_pipelines is None:
+				cached_pipelines = []
+			pipeline_ids = {p.pipelineId for p in pipelines}
+			cached_pipeline_ids = {p.pipelineId for p in cached_pipelines}
+			if pipeline_ids != cached_pipeline_ids:
+				CacheService.pipelines_by_topic().put(topic_id, pipelines)
+	finally:
+		pipeline_service.close_transaction()
+		
+		
 def heart_beat_on_pipelines() -> None:
 	pipelines = CacheService.pipeline().all()
 	pipeline_service = PipelineService(ask_meta_storage(), ask_snowflake_generator(), ask_super_admin())
@@ -159,6 +178,7 @@ def cache_heart_beat():
 			heart_beat_on_external_writers()
 			heart_beat_on_pipelines()
 			heart_beat_on_topics()
+			heart_beat_on_pipelines_by_topic()
 	except Exception as e:
 		logger.error(e, exc_info=True, stack_info=True)
 	finally:

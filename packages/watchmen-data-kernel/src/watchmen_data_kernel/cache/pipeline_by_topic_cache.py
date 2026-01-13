@@ -12,7 +12,7 @@ class PipelineByTopicCache:
 	def __init__(self):
 		self.byTopicIdCache = InternalCache(cache=get_pipeline_by_topic_id_cache)
 
-	def get(self, topic_id: TopicId) -> Optional[List[PipelineId]]:
+	def get(self, topic_id: TopicId) -> Optional[List[Pipeline]]:
 		"""
 		none means not initialized. empty list means no pipeline.
 		"""
@@ -53,6 +53,9 @@ class PipelineByTopicCache:
 
 	def put(self, topic_id: TopicId, pipelines: List[Pipeline]) -> List[Pipeline]:
 		return self.byTopicIdCache.put(topic_id, pipelines)
+	
+	def keys(self) -> List[TopicId]:
+		return list(self.byTopicIdCache.keys())
 
 
 pipeline_by_topic_cache = PipelineByTopicCache()

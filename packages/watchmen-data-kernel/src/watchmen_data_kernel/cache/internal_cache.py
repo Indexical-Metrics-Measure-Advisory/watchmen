@@ -1,4 +1,4 @@
-from typing import Any, Callable, Hashable, Optional, Union, ValuesView
+from typing import Any, Callable, Hashable, Optional, Union, ValuesView, List, KeysView
 
 from cacheout import Cache
 
@@ -33,6 +33,12 @@ class InternalCache:
 		self.cache.delete(key)
 		return existing
 
+	def keys(self) -> KeysView:
+		if ask_cache_enabled():
+			return self.cache.keys()
+		else:
+			return dict().keys()
+		
 	def values(self) -> ValuesView:
 		if ask_cache_enabled():
 			return self.cache.values()
