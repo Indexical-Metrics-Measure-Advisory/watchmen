@@ -39,7 +39,7 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 				pool_recycle=params.poolRecycle,
 				json_serializer=serialize_to_json,
 				supports_native_boolean=False,
-				connect_args={"options": f"-c search_path={params.schema}"},
+				connect_args={"options": f"-c search_path= {params.schema}"},
 			)
 		else:
 			return create_engine(
@@ -86,10 +86,15 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 	) -> Engine:
 		url_params = PostgreSQLDataSourceHelper.build_url_params(data_source_params)
 		
-		for param in data_source_params:
+		def find_schema(param: DataSourceParam) -> bool:
 			if param.name == "schema":
-				params.schema = param.value
-    
+				return True
+			else:
+				return False
+		
+		schema_param = ArrayHelper(data_source_params).find(find_schema)
+		if schema_param:
+			params.schema = schema_param.value
 		search = PostgreSQLDataSourceHelper.build_url_search(url_params)
 		if is_not_blank(search):
 			search = f'?{search}'
