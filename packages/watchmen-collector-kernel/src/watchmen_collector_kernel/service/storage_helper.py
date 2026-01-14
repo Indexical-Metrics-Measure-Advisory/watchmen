@@ -60,12 +60,12 @@ def ask_collector_storage(tenant_id: str, principal_service: PrincipalService) -
     collector_datasource_service = get_collector_data_source_service(principal_service)
     data_source: DataSource = collector_datasource_service.find_datasource_by_tenant_id(tenant_id, filter_datasource)
     if data_source:
-        build = CacheService.data_source().get_builder(data_source.data_source_id)
+        build = CacheService.data_source().get_builder(data_source.dataSourceId)
         if build is not None:
             return build()
            
         build = build_topic_data_storage(data_source)
-        CacheService.data_source().put_builder(data_source.data_source_id, build)
+        CacheService.data_source().put_builder(data_source.dataSourceId, build)
         return build()
     else:
         return ask_meta_storage()
