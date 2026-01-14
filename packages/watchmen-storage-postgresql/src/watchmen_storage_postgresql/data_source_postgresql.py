@@ -37,7 +37,7 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 			json_serializer=serialize_to_json,
 			supports_native_boolean=False
 		)
-
+	
 	# noinspection DuplicatedCode
 	@staticmethod
 	def find_param(params: Optional[List[DataSourceParam]], key: str) -> Optional[str]:
@@ -72,17 +72,6 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 			params: PostgreSQLDataSourceParams
 	) -> Engine:
 		url_params = PostgreSQLDataSourceHelper.build_url_params(data_source_params)
-
-		# please set search_path for current user who connect to db, make sure the default one is what you need.
-		# otherwise, might incorrect schema used.
-		# options = PostgreSQLDataSourceHelper.find_param(data_source_params, 'options')
-		# if is_blank(options):
-		# 	raise UnexpectedStorageException(
-		# 		f'Parameter [options] must be specified for PostgreSQL data source [{name}].')
-		# elif options.find('search_path') == -1:
-		# 	raise UnexpectedStorageException(
-		# 		f'Parameter [search_path] must be specified for PostgreSQL data source [{name}].')
-
 		search = PostgreSQLDataSourceHelper.build_url_search(url_params)
 		if is_not_blank(search):
 			search = f'?{search}'
@@ -97,7 +86,9 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 		def filter_param(param: DataSourceParam):
 			if param.name == "client_encoding":
 				url_params.append(param)
-
+			if param.name == "options":
+				url_params.append(param)
+				
 		ArrayHelper(data_source_params).each(lambda param: filter_param(param))
 
 		charset = PostgreSQLDataSourceHelper.find_param(url_params, 'client_encoding')

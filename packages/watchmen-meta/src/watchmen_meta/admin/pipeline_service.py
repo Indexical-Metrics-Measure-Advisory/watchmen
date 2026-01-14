@@ -114,6 +114,17 @@ class PipelineService(TupleService):
 		# noinspection PyTypeChecker
 		return self.storage.find(finder)
 
+
+	def find_pipelines_by_topic_id(self, topic_id: TopicId) -> List[Pipeline]:
+		finder = self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='topic_id'), right=topic_id)
+			]
+		)
+		# noinspection PyTypeChecker
+		return self.storage.find(finder)
+
+
 	def update_name(self, pipeline_id: PipelineId, name: str, tenant_id: TenantId) -> Pipeline:
 		"""
 		update name will not increase optimistic lock version
