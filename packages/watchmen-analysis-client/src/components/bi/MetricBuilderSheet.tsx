@@ -280,7 +280,26 @@ export function MetricBuilderSheet({
                         </Select>
 
                         {timeRange === 'Custom' && (
-                          <div className="pt-1 animate-in fade-in slide-in-from-top-1">
+                          <div className="pt-1 space-y-2 animate-in fade-in slide-in-from-top-1">
+                            <Select
+                              onValueChange={(val) => {
+                                const year = parseInt(val);
+                                const start = new Date(year, 0, 1);
+                                const end = new Date(year, 11, 31);
+                                onCustomDateRangeChange({ from: start, to: end });
+                              }}
+                            >
+                              <SelectTrigger className="h-8">
+                                <SelectValue placeholder="Select year..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                                  <SelectItem key={year} value={year.toString()}>
+                                    {year}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <DatePickerWithRange
                               date={customDateRange}
                               onSelect={onCustomDateRangeChange}

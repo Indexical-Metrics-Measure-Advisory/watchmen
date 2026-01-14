@@ -202,6 +202,8 @@ def build_merged_profile(semantics: List[SemanticModel], principal_service: Prin
     profiles_map = {}
     for semantic in semantics:
         profile_data = build_profile(semantic, principal_service)
+
+        print("profile_data",profile_data)
         key = get_data_source_key(profile_data)
         if key and key not in profiles_map:
             profiles_map[key] = profile_data
