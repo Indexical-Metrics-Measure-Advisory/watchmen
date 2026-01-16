@@ -1,5 +1,5 @@
 from watchmen_model.webhook.notification_defination import NotificationType
-from watchmen_webhook_server import NotifyService
+from watchmen_webhook_server.integration.notify_service import NotifyService
 from watchmen_webhook_server.integration.email.email_service import EmailService
 from watchmen_webhook_server.integration.feishu.feishu_service import FeishuService
 from watchmen_webhook_server.integration.slack.slack_service import SlackService

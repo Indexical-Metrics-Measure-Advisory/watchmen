@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from watchmen_model.webhook.notification_defination import NotificationType, NotificationDefinition, NotificationParam
 from watchmen_model.webhook.subscription_event import SubscriptionEvent
 from watchmen_utilities import ExtendedBaseModel
-from watchmen_webhook_server import NotifyService
+from watchmen_webhook_server.integration.notify_service import NotifyService
 from watchmen_webhook_server.integration.utils.screen_shot_builder import screenshot_page
 
 SEND_MESSAGE = "message/v4/send/"

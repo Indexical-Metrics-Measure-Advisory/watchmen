@@ -13,7 +13,8 @@ from watchmen_model.webhook.event_defination import EventSource
 from watchmen_model.webhook.notification_defination import NotificationType, NotificationDefinition, NotificationParam
 from watchmen_model.webhook.subscription_event import SubscriptionEvent
 from watchmen_utilities import ArrayHelper, ExtendedBaseModel
-from watchmen_webhook_server import NotifyService, build_data_Loader
+from watchmen_webhook_server.integration.notify_service import NotifyService
+from watchmen_webhook_server.data.index import build_data_Loader
 from watchmen_webhook_server.integration.notify_service import get_user_service
 
 logger = getLogger(__name__)
