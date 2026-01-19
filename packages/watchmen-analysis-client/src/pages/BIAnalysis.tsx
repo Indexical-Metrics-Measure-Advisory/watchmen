@@ -685,7 +685,18 @@ const BIAnalysisPage: React.FC = () => {
 
   // templates list
   useEffect(() => {
-    listAnalyses().then(list => setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, isTemplate: i.isTemplate }))));
+    listAnalyses()
+      .then(list => {
+        if (Array.isArray(list)) {
+          setTemplates(list.map(i => ({ id: i.id, name: i.name, description: i.description, isTemplate: i.isTemplate })));
+        } else {
+          setTemplates([]);
+        }
+      })
+      .catch(e => {
+        console.error("Failed to load templates", e);
+        setTemplates([]);
+      });
   }, []);
 
   // Load dimensions by metric via MCP when metric changes

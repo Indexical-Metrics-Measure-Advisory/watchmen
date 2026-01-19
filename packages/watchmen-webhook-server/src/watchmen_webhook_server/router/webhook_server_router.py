@@ -3,7 +3,7 @@ from logging import getLogger
 from typing import Optional
 
 from fastapi import APIRouter, Depends
-from watchmen_webhook_server import NotifyService
+from watchmen_webhook_server.integration.notify_service import NotifyService
 from watchmen_webhook_server.integration.index import find_notification_service
 from watchmen_webhook_server.utils.trans import trans, trans_readonly
 
