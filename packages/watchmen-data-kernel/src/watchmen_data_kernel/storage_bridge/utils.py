@@ -44,12 +44,12 @@ def get_value_from(
 			if isinstance(data, str):
 				return data
 			elif isinstance(data, list):
-				return ','.join(map(str, data))
+				return ','.join(map(lambda x: str(x) if x is not None else "", data))
 			else:
 				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
 		elif current_name == VariablePredefineFunctions.DISTINCT:
 			if isinstance(data, str):
-				return data
+				return [data]
 			elif isinstance(data, list):
 				return list(set(data))
 			else:
