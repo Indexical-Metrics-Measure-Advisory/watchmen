@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, time
 from decimal import Decimal
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats, DataKernelException
@@ -10,6 +10,7 @@ from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.common import VariablePredefineFunctions
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_date, month_diff, \
 	truncate_time, try_to_decimal, year_diff
+from .min_max import min_value, max_value
 from .str_utils import check_supported_function_with_params, execute_string_operations
 from .variables import PipelineVariables
 
@@ -55,47 +56,9 @@ def get_value_from(
 			else:
 				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
 		elif current_name == VariablePredefineFunctions.MIN:
-			if isinstance(data, str):
-				return data
-			elif isinstance(data, list):
-				new_data = [element for element in data if element is not None]
-				if len(new_data) == 0:
-					return None
-				else:
-					if not isinstance(new_data[0], (int, float, Decimal, date, datetime, time)):
-						raise DataKernelException(
-							f'Invalid type for MIN function:[key={name}, current={current_name}] from [{data}].'
-						)
-					valid_type = type(new_data[0])
-					for elem in new_data[1:]:
-						if type(elem) != valid_type:
-							raise DataKernelException(
-								f'Type mismatch in MIN function:[key={name}, current={current_name}] from [{data}].'
-							)
-					return min(new_data)
-			else:
-				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
+			return min_value(name, current_name, data)
 		elif current_name == VariablePredefineFunctions.MAX:
-			if isinstance(data, str):
-				return data
-			elif isinstance(data, list):
-				new_data = [element for element in data if element is not None]
-				if len(new_data) == 0:
-					return None
-				else:
-					if not isinstance(new_data[0], (int, float, Decimal, date, datetime, time)):
-						raise DataKernelException(
-							f'Invalid type for MAX function:[key={name}, current={current_name}] from [{data}].'
-						)
-					valid_type = type(new_data[0])
-					for elem in new_data[1:]:
-						if type(elem) != valid_type:
-							raise DataKernelException(
-								f'Type mismatch in MAX function:[key={name}, current={current_name}] from [{data}].'
-							)
-					return max(new_data)
-			else:
-				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
+			return max_value(name, current_name, data)
 		elif current_name == VariablePredefineFunctions.SUM:
 			if isinstance(data, list):
 				def to_decimal(value: Any) -> Decimal:
