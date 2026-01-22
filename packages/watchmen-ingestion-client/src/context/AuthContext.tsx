@@ -1,6 +1,21 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService, User, Token, LoginCredentials, LoginConfiguration, SSOTypes } from '@/services/authService';
+import { saveTokenIntoSession, saveAccountIntoSession, findToken, quit } from '@/services/accountService';
+
+export enum UserRole {
+	CONSOLE = 'console',
+	ADMIN = 'admin',
+	SUPER_ADMIN = 'superadmin'
+}
+
+const isAdmin = (loginResult: any) => {
+	return loginResult.role === UserRole.ADMIN || loginResult.role === UserRole.SUPER_ADMIN;
+};
+const isSuperAdmin = (loginResult: any) => {
+	return loginResult.role === UserRole.SUPER_ADMIN;
+};
+
 
 interface AuthContextType {
   user: User | null;
@@ -42,40 +57,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       // Load login configuration
       await loadLoginConfiguration();
-      
-      const url = new URL(window.location.href);
-      const search = url.searchParams;
-      const hashParams = new URLSearchParams(url.hash.startsWith('#') ? url.hash.substring(1) : url.hash);
-      const urlToken = search.get('token') || search.get('access_token') || hashParams.get('token') || hashParams.get('access_token');
-      const redirectTo = search.get('redirect') || search.get('return_to');
-
-      if (urlToken) {
-        const tokenData: Token = { accessToken: urlToken, tokenType: 'Bearer', role: '', tenantId: '' };
-        authService.storeToken(tokenData);
-        setToken(urlToken);
-        try {
-          const userData = await authService.exchangeUser(urlToken);
-          if (userData) {
-            setUser(userData);
-            localStorage.setItem('user', JSON.stringify(userData));
-          }
-        } catch (e) {
-          authService.clearStoredAuth();
-        }
-        search.delete('token');
-        search.delete('access_token');
-        search.delete('redirect');
-        search.delete('return_to');
-        const newUrl = `${url.origin}${url.pathname}${search.toString() ? `?${search.toString()}` : ''}`;
-        window.history.replaceState(null, '', newUrl);
-        if (redirectTo && /^\//.test(redirectTo)) {
-          window.location.replace(redirectTo);
-          return;
-        }
-      }
 
       // Check if user is already logged in
-      const storedToken = authService.getStoredToken();
+      const storedToken = findToken()
       
       if (storedToken) {
         try {
@@ -86,11 +70,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setToken(storedToken);
           } else {
             // Token is invalid, clear stored auth
-            authService.clearStoredAuth();
+            quit()
           }
         } catch (error) {
           console.error('Error validating stored token:', error);
-          authService.clearStoredAuth();
+          quit()
         }
       }
     } catch (error) {
@@ -117,14 +101,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const tokenData: Token = await authService.loginWithCredentials(credentials);
       
       // Store token
-      authService.storeToken(tokenData);
-      setToken(tokenData.accessToken);
+      saveTokenIntoSession(tokenData.accessToken);
       
       // Get user information
       const userData = await authService.exchangeUser(tokenData.accessToken);
       if (userData) {
         setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
+        
+        saveAccountIntoSession({
+          name: (credentials.username || '').trim(),
+          admin: isAdmin(tokenData),
+          super: isSuperAdmin(tokenData),
+          tenantId: tokenData.tenantId
+        });
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -146,7 +135,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
-    authService.clearStoredAuth();
+    quit()
   };
 
   const value: AuthContextType = {
