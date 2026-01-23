@@ -751,8 +751,9 @@ const Models = () => {
                 value={createFormData.modelName || ''}
                 onChange={(e) => setCreateFormData(prev => ({ ...prev, modelName: e.target.value }))}
                 placeholder="Enter model name"
+                className={formErrors.modelName ? "border-red-500" : ""}
               />
-              {formErrors.modelName && <p className="text-sm text-red-600">{formErrors.modelName}</p>}
+              {formErrors.modelName && <p className="text-sm text-red-600 mt-1">{formErrors.modelName}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="create-moduleId">Module ID *</Label>
@@ -760,7 +761,7 @@ const Models = () => {
                 value={createFormData.moduleId || ''}
                 onValueChange={(value) => setCreateFormData(prev => ({ ...prev, moduleId: value }))}
               >
-                <SelectTrigger>
+                <SelectTrigger className={formErrors.moduleId ? "border-red-500" : ""}>
                   <SelectValue placeholder="Select a module" />
                 </SelectTrigger>
                 <SelectContent>
@@ -771,7 +772,7 @@ const Models = () => {
                   ))}
                 </SelectContent>
               </Select>
-              {formErrors.moduleId && <p className="text-sm text-red-600">{formErrors.moduleId}</p>}
+              {formErrors.moduleId && <p className="text-sm text-red-600 mt-1">{formErrors.moduleId}</p>}
             </div>
 
             <div className="space-y-2">
@@ -865,8 +866,9 @@ const Models = () => {
                 value={editFormData.modelName || ''}
                 onChange={(e) => setEditFormData(prev => ({ ...prev, modelName: e.target.value }))}
                 placeholder="Enter model name"
+                className={formErrors.modelName ? "border-red-500" : ""}
               />
-              {formErrors.modelName && <p className="text-sm text-red-600">{formErrors.modelName}</p>}
+              {formErrors.modelName && <p className="text-sm text-red-600 mt-1">{formErrors.modelName}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-moduleId">Module ID *</Label>
@@ -874,7 +876,7 @@ const Models = () => {
                 value={editFormData.moduleId || ''}
                 onValueChange={(value) => setEditFormData(prev => ({ ...prev, moduleId: value }))}
               >
-                <SelectTrigger>
+                <SelectTrigger className={formErrors.moduleId ? "border-red-500" : ""}>
                   <SelectValue placeholder="Select a module" />
                 </SelectTrigger>
                 <SelectContent>
@@ -885,7 +887,7 @@ const Models = () => {
                   ))}
                 </SelectContent>
               </Select>
-              {formErrors.moduleId && <p className="text-sm text-red-600">{formErrors.moduleId}</p>}
+              {formErrors.moduleId && <p className="text-sm text-red-600 mt-1">{formErrors.moduleId}</p>}
             </div>
 
             <div className="space-y-2">

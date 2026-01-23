@@ -333,13 +333,14 @@ const TableForm = ({
           <div>
             <Label htmlFor="form-parent-name">Parent Name</Label>
             <Select
-              value={formData.parentName || ''}
-              onValueChange={(value) => setFormData({ ...formData, parentName: value })}
+              value={formData.parentName || 'unselected'}
+              onValueChange={(value) => setFormData({ ...formData, parentName: value === 'unselected' ? '' : value })}
             >
               <SelectTrigger id="form-parent-name">
                 <SelectValue placeholder="Select parent table" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="unselected">Please select</SelectItem>
                 {tables
                   .filter(t => t.modelName === formData.modelName && t.configId !== formData.configId)
                   .map((t) => (
