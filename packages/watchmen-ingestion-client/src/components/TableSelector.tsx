@@ -65,7 +65,7 @@ const TableSelector: React.FC<TableSelectorProps> = ({
         const normalized = all
           .filter(t => !selectedModelName || t.modelName === selectedModelName)
           .map(t => ({ 
-            id: t.tableName || t.name || t.configId, 
+            id: t.name || t.tableName || t.configId, 
             name: t.name || t.tableName || t.configId, 
             description: t.label 
           }));
@@ -73,7 +73,7 @@ const TableSelector: React.FC<TableSelectorProps> = ({
         if (normalized.length === 0 && selectedModelName) {
           // Explicit filter by name yielded none; fall back to all tables for visibility
           const fallback = all.map(t => ({ 
-            id: t.tableName || t.name || t.configId, 
+            id: t.name || t.tableName || t.configId, 
             name: t.name || t.tableName || t.configId, 
             description: t.label 
           }));
