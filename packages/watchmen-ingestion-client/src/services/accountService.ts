@@ -1,5 +1,4 @@
 import {Buffer} from 'buffer/';
-import { User } from './authService';
 
 
 export const base64Encode = (str: string): string => {
