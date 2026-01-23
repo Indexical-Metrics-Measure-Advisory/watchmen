@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '@/utils/apiConfig';
+import { findToken } from '@/services/accountService';
 
 // Types based on the backend models
 export enum SSOTypes {
@@ -170,7 +171,7 @@ class AuthService {
    * Get stored token from localStorage
    */
   getStoredToken(): string | null {
-    return localStorage.getItem('authToken');
+    return findToken();
   }
 
   /**

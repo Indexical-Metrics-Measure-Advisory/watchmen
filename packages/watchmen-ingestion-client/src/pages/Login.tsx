@@ -42,7 +42,7 @@ const Login: React.FC = () => {
   }, [loginConfig, loadLoginConfiguration]);
 
   useEffect(() => {
-    // 如果用户已经登录，重定向到目标页面或首页
+    // If the user is already logged in, redirect to the target page or the homepage.
     if (user) {
       const from = (location.state as any)?.from?.pathname || '/';
       navigate(from, { replace: true });
@@ -57,7 +57,7 @@ const Login: React.FC = () => {
         title: "Login successful",
         description: "Welcome back!",
       });
-      // 重定向到用户原本想访问的页面，或者首页
+      // Redirect to the page the user originally wanted to visit, or the homepage
       const from = (location.state as any)?.from?.pathname || '/';
       navigate(from, { replace: true });
     } catch (error: any) {

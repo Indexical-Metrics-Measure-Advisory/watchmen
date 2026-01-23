@@ -54,6 +54,9 @@ all_date_formats = ArrayHelper(list(settings.FULL_DATETIME_FORMATS)) \
 	.grab(*settings.DATE_FORMATS) \
 	.to_list()
 time_formats = list(settings.TIME_FORMATS)
+all_datetime_formats = ArrayHelper(list(settings.FULL_DATETIME_FORMATS)) \
+	.grab(*settings.DATETIME_FORMATS) \
+	.to_list()
 
 
 def ask_storage_echo_enabled() -> bool:
@@ -67,13 +70,16 @@ def ask_full_datetime_formats() -> List[str]:
 def ask_datetime_formats() -> List[str]:
 	return datetime_formats
 
-
 def ask_date_formats() -> List[str]:
 	return date_formats
 
 
 def ask_all_date_formats() -> List[str]:
 	return all_date_formats
+
+
+def ask_all_datetime_formats() -> List[str]:
+	return all_datetime_formats
 
 
 def ask_time_formats() -> List[str]:
