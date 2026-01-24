@@ -366,9 +366,11 @@ async def update_connected_space_name_by_id(
 	"""
 	if is_blank(connect_id):
 		raise_400('Connected space id is required.')
-	
+	if is_blank(name):
+		raise_400('Connected space name is required.')
+
 	connected_space_service = get_connected_space_service(principal_service)
-	
+
 	# noinspection DuplicatedCode
 	def action() -> None:
 		existing_one = connected_space_service.find_tenant_and_user(connect_id)
@@ -379,6 +381,13 @@ async def update_connected_space_name_by_id(
 			raise_403()
 		elif existing_user_id != principal_service.get_user_id():
 			raise_403()
+
+		existing_connected_spaces = connected_space_service.find_by_name(name, principal_service.get_tenant_id())
+		if existing_connected_spaces is not None:
+			for existing_connected_space in existing_connected_spaces:
+				if existing_connected_space.connectId != connect_id:
+					raise_400('Connected space name already exists.')
+
 		# noinspection PyTypeChecker
 		connected_space_service.update_name(
 			connect_id, name, principal_service.get_user_id(), principal_service.get_tenant_id())
@@ -609,24 +618,20 @@ async def find_subjects_name_by_id(
 	def action() -> List[dict]:
 		connected_spaces: List[ConnectedSpace] = connected_space_service.find_all(principal_service.get_tenant_id())
 		subject_service: SubjectService = get_subject_service(connected_space_service)
-		return ArrayHelper(connected_spaces) \
-			.map(lambda x: subject_service.storage.find_straight_values(
-			EntityStraightValuesFinder(
-				name=subject_service.get_entity_name(),
-				shaper=subject_service.get_entity_shaper(),
-				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='connect_id'), right=x.connectId),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
-					                         right=principal_service.get_tenant_id())
-				],
-				straightColumns=[
-					EntityStraightColumn(columnName='subject_id'),
-					EntityStraightColumn(columnName='name')
-				]
-			)
-		)) \
-			.flatten() \
-			.to_list()
+
+		results = []
+		for connected_space in connected_spaces:
+			subjects = subject_service.find_by_connect_id(connected_space.connectId)
+			# filter unfinished subjects
+			finished_subjects = filter_unfinished_subjects(subjects)
+			for subject in finished_subjects:
+				results.append({
+					'subject_id': subject.subjectId,
+					'name': subject.name,
+					'connect_id': connected_space.connectId,
+					'connected_space_name': connected_space.name,
+				})
+		return results
 
 	return trans_readonly(connected_space_service, action)
 
@@ -636,48 +641,6 @@ def filter_unfinished_subjects(subjects: List[Subject]) -> List[Subject]:
 		if incomplete_dataset(subject):
 			return False
 		else:
-			return True
-	
-	def incomplete_dataset(subject: Subject) -> bool:
-		dataset = subject.dataset
-		if dataset is None:
-			return True
-		
-		def incomplete_columns() -> bool:
-			columns = dataset.columns
-			if columns is None or len(columns) == 0:
-				return True
-			for column in columns:
-				if column.parameter:
-					if incomplete_parameter(column.parameter):
-						return True
-				else:
-					return True
-			return False
-		
-		if incomplete_columns():
-			return True
-		
-		def incomplete_joins() -> bool:
-			joins = dataset.joins
-			if joins:
-				for join in joins:
-					if is_blank(join.topicId) or is_blank(join.factorId) or is_blank(join.secondaryTopicId) or is_blank(join.secondaryFactorId):
-						return True
-				return False
-			else:
-				return False
-		
-		if incomplete_joins():
-			return True
-		
-		def incomplete_filters() -> bool:
-			if dataset.filters:
-				return incomplete_filter(dataset.filters)
-			else:
-				return False
-		
-		if incomplete_filters():
 			return True
 
 	return ArrayHelper(subjects).filter(lambda subject: is_finished(subject)).to_list()
@@ -717,3 +680,49 @@ def incomplete_filter(condition: ParameterCondition) -> bool:
 			return incomplete_parameter(condition.left)
 		else:
 			return incomplete_parameter(condition.left) or incomplete_parameter(condition.right)
+
+
+def incomplete_dataset(subject: Subject) -> bool:
+	dataset = subject.dataset
+	if dataset is None:
+		return True
+
+	def incomplete_columns() -> bool:
+		columns = dataset.columns
+		if columns is None or len(columns) == 0:
+			return True
+		for column in columns:
+			if column.parameter:
+				if incomplete_parameter(column.parameter):
+					return True
+			else:
+				return True
+		return False
+
+	if incomplete_columns():
+		return True
+
+	def incomplete_joins() -> bool:
+		joins = dataset.joins
+		if joins:
+			for join in joins:
+				if is_blank(join.topicId) or is_blank(join.factorId) or is_blank(join.secondaryTopicId) or is_blank(
+						join.secondaryFactorId):
+					return True
+			return False
+		else:
+			return False
+
+	if incomplete_joins():
+		return True
+
+	def incomplete_filters() -> bool:
+		if dataset.filters:
+			return incomplete_filter(dataset.filters)
+		else:
+			return False
+
+	if incomplete_filters():
+		return True
+
+	return False

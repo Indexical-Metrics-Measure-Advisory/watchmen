@@ -116,6 +116,15 @@ class ConnectedSpaceService(UserBasedTupleService):
 			]
 		))
 
+	def find_by_name(self, name: str, tenant_id: TenantId) -> List[ConnectedSpace]:
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='name'), right=name),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+			]
+		))
+
 	# noinspection DuplicatedCode
 	def update_name(self, connect_id: ConnectedSpaceId, name: str, user_id: UserId, tenant_id: TenantId) -> datetime:
 		"""

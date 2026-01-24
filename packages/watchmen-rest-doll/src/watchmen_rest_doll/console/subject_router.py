@@ -117,19 +117,25 @@ async def update_subject_name_by_id(
 	"""
 	if is_blank(subject_id):
 		raise_400('Subject id is required.')
+	if is_blank(name):
+		raise_400('Subject name is required.')
 
 	subject_service = get_subject_service(principal_service)
 
 	# noinspection DuplicatedCode
 	def action() -> None:
-		existing_one = subject_service.find_tenant_and_user(subject_id)
-		if existing_one is None:
+		existing_subject = subject_service.find_by_id(subject_id)
+		if existing_subject is None:
 			raise_404()
-		existing_tenant_id, existing_user_id = existing_one
-		if existing_tenant_id != principal_service.get_tenant_id():
+		if existing_subject.tenantId != principal_service.get_tenant_id():
 			raise_403()
-		elif existing_user_id != principal_service.get_user_id():
+		elif existing_subject.userId != principal_service.get_user_id():
 			raise_403()
+
+		existing_subject_by_name = subject_service.find_by_connect_id_and_name(existing_subject.connectId, name)
+		if existing_subject_by_name is not None and existing_subject_by_name.subjectId != subject_id:
+			raise_400('Subject name already exists.')
+
 		# noinspection PyTypeChecker
 		subject_service.update_name(
 			subject_id, name, principal_service.get_user_id(), principal_service.get_tenant_id())
@@ -190,3 +196,30 @@ async def delete_subject_by_id_by_super_admin(
 		return SubjectWithReports(**subject.dict(), reports=reports)
 
 	return trans(subject_service, action)
+
+
+@router.get('/subject/by/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def load_subject_by_name(
+		connect_space_name: Optional[str], subject_name: Optional[str],
+		principal_service: PrincipalService = Depends(get_console_principal)) -> Subject:
+	if is_blank(connect_space_name):
+		raise_400('Connected space name is required.')
+	if is_blank(subject_name):
+		raise_400('Subject name is required.')
+
+	subject_service = get_subject_service(principal_service)
+	connected_space_service = get_connected_space_service(subject_service)
+
+	def action() -> Subject:
+		connected_spaces = connected_space_service.find_by_name(connect_space_name, principal_service.get_tenant_id())
+		if len(connected_spaces) == 0:
+			raise_404(f'Connected space[name={connect_space_name}] not found.')
+
+		for connected_space in connected_spaces:
+			subject = subject_service.find_by_connect_id_and_name(connected_space.connectId, subject_name)
+			if subject is not None:
+				return subject
+
+		raise_404(f'Subject[name={subject_name}] not found in connected space[name={connect_space_name}].')
+
+	return trans_readonly(subject_service, action)

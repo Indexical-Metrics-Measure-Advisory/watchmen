@@ -46,11 +46,14 @@ export const Zh: LanguageDeclareType = {
 		NEW_DERIVED_OBJECTIVE_TARGET_BREAKDOWN_NAME: '数据下挖',
 		CONVERGENCE_NAME_PLACEHOLDER: '请输入用于阅读的名称.',
 		CONVERGENCE_DESCRIPTION_PLACEHOLDER: '请输入汇聚描述...',
-		CONVERGENCE_FREEWALK_VALUE_PLACEHOLDER: '使用";"分隔...'
+		CONVERGENCE_FREEWALK_VALUE_PLACEHOLDER: '请使用";"分割多个值...',
+		CONNECTED_SPACE_NAME_EXIST: '已存在同名联接工作空间。',
+		USER_NAME_EXIST: '用户名已存在。',
+		SUBJECT_NAME_EXIST: '主题名称已存在。'
 	},
 	STANDARD: {
-		YES: '是',
-		NO: '否'
+			YES: '是',
+			NO: '否'
 	},
 	ERROR: {
 		UNAUTHORIZED: '没有权限进行本操作, 请先登录系统.',

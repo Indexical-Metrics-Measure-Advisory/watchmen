@@ -46,11 +46,14 @@ export const En = {
 		NEW_DERIVED_OBJECTIVE_TARGET_BREAKDOWN_NAME: 'Breakdown',
 		CONVERGENCE_NAME_PLACEHOLDER: 'A human reading name for convergence.',
 		CONVERGENCE_DESCRIPTION_PLACEHOLDER: 'Convergence description here...',
-		CONVERGENCE_FREEWALK_VALUE_PLACEHOLDER: 'Split by ";"...'
+		CONVERGENCE_FREEWALK_VALUE_PLACEHOLDER: 'Split by ";"...',
+		CONNECTED_SPACE_NAME_EXIST: 'Connected space name already exists.',
+		USER_NAME_EXIST: 'User name already exists.',
+		SUBJECT_NAME_EXIST: 'Subject name already exists.'
 	},
 	STANDARD: {
-		YES: 'Yes',
-		NO: 'No'
+			YES: 'Yes',
+			NO: 'No'
 	},
 	ERROR: {
 		UNAUTHORIZED: 'Unauthorized now, login please.',

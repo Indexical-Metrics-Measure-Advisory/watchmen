@@ -46,7 +46,10 @@ export const Jp: LanguageDeclareType = {
 		NEW_DERIVED_OBJECTIVE_TARGET_BREAKDOWN_NAME: '内訳',
 		CONVERGENCE_NAME_PLACEHOLDER: '読むための名前を入力してください。',
 		CONVERGENCE_DESCRIPTION_PLACEHOLDER: '収束の説明を入力してください。',
-		CONVERGENCE_FREEWALK_VALUE_PLACEHOLDER: 'セグメントを分割するには「;」を使用してください。'
+		CONVERGENCE_FREEWALK_VALUE_PLACEHOLDER: 'セグメントを分割するには「;」を使用してください。',
+		CONNECTED_SPACE_NAME_EXIST: '同じ名前の連結空間が既に存在します。',
+		USER_NAME_EXIST: 'ユーザー名は既に存在します。',
+		SUBJECT_NAME_EXIST: '主題名は既に存在します。'
 	},
 	STANDARD: {
 		YES: 'はい',

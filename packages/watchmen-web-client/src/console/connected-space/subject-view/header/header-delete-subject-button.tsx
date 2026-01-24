@@ -1,7 +1,7 @@
 import {toConnectedSpace} from '@/routes/utils';
 import {SAVE_TIMEOUT} from '@/services/constants';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
-import {deleteSubject, renameSubject, saveSubject} from '@/services/data/tuples/subject';
+import {deleteSubject, saveSubject} from '@/services/data/tuples/subject';
 import {Subject} from '@/services/data/tuples/subject-types';
 import {Button} from '@/widgets/basic/button';
 import {ICON_THROW_AWAY} from '@/widgets/basic/constants';
@@ -73,14 +73,9 @@ export const HeaderDeleteSubjectButton = (props: { connectedSpace: ConnectedSpac
 				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => await saveSubject(subject, connectedSpace.connectId));
 			}, SAVE_TIMEOUT);
 		};
-		const onSubjectRenamed = async (subject: Subject) => {
-			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => await renameSubject(subject));
-		};
 		on(SubjectEventTypes.SUBJECT_DEF_CHANGED, onSubjectDefChanged);
-		on(SubjectEventTypes.SUBJECT_RENAMED, onSubjectRenamed);
 		return () => {
 			off(SubjectEventTypes.SUBJECT_DEF_CHANGED, onSubjectDefChanged);
-			off(SubjectEventTypes.SUBJECT_RENAMED, onSubjectRenamed);
 		};
 	}, [on, off, fireGlobal, connectedSpace, subject, saveQueue]);
 

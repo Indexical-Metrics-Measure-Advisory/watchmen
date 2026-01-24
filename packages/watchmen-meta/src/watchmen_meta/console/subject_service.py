@@ -6,7 +6,7 @@ from watchmen_meta.common import AuditableShaper, LastVisitShaper, TupleNotFound
 from watchmen_model.common import ConnectedSpaceId, SubjectId, TenantId, UserId
 from watchmen_model.console import Subject, SubjectDataset
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
-	EntityShaper
+	EntityShaper, EntityStraightColumn, EntityStraightValuesFinder
 
 
 class SubjectShaper(EntityShaper):
@@ -98,6 +98,15 @@ class SubjectService(UserBasedTupleService):
 			]
 		))
 
+	def find_by_connect_id_and_name(self, connect_id: ConnectedSpaceId, name: str) -> Optional[Subject]:
+		# noinspection PyTypeChecker
+		return self.storage.find_one(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='connect_id'), right=connect_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='name'), right=name)
+			]
+		))
+
 	# noinspection DuplicatedCode
 	def update_name(self, subject_id: SubjectId, name: str, user_id: UserId, tenant_id: TenantId) -> datetime:
 		"""
@@ -131,6 +140,8 @@ class SubjectService(UserBasedTupleService):
 		))
 		return now
 
+	
+
 	def delete_by_connect_id(self, connect_id: ConnectedSpaceId) -> List[Subject]:
 		# noinspection PyTypeChecker
 		return self.storage.delete_and_pull(self.get_entity_deleter(
@@ -139,10 +150,25 @@ class SubjectService(UserBasedTupleService):
 			]
 		))
 
-	# noinspection DuplicatedCode
+	# noinspection PyTypeChecker
 	def find_all(self, tenant_id: Optional[TenantId]) -> List[Subject]:
 		criteria = []
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria=criteria))
+
+	def find_name_by_id(self, subject_id: SubjectId) -> Optional[str]:
+		# noinspection PyTypeChecker
+		rows = self.storage.find_straight_values(EntityStraightValuesFinder(
+			name=self.get_entity_name(),
+			shaper=self.get_entity_shaper(),
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='subject_id'), right=subject_id)
+			],
+			straightColumns=[EntityStraightColumn(columnName='name')]
+		))
+		if len(rows) == 0:
+			return None
+		else:
+			return rows[0].get('name')

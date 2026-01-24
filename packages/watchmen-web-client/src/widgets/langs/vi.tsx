@@ -39,7 +39,17 @@ export const VI = {
 		OBJECTIVE_FACTOR_NAME_PLACEHOLDER: 'Tên chỉ báo',
 		OBJECTIVE_FORMULA_CONSTANT_PLACEHOLDER: 'Sử dụng "{}" để bao gồm biến.',
 		OBJECTIVE_FACTOR_FILTER_CONSTANT_PLACEHOLDER: 'Sử dụng "{}" để  bao gồm biến.',
-		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";" để phân cách nhiều địa chỉ.'
+		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";" để phân cách nhiều địa chỉ.',
+		NEW_DERIVED_OBJECTIVE_NAME: 'Objective',
+		DEFAULT_DERIVED_OBJECTIVE_NAME: 'Objective',
+		NEW_DERIVED_OBJECTIVE_TARGET_BREAKDOWN_NAME: 'Breakdown',
+		FIND_CONVERGENCE_PLACEHOLDER: 'Find by convergence name, description',
+		CONVERGENCE_NAME_PLACEHOLDER: 'A human reading name for convergence.',
+		CONVERGENCE_DESCRIPTION_PLACEHOLDER: 'Convergence description here...',
+		CONVERGENCE_FREEWALK_VALUE_PLACEHOLDER: 'Split by ";"...',
+		CONNECTED_SPACE_NAME_EXIST: 'Connected space name already exists.',
+		USER_NAME_EXIST: 'User name already exists.',
+		SUBJECT_NAME_EXIST: 'Subject name already exists.'
 	},
 	STANDARD: {
 		YES: 'Có',
