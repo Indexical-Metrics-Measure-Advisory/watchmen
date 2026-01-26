@@ -65,9 +65,7 @@ def get_result(state: State) -> Optional[Union[Decimal, datetime, date, time]]:
 
 
 def calculate_extremum_value(name: str, current_name: str, data: Any, extremum_func: Callable[[T, T], T]) -> Optional[Union[Decimal, datetime, date, time]]:
-    if isinstance(data, str):
-        return None if data.strip() == "" else data
-    elif isinstance(data, list):
+    if isinstance(data, list):
         state = State(
             name=name, current_name=current_name, value=data,
             has_decimal=False, extremum_decimal=None,
