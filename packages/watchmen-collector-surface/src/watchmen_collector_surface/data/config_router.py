@@ -203,7 +203,7 @@ async def create_json_template(principal_service: PrincipalService = Depends(get
 
 @router.get('/collector/json/template/model', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
             response_model=Dict)
-async def create_json_template(model_name: str, principal_service: PrincipalService = Depends(get_any_admin_principal)) -> Dict:
+async def create_json_template(model_name: str, principal_service: PrincipalService = Depends(get_any_admin_principal)) -> Optional[Dict]:
 	collector_model_config_service = get_collector_model_config_service(ask_meta_storage(),
 	                                                                    ask_snowflake_generator(),
 	                                                                    principal_service)
@@ -219,7 +219,8 @@ async def create_json_template(model_name: str, principal_service: PrincipalServ
 	if table_config:
 		json_data = data_capture_service.build_json_template(table_config)
 		return {"topicCode": model.rawTopicCode, "data": json_data}
-
+	else:
+		return None
 
 # ==================== MODEL QUERY SERVICES ====================
 
