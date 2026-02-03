@@ -626,10 +626,10 @@ async def find_subjects_name_by_id(
 			finished_subjects = filter_unfinished_subjects(subjects)
 			for subject in finished_subjects:
 				results.append({
-					'subject_id': subject.subjectId,
+					'subjectId': subject.subjectId,
 					'name': subject.name,
-					'connect_id': connected_space.connectId,
-					'connected_space_name': connected_space.name,
+					'connectId': connected_space.connectId,
+					'connectedSpaceName': connected_space.name,
 				})
 		return results
 
