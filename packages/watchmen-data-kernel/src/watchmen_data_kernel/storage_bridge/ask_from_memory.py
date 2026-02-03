@@ -187,7 +187,7 @@ class ParsedMemoryExpression(ParsedMemoryCondition):
 		elif isinstance(one, datetime) or isinstance(one, date):
 			# compare datetime or date
 			return self.try_compare(
-				lambda: less_or_equals_date(another, one, ask_all_date_formats(), False),
+				lambda: less_or_equals_date(one, another, ask_all_date_formats(), False),
 				lambda: self.raise_cannot_compare(one, another))
 		elif isinstance(another, datetime) or isinstance(another, date):
 			# compare datetime or date
@@ -226,7 +226,7 @@ class ParsedMemoryExpression(ParsedMemoryCondition):
 		elif isinstance(one, datetime) or isinstance(one, date):
 			# compare datetime or date
 			return self.try_compare(
-				lambda: less_or_equals_date(another, one, ask_all_date_formats(), True),
+				lambda: less_or_equals_date(one, another, ask_all_date_formats(), True),
 				lambda: self.raise_cannot_compare(one, another))
 		elif isinstance(another, datetime) or isinstance(another, date):
 			# compare datetime or date
@@ -265,7 +265,7 @@ class ParsedMemoryExpression(ParsedMemoryCondition):
 		elif isinstance(one, datetime) or isinstance(one, date):
 			# compare datetime or date
 			return self.try_compare(
-				lambda: greater_or_equals_date(another, one, ask_all_date_formats(), False),
+				lambda: greater_or_equals_date(one, another, ask_all_date_formats(), False),
 				lambda: self.raise_cannot_compare(one, another))
 		elif isinstance(another, datetime) or isinstance(another, date):
 			# compare datetime or date
@@ -306,7 +306,7 @@ class ParsedMemoryExpression(ParsedMemoryCondition):
 		elif isinstance(one, datetime) or isinstance(one, date):
 			# compare datetime or date
 			return self.try_compare(
-				lambda: greater_or_equals_date(another, one, ask_all_date_formats(), True),
+				lambda: greater_or_equals_date(one, another, ask_all_date_formats(), True),
 				lambda: self.raise_cannot_compare(one, another))
 		elif isinstance(another, datetime) or isinstance(another, date):
 			# compare datetime or date
