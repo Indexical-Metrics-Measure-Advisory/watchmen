@@ -426,7 +426,8 @@ def get_day_of_month(dt: date) -> int:
 
 def get_day_of_week(dt: date) -> int:
 	# iso weekday: Monday is 1 and Sunday is 7
-	return (dt.isoweekday() + 1) % 8
+	# result is Sunday is 1, and Saturday is 7.
+	return dt.isoweekday() % 7 + 1
 
 
 def to_start_of_day(process_date: date):
