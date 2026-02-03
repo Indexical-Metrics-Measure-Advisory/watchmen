@@ -610,7 +610,7 @@ async def find_subjects_by_id(
 
 
 
-@router.get('connected_space/subject/by/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+@router.get('/connected_space/subject/by/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def load_subject_by_name(
 		connect_space_name: Optional[str], subject_name: Optional[str],
 		principal_service: PrincipalService = Depends(get_console_principal)) -> Subject:

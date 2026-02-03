@@ -3,6 +3,7 @@ from watchmen_rest import RestSettings
 
 class AISettings(RestSettings):
     APP_NAME: str = 'Watchmen AI'
+    MCP_FLAG: bool = True
     AZURE_MODEL: str = ''
     AZURE_API_KEY: str = ""
     AZURE_API_BASE: str = ""
@@ -10,6 +11,9 @@ class AISettings(RestSettings):
 
 
 ai_settings = AISettings()
+
+def ask_mcp_flag() -> bool:
+    return ai_settings.MCP_FLAG
 
 def ask_azure_api_key() -> str:
     return ai_settings.AZURE_API_KEY

@@ -1,6 +1,7 @@
 from typing import Callable, Optional
 
 from fastapi import FastAPI
+from fastapi_mcp import FastApiMCP
 from litellm.caching import DiskCache
 
 from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat
@@ -8,7 +9,8 @@ from watchmen_model.admin import User
 from watchmen_rest import RestApp
 #
 # from .dspy.test import lancedb_retriever
-from .settings import AISettings, ask_azure_api_key, ask_azure_api_base, ask_azure_api_version, ask_azure_model
+from .settings import AISettings, ask_azure_api_key, ask_azure_api_base, ask_azure_api_version, ask_azure_model, \
+    ask_mcp_flag
 
 
 class AIApp(RestApp):
@@ -68,6 +70,17 @@ class AIApp(RestApp):
 
     def on_startup(self, app: FastAPI) -> None:
         self.init_llm_dspy()
+
+        if ask_mcp_flag():
+            mcp = FastApiMCP(
+                app,
+                include_tags=["mcp"],
+                description="mcp services for data modeling and analysis",
+                describe_all_responses=True,
+                describe_full_response_schema=True
+            )
+
+            mcp.mount_http()
 
 
 ai_app = AIApp(AISettings())
