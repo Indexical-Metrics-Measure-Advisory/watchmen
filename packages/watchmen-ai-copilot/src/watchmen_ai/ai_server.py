@@ -72,15 +72,32 @@ class AIApp(RestApp):
         self.init_llm_dspy()
 
         if ask_mcp_flag():
-            mcp = FastApiMCP(
+            mcp_pipeline = FastApiMCP(
                 app,
-                include_tags=["mcp"],
-                description="mcp services for data modeling and analysis",
+                include_tags=["mcp-pipeline"],
+                description="mcp services for data processing (pipeline)",
                 describe_all_responses=True,
                 describe_full_response_schema=True
             )
+            mcp_pipeline.mount_http(mount_path="/mcp/pipeline")
 
-            mcp.mount_http()
+            mcp_topic = FastApiMCP(
+                app,
+                include_tags=["mcp-topic"],
+                description="mcp services for data modeling (topic)",
+                describe_all_responses=True,
+                describe_full_response_schema=True
+            )
+            mcp_topic.mount_http(mount_path="/mcp/topic")
+
+            mcp_action = FastApiMCP(
+                app,
+                include_tags=["mcp-action"],
+                description="mcp services for data processing action (action)",
+                describe_all_responses=True,
+                describe_full_response_schema=True
+            )
+            mcp_action.mount_http(mount_path="/mcp/action")
 
 
 ai_app = AIApp(AISettings())

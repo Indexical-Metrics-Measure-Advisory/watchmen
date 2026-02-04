@@ -30,7 +30,7 @@ class CreateTopicResponse(BaseModel):
     status: str = Field("success", description="Status of the operation")
 
 
-@router.post('/mcp/data_modeling/create_topic', tags=['mcp'], operation_id="create_topic",
+@router.post('/mcp/data_modeling/create_topic', tags=['mcp-topic'], operation_id="create_topic",
              response_model=CreateTopicResponse,
              description="Create a new data topic (Data Modeling Skill).")
 async def create_topic(request: CreateTopicModel,
@@ -47,7 +47,6 @@ async def create_topic(request: CreateTopicModel,
 
         topic = Topic(
             name=request.name,
-            code=request.code,
             type=TopicType(request.type),
             kind=TopicKind(request.kind),
             tenantId=tenant_id,
@@ -84,7 +83,7 @@ class AddFactorsResponse(BaseModel):
     message: str = Field(..., description="Result message")
 
 
-@router.post('/mcp/data_modeling/add_factors', tags=['mcp'], operation_id="add_factors",
+@router.post('/mcp/data_modeling/add_factors', tags=['mcp-topic'], operation_id="add_factors",
              response_model=AddFactorsResponse,
              description="Add factors to an existing topic.")
 async def add_factors(request: AddFactorsModel,
@@ -131,49 +130,95 @@ async def add_factors(request: AddFactorsModel,
 
 
 class SimpleFactorResponse(BaseModel):
+    factorId: str
     name: str
     type: str
     label: Optional[str] = None
     description: Optional[str] = None
 
 
-class TopicStructureResponse(BaseModel):
+class LoadTopicResponse(BaseModel):
+    topicId: str
     name: str
-    code: str
     type: str
+    kind: str
     factors: List[SimpleFactorResponse]
 
 
-@router.get('/mcp/data_modeling/list_topic_structures', tags=['mcp'], operation_id="list_topic_structures",
+@router.post('/mcp/data_modeling/load_topic', tags=['mcp-topic'], operation_id="load_topic",
+             response_model=LoadTopicResponse,
+             description="Load a topic by ID.")
+async def load_topic(topic_id: str = Body(..., embed=True),
+                     principal_service: PrincipalService = Depends(get_admin_principal)) -> LoadTopicResponse:
+    tenant_id = principal_service.get_tenant_id()
+    topic_service = get_topic_service(principal_service)
+
+    topic_service.begin_transaction()
+    try:
+        topic = topic_service.find_by_id(topic_id)
+        if not topic:
+            raise HTTPException(status_code=404, detail=f"Topic {topic_id} not found.")
+        if topic.tenantId != tenant_id:
+            raise HTTPException(status_code=404, detail=f"Topic {topic_id} not found.")
+
+        factors = []
+        for f in (topic.factors or []):
+            factors.append(SimpleFactorResponse(
+                factorId=f.factorId,
+                name=f.name,
+                type=f.type,
+                label=f.label,
+                description=f.description
+            ))
+
+        return LoadTopicResponse(
+            topicId=topic.topicId,
+            name=topic.name,
+            type=topic.type,
+            kind=topic.kind,
+            factors=factors
+        )
+    finally:
+        topic_service.close_transaction()
+
+
+class TopicStructureResponse(BaseModel):
+    name: str
+    type: str
+    topicId :str
+    factors: List[SimpleFactorResponse]
+
+
+@router.get('/mcp/data_modeling/list_topic_structures', tags=['mcp-topic'], operation_id="list_topic_structures",
             response_model=List[TopicStructureResponse],
             description="Get existing topic structures (name, code, factors).")
 async def list_topic_structures(
-        principal_service: PrincipalService = Depends(get_console_principal)) -> List[TopicStructureResponse]:
+        principal_service: PrincipalService = Depends(get_admin_principal)) -> List[TopicStructureResponse]:
     tenant_id = principal_service.get_tenant_id()
     topic_service = get_topic_service(principal_service)
 
     topic_service.begin_transaction()
     try:
         topics = topic_service.find_all(tenant_id)
-        
         result = []
         for t in topics:
+            print(t.name)
             factors = []
             for f in (t.factors or []):
                 factors.append(SimpleFactorResponse(
+                    factorId=f.factorId,
                     name=f.name,
                     type=f.type,
                     label=f.label,
                     description=f.description
                 ))
-            
             result.append(TopicStructureResponse(
                 name=t.name,
-                code=t.code,
                 type=t.type,
+                topicId=t.topicId,
                 factors=factors
             ))
-
         return result
     finally:
         topic_service.close_transaction()
+
