@@ -1,6 +1,7 @@
+from datetime import datetime
 from logging import getLogger
 from threading import Thread
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from time import sleep
 
@@ -74,6 +75,18 @@ def heart_beat_on_pipelines_by_topic() -> None:
 			cached_pipeline_ids = {p.pipelineId for p in cached_pipelines}
 			if pipeline_ids != cached_pipeline_ids:
 				CacheService.pipelines_by_topic().put(topic_id, pipelines)
+				continue
+			db_pipeline_map: Dict[str, Pipeline] = {
+				p.pipelineId: p for p in pipelines
+			}
+			for pipeline in cached_pipelines:
+				loaded: Optional[Pipeline] = db_pipeline_map.get(pipeline.pipelineId)
+				if loaded is None:
+					CacheService.pipelines_by_topic().put(topic_id, pipelines)
+					break
+				if loaded.lastModifiedAt > pipeline.lastModifiedAt or loaded.version > pipeline.version:
+					CacheService.pipelines_by_topic().put(topic_id, pipelines)
+					break
 	finally:
 		pipeline_service.close_transaction()
 		
