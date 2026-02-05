@@ -17,6 +17,7 @@ from watchmen_model.common import DataPage, Pageable, ParameterJoint, TenantId, 
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_rest import get_any_admin_principal, get_admin_principal
 from watchmen_rest.util import raise_400, raise_404
+from watchmen_storage import EntitySortColumn, EntitySortMethod
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, ExtendedBaseModel
 
 # noinspection DuplicatedCode
@@ -89,12 +90,21 @@ async def fetch_topic_data(
 		pageNumber=1 if criteria is None or criteria.pageNumber is None or criteria.pageNumber <= 0 else criteria.pageNumber,
 		pageSize=20 if criteria is None or criteria.pageSize is None or criteria.pageSize <= 0 else criteria.pageSize
 	)
+	sort = [
+		EntitySortColumn(name=TopicDataColumnNames.UPDATE_TIME.value, method=EntitySortMethod.DESC)
+	]
+
+	print(sort)
 	if criteria is None or is_blank(criteria.jointType) or criteria.filters is None:
-		page = service.page_and_unwrap(None, pageable)
+		criteria_list = []
 	else:
 		parsed_criteria = parse_condition_for_storage(criteria, [schema], principal_service, False)
 		empty_variables = PipelineVariables(None, None, None)
-		page = service.page_and_unwrap([parsed_criteria.run(empty_variables, principal_service)], pageable)
+		criteria_list = [parsed_criteria.run(empty_variables, principal_service)]
+	pager = service.get_data_entity_helper().get_entity_pager(criteria_list, pageable, sort=sort)
+	page = service.page(pager)
+	if page.data is not None and len(page.data) != 0:
+		page.data = ArrayHelper(page.data).map(lambda x: service.try_to_unwrap_from_topic_data(x)).to_list()
 
 	def id_to_str(row: Dict[str, Any]) -> Dict[str, Any]:
 		if TopicDataColumnNames.ID.value in row:
