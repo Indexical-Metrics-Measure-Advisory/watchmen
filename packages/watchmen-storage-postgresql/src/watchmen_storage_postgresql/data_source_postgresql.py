@@ -2,10 +2,13 @@ from typing import List, Optional
 import urllib.parse
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
+from sqlalchemy.pool import NullPool
 
 from watchmen_model.common import DataModel
 from watchmen_model.system import DataSource, DataSourceParam
 from watchmen_storage import DataSourceHelper
+from watchmen_storage_rds import ask_sql_alchemy_pool_size, ask_sql_alchemy_pool_max_overflow, \
+	ask_sql_alchemy_use_null_pool
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, serialize_to_json
 from .storage_postgresql import StoragePostgreSQL, TopicDataStoragePostgreSQL
 
@@ -29,14 +32,26 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 
 	@staticmethod
 	def acquire_engine_by_url(url: str, params: PostgreSQLDataSourceParams) -> Engine:
-		return create_engine(
-			redress_url_by_psycopg2(url),
-			echo=params.echo,
-			future=True,
-			pool_recycle=params.poolRecycle,
-			json_serializer=serialize_to_json,
-			supports_native_boolean=False
-		)
+		if ask_sql_alchemy_use_null_pool():
+			return create_engine(
+				redress_url_by_psycopg2(url),
+				echo=params.echo,
+				future=True,
+				poolclass=NullPool,
+				json_serializer=serialize_to_json,
+				supports_native_boolean=False
+			)
+		else:
+			return create_engine(
+				redress_url_by_psycopg2(url),
+				echo=params.echo,
+				future=True,
+				pool_recycle=params.poolRecycle,
+				pool_size=ask_sql_alchemy_pool_size(),
+				max_overflow=ask_sql_alchemy_pool_max_overflow(),
+				json_serializer=serialize_to_json,
+				supports_native_boolean=False
+			)
 	
 	# noinspection DuplicatedCode
 	@staticmethod
