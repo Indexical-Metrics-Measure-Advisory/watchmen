@@ -1,4 +1,4 @@
-# 🏂🏼 ** move repo from https://github.com/Indexical-Metrics-Measure-Advisory/watchmen-matryoshka-doll**
+# 🏂🏼 **move repo from https://github.com/Indexical-Metrics-Measure-Advisory/watchmen-matryoshka-doll**
 
 <p align="center">
     <a href="https://www.watchmen.com/"><img alt="Watchmen Logo" width="130" height="130" src="doc/image/logo.png" /></a>
