@@ -128,7 +128,7 @@ def  to_factors_from_instance_data(topic: Topic, factors_map: Dict[str, Factor],
                     # Create the aid_root factor
                     create_aid_factor(factor_name, factors_map, topic, "Auto generated id for reference to root.", True)
                     # Recursively process array elements to generate Factor
-                    sub_factors = to_factors_from_instance_data(topic, value, factor_name)
+                    sub_factors = to_factors_from_instance_data(topic, factors_map, value, factor_name)
                     for sub_factor in sub_factors:
                         factors_map[sub_factor.name] = sub_factor
             elif isinstance(value, dict):
@@ -143,7 +143,7 @@ def  to_factors_from_instance_data(topic: Topic, factors_map: Dict[str, Factor],
                 # Create the aid_root factor
                 create_aid_factor(factor_name, factors_map, topic, "Auto generated id for reference to root.", True)
                 # Recursively process array elements to generate Factor
-                sub_factors = to_factors_from_instance_data(topic, [value], factor_name)
+                sub_factors = to_factors_from_instance_data(topic, factors_map, [value], factor_name)
                 for sub_factor in sub_factors:
                     factors_map[sub_factor.name] = sub_factor
             
