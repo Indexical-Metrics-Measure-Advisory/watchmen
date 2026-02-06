@@ -361,7 +361,7 @@ const Models = () => {
       // We'll use the model name for the toast/dialog title
       setSelectedModel(model);
       
-      const data = await modelService.fetchRawTopic(model.rawTopicCode);
+      const data = await modelService.fetchRawTopic(model.modelName);
       setSelectedTopicData(data);
       setViewTopicDialogOpen(true);
     } catch (err) {

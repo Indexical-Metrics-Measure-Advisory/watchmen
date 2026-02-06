@@ -1,5 +1,7 @@
-import {Buffer} from 'buffer/';
 
+
+
+import {Buffer} from 'buffer';
 
 export const base64Encode = (str: string): string => {
 	return Buffer.from(str, 'utf-8').toString('base64');

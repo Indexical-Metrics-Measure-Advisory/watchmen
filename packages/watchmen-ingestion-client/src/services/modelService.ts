@@ -716,7 +716,7 @@ export class ModelService {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/ingest/config/model/sync/raw/topic?modelName=${encodeURIComponent(modelName)}`, {
+      const response = await fetch(`${API_BASE_URL}/collector/create/raw/topic?model_name=${encodeURIComponent(modelName)}`, {
         method: 'GET',
         headers: getDefaultHeaders()
       });
@@ -737,14 +737,14 @@ export class ModelService {
   }
 
   /**
-   * Fetch raw topic definition by code
+   * Fetch raw topic definition by model name
    */
-  async fetchRawTopic(topicCode: string): Promise<any> {
+  async fetchRawTopic(modelName: string): Promise<any> {
     if (this.useMockData) {
       // Mock implementation
       return {
         topicId: 'mock-topic-id',
-        name: topicCode,
+        name: modelName,
         type: 'raw',
         factors: [
           { factorId: 'f1', name: 'id', type: 'text' },
@@ -755,9 +755,8 @@ export class ModelService {
     }
 
     try {
-      // Assuming endpoint pattern based on syncRawTopicStructure
-      // Using /ingest/config/topic/name/{name} pattern which is common in this project
-      const response = await fetch(`${API_BASE_URL}/ingest/config/topic/name/${encodeURIComponent(topicCode)}`, {
+      // Use collector endpoint to fetch raw topic structure
+      const response = await fetch(`${API_BASE_URL}/ingest/json/template/model?model_name=${encodeURIComponent(modelName)}`, {
         method: 'GET',
         headers: getDefaultHeaders()
       });
