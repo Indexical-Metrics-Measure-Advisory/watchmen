@@ -251,28 +251,24 @@ class SequencedModelExecutor(ModelExecutor):
 	
 	
 	def get_object_ids(self, trigger_model: TriggerModel) -> Optional[List[str]]:
-		try:
-			object_ids = []
-			self.change_json_service.begin_transaction()
-			limit = ask_post_object_id_limit_size()
-			results: List[ChangeDataJson] = self.change_json_service.find_distinct_object_ids(
-				trigger_model.modelTriggerId, limit)
-			if results:
-				for result in results:
-					if result.objectId:
-						object_ids.append(result.objectId)
-				
-				if object_ids:
-					self.change_json_service.update_bulk_by_object_ids(
-						trigger_model.modelName,
-						object_ids,
-						trigger_model.modelTriggerId,
-						{"is_posted": True, "status": Status.EXECUTING.value}
-					)
-			self.change_record_service.commit_transaction()
-			return object_ids
-		finally:
-			self.change_record_service.close_transaction()
+		object_ids = []
+		limit = ask_post_object_id_limit_size()
+		results: List[ChangeDataJson] = self.change_json_service.find_distinct_object_ids(
+			trigger_model.modelTriggerId, limit)
+		if results:
+			for result in results:
+				if result.objectId:
+					object_ids.append(result.objectId)
+			
+			if object_ids:
+				self.change_json_service.update_bulk_by_object_ids(
+					trigger_model.modelName,
+					object_ids,
+					trigger_model.modelTriggerId,
+					{"is_posted": True, "status": Status.EXECUTING.value}
+				)
+		return object_ids
+		
 			
 	def get_object_ids_with_lock(self, trigger_model: TriggerModel) -> Optional[List[str]]:
 		
