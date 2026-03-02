@@ -15,7 +15,8 @@ from watchmen_collector_kernel.storage import get_change_data_json_service, get_
 	get_trigger_event_service, get_change_data_record_service, get_change_data_json_history_service, \
 	get_collector_module_config_service, get_trigger_module_service, ChangeDataRecordService, ChangeDataJsonService, \
 	ChangeDataJsonHistoryService, ScheduledTaskService, CompetitiveLockService
-from watchmen_collector_surface.settings import ask_post_json_wait, ask_post_object_id_limit_size
+from watchmen_collector_surface.settings import ask_post_json_wait, ask_post_object_id_limit_size, \
+	ask_post_sequence_json_limit_size
 
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_utilities import ArrayHelper
@@ -205,7 +206,7 @@ class SequencedModelExecutor(ModelExecutor):
 	                  trigger_model: TriggerModel,
 	                  model_config: CollectorModelConfig):
 		if self.check_all_json_generated(trigger_model):
-			self.process_change_data_json_v2(trigger_event, model_config, trigger_model)
+			self.process_change_data_json(trigger_event, model_config, trigger_model)
 		else:
 			logger.debug(f'sequenced model {trigger_model.modelName} not finish record to json yet')
 
@@ -223,30 +224,37 @@ class SequencedModelExecutor(ModelExecutor):
 		                         trigger_model.tenantId)
 		try:
 			if try_lock_nowait(self.competitive_lock_service, lock):
-				processed_list = []
-				change_data_jsons = self.change_json_service.find_json(trigger_model.modelTriggerId)
-				for change_data_json in change_data_jsons:
-					if change_data_json.changeJsonId in processed_list:
-						continue
-
-					try:
-						grouped_change_data_jsons = self.change_json_service.find_by_object_id(change_data_json.modelName,
-						                                                                       change_data_json.objectId,
-						                                                                       change_data_json.modelTriggerId)
-						sorted_change_data_jsons = ArrayHelper(grouped_change_data_jsons).sort(sort_grouped_change_data_jsons).to_list()
-						self.post_grouped_json(trigger_event, model_config, change_data_json.objectId,
-						                       sorted_change_data_jsons)
-						ArrayHelper(sorted_change_data_jsons).each(
-							lambda json_record: processed_list.append(json_record.changeJsonId)
-						)
-					except Exception as e:
-						logger.error(e, exc_info=True, stack_info=True)
-						change_data_json.isPosted = True
-						change_data_json.status = Status.FAIL.value
-						change_data_json.result = format_exc()
-						self.update_result(change_data_json)
+				max_loop_count = 1000
+				loop_count = 0
+				while loop_count < max_loop_count:
+					loop_count += 1
+					processed_list = []
+					change_data_jsons = self.change_json_service.find_json(trigger_model.modelTriggerId, ask_post_sequence_json_limit_size())
+					
+					if not change_data_jsons:
+						break
+						
+					for change_data_json in change_data_jsons:
+						if change_data_json.changeJsonId in processed_list:
+							continue
+	
+						try:
+							grouped_change_data_jsons = self.change_json_service.find_by_object_id(change_data_json.modelName,
+							                                                                       change_data_json.objectId,
+							                                                                       change_data_json.modelTriggerId)
+							sorted_change_data_jsons = ArrayHelper(grouped_change_data_jsons).sort(sort_grouped_change_data_jsons).to_list()
+							self.post_grouped_json(trigger_event, model_config, change_data_json.objectId,
+							                       sorted_change_data_jsons)
+							ArrayHelper(sorted_change_data_jsons).each(
+								lambda json_record: processed_list.append(json_record.changeJsonId)
+							)
+						except Exception as e:
+							logger.error(e, exc_info=True, stack_info=True)
+							change_data_json.isPosted = True
+							change_data_json.status = Status.FAIL.value
+							change_data_json.result = format_exc()
+							self.update_result(change_data_json)
 		finally:
-			processed_list = []
 			unlock(self.competitive_lock_service, lock)
 	
 	

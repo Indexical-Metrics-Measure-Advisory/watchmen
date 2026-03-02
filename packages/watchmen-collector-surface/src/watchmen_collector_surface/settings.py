@@ -49,6 +49,7 @@ class CollectorSurfaceSettings(ExtendedBaseSettings):
 	EXTRACT_TABLE_LIMIT_SIZE: int = 100000
 	EXTRACT_TABLE_RECORD_SHARD_SIZE: int = 10000
 	POST_OBJECT_ID_LIMIT_SIZE: int = 500
+	POST_SEQUENCE_JSON_LIMIT_SIZE: int = 1000
 
 settings = CollectorSurfaceSettings()
 
@@ -123,3 +124,6 @@ def ask_extract_table_record_shard_size():
 
 def ask_post_object_id_limit_size() -> int:
 	return settings.POST_OBJECT_ID_LIMIT_SIZE
+
+def ask_post_sequence_json_limit_size() -> int:
+	return settings.POST_SEQUENCE_JSON_LIMIT_SIZE
