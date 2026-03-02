@@ -15,7 +15,7 @@ from watchmen_collector_kernel.storage import get_change_data_json_service, get_
 	get_trigger_event_service, get_change_data_record_service, get_change_data_json_history_service, \
 	get_collector_module_config_service, get_trigger_module_service, ChangeDataRecordService, ChangeDataJsonService, \
 	ChangeDataJsonHistoryService, ScheduledTaskService, CompetitiveLockService
-from watchmen_collector_surface.settings import ask_post_json_wait
+from watchmen_collector_surface.settings import ask_post_json_wait, ask_post_object_id_limit_size
 
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_utilities import ArrayHelper
@@ -205,7 +205,7 @@ class SequencedModelExecutor(ModelExecutor):
 	                  trigger_model: TriggerModel,
 	                  model_config: CollectorModelConfig):
 		if self.check_all_json_generated(trigger_model):
-			self.process_change_data_json(trigger_event, model_config, trigger_model)
+			self.process_change_data_json_v2(trigger_event, model_config, trigger_model)
 		else:
 			logger.debug(f'sequenced model {trigger_model.modelName} not finish record to json yet')
 
@@ -248,7 +248,91 @@ class SequencedModelExecutor(ModelExecutor):
 		finally:
 			processed_list = []
 			unlock(self.competitive_lock_service, lock)
-
+	
+	
+	def get_object_ids(self, trigger_model: TriggerModel) -> Optional[List[str]]:
+		try:
+			object_ids = []
+			self.change_json_service.begin_transaction()
+			limit = ask_post_object_id_limit_size()
+			results: List[ChangeDataJson] = self.change_json_service.find_distinct_object_ids(
+				trigger_model.modelTriggerId, limit)
+			if results:
+				for result in results:
+					if result.objectId:
+						object_ids.append(result.objectId)
+				
+				if object_ids:
+					self.change_json_service.update_bulk_by_object_ids(
+						trigger_model.modelName,
+						object_ids,
+						trigger_model.modelTriggerId,
+						{"is_posted": True, "status": Status.EXECUTING.value}
+					)
+			self.change_record_service.commit_transaction()
+			return object_ids
+		finally:
+			self.change_record_service.close_transaction()
+			
+	def get_object_ids_with_lock(self, trigger_model: TriggerModel) -> Optional[List[str]]:
+		
+		def trigger_model_lock_resource_id(trigger_model: TriggerModel) -> str:
+			return f'trigger_model_{trigger_model.modelTriggerId}'
+		
+		lock = get_resource_lock(self.snowflake_generator.next_id(),
+		                         trigger_model_lock_resource_id(trigger_model),
+		                         trigger_model.tenantId)
+		try:
+			if try_lock_nowait(self.competitive_lock_service, lock):
+				return self.get_object_ids(trigger_model)
+		finally:
+			unlock(self.competitive_lock_service, lock)
+	
+	def post_grouped_json_v2(self,
+	                      trigger_event: TriggerEvent,
+	                      model_config: CollectorModelConfig,
+	                      object_id: str,
+	                      change_json_ids: List[int]) -> Optional[ScheduledTask]:
+		task = self.get_grouped_json_scheduled_task(trigger_event, model_config, object_id, change_json_ids)
+		try:
+			self.scheduled_task_service.begin_transaction()
+			self.scheduled_task_service.create(task)
+			self.change_json_service.update_by_ids(
+				change_json_ids,
+				{"is_posted": True, "status": Status.WAITING.value, "task_id": task.taskId}
+			)
+			self.scheduled_task_service.commit_transaction()
+			return task
+		except Exception as e:
+			self.scheduled_task_service.rollback_transaction()
+			raise e
+		finally:
+			self.scheduled_task_service.close_transaction()
+			
+	def process_object_ids(self, trigger_event: TriggerEvent,
+	                       trigger_model: TriggerModel,
+	                       model_config: CollectorModelConfig,
+	                       object_ids: List[str]):
+		try:
+			for object_id in object_ids:
+				json_ids = self.change_json_service.find_grouped_ids_by_object_id(trigger_model.modelName,
+				                                                                  object_id,
+				                                                                  trigger_model.modelTriggerId)
+				ids_ = ArrayHelper(json_ids).map(
+					lambda x: x.get("change_json_id")
+				).to_list()
+				self.post_grouped_json_v2(trigger_event,
+				                          model_config,
+				                          object_id,
+				                          ids_)
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+			
+	def process_change_data_json_v2(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
+	                             trigger_model: TriggerModel):
+		object_ids = self.get_object_ids_with_lock(trigger_model)
+		self.process_object_ids(trigger_event, trigger_model, model_config, object_ids)
+		
 	def post_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
 	              change_json: ChangeDataJson) -> ScheduledTask:
 		raise NotImplementedError('Method[post_json] does not implemented by SequencedModelExecutor.')
@@ -283,7 +367,31 @@ class SequencedModelExecutor(ModelExecutor):
 			return self.change_record_service.is_model_finished(trigger_model.modelTriggerId)
 		else:
 			return False
-
+	
+	def get_grouped_json_scheduled_task(self, trigger_event: TriggerEvent,
+	                                    model_config: CollectorModelConfig, object_id: str,
+	                                    change_json_ids: List[int]) -> ScheduledTask:
+		
+		return ScheduledTask(
+			taskId=self.snowflake_generator.next_id(),
+			resourceId=self.snowflake_generator.next_id(),
+			topicCode=model_config.rawTopicCode,
+			content=None,
+			changeJsonIds=change_json_ids,
+			modelName=model_config.modelName,
+			objectId=object_id,
+			dependOn=[],
+			parentTaskId=[],
+			isFinished=False,
+			status=Status.INITIAL.value,
+			result=None,
+			tenantId=trigger_event.tenantId,
+			eventId=trigger_event.eventTriggerId,
+			eventTriggerId=trigger_event.eventTriggerId,
+			pipelineId=self.get_pipeline_id(trigger_event),
+			type=3
+		)
+	
 	def get_grouped_scheduled_task(self, trigger_event: TriggerEvent,
 	                               model_config: CollectorModelConfig, object_id: str,
 	                               change_jsons: List[ChangeDataJson]) -> ScheduledTask:

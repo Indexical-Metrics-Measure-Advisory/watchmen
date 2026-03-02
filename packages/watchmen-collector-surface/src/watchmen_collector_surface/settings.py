@@ -45,7 +45,10 @@ class CollectorSurfaceSettings(ExtendedBaseSettings):
 	
 	COLLECTOR_CACHE_HEART_BEAT_ENABLED: bool = False
 	COLLECTOR_CACHE_HEART_BEAT_INTERVAL: int = 60
-
+	
+	EXTRACT_TABLE_LIMIT_SIZE: int = 100000
+	EXTRACT_TABLE_RECORD_SHARD_SIZE: int = 10000
+	POST_OBJECT_ID_LIMIT_SIZE: int = 500
 
 settings = CollectorSurfaceSettings()
 
@@ -111,3 +114,12 @@ def ask_collector_cache_heart_beat_enabled():
 
 def ask_collector_cache_heart_beat_interval():
 	return settings.COLLECTOR_CACHE_HEART_BEAT_INTERVAL
+
+def ask_extract_table_limit_size():
+	return settings.EXTRACT_TABLE_LIMIT_SIZE
+
+def ask_extract_table_record_shard_size():
+	return settings.EXTRACT_TABLE_RECORD_SHARD_SIZE
+
+def ask_post_object_id_limit_size() -> int:
+	return settings.POST_OBJECT_ID_LIMIT_SIZE
