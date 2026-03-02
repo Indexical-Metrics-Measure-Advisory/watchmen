@@ -38,6 +38,7 @@ export class DataSourceService {
         {
           dataSourceId: 'ds-1',
           name: 'Primary DB',
+          dataSourceCode: 'ds-1',
           type: 'postgres',
           tenantId: 'tenant-1',
           createdAt: '2024-01-01T00:00:00Z',
@@ -46,6 +47,7 @@ export class DataSourceService {
         {
           dataSourceId: 'ds-2',
           name: 'Analytics Warehouse',
+          dataSourceCode: 'ds-2',
           type: 'bigquery',
           tenantId: 'tenant-1',
           createdAt: '2024-01-02T00:00:00Z',
@@ -54,6 +56,7 @@ export class DataSourceService {
         {
           dataSourceId: 'ds-3',
           name: 'S3 Bucket',
+          dataSourceCode: 'ds-3',
           type: 's3',
           tenantId: 'tenant-1',
           createdAt: '2024-01-03T00:00:00Z',
@@ -62,6 +65,7 @@ export class DataSourceService {
         {
           dataSourceId: 'ds-4',
           name: 'Azure Blob Storage',
+          dataSourceCode: 'ds-4',
           type: 'azure-blob',
           tenantId: 'tenant-1',
           createdAt: '2024-01-04T00:00:00Z',
@@ -69,6 +73,7 @@ export class DataSourceService {
         },
         {
           dataSourceId: 'ds-5',
+          dataSourceCode: 'ds-5',
           name: 'Aliyun OSS',
           type: 'ali-oss',
           tenantId: 'tenant-1',

@@ -491,7 +491,7 @@ const TableForm = ({
               <SelectContent>
                 {dataSources.map((ds) => {
                   const id = ds.dataSourceId ?? ds.id ?? ds.name;
-                  const label = ds.name ?? id;
+                  const label = ds.dataSourceCode ?? id;
                   return (
                     <SelectItem key={id} value={String(id)}>
                       {label}
