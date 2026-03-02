@@ -10,7 +10,8 @@ from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeJsonId, Pageable
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	ColumnNameLiteral, EntityCriteriaExpression, EntityStraightValuesFinder, EntityStraightColumn, EntitySortColumn, \
-	EntitySortMethod, EntityLimitedFinder, EntityCriteriaOperator, EntityUpdater, EntityDistinctValuesFinder
+	EntitySortMethod, EntityLimitedFinder, EntityCriteriaOperator, EntityUpdater, EntityDistinctValuesFinder, \
+	EntityLimitedStraightValuesFinder
 
 
 class ChangeDataJsonShaper(EntityShaper):
@@ -175,6 +176,24 @@ class ChangeDataJsonService(TupleService):
 					],
 					distinctColumnNames=["object_id"],
 					distinctValueOnSingleColumn=True,
+					limit=limit if limit is not None else ask_partial_size()
+				))
+		finally:
+			self.close_transaction()
+	
+	def find_object_ids(self, model_trigger_id: int, limit: int = None) -> List:
+		try:
+			self.begin_transaction()
+			return self.storage.find_limited_straight_values(
+				EntityLimitedStraightValuesFinder(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName=STATUS), right=0),
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName=MODEL_TRIGGER_ID),
+						                         right=model_trigger_id)
+					],
+					straightColumns=[EntityStraightColumn(columnName="object_id")],
 					limit=limit if limit is not None else ask_partial_size()
 				))
 		finally:

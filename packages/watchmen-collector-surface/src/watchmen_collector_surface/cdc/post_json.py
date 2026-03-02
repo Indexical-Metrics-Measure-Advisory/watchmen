@@ -206,7 +206,7 @@ class SequencedModelExecutor(ModelExecutor):
 	                  trigger_model: TriggerModel,
 	                  model_config: CollectorModelConfig):
 		if self.check_all_json_generated(trigger_model):
-			self.process_change_data_json(trigger_event, model_config, trigger_model)
+			self.process_change_data_json_v2(trigger_event, model_config, trigger_model)
 		else:
 			logger.debug(f'sequenced model {trigger_model.modelName} not finish record to json yet')
 
@@ -257,16 +257,15 @@ class SequencedModelExecutor(ModelExecutor):
 		finally:
 			unlock(self.competitive_lock_service, lock)
 	
-	
 	def get_object_ids(self, trigger_model: TriggerModel) -> Optional[List[str]]:
 		object_ids = []
 		limit = ask_post_object_id_limit_size()
-		results: List[ChangeDataJson] = self.change_json_service.find_distinct_object_ids(
+		results: List[Dict] = self.change_json_service.find_object_ids(
 			trigger_model.modelTriggerId, limit)
 		if results:
 			for result in results:
-				if result.objectId:
-					object_ids.append(result.objectId)
+				if result['object_id']:
+					object_ids.append(result['object_id'])
 			
 			if object_ids:
 				self.change_json_service.update_bulk_by_object_ids(
