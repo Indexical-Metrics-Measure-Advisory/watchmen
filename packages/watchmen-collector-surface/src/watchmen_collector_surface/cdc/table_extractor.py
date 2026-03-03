@@ -259,6 +259,7 @@ class TableExtractor:
 			state['last_max_pk'] = current_max_pk
 			state['remaining_count'] -= len(source_records)
 			trigger_table.result = state
+			self.trigger_table_service.update_table_trigger(trigger_table)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
 			trigger_table.isExtracted = True
