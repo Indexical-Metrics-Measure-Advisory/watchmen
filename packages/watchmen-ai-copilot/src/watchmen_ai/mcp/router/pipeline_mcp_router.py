@@ -22,6 +22,12 @@ router = APIRouter()
 
 logger = getLogger(__name__)
 
+def _format_error(operation: str, error: Exception) -> str:
+    message = str(error).strip()
+    if not message:
+        message = repr(error)
+    return f'{operation} failed: {message}'
+
 
 def get_pipeline_service(principal_service: PrincipalService) -> PipelineService:
     return PipelineService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
@@ -54,33 +60,34 @@ async def create_pipeline(request: CreatePipelineModel,
         pipeline_service = get_pipeline_service(principal_service)
         pipeline_service.begin_transaction()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=_format_error('create_pipeline.begin_transaction', e))
 
     try:
-        # Check if exists (optional, name uniqueness might not be strict for pipelines, but good practice)
-        # PipelineService doesn't have find_by_name_and_tenant easily accessible or unique index might not exist on name only?
-        # Let's skip check for now and rely on ID generation or DB constraints if any.
-        
+        pipeline_type = PipelineTriggerType(request.type) if request.type else PipelineTriggerType.INSERT_OR_MERGE
         pipeline = Pipeline(
             name=request.name,
             topicId=request.topic_id,
-            type=PipelineTriggerType(request.type) if request.type else PipelineTriggerType.INSERT_OR_MERGE,
+            type=pipeline_type,
             stages=[],
             enabled=request.enabled,
             tenantId=tenant_id
         )
 
-        # Generate ID
         pipeline_service.redress_storable_id(pipeline)
 
-        # Create
         pipeline_service.create(pipeline)
         pipeline_service.commit_transaction()
 
         return CreatePipelineResponse(pipelineId=pipeline.pipelineId, name=pipeline.name)
+    except ValueError as e:
+        pipeline_service.rollback_transaction()
+        raise HTTPException(status_code=400, detail=_format_error('create_pipeline', e))
+    except HTTPException as e:
+        pipeline_service.rollback_transaction()
+        raise e
     except Exception as e:
         pipeline_service.rollback_transaction()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=_format_error('create_pipeline', e))
 
 
 def construct_pipeline(data: Dict[str, Any]) -> Pipeline:
@@ -160,9 +167,12 @@ async def update_pipeline(request: UpdatePipelineModel,
             type=updated_pipeline.type,
             status="success"
         )
+    except HTTPException as e:
+        pipeline_service.rollback_transaction()
+        raise e
     except Exception as e:
         pipeline_service.rollback_transaction()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=_format_error('update_pipeline', e))
 
 
 class AddStageModel(BaseModel):
@@ -185,7 +195,7 @@ async def add_stage(request: AddStageModel,
         pipeline_service = get_pipeline_service(principal_service)
         pipeline_service.begin_transaction()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=_format_error('add_stage.begin_transaction', e))
 
     try:
         pipeline = pipeline_service.find_by_id(request.pipeline_id)
@@ -212,9 +222,12 @@ async def add_stage(request: AddStageModel,
         pipeline_service.commit_transaction()
 
         return AddStageResponse(message=f"Added stage '{request.name}' to pipeline {pipeline.name}.")
+    except HTTPException as e:
+        pipeline_service.rollback_transaction()
+        raise e
     except Exception as e:
         pipeline_service.rollback_transaction()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=_format_error('add_stage', e))
 
 
 class AddUnitModel(BaseModel):
@@ -238,7 +251,7 @@ async def add_unit(request: AddUnitModel,
         pipeline_service = get_pipeline_service(principal_service)
         pipeline_service.begin_transaction()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=_format_error('add_unit.begin_transaction', e))
 
     try:
         pipeline = pipeline_service.find_by_id(request.pipeline_id)
@@ -269,9 +282,12 @@ async def add_unit(request: AddUnitModel,
         pipeline_service.commit_transaction()
 
         return AddUnitResponse(unitId=unit.unitId, message=f"Added unit '{request.name}' to stage '{request.stage_name}'.")
+    except HTTPException as e:
+        pipeline_service.rollback_transaction()
+        raise e
     except Exception as e:
         pipeline_service.rollback_transaction()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=_format_error('add_unit', e))
 
 
 class AddActionModel(BaseModel):
@@ -346,7 +362,7 @@ async def _add_action_internal(pipeline_id: str, stage_name: str, unit_name: str
         pipeline_service = get_pipeline_service(principal_service)
         pipeline_service.begin_transaction()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=_format_error('_add_action_internal.begin_transaction', e))
 
     try:
         pipeline = pipeline_service.find_by_id(pipeline_id)
@@ -378,9 +394,12 @@ async def _add_action_internal(pipeline_id: str, stage_name: str, unit_name: str
         pipeline_service.commit_transaction()
 
         return AddActionResponse(message=f"Added action '{action.type}' to unit '{unit_name}'.")
+    except HTTPException as e:
+        pipeline_service.rollback_transaction()
+        raise e
     except Exception as e:
         pipeline_service.rollback_transaction()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=_format_error('_add_action_internal', e))
 
 
 # --- MCP Parameter Models ---
@@ -600,8 +619,10 @@ async def list_pipelines(
             ))
 
         return result
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=_format_error('list_pipelines', e))
     finally:
         pipeline_service.close_transaction()
 
@@ -625,8 +646,10 @@ async def find_pipelines_by_source_topic_name(
 
         pipelines = pipeline_service.find_by_topic_id(topic.topicId, tenant_id)
         return [pipeline.dict() for pipeline in pipelines]
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=_format_error('find_pipelines_by_source_topic_name', e))
     finally:
         topic_service.close_transaction()
         pipeline_service.close_transaction()
@@ -651,9 +674,9 @@ async def get_pipeline(
             raise HTTPException(status_code=403, detail=f"Pipeline {pipeline_id} does not belong to current tenant.")
 
         return pipeline.dict()
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=_format_error('get_pipeline', e))
     finally:
         pipeline_service.close_transaction()
-
-

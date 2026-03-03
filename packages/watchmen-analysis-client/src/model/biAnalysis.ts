@@ -1,4 +1,4 @@
-export type BIChartType = 'line' | 'bar' | 'stackedBar' | 'pie' | 'area' | 'groupedBar' | 'alert' | 'kpi';
+export type BIChartType = 'line' | 'bar' | 'stackedBar' | 'pie' | 'area' | 'groupedBar' | 'alert' | 'kpi' | 'table';
 
 export type BICardSize = 'sm' | 'md' | 'lg';
 
@@ -23,6 +23,7 @@ export interface BIDimensionSelection {
   dimensions: string[]; // selected analysis dimensions
   timeRange?: string; // e.g., Past 7 days, Past 30 days
   timeGranularity?: string;
+  limit?: number; // Top N limit
 }
 
 export interface AlertAction {

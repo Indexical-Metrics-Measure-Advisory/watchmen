@@ -151,7 +151,8 @@ async def get_metric_value(req :MetricQueryRequest,
         start_time = req.start_time,
         end_time = req.end_time,
         where = req.where,
-        # order = req.order
+        limit = req.limit,
+        order = ["-"+req.metric] ## for desc
     )
     res = MetricFlowResponse(data=query_result.result_df.rows, column_names=query_result.result_df.column_names)
     return res
