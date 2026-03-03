@@ -1,5 +1,5 @@
 import { AgentCard, Task, Message, Artifact, AgentConnection } from '@/model/A2ASpec';
-import { API_BASE_URL, checkResponse, getDefaultHeaders } from '@/utils/apiConfig';
+import { API_AI_URL, API_BASE_URL, checkResponse, getDefaultHeaders } from '@/utils/apiConfig';
 import { aiAgentService } from './aiAgentService';
 
 // Demo agent data
@@ -32,7 +32,7 @@ class A2AService {
 
   async startAgent(agent: AgentCard): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/challenge/agent/start/${agent.metadata?.businessChallengeId}`, {
+      const response = await fetch(`${API_AI_URL}/challenge/agent/start/${agent.metadata?.businessChallengeId}`, {
         method: 'GET',
         headers: getDefaultHeaders()
       });
@@ -64,7 +64,7 @@ class A2AService {
   async findAgents(): Promise<AgentCard[]> {
    
 
-    const response = await fetch(API_BASE_URL+"/watchmen/ai/agent/list", {
+    const response = await fetch(`${API_AI_URL}/agent/list`, {
       method: 'GET',
       headers: getDefaultHeaders()
     })
@@ -73,7 +73,7 @@ class A2AService {
   }
 
   async getAgent(agentId: string): Promise<AgentCard | undefined> {
-    const response = await fetch(`${API_BASE_URL}/watchmen/ai/agent/${agentId}`, {
+    const response = await fetch(`${API_AI_URL}/agent/${agentId}`, {
       method: 'GET',
       headers: getDefaultHeaders()
     })
@@ -94,7 +94,7 @@ class A2AService {
   async establishConnection(clientId: string, agentId: string): Promise<AgentConnection> {
     try {
       // 调用后台服务建立连接
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/agent/connect/${agentId}`, {
+      const response = await fetch(`${API_AI_URL}/agent/connect/${agentId}`, {
         method: 'GET',
         headers: getDefaultHeaders()
       });

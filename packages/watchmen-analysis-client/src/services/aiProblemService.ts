@@ -1,5 +1,5 @@
 import { BusinessChallenge } from '@/model/business';
-import { API_BASE_URL, checkResponse, getDefaultHeaders } from '@/utils/apiConfig';
+import { API_AI_URL, API_BASE_URL, checkResponse, getDefaultHeaders } from '@/utils/apiConfig';
 
 
 
@@ -15,7 +15,7 @@ export interface AIProblemResponse {
 export const aiProblemService = {
   generateProblem: async (challenge: BusinessChallenge): Promise<AIProblemResponse> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/ai/generate-problem`, {
+      const response = await fetch(`${API_AI_URL}/ai/generate-problem`, {
         method: 'POST',
         headers: getDefaultHeaders(),
         body: JSON.stringify(challenge),

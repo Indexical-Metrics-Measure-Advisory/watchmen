@@ -1,5 +1,5 @@
 import { BusinessProblem } from '@/model/business';
-import { API_BASE_URL, getDefaultHeaders, checkResponse } from '@/utils/apiConfig';
+import { API_BASE_URL, getDefaultHeaders, checkResponse, API_AI_URL } from '@/utils/apiConfig';
 
 interface GenerateHypothesisResponse {
     reasoning: string;
@@ -21,7 +21,7 @@ interface GenerateHypothesisResponse {
 class AIHypothesisService {
   async generateHypothesis(businessProblem: BusinessProblem): Promise<GenerateHypothesisResponse> {
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/ai/generate-hypothesis`, {
+      const response = await fetch(`${API_AI_URL}/ai/generate-hypothesis`, {
         method: 'POST',
         headers: getDefaultHeaders(),
         body: JSON.stringify(businessProblem)

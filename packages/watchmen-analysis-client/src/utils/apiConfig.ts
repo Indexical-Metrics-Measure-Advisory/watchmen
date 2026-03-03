@@ -1,8 +1,9 @@
 // API configuration and header management
 import { authService } from '@/services/authService';
-import { getServiceHost, getWatchmenCoreHost } from './utils';
+import { getAIServiceHost, getServiceHost, getWatchmenCoreHost } from './utils';
 
 export const API_BASE_URL = getServiceHost();
+export const API_AI_URL = getAIServiceHost();
 export const WATCHMEN_API_BASE_URL = getWatchmenCoreHost();
 
 

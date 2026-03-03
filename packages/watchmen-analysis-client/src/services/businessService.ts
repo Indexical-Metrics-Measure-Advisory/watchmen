@@ -1,7 +1,7 @@
 
 import { BusinessChallenge, BusinessChallengeWithProblems, BusinessProblem } from "@/model/business";
 import { HypothesisType } from '@/model/Hypothesis';
-import { API_BASE_URL, getDefaultHeaders, checkResponse } from '@/utils/apiConfig';
+import { API_BASE_URL, getDefaultHeaders, checkResponse, API_AI_URL } from '@/utils/apiConfig';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -81,7 +81,7 @@ export class BusinessService {
     //   return this.mockBusinessChallenges;
     // }
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/challenges`, {
+      const response = await fetch(`${API_AI_URL}/challenges`, {
         headers: getDefaultHeaders()
       });
       return await checkResponse(response);
@@ -104,7 +104,7 @@ export class BusinessService {
     //   return newChallenge;
     // }
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/challenge/create`, {
+      const response = await fetch(`${API_AI_URL}/challenge/create`, {
         method: 'POST',
         headers: getDefaultHeaders(),
         body: JSON.stringify(data),
@@ -126,7 +126,7 @@ export class BusinessService {
     //   return { ...challenge, ...data };
     // }
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/challenge/update`, {
+      const response = await fetch(`${API_AI_URL}/challenge/update`, {
         method: 'POST',
         headers: getDefaultHeaders(),
         body: JSON.stringify(data),
@@ -143,7 +143,7 @@ export class BusinessService {
     //   return mockBusinessChallenges.find(bc => bc.id === challenge_id);
     // }
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/challenge/${challenge_id}`, {
+      const response = await fetch(`${API_AI_URL}/challenge/${challenge_id}`, {
         headers: getDefaultHeaders()
       });
       return await checkResponse(response);
@@ -158,7 +158,7 @@ export class BusinessService {
     //   return mockBusinessChallenges.find(bc => bc.id === challenge_id);
     // }
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/challenge/full/${challenge_id}`, {
+      const response = await fetch(`${API_AI_URL}/challenge/full/${challenge_id}`, {
         headers: getDefaultHeaders()
       });
       return await checkResponse(response);
@@ -176,7 +176,7 @@ export class BusinessService {
     //   return this.mockBusinessProblems;
     // }
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/problems`, {
+      const response = await fetch(`${API_AI_URL}/problems`, {
         headers: getDefaultHeaders()
       });
       return await checkResponse(response);
@@ -193,7 +193,7 @@ export class BusinessService {
     //   return problem || null;
     // }
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/problems/${id}`, {
+      const response = await fetch(`${API_AI_URL}/problem/${id}`, {
         headers: getDefaultHeaders()
       });
       return await checkResponse(response);
@@ -217,7 +217,7 @@ export class BusinessService {
     //   return newProblem;
     // }
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/problem/create`, {
+      const response = await fetch(`${API_AI_URL}/problem/create`, {
         method: 'POST',
         headers: getDefaultHeaders(),
         body: JSON.stringify(data),
@@ -240,7 +240,7 @@ export class BusinessService {
     // }
     console.log(data);
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/problem/update`, {
+      const response = await fetch(`${API_AI_URL}/problem/update`, {
         method: 'POST',
         headers: getDefaultHeaders(),
         body: JSON.stringify(data),
@@ -255,7 +255,7 @@ export class BusinessService {
   // Helper methods
   async getProblemsForChallenge(challengeId: string): Promise<BusinessProblem[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/challenges/${challengeId}/problems`, {
+      const response = await fetch(`${API_AI_URL}/challenges/${challengeId}/problems`, {
         headers: getDefaultHeaders()
       });
       return await checkResponse(response);
