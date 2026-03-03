@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
-from typing import Tuple, Dict, List, Any
+from traceback import format_exc
+from typing import Tuple, Dict, List, Any, Optional
 
 import numpy as np
 
@@ -12,9 +13,11 @@ from watchmen_collector_kernel.service.extract_utils import cal_array2d_diff, bu
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_trigger_table_service, get_competitive_lock_service, \
 	get_collector_table_config_service, get_trigger_event_service, get_change_data_record_service
-from watchmen_collector_surface.settings import ask_table_extract_wait
+from watchmen_collector_surface.settings import ask_table_extract_wait, ask_extract_table_limit_size, \
+	ask_extract_table_record_shard_size
 from watchmen_meta.common import ask_super_admin, ask_snowflake_generator, ask_meta_storage
-from watchmen_storage import EntityCriteria
+from watchmen_storage import EntityCriteria, EntityCriteriaJoint, EntityCriteriaExpression, ColumnNameLiteral, \
+	EntityCriteriaOperator, EntityCriteriaJointConjunction
 from watchmen_utilities import ArrayHelper
 
 logger = logging.getLogger('apscheduler')
@@ -51,7 +54,7 @@ class TableExtractor:
 
 	def event_loop_run(self):
 		try:
-			self.trigger_table_listener()
+			self.trigger_table_listener_v2()
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
 
@@ -112,6 +115,156 @@ class TableExtractor:
 						break
 			finally:
 				unlock(self.competitive_lock_service, lock)
+	
+	# noinspection PyMethodMayBeStatic
+	def set_data_count(self, trigger_table: TriggerTable, count: int) -> TriggerTable:
+		trigger_table.dataCount = count
+		return trigger_table
+	
+	# noinspection PyMethodMayBeStatic
+	def query_state(self, trigger_table: TriggerTable) -> Dict:
+		state = trigger_table.result
+		if state:
+			return state
+		else:
+			return {
+				"tenant_id": trigger_table.tenantId,
+				"event_trigger_id": trigger_table.eventTriggerId,
+				"table_trigger_id": trigger_table.tableTriggerId,
+				"last_max_pk": None,
+				"data_count": 0,
+				"remaining_count": 0,
+				"is_complete": False
+			}
+	
+	def get_criteria_with_pagination(self,
+	                                 base_criteria: EntityCriteria,
+	                                 state: Dict,
+	                                 config: CollectorTableConfig) -> EntityCriteria:
+		data_id = state.get("last_max_pk")
+		if data_id:
+			base_criteria.append(self.build_page_criteria_by_primary_key(data_id, config))
+		return base_criteria
+	
+	# noinspection PyMethodMayBeStatic
+	def build_page_criteria_by_primary_key(self, data_id: Dict, config: CollectorTableConfig) -> EntityCriteriaJoint:
+		primary_keys = config.primaryKey
+		if not primary_keys:
+			raise ValueError("primary_keys can't be empty")
+		
+		missing_keys = [key for key in primary_keys if key not in data_id]
+		if missing_keys:
+			raise KeyError(f"data_id lack filed：{missing_keys}，make sure include all primary_keys")
+		
+		sub_conditions: List[EntityCriteriaJoint] = []
+		for i in range(len(primary_keys)):
+			current_prefix_keys = primary_keys[:i + 1]
+			sub_exprs: List[EntityCriteriaExpression] = []
+			for key in current_prefix_keys[:-1]:
+				sub_exprs.append(
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName=key),
+						operator=EntityCriteriaOperator.EQUALS,
+						right=data_id[key]
+					)
+				)
+			last_key = current_prefix_keys[-1]
+			sub_exprs.append(
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=last_key),
+					operator=EntityCriteriaOperator.GREATER_THAN,
+					right=data_id[last_key]
+				)
+			)
+			sub_condition = EntityCriteriaJoint(
+				conjunction=EntityCriteriaJointConjunction.AND,
+				children=sub_exprs
+			)
+			sub_conditions.append(sub_condition)
+		return EntityCriteriaJoint(
+			conjunction=EntityCriteriaJointConjunction.OR,
+			children=sub_conditions
+		)
+	
+	# noinspection PyMethodMayBeStatic
+	def save_error(self, trigger_table: TriggerTable, error: str) -> TriggerTable:
+		if trigger_table.result:
+			trigger_table.result['error'] = error
+		else:
+			trigger_table.result = {'error': error}
+		return trigger_table
+	
+	
+	def trigger_table_listener_v2(self):
+		unfinished_trigger_tables = self.trigger_table_service.find_unfinished()
+		for unfinished_trigger_table in unfinished_trigger_tables:
+			lock = get_resource_lock(self.snowflake_generator.next_id(),
+			                         self.trigger_table_lock_resource_id(unfinished_trigger_table),
+			                         unfinished_trigger_table.tenantId)
+			try:
+		
+		
+				if try_lock_nowait(self.competitive_lock_service, lock):
+					trigger_table = self.trigger_table_service.find_by_id(unfinished_trigger_table.tableTriggerId)
+					if self.is_extracted(trigger_table):
+						continue
+					else:
+						self.process_trigger_table(trigger_table)
+			finally:
+				unlock(self.competitive_lock_service, lock)
+	
+	def process_records(self, trigger_table, records: Optional[List[Dict[str, Any]]]):
+		config = self.table_config_service.find_by_name(trigger_table.tableName, trigger_table.tenantId)
+		change_records = ArrayHelper(records).map(lambda record: self.source_to_change(trigger_table, get_data_id(config.primaryKey, record))).to_list()
+		self.change_data_record_service.create_change_records(change_records)
+		
+	def process_trigger_table(self, trigger_table: TriggerTable):
+		try:
+			state = self.query_state(trigger_table)
+			if state['is_complete']:
+				trigger_table = self.set_extracted(trigger_table, state.get("data_count"))
+				self.trigger_table_service.update_table_trigger(trigger_table)
+				return
+			
+			config = self.table_config_service.find_by_name(trigger_table.tableName, trigger_table.tenantId)
+			trigger_event = self.trigger_event_service.find_event_by_id(trigger_table.eventTriggerId)
+			base_criteria = self.get_criteria(trigger_event, config)
+			
+			if state['data_count'] == 0:
+				data_count = ask_source_extractor(config).count_by_criteria(
+					base_criteria
+				)
+				state["data_count"] = data_count
+				state["remaining_count"] = data_count
+			
+			criteria = self.get_criteria_with_pagination(base_criteria, state, config)
+			limit = ask_extract_table_limit_size()
+			source_records = ask_source_extractor(config).find_limited_primary_keys_by_criteria(
+				criteria,
+				limit
+			)
+			if not source_records:
+				state['is_complete'] = True
+				state["remaining_count"] = 0
+				self.trigger_table_service.update_table_trigger(trigger_table)
+				return
+			
+			shard_size = ask_extract_table_record_shard_size()
+			
+			for i in range(0, len(source_records), shard_size):
+				shards = source_records[i:i + shard_size]
+				self.process_records(trigger_table, shards)
+			max_index = len(source_records) - 1
+			current_max_pk = source_records[max_index]
+			state['last_max_pk'] = current_max_pk
+			state['remaining_count'] -= len(source_records)
+			trigger_table.result = state
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+			trigger_table.isExtracted = True
+			trigger_table.dataCount = 0
+			trigger_table = self.save_error(trigger_table, format_exc())
+			self.trigger_table_service.update_table_trigger(trigger_table)
 
 	def save_change_data_record(self,
 	                            trigger_table: TriggerTable,
