@@ -8,9 +8,9 @@ RUN        dnf -y update && dnf -y install gcc g++ sudo \
 
 WORKDIR    /opt/oracle
 RUN        dnf -y update && sudo dnf -y install libaio wget unzip ldconfig \
-            && wget https://download.oracle.com/otn_software/linux/instantclient/213000/instantclient-basiclite-linux.x64-21.3.0.0.0.zip \
-            && unzip instantclient-basiclite-linux.x64-21.3.0.0.0.zip \
-            && rm -f instantclient-basiclite-linux.x64-21.3.0.0.0.zip \
+            && wget https://download.oracle.com/otn_software/linux/instantclient/2326000/instantclient-basiclite-linux.x64-23.26.0.0.0.zip \
+            && unzip instantclient-basiclite-linux.x64-23.26.0.0.0.zip \
+            && rm -f instantclient-basiclite-linux.x64-23.26.0.0.0.zip \
             && cd /opt/oracle/instantclient* \
             && rm -f *jdbc* *occi* *mysql* *README *jar uidrvci genezi adrci \
             && sudo sh -c "echo /opt/oracle/instantclient* > /etc/ld.so.conf.d/oracle-instantclient.conf" \
