@@ -176,6 +176,7 @@ class ScheduledTaskService(TupleService):
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=STATUS), right=0)
 				],
+				sort=[EntitySortColumn(name='created_at', method=EntitySortMethod.ASC)],
 				limit=limit if limit is not None else ask_task_partial_size()
 			))
 
