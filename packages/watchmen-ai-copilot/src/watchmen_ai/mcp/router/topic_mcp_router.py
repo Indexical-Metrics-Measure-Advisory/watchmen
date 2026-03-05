@@ -1,3 +1,4 @@
+from logging import getLogger
 from typing import List, Dict, Any, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException
@@ -11,6 +12,15 @@ from watchmen_model.common import TenantId, UserId
 from watchmen_rest import get_admin_principal, get_console_principal
 
 router = APIRouter()
+
+logger = getLogger(__name__)
+
+
+def _format_error(operation: str, error: Exception) -> str:
+    message = str(error).strip()
+    if not message:
+        message = repr(error)
+    return f'{operation} failed: {message}'
 
 
 def get_topic_service(principal_service: PrincipalService) -> TopicService:
@@ -61,9 +71,15 @@ async def create_topic(request: CreateTopicModel,
         topic_service.commit_transaction()
         
         return CreateTopicResponse(topicId=topic.topicId, name=topic.name)
-    except Exception as e:
+    except ValueError as e:
+        topic_service.rollback_transaction()
+        raise HTTPException(status_code=400, detail=_format_error('create_topic', e))
+    except HTTPException as e:
         topic_service.rollback_transaction()
         raise e
+    except Exception as e:
+        topic_service.rollback_transaction()
+        raise HTTPException(status_code=500, detail=_format_error('create_topic', e))
 
 
 class FactorModel(BaseModel):
@@ -124,9 +140,12 @@ async def add_factors(request: AddFactorsModel,
         topic_service.commit_transaction()
 
         return AddFactorsResponse(message=f"Added {len(new_factors)} factors to {request.topic_name}.")
-    except Exception as e:
+    except HTTPException as e:
         topic_service.rollback_transaction()
         raise e
+    except Exception as e:
+        topic_service.rollback_transaction()
+        raise HTTPException(status_code=500, detail=_format_error('add_factors', e))
 
 
 class SimpleFactorResponse(BaseModel):
@@ -178,6 +197,10 @@ async def load_topic(topic_id: str = Body(..., embed=True),
             kind=topic.kind,
             factors=factors
         )
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=_format_error('load_topic', e))
     finally:
         topic_service.close_transaction()
 
@@ -219,6 +242,9 @@ async def list_topic_structures(
                 factors=factors
             ))
         return result
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=_format_error('list_topic_structures', e))
     finally:
         topic_service.close_transaction()
-
