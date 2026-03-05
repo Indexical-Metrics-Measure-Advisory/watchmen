@@ -251,6 +251,8 @@ const BIAnalysisPage: React.FC = () => {
     from: addDays(new Date(), -30),
     to: new Date(),
   });
+  const [selectedChartType, setSelectedChartType] = useState<BIChartType | 'auto'>('auto');
+  const [selectedLimit, setSelectedLimit] = useState<number>(5);
 
   // preview
   const [previewData, setPreviewData] = useState<unknown[]>([]);
@@ -652,14 +654,17 @@ const BIAnalysisPage: React.FC = () => {
           start_time: start,
           end_time: end,
           order: [],
-          limit: 500
+          limit: selectedLimit
         };
         const resp = await metricsService.getMetricValue(req);
         const data = transformMetricFlowToChartData(resp);
         if (alive) {
           setPreviewData(data);
           setPreviewRawData(resp);
-          if (isTimeData(data)) {
+
+          if (selectedChartType !== 'auto') {
+            setPreviewType(selectedChartType);
+          } else if (isTimeData(data)) {
             setPreviewType('line');
           } else if (isGroupedData(data)) {
             setPreviewType('groupedBar');
@@ -675,13 +680,17 @@ const BIAnalysisPage: React.FC = () => {
           setPreviewData([]);
           setPreviewRawData(null);
           // fall back to dims to decide chart type
-          setPreviewType(chartTypeFromDims(selectedDims, availableDimsDetailed));
+          if (selectedChartType !== 'auto') {
+            setPreviewType(selectedChartType);
+          } else {
+            setPreviewType(chartTypeFromDims(selectedDims, availableDimsDetailed));
+          }
         }
       }
     };
     loadPreview();
     return () => { alive = false; };
-  }, [selectedMetric, selectedDims, timeRange, customDateRange, availableDimsDetailed, selectedDimType, timeGranularity]);
+  }, [selectedMetric, selectedDims, timeRange, customDateRange, availableDimsDetailed, selectedDimType, timeGranularity, selectedChartType, selectedLimit]);
 
   // templates list
   useEffect(() => {
@@ -760,7 +769,10 @@ const BIAnalysisPage: React.FC = () => {
 
     // Prefer data-driven type; if no preview data yet, infer from selected dimensions
     let chartTypeForBoard: BIChartType = chartTypeFromDims(selectedDims, availableDimsDetailed);
-    if (previewData.length > 0) {
+    
+    if (selectedChartType !== 'auto') {
+      chartTypeForBoard = selectedChartType;
+    } else if (previewData.length > 0) {
        if (isTimeData(previewData)) chartTypeForBoard = 'line';
        else if (isGroupedData(previewData)) chartTypeForBoard = 'groupedBar';
        else if (!selectedDims || selectedDims.length === 0) chartTypeForBoard = 'kpi';
@@ -781,7 +793,8 @@ const BIAnalysisPage: React.FC = () => {
       selection: { 
         dimensions: selectedDims, 
         timeRange: finalTimeRange,
-        timeGranularity: selectedDimType === 'TIME' ? timeGranularity : undefined 
+        timeGranularity: selectedDimType === 'TIME' ? timeGranularity : undefined,
+        limit: selectedLimit
       }
     };
 
@@ -791,7 +804,7 @@ const BIAnalysisPage: React.FC = () => {
     void loadCardDataFor(newCard);
     setActiveSection('dashboard');
     setMetricBuilderOpen(false);
-  }, [selectedMetric, timeRange, customDateRange, selectedDims, availableDimsDetailed, previewData, selectedDimType, timeGranularity, loadCardDataFor, toast]);
+  }, [selectedMetric, timeRange, customDateRange, selectedDims, availableDimsDetailed, previewData, selectedDimType, timeGranularity, loadCardDataFor, toast, selectedChartType, selectedLimit]);
 
   // drag-and-drop reorder
   const onDragStart = (index: number) => (e: React.DragEvent<HTMLDivElement>) => {
@@ -1280,6 +1293,10 @@ const BIAnalysisPage: React.FC = () => {
             onTimeGranularityChange={setTimeGranularity}
             customDateRange={customDateRange}
             onCustomDateRangeChange={setCustomDateRange}
+            selectedChartType={selectedChartType}
+            onSelectedChartTypeChange={setSelectedChartType}
+            limit={selectedLimit}
+            onLimitChange={setSelectedLimit}
             previewType={previewType}
             previewData={previewData}
             previewRawData={previewRawData}

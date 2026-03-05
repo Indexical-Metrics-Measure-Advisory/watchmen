@@ -9,6 +9,18 @@ export const getServiceHost = (): string => {
   }
 };
 
+export const getAIServiceHost = (): string => {
+   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return import.meta.env.VITE_API_AI_URL!;
+  } else if (import.meta.env.VITE_FORCE_SERVICE_URL === 'true') {
+      return import.meta.env.VITE_API_AI_URL!;
+  } else {
+      return `${window.location.protocol}//${window.location.host}/watchmen`;
+  }
+ 
+};
+
+
 export const getWatchmenCoreHost = (): string => {
    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       return import.meta.env.VITE_WATCHMEN_API_BASE_URL!;

@@ -1,5 +1,5 @@
 import { ChallengeAnalysisResult, ChallengeAnalysisSummary, SimulationResult } from "@/model/challengeAnalysis";
-import { API_BASE_URL, getDefaultHeaders, checkResponse } from '@/utils/apiConfig';
+import { API_BASE_URL, getDefaultHeaders, checkResponse, API_AI_URL } from '@/utils/apiConfig';
 import { BusinessChallenge } from "@/model/business";
 import { HypothesisType } from "@/model/Hypothesis";
 import { MetricType } from "@/model/Metric";
@@ -196,7 +196,7 @@ export class ChallengeAnalysisService {
   // Get all challenge analyses summaries
   async getChallengeAnalysesSummaries(): Promise<ChallengeAnalysisSummary[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/challenge-analyses`, {
+      const response = await fetch(`${API_AI_URL}/challenge-analyses`, {
         headers: getDefaultHeaders()
       });
       return await checkResponse(response);
@@ -260,7 +260,7 @@ export class ChallengeAnalysisService {
   // Get challenge analyses by challenge ID
   async getChallengeAnalysesByChallengeId(challengeId: string): Promise<SimulationResult> {
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/analysis/challenge/${challengeId}`, {
+      const response = await fetch(`${API_AI_URL}/analysis/challenge/${challengeId}`, {
         headers: getDefaultHeaders()
       });
       const response_result = await checkResponse(response);
@@ -278,7 +278,7 @@ export class ChallengeAnalysisService {
   // Generate a new challenge analysis
   async generateChallengeAnalysis(businessChallengeId: string): Promise<ChallengeAnalysisResult> {
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/challenge-analyses/generate`, {
+      const response = await fetch(`${API_AI_URL}/challenge-analyses/generate`, {
         method: 'POST',
         headers: getDefaultHeaders(),
         body: JSON.stringify({ businessChallengeId })

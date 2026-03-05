@@ -1,7 +1,7 @@
 
 import { AnalysisData, HypothesisAnalysisData, DimensionType } from '@/model/analysis';
 import { HypothesisType } from '@/model/Hypothesis';
-import { API_BASE_URL, getDefaultHeaders, checkResponse } from '@/utils/apiConfig';
+import { API_BASE_URL, getDefaultHeaders, checkResponse, API_AI_URL } from '@/utils/apiConfig';
 import { hypothesisService } from './hypothesisService';
 
 const isMockMode = import.meta.env.VITE_USE_MOCK_DATA === 'true';
@@ -132,7 +132,7 @@ export class AnalysisService implements IAnalysisService {
         
         try {
             // load analisys data by hypothesis id  url /analysis/hypothesis/{hypothesis_id}
-            const response = await fetch(`${API_BASE_URL}/watchmen/ai/analysis/hypothesis/${hypothesisId}`, {
+            const response = await fetch(`${API_AI_URL}/analysis/hypothesis/${hypothesisId}`, {
                 headers: getDefaultHeaders()
             });
             const hypothesis = await hypothesisService.getHypothesisById(hypothesisId);
@@ -155,7 +155,7 @@ export class AnalysisService implements IAnalysisService {
 
     async start_analysis(hypotheses:HypothesisType): Promise<void> {
         try {
-            const response = await fetch(`${API_BASE_URL}/watchmen/ai/analysis/start`, {
+            const response = await fetch(`${API_AI_URL}/analysis/start`, {
                 method: 'POST',
                 headers: getDefaultHeaders(),
                 body: JSON.stringify(hypotheses)
@@ -169,7 +169,7 @@ export class AnalysisService implements IAnalysisService {
 
     async save_analysis_result(analysisResult: any): Promise<any> {
         try {
-            const response = await fetch(`${API_BASE_URL}/watchmen/ai/analysis/save`, {
+            const response = await fetch(`${API_AI_URL}/analysis/save`, {
                 method: 'POST',
                 headers: getDefaultHeaders(),
                 body: JSON.stringify(analysisResult)

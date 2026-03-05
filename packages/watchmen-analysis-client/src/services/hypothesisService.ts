@@ -1,7 +1,7 @@
 
 import { HypothesisType, Insight } from '@/model/Hypothesis';
 import { MetricType } from '@/model/Metric';
-import { API_BASE_URL, getDefaultHeaders, checkResponse } from '@/utils/apiConfig';
+import { API_BASE_URL, getDefaultHeaders, checkResponse, API_AI_URL } from '@/utils/apiConfig';
 
 const isMockMode = import.meta.env.VITE_USE_MOCK_DATA === 'true';
 
@@ -169,7 +169,7 @@ class HypothesisService implements IHypothesisService {
 
   async getHypothesesByProblemId(problemId: string): Promise<HypothesisType[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/problems/${problemId}/hypotheses`, {
+      const response = await fetch(`${API_AI_URL}/problems/${problemId}/hypotheses`, {
         headers: getDefaultHeaders()
       });
       return await checkResponse(response);
@@ -185,7 +185,7 @@ class HypothesisService implements IHypothesisService {
     //   return initialMockHypotheses;
     // }
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/hypotheses`, {
+      const response = await fetch(`${API_AI_URL}/hypotheses`, {
         headers: getDefaultHeaders()
       });
       return await checkResponse(response);
@@ -201,7 +201,7 @@ class HypothesisService implements IHypothesisService {
       return keyMetrics;
     }
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/metrics/key`, {
+      const response = await fetch(`${API_AI_URL}/metrics/key`, {
         headers: getDefaultHeaders()
       });
       return await checkResponse(response);
@@ -217,7 +217,7 @@ class HypothesisService implements IHypothesisService {
       return insights;
     }
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/insights`, {
+      const response = await fetch(`${API_AI_URL}/insights`, {
         headers: getDefaultHeaders()
       });
       return await checkResponse(response);
@@ -233,7 +233,7 @@ class HypothesisService implements IHypothesisService {
       return initialMockHypotheses.find(h => h.id === hypothesis_id);
     }
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/hypothesis/${hypothesis_id}`, {
+      const response = await fetch(`${API_AI_URL}/hypothesis/${hypothesis_id}`, {
         headers: getDefaultHeaders()
       });
       return await checkResponse(response);
@@ -269,7 +269,7 @@ class HypothesisService implements IHypothesisService {
       return newHypothesis;
     }
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/hypothesis/create`, {
+      const response = await fetch(`${API_AI_URL}/hypothesis/create`, {
         method: 'POST',
         headers: getDefaultHeaders(),
         body: JSON.stringify(data),
@@ -297,7 +297,7 @@ class HypothesisService implements IHypothesisService {
       return updatedHypothesis;
     }
   try {
-    const response = await fetch(`${API_BASE_URL}/watchmen/ai/hypothesis/update`, {
+    const response = await fetch(`${API_AI_URL}/hypothesis/update`, {
       method: 'POST',
       headers: getDefaultHeaders(),
       body: JSON.stringify(data),
@@ -316,7 +316,7 @@ class HypothesisService implements IHypothesisService {
     //   return;
     // }
     try {
-      const response = await fetch(`${API_BASE_URL}/watchmen/ai/hypotheses/${id}`, {
+      const response = await fetch(`${API_AI_URL}/hypotheses/${id}`, {
         method: 'DELETE',
         headers: getDefaultHeaders()
       });

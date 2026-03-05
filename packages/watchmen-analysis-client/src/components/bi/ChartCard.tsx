@@ -393,7 +393,15 @@ export const ChartCard: React.FC<ChartCardProps> = ({
               </div>
             ) : (
               <div className="h-full w-full min-h-[250px]">
-                <Chart lib={lib} card={card} data={data} onUpdate={onUpdate} alertStatus={alertStatus} onAcknowledge={onAcknowledge} />
+                <Chart 
+                  lib={lib} 
+                  card={card} 
+                  data={data} 
+                  sourceData={sourceData}
+                  onUpdate={onUpdate} 
+                  alertStatus={alertStatus} 
+                  onAcknowledge={onAcknowledge} 
+                />
               </div>
             )}
           </TabsContent>
@@ -724,15 +732,20 @@ const Chart: React.FC<{
   lib: RechartsModule; 
   card: BIChartCard; 
   data: any[]; 
+  sourceData?: MetricFlowResponse;
   onUpdate?: (card: BIChartCard) => void;
   alertStatus?: AlertStatus;
   onAcknowledge?: (alertId: string) => void;
-}> = ({ lib, card, data, onUpdate, alertStatus, onAcknowledge }) => {
+}> = ({ lib, card, data, sourceData, onUpdate, alertStatus, onAcknowledge }) => {
   const { type: chartType } = { type: card.chartType };
   const axisProps = useChartAxis(card, data);
 
   if (chartType === 'alert') {
     return <AlertCard card={card} data={data} onUpdate={onUpdate} alertStatus={alertStatus} onAcknowledge={onAcknowledge} />;
+  }
+
+  if (chartType === 'table') {
+    return <DataTable data={data} sourceData={sourceData} />;
   }
 
   if (chartType === 'kpi') {

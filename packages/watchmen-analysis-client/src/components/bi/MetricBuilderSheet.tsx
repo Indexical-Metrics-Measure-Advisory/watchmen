@@ -8,6 +8,7 @@ import {
   Filter,
   ArrowRight,
   Loader2,
+  Table as TableIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,6 +57,10 @@ export type MetricBuilderSheetProps = {
   onTimeGranularityChange: (value: string) => void;
   customDateRange: DateRange | undefined;
   onCustomDateRangeChange: (value: DateRange | undefined) => void;
+  selectedChartType: BIChartType | 'auto';
+  onSelectedChartTypeChange: (type: BIChartType | 'auto') => void;
+  limit: number;
+  onLimitChange: (limit: number) => void;
   previewType: BIChartType;
   previewData: unknown[];
   previewRawData: MetricFlowResponse | null;
@@ -89,6 +94,10 @@ export function MetricBuilderSheet({
   onTimeGranularityChange,
   customDateRange,
   onCustomDateRangeChange,
+  selectedChartType,
+  onSelectedChartTypeChange,
+  limit,
+  onLimitChange,
   previewType,
   previewData,
   previewRawData,
@@ -308,6 +317,41 @@ export function MetricBuilderSheet({
                           </div>
                         )}
                       </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase">Chart Type</Label>
+                        <Select value={selectedChartType} onValueChange={(v) => onSelectedChartTypeChange(v as BIChartType | 'auto')}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="auto">Auto</SelectItem>
+                            <SelectItem value="line">Line Chart</SelectItem>
+                            <SelectItem value="bar">Bar Chart</SelectItem>
+                            <SelectItem value="groupedBar">Grouped Bar</SelectItem>
+                            <SelectItem value="stackedBar">Stacked Bar</SelectItem>
+                            <SelectItem value="pie">Pie Chart</SelectItem>
+                            <SelectItem value="area">Area Chart</SelectItem>
+                            <SelectItem value="kpi">KPI</SelectItem>
+                            <SelectItem value="table">Table</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase">Top N Limit</Label>
+                        <Select value={limit.toString()} onValueChange={(v) => onLimitChange(parseInt(v))}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="5">Top 5</SelectItem>
+                            <SelectItem value="10">Top 10</SelectItem>
+                            <SelectItem value="15">Top 15</SelectItem>
+                            <SelectItem value="20">Top 20</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   ) : (
                     <div className="text-center py-8 text-muted-foreground bg-muted/30 rounded-lg border border-dashed">
@@ -322,8 +366,9 @@ export function MetricBuilderSheet({
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <CardTitle className="text-lg flex items-center gap-2">
-                        {previewType === 'line' ? <LineChart className="h-5 w-5 text-blue-500" /> :
+                        {previewType === 'line' || previewType === 'area' ? <LineChart className="h-5 w-5 text-blue-500" /> :
                           previewType === 'pie' ? <PieChart className="h-5 w-5 text-purple-500" /> :
+                          previewType === 'table' ? <TableIcon className="h-5 w-5 text-gray-500" /> :
                             <BarChart3 className="h-5 w-5 text-green-500" />}
                         Preview
                       </CardTitle>
@@ -357,7 +402,12 @@ export function MetricBuilderSheet({
                           metricId: selectedMetric.name,
                           chartType: previewType,
                           size: 'lg',
-                          selection: { dimensions: selectedDims, timeRange, timeGranularity }
+                          selection: { 
+                            dimensions: selectedDims, 
+                            timeRange, 
+                            timeGranularity,
+                            limit 
+                          }
                         }}
                         data={previewData}
                         sourceData={previewRawData ?? undefined}
