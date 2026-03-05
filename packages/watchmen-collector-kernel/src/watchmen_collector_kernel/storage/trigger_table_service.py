@@ -6,7 +6,7 @@ from watchmen_meta.common import TupleShaper, TupleService
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, TableTriggerId, Pageable, DataPage
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
-	EntityCriteriaJoint, EntityCriteriaExpression, ColumnNameLiteral, EntitySortColumn
+	EntityCriteriaJoint, EntityCriteriaExpression, ColumnNameLiteral, EntitySortColumn, EntitySortMethod
 
 
 class TriggerTableShaper(EntityShaper):
@@ -87,7 +87,9 @@ class TriggerTableService(TupleService):
 					criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_extracted'), right=False)],
 					distinctColumnNames=['table_trigger_id',
 					                     'tenant_id'],
-					distinctValueOnSingleColumn=False)
+					distinctValueOnSingleColumn=False,
+					sort=[EntitySortColumn(name='table_trigger_id', method=EntitySortMethod.ASC)]
+				)
 			)
 		finally:
 			self.close_transaction()

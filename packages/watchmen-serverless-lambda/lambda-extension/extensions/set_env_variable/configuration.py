@@ -5,10 +5,10 @@ from logging import getLogger
 from pydantic_settings import BaseSettings
 from sqlalchemy import Engine, create_engine, NullPool
 from watchmen_utilities import serialize_to_json, is_not_blank
-from cx_Oracle import init_oracle_client, makedsn, SessionPool, SPOOL_ATTRVAL_WAIT
+from oracledb import init_oracle_client, makedsn, SessionPool, SPOOL_ATTRVAL_WAIT
 import urllib.parse
 
-init_oracle_client(lib_dir=r"/opt/oracle/instantclient_21_3")
+init_oracle_client(lib_dir=r"/opt/oracle/instantclient_23_26")
 
 logger = getLogger(__name__)
 
@@ -125,7 +125,7 @@ def get_engine() -> Engine:
             encoding='UTF-8')
         
         return create_engine(
-            'oracle+cx_oracle://', creator=pool.acquire,
+            'oracle+oracledb://', creator=pool.acquire,
             poolclass=NullPool, coerce_to_decimal=False, echo=echo, optimize_limits=True,
             future=True)
     

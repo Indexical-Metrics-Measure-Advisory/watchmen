@@ -164,6 +164,7 @@ class ChangeDataRecordService(TupleService):
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=STATUS), right=0)
 				],
+				sort=[EntitySortColumn(name='created_at', method=EntitySortMethod.ASC)],
 				limit=limit if limit is not None else ask_partial_size()
 			))
 	
