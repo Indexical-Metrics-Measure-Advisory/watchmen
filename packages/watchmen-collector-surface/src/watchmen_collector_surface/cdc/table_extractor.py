@@ -202,8 +202,6 @@ class TableExtractor:
 			                         self.trigger_table_lock_resource_id(unfinished_trigger_table),
 			                         unfinished_trigger_table.tenantId)
 			try:
-		
-		
 				if try_lock_nowait(self.competitive_lock_service, lock):
 					trigger_table = self.trigger_table_service.find_by_id(unfinished_trigger_table.tableTriggerId)
 					if self.is_extracted(trigger_table):
@@ -246,6 +244,7 @@ class TableExtractor:
 			if not source_records:
 				state['is_complete'] = True
 				state["remaining_count"] = 0
+				trigger_table.result = state
 				self.trigger_table_service.update_table_trigger(trigger_table)
 				return
 			
