@@ -18,7 +18,8 @@ import {
   AlertTriangle,
   TrendingUp,
   FolderOpen,
-  Sliders
+  Sliders,
+  Network
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -215,6 +216,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           defaultExpanded={true}
         >
           <NavItem to="/data-catalog" icon={<FolderOpen size={16} />} label="Data Catalog" collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/data-catalog/domain-map" icon={<Network size={16} />} label="Domain Map" collapsed={collapsed} isSubItem={true} />
           {/* <NavItem to="/data-profiles" icon={<Database size={16} />} label="Data Profile Management" collapsed={collapsed} isSubItem={true} /> */}
           
         </NavGroup>

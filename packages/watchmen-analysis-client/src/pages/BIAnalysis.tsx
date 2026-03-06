@@ -235,29 +235,48 @@ const BIAnalysisPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState<string>('');
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-  const [selectedMetricId, setSelectedMetricId] = useState<string>('');
-  const [selectedMetricDef, setSelectedMetricDef] = useState<MetricDefinition | null>(null);
+  
+  // Metric Builder Configuration State
+  const [chartConfig, setChartConfig] = useState<{
+    metricId: string;
+    metricDef: MetricDefinition | null;
+    dimensions: string[];
+    timeRange: string;
+    timeGranularity: string;
+    customDateRange: DateRange | undefined;
+    chartType: BIChartType | 'auto';
+    limit: number;
+  }>({
+    metricId: '',
+    metricDef: null,
+    dimensions: [],
+    timeRange: 'Past 30 days',
+    timeGranularity: 'day',
+    customDateRange: { from: addDays(new Date(), -30), to: new Date() },
+    chartType: 'auto',
+    limit: 5
+  });
+
   const [metricsList, setMetricsList] = useState<MetricDefinition[]>([]);
   const [metricsLoading, setMetricsLoading] = useState<boolean>(false);
-  const [availableDims, setAvailableDims] = useState<string[]>([]);
+  // Derived availableDims from detailed list
   const [availableDimsDetailed, setAvailableDimsDetailed] = useState<MetricDimension[]>([]);
+  const availableDims = useMemo(() => availableDimsDetailed.map(d => d.qualified_name || d.name), [availableDimsDetailed]);
+
   const [selectedDimType, setSelectedDimType] = useState<string>('');
-  const [selectedDims, setSelectedDims] = useState<string[]>([]);
   const [dimSearch, setDimSearch] = useState<string>('');
   const showTopOnly = true;
-  const [timeRange, setTimeRange] = useState<string>('Past 30 days');
-  const [timeGranularity, setTimeGranularity] = useState<string>('day');
-  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -30),
-    to: new Date(),
-  });
-  const [selectedChartType, setSelectedChartType] = useState<BIChartType | 'auto'>('auto');
-  const [selectedLimit, setSelectedLimit] = useState<number>(5);
 
-  // preview
-  const [previewData, setPreviewData] = useState<unknown[]>([]);
-  const [previewRawData, setPreviewRawData] = useState<MetricFlowResponse | null>(null);
-  const [previewType, setPreviewType] = useState<BIChartType>('line');
+  // Preview State
+  const [previewState, setPreviewState] = useState<{
+    data: unknown[];
+    rawData: MetricFlowResponse | null;
+    type: BIChartType;
+  }>({
+    data: [],
+    rawData: null,
+    type: 'line'
+  });
 
   // Alert Configuration State (Removed)
   const [addAlertOpen, setAddAlertOpen] = useState(false);
@@ -452,7 +471,7 @@ const BIAnalysisPage: React.FC = () => {
   }, [cards, fetchCardData, toast]);
 
   const selectedMetric: BIMetric | null = useMemo(() => {
-    const m = selectedMetricDef;
+    const m = chartConfig.metricDef;
     if (!m) return null;
     const unit = (m.unit || '').toLowerCase();
     const kind: 'rate' | 'amount' | 'count' = m.type === 'ratio' || unit.includes('%')
@@ -467,7 +486,7 @@ const BIAnalysisPage: React.FC = () => {
       kind,
       dimensions: dims
     };
-  }, [selectedMetricDef, availableDims]);
+  }, [chartConfig.metricDef, availableDims]);
 
 
 
@@ -634,18 +653,18 @@ const BIAnalysisPage: React.FC = () => {
     let alive = true;
     const loadPreview = async () => {
       if (!selectedMetric) {
-        if (alive) setPreviewData([]);
-        if (alive) setPreviewRawData(null);
-        if (alive) setPreviewType('bar');
+        if (alive) {
+          setPreviewState({ data: [], rawData: null, type: 'bar' });
+        }
         return;
       }
 
       try {
-        const { start, end } = timeRangeToBounds(timeRange, customDateRange);
+        const { start, end } = timeRangeToBounds(chartConfig.timeRange, chartConfig.customDateRange);
         
-        let groupBy = selectedDims.length > 0 ? [...selectedDims] : undefined;
-        if (selectedDimType === 'TIME' && timeGranularity && groupBy) {
-          groupBy = groupBy.map(dim => `${dim}__${timeGranularity}`);
+        let groupBy = chartConfig.dimensions.length > 0 ? [...chartConfig.dimensions] : undefined;
+        if (selectedDimType === 'TIME' && chartConfig.timeGranularity && groupBy) {
+          groupBy = groupBy.map(dim => `${dim}__${chartConfig.timeGranularity}`);
         }
 
         const req: MetricQueryRequest = {
@@ -654,43 +673,40 @@ const BIAnalysisPage: React.FC = () => {
           start_time: start,
           end_time: end,
           order: [],
-          limit: selectedLimit
+          limit: chartConfig.limit
         };
         const resp = await metricsService.getMetricValue(req);
         const data = transformMetricFlowToChartData(resp);
         if (alive) {
-          setPreviewData(data);
-          setPreviewRawData(resp);
-
-          if (selectedChartType !== 'auto') {
-            setPreviewType(selectedChartType);
+          let type: BIChartType = 'bar';
+          if (chartConfig.chartType !== 'auto') {
+            type = chartConfig.chartType;
           } else if (isTimeData(data)) {
-            setPreviewType('line');
+            type = 'line';
           } else if (isGroupedData(data)) {
-            setPreviewType('groupedBar');
-          } else if (!selectedDims || selectedDims.length === 0) {
-            setPreviewType('kpi');
-          } else {
-            setPreviewType('bar');
+            type = 'groupedBar';
+          } else if (!chartConfig.dimensions || chartConfig.dimensions.length === 0) {
+            type = 'kpi';
           }
+
+          setPreviewState({ data, rawData: resp, type });
         }
       } catch (e) {
         console.warn('Preview: failed to load real data, showing empty.', e);
         if (alive) {
-          setPreviewData([]);
-          setPreviewRawData(null);
-          // fall back to dims to decide chart type
-          if (selectedChartType !== 'auto') {
-            setPreviewType(selectedChartType);
+          let type: BIChartType = 'bar';
+          if (chartConfig.chartType !== 'auto') {
+            type = chartConfig.chartType;
           } else {
-            setPreviewType(chartTypeFromDims(selectedDims, availableDimsDetailed));
+            type = chartTypeFromDims(chartConfig.dimensions, availableDimsDetailed);
           }
+          setPreviewState({ data: [], rawData: null, type });
         }
       }
     };
     loadPreview();
     return () => { alive = false; };
-  }, [selectedMetric, selectedDims, timeRange, customDateRange, availableDimsDetailed, selectedDimType, timeGranularity, selectedChartType, selectedLimit]);
+  }, [selectedMetric, chartConfig.dimensions, chartConfig.timeRange, chartConfig.customDateRange, availableDimsDetailed, selectedDimType, chartConfig.timeGranularity, chartConfig.chartType, chartConfig.limit]);
 
   // templates list
   useEffect(() => {
@@ -711,33 +727,36 @@ const BIAnalysisPage: React.FC = () => {
   // Load dimensions by metric via MCP when metric changes
   useEffect(() => {
     const loadDims = async () => {
-      if (!selectedMetricDef) {
-        setAvailableDims([]);
-        setSelectedDims([]);
+      if (!chartConfig.metricDef) {
+        setAvailableDimsDetailed([]);
+        setChartConfig(prev => ({ ...prev, dimensions: [] }));
         return;
       }
       try {
-        const resp = await findDimensionsByMetric(selectedMetricDef.name);
+        const resp = await findDimensionsByMetric(chartConfig.metricDef.name);
         const dims = Array.isArray(resp?.dimensions) ? resp.dimensions : [];
         setAvailableDimsDetailed(dims);
-        setAvailableDims(dims.map(d => d.qualified_name || d.name));
         // initialize selected type to the first inferred type (prefer CATEGORICAL/TIME)
         const types = Array.from(new Set(dims.map(inferType)));
         setSelectedDimType(types[0] ?? 'CATEGORICAL');
       } catch (e) {
         console.warn('Failed to load metric dimensions, defaulting to empty.', e);
         setAvailableDimsDetailed([]);
-        setAvailableDims([]);
         setSelectedDimType('');
       }
       // reset selected dimensions on metric change to avoid invalid selections
-      setSelectedDims([]);
+      setChartConfig(prev => ({ ...prev, dimensions: [] }));
     };
     loadDims();
-  }, [selectedMetricDef]);
+  }, [chartConfig.metricDef]);
 
   const toggleDim = useCallback((dim: string) => {
-    setSelectedDims(prev => prev.includes(dim) ? prev.filter(d => d !== dim) : [...prev, dim]);
+    setChartConfig(prev => {
+      const dimensions = prev.dimensions.includes(dim)
+        ? prev.dimensions.filter(d => d !== dim)
+        : [...prev.dimensions, dim];
+      return { ...prev, dimensions };
+    });
   }, []);
 
   const filteredDims = useMemo(() => {
@@ -761,27 +780,24 @@ const BIAnalysisPage: React.FC = () => {
       return;
     }
 
-    const finalTimeRange = toTimeRangeValue(timeRange, customDateRange);
+    const finalTimeRange = toTimeRangeValue(chartConfig.timeRange, chartConfig.customDateRange);
     if (finalTimeRange === null) {
       toast({ title: 'Invalid Date Range', description: 'Please select start and end dates' });
       return;
     }
 
     // Prefer data-driven type; if no preview data yet, infer from selected dimensions
-    let chartTypeForBoard: BIChartType = chartTypeFromDims(selectedDims, availableDimsDetailed);
+    let chartTypeForBoard: BIChartType = chartTypeFromDims(chartConfig.dimensions, availableDimsDetailed);
     
-    if (selectedChartType !== 'auto') {
-      chartTypeForBoard = selectedChartType;
-    } else if (previewData.length > 0) {
-       if (isTimeData(previewData)) chartTypeForBoard = 'line';
-       else if (isGroupedData(previewData)) chartTypeForBoard = 'groupedBar';
-       else if (!selectedDims || selectedDims.length === 0) chartTypeForBoard = 'kpi';
-       else chartTypeForBoard = 'bar';
+    if (chartConfig.chartType !== 'auto') {
+      chartTypeForBoard = chartConfig.chartType;
+    } else if (previewState.data.length > 0) {
+       chartTypeForBoard = previewState.type;
     }
 
-    const titleTimeRange = timeRange === 'Custom' && customDateRange?.from && customDateRange?.to
-      ? `${format(customDateRange.from, 'yyyy-MM-dd')} to ${format(customDateRange.to, 'yyyy-MM-dd')}`
-      : timeRange;
+    const titleTimeRange = chartConfig.timeRange === 'Custom' && chartConfig.customDateRange?.from && chartConfig.customDateRange?.to
+      ? `${format(chartConfig.customDateRange.from, 'yyyy-MM-dd')} to ${format(chartConfig.customDateRange.to, 'yyyy-MM-dd')}`
+      : chartConfig.timeRange;
 
     const newCard: BIChartCard = {
       id: `card_${Date.now()}`,
@@ -791,10 +807,10 @@ const BIAnalysisPage: React.FC = () => {
       chartType: chartTypeForBoard,
       size: 'md',
       selection: { 
-        dimensions: selectedDims, 
+        dimensions: chartConfig.dimensions, 
         timeRange: finalTimeRange,
-        timeGranularity: selectedDimType === 'TIME' ? timeGranularity : undefined,
-        limit: selectedLimit
+        timeGranularity: selectedDimType === 'TIME' ? chartConfig.timeGranularity : undefined,
+        limit: chartConfig.limit
       }
     };
 
@@ -804,7 +820,7 @@ const BIAnalysisPage: React.FC = () => {
     void loadCardDataFor(newCard);
     setActiveSection('dashboard');
     setMetricBuilderOpen(false);
-  }, [selectedMetric, timeRange, customDateRange, selectedDims, availableDimsDetailed, previewData, selectedDimType, timeGranularity, loadCardDataFor, toast, selectedChartType, selectedLimit]);
+  }, [selectedMetric, chartConfig, availableDimsDetailed, previewState, selectedDimType, loadCardDataFor, toast]);
 
   // drag-and-drop reorder
   const onDragStart = (index: number) => (e: React.DragEvent<HTMLDivElement>) => {
@@ -1273,11 +1289,8 @@ const BIAnalysisPage: React.FC = () => {
             categories={categories}
             metricsLoading={metricsLoading}
             metricsList={metricsList}
-            selectedMetricId={selectedMetricId}
-            onSelectMetric={(id, def) => {
-              setSelectedMetricId(id);
-              setSelectedMetricDef(def);
-            }}
+            selectedMetricId={chartConfig.metricId}
+            onSelectMetric={(id, def) => setChartConfig(prev => ({ ...prev, metricId: id, metricDef: def }))}
             selectedMetric={selectedMetric}
             availableDimsDetailed={availableDimsDetailed}
             selectedDimType={selectedDimType}
@@ -1285,21 +1298,21 @@ const BIAnalysisPage: React.FC = () => {
             dimSearch={dimSearch}
             onDimSearchChange={setDimSearch}
             filteredDims={filteredDims}
-            selectedDims={selectedDims}
+            selectedDims={chartConfig.dimensions}
             onToggleDim={toggleDim}
-            timeRange={timeRange}
-            onTimeRangeChange={setTimeRange}
-            timeGranularity={timeGranularity}
-            onTimeGranularityChange={setTimeGranularity}
-            customDateRange={customDateRange}
-            onCustomDateRangeChange={setCustomDateRange}
-            selectedChartType={selectedChartType}
-            onSelectedChartTypeChange={setSelectedChartType}
-            limit={selectedLimit}
-            onLimitChange={setSelectedLimit}
-            previewType={previewType}
-            previewData={previewData}
-            previewRawData={previewRawData}
+            timeRange={chartConfig.timeRange}
+            onTimeRangeChange={(v) => setChartConfig(prev => ({ ...prev, timeRange: v }))}
+            timeGranularity={chartConfig.timeGranularity}
+            onTimeGranularityChange={(v) => setChartConfig(prev => ({ ...prev, timeGranularity: v }))}
+            customDateRange={chartConfig.customDateRange}
+            onCustomDateRangeChange={(v) => setChartConfig(prev => ({ ...prev, customDateRange: v }))}
+            selectedChartType={chartConfig.chartType}
+            onSelectedChartTypeChange={(v) => setChartConfig(prev => ({ ...prev, chartType: v }))}
+            limit={chartConfig.limit}
+            onLimitChange={(v) => setChartConfig(prev => ({ ...prev, limit: v }))}
+            previewType={previewState.type}
+            previewData={previewState.data}
+            previewRawData={previewState.rawData}
             onAddToDashboard={addCardToBoard}
           />
 

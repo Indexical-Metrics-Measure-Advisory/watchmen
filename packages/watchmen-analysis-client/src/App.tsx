@@ -26,6 +26,7 @@ import SemanticModelManagement from './pages/SemanticModelManagement';
 import MetricsManagement from './pages/MetricsManagement';
 import DataProfileManagement from './pages/DataProfileManagement';
 import DataCatalog from './pages/DataCatalog';
+import BusinessDomainMap from './pages/BusinessDomainMap';
 import FirstTimeOnboarding from "@/components/onboarding/FirstTimeOnboarding";
 import RetrievalTesting from "./pages/RetrievalTesting";
 import OfflineEvaluation from "./pages/OfflineEvaluation";
@@ -67,6 +68,7 @@ const App = () => (
                 <Route path="/metrics/alert-configuration" element={<AlertConfigurationPage />} />
                 <Route path="/metrics/data-profiles" element={<DataProfileManagement />} />
                 <Route path="/data-catalog" element={<DataCatalog />} />
+                <Route path="/data-catalog/domain-map" element={<BusinessDomainMap />} />
                 {/* <Route path="/metric-detail" element={<MetricDetail />} /> */}
                 <Route path="/analysis" element={<Analysis />} />
                 <Route path="/challenge-analysis" element={<ChallengeAnalysis />} />
