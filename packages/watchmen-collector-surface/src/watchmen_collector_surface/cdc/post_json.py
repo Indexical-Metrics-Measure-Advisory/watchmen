@@ -289,6 +289,8 @@ class SequencedModelExecutor(ModelExecutor):
 		try:
 			if try_lock_nowait(self.competitive_lock_service, lock):
 				return self.get_object_ids(trigger_model)
+			else:
+				return []
 		finally:
 			unlock(self.competitive_lock_service, lock)
 	
