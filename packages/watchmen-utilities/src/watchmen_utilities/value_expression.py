@@ -237,7 +237,7 @@ def less_or_equals_date(
 	second is comparison result when first is true, otherwise second is none.
 	"""
 	value = truncate_time(value)
-	if isinstance(another, datetime):
+	if isinstance(another, datetime) or isinstance(another, date):
 		return True, value <= truncate_time(another) \
 			if allow_equals else value < truncate_time(another)
 	elif isinstance(another, str):
@@ -258,7 +258,7 @@ def greater_or_equals_date(
 	second is comparison result when first is true, otherwise second is none.
 	"""
 	value = truncate_time(value)
-	if isinstance(another, datetime):
+	if isinstance(another, datetime) or isinstance(another, date):
 		return True, value >= truncate_time(another) \
 			if allow_equals else value > truncate_time(another)
 	elif isinstance(another, str):
