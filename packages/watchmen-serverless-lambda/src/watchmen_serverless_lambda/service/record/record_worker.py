@@ -163,7 +163,17 @@ class RecordWorker:
         change_data_record.rootTableName = root_table_name
         change_data_record.rootDataId = get_data_id(config.primaryKey, root_data)
         change_data_record.isMerged = True
-
+    
+    def get_object_id(self, root_data: Dict, root_config: CollectorTableConfig) -> str:
+        raw_value = root_data.get(root_config.objectKey)
+        
+        if raw_value is None or raw_value == "":
+            object_id = self.snowflake_generator.next_id()
+        else:
+            object_id = raw_value
+        
+        return str(object_id)
+    
     def get_change_data_json(self, change_data_record: ChangeDataRecord,
                              root_config: CollectorTableConfig,
                              root_data: Dict,
@@ -172,7 +182,7 @@ class RecordWorker:
             changeJsonId=self.snowflake_generator.next_id(),
             resourceId=self.generate_resource_id(change_data_record),
             modelName=change_data_record.modelName,
-            objectId=str(root_data.get(root_config.objectKey, self.snowflake_generator.next_id())),
+            objectId=self.get_object_id(root_data, root_config),
             sequence=root_data.get(root_config.sequenceKey, 0),
             tableName=root_config.tableName,
             dataId=get_data_id(root_config.primaryKey, root_data),
