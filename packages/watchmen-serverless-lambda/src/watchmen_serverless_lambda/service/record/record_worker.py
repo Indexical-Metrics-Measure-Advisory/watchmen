@@ -17,6 +17,7 @@ from watchmen_collector_kernel.storage import get_change_data_record_service, \
     get_change_data_json_service, get_collector_table_config_service, get_change_data_record_history_service, \
     get_change_data_json_history_service
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
+from watchmen_serverless_lambda.common import log_error
 from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_utilities import ArrayHelper
 
@@ -81,8 +82,13 @@ class RecordWorker:
                 
 
     def finalize(self, change_data_record: ChangeDataRecord):
-        config = self.table_config_service.find_by_name(change_data_record.tableName, change_data_record.tenantId)
-        ask_source_extractor(config).delete_one_by_primary_keys(change_data_record.dataId)
+        try:
+            config = self.table_config_service.find_by_name(change_data_record.tableName, change_data_record.tenantId)
+            ask_source_extractor(config).delete_one_by_primary_keys(change_data_record.dataId)
+        except Exception as e:
+            logger.error(e, exc_info=True, stack_info=True)
+            key = f"error/{self.tenant_id}/worker/record_worker/{self.snowflake_generator.next_id()}"
+            log_error(self.tenant_id, self.log_service, key, e)
 
     def update_result(self, change_data_record: ChangeDataRecord, result: str) -> None:
         change_data_record.isMerged = True
