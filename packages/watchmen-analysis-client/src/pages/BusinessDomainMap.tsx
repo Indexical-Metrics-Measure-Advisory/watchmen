@@ -451,7 +451,7 @@ const BusinessDomainMap: React.FC = () => {
         <main className="container py-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-semibold">Business Domain Map</h1>
+              <h1 className="text-2xl font-semibold">Business Ontology</h1>
               <p className="text-muted-foreground mt-1">Semantic layer for AI-powered discovery and data mesh navigation</p>
             </div>
             <div className="flex flex-wrap gap-3 items-center">

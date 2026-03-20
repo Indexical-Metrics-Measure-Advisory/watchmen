@@ -146,5 +146,6 @@ class CLIConfigurationDB(CLIConfiguration):
         """Property accessor for the sql_client class used in the CLI."""
 
         if self._sql_client is None:
-            self._sql_client = AdapterBackedSqlClient(self.dbt_artifacts.adapter)
+            from watchmen_metricflow.metricflow.config.db_version.pool_backed_sql_client import PoolBackedSqlClient
+            self._sql_client = PoolBackedSqlClient(self.dbt_artifacts.adapter)
         return self._sql_client

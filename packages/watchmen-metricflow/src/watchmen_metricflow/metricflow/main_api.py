@@ -9,37 +9,63 @@ from watchmen_metricflow.metricflow.config.db_version.cli_configuration_db impor
 from watchmen_metricflow.model.dimension_response import DimensionInfo, DimensionListResponse, MetricInfo, MetricListResponse
 
 
+def _cleanup_dbt_connections(cfg: CLIConfiguration) -> None:
+    try:
+        artifacts = getattr(cfg, "_dbt_artifacts", None)
+        if artifacts is None:
+            artifacts = cfg.dbt_artifacts
+        adapter = getattr(artifacts, "adapter", None)
+        if adapter is None:
+            return
+        cleanup = getattr(adapter, "cleanup_connections", None)
+        if callable(cleanup):
+            cleanup()
+            return
+        connections = getattr(adapter, "connections", None)
+        cleanup = getattr(connections, "cleanup_connections", None) if connections is not None else None
+        if callable(cleanup):
+            cleanup()
+    except Exception:
+        return
+
+
 
 def find_all_metrics(cfg: CLIConfiguration) -> MetricListResponse:
     """List all available metrics in the MetricFlow configuration."""
     if not cfg.is_setup:
         cfg.setup()
-    # Assuming `cfg.mf.list_metrics()` returns a list of metric names
-    metrics :List[Metric] =  cfg.mf.list_metrics()  # type: ignore
-
-    ## find name and label
-    metric_infos = [
-        MetricInfo(
-            name=metric.name,
-            label=metric.label,
-            description=metric.description,
-            type=metric.type.name,
+    try:
+        metrics: List[Metric] = cfg.mf.list_metrics()  # type: ignore
+        metric_infos = [
+            MetricInfo(
+                name=metric.name,
+                label=metric.label,
+                description=metric.description,
+                type=metric.type.name,
+            )
+            for metric in metrics
+        ]
+        return MetricListResponse(
+            metrics=metric_infos,
+            total_count=len(metric_infos)
         )
-        for metric in metrics
-    ]
-    
-    return MetricListResponse(
-        metrics=metric_infos,
-        total_count=len(metric_infos)
-    )
+    finally:
+        _cleanup_dbt_connections(cfg)
 
 
 def get_dimension_values(cfg: CLIConfiguration,metric_name:str,group_by_name:str,time_constraint_start,time_constraint_end):
     if not cfg.is_setup:
         cfg.setup()
-
-    dimension_values :List[str] = cfg.mf.get_dimension_values(metric_names=[metric_name],get_group_by_values=group_by_name,time_constraint_start=time_constraint_start ,time_constraint_end=time_constraint_end)
-    return dimension_values
+    try:
+        dimension_values: List[str] = cfg.mf.get_dimension_values(
+            metric_names=[metric_name],
+            get_group_by_values=group_by_name,
+            time_constraint_start=time_constraint_start,
+            time_constraint_end=time_constraint_end
+        )
+        return dimension_values
+    finally:
+        _cleanup_dbt_connections(cfg)
 
 
 
@@ -47,48 +73,45 @@ def find_all_dimensions(cfg: CLIConfiguration) -> DimensionListResponse:
     """List all available dimensions in the MetricFlow configuration."""
     if not cfg.is_setup:
         cfg.setup()
-    # Assuming `cfg.mf.list_dimensions()` returns a list of dimension names
-    dimensions: List[Dimension] = cfg.mf.list_dimensions()  # type: ignore
-
-    ## find name and label
-    dimension_infos = [
-        DimensionInfo(
-            name=dimension.name,
-            qualified_name=dimension.qualified_name,
-            description=dimension.description,
-            type=dimension.type.name,
+    try:
+        dimensions: List[Dimension] = cfg.mf.list_dimensions()  # type: ignore
+        dimension_infos = [
+            DimensionInfo(
+                name=dimension.name,
+                qualified_name=dimension.qualified_name,
+                description=dimension.description,
+                type=dimension.type.name,
+            )
+            for dimension in dimensions
+        ]
+        return DimensionListResponse(
+            dimensions=dimension_infos,
+            total_count=len(dimension_infos)
         )
-        for dimension in dimensions
-    ]
-    
-    return DimensionListResponse(
-        dimensions=dimension_infos,
-        total_count=len(dimension_infos)
-    )
+    finally:
+        _cleanup_dbt_connections(cfg)
 
 
 def load_dimensions_by_metrics(metrics:List[str], cfg: CLIConfiguration) -> DimensionListResponse:
     if not cfg.is_setup:
         cfg.setup()
-
-    dimensions = cfg.mf.simple_dimensions_for_metrics(metrics)
-
-    # print(dimensions)
-
-    dimension_infos = [
-        DimensionInfo(
-            name=dimension.name,
-            qualified_name=dimension.dunder_name,
-            description=dimension.description,
-            type=dimension.type.name,
+    try:
+        dimensions = cfg.mf.simple_dimensions_for_metrics(metrics)
+        dimension_infos = [
+            DimensionInfo(
+                name=dimension.name,
+                qualified_name=dimension.dunder_name,
+                description=dimension.description,
+                type=dimension.type.name,
+            )
+            for dimension in dimensions
+        ]
+        return DimensionListResponse(
+            dimensions=dimension_infos,
+            total_count=len(dimension_infos)
         )
-        for dimension in dimensions
-    ]
-    
-    return DimensionListResponse(
-        dimensions=dimension_infos,
-        total_count=len(dimension_infos)
-    )
+    finally:
+        _cleanup_dbt_connections(cfg)
 
 
 def query(
@@ -142,7 +165,10 @@ def query(
     # if explain:
     #     explain_result = cfg.mf.explain(mf_request=mf_request)
     # else:
-    query_result = cfg.mf.query(mf_request=mf_request)
+    try:
+        query_result = cfg.mf.query(mf_request=mf_request)
+    finally:
+        _cleanup_dbt_connections(cfg)
 
     # if explain:
     #     assert explain_result
@@ -165,5 +191,3 @@ def query(
             print(df.text_format(decimals))
 
     return query_result
-
-

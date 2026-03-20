@@ -198,7 +198,7 @@ export function BusinessDomainMap() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Business Domain Map</h2>
+          <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Business Ontology</h2>
           <p className="text-slate-500 mt-2 text-lg">Semantic layer for AI-powered data discovery and Data Mesh architecture</p>
         </div>
         <div className="flex gap-3 items-center">
