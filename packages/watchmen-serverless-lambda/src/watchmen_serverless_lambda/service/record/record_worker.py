@@ -17,6 +17,7 @@ from watchmen_collector_kernel.storage import get_change_data_record_service, \
     get_change_data_json_service, get_collector_table_config_service, get_change_data_record_history_service, \
     get_change_data_json_history_service
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
+from watchmen_serverless_lambda.common import log_error
 from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_utilities import ArrayHelper
 
@@ -81,8 +82,13 @@ class RecordWorker:
                 
 
     def finalize(self, change_data_record: ChangeDataRecord):
-        config = self.table_config_service.find_by_name(change_data_record.tableName, change_data_record.tenantId)
-        ask_source_extractor(config).delete_one_by_primary_keys(change_data_record.dataId)
+        try:
+            config = self.table_config_service.find_by_name(change_data_record.tableName, change_data_record.tenantId)
+            ask_source_extractor(config).delete_one_by_primary_keys(change_data_record.dataId)
+        except Exception as e:
+            logger.error(e, exc_info=True, stack_info=True)
+            key = f"error/{self.tenant_id}/worker/record_worker/{self.snowflake_generator.next_id()}"
+            log_error(self.tenant_id, self.log_service, key, e)
 
     def update_result(self, change_data_record: ChangeDataRecord, result: str) -> None:
         change_data_record.isMerged = True
@@ -163,7 +169,17 @@ class RecordWorker:
         change_data_record.rootTableName = root_table_name
         change_data_record.rootDataId = get_data_id(config.primaryKey, root_data)
         change_data_record.isMerged = True
-
+    
+    def get_object_id(self, root_data: Dict, root_config: CollectorTableConfig) -> str:
+        raw_value = root_data.get(root_config.objectKey)
+        
+        if raw_value is None or raw_value == "":
+            object_id = self.snowflake_generator.next_id()
+        else:
+            object_id = raw_value
+        
+        return str(object_id)
+    
     def get_change_data_json(self, change_data_record: ChangeDataRecord,
                              root_config: CollectorTableConfig,
                              root_data: Dict,
@@ -172,7 +188,7 @@ class RecordWorker:
             changeJsonId=self.snowflake_generator.next_id(),
             resourceId=self.generate_resource_id(change_data_record),
             modelName=change_data_record.modelName,
-            objectId=str(root_data.get(root_config.objectKey)),
+            objectId=self.get_object_id(root_data, root_config),
             sequence=root_data.get(root_config.sequenceKey, 0),
             tableName=root_config.tableName,
             dataId=get_data_id(root_config.primaryKey, root_data),

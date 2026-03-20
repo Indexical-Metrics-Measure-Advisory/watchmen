@@ -356,8 +356,9 @@ class SequencedModelExecutorV2(ModelExecutor):
                     if results:
                         object_ids = set()
                         for result in results:
-                            if result.objectId:
-                                object_ids.add(result.objectId)
+                            obj_id = result.get('object_id')
+                            if obj_id:
+                                object_ids.add(obj_id)
 
                         if object_ids:
                             successes, failures = self.send_object_id_messages(trigger_event,
