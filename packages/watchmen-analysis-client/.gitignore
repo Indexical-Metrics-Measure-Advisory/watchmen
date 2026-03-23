@@ -27,3 +27,6 @@ dist-ssr
 .vercel
 
 
+# dotenv environment variables file
+.env
+.env.test
