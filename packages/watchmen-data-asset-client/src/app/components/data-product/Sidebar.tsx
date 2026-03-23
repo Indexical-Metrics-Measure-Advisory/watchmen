@@ -10,7 +10,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'catalog', label: 'Data Products', icon: Database },
     { id: 'lineage', label: 'Data Lineage Map', icon: Network },
-    { id: 'domain', label: 'Business Domain Map', icon: Layers },
+    { id: 'domain', label: 'Business Ontology', icon: Layers },
     { id: 'asset-map', label: 'Asset Ecosystem', icon: Map },
     { id: 'lifecycle', label: 'Lifecycle Management', icon: RefreshCw },
     { id: 'quality', label: 'Quality Management', icon: ShieldCheck },
