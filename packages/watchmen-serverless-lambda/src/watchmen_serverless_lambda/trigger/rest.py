@@ -106,9 +106,12 @@ def trigger_event_handler(event, context):
             raise Exception('PAT not found.')
         
         if get_trigger_event_type(submit_event) == TriggerEventType.EVENT:
-            if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
-                raise_400('start time or end time  is required.')
-            submit_event['type'] = EventType.DEFAULT.value
+            if submit_event.get('startTime', None) is None and submit_event.get('endTime', None) is None:
+                submit_event['type'] = EventType.BY_SCHEDULE.value
+            else:
+                if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
+                    raise_400('start time or end time  is required.')
+                submit_event['type'] = EventType.DEFAULT.value
         elif get_trigger_event_type(submit_event) == TriggerEventType.TABLE:
             if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
                 raise_400('start time or end time  is required.')
