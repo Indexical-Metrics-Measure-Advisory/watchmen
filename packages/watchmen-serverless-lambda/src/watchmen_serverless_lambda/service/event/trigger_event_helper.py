@@ -447,16 +447,16 @@ def trigger_event_by_schedule(trigger_event: TriggerEvent):
 		                                                          trigger_event_service.snowflakeGenerator,
 		                                                          trigger_event_service.principalService)
 
-		module_configs = module_config_service.find_by_tenant(trigger_event.tenantId)
+		module_configs = get_module_config_by_tenant_id(module_config_service, trigger_event)
 		trigger_module_action = get_trigger_module_action(trigger_event_service, trigger_event)
 		for module_config in module_configs:
 			trigger_module = trigger_module_action(module_config)
 			trigger_model_action = get_trigger_model_action(trigger_module_service, trigger_module)
-			model_configs = get_model_configs_by_module(model_config_service, module_config)
+			model_configs = get_model_configs_by_module_id(model_config_service, module_config)
 			for model_config in model_configs:
 				trigger_model = trigger_model_action(model_config)
 				trigger_table_action = get_trigger_table_action(trigger_model_service, trigger_model)
-				table_configs = table_config_service.find_by_model_name(model_config.modelName, model_config.tenantId)
+				table_configs = get_table_configs_by_model_name(table_config_service, model_config)
 				for table_config in table_configs:
 					trigger_table_action(table_config)
 
