@@ -409,23 +409,25 @@ def trigger_event_by_schedule(trigger_event: TriggerEvent):
 	principal_service = ask_super_admin()
 	collector_storage = ask_collector_storage(trigger_event.tenantId, principal_service)
 	trigger_event_service = get_trigger_event_service(collector_storage, snowflake_generator, principal_service)
+	
+	if not (trigger_event.startTime and trigger_event.endTime):
+		last_event = trigger_event_service.find_last_finished_schedule_event_by_tenant_id(trigger_event.tenantId)
+		if last_event:
+			trigger_event.startTime = last_event.endTime
+		else:
+			yesterday = date.today() - timedelta(days=1)
+			trigger_event.startTime = datetime(
+				year=yesterday.year,
+				month=yesterday.month,
+				day=yesterday.day,
+				hour=0,
+				minute=0,
+				second=0
+			)
+		trigger_event.endTime = datetime.now()
+	
 	trigger_event_service.begin_transaction()
 	try:
-		if not (trigger_event.startTime and trigger_event.endTime):
-			last_event = trigger_event_service.find_last_finished_schedule_event_by_tenant_id(trigger_event.tenantId)
-			if last_event:
-				trigger_event.startTime = last_event.endTime
-			else:
-				yesterday = date.today() - timedelta(days=1)
-				trigger_event.startTime = datetime(
-					year=yesterday.year,
-					month=yesterday.month,
-					day=yesterday.day,
-					hour=0,
-					minute=0,
-					second=0
-				)
-			trigger_event.endTime = datetime.now()
 		trigger_event.status = Status.EXECUTING.value
 		trigger_event_service.update(trigger_event)
 
