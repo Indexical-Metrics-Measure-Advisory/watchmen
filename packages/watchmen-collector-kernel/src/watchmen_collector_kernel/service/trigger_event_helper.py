@@ -393,7 +393,7 @@ def trigger_event_by_schedule(trigger_event: TriggerEvent):
 				minute=0,
 				second=0
 			)
-		trigger_event.endTime = datetime.now()
+		trigger_event.endTime = datetime.now().replace(second=0, microsecond=0)
 	
 	trigger_event_service.begin_transaction()
 	try:
