@@ -1,0 +1,16 @@
+/.idea
+/venv
+/build
+*.pyc
+.DS_Store
+.env
+/src/dask-worker-space
+.icloud
+/src/temp
+*.log
+*.LOG
+*.LoG
+*.log.*
+*.txn
+/src/watchmen_ai_cache/
+/src/data/
