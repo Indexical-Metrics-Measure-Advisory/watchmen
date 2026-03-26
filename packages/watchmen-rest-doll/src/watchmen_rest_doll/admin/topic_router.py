@@ -411,10 +411,10 @@ def post_delete_topic(topic_id: TopicId, topic_service: TopicService) -> None:
 	CacheService.topic().remove(topic_id)
 
 
-@router.delete('/topic', tags=[UserRole.SUPER_ADMIN], response_model=None)
-async def delete_topic_by_id_by_super_admin(
+@router.delete('/topic', tags=[UserRole.ADMIN], response_model=None)
+async def delete_topic_by_id_by_admin(
 		topic_id: Optional[TopicId] = None,
-		principal_service: PrincipalService = Depends(get_super_admin_principal)
+		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Topic:
 	if not ask_tuple_delete_enabled():
 		raise_404('Not Found')

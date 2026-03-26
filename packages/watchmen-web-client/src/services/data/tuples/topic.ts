@@ -1,5 +1,5 @@
 import {findAccount} from '../account';
-import {Apis, get, page, post} from '../apis';
+import {Apis, del, get, page, post} from '../apis';
 import {
 	askMockSynonymFactors,
 	fetchMockTopic,
@@ -59,6 +59,14 @@ export const saveTopic = async (topic: Topic): Promise<void> => {
 		topic.version = data.version;
 		topic.tenantId = data.tenantId;
 		topic.lastModifiedAt = data.lastModifiedAt;
+	}
+};
+
+export const deleteTopic = async (topicId: TopicId): Promise<void> => {
+	if (isMockService()) {
+		// return nothing
+	} else {
+		await del({api: Apis.TOPIC_DELETE, search: {topicId}});
 	}
 };
 

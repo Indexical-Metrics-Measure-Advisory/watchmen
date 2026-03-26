@@ -1,5 +1,5 @@
 import TopicBackground from '@/assets/topic-background.svg';
-import {isMultipleDataSourcesEnabled} from '@/feature-switch';
+import {getWebAppEnvironment, isMultipleDataSourcesEnabled} from '@/feature-switch';
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {listDataSourcesForHolder} from '@/services/data/tuples/data-source';
 import {listEnumsForHolder} from '@/services/data/tuples/enum';
@@ -19,12 +19,13 @@ import {HELP_KEYS, useHelp} from '@/widgets/help';
 import {TupleWorkbench} from '@/widgets/tuple-workbench';
 import {TupleEventBusProvider, useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useAdminCacheEventBus} from '../cache/cache-event-bus';
 import {AdminCacheEventTypes} from '../cache/cache-event-bus-types';
 import {renderCard} from './card';
 import {renderEditor} from './editor';
 import {ScriptsDownloadDialog} from './scripts-download-dialog';
+import {TopicDelete} from './topic-delete';
 import {createTopic, isFactorNameInvalid, isFactorNameTooLong, isTopicNameInvalid, isTopicNameTooLong} from './utils';
 
 const fetchTopicAndCodes = async (queryTopic: QueryTopic) => {
@@ -57,6 +58,10 @@ const AdminTopics = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireCache} = useAdminCacheEventBus();
 	const {on, off, fire} = useTupleEventBus();
+	const [canDelete, setCanDelete] = useState(false);
+	useEffect(() => {
+		getWebAppEnvironment().then(env => setCanDelete(env === 'design'));
+	}, []);
 	useEffect(() => {
 		const onDoCreateTopic = async () => {
 			const enums = await listEnumsForHolder();
@@ -75,6 +80,10 @@ const AdminTopics = () => {
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 				async () => await listTopics({search: searchText, pageNumber, pageSize: TUPLE_SEARCH_PAGE_SIZE}),
 				(page: TuplePage<QueryTuple>) => fire(TupleEventTypes.TUPLE_SEARCHED, page, searchText));
+		};
+		const onDoDeleteTopic = (queryTopic: QueryTopic) => {
+			fireGlobal(EventTypes.SHOW_DIALOG,
+				<TopicDelete topic={queryTopic} onRemoved={() => fire(TupleEventTypes.DO_SEARCH_TUPLE, '', 1)}/>);
 		};
 		const onSaveTopic = async (topic: Topic, onSaved: (topic: Topic, saved: boolean) => void) => {
 			if (!topic.name || !topic.name.trim()) {
@@ -191,11 +200,13 @@ const AdminTopics = () => {
 		on(TupleEventTypes.DO_CREATE_TUPLE, onDoCreateTopic);
 		on(TupleEventTypes.DO_EDIT_TUPLE, onDoEditTopic);
 		on(TupleEventTypes.DO_SEARCH_TUPLE, onDoSearchTopic);
+		on(TupleEventTypes.DO_DELETE_TUPLE, onDoDeleteTopic);
 		on(TupleEventTypes.SAVE_TUPLE, onSaveTopic);
 		return () => {
 			off(TupleEventTypes.DO_CREATE_TUPLE, onDoCreateTopic);
 			off(TupleEventTypes.DO_EDIT_TUPLE, onDoEditTopic);
 			off(TupleEventTypes.DO_SEARCH_TUPLE, onDoSearchTopic);
+			off(TupleEventTypes.DO_DELETE_TUPLE, onDoDeleteTopic);
 			off(TupleEventTypes.SAVE_TUPLE, onSaveTopic);
 		};
 	}, [on, off, fire, fireGlobal, fireCache]);
@@ -232,7 +243,7 @@ const AdminTopics = () => {
 	                       searchPlaceholder="Search by topic name, description, etc."
 	                       tupleLabel="Topic" tupleImage={TopicBackground} tupleImagePosition="left 120px"
 	                       renderEditor={renderEditor}
-	                       renderCard={renderCard} getKeyOfTuple={getKeyOfTopic}
+	                       renderCard={(topic: QueryTopic) => renderCard(topic, canDelete)} getKeyOfTuple={getKeyOfTopic}
 	/>;
 };
 const AdminTopicsIndex = () => {

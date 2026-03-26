@@ -24,6 +24,8 @@ export enum TupleEventTypes {
 
 	SAVE_TUPLE = 'save-tuple',
 
+	DO_DELETE_TUPLE = 'do-delete-tuple',
+
 	DO_SEARCH_TUPLE = 'do-search-tuple',
 	TUPLE_SEARCHED = 'tuple-searched',
 
@@ -43,6 +45,10 @@ export interface TupleEventBus {
 	fire<T extends QueryTuple>(type: TupleEventTypes.DO_EDIT_TUPLE, tuple: T): this;
 	on<T extends QueryTuple>(type: TupleEventTypes.DO_EDIT_TUPLE, listener: (tuple: T) => void): this;
 	off<T extends QueryTuple>(type: TupleEventTypes.DO_EDIT_TUPLE, listener: (tuple: T) => void): this;
+
+	fire<T extends QueryTuple>(type: TupleEventTypes.DO_DELETE_TUPLE, tuple: T): this;
+	on<T extends QueryTuple>(type: TupleEventTypes.DO_DELETE_TUPLE, listener: (tuple: T) => void): this;
+	off<T extends QueryTuple>(type: TupleEventTypes.DO_DELETE_TUPLE, listener: (tuple: T) => void): this;
 
 	fire<T extends Tuple, HBT extends HoldByTuple>(type: TupleEventTypes.TUPLE_LOADED, tuple: T, codes?: HBT): this;
 	on<T extends Tuple, HBT extends HoldByTuple>(type: TupleEventTypes.TUPLE_LOADED, listener: (tuple: T, codes?: HBT) => void): this;

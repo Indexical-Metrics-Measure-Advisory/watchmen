@@ -2,7 +2,7 @@ import {QueryTopic} from '@/services/data/tuples/query-topic-types';
 import {fetchTopic} from '@/services/data/tuples/topic';
 import {isTopicProfileAvailable} from '@/services/data/tuples/topic-utils';
 import {prettifyDateTimeToMinute} from '@/services/data/tuples/utils';
-import {ICON_CREATED_AT, ICON_LAST_MODIFIED_AT, ICON_TOPIC_PROFILE} from '@/widgets/basic/constants';
+import {ICON_CREATED_AT, ICON_DELETE, ICON_LAST_MODIFIED_AT, ICON_TOPIC_PROFILE} from '@/widgets/basic/constants';
 import {TooltipAlignment} from '@/widgets/basic/types';
 import {
 	TupleCard,
@@ -17,11 +17,18 @@ import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import dayjs from 'dayjs';
 import React, {MouseEvent} from 'react';
+import styled from 'styled-components';
 import {useTopicProfileEventBus} from '../topic-profile/topic-profile-event-bus';
 import {TopicProfileEventTypes} from '../topic-profile/topic-profile-event-bus-types';
 
-const TopicCard = (props: { topic: QueryTopic }) => {
-	const {topic} = props;
+const TopicCardDeleteButton = styled(TupleProfileButton)`
+	&:hover {
+		color : var(--danger-color);
+	}
+`;
+
+const TopicCard = (props: { topic: QueryTopic, canDelete: boolean }) => {
+	const {topic, canDelete} = props;
 
 	const {fire} = useTupleEventBus();
 	const {fire: fireProfile} = useTopicProfileEventBus();
@@ -35,6 +42,11 @@ const TopicCard = (props: { topic: QueryTopic }) => {
 		const {topic: topicData} = await fetchTopic(topic.topicId);
 		fireProfile(TopicProfileEventTypes.SHOW_PROFILE, topicData, dayjs());
 	};
+	const onDeleteClicked = async (event: MouseEvent<HTMLButtonElement>) => {
+		event.preventDefault();
+		event.stopPropagation();
+		fire(TupleEventTypes.DO_DELETE_TUPLE, topic);
+	};
 
 	return <TupleCard key={topic.topicId} onClick={onEditClicked}>
 		<TupleCardTitle>
@@ -44,6 +56,12 @@ const TopicCard = (props: { topic: QueryTopic }) => {
 				                      onClick={onProfileClicked}>
 					<FontAwesomeIcon icon={ICON_TOPIC_PROFILE}/>
 				</TupleProfileButton>
+				: null}
+			{canDelete
+				? <TopicCardDeleteButton tooltip={{label: 'Delete', alignment: TooltipAlignment.CENTER}}
+				                       onClick={onDeleteClicked}>
+					<FontAwesomeIcon icon={ICON_DELETE}/>
+				</TopicCardDeleteButton>
 				: null}
 		</TupleCardTitle>
 		<TupleCardDescription>{topic.description}</TupleCardDescription>
@@ -60,6 +78,6 @@ const TopicCard = (props: { topic: QueryTopic }) => {
 	</TupleCard>;
 };
 
-export const renderCard = (topic: QueryTopic) => {
-	return <TopicCard topic={topic}/>;
+export const renderCard = (topic: QueryTopic, canDelete = false) => {
+	return <TopicCard topic={topic} canDelete={canDelete}/>;
 };

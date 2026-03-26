@@ -40,6 +40,7 @@ export const Apis = {
 	TOPIC_DATA_IDS: 'topic/data/ids?topic_id=:topicId',
 	TOPIC_CREATE: 'topic',
 	TOPIC_SAVE: 'topic',
+	TOPIC_DELETE: 'topic?topic_id=:topicId',
 	TOPIC_PROFILE: 'dqc/topic/profile?topic_id=:topicId&date=:date',
 	TOPIC_RERUN: 'topic/data/rerun?topic_id=:topicId&pipeline_id=:pipelineId&data_id=:dataId',
 	TOPIC_SNAPSHOT_SCHEDULER_LIST: 'topic/snapshot/scheduler/list',
@@ -237,7 +238,7 @@ const buildApi = (api: string, args?: Record<string, any>): string => {
 
 const request = async (options: {
 	api: string;
-	method: 'POST' | 'GET';
+	method: 'POST' | 'GET' | 'DELETE';
 	search?: Record<string, any>;
 	auth?: boolean;
 	pageable?: { pageNumber: number; pageSize: number };
@@ -277,6 +278,10 @@ export const get = async (options: { api: string; search?: Record<string, any>; 
 export const post = async (options: { api: string; search?: Record<string, any>; auth?: boolean; data?: any }) => {
 	const {api, search, auth, data} = options;
 	return await request({api, method: 'POST', search, auth, data});
+};
+export const del = async (options: { api: string; search?: Record<string, any>; auth?: boolean }) => {
+	const {api, search, auth} = options;
+	return await request({api, method: 'DELETE', search, auth});
 };
 
 export const page = async (options: {
