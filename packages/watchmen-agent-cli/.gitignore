@@ -14,3 +14,6 @@
 *.txn
 /src/watchmen_ai_cache/
 /src/data/
+/test/
+/dist/
+
