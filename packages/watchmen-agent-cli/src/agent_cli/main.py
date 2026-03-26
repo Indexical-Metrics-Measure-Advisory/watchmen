@@ -12,7 +12,7 @@ from agent_cli.exceptions import AgentCliException
 from agent_cli.http_client import RestClient
 from agent_cli.settings import settings
 from agent_cli.sync_service import SyncService
-from agent_cli.vault import PIPELINE_DIR, TOPIC_DIR, ensure_vault, list_local_files, load_config, save_config
+from agent_cli.vault import ENUM_DIR, PIPELINE_DIR, TOPIC_DIR, ensure_vault, list_local_files, load_config, save_config
 
 DISCOVER_COMMANDS = {
     "init": ["--vault", "--host", "--username", "--password", "--pat"],
@@ -27,6 +27,11 @@ DISCOVER_COMMANDS = {
     "pipeline pull-name": ["pipeline_name", "--vault"],
     "pipeline list": ["--vault"],
     "pipeline list-remote": ["--vault"],
+    "enum pull": ["enum_id", "--vault"],
+    "enum pull-name": ["enum_name", "--vault"],
+    "enum push-file": ["file_path", "--vault"],
+    "enum list": ["--vault"],
+    "enum list-remote": ["--vault"],
     "tenant": ["--vault"],
     "config": ["--vault"],
     "discover": [],
@@ -63,6 +68,7 @@ def build_parser() -> argparse.ArgumentParser:
     register_sync_commands(subparsers)
     register_topic_commands(subparsers)
     register_pipeline_commands(subparsers)
+    register_enum_commands(subparsers)
     register_tenant_command(subparsers)
     register_config_commands(subparsers)
     return parser
@@ -133,6 +139,27 @@ def handle_pipeline_list(args: argparse.Namespace) -> None:
 
 def handle_pipeline_list_remote(args: argparse.Namespace) -> None:
     run_with_sync_service(args, lambda svc: svc.list_pipelines_from_server())
+
+
+def handle_enum_pull(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.pull_one_enum(args.enum_id))
+
+
+def handle_enum_pull_name(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.pull_enums_by_name(args.enum_name))
+
+
+def handle_enum_push_file(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.push_enum_yaml_file(Path(args.file_path)))
+
+
+def handle_enum_list(args: argparse.Namespace) -> None:
+    vault_path = settings.resolved_vault(args.vault)
+    print_entity_file_list(vault_path, ENUM_DIR)
+
+
+def handle_enum_list_remote(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.list_enums_from_server())
 
 
 def handle_tenant_info(args: argparse.Namespace) -> None:
@@ -247,7 +274,7 @@ def register_pipeline_commands(subparsers: argparse._SubParsersAction) -> None:
     pipeline_pull.add_argument("pipeline_id")
     add_vault_arg(pipeline_pull)
     pipeline_pull.set_defaults(handler=handle_pipeline_pull)
- 
+
     pipeline_pull_name = create_subparser(pipeline_sub, "pull-name", "Pull pipelines to local by name")
     pipeline_pull_name.add_argument("pipeline_name")
     add_vault_arg(pipeline_pull_name)
@@ -260,6 +287,34 @@ def register_pipeline_commands(subparsers: argparse._SubParsersAction) -> None:
     pipeline_list_remote = create_subparser(pipeline_sub, "list-remote", "List all pipelines available on the server")
     add_vault_arg(pipeline_list_remote)
     pipeline_list_remote.set_defaults(handler=handle_pipeline_list_remote)
+
+
+def register_enum_commands(subparsers: argparse._SubParsersAction) -> None:
+    enum_parser = create_subparser(subparsers, "enum", "Fine-grained enum commands")
+    enum_sub = enum_parser.add_subparsers(dest="enum_cmd", required=True)
+
+    enum_pull = create_subparser(enum_sub, "pull", "Pull a specific enum to local by ID")
+    enum_pull.add_argument("enum_id")
+    add_vault_arg(enum_pull)
+    enum_pull.set_defaults(handler=handle_enum_pull)
+
+    enum_pull_name = create_subparser(enum_sub, "pull-name", "Pull enums to local by name")
+    enum_pull_name.add_argument("enum_name")
+    add_vault_arg(enum_pull_name)
+    enum_pull_name.set_defaults(handler=handle_enum_pull_name)
+
+    enum_push_file = create_subparser(enum_sub, "push-file", "Push a local YAML enum file to server")
+    enum_push_file.add_argument("file_path", help="Path to the local .yml or .yaml file")
+    add_vault_arg(enum_push_file)
+    enum_push_file.set_defaults(handler=handle_enum_push_file)
+
+    enum_list = create_subparser(enum_sub, "list", "List local enum files")
+    add_vault_arg(enum_list)
+    enum_list.set_defaults(handler=handle_enum_list)
+
+    enum_list_remote = create_subparser(enum_sub, "list-remote", "List all enums available on the server")
+    add_vault_arg(enum_list_remote)
+    enum_list_remote.set_defaults(handler=handle_enum_list_remote)
 
 
 def register_tenant_command(subparsers: argparse._SubParsersAction) -> None:

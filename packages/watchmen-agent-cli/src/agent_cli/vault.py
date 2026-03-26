@@ -11,6 +11,7 @@ VAULT_META_DIR = ".agent-cli"
 CONFIG_FILE = "config.json"
 TOPIC_DIR = "topics"
 PIPELINE_DIR = "pipelines"
+ENUM_DIR = "enums"
 
 
 def ensure_vault(vault_path: Path) -> None:
@@ -18,6 +19,7 @@ def ensure_vault(vault_path: Path) -> None:
     (vault_path / VAULT_META_DIR).mkdir(parents=True, exist_ok=True)
     (vault_path / TOPIC_DIR).mkdir(parents=True, exist_ok=True)
     (vault_path / PIPELINE_DIR).mkdir(parents=True, exist_ok=True)
+    (vault_path / ENUM_DIR).mkdir(parents=True, exist_ok=True)
 
 
 def config_path(vault_path: Path) -> Path:

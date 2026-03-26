@@ -5,30 +5,35 @@ description: Synchronizes Topics/Pipelines with Watchmen via REST (YAML/JSON). I
 
 # Agent CLI for Watchmen
 
-This skill exposes the Watchmen Agent CLI to synchronize Topics and Pipelines between a local vault and a Watchmen server via REST. It supports YAML-based Topic CRUD and JSON-based Pipeline import, and returns structured outputs suitable for AI workflows.
+This skill exposes the Watchmen Agent CLI to synchronize Topics and Pipelines between a local vault and a Watchmen server via REST. It supports YAML-based Topic CRUD, Enum code table management, and JSON-based Pipeline import, and returns structured outputs suitable for AI workflows.
 
-## What It Does
-- Initializes local vault and connection config (host, username, password, PAT).
-- Pulls data from server to local (topics as YAML, pipelines as JSON).
-- Pushes local changes to server (topic YAML files, legacy JSON imports).
-- Lists local files and server-side resources for discovery.
-- Fine-grained operations: pull by ID or by name; push single topic YAML file.
+## Dependency Chain
+
+There is a dependency chain between entities:
+- **Pipeline** depends on **Topic** (a pipeline reads from or writes to a topic)
+- **Topic** may depend on **Enum** (a topic factor can reference an enum code table via `enumId`)
+
+When pulling entities, the CLI should automatically resolve and sync dependencies:
+- When pulling a **Pipeline**, also pull its source and target topics
+- When pulling a **Topic**, check if any factor has `enumId` set, and also pull those enums
+- When pulling **all** (`--target all`), ensure topics, pipelines, and enums are all synced
 
 ## When To Invoke
 - User asks to sync local files ↔ server data.
-- User wants to list server topics/pipelines.
-- User requests pull by topic/pipeline name or id.
-- User provides/edits a local topic YAML and wants to push.
+- User wants to list server topics/pipelines/enums.
+- User requests pull by topic/pipeline/enum name or id.
+- User provides/edits a local topic/enum YAML and wants to push.
 - User asks to initialize or inspect CLI configuration.
 
 ## Prerequisites
 - The CLI is installed and runnable (e.g., via Poetry or a built wheel/binary).
-  - **If not installed locally:** Run `cd packages/agent-cli && poetry install` to install the agent-cli package.
+  - **Quick Installation:** Run `./packages/watchmen-agent-cli/scripts/install-skill.sh` from the project root to install both the CLI package and the skill definition.
+  - **Manual Installation:** Run `cd packages/watchmen-agent-cli && poetry install` to install the agent-cli package.
 - Server base URL and credentials are known.
 - Recommended: run `init` first to create the vault and config.
 
 ## Execution Conditions (Before Invoking This Skill)
-- Check if `agent-cli` is installed locally. If not (e.g., command not found), run `cd packages/agent-cli && poetry install` to install it.
+- Check if `agent-cli` is installed locally. If not (e.g., command not found), run `cd packages/watchmen-agent-cli && poetry install` to install it.
 - Users must provide key parameters for `init`: `--host` and `--pat` (and optionally `--vault`).
 - If the above information is missing, ask the user to provide it before executing any `init`, `pull`, `push`, or `list` commands.
 
@@ -57,6 +62,16 @@ This skill exposes the Watchmen Agent CLI to synchronize Topics and Pipelines be
   - Args: `--vault`
 - `pipeline list-remote` — List pipelines from server
   - Args: `--vault`
+- `enum pull` — Pull an enum by ID
+  - Args: `enum_id`, `--vault`
+- `enum pull-name` — Pull enums by name
+  - Args: `enum_name`, `--vault`
+- `enum push-file` — Push a single enum YAML file
+  - Args: `file_path`, `--vault`
+- `enum list` — List local enum files
+  - Args: `--vault`
+- `enum list-remote` — List enums from server
+  - Args: `--vault`
 - `tenant` — Resolve tenant information from current PAT
   - Args: `--vault`
 - `config` — Show current configuration
@@ -74,6 +89,7 @@ This skill exposes the Watchmen Agent CLI to synchronize Topics and Pipelines be
 - When creating Topic factors, always set `label` for each factor.
 - Labels should be business-optimized, human-readable names (not technical column names), suitable for business users to understand directly.
 - Recommended label style: concise business phrase, consistent terminology, and clear domain meaning (for example, `customer_id` → `Customer ID`, `total_premium_sum` → `Total Premium Amount`).
+- For factors with enumerated values (like `gender`, `status`, `type`), set the `enumId` field to reference an existing enum code table. Use `agent-cli enum pull` to fetch the enum and `agent-cli enum push-file` to sync enum definitions.
 
 ## Examples
 - Initialize:
@@ -81,13 +97,17 @@ This skill exposes the Watchmen Agent CLI to synchronize Topics and Pipelines be
 - Pull by name:
   - `agent-cli topic pull-name "quotation_main" --vault myvault`
   - `agent-cli pipeline pull-name "pl_source_insurance_quotation_raw_to_quotation_main" --vault myvault`
+  - `agent-cli enum pull-name "gender" --vault myvault`
 - List from server:
   - `agent-cli topic list-remote --vault myvault`
   - `agent-cli pipeline list-remote --vault myvault`
+  - `agent-cli enum list-remote --vault myvault`
 - Resolve tenant from PAT:
   - `agent-cli tenant --vault myvault`
 - Push a topic YAML:
   - `agent-cli topic push-file myvault/topics/quotation_main__<id>.yml --vault myvault`
+- Push an enum YAML:
+  - `agent-cli enum push-file myvault/enums/gender__<id>.yml --vault myvault`
 
 ## Pipeline Development
 - Concepts:

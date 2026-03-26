@@ -7,7 +7,7 @@ import yaml
 
 from agent_cli.exceptions import AgentCliException
 from agent_cli.http_client import RestClient
-from agent_cli.vault import PIPELINE_DIR, TOPIC_DIR, read_entities, write_entities, write_yaml_entity, read_yaml_entities
+from agent_cli.vault import ENUM_DIR, PIPELINE_DIR, TOPIC_DIR, read_entities, write_entities, write_yaml_entity, read_yaml_entities
 
 SyncTarget = Literal["topic", "pipeline", "all"]
 
@@ -132,6 +132,67 @@ class SyncService:
                 "enabled": p.get("enabled")
             })
         return {"count": len(pipeline_summaries), "pipelines": pipeline_summaries}
+
+    def pull_one_enum(self, enum_id: str) -> Dict[str, Any]:
+        enum_yaml = self.client.get_enum_yaml(enum_id)
+        write_yaml_entity(self.vault_path, ENUM_DIR, enum_yaml, "enumId", name_key="name")
+        return {"enumId": enum_id, "status": "pulled"}
+
+    def pull_enums_by_name(self, enum_name: str) -> Dict[str, Any]:
+        enums = self.client.get_json("/enum/all")
+        matched = [e for e in enums if e.get("name") == enum_name]
+        if matched:
+            for enum in matched:
+                enum_yaml = yaml.dump(enum, sort_keys=False)
+                write_yaml_entity(self.vault_path, ENUM_DIR, enum_yaml, "enumId", name_key="name")
+            return {"enumName": enum_name, "count": len(matched), "enumIds": [e.get("enumId") for e in matched]}
+        return {"enumName": enum_name, "count": 0, "enumIds": []}
+
+    def pull_all_enums(self) -> Dict[str, int]:
+        enums = self.client.get_json("/enum/all")
+        count = 0
+        for enum in enums:
+            enum_yaml = yaml.dump(enum, sort_keys=False)
+            write_yaml_entity(self.vault_path, ENUM_DIR, enum_yaml, "enumId", name_key="name")
+            count += 1
+        return {"enums": count}
+
+    def list_enums_from_server(self) -> Dict[str, Any]:
+        enums = self.client.get_json("/enum/all")
+        enum_summaries = []
+        for e in enums:
+            enum_summaries.append({
+                "enumId": e.get("enumId"),
+                "name": e.get("name"),
+                "description": e.get("description"),
+                "itemCount": len(e.get("items") or [])
+            })
+        return {"count": len(enum_summaries), "enums": enum_summaries}
+
+    def push_enum_yaml_file(self, file_path: Path) -> Dict[str, Any]:
+        if not file_path.exists():
+            raise AgentCliException(f"File not found: {file_path}")
+        source_yaml = file_path.read_text(encoding="utf-8")
+        source_enum = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
+        source_enum_id = str((source_enum or {}).get("enumId") or "").strip()
+        pushed_yaml = self.client.save_enum_yaml(source_yaml)
+        pushed_enum = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
+        pushed_enum_id = str((pushed_enum or {}).get("enumId") or "").strip()
+
+        if file_path.resolve().is_relative_to((self.vault_path / ENUM_DIR).resolve()):
+            write_yaml_entity(self.vault_path, ENUM_DIR, pushed_yaml, "enumId", name_key="name")
+            if source_enum_id and pushed_enum_id and source_enum_id != pushed_enum_id and file_path.exists():
+                file_path.unlink()
+        else:
+            file_path.write_text(pushed_yaml, encoding="utf-8")
+
+        return {
+            "status": "pushed",
+            "file": str(file_path),
+            "sourceEnumId": source_enum_id or None,
+            "enumId": pushed_enum_id or None,
+            "replaced": bool(source_enum_id and pushed_enum_id and source_enum_id != pushed_enum_id)
+        }
 
     def resolve_tenant_info(self) -> Dict[str, Any]:
         topic_tenant_ids = self._tenant_ids_from_topics()

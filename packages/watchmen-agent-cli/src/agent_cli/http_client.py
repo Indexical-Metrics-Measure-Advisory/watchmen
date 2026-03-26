@@ -77,6 +77,15 @@ class RestClient:
             raise ApiException(f"POST {path} failed with {response.status_code}: {response.text}")
         return response.text
 
+    def get_enum(self, enum_id: str) -> Any:
+        return self.get_json("/enum", params={"id": enum_id})
+
+    def get_enum_yaml(self, enum_id: str) -> str:
+        return self.get_text("/enum/yaml", params={"id": enum_id})
+
+    def save_enum_yaml(self, yaml_content: str) -> str:
+        return self.post_text("/enum/yaml", yaml_content)
+
     def _login(self) -> str:
         if self._token:
             return self._token
