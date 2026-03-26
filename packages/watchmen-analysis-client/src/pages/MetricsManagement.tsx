@@ -66,6 +66,7 @@ const MetricsManagement: React.FC = () => {
     searchTerm: ''
   });
   const { toast } = useToast();
+  const metricNamePattern = /^[A-Za-z0-9_]+$/;
 
   const normalizeMeasure = (measure?: MetricTypeParams['measure']) => {
     return {
@@ -189,6 +190,8 @@ const MetricsManagement: React.FC = () => {
     
     if (!form.name?.trim()) {
       errors.push('Metric name cannot be empty');
+    } else if (!metricNamePattern.test(form.name.trim())) {
+      errors.push('Metric name can contain only letters, numbers, and underscores');
     }
     
     if (!form.label?.trim()) {
@@ -463,6 +466,15 @@ const MetricsManagement: React.FC = () => {
   // Helper function to handle save create
   const handleSaveCreate = async () => {
     try {
+      const errors = validateForm(createForm, true);
+      if (errors.length > 0) {
+        toast({
+          title: "Validation Error",
+          description: errors.join('; '),
+          variant: "destructive",
+        });
+        return;
+      }
       setIsLoading(true);
       // Handle "none" categoryId by converting it to undefined
       const formDataToSubmit = {

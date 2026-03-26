@@ -259,6 +259,7 @@ const BIAnalysisPage: React.FC = () => {
 
   const [metricsList, setMetricsList] = useState<MetricDefinition[]>([]);
   const [metricsLoading, setMetricsLoading] = useState<boolean>(false);
+  const [metricsRefreshNonce, setMetricsRefreshNonce] = useState(0);
   // Derived availableDims from detailed list
   const [availableDimsDetailed, setAvailableDimsDetailed] = useState<MetricDimension[]>([]);
   const availableDims = useMemo(() => availableDimsDetailed.map(d => d.qualified_name || d.name), [availableDimsDetailed]);
@@ -644,7 +645,19 @@ const BIAnalysisPage: React.FC = () => {
       alive = false; 
       clearTimeout(timer);
     };
-  }, [search, categoryId, metricBuilderOpen]);
+  }, [search, categoryId, metricBuilderOpen, metricsRefreshNonce]);
+
+  useEffect(() => {
+    const onFocus = () => {
+      if (metricBuilderOpen) {
+        setMetricsRefreshNonce(v => v + 1);
+      }
+    };
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [metricBuilderOpen]);
 
 
 

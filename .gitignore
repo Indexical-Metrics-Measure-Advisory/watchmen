@@ -2,6 +2,7 @@
 
 .DS_Store
 
+/.trae/
 /venv
 /packages/watchmen-indicator
 .run/doll-app.run.xml

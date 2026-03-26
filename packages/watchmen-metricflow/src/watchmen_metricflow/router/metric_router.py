@@ -160,9 +160,6 @@ async def get_metric_value(req :MetricQueryRequest,
 
 
 
-
-
-
 @router.post("/metricflow/query_metrics", response_model=List[MetricFlowResponse])
 async def query_metrics(request_list: List[MetricQueryRequest],
                         principal_service: PrincipalService = Depends(get_any_principal)):
@@ -173,7 +170,7 @@ async def query_metrics(request_list: List[MetricQueryRequest],
     for request in request_list:
         query_result: MetricFlowQueryResult = query(
             cfg=config,
-            metrics=request.metrics,
+            metrics=[request.metric],
             group_by=request.group_by,
             start_time=request.start_time,
             end_time=request.end_time,

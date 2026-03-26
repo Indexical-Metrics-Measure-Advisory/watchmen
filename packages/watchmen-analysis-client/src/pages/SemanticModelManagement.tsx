@@ -36,6 +36,7 @@ const SemanticModelManagement: React.FC = () => {
   const { toast } = useToast();
   const dimensionsEndRef = useRef<HTMLDivElement>(null);
   const measuresEndRef = useRef<HTMLDivElement>(null);
+  const modelNamePattern = /^[A-Za-z0-9_]+$/;
 
   // Form state for create/edit
   const [formData, setFormData] = useState<SemanticModel>({
@@ -59,6 +60,14 @@ const SemanticModelManagement: React.FC = () => {
     metadata: null,
     config: { meta: {} }
   });
+  const timeDimensionOptions = Array.from(
+    new Set(
+      formData.dimensions
+        .filter(dimension => dimension.type === 'time')
+        .map(dimension => (dimension.name || '').trim())
+        .filter(name => !!name)
+    )
+  );
 
   useEffect(() => {
     loadData();
@@ -148,6 +157,48 @@ const SemanticModelManagement: React.FC = () => {
   };
 
   const handleCreateModel = async () => {
+    const rawName = formData.name || '';
+    const name = rawName.trim();
+    if (!name) {
+      toast({
+        title: "Validation Error",
+        description: "Model name cannot be empty",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (rawName !== name) {
+      toast({
+        title: "Validation Error",
+        description: "Model name cannot start or end with spaces",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!modelNamePattern.test(name)) {
+      toast({
+        title: "Validation Error",
+        description: "Model name can contain only letters, numbers, and underscores",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!formData.defaults?.agg_time_dimension?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Default time dimension is required",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!timeDimensionOptions.includes(formData.defaults.agg_time_dimension.trim())) {
+      toast({
+        title: "Validation Error",
+        description: "Default time dimension must be selected from time dimensions",
+        variant: "destructive"
+      });
+      return;
+    }
     try {
       setIsLoading(true);
       await createSemanticModel(formData);
@@ -171,6 +222,48 @@ const SemanticModelManagement: React.FC = () => {
 
   const handleEditModel = async () => {
     if (!editingModel) return;
+    const rawName = formData.name || '';
+    const name = rawName.trim();
+    if (!name) {
+      toast({
+        title: "Validation Error",
+        description: "Model name cannot be empty",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (rawName !== name) {
+      toast({
+        title: "Validation Error",
+        description: "Model name cannot start or end with spaces",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!modelNamePattern.test(name)) {
+      toast({
+        title: "Validation Error",
+        description: "Model name can contain only letters, numbers, and underscores",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!formData.defaults?.agg_time_dimension?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Default time dimension is required",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!timeDimensionOptions.includes(formData.defaults.agg_time_dimension.trim())) {
+      toast({
+        title: "Validation Error",
+        description: "Default time dimension must be selected from time dimensions",
+        variant: "destructive"
+      });
+      return;
+    }
     try {
       setIsLoading(true);
       await updateSemanticModel(editingModel.name, formData);
@@ -860,15 +953,25 @@ const SemanticModelManagement: React.FC = () => {
             
             <div>
               <Label htmlFor="agg_time_dimension">Default Time Dimension</Label>
-                <Input
-                  id="agg_time_dimension"
-                  value={formData.defaults.agg_time_dimension}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    defaults: { ...prev.defaults, agg_time_dimension: e.target.value }
-                  }))}
-                  placeholder="Enter default time dimension"
-                />
+              <Select
+                value={formData.defaults.agg_time_dimension || undefined}
+                onValueChange={(value) => setFormData(prev => ({
+                  ...prev,
+                  defaults: { ...prev.defaults, agg_time_dimension: value }
+                }))}
+              >
+                <SelectTrigger id="agg_time_dimension">
+                  <SelectValue placeholder="Select default time dimension" />
+                </SelectTrigger>
+                <SelectContent>
+                  {timeDimensionOptions.map(dimensionName => (
+                    <SelectItem key={dimensionName} value={dimensionName}>{dimensionName}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {timeDimensionOptions.length === 0
+                ? <p className="text-xs text-destructive mt-1">Please create at least one time dimension first.</p>
+                : null}
             </div>
             
             {/* DB relation moved to Datasource tab */}
@@ -1627,15 +1730,25 @@ const SemanticModelManagement: React.FC = () => {
               
               <div>
                 <Label htmlFor="edit-agg_time_dimension">Default Time Dimension</Label>
-                <Input
-                  id="edit-agg_time_dimension"
-                  value={formData.defaults.agg_time_dimension}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    defaults: { ...prev.defaults, agg_time_dimension: e.target.value }
+                <Select
+                  value={formData.defaults.agg_time_dimension || undefined}
+                  onValueChange={(value) => setFormData(prev => ({
+                    ...prev,
+                    defaults: { ...prev.defaults, agg_time_dimension: value }
                   }))}
-                  placeholder="Enter default time dimension"
-                />
+                >
+                  <SelectTrigger id="edit-agg_time_dimension">
+                    <SelectValue placeholder="Select default time dimension" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeDimensionOptions.map(dimensionName => (
+                      <SelectItem key={dimensionName} value={dimensionName}>{dimensionName}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {timeDimensionOptions.length === 0
+                  ? <p className="text-xs text-destructive mt-1">Please create at least one time dimension first.</p>
+                  : null}
               </div>
               
               {/* <div className="space-y-4">

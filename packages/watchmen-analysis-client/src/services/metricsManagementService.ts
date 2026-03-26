@@ -1262,6 +1262,7 @@ const fetchRealTimeMetrics = async () => {
       const response = await fetch(`${API_BASE_URL}/metricflow/metrics/all`, {
         method: 'GET',
         headers: getDefaultHeaders(),
+        cache: 'no-store',
         signal: controller.signal
       });
       
@@ -1329,9 +1330,9 @@ export const findDimensionsByMetric = async (metricName: string): Promise<Dimens
       headers: getDefaultHeaders()
     });
 
-    if (response.status === 404) {
-      return getMockDimensionsByMetric(metricName);
-    }
+    // if (response.status === 404) {
+    //   return getMockDimensionsByMetric(metricName);
+    // }
 
     const data = await checkResponse(response);
     // Accept both array and wrapped response for compatibility
@@ -1344,7 +1345,8 @@ export const findDimensionsByMetric = async (metricName: string): Promise<Dimens
     return { dimensions: [], total: 0 };
   } catch (error) {
     console.warn('Failed to find dimensions by metric, using mock data:', error);
-    return getMockDimensionsByMetric(metricName);
+    // return getMockDimensionsByMetric(metricName);
+    return { dimensions: [], total: 0 };
   }
 };
 
