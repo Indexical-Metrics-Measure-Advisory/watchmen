@@ -1,48 +1,83 @@
 export type MainNavKey =
-	| 'overview'
-	| 'sources'
-	| 'topics'
-	| 'perception'
-	| 'rules'
-	| 'incidents'
-	| 'actions'
+	| 'ingest'
+	| 'transform'
+	| 'model'
+	| 'govern'
+	| 'perceive'
+	| 'feedback'
 	| 'settings';
 
-export type PerceptionView = 'overview' | 'structural' | 'statistical' | 'behavior' | 'semantic';
-export type DecisionType = 'accept' | 'reject' | 'investigate';
-
-export type PendingChange = {
+export type ChatMessage = {
 	id: string;
+	role: 'system' | 'user' | 'assistant';
+	content: string;
+	suggestedActions?: Array<{label: string, action: string, payload?: any}>;
+};
+
+export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'failed';
+
+export type WorkflowTask = {
+	id: string;
+	module: MainNavKey;
 	title: string;
-	severity: 'high' | 'medium' | 'low';
-	type: 'Schema Change' | 'Distribution Drift' | 'New Field' | 'Semantic Drift';
-	target: string;
+	description: string;
+	status: TaskStatus;
+	requiresUserConfirmation?: boolean;
 };
 
-export type DecisionRecord = {
-	changeId: string;
-	decision: DecisionType;
-	at: string;
+// --- Watchmen Business Models ---
+
+export type DataSourceType = 'mysql' | 'oracle' | 'mongodb' | 'mssql' | 'postgresql' | 'snowflake' | 'oss' | 's3' | 'adls';
+
+export type DataSource = {
+	dataSourceId: string;
+	dataSourceCode: string;
+	dataSourceType: DataSourceType;
+	host?: string;
+	port?: string;
+	username?: string;
+	name: string;
+	url?: string;
 };
 
-export type NavItem = {key: MainNavKey; label: string};
+export type TopicKind = 'system' | 'business' | 'synonym';
+export type TopicType = 'raw' | 'meta' | 'distinct' | 'aggregate' | 'time' | 'ratio';
 
-export type Incident = {
-	id: string;
+export type Factor = {
+	factorId: string;
+	name: string;
+	label?: string;
 	type: string;
-	impact: string;
-	affected: string[];
-	rootCause: string;
-	suggestedActions: string[];
 };
 
-export type ActionItem = {
-	trigger: string;
-	actions: string[];
+export type Topic = {
+	topicId: string;
+	name: string;
+	type: TopicType;
+	kind: TopicKind;
+	dataSourceId?: string;
+	factors: Factor[];
+	description?: string;
+};
+
+export type PipelineTriggerType = 'insert' | 'merge' | 'insert-or-merge' | 'delete';
+
+export type Pipeline = {
+	pipelineId: string;
+	topicId: string; // source topic
+	name: string;
+	type: PipelineTriggerType;
+	enabled: boolean;
+	validated: boolean;
 };
 
 export type AppState = {
 	main: MainNavKey;
-	perception: PerceptionView;
-	decisions: Array<DecisionRecord>;
+	chatHistory: Array<ChatMessage>;
+	activeWorkflow: Array<WorkflowTask>;
+	isChatting: boolean;
+	// Business Data
+	dataSources: DataSource[];
+	topics: Topic[];
+	pipelines: Pipeline[];
 };

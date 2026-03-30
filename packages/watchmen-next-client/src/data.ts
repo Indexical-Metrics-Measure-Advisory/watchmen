@@ -1,50 +1,71 @@
-import {ActionItem, AppState, Incident, NavItem, PendingChange} from './types';
+import {AppState, MainNavKey, DataSource, Topic, Pipeline} from './types';
 
-export const mainNav: Array<NavItem> = [
-	{key: 'overview', label: 'Overview'},
-	{key: 'sources', label: 'Sources'},
-	{key: 'topics', label: 'Topics / Tables'},
-	{key: 'perception', label: 'Perception'},
-	{key: 'rules', label: 'Rules & Semantics'},
-	{key: 'incidents', label: 'Incidents'},
-	{key: 'actions', label: 'Actions'},
-	{key: 'settings', label: 'Settings'}
+export const mainNav: Array<{key: MainNavKey; label: string}> = [
+	{key: 'ingest', label: '1. Ingest (采集)'},
+	{key: 'transform', label: '2. Transform (转换)'},
+	{key: 'model', label: '3. Model (建模)'},
+	{key: 'govern', label: '4. Govern (治理)'},
+	{key: 'perceive', label: '5. Perceive (感知)'},
+	{key: 'feedback', label: '6. Feedback (反馈)'},
+	{key: 'settings', label: 'Settings (设置)'}
 ];
 
-export const pendingChanges: Array<PendingChange> = [
-	{id: 'c1', title: 'Schema Change', type: 'Schema Change', target: 'policy_raw', severity: 'high'},
-	{id: 'c2', title: 'Premium Distribution Drift', type: 'Distribution Drift', target: 'premium', severity: 'high'},
-	{id: 'c3', title: 'New Field: currency', type: 'New Field', target: 'policy_raw', severity: 'medium'},
-	{id: 'c4', title: 'premium 语义疑似变化', type: 'Semantic Drift', target: 'Policy', severity: 'high'}
+export const initialDataSources: DataSource[] = [
+	{dataSourceId: 'ds-1', dataSourceCode: 'mysql_sales', dataSourceType: 'mysql', host: '192.168.1.10', name: 'Sales Production DB'}
 ];
 
-export const incidentData: Array<Incident> = [
+export const initialTopics: Topic[] = [
 	{
-		id: '#1024',
-		type: 'Schema Drift',
-		impact: 'High',
-		affected: ['policy table', 'premium metric'],
-		rootCause: 'Upstream API changed',
-		suggestedActions: ['Update schema', 'Fix mapping']
-	},
-	{
-		id: '#1025',
-		type: 'Statistical Drift',
-		impact: 'Medium',
-		affected: ['premium null ratio', 'p95'],
-		rootCause: 'Batch job missing value fill',
-		suggestedActions: ['Run backfill', 'Enable null-guard rule']
+		topicId: 't-1',
+		name: 'sales_order_raw',
+		type: 'raw',
+		kind: 'business',
+		dataSourceId: 'ds-1',
+		factors: [
+			{factorId: 'f-1', name: 'order_id', label: 'Order ID', type: 'text'},
+			{factorId: 'f-2', name: 'amount', label: 'Amount', type: 'number'},
+			{factorId: 'f-3', name: 'customer_id', label: 'Customer ID', type: 'text'}
+		],
+		description: 'Raw sales order data from MySQL'
 	}
 ];
 
-export const actionsData: Array<ActionItem> = [
-	{trigger: 'Schema Change Detected', actions: ['Notify Slack', 'Create Jira']},
-	{trigger: 'Semantic Drift Confirmed', actions: ['Trigger impact analysis', 'Update semantic definition']},
-	{trigger: 'Ingestion Drop > 30%', actions: ['Run backfill', 'Block pipeline']}
+export const initialPipelines: Pipeline[] = [
+	{
+		pipelineId: 'p-1',
+		topicId: 't-1',
+		name: 'sync_sales_order_to_dw',
+		type: 'insert-or-merge',
+		enabled: true,
+		validated: true
+	}
+];
+
+export const initialChat = [
+	{
+		id: 'msg-1',
+		role: 'assistant',
+		content: '你好，我是 Watchmen Copilot。我发现你已经连接了 "Sales Production DB" 数据源。',
+		suggestedActions: [
+			{label: '从 sales_order_raw 自动生成转换管道', action: 'GENERATE_PIPELINE', payload: {topicId: 't-1'}},
+			{label: '检查当前数据质量规则', action: 'CHECK_QUALITY'}
+		]
+	}
+];
+
+export const initialWorkflow = [
+	{id: 'wf-1', module: 'ingest', title: 'Source connected', description: 'Sales Production DB (MySQL)', status: 'completed'},
+	{id: 'wf-2', module: 'model', title: 'Topic defined', description: 'sales_order_raw (Raw Topic)', status: 'completed'},
+	{id: 'wf-3', module: 'transform', title: 'Sync Pipeline', description: 'sync_sales_order_to_dw', status: 'in_progress'},
+	{id: 'wf-4', module: 'govern', title: 'Pending Rules', description: 'Waiting for pipeline completion', status: 'pending'}
 ];
 
 export const createInitialState = (): AppState => ({
-	main: 'perception',
-	perception: 'overview',
-	decisions: []
+	main: 'ingest',
+	chatHistory: initialChat as any,
+	activeWorkflow: initialWorkflow as any,
+	isChatting: false,
+	dataSources: initialDataSources,
+	topics: initialTopics,
+	pipelines: initialPipelines
 });

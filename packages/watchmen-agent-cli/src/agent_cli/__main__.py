@@ -1,3 +1,3 @@
-from agent_cli.main import run
+from agent_cli.cli import run
 
 run()
