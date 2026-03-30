@@ -91,6 +91,74 @@ When pulling entities, the CLI should automatically resolve and sync dependencie
 - Recommended label style: concise business phrase, consistent terminology, and clear domain meaning (for example, `customer_id` → `Customer ID`, `total_premium_sum` → `Total Premium Amount`).
 - For factors with enumerated values (like `gender`, `status`, `type`), set the `enumId` field to reference an existing enum code table. Use `agent-cli enum pull` to fetch the enum and `agent-cli enum push-file` to sync enum definitions.
 
+## Topic Reference (Source of Truth)
+- Reference file: `packages/watchmen-model/src/watchmen_model/admin/topic.py`
+- Use this file as the canonical definition for topic enums, topic fields, and topic-type helper logic when generating or validating topic YAML.
+
+### Topic Code Tables
+- `TopicKind`:
+  - `system`: technical/system integration topic.
+  - `business`: business-domain topic, recommended default for newly created topics.
+  - `synonym`: synonym topic kind.
+- `TopicType`:
+  - `raw`: raw/original event topic.
+  - `meta`: metadata topic.
+  - `distinct`: standard distinct-entity topic.
+  - `aggregate`: aggregation topic.
+  - `time`: time-based aggregation topic.
+  - `ratio`: ratio/computed aggregation topic.
+
+### Topic Model Definition
+- `topicId`: unique topic identifier.
+- `name`: topic name.
+- `type`: topic type, default is `distinct`.
+- `kind`: topic kind, default is `business`.
+- `dataSourceId`: bound data source identifier.
+- `factors`: factor list for the topic schema.
+- `description`: topic description.
+
+### Helper Rules in Model
+- `is_raw_topic(topic)`: true when `topic.type == raw`.
+- `is_aggregation_topic(topic)`: true when `topic.type` is one of `aggregate`, `ratio`, `time`.
+
+## Pipeline Reference (Source of Truth)
+- Reference file: `packages/watchmen-model/src/watchmen_model/admin/pipeline.py`
+- Use this file as the canonical definition for pipeline trigger types, pipeline structure (`stages -> units -> do`), and supported action type families.
+
+### Pipeline Trigger Types
+- `insert`: trigger on source topic insert events.
+- `merge`: trigger on source topic merge events.
+- `insert-or-merge`: trigger on both insert and merge semantics.
+- `delete`: trigger on source topic delete events.
+
+### Pipeline Model Definition
+- `pipelineId`: unique pipeline identifier.
+- `topicId`: source topic identifier (pipeline listens to this topic).
+- `name`: pipeline name.
+- `type`: pipeline trigger type.
+- `stages`: stage list.
+- `enabled`: whether pipeline is active.
+- `validated`: whether pipeline has been validated.
+
+### Nested Structure Definition
+- `PipelineStage`:
+  - `stageId`: stage identifier.
+  - `name`: stage name.
+  - `units`: unit list in current stage.
+  - `on`: optional condition block inherited from `Conditional`.
+- `PipelineUnit`:
+  - `unitId`: unit identifier.
+  - `name`: unit name.
+  - `loopVariableName`: optional loop variable for iterative processing.
+  - `do`: action list executed by this unit.
+  - `on`: optional condition block inherited from `Conditional`.
+
+### Action Type Families
+- System actions: `alarm`, `copy-to-memory`, `write-to-external`.
+- Read actions: `read-row`, `read-factor`, `exists`, `read-rows`, `read-factors`.
+- Write actions: `merge-row`, `insert-row`, `insert-or-merge-row`, `write-factor`.
+- Delete actions: `delete-row`, `delete-rows`.
+
 ## Examples
 - Initialize:
   - `agent-cli init --vault myvault --host http://localhost:8000 --pat <TOKEN>`
