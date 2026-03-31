@@ -3,9 +3,7 @@ import {mainNav} from './data';
 import {bindAppEvents, renderAppShell} from './layout/app-shell';
 
 export const mountWatchmenUI = (container: HTMLElement) => {
-	const store = createStore({
-		mainNav
-	});
+	const store = createStore({mainNav});
 
 	const render = () => {
 		renderAppShell(container, store);

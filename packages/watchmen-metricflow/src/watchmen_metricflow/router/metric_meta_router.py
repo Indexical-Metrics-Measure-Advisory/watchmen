@@ -1,5 +1,6 @@
+import yaml
 from fastapi import APIRouter
-from fastapi import Depends, Body
+from fastapi import Depends, Body, Request, Response
 from typing import List, Optional
 
 from watchmen_auth import PrincipalService
@@ -47,6 +48,64 @@ async def get_metric_by_name(
         return metric
     
     return trans_readonly(metric_service, action)
+
+
+@router.get('/metricflow/metric/name/yaml', tags=['CONSOLE', 'ADMIN'], response_class=Response)
+async def get_metric_yaml_by_name(
+        metric_name: Optional[str],
+        principal_service: PrincipalService = Depends(get_console_principal)
+) -> Response:
+    if is_blank(metric_name):
+        raise_400('Metric name is required.')
+
+    metric_service = get_metric_service(principal_service)
+
+    def action() -> Metric:
+        tenant_id: TenantId = principal_service.get_tenant_id()
+        metric = metric_service.find_by_name(metric_name, tenant_id)
+        if metric is None:
+            raise_404()
+        return metric
+
+    metric = trans_readonly(metric_service, action)
+    yaml_str = yaml.dump(metric.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=yaml_str, media_type='application/x-yaml')
+
+
+@router.post('/metricflow/metric/yaml', tags=['ADMIN'], response_class=Response)
+async def save_metric_yaml(
+        request: Request,
+        principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Response:
+    yaml_bytes = await request.body()
+    yaml_str = yaml_bytes.decode('utf-8')
+    try:
+        metric_dict = yaml.safe_load(yaml_str)
+        metric = MetricWithCategory.model_validate(metric_dict)
+    except Exception as e:
+        raise_400(f'Invalid YAML: {str(e)}')
+
+    if is_blank(metric.name):
+        raise_400('Metric name is required.')
+
+    metric.tenantId = principal_service.get_tenant_id()
+    metric_service = get_metric_service(principal_service)
+
+    def action() -> Metric:
+        existing_metric = metric_service.find_by_name(metric.name, metric.tenantId)
+        if existing_metric is None:
+            if is_blank(metric.id):
+                metric.id = str(metric_service.snowflakeGenerator.next_id())
+            metric_result = metric_service.create(metric)
+        else:
+            metric.id = existing_metric.id
+            metric_result = metric_service.update(metric)
+        metric_config_cache.remove(metric.tenantId)
+        return metric_result
+
+    saved_metric = trans(metric_service, action)
+    saved_yaml_str = yaml.dump(saved_metric.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=saved_yaml_str, media_type='application/x-yaml')
 
 
 

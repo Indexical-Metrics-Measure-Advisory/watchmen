@@ -1,28 +1,45 @@
-import {renderChatPanel} from '../components/chat-panel';
+import {renderAgentPanel} from '../components/chat-panel';
 import {renderMainContent} from '../routes/main-content';
 import {Store} from '../state/store';
 import {MainNavKey} from '../types';
 import {style} from '../styles';
 
 export const renderAppShell = (container: HTMLElement, store: Store) => {
+	const pendingCount = store.state.perceiveScenarios.filter(s => s.status === 'pending').length;
+
 	container.innerHTML = `
 <style>${style}</style>
 <div class="wm-shell">
-	<aside class="wm-nav">
-		<div class="wm-logo">Watchmen Copilot</div>
-		<div class="wm-subtitle">Agent-driven Data Engineering</div>
-		<div class="wm-menu">
-			${store.data.mainNav.map(item => `<div class="wm-menu-item ${item.key === store.state.main ? 'active' : ''}" data-nav="${item.key}">${item.label}</div>`).join('')}
+	<aside class="wm-sidebar">
+		<div class="wm-sidebar-head">
+			<div class="wm-sidebar-logo">W</div>
+			<div class="wm-sidebar-brand">
+				<div class="wm-sidebar-brand-title">Watchmen</div>
+				<div class="wm-sidebar-brand-sub">Perceive Studio</div>
+			</div>
 		</div>
+		<nav class="wm-nav-items">
+			${store.data.mainNav.map(item => `
+				<button class="wm-nav-item${item.key === store.state.main ? ' active' : ''}" data-nav="${item.key}">
+					<span class="wm-nav-icon">${item.icon}</span>
+					<span class="wm-nav-label">${item.label}</span>
+					${item.key === 'perceive' && pendingCount > 0 ? `<span class="wm-nav-badge">${pendingCount}</span>` : ''}
+				</button>
+			`).join('')}
+		</nav>
+		<div class="wm-sidebar-foot">Agent-driven Data Engineering</div>
 	</aside>
-	<main class="wm-main">
-		<section class="wm-content">${renderMainContent(store)}</section>
-		<aside class="wm-side">${renderChatPanel(store)}</aside>
+	<main class="wm-main-content">
+		<div class="wm-scroll-area">
+			${renderMainContent(store)}
+			${renderAgentPanel(store)}
+		</div>
 	</main>
 </div>`;
 };
 
 export const bindAppEvents = (container: HTMLElement, rerender: () => void, store: Store) => {
+	// Nav click
 	container.querySelectorAll<HTMLElement>('[data-nav]').forEach(node => {
 		node.onclick = () => {
 			store.setMainNav(node.dataset.nav as MainNavKey);
@@ -30,24 +47,85 @@ export const bindAppEvents = (container: HTMLElement, rerender: () => void, stor
 		};
 	});
 
-	// Chat Input Handling
-	const chatInput = container.querySelector<HTMLInputElement>('#chat-input');
-	const chatSend = container.querySelector<HTMLButtonElement>('#chat-send');
+	// Event filter tabs
+	container.querySelectorAll<HTMLElement>('[data-filter]').forEach(node => {
+		node.onclick = () => {
+			store.setEventFilter(node.dataset.filter as any);
+			rerender();
+		};
+	});
 
-	const handleSend = () => {
-		if (chatInput && chatInput.value.trim()) {
+	// Scenario selection (click on event item)
+	container.querySelectorAll<HTMLElement>('[data-scenario-id]').forEach(node => {
+		node.onclick = () => {
+			store.selectScenario(node.dataset.scenarioId!);
+			rerender();
+		};
+	});
+
+	// Approve / Reject actions
+	container.querySelectorAll<HTMLButtonElement>('[data-action]').forEach(node => {
+		node.onclick = () => {
+			const action = node.dataset.action;
+			const scenarioId = node.dataset.id;
+			if (!scenarioId) return;
+
+			const nextStatus = action === 'approve' ? 'approved' : 'rejected';
+			store.setPerceiveScenarioStatus(scenarioId, nextStatus);
+
+			// Add agent log
+			store.addAgentLog({
+				id: 'log-' + Date.now(),
+				timestamp: new Date().toLocaleString('zh-CN', {hour12: false}),
+				action: 'user_action',
+				scenarioId,
+				content: action === 'approve' ? '用户确认采纳建议变更' : '用户拒绝建议变更，保持当前配置'
+			});
+
+			store.addChatMessage({
+				id: 'msg-' + Date.now(),
+				role: 'assistant',
+				content: action === 'approve'
+					? '✅ 变更已确认，系统将按照 Agent 建议执行。'
+					: '❌ 变更已拒绝，当前配置保持不变。'
+			});
+
+			rerender();
+		};
+	});
+
+	// Agent panel toggle
+	const agentHeader = container.querySelector<HTMLElement>('.wm-agent-header');
+	if (agentHeader) {
+		agentHeader.onclick = () => {
+			const body = container.querySelector<HTMLElement>('.wm-agent-body');
+			const toggle = container.querySelector<HTMLElement>('.wm-agent-toggle');
+			if (body) body.classList.toggle('collapsed');
+			if (toggle) toggle.classList.toggle('collapsed');
+		};
+	}
+
+	// Agent input handling
+	const agentInput = container.querySelector<HTMLInputElement>('.wm-agent-input');
+	const agentSend = container.querySelector<HTMLButtonElement>('.wm-agent-send');
+
+	const handleAgentSend = () => {
+		if (agentInput && agentInput.value.trim()) {
 			store.addChatMessage({
 				id: 'msg-' + Date.now(),
 				role: 'user',
-				content: chatInput.value.trim()
+				content: agentInput.value.trim()
 			});
+
+			const userMsg = agentInput.value.trim();
+			agentInput.value = '';
+
 			// Mock AI response
 			setTimeout(() => {
 				store.addChatMessage({
 					id: 'msg-' + (Date.now() + 1),
 					role: 'assistant',
-					content: '收到你的请求。我已经准备好了相关配置，请在左侧主视图中确认并执行。',
-					suggestedActions: [{label: '确认并执行', action: 'CONFIRM_EXECUTE'}]
+					content: `收到。我会处理你的请求：「${userMsg}」，请在感知事件面板中查看后续更新。`
 				});
 				rerender();
 			}, 600);
@@ -55,16 +133,14 @@ export const bindAppEvents = (container: HTMLElement, rerender: () => void, stor
 		}
 	};
 
-	if (chatSend) {
-		chatSend.onclick = handleSend;
-	}
-	if (chatInput) {
-		chatInput.onkeypress = (e) => {
-			if (e.key === 'Enter') handleSend();
+	if (agentSend) agentSend.onclick = handleAgentSend;
+	if (agentInput) {
+		agentInput.onkeypress = (e) => {
+			if (e.key === 'Enter') handleAgentSend();
 		};
 	}
 
-	// Suggested Actions Handling
+	// Suggested Actions
 	container.querySelectorAll<HTMLButtonElement>('[data-chat-action]').forEach(node => {
 		node.onclick = () => {
 			const action = node.dataset.chatAction;
@@ -74,33 +150,25 @@ export const bindAppEvents = (container: HTMLElement, rerender: () => void, stor
 				content: `> 执行动作: ${node.textContent}`
 			});
 
-			if (action === 'GENERATE_PIPELINE') {
+			if (action === 'VIEW_PENDING') {
+				store.setMainNav('perceive');
+				store.setEventFilter('pending');
+				const firstPending = store.state.perceiveScenarios.find(s => s.status === 'pending');
+				if (firstPending) store.selectScenario(firstPending.id);
 				setTimeout(() => {
 					store.addChatMessage({
 						id: 'msg-' + (Date.now() + 1),
 						role: 'assistant',
-						content: '已根据 Topic "sales_order_raw" 生成 Pipeline "sync_sales_order_to_dw"。我已经将其加入工作流，请切换到 Transform 模块查看详情。'
-					});
-					// Update workflow status
-					const task = store.state.activeWorkflow.find(t => t.id === 'wf-3');
-					if (task) task.status = 'completed';
-					rerender();
-				}, 800);
-			} else if (action === 'START_INGEST') {
-				setTimeout(() => {
-					store.addChatMessage({
-						id: 'msg-' + (Date.now() + 1),
-						role: 'assistant',
-						content: '正在启动新的数据采集任务。请提供数据库连接详情（Host, Port, Username）。'
+						content: '已切换到待确认事件列表，请在主面板中查看并处理。'
 					});
 					rerender();
-				}, 500);
+				}, 300);
 			} else {
 				setTimeout(() => {
 					store.addChatMessage({
 						id: 'msg-' + (Date.now() + 1),
 						role: 'assistant',
-						content: `已启动流程: ${action}。请在左侧主面板查看进度。`
+						content: `已启动流程: ${action}。请在面板中查看进度。`
 					});
 					rerender();
 				}, 500);

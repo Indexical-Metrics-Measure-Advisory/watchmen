@@ -1,9 +1,9 @@
 export type MainNavKey =
+	| 'perceive'
 	| 'ingest'
 	| 'transform'
 	| 'model'
 	| 'govern'
-	| 'perceive'
 	| 'feedback'
 	| 'settings';
 
@@ -64,12 +64,57 @@ export type PipelineTriggerType = 'insert' | 'merge' | 'insert-or-merge' | 'dele
 
 export type Pipeline = {
 	pipelineId: string;
-	topicId: string; // source topic
+	topicId: string;
 	name: string;
 	type: PipelineTriggerType;
 	enabled: boolean;
 	validated: boolean;
 };
+
+// --- Perceive / Agent Models ---
+
+export type Severity = 'critical' | 'warning' | 'info';
+
+export type DriftMetric = {
+	label: string;
+	baseline: number;
+	current: number;
+	unit?: string;
+};
+
+export type PerceiveChangeStatus = 'pending' | 'approved' | 'rejected';
+
+export type PerceiveChangeItem = {
+	field: string;
+	baseline: string;
+	current: string;
+	impact: 'low' | 'medium' | 'high';
+};
+
+export type PerceiveScenario = {
+	id: string;
+	title: string;
+	description: string;
+	topicName: string;
+	detectedAt: string;
+	status: PerceiveChangeStatus;
+	severity: Severity;
+	confidence: number; // AI confidence 0-100
+	driftMetrics: DriftMetric[];
+	proposedChanges: PerceiveChangeItem[];
+};
+
+export type AgentLogAction = 'detected' | 'analyzed' | 'suggested' | 'user_action' | 'info';
+
+export type AgentLog = {
+	id: string;
+	timestamp: string;
+	action: AgentLogAction;
+	scenarioId?: string;
+	content: string;
+};
+
+export type EventFilter = 'all' | 'pending' | 'processed';
 
 export type AppState = {
 	main: MainNavKey;
@@ -80,4 +125,8 @@ export type AppState = {
 	dataSources: DataSource[];
 	topics: Topic[];
 	pipelines: Pipeline[];
+	perceiveScenarios: PerceiveScenario[];
+	selectedScenarioId: string | null;
+	agentLogs: AgentLog[];
+	eventFilter: EventFilter;
 };

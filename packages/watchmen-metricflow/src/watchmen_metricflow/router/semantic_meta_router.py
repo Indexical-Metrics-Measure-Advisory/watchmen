@@ -1,5 +1,6 @@
+import yaml
 from fastapi import APIRouter
-from fastapi import Depends, Body
+from fastapi import Depends, Body, Request, Response
 from typing import List, Optional
 
 from watchmen_auth import PrincipalService
@@ -105,6 +106,69 @@ async def get_semantic_model_by_name(
         return semantic_model
     
     return trans_readonly(semantic_model_service, action)
+
+
+@router.get('/metricflow/semantic-model/name/yaml', tags=['CONSOLE', 'ADMIN'], response_class=Response)
+async def get_semantic_model_yaml_by_name(
+        model_name: Optional[str],
+        principal_service: PrincipalService = Depends(get_console_principal)
+) -> Response:
+    if is_blank(model_name):
+        raise_400('Semantic model name is required.')
+
+    semantic_model_service = get_semantic_model_service(principal_service)
+
+    def action() -> SemanticModel:
+        tenant_id: TenantId = principal_service.get_tenant_id()
+        semantic_model = semantic_model_service.find_by_name(model_name, tenant_id)
+        if semantic_model is None:
+            raise_404()
+        return semantic_model
+
+    semantic_model = trans_readonly(semantic_model_service, action)
+    yaml_str = yaml.dump(semantic_model.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=yaml_str, media_type='application/x-yaml')
+
+
+@router.post('/metricflow/semantic-model/yaml', tags=['ADMIN'], response_class=Response)
+async def save_semantic_model_yaml(
+        request: Request,
+        principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Response:
+    yaml_bytes = await request.body()
+    yaml_str = yaml_bytes.decode('utf-8')
+    try:
+        semantic_model_dict = yaml.safe_load(yaml_str)
+        semantic_model = SemanticModel.model_validate(semantic_model_dict)
+    except Exception as e:
+        raise_400(f'Invalid YAML: {str(e)}')
+
+    if is_blank(semantic_model.name):
+        raise_400('Semantic model name is required.')
+
+    semantic_model.tenantId = principal_service.get_tenant_id()
+    semantic_model_service = get_semantic_model_service(principal_service)
+
+    if semantic_model.topicId and semantic_model.sourceType == SemanticModelSourceType.TOPIC:
+        node_relation = _build_node_relation_by_topic_id(semantic_model.topicId, principal_service)
+        if node_relation:
+            semantic_model.node_relation = node_relation
+
+    def action() -> SemanticModel:
+        existing_model = semantic_model_service.find_by_name(semantic_model.name, semantic_model.tenantId)
+        if existing_model is None:
+            if is_blank(semantic_model.id):
+                semantic_model.id = str(semantic_model_service.snowflakeGenerator.next_id())
+            model_result = semantic_model_service.create(semantic_model)
+        else:
+            semantic_model.id = existing_model.id
+            model_result = semantic_model_service.update(semantic_model)
+        metric_config_cache.remove(semantic_model.tenantId)
+        return model_result
+
+    saved_semantic_model = trans(semantic_model_service, action)
+    saved_yaml_str = yaml.dump(saved_semantic_model.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=saved_yaml_str, media_type='application/x-yaml')
 
 
 @router.post('/metricflow/semantic-model', tags=['ADMIN'], response_model=None)

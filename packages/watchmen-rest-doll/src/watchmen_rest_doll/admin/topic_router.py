@@ -6,7 +6,7 @@ from fastapi import APIRouter, Body, Depends, Request, Response
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
-from watchmen_data_kernel.common import ask_all_date_formats
+from watchmen_data_kernel.common import ask_all_date_formats, ask_replace_topic_to_storage, ask_sync_topic_to_storage
 from watchmen_data_kernel.service import sync_topic_structure_storage
 
 from watchmen_meta.admin import FactorService, PipelineService, TopicService, TopicSnapshotSchedulerService
@@ -25,6 +25,11 @@ from watchmen_utilities import ArrayHelper, is_blank, is_date, is_not_blank, Ext
 from .pipeline_router import ask_save_pipeline_action
 
 router = APIRouter()
+
+
+def ensure_design_environment_for_yaml_update() -> None:
+	if not ask_replace_topic_to_storage() and not ask_sync_topic_to_storage():
+		raise_400('Current environment is runtime. YAML update is allowed only in design environment.')
 
 
 def get_topic_service(principal_service: PrincipalService) -> TopicService:
@@ -246,6 +251,7 @@ async def save_topic(
 async def save_topic_yaml(
 		request: Request, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Response:
+	ensure_design_environment_for_yaml_update()
 	yaml_bytes = await request.body()
 	yaml_str = yaml_bytes.decode('utf-8')
 	try:
