@@ -13,11 +13,11 @@ const actionDotClass = (action: AgentLogAction) => {
 
 const actionLabel = (action: AgentLogAction) => {
 	switch (action) {
-		case 'detected': return '检测';
-		case 'analyzed': return '分析';
-		case 'suggested': return '建议';
-		case 'user_action': return '操作';
-		default: return '信息';
+		case 'detected': return 'Detect';
+		case 'analyzed': return 'Analyze';
+		case 'suggested': return 'Suggest';
+		case 'user_action': return 'Action';
+		default: return 'Info';
 	}
 };
 
@@ -58,8 +58,8 @@ export const renderAgentPanel = (store: Store): string => {
 			<div class="wm-agent-header">
 				<div class="wm-agent-header-left">
 					<div class="wm-agent-avatar">🤖</div>
-					<span class="wm-section-title" style="font-size:14px">Agent 活动日志</span>
-					<span style="font-size:12px;color:var(--text-tertiary)">${agentLogs.length} 条记录</span>
+					<span class="wm-section-title" style="font-size:14px">Agent Activity Log</span>
+					<span style="font-size:12px;color:var(--text-tertiary)">${agentLogs.length} records</span>
 				</div>
 				<span class="wm-agent-toggle">▾</span>
 			</div>
@@ -69,7 +69,7 @@ export const renderAgentPanel = (store: Store): string => {
 				</div>
 				${suggestionsHtml}
 				<div class="wm-agent-input-area">
-					<input type="text" class="wm-agent-input" placeholder="向 Agent 提问..." autocomplete="off">
+					<input type="text" class="wm-agent-input" placeholder="Ask the Agent..." autocomplete="off">
 					<button class="wm-agent-send">
 						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
 					</button>

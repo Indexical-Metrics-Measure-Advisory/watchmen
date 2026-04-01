@@ -11,9 +11,9 @@ const severityIcon = (s: string) => {
 
 const statusLabel = (s: string) => {
 	switch (s) {
-		case 'pending': return '<span class="wm-status-badge pending">待确认</span>';
-		case 'approved': return '<span class="wm-status-badge approved">已确认</span>';
-		case 'rejected': return '<span class="wm-status-badge rejected">已拒绝</span>';
+		case 'pending': return '<span class="wm-status-badge pending">Pending</span>';
+		case 'approved': return '<span class="wm-status-badge approved">Approved</span>';
+		case 'rejected': return '<span class="wm-status-badge rejected">Rejected</span>';
 		default: return '';
 	}
 };
@@ -37,20 +37,20 @@ export const renderEventTimeline = (store: Store): string => {
 		<div class="wm-section-card">
 			<div class="wm-section-header">
 				<div class="wm-section-title">
-					感知事件
-					${pendingCount > 0 ? `<span style="margin-left:8px;font-size:12px;font-weight:600;color:var(--orange-600)">${pendingCount} 待处理</span>` : ''}
+					Perception Events
+					${pendingCount > 0 ? `<span style="margin-left:8px;font-size:12px;font-weight:600;color:var(--orange-600)">${pendingCount} pending</span>` : ''}
 				</div>
 				<div class="wm-filter-tabs">
-					${filterHtml('all', '全部')}
-					${filterHtml('pending', '待确认')}
-					${filterHtml('processed', '已处理')}
+					${filterHtml('all', 'All')}
+					${filterHtml('pending', 'Pending')}
+					${filterHtml('processed', 'Processed')}
 				</div>
 			</div>
 			<div class="wm-event-list">
 				${filtered.length === 0 ? `
 					<div class="wm-empty-state" style="padding:40px 24px">
 						<div class="wm-empty-icon">📭</div>
-						<div class="wm-empty-text">暂无${eventFilter === 'pending' ? '待确认' : eventFilter === 'processed' ? '已处理' : ''}事件</div>
+						<div class="wm-empty-text">No ${eventFilter === 'pending' ? 'pending' : eventFilter === 'processed' ? 'processed' : ''} events</div>
 					</div>
 				` : filtered.map(s => `
 					<div class="wm-event-item${s.status === 'pending' ? ' pending-item' : ''}${selectedScenarioId === s.id ? ' selected' : ''}" data-scenario-id="${s.id}">

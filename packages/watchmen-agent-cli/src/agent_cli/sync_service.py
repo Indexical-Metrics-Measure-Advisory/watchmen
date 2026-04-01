@@ -196,17 +196,17 @@ class SyncService:
 
     def pull_one_ingest_table_config(self, table_config_id: str) -> Dict[str, Any]:
         table_yaml = self.client.get_text("/ingest/table/config/yaml", {"table_config_id": table_config_id})
-        write_yaml_entity(self.vault_path, INGEST_TABLE_CONFIG_DIR, table_yaml, "id", name_key="name")
+        write_yaml_entity(self.vault_path, INGEST_TABLE_CONFIG_DIR, table_yaml, "configId", name_key="name")
         return {"tableConfigId": table_config_id, "status": "pulled"}
 
     def pull_one_ingest_model_config(self, model_id: str) -> Dict[str, Any]:
         model_yaml = self.client.get_text("/ingest/model/config/yaml", {"model_id": model_id})
-        write_yaml_entity(self.vault_path, INGEST_MODEL_CONFIG_DIR, model_yaml, "modelId", name_key="name")
+        write_yaml_entity(self.vault_path, INGEST_MODEL_CONFIG_DIR, model_yaml, "modelId", name_key="modelName")
         return {"modelId": model_id, "status": "pulled"}
 
     def pull_one_ingest_module_config(self, module_id: str) -> Dict[str, Any]:
         module_yaml = self.client.get_text("/ingest/module/config/yaml", {"module_id": module_id})
-        write_yaml_entity(self.vault_path, INGEST_MODULE_CONFIG_DIR, module_yaml, "moduleId", name_key="name")
+        write_yaml_entity(self.vault_path, INGEST_MODULE_CONFIG_DIR, module_yaml, "moduleId", name_key="moduleName")
         return {"moduleId": module_id, "status": "pulled"}
 
     def pull_one_ingest_table_config_by_name(self, table_name: str) -> Dict[str, Any]:
@@ -216,7 +216,7 @@ class SyncService:
             raise AgentCliException(f"Ingest table config not found by name: {table_name}")
         if len(matched) > 1:
             raise AgentCliException(f"Multiple ingest table configs found by name: {table_name}")
-        return self.pull_one_ingest_table_config(str(matched[0].get("id")))
+        return self.pull_one_ingest_table_config(str(matched[0].get("configId")))
 
     def pull_one_ingest_model_config_by_name(self, model_name: str) -> Dict[str, Any]:
         configs = self.client.get_json("/ingest/config/model/all")
@@ -316,17 +316,17 @@ class SyncService:
             raise AgentCliException(f"File not found: {file_path}")
         source_yaml = file_path.read_text(encoding="utf-8")
         pushed_yaml = self.client.post_text("/ingest/table/config/yaml", source_yaml)
-        write_yaml_entity(self.vault_path, INGEST_TABLE_CONFIG_DIR, pushed_yaml, "id", name_key="name")
+        write_yaml_entity(self.vault_path, INGEST_TABLE_CONFIG_DIR, pushed_yaml, "configId", name_key="name")
         file_path.write_text(pushed_yaml, encoding="utf-8")
         pushed = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
-        return {"status": "pushed", "file": str(file_path), "id": (pushed or {}).get("id")}
+        return {"status": "pushed", "file": str(file_path), "configId": (pushed or {}).get("configId")}
 
     def push_ingest_model_config_yaml_file(self, file_path: Path) -> Dict[str, Any]:
         if not file_path.exists():
             raise AgentCliException(f"File not found: {file_path}")
         source_yaml = file_path.read_text(encoding="utf-8")
         pushed_yaml = self.client.post_text("/ingest/model/config/yaml", source_yaml)
-        write_yaml_entity(self.vault_path, INGEST_MODEL_CONFIG_DIR, pushed_yaml, "modelId", name_key="name")
+        write_yaml_entity(self.vault_path, INGEST_MODEL_CONFIG_DIR, pushed_yaml, "modelId", name_key="modelName")
         file_path.write_text(pushed_yaml, encoding="utf-8")
         pushed = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
         return {"status": "pushed", "file": str(file_path), "modelId": (pushed or {}).get("modelId")}
@@ -336,24 +336,24 @@ class SyncService:
             raise AgentCliException(f"File not found: {file_path}")
         source_yaml = file_path.read_text(encoding="utf-8")
         pushed_yaml = self.client.post_text("/ingest/module/config/yaml", source_yaml)
-        write_yaml_entity(self.vault_path, INGEST_MODULE_CONFIG_DIR, pushed_yaml, "moduleId", name_key="name")
+        write_yaml_entity(self.vault_path, INGEST_MODULE_CONFIG_DIR, pushed_yaml, "moduleId", name_key="moduleName")
         file_path.write_text(pushed_yaml, encoding="utf-8")
         pushed = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
         return {"status": "pushed", "file": str(file_path), "moduleId": (pushed or {}).get("moduleId")}
 
     def list_ingest_table_configs_from_server(self) -> Dict[str, Any]:
         configs = self.client.get_json("/ingest/config/table/all")
-        summaries = [{"id": c.get("id"), "name": c.get("name"), "modelName": c.get("modelName")} for c in configs]
+        summaries = [{"configId": c.get("configId"), "name": c.get("name"), "modelName": c.get("modelName")} for c in configs]
         return {"count": len(summaries), "tableConfigs": summaries}
 
     def list_ingest_model_configs_from_server(self) -> Dict[str, Any]:
         configs = self.client.get_json("/ingest/config/model/all")
-        summaries = [{"modelId": c.get("modelId"), "name": c.get("name")} for c in configs]
+        summaries = [{"modelId": c.get("modelId"), "modelName": c.get("modelName"), "moduleId": c.get("moduleId")} for c in configs]
         return {"count": len(summaries), "modelConfigs": summaries}
 
     def list_ingest_module_configs_from_server(self) -> Dict[str, Any]:
         configs = self.client.get_json("/ingest/config/module/all")
-        summaries = [{"moduleId": c.get("moduleId"), "name": c.get("name")} for c in configs]
+        summaries = [{"moduleId": c.get("moduleId"), "moduleName": c.get("moduleName")} for c in configs]
         return {"count": len(summaries), "moduleConfigs": summaries}
 
     def resolve_tenant_info(self) -> Dict[str, Any]:

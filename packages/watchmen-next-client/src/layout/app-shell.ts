@@ -76,18 +76,18 @@ export const bindAppEvents = (container: HTMLElement, rerender: () => void, stor
 			// Add agent log
 			store.addAgentLog({
 				id: 'log-' + Date.now(),
-				timestamp: new Date().toLocaleString('zh-CN', {hour12: false}),
+				timestamp: new Date().toLocaleString('en-US', {hour12: false}),
 				action: 'user_action',
 				scenarioId,
-				content: action === 'approve' ? '用户确认采纳建议变更' : '用户拒绝建议变更，保持当前配置'
+				content: action === 'approve' ? 'User approved suggested changes' : 'User rejected suggested changes, configuration unchanged'
 			});
 
 			store.addChatMessage({
 				id: 'msg-' + Date.now(),
 				role: 'assistant',
 				content: action === 'approve'
-					? '✅ 变更已确认，系统将按照 Agent 建议执行。'
-					: '❌ 变更已拒绝，当前配置保持不变。'
+					? '✅ Change confirmed. System will execute as recommended by the Agent.'
+					: '❌ Change rejected. Current configuration remains unchanged.'
 			});
 
 			rerender();
@@ -125,7 +125,7 @@ export const bindAppEvents = (container: HTMLElement, rerender: () => void, stor
 				store.addChatMessage({
 					id: 'msg-' + (Date.now() + 1),
 					role: 'assistant',
-					content: `收到。我会处理你的请求：「${userMsg}」，请在感知事件面板中查看后续更新。`
+					content: `Received. I'll process your request: "${userMsg}". Please check the perception events panel for updates.`
 				});
 				rerender();
 			}, 600);
@@ -147,7 +147,7 @@ export const bindAppEvents = (container: HTMLElement, rerender: () => void, stor
 			store.addChatMessage({
 				id: 'msg-' + Date.now(),
 				role: 'user',
-				content: `> 执行动作: ${node.textContent}`
+				content: `> Execute action: ${node.textContent}`
 			});
 
 			if (action === 'VIEW_PENDING') {
@@ -159,7 +159,7 @@ export const bindAppEvents = (container: HTMLElement, rerender: () => void, stor
 					store.addChatMessage({
 						id: 'msg-' + (Date.now() + 1),
 						role: 'assistant',
-						content: '已切换到待确认事件列表，请在主面板中查看并处理。'
+						content: 'Switched to pending events. Please review and process them in the main panel.'
 					});
 					rerender();
 				}, 300);
@@ -168,7 +168,7 @@ export const bindAppEvents = (container: HTMLElement, rerender: () => void, stor
 					store.addChatMessage({
 						id: 'msg-' + (Date.now() + 1),
 						role: 'assistant',
-						content: `已启动流程: ${action}。请在面板中查看进度。`
+						content: `Process started: ${action}. Please check the panel for progress.`
 					});
 					rerender();
 				}, 500);

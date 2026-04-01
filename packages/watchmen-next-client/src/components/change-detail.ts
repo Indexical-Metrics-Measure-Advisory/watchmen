@@ -3,14 +3,14 @@ import {PerceiveScenario, PerceiveChangeItem} from '../types';
 
 const severityLabel = (s: string) => {
 	switch (s) {
-		case 'critical': return '<span class="wm-detail-severity-badge critical">严重</span>';
-		case 'warning': return '<span class="wm-detail-severity-badge warning">警告</span>';
-		default: return '<span class="wm-detail-severity-badge info">信息</span>';
+		case 'critical': return '<span class="wm-detail-severity-badge critical">Critical</span>';
+		case 'warning': return '<span class="wm-detail-severity-badge warning">Warning</span>';
+		default: return '<span class="wm-detail-severity-badge info">Info</span>';
 	}
 };
 
 const impactLabel = (impact: string) => {
-	const map: Record<string, string> = {high: '高', medium: '中', low: '低'};
+	const map: Record<string, string> = {high: 'High', medium: 'Medium', low: 'Low'};
 	return map[impact] || impact;
 };
 
@@ -36,16 +36,16 @@ const renderMetricCard = (label: string, baseline: number, current: number, unit
 			</div>
 			<div class="wm-metric-bars">
 				<div class="wm-bar-row">
-					<span class="wm-bar-label">基线</span>
+					<span class="wm-bar-label">Base</span>
 					<div class="wm-bar-track"><div class="wm-bar-fill baseline" style="width:${baselineWidth}%"></div></div>
 				</div>
 				<div class="wm-bar-row">
-					<span class="wm-bar-label">当前</span>
+					<span class="wm-bar-label">Current</span>
 					<div class="wm-bar-track"><div class="wm-bar-fill current" style="width:${currentWidth}%"></div></div>
 				</div>
 			</div>
 			<div class="wm-metric-change ${isUp ? 'up' : 'down'}">
-				${isUp ? '↑' : '↓'} ${Math.abs(change)}% 变化
+				${isUp ? '↑' : '↓'} ${Math.abs(change)}% change
 			</div>
 		</div>
 	`;
@@ -72,8 +72,8 @@ export const renderChangeDetail = (store: Store): string => {
 		return `
 			<div class="wm-empty-state">
 				<div class="wm-empty-icon">🔍</div>
-				<div class="wm-empty-text">选择一个感知事件查看详情</div>
-				<div class="wm-empty-sub">点击上方事件列表中的任意事件</div>
+				<div class="wm-empty-text">Select a perception event to view details</div>
+				<div class="wm-empty-sub">Click any event from the list above</div>
 			</div>
 		`;
 	}
@@ -89,16 +89,16 @@ export const renderChangeDetail = (store: Store): string => {
 		<div class="wm-resolved-bar">
 			<span class="wm-resolved-icon">✅</span>
 			<div>
-				<div class="wm-resolved-text"><strong>已确认</strong> — 建议变更已采纳</div>
-				<div class="wm-resolved-desc">系统将按照 Agent 建议执行变更</div>
+				<div class="wm-resolved-text"><strong>Approved</strong> — Suggested changes adopted</div>
+				<div class="wm-resolved-desc">System will execute changes as recommended by the Agent</div>
 			</div>
 		</div>
 	` : isRejected ? `
 		<div class="wm-resolved-bar">
 			<span class="wm-resolved-icon">❌</span>
 			<div>
-				<div class="wm-resolved-text"><strong>已拒绝</strong> — 建议变更被忽略</div>
-				<div class="wm-resolved-desc">当前配置保持不变</div>
+				<div class="wm-resolved-text"><strong>Rejected</strong> — Suggested changes ignored</div>
+				<div class="wm-resolved-desc">Current configuration remains unchanged</div>
 			</div>
 		</div>
 	` : '';
@@ -114,21 +114,21 @@ export const renderChangeDetail = (store: Store): string => {
 				<div class="wm-detail-meta">
 					<span class="wm-detail-meta-item">📊 ${scenario.topicName}</span>
 					<span class="wm-detail-meta-item">🕐 ${scenario.detectedAt}</span>
-					<span class="wm-detail-meta-item">🤖 AI 置信度 ${scenario.confidence}%</span>
+					<span class="wm-detail-meta-item">🤖 AI Confidence ${scenario.confidence}%</span>
 				</div>
 				${resolvedHtml}
 			</div>
 
 			<div class="wm-detail-body">
 				<div>
-					<div class="wm-detail-subtitle">漂移指标</div>
+					<div class="wm-detail-subtitle">Drift Metrics</div>
 					<div class="wm-metrics-grid">
 						${scenario.driftMetrics.map(m => renderMetricCard(m.label, m.baseline, m.current, m.unit)).join('')}
 					</div>
 				</div>
 
 				<div>
-					<div class="wm-detail-subtitle">建议变更</div>
+					<div class="wm-detail-subtitle">Suggested Changes</div>
 					<div class="wm-changes-list">
 						${scenario.proposedChanges.map(renderChangeItem).join('')}
 					</div>
@@ -138,15 +138,15 @@ export const renderChangeDetail = (store: Store): string => {
 			${isPending ? `
 				<div class="wm-action-bar">
 					<div class="wm-confidence-score">
-						AI 置信度 <span class="wm-confidence-value">${scenario.confidence}%</span>
-						${scenario.confidence >= 90 ? ' — 高置信度，建议采纳' : ' — 中等置信度，建议人工复核'}
+						AI Confidence <span class="wm-confidence-value">${scenario.confidence}%</span>
+						${scenario.confidence >= 90 ? ' — High confidence, recommend approval' : ' — Medium confidence, manual review advised'}
 					</div>
 					<div class="wm-action-buttons">
 						<button class="wm-btn wm-btn-ghost" data-action="reject" data-id="${scenario.id}">
-							<span>✕</span> 拒绝
+							<span>✕</span> Reject
 						</button>
 						<button class="wm-btn wm-btn-primary" data-action="approve" data-id="${scenario.id}">
-							<span>✓</span> 确认采纳
+							<span>✓</span> Approve
 						</button>
 					</div>
 				</div>

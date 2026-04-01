@@ -2,7 +2,7 @@
 
 Watchmen Agent CLI is a tool for syncing Topics, Pipelines, and Enums between a **local vault** and the **Watchmen server**. It is designed for daily data development, configuration migration, and AI-assisted automation workflows.
 
-It also ships with a Trae Skill (`agent-cli`) that lets AI directly perform pull, push, dependency sync, and remote listing operations within a conversation.
+It also ships with a reusable Agent Skill (`agent-cli`) that lets AI directly perform pull, push, dependency sync, and remote listing operations within a conversation.
 
 ## Core Capabilities
 
@@ -23,7 +23,7 @@ cd packages/watchmen-agent-cli
 poetry install
 ```
 
-It is recommended to install the Skill (callable directly from within Trae):
+It is recommended to install the Skill (callable from skills-compatible agents):
 
 ```bash
 ./scripts/install-skill.sh
@@ -78,7 +78,7 @@ poetry run agent-cli push --target topic --vault ./my_vault
 
 ## How It Works with the Skill
 
-Once the Skill is installed, the AI in Trae will automatically select the appropriate commands and resolve dependencies:
+Once the Skill is installed, compatible agents can automatically select the appropriate commands and resolve dependencies:
 
 - When pulling a Pipeline, Topics are automatically fetched
 - When pulling a Topic, factor `enumId` references are checked and Enums are fetched accordingly
@@ -111,4 +111,3 @@ Skill definition:
 
 - CLI source: `packages/watchmen-agent-cli/src/agent_cli`
 - Skill definition: `packages/watchmen-agent-cli/skills/agent-cli/SKILL.md`
-

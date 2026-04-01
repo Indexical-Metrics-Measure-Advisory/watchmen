@@ -65,15 +65,11 @@ async def load_table_config_yaml_by_id(
                                                                         ask_snowflake_generator(),
                                                                         principal_service)
 
-    def action() -> CollectorTableConfig:
-        table_config: CollectorTableConfig = collector_table_config_service.find_config_by_id(table_config_id)
-        if table_config is None:
-            raise_404()
-        if table_config.tenantId != principal_service.get_tenant_id():
-            raise_404()
-        return table_config
-
-    table_config = trans_readonly(collector_table_config_service, action)
+    table_config: CollectorTableConfig = collector_table_config_service.find_config_by_id(table_config_id)
+    if table_config is None:
+        raise_404()
+    if table_config.tenantId != principal_service.get_tenant_id():
+        raise_404()
     yaml_str = yaml.dump(table_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
     return Response(content=yaml_str, media_type='application/x-yaml')
 
@@ -207,15 +203,11 @@ async def load_model_config_yaml_by_id(
                                                                         ask_snowflake_generator(),
                                                                         principal_service)
 
-    def action() -> CollectorModelConfig:
-        model_config: CollectorModelConfig = collector_model_config_service.find_by_model_id(model_id)
-        if model_config is None:
-            raise_404()
-        if model_config.tenantId != principal_service.get_tenant_id():
-            raise_404()
-        return model_config
-
-    model_config = trans_readonly(collector_model_config_service, action)
+    model_config: CollectorModelConfig = collector_model_config_service.find_by_model_id(model_id)
+    if model_config is None:
+        raise_404()
+    if model_config.tenantId != principal_service.get_tenant_id():
+        raise_404()
     yaml_str = yaml.dump(model_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
     return Response(content=yaml_str, media_type='application/x-yaml')
 
@@ -292,15 +284,11 @@ async def load_module_config_yaml_by_id(
                                                                           ask_snowflake_generator(),
                                                                           principal_service)
 
-    def action() -> CollectorModuleConfig:
-        module_config: CollectorModuleConfig = collector_module_config_service.find_by_module_id(module_id)
-        if module_config is None:
-            raise_404()
-        if module_config.tenantId != principal_service.get_tenant_id():
-            raise_404()
-        return module_config
-
-    module_config = trans_readonly(collector_module_config_service, action)
+    module_config: CollectorModuleConfig = collector_module_config_service.find_by_module_id(module_id)
+    if module_config is None:
+        raise_404()
+    if module_config.tenantId != principal_service.get_tenant_id():
+        raise_404()
     yaml_str = yaml.dump(module_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
     return Response(content=yaml_str, media_type='application/x-yaml')
 
@@ -798,7 +786,6 @@ async def create_raw_topic(model_name: str, principal_service: PrincipalService 
         return trans_with_tail(topic_service, lambda: action(updated_topic))
     
     return None
-
 
 
 
