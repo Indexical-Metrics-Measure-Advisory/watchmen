@@ -12,7 +12,7 @@ from agent_cli.exceptions import AgentCliException
 from agent_cli.http_client import RestClient
 from agent_cli.settings import settings
 from agent_cli.sync_service import SyncService
-from agent_cli.vault import ENUM_DIR, PIPELINE_DIR, TOPIC_DIR, ensure_vault, list_local_files, load_config, save_config
+from agent_cli.vault import ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CONFIG_DIR, INGEST_TABLE_CONFIG_DIR, PIPELINE_DIR, TOPIC_DIR, ensure_vault, list_local_files, load_config, save_config
 
 DISCOVER_COMMANDS = {
     "init": ["--vault", "--host", "--username", "--password", "--pat"],
@@ -32,6 +32,18 @@ DISCOVER_COMMANDS = {
     "enum push-file": ["file_path", "--vault"],
     "enum list": ["--vault"],
     "enum list-remote": ["--vault"],
+    "ingest table pull": ["table_name", "--vault"],
+    "ingest table push-file": ["file_path", "--vault"],
+    "ingest table list": ["--vault"],
+    "ingest table list-remote": ["--vault"],
+    "ingest model pull": ["model_name", "--all", "--vault"],
+    "ingest model push-file": ["file_path", "--vault"],
+    "ingest model list": ["--vault"],
+    "ingest model list-remote": ["--vault"],
+    "ingest module pull": ["module_name", "--all", "--vault"],
+    "ingest module push-file": ["file_path", "--vault"],
+    "ingest module list": ["--vault"],
+    "ingest module list-remote": ["--vault"],
     "tenant": ["--vault"],
     "config": ["--vault"],
     "discover": [],
@@ -69,6 +81,7 @@ def build_parser() -> argparse.ArgumentParser:
     register_topic_commands(subparsers)
     register_pipeline_commands(subparsers)
     register_enum_commands(subparsers)
+    register_ingest_commands(subparsers)
     register_tenant_command(subparsers)
     register_config_commands(subparsers)
     return parser
@@ -160,6 +173,63 @@ def handle_enum_list(args: argparse.Namespace) -> None:
 
 def handle_enum_list_remote(args: argparse.Namespace) -> None:
     run_with_sync_service(args, lambda svc: svc.list_enums_from_server())
+
+
+def handle_ingest_table_pull(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.pull_one_ingest_table_config_by_name(args.table_name))
+
+
+def handle_ingest_table_push_file(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.push_ingest_table_config_yaml_file(Path(args.file_path)))
+
+
+def handle_ingest_table_list(args: argparse.Namespace) -> None:
+    vault_path = settings.resolved_vault(args.vault)
+    print_entity_file_list(vault_path, INGEST_TABLE_CONFIG_DIR)
+
+
+def handle_ingest_table_list_remote(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.list_ingest_table_configs_from_server())
+
+
+def handle_ingest_model_pull(args: argparse.Namespace) -> None:
+    if args.all:
+        run_with_sync_service(args, lambda svc: svc.pull_ingest_model_with_children_by_name(args.model_name))
+    else:
+        run_with_sync_service(args, lambda svc: svc.pull_one_ingest_model_config_by_name(args.model_name))
+
+
+def handle_ingest_model_push_file(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.push_ingest_model_config_yaml_file(Path(args.file_path)))
+
+
+def handle_ingest_model_list(args: argparse.Namespace) -> None:
+    vault_path = settings.resolved_vault(args.vault)
+    print_entity_file_list(vault_path, INGEST_MODEL_CONFIG_DIR)
+
+
+def handle_ingest_model_list_remote(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.list_ingest_model_configs_from_server())
+
+
+def handle_ingest_module_pull(args: argparse.Namespace) -> None:
+    if args.all:
+        run_with_sync_service(args, lambda svc: svc.pull_ingest_module_with_children_by_name(args.module_name))
+    else:
+        run_with_sync_service(args, lambda svc: svc.pull_one_ingest_module_config_by_name(args.module_name))
+
+
+def handle_ingest_module_push_file(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.push_ingest_module_config_yaml_file(Path(args.file_path)))
+
+
+def handle_ingest_module_list(args: argparse.Namespace) -> None:
+    vault_path = settings.resolved_vault(args.vault)
+    print_entity_file_list(vault_path, INGEST_MODULE_CONFIG_DIR)
+
+
+def handle_ingest_module_list_remote(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.list_ingest_module_configs_from_server())
 
 
 def handle_tenant_info(args: argparse.Namespace) -> None:
@@ -315,6 +385,76 @@ def register_enum_commands(subparsers: argparse._SubParsersAction) -> None:
     enum_list_remote = create_subparser(enum_sub, "list-remote", "List all enums available on the server")
     add_vault_arg(enum_list_remote)
     enum_list_remote.set_defaults(handler=handle_enum_list_remote)
+
+
+def register_ingest_commands(subparsers: argparse._SubParsersAction) -> None:
+    ingest_parser = create_subparser(subparsers, "ingest", "Ingest config YAML commands")
+    ingest_sub = ingest_parser.add_subparsers(dest="ingest_cmd", required=True)
+
+    table_parser = create_subparser(ingest_sub, "table", "Collector table config commands")
+    table_sub = table_parser.add_subparsers(dest="ingest_table_cmd", required=True)
+
+    table_pull = create_subparser(table_sub, "pull", "Pull a table config YAML by id")
+    table_pull.add_argument("table_name")
+    add_vault_arg(table_pull)
+    table_pull.set_defaults(handler=handle_ingest_table_pull)
+
+    table_push_file = create_subparser(table_sub, "push-file", "Push a local table config YAML file")
+    table_push_file.add_argument("file_path", help="Path to the local .yml or .yaml file")
+    add_vault_arg(table_push_file)
+    table_push_file.set_defaults(handler=handle_ingest_table_push_file)
+
+    table_list = create_subparser(table_sub, "list", "List local table config files")
+    add_vault_arg(table_list)
+    table_list.set_defaults(handler=handle_ingest_table_list)
+
+    table_list_remote = create_subparser(table_sub, "list-remote", "List all table configs on server")
+    add_vault_arg(table_list_remote)
+    table_list_remote.set_defaults(handler=handle_ingest_table_list_remote)
+
+    model_parser = create_subparser(ingest_sub, "model", "Collector model config commands")
+    model_sub = model_parser.add_subparsers(dest="ingest_model_cmd", required=True)
+
+    model_pull = create_subparser(model_sub, "pull", "Pull a model config YAML by model name")
+    model_pull.add_argument("model_name")
+    model_pull.add_argument("--all", action="store_true", help="Also pull related module and table configs")
+    add_vault_arg(model_pull)
+    model_pull.set_defaults(handler=handle_ingest_model_pull)
+
+    model_push_file = create_subparser(model_sub, "push-file", "Push a local model config YAML file")
+    model_push_file.add_argument("file_path", help="Path to the local .yml or .yaml file")
+    add_vault_arg(model_push_file)
+    model_push_file.set_defaults(handler=handle_ingest_model_push_file)
+
+    model_list = create_subparser(model_sub, "list", "List local model config files")
+    add_vault_arg(model_list)
+    model_list.set_defaults(handler=handle_ingest_model_list)
+
+    model_list_remote = create_subparser(model_sub, "list-remote", "List all model configs on server")
+    add_vault_arg(model_list_remote)
+    model_list_remote.set_defaults(handler=handle_ingest_model_list_remote)
+
+    module_parser = create_subparser(ingest_sub, "module", "Collector module config commands")
+    module_sub = module_parser.add_subparsers(dest="ingest_module_cmd", required=True)
+
+    module_pull = create_subparser(module_sub, "pull", "Pull a module config YAML by module name")
+    module_pull.add_argument("module_name")
+    module_pull.add_argument("--all", action="store_true", help="Also pull related model and table configs")
+    add_vault_arg(module_pull)
+    module_pull.set_defaults(handler=handle_ingest_module_pull)
+
+    module_push_file = create_subparser(module_sub, "push-file", "Push a local module config YAML file")
+    module_push_file.add_argument("file_path", help="Path to the local .yml or .yaml file")
+    add_vault_arg(module_push_file)
+    module_push_file.set_defaults(handler=handle_ingest_module_push_file)
+
+    module_list = create_subparser(module_sub, "list", "List local module config files")
+    add_vault_arg(module_list)
+    module_list.set_defaults(handler=handle_ingest_module_list)
+
+    module_list_remote = create_subparser(module_sub, "list-remote", "List all module configs on server")
+    add_vault_arg(module_list_remote)
+    module_list_remote.set_defaults(handler=handle_ingest_module_list_remote)
 
 
 def register_tenant_command(subparsers: argparse._SubParsersAction) -> None:

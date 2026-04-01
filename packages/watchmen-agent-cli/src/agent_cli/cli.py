@@ -15,6 +15,18 @@ from agent_cli.main import (
     handle_enum_pull,
     handle_enum_pull_name,
     handle_enum_push_file,
+    handle_ingest_model_list,
+    handle_ingest_model_list_remote,
+    handle_ingest_model_pull,
+    handle_ingest_model_push_file,
+    handle_ingest_module_list,
+    handle_ingest_module_list_remote,
+    handle_ingest_module_pull,
+    handle_ingest_module_push_file,
+    handle_ingest_table_list,
+    handle_ingest_table_list_remote,
+    handle_ingest_table_pull,
+    handle_ingest_table_push_file,
     handle_init,
     handle_pipeline_list,
     handle_pipeline_list_remote,
@@ -35,9 +47,17 @@ app = typer.Typer(help="Watchmen Topic/Pipeline sync CLI powered by Typer")
 topic_app = typer.Typer(help="Fine-grained topic commands")
 pipeline_app = typer.Typer(help="Fine-grained pipeline commands")
 enum_app = typer.Typer(help="Fine-grained enum commands")
+ingest_app = typer.Typer(help="Ingest config YAML commands")
+ingest_table_app = typer.Typer(help="Collector table config commands")
+ingest_model_app = typer.Typer(help="Collector model config commands")
+ingest_module_app = typer.Typer(help="Collector module config commands")
 app.add_typer(topic_app, name="topic")
 app.add_typer(pipeline_app, name="pipeline")
 app.add_typer(enum_app, name="enum")
+app.add_typer(ingest_app, name="ingest")
+ingest_app.add_typer(ingest_table_app, name="table")
+ingest_app.add_typer(ingest_model_app, name="model")
+ingest_app.add_typer(ingest_module_app, name="module")
 
 
 def _namespace(**kwargs) -> Namespace:
@@ -241,6 +261,109 @@ def enum_list_remote_command(
     _run_with_guard(ctx, lambda: handle_enum_list_remote(_namespace(vault=vault)))
 
 
+@ingest_table_app.command("pull")
+def ingest_table_pull_command(
+    ctx: typer.Context,
+    table_name: str,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ingest_table_pull(_namespace(table_name=table_name, vault=vault)))
+
+
+@ingest_table_app.command("push-file")
+def ingest_table_push_file_command(
+    ctx: typer.Context,
+    file_path: str,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ingest_table_push_file(_namespace(file_path=file_path, vault=vault)))
+
+
+@ingest_table_app.command("list")
+def ingest_table_list_command(
+    ctx: typer.Context,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ingest_table_list(_namespace(vault=vault)))
+
+
+@ingest_table_app.command("list-remote")
+def ingest_table_list_remote_command(
+    ctx: typer.Context,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ingest_table_list_remote(_namespace(vault=vault)))
+
+
+@ingest_model_app.command("pull")
+def ingest_model_pull_command(
+    ctx: typer.Context,
+    model_name: str,
+    all: bool = typer.Option(False, "--all"),
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ingest_model_pull(_namespace(model_name=model_name, all=all, vault=vault)))
+
+
+@ingest_model_app.command("push-file")
+def ingest_model_push_file_command(
+    ctx: typer.Context,
+    file_path: str,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ingest_model_push_file(_namespace(file_path=file_path, vault=vault)))
+
+
+@ingest_model_app.command("list")
+def ingest_model_list_command(
+    ctx: typer.Context,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ingest_model_list(_namespace(vault=vault)))
+
+
+@ingest_model_app.command("list-remote")
+def ingest_model_list_remote_command(
+    ctx: typer.Context,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ingest_model_list_remote(_namespace(vault=vault)))
+
+
+@ingest_module_app.command("pull")
+def ingest_module_pull_command(
+    ctx: typer.Context,
+    module_name: str,
+    all: bool = typer.Option(False, "--all"),
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ingest_module_pull(_namespace(module_name=module_name, all=all, vault=vault)))
+
+
+@ingest_module_app.command("push-file")
+def ingest_module_push_file_command(
+    ctx: typer.Context,
+    file_path: str,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ingest_module_push_file(_namespace(file_path=file_path, vault=vault)))
+
+
+@ingest_module_app.command("list")
+def ingest_module_list_command(
+    ctx: typer.Context,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ingest_module_list(_namespace(vault=vault)))
+
+
+@ingest_module_app.command("list-remote")
+def ingest_module_list_remote_command(
+    ctx: typer.Context,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ingest_module_list_remote(_namespace(vault=vault)))
+
+
 def run() -> None:
     app(prog_name="agent-cli")
-

@@ -12,6 +12,9 @@ CONFIG_FILE = "config.json"
 TOPIC_DIR = "topics"
 PIPELINE_DIR = "pipelines"
 ENUM_DIR = "enums"
+INGEST_TABLE_CONFIG_DIR = "ingest-table-configs"
+INGEST_MODEL_CONFIG_DIR = "ingest-model-configs"
+INGEST_MODULE_CONFIG_DIR = "ingest-module-configs"
 
 
 def ensure_vault(vault_path: Path) -> None:
@@ -20,6 +23,9 @@ def ensure_vault(vault_path: Path) -> None:
     (vault_path / TOPIC_DIR).mkdir(parents=True, exist_ok=True)
     (vault_path / PIPELINE_DIR).mkdir(parents=True, exist_ok=True)
     (vault_path / ENUM_DIR).mkdir(parents=True, exist_ok=True)
+    (vault_path / INGEST_TABLE_CONFIG_DIR).mkdir(parents=True, exist_ok=True)
+    (vault_path / INGEST_MODEL_CONFIG_DIR).mkdir(parents=True, exist_ok=True)
+    (vault_path / INGEST_MODULE_CONFIG_DIR).mkdir(parents=True, exist_ok=True)
 
 
 def config_path(vault_path: Path) -> Path:
