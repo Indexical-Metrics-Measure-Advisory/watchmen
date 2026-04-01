@@ -1,10 +1,12 @@
 from typing import Callable, Optional, Dict, List
 
-from fastapi import APIRouter, Depends, Body
+import yaml
+from fastapi import APIRouter, Depends, Body, Request, Response
 from watchmen_collector_kernel.service import DataCaptureService, parse_from_instance_json, \
     get_collector_data_source_service
 
 from watchmen_auth import PrincipalService
+from watchmen_data_kernel.common import ask_replace_topic_to_storage, ask_sync_topic_to_storage
 from watchmen_collector_kernel.model import CollectorTableConfig, CollectorModelConfig, CollectorModuleConfig
 from watchmen_collector_kernel.storage import get_collector_model_config_service, CollectorModelConfigService, \
     get_collector_table_config_service, CollectorTableConfigService, get_collector_module_config_service, \
@@ -21,6 +23,11 @@ from watchmen_rest_doll.util import trans_readonly, trans_with_tail
 from watchmen_utilities import is_blank
 
 router = APIRouter()
+
+
+def ensure_design_environment_for_yaml_update() -> None:
+    if not ask_replace_topic_to_storage() and not ask_sync_topic_to_storage():
+        raise_400('Current environment is runtime. YAML update is allowed only in design environment.')
 
 
 @router.get('/ingest/table/config', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
@@ -45,6 +52,30 @@ async def load_table_config_by_id(
         return table_config
     
     return action()
+
+
+@router.get('/ingest/table/config/yaml', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
+async def load_table_config_yaml_by_id(
+        table_config_id: Optional[str] = None, principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> Response:
+    if is_blank(table_config_id):
+        raise_400('collector table config id is required.')
+
+    collector_table_config_service = get_collector_table_config_service(ask_meta_storage(),
+                                                                        ask_snowflake_generator(),
+                                                                        principal_service)
+
+    def action() -> CollectorTableConfig:
+        table_config: CollectorTableConfig = collector_table_config_service.find_config_by_id(table_config_id)
+        if table_config is None:
+            raise_404()
+        if table_config.tenantId != principal_service.get_tenant_id():
+            raise_404()
+        return table_config
+
+    table_config = trans_readonly(collector_table_config_service, action)
+    yaml_str = yaml.dump(table_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=yaml_str, media_type='application/x-yaml')
 
 
 @router.get('/ingest/config/table/all', tags=[UserRole.ADMIN],response_model=None)
@@ -105,6 +136,29 @@ async def save_table_config(
     return result
 
 
+@router.post('/ingest/table/config/yaml', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
+async def save_table_config_yaml(
+        request: Request, principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> Response:
+    ensure_design_environment_for_yaml_update()
+    yaml_bytes = await request.body()
+    yaml_str = yaml_bytes.decode('utf-8')
+    try:
+        config_dict = yaml.safe_load(yaml_str)
+        config = CollectorTableConfig.model_validate(config_dict)
+    except Exception as e:
+        raise_400(f'Invalid YAML: {str(e)}')
+
+    validate_tenant_id(config, principal_service)
+    collector_table_config_service = get_collector_table_config_service(ask_meta_storage(),
+                                                                        ask_snowflake_generator(),
+                                                                        principal_service)
+    action = ask_save_table_config_action(collector_table_config_service, principal_service)
+    saved_config = action(config)
+    saved_yaml_str = yaml.dump(saved_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=saved_yaml_str, media_type='application/x-yaml')
+
+
 # noinspection PyUnusedLocal
 def ask_save_table_config_action(
         collector_table_config_service: CollectorTableConfigService, principal_service: PrincipalService
@@ -140,6 +194,53 @@ async def save_model_config(config: CollectorModelConfig,
                                                               principal_service)
     action = ask_save_model_config_action(model_config_service, principal_service)
     return action(config)
+
+
+@router.get('/ingest/model/config/yaml', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
+async def load_model_config_yaml_by_id(
+        model_id: Optional[str] = None, principal_service: PrincipalService = Depends(get_console_principal)
+) -> Response:
+    if is_blank(model_id):
+        raise_400('collector model config id is required.')
+
+    collector_model_config_service = get_collector_model_config_service(ask_meta_storage(),
+                                                                        ask_snowflake_generator(),
+                                                                        principal_service)
+
+    def action() -> CollectorModelConfig:
+        model_config: CollectorModelConfig = collector_model_config_service.find_by_model_id(model_id)
+        if model_config is None:
+            raise_404()
+        if model_config.tenantId != principal_service.get_tenant_id():
+            raise_404()
+        return model_config
+
+    model_config = trans_readonly(collector_model_config_service, action)
+    yaml_str = yaml.dump(model_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=yaml_str, media_type='application/x-yaml')
+
+
+@router.post('/ingest/model/config/yaml', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
+async def save_model_config_yaml(
+        request: Request, principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> Response:
+    ensure_design_environment_for_yaml_update()
+    yaml_bytes = await request.body()
+    yaml_str = yaml_bytes.decode('utf-8')
+    try:
+        config_dict = yaml.safe_load(yaml_str)
+        config = CollectorModelConfig.model_validate(config_dict)
+    except Exception as e:
+        raise_400(f'Invalid YAML: {str(e)}')
+
+    validate_tenant_id(config, principal_service)
+    model_config_service = get_collector_model_config_service(ask_meta_storage(),
+                                                              ask_snowflake_generator(),
+                                                              principal_service)
+    action = ask_save_model_config_action(model_config_service, principal_service)
+    saved_config = action(config)
+    saved_yaml_str = yaml.dump(saved_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=saved_yaml_str, media_type='application/x-yaml')
 
 
 # noinspection PyUnusedLocal
@@ -178,6 +279,53 @@ async def save_module_config(config: CollectorModuleConfig,
                                                                 principal_service)
     action = ask_save_module_config_action(module_config_service, principal_service)
     return action(config)
+
+
+@router.get('/ingest/module/config/yaml', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
+async def load_module_config_yaml_by_id(
+        module_id: Optional[str] = None, principal_service: PrincipalService = Depends(get_console_principal)
+) -> Response:
+    if is_blank(module_id):
+        raise_400('collector module config id is required.')
+
+    collector_module_config_service = get_collector_module_config_service(ask_meta_storage(),
+                                                                          ask_snowflake_generator(),
+                                                                          principal_service)
+
+    def action() -> CollectorModuleConfig:
+        module_config: CollectorModuleConfig = collector_module_config_service.find_by_module_id(module_id)
+        if module_config is None:
+            raise_404()
+        if module_config.tenantId != principal_service.get_tenant_id():
+            raise_404()
+        return module_config
+
+    module_config = trans_readonly(collector_module_config_service, action)
+    yaml_str = yaml.dump(module_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=yaml_str, media_type='application/x-yaml')
+
+
+@router.post('/ingest/module/config/yaml', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
+async def save_module_config_yaml(
+        request: Request, principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> Response:
+    ensure_design_environment_for_yaml_update()
+    yaml_bytes = await request.body()
+    yaml_str = yaml_bytes.decode('utf-8')
+    try:
+        config_dict = yaml.safe_load(yaml_str)
+        config = CollectorModuleConfig.model_validate(config_dict)
+    except Exception as e:
+        raise_400(f'Invalid YAML: {str(e)}')
+
+    validate_tenant_id(config, principal_service)
+    module_config_service = get_collector_module_config_service(ask_meta_storage(),
+                                                                ask_snowflake_generator(),
+                                                                principal_service)
+    action = ask_save_module_config_action(module_config_service, principal_service)
+    saved_config = action(config)
+    saved_yaml_str = yaml.dump(saved_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=saved_yaml_str, media_type='application/x-yaml')
 
 
 # noinspection PyUnusedLocal
@@ -650,7 +798,6 @@ async def create_raw_topic(model_name: str, principal_service: PrincipalService 
         return trans_with_tail(topic_service, lambda: action(updated_topic))
     
     return None
-
 
 
 
