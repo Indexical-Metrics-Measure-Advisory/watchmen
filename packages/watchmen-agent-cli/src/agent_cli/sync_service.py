@@ -27,8 +27,12 @@ class SyncService:
                 write_yaml_entity(self.vault_path, TOPIC_DIR, yaml_str, "topicId", name_key="name")
             result["topics"] = len(topics)
         if target in ("pipeline", "all"):
+            import yaml
             pipelines = self.client.get_json("/pipeline/all")
-            result["pipelines"] = write_entities(self.vault_path, PIPELINE_DIR, pipelines, "pipelineId", name_key="name")
+            for pipeline in pipelines:
+                yaml_str = yaml.dump(pipeline, sort_keys=False)
+                write_yaml_entity(self.vault_path, PIPELINE_DIR, yaml_str, "pipelineId", name_key="name")
+            result["pipelines"] = len(pipelines)
         return result
 
     def push_topic_yaml(self, topic_yaml: str, skip_name_check: bool = False) -> str:
@@ -78,10 +82,16 @@ class SyncService:
                 self.client.post_json("/topic/import", topics)
                 result["topics"] += len(topics)
         if target in ("pipeline", "all"):
+            pipeline_dir = self.vault_path / PIPELINE_DIR
+            pipeline_yaml_files = sorted(pipeline_dir.glob("*.yml")) + sorted(pipeline_dir.glob("*.yaml"))
+            for pipeline_file in pipeline_yaml_files:
+                self.push_pipeline_yaml_file(pipeline_file)
+                result["pipelines"] += 1
+
             pipelines = read_entities(self.vault_path, PIPELINE_DIR)
             if pipelines:
                 self.client.post_json("/pipeline/import", pipelines)
-            result["pipelines"] = len(pipelines)
+                result["pipelines"] += len(pipelines)
         return result
 
     def pull_one_topic(self, topic_id: str) -> Dict[str, Any]:
@@ -95,16 +105,42 @@ class SyncService:
         return {"topicName": topic_name, "status": "pulled"}
 
     def pull_one_pipeline(self, pipeline_id: str) -> Dict[str, Any]:
-        pipeline = self.client.get_json("/pipeline", {"pipeline_id": pipeline_id})
-        write_entities(self.vault_path, PIPELINE_DIR, [pipeline], "pipelineId", name_key="name")
-        return pipeline
+        pipeline_yaml = self.client.get_text("/pipeline/yaml", {"pipeline_id": pipeline_id})
+        write_yaml_entity(self.vault_path, PIPELINE_DIR, pipeline_yaml, "pipelineId", name_key="name")
+        return {"pipelineId": pipeline_id, "status": "pulled"}
 
     def pull_pipelines_by_name(self, pipeline_name: str) -> Dict[str, Any]:
-        pipelines = self.client.get_json("/pipeline/all")
-        matched = [p for p in pipelines if p.get("name") == pipeline_name]
-        if matched:
-            write_entities(self.vault_path, PIPELINE_DIR, matched, "pipelineId", name_key="name")
-        return {"pipelineName": pipeline_name, "count": len(matched), "pipelineIds": [p.get("pipelineId") for p in matched]}
+        pipeline_yaml = self.client.get_text("/pipeline/name/yaml", {"query_name": pipeline_name})
+        write_yaml_entity(self.vault_path, PIPELINE_DIR, pipeline_yaml, "pipelineId", name_key="name")
+        return {"pipelineName": pipeline_name, "status": "pulled"}
+
+    def push_pipeline_yaml(self, pipeline_yaml: str) -> str:
+        return self.client.post_text("/pipeline/yaml", pipeline_yaml)
+
+    def push_pipeline_yaml_file(self, file_path: Path) -> Dict[str, Any]:
+        if not file_path.exists():
+            raise AgentCliException(f"File not found: {file_path}")
+        source_yaml = file_path.read_text(encoding="utf-8")
+        source_pipeline = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
+        source_pipeline_id = str((source_pipeline or {}).get("pipelineId") or "").strip()
+        pushed_yaml = self.push_pipeline_yaml(source_yaml)
+        pushed_pipeline = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
+        pushed_pipeline_id = str((pushed_pipeline or {}).get("pipelineId") or "").strip()
+
+        if file_path.resolve().is_relative_to((self.vault_path / PIPELINE_DIR).resolve()):
+            write_yaml_entity(self.vault_path, PIPELINE_DIR, pushed_yaml, "pipelineId", name_key="name")
+            if source_pipeline_id and pushed_pipeline_id and source_pipeline_id != pushed_pipeline_id and file_path.exists():
+                file_path.unlink()
+        else:
+            file_path.write_text(pushed_yaml, encoding="utf-8")
+
+        return {
+            "status": "pushed",
+            "file": str(file_path),
+            "sourcePipelineId": source_pipeline_id or None,
+            "pipelineId": pushed_pipeline_id or None,
+            "replaced": bool(source_pipeline_id and pushed_pipeline_id and source_pipeline_id != pushed_pipeline_id)
+        }
 
     def list_topics_from_server(self) -> Dict[str, Any]:
         topics = self.client.get_json("/topic/all")

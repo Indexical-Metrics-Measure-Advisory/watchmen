@@ -18,6 +18,7 @@
 ## Pipeline
 - `pipeline pull <pipeline_id> --vault`
 - `pipeline pull-name "<pipeline_name>" --vault`
+- `pipeline push-file <file_path> --vault`
 - `pipeline list --vault`
 - `pipeline list-remote --vault`
 

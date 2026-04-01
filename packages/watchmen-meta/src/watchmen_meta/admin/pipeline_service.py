@@ -124,6 +124,13 @@ class PipelineService(TupleService):
 		# noinspection PyTypeChecker
 		return self.storage.find(finder)
 
+	def find_by_name_and_tenant(self, name: str, tenant_id: TenantId) -> Optional[Pipeline]:
+		return self.storage.find_one(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='name'), right=name),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+			]
+		))
 
 	def update_name(self, pipeline_id: PipelineId, name: str, tenant_id: TenantId) -> Pipeline:
 		"""

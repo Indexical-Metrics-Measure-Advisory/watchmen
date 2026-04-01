@@ -25,6 +25,7 @@ DISCOVER_COMMANDS = {
     "topic list-remote": ["--vault"],
     "pipeline pull": ["pipeline_id", "--vault"],
     "pipeline pull-name": ["pipeline_name", "--vault"],
+    "pipeline push-file": ["file_path", "--vault"],
     "pipeline list": ["--vault"],
     "pipeline list-remote": ["--vault"],
     "enum pull": ["enum_id", "--vault"],
@@ -130,10 +131,15 @@ def handle_topic_push_file(args: argparse.Namespace) -> None:
 
 
 def handle_pipeline_pull(args: argparse.Namespace) -> None:
-    run_with_sync_service(args, lambda svc: {"pipelineId": svc.pull_one_pipeline(args.pipeline_id).get("pipelineId")})
+    run_with_sync_service(args, lambda svc: svc.pull_one_pipeline(args.pipeline_id))
+
 
 def handle_pipeline_pull_name(args: argparse.Namespace) -> None:
     run_with_sync_service(args, lambda svc: svc.pull_pipelines_by_name(args.pipeline_name))
+
+
+def handle_pipeline_push_file(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.push_pipeline_yaml_file(Path(args.file_path)))
 
 
 def handle_topic_list(args: argparse.Namespace) -> None:
@@ -349,6 +355,11 @@ def register_pipeline_commands(subparsers: argparse._SubParsersAction) -> None:
     pipeline_pull_name.add_argument("pipeline_name")
     add_vault_arg(pipeline_pull_name)
     pipeline_pull_name.set_defaults(handler=handle_pipeline_pull_name)
+
+    pipeline_push_file = create_subparser(pipeline_sub, "push-file", "Push a local YAML pipeline file to server")
+    pipeline_push_file.add_argument("file_path", help="Path to the local .yml or .yaml file")
+    add_vault_arg(pipeline_push_file)
+    pipeline_push_file.set_defaults(handler=handle_pipeline_push_file)
 
     pipeline_list = create_subparser(pipeline_sub, "list", "List local pipeline files")
     add_vault_arg(pipeline_list)

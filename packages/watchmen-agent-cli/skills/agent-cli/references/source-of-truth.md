@@ -10,7 +10,7 @@
 - `packages/watchmen-model/src/watchmen_model/admin/pipeline.py`
 - Trigger types: `insert`, `merge`, `insert-or-merge`, `delete`.
 - Structure: `stages[] -> units[] -> do[]`.
-- Current CLI pipeline sync uses JSON import endpoints.
+- Current CLI pipeline sync uses YAML endpoints (with fallback to JSON for legacy `pipeline/import`).
 
 ## Ingestion
 - Module model:

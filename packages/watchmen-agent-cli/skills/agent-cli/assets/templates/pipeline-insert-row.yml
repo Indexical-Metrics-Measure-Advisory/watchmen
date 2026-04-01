@@ -1,0 +1,15 @@
+type: insert
+enabled: true
+stages:
+  - units:
+      - do:
+          - type: insert-row
+            topicId: target_topic_id
+            accumulateMode: standard
+            mapping:
+              - arithmetic: none
+                factorId: target_factor_id
+                source:
+                  kind: topic
+                  topicId: source_topic_id
+                  factorId: source_factor_id

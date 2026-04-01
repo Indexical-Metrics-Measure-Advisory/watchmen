@@ -1,12 +1,13 @@
+import yaml
 from datetime import datetime
 from typing import Callable, List, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request, Body
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
-from watchmen_data_kernel.common import ask_all_date_formats
+from watchmen_data_kernel.common import ask_all_date_formats, ask_replace_topic_to_storage, ask_sync_topic_to_storage
 from watchmen_meta.admin import PipelineService
 from watchmen_meta.analysis import PipelineIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, TupleService
@@ -19,6 +20,11 @@ from watchmen_rest_doll.util import trans, trans_readonly
 from watchmen_utilities import ArrayHelper, is_blank, is_date, ExtendedBaseModel
 
 router = APIRouter()
+
+
+def ensure_design_environment_for_yaml_update() -> None:
+	if not ask_replace_topic_to_storage() and not ask_sync_topic_to_storage():
+		raise_400('Current environment is runtime. YAML update is allowed only in design environment.')
 
 
 def get_pipeline_service(principal_service: PrincipalService) -> PipelineService:
@@ -50,6 +56,31 @@ async def load_pipeline_by_id(
 		return pipeline
 
 	return trans_readonly(pipeline_service, action)
+
+
+@router.get('/pipeline/yaml', tags=[UserRole.ADMIN], response_class=Response)
+async def load_pipeline_yaml_by_id(
+		pipeline_id: Optional[PipelineId],
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Response:
+	if is_blank(pipeline_id):
+		raise_400('Pipeline id is required.')
+
+	pipeline_service = get_pipeline_service(principal_service)
+
+	def action() -> Pipeline:
+		# noinspection PyTypeChecker
+		pipeline: Pipeline = pipeline_service.find_by_id(pipeline_id)
+		if pipeline is None:
+			raise_404()
+		# tenant id must match current principal's
+		if pipeline.tenantId != principal_service.get_tenant_id():
+			raise_404()
+		return pipeline
+
+	pipeline = trans_readonly(pipeline_service, action)
+	yaml_str = yaml.dump(pipeline.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+	return Response(content=yaml_str, media_type="application/x-yaml")
 
 
 def redress_action_ids(action: PipelineAction, pipeline_service: PipelineService) -> None:
@@ -121,6 +152,28 @@ async def save_pipeline(
 	pipeline_service = get_pipeline_service(principal_service)
 	action = ask_save_pipeline_action(pipeline_service, principal_service)
 	return trans(pipeline_service, lambda: action(pipeline))
+
+
+@router.post('/pipeline/yaml', tags=[UserRole.ADMIN], response_class=Response)
+async def save_pipeline_yaml(
+		request: Request, principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Response:
+	ensure_design_environment_for_yaml_update()
+	yaml_bytes = await request.body()
+	yaml_str = yaml_bytes.decode('utf-8')
+	try:
+		pipeline_dict = yaml.safe_load(yaml_str)
+		pipeline = Pipeline.model_validate(pipeline_dict)
+	except Exception as e:
+		raise_400(f'Invalid YAML: {str(e)}')
+
+	validate_tenant_id(pipeline, principal_service)
+	pipeline_service = get_pipeline_service(principal_service)
+	action = ask_save_pipeline_action(pipeline_service, principal_service)
+	saved_pipeline = trans(pipeline_service, lambda: action(pipeline))
+
+	saved_yaml_str = yaml.dump(saved_pipeline.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+	return Response(content=saved_yaml_str, media_type="application/x-yaml")
 
 
 def post_update_pipeline_name(pipeline: Pipeline, pipeline_service: PipelineService) -> None:
@@ -223,6 +276,28 @@ async def find_updated_pipelines(
 		return pipeline_service.find_modified_after(last_modified_at, principal_service.get_tenant_id())
 
 	return trans_readonly(pipeline_service, action)
+
+
+@router.get('/pipeline/name/yaml', tags=[UserRole.ADMIN], response_class=Response)
+async def find_pipeline_yaml_by_name(
+		query_name: Optional[str],
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Response:
+	if is_blank(query_name):
+		raise_400('Pipeline name is required.')
+
+	pipeline_service = get_pipeline_service(principal_service)
+
+	def action() -> Pipeline:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		pipeline: Optional[Pipeline] = pipeline_service.find_by_name_and_tenant(query_name, tenant_id)
+		if pipeline is None:
+			raise_404()
+		return pipeline
+
+	pipeline = trans_readonly(pipeline_service, action)
+	yaml_str = yaml.dump(pipeline.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+	return Response(content=yaml_str, media_type="application/x-yaml")
 
 
 def remove_pipeline_index(pipeline_id: PipelineId, pipeline_service: PipelineService) -> None:

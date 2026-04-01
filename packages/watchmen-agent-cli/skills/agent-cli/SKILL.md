@@ -47,5 +47,5 @@ Keep this file concise and load detailed references only when needed.
 
 ## Scope
 - Supported entities: Topic, Pipeline, Enum, Ingestion Module/Model/Table.
-- Protocol: YAML for topic/enum/ingestion, JSON import for pipeline.
+- Protocol: YAML for topic/pipeline/enum/ingestion.
 - Outputs: JSON summaries suitable for agent chaining.

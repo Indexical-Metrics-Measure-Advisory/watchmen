@@ -4,8 +4,9 @@
 1. Pull reference pipeline(s):
    - `agent-cli pipeline pull-name "<name>" --vault <vault>`
    - `agent-cli pipeline list-remote --vault <vault>`
-2. Edit local pipeline JSON under `<vault>/pipelines/`.
+2. Edit local pipeline YAML under `<vault>/pipelines/`.
 3. Push pipeline changes:
+   - `agent-cli pipeline push-file <vault>/pipelines/<name>.yml --vault <vault>`
    - `agent-cli push --target pipeline --vault <vault>`
 
 ## Minimal Insert Pattern

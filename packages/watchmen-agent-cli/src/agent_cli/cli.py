@@ -32,6 +32,7 @@ from agent_cli.main import (
     handle_pipeline_list_remote,
     handle_pipeline_pull,
     handle_pipeline_pull_name,
+    handle_pipeline_push_file,
     handle_pull,
     handle_push,
     handle_tenant_info,
@@ -200,6 +201,15 @@ def pipeline_pull_name_command(
     vault: Optional[str] = typer.Option(None, "--vault"),
 ) -> None:
     _run_with_guard(ctx, lambda: handle_pipeline_pull_name(_namespace(pipeline_name=pipeline_name, vault=vault)))
+
+
+@pipeline_app.command("push-file")
+def pipeline_push_file_command(
+    ctx: typer.Context,
+    file_path: str,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_pipeline_push_file(_namespace(file_path=file_path, vault=vault)))
 
 
 @pipeline_app.command("list")
