@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['src/agent_cli/main.py'],
+    ['src/agent_cli/__main__.py'],
     pathex=[],
     binaries=[],
     datas=[],
