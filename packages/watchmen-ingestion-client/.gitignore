@@ -12,7 +12,10 @@ dist
 dist-ssr
 *.local
 yarn.lock
-
+.vercel
+.vite
+.vscode
+.trae
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
