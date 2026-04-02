@@ -1,7 +1,8 @@
 from typing import List
 
 from watchmen_auth import PrincipalService
-from watchmen_indicator_surface.util import trans_readonly, trans
+from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
+from watchmen_metricflow.util.trans import trans_readonly, trans, trans_with_tail
 from watchmen_meta.admin import TopicService
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
 from watchmen_meta.console import SubjectService
@@ -57,36 +58,38 @@ def save_metric(principal_service: PrincipalService, metric: Metric) -> Metric:
     """Save metric, update if exists, otherwise create"""
     metric_service = get_metric_service(principal_service)
 
-    def action() -> Metric:
+    def action():
         tenant_id: TenantId = principal_service.get_tenant_id()
         existing_metric = metric_service.find_by_name(metric.name, tenant_id)
 
         if existing_metric:
             # If exists, call update logic
-            return metric_service.update(metric)
+            res = metric_service.update(metric)
         else:
             # If not exists, call create logic
-            return metric_service.create(metric)
+            res = metric_service.create(metric)
+        return res, lambda: metric_config_cache.remove(tenant_id)
 
-    return trans(metric_service, action)
+    return trans_with_tail(metric_service, action)
 
 
 def save_semantic_model(principal_service: PrincipalService, semantic_model: SemanticModel) -> SemanticModel:
     """Save semantic model, update if exists, otherwise create"""
     semantic_model_service = get_semantic_model_service(principal_service)
 
-    def action() -> SemanticModel:
+    def action():
         tenant_id: TenantId = principal_service.get_tenant_id()
         existing_model = semantic_model_service.find_by_name(semantic_model.name, tenant_id)
 
         if existing_model:
             # If exists, call update logic
-            return semantic_model_service.update(semantic_model)
+            res = semantic_model_service.update(semantic_model)
         else:
             # If not exists, call create logic
-            return semantic_model_service.create(semantic_model)
+            res = semantic_model_service.create(semantic_model)
+        return res, lambda: metric_config_cache.remove(tenant_id)
 
-    return trans(semantic_model_service, action)
+    return trans_with_tail(semantic_model_service, action)
 
 
 def build_profile(semantic_model: SemanticModel, principal_service: PrincipalService):

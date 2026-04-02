@@ -8,6 +8,9 @@ logger = getLogger(__name__)
 
 class DqcSettings(ExtendedBaseSettings):
 	MONITOR_JOBS: bool = False
+	MONITOR_RULES_RUNNER_ENGINE: str = "storage"
+	MONITOR_SPARK_SUBMIT_COMMAND: str = "spark-submit"
+	MONITOR_SPARK_SUBMIT_ARGS: str = "--master local[*] --deploy-mode client"
 	MONITOR_JOB_TRIGGER: str = "cron"
 	MONITOR_JOB_DAILY_DAY_OF_WEEK: str = "mon-sun"
 	MONITOR_JOB_DAILY_HOURS: int = 0
@@ -27,6 +30,18 @@ logger.info(f'Dqc settings[{settings.dict()}].')
 
 def ask_monitor_jobs_enabled() -> bool:
 	return settings.MONITOR_JOBS
+
+
+def ask_monitor_rules_runner_engine() -> str:
+	return (settings.MONITOR_RULES_RUNNER_ENGINE or "storage").strip().lower()
+
+
+def ask_monitor_spark_submit_command() -> str:
+	return settings.MONITOR_SPARK_SUBMIT_COMMAND
+
+
+def ask_monitor_spark_submit_args() -> str:
+	return settings.MONITOR_SPARK_SUBMIT_ARGS
 
 
 def ask_monitor_job_trigger() -> str:

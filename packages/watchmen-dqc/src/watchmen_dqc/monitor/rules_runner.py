@@ -8,8 +8,9 @@ from watchmen_auth import fake_super_admin, fake_tenant_admin, PrincipalService
 from watchmen_data_kernel.meta import TenantService, TopicService
 from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
 from watchmen_data_kernel.storage import TopicDataService
-from watchmen_dqc.common import ask_daily_monitor_job_trigger_time, ask_monitor_job_trigger, \
-	ask_monitor_jobs_enabled, ask_monthly_monitor_job_trigger_time, ask_weekly_monitor_job_trigger_time
+from watchmen_dqc.common import DqcException, ask_daily_monitor_job_trigger_time, ask_monitor_job_trigger, \
+	ask_monitor_jobs_enabled, ask_monitor_rules_runner_engine, ask_monthly_monitor_job_trigger_time, \
+	ask_weekly_monitor_job_trigger_time, ask_monitor_spark_submit_command, ask_monitor_spark_submit_args
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.dqc import MonitorJobLockService, MonitorRuleService
 from watchmen_model.admin import Topic
@@ -19,6 +20,7 @@ from watchmen_model.dqc.monitor_job_lock import MonitorJobLockStatus
 from watchmen_model.system import Tenant
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, to_previous_month, to_previous_week, \
 	to_yesterday
+import os
 from .rule import compute_date_range, disabled_rules, enum_service, rows_count_mismatch_with_another, rows_not_exists, \
 	run_all_rules
 
@@ -129,6 +131,23 @@ class SelfCleaningMonitorRulesRunner(MonitorRulesRunner):
 		enum_service.clear()
 
 
+def create_monitor_rules_runner(principal_service: PrincipalService) -> MonitorRulesRunner:
+	engine = ask_monitor_rules_runner_engine()
+	if engine == 'storage':
+		return MonitorRulesRunner(principal_service)
+	elif engine == 'pyspark':
+		try:
+			from watchmen_dqc.monitor.spark.rules_runner import SparkMonitorRulesRunner
+			return SparkMonitorRulesRunner(principal_service)
+		except Exception as e:
+			raise DqcException(
+				f'PySpark monitor runner is unavailable. Please install spark runner dependencies first. '
+				f'Root cause: {e}'
+			)
+	else:
+		raise DqcException(f'Unsupported monitor rules runner engine[{engine}].')
+
+
 def get_tenant_service(principal_service: PrincipalService) -> TenantService:
 	return TenantService(principal_service)
 
@@ -196,6 +215,7 @@ def accomplish_job(lock: MonitorJobLock, status: MonitorJobLockStatus, principal
 def run_monitor_rules(
 		process_date: date, frequency: MonitorRuleStatisticalInterval
 ) -> None:
+	engine = ask_monitor_rules_runner_engine()
 	tenants = find_all_tenants()
 	for tenant in tenants:
 		topics = find_all_topics(tenant.tenantId)
@@ -204,7 +224,10 @@ def run_monitor_rules(
 			lock, locked = try_to_lock_topic_for_monitor(topic, frequency, process_date, principal_service)
 			if locked:
 				try:
-					MonitorRulesRunner(principal_service).run(process_date, frequency, topic.topicId)
+					if engine == 'spark_submit':
+						offload_to_spark_submit(tenant.tenantId, topic.topicId, frequency, process_date)
+					else:
+						create_monitor_rules_runner(principal_service).run(process_date, topic.topicId, frequency)
 					accomplish_job(lock, MonitorJobLockStatus.SUCCESS, principal_service)
 				except Exception as e:
 					logger.error(e, exc_info=True, stack_info=True)
@@ -212,6 +235,33 @@ def run_monitor_rules(
 
 	# clear enumeration cache
 	enum_service.clear()
+
+
+def offload_to_spark_submit(
+		tenant_id: TenantId, topic_id: TopicId, frequency: MonitorRuleStatisticalInterval, process_date: date
+) -> None:
+	import subprocess
+	command = ask_monitor_spark_submit_command()
+	args = ask_monitor_spark_submit_args()
+	
+	# 获取当前执行器的路径
+	current_dir = os.path.dirname(os.path.abspath(__file__))
+	executor_path = os.path.join(current_dir, "spark", "spark_executor.py")
+	
+	# 构造完整命令
+	cmd = f"{command} {args} {executor_path} " \
+	      f"--tenant-id {tenant_id} --topic-id {topic_id} " \
+	      f"--frequency {frequency.value} --process-date {process_date.isoformat()}"
+	
+	logger.info(f"Offloading DQC task to spark-submit: {cmd}")
+	
+	# 同步执行并等待结果
+	result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+	
+	if result.returncode != 0:
+		raise DqcException(f"Spark submit failed with return code {result.returncode}: {result.stderr}")
+	else:
+		logger.info(f"Spark submit finished successfully: {result.stdout}")
 
 
 def create_monthly_runner(scheduler: AsyncIOScheduler) -> None:

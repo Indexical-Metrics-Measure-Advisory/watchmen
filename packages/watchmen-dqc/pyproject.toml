@@ -14,6 +14,7 @@ pandas = "^2.2.3"
 # ydata-profiling = "4.6.0"
 numpy = "^2.1.0"
 APScheduler = "^3.10.4"
+pyspark = { version = "^3.5.5", optional = true }
 watchmen-meta = { path = "../watchmen-meta", develop = true }
 watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
 watchmen-pipeline-kernel = { path = "../watchmen-pipeline-kernel", develop = true }
@@ -22,6 +23,7 @@ watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true,
 watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
 watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
 watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
+cffi = "^1.17.1"
 
 [tool.poetry.group.dev.dependencies]
 
@@ -31,6 +33,7 @@ oracle = ["watchmen-storage-oracle"]
 mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
 postgresql = ["watchmen-storage-postgresql"]
+spark = ["pyspark"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

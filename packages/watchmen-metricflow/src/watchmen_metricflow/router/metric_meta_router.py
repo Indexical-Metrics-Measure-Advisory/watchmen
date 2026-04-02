@@ -11,7 +11,7 @@ from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_rest import get_admin_principal, get_console_principal
 from watchmen_rest.util import raise_400, raise_404
 from watchmen_metricflow.settings import ask_tuple_delete_enabled
-from watchmen_metricflow.util import trans, trans_readonly
+from watchmen_metricflow.util import trans, trans_readonly, trans_with_tail
 from watchmen_utilities import is_blank
 from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
 from watchmen_metricflow.service.space_auth_service import get_console_user_topic_ids, \
@@ -91,7 +91,7 @@ async def save_metric_yaml(
     metric.tenantId = principal_service.get_tenant_id()
     metric_service = get_metric_service(principal_service)
 
-    def action() -> Metric:
+    def action():
         existing_metric = metric_service.find_by_name(metric.name, metric.tenantId)
         if existing_metric is None:
             if is_blank(metric.id):
@@ -100,10 +100,9 @@ async def save_metric_yaml(
         else:
             metric.id = existing_metric.id
             metric_result = metric_service.update(metric)
-        metric_config_cache.remove(metric.tenantId)
-        return metric_result
+        return metric_result, lambda: metric_config_cache.remove(metric.tenantId)
 
-    saved_metric = trans(metric_service, action)
+    saved_metric = trans_with_tail(metric_service, action)
     saved_yaml_str = yaml.dump(saved_metric.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
     return Response(content=saved_yaml_str, media_type='application/x-yaml')
 
@@ -127,17 +126,16 @@ async def create_metric(
     
     metric_service = get_metric_service(principal_service)
     metric.id = str(metric_service.snowflakeGenerator.next_id())
-    def action() -> Metric:
+    def action():
         # Check if metric with same name already exists
         existing_metric = metric_service.find_by_name(metric.name, metric.tenantId)
         if existing_metric:
             raise_400(f'Metric with name "{metric.name}" already exists.')
         
         metric_result = metric_service.create(metric)
-        metric_config_cache.remove(metric.tenantId)
-        return metric_result
+        return metric_result, lambda: metric_config_cache.remove(metric.tenantId)
     
-    return trans(metric_service, action)
+    return trans_with_tail(metric_service, action)
 
 
 @router.put('/metricflow/metric/{metric_name}', tags=['ADMIN'], response_model=None)
@@ -155,7 +153,7 @@ async def update_metric(
     
     metric_service = get_metric_service(principal_service)
     
-    def action() -> Metric:
+    def action():
         # Check if metric exists
         # existing_metric = metric_service.find_by_name(metric_name, metric.tenantId)
         # if existing_metric is None:
@@ -163,10 +161,9 @@ async def update_metric(
         # metric.id = existing_metric.id
         print(metric)
         metric_result = metric_service.update(metric)
-        metric_config_cache.remove(metric.tenantId)
-        return metric_result
+        return metric_result, lambda: metric_config_cache.remove(metric.tenantId)
     
-    return trans(metric_service, action)
+    return trans_with_tail(metric_service, action)
 
 
 @router.delete('/metricflow/metric/{metric_name}', tags=['ADMIN'], response_model=None)
@@ -183,7 +180,7 @@ async def delete_metric(
     
     metric_service = get_metric_service(principal_service)
     
-    def action() -> Metric:
+    def action():
         tenant_id: TenantId = principal_service.get_tenant_id()
         
         # Check if metric exists
@@ -192,10 +189,9 @@ async def delete_metric(
             raise_404('Metric not found.')
         
         metric_result = metric_service.delete_by_name(metric_name, tenant_id)
-        metric_config_cache.remove(tenant_id)
-        return metric_result
+        return metric_result, lambda: metric_config_cache.remove(tenant_id)
     
-    return trans(metric_service, action)
+    return trans_with_tail(metric_service, action)
 
 
 @router.get('/metricflow/metrics/by-type/{metric_type}', tags=['CONSOLE', 'ADMIN'], response_model=None)

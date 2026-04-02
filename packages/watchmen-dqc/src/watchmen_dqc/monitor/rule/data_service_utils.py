@@ -23,6 +23,8 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 
 
 def exchange_topic_data_service(data_service: TopicDataService, topic_id: TopicId) -> TopicDataService:
+	if hasattr(data_service, 'exchange_to_topic'):
+		return data_service.exchange_to_topic(topic_id)
 	principal_service = data_service.get_principal_service()
 	topic_service = get_topic_service(principal_service)
 	topic = topic_service.find_by_id(topic_id)

@@ -14,7 +14,7 @@ from watchmen_model.system import DataSourceType
 from watchmen_rest import get_admin_principal, get_console_principal
 from watchmen_rest.util import raise_400, raise_404
 from watchmen_metricflow.settings import ask_tuple_delete_enabled
-from watchmen_metricflow.util import trans, trans_readonly
+from watchmen_metricflow.util import trans, trans_readonly, trans_with_tail
 from watchmen_utilities import is_blank
 from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
 from watchmen_metricflow.service.space_auth_service import get_console_user_topic_ids, \
@@ -154,7 +154,7 @@ async def save_semantic_model_yaml(
         if node_relation:
             semantic_model.node_relation = node_relation
 
-    def action() -> SemanticModel:
+    def action():
         existing_model = semantic_model_service.find_by_name(semantic_model.name, semantic_model.tenantId)
         if existing_model is None:
             if is_blank(semantic_model.id):
@@ -163,10 +163,9 @@ async def save_semantic_model_yaml(
         else:
             semantic_model.id = existing_model.id
             model_result = semantic_model_service.update(semantic_model)
-        metric_config_cache.remove(semantic_model.tenantId)
-        return model_result
+        return model_result, lambda: metric_config_cache.remove(semantic_model.tenantId)
 
-    saved_semantic_model = trans(semantic_model_service, action)
+    saved_semantic_model = trans_with_tail(semantic_model_service, action)
     saved_yaml_str = yaml.dump(saved_semantic_model.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
     return Response(content=saved_yaml_str, media_type='application/x-yaml')
 
@@ -191,17 +190,16 @@ async def create_semantic_model(
         if node_relation:
             semantic_model.node_relation = node_relation
             
-    def action() -> SemanticModel:
+    def action():
         # Check if semantic model with same name already exists
         existing_model = semantic_model_service.find_by_name(semantic_model.name, semantic_model.tenantId)
         if existing_model:
             raise_400(f'Semantic model with name "{semantic_model.name}" already exists.')
         
         model_result = semantic_model_service.create(semantic_model)
-        metric_config_cache.remove(semantic_model.tenantId)
-        return model_result
+        return model_result, lambda: metric_config_cache.remove(semantic_model.tenantId)
     
-    return trans(semantic_model_service, action)
+    return trans_with_tail(semantic_model_service, action)
 
 
 @router.put('/metricflow/semantic-model/{model_name}', tags=['ADMIN'], response_model=None)
@@ -224,7 +222,7 @@ async def update_semantic_model(
         if node_relation:
             semantic_model.node_relation = node_relation
     
-    def action() -> SemanticModel:
+    def action():
         # Check if semantic model exists
         existing_model = semantic_model_service.find_by_name(model_name, semantic_model.tenantId)
         if existing_model is None:
@@ -232,10 +230,9 @@ async def update_semantic_model(
 
         semantic_model.id = existing_model.id
         model_result = semantic_model_service.update(semantic_model)
-        metric_config_cache.remove(semantic_model.tenantId)
-        return model_result
+        return model_result, lambda: metric_config_cache.remove(semantic_model.tenantId)
     
-    return trans(semantic_model_service, action)
+    return trans_with_tail(semantic_model_service, action)
 
 
 @router.delete('/metricflow/semantic-models/{model_name}', tags=['ADMIN'], response_model=None)
@@ -252,7 +249,7 @@ async def delete_semantic_model(
     
     semantic_model_service = get_semantic_model_service(principal_service)
     
-    def action() -> SemanticModel:
+    def action():
         tenant_id: TenantId = principal_service.get_tenant_id()
         
         # Check if semantic model exists
@@ -261,10 +258,9 @@ async def delete_semantic_model(
             raise_404('Semantic model not found.')
         
         semantic_model_service.delete_by_name(model_name, tenant_id)
-        metric_config_cache.remove(tenant_id)
-        return existing_model
+        return existing_model, lambda: metric_config_cache.remove(tenant_id)
     
-    return trans(semantic_model_service, action)
+    return trans_with_tail(semantic_model_service, action)
 
 
 @router.get('/metricflow/semantic-models/by-description/{description}', tags=['CONSOLE', 'ADMIN'], response_model=None)
