@@ -217,7 +217,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           expanded={expandedGroups.dataCatalog ?? true}
           onToggle={() => toggleGroup('dataCatalog')}
         >
-          <NavItem to="/data-catalog" icon={<FolderOpen size={16} />} label="Data Catalog" collapsed={collapsed} isSubItem={true} />
+          {/* <NavItem to="/data-catalog" icon={<FolderOpen size={16} />} label="Data Catalog" collapsed={collapsed} isSubItem={true} /> */}
           <NavItem to="/data-catalog/domain-map" icon={<Network size={16} />} label="Business Ontology" collapsed={collapsed} isSubItem={true} />
           {/* <NavItem to="/data-profiles" icon={<Database size={16} />} label="Data Profile Management" collapsed={collapsed} isSubItem={true} /> */}
           
