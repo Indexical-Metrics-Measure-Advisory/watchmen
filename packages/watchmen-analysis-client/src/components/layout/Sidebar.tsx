@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSidebar } from '@/contexts/SidebarContext';
 import {
@@ -70,15 +70,14 @@ interface NavGroupProps {
   label: string;
   children: React.ReactNode;
   collapsed?: boolean;
-  defaultExpanded?: boolean;
+  expanded: boolean;
+  onToggle: () => void;
 }
 
-const NavGroup: React.FC<NavGroupProps> = ({ icon, label, children, collapsed, defaultExpanded = false }) => {
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
-  
+const NavGroup: React.FC<NavGroupProps> = ({ icon, label, children, collapsed, expanded, onToggle }) => {
   if (collapsed) {
     return (
-      <div className="relative group">
+      <div className="relative group" data-group={label}>
         <div className="flex items-center justify-center px-4 py-3 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-all duration-200">
           <div className="w-6 h-6 flex items-center justify-center text-sidebar-foreground/70">
             {icon}
@@ -99,16 +98,16 @@ const NavGroup: React.FC<NavGroupProps> = ({ icon, label, children, collapsed, d
   return (
     <div>
       <button
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={onToggle}
         className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-all duration-200"
       >
         <div className="w-6 h-6 flex items-center justify-center text-sidebar-foreground/70">
           {icon}
         </div>
         <span className="flex-1 text-left">{label}</span>
-        {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
       </button>
-      {isExpanded && (
+      {expanded && (
         <div className="mt-1 space-y-1">
           {children}
         </div>
@@ -122,7 +121,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ className }) => {
-  const { collapsed, toggleSidebar } = useSidebar();
+  const { collapsed, toggleSidebar, expandedGroups, toggleGroup } = useSidebar();
 
   return (
     <aside className={cn(
@@ -178,7 +177,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           icon={<Lightbulb size={18} />} 
           label="Data Insights" 
           collapsed={collapsed}
-          defaultExpanded={true}
+          expanded={expandedGroups.dataInsights ?? true}
+          onToggle={() => toggleGroup('dataInsights')}
         >
           <NavItem to="/challenges" icon={<Target size={16} />} label="Challenges" collapsed={collapsed} isSubItem={true} />
           <NavItem to="/problems" icon={<FileQuestion size={16} />} label="Problems" collapsed={collapsed} isSubItem={true} />
@@ -191,7 +191,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           icon={<BarChart3 size={18} />} 
           label="Metrics" 
           collapsed={collapsed}
-          defaultExpanded={true}
+          expanded={expandedGroups.metrics ?? true}
+          onToggle={() => toggleGroup('metrics')}
         >
           {/* <NavItem to="/metrics" icon={<BarChart3 size={16} />} label="Metrics Hub" collapsed={collapsed} isSubItem={true} /> */}
           {SHOW_METRIC_AI_AGENT && (
@@ -213,10 +214,11 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           icon={<Database size={18} />} 
           label="Data Catalog" 
           collapsed={collapsed}
-          defaultExpanded={true}
+          expanded={expandedGroups.dataCatalog ?? true}
+          onToggle={() => toggleGroup('dataCatalog')}
         >
           <NavItem to="/data-catalog" icon={<FolderOpen size={16} />} label="Data Catalog" collapsed={collapsed} isSubItem={true} />
-          <NavItem to="/data-catalog/domain-map" icon={<Network size={16} />} label="Domain Map" collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/data-catalog/domain-map" icon={<Network size={16} />} label="Business Ontology" collapsed={collapsed} isSubItem={true} />
           {/* <NavItem to="/data-profiles" icon={<Database size={16} />} label="Data Profile Management" collapsed={collapsed} isSubItem={true} /> */}
           
         </NavGroup>
@@ -227,7 +229,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           icon={<ClipboardCheck size={18} />} 
           label="Evaluation" 
           collapsed={collapsed}
-          defaultExpanded={true}
+          expanded={expandedGroups.evaluation ?? true}
+          onToggle={() => toggleGroup('evaluation')}
         >
           <NavItem to="/evaluation/offline" icon={<Database size={16} />} label="Offline Evaluation" collapsed={collapsed} isSubItem={true} />
           <NavItem to="/evaluation/datasets" icon={<Database size={16} />} label="Dataset Management" collapsed={collapsed} isSubItem={true} />

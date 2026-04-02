@@ -241,9 +241,7 @@ async def delete_semantic_model(
         principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> SemanticModel:
     """Delete a semantic model"""
-    if not ask_tuple_delete_enabled():
-        raise_404('Not Found')
-    
+
     if is_blank(model_name):
         raise_400('Semantic model name is required.')
     

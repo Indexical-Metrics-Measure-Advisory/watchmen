@@ -4,9 +4,14 @@ import sys
 from datetime import datetime
 
 # 这里的导入需要确保在 spark-submit 时 PYTHONPATH 包含 watchmen 的 src 目录
-from watchmen_auth import fake_tenant_admin
-from watchmen_dqc.monitor.rules_runner import create_monitor_rules_runner
-from watchmen_model.dqc import MonitorRuleStatisticalInterval
+# 或者通过 --py-files 提交了相关的包
+try:
+    from watchmen_auth import fake_tenant_admin
+    from watchmen_dqc.monitor.rules_runner import create_monitor_rules_runner
+    from watchmen_model.dqc import MonitorRuleStatisticalInterval
+except ImportError as e:
+    print(f"Import Error: {e}. Please ensure watchmen packages are in PYTHONPATH or passed via --py-files.")
+    sys.exit(1)
 
 def run_spark_dqc(tenant_id: str, topic_id: str, frequency: str, process_date_str: str):
     """

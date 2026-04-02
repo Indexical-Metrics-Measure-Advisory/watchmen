@@ -144,6 +144,10 @@ def create_monitor_rules_runner(principal_service: PrincipalService) -> MonitorR
 				f'PySpark monitor runner is unavailable. Please install spark runner dependencies first. '
 				f'Root cause: {e}'
 			)
+	elif engine == 'spark_submit':
+		# spark_submit 模式下，本地不执行 run，由 run_monitor_rules 触发外部提交
+		# 返回基础 Runner 仅作为占位符
+		return MonitorRulesRunner(principal_service)
 	else:
 		raise DqcException(f'Unsupported monitor rules runner engine[{engine}].')
 
@@ -248,6 +252,14 @@ def offload_to_spark_submit(
 	current_dir = os.path.dirname(os.path.abspath(__file__))
 	executor_path = os.path.join(current_dir, "spark", "spark_executor.py")
 	
+	# 收集所有以 META_STORAGE_ 开头的环境变量
+	env_args = ""
+	for key, value in os.environ.items():
+		if key.startswith("META_STORAGE_") or key.startswith("WATCHMEN_") or key == "MONITOR_RULES_RUNNER_ENGINE":
+			# 如果是使用 YARN 等集群模式，可能需要使用 spark.executorEnv.KEY=VALUE
+			# 这里为了通用性，先假设是 client 模式或者是直接通过环境继承
+			pass
+
 	# 构造完整命令
 	cmd = f"{command} {args} {executor_path} " \
 	      f"--tenant-id {tenant_id} --topic-id {topic_id} " \
@@ -255,11 +267,16 @@ def offload_to_spark_submit(
 	
 	logger.info(f"Offloading DQC task to spark-submit: {cmd}")
 	
+	# 确保 PYTHONPATH 包含必要的包（如果是在本地运行）
+	current_env = os.environ.copy()
+	# 如果需要，可以在这里动态添加 PYTHONPATH
+	
 	# 同步执行并等待结果
-	result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+	result = subprocess.run(cmd, shell=True, capture_output=True, text=True, env=current_env)
 	
 	if result.returncode != 0:
-		raise DqcException(f"Spark submit failed with return code {result.returncode}: {result.stderr}")
+		logger.error(f"Spark submit failed: {result.stderr}")
+		raise DqcException(f"Spark submit failed with return code {result.returncode}")
 	else:
 		logger.info(f"Spark submit finished successfully: {result.stdout}")
 
