@@ -1,4 +1,4 @@
-name: create agent cli
+name: Create agent cli
 
 on:
   workflow_dispatch:
@@ -46,4 +46,4 @@ jobs:
         working-directory: ./packages/watchmen-agent-cli
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-          poetry build
+          poetry publish --build
