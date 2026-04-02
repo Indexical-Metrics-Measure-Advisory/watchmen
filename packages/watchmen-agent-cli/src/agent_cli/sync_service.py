@@ -7,7 +7,7 @@ import yaml
 
 from agent_cli.exceptions import AgentCliException
 from agent_cli.http_client import RestClient
-from agent_cli.vault import ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CONFIG_DIR, INGEST_TABLE_CONFIG_DIR, PIPELINE_DIR, TOPIC_DIR, read_entities, write_entities, write_yaml_entity, read_yaml_entities
+from agent_cli.vault import ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CONFIG_DIR, INGEST_TABLE_CONFIG_DIR, METRICFLOW_METRIC_DIR, METRICFLOW_SEMANTIC_DIR, PIPELINE_DIR, TOPIC_DIR, read_entities, write_entities, write_yaml_entity, read_yaml_entities
 
 SyncTarget = Literal["topic", "pipeline", "all"]
 
@@ -168,6 +168,90 @@ class SyncService:
                 "enabled": p.get("enabled")
             })
         return {"count": len(pipeline_summaries), "pipelines": pipeline_summaries}
+
+    def pull_one_semantic_model_by_name(self, model_name: str) -> Dict[str, Any]:
+        model_yaml = self.client.get_text("/metricflow/semantic-model/name/yaml", {"model_name": model_name})
+        write_yaml_entity(self.vault_path, METRICFLOW_SEMANTIC_DIR, model_yaml, "id", name_key="name")
+        return {"semanticModelName": model_name, "status": "pulled"}
+
+    def push_semantic_model_yaml_file(self, file_path: Path) -> Dict[str, Any]:
+        if not file_path.exists():
+            raise AgentCliException(f"File not found: {file_path}")
+        source_yaml = file_path.read_text(encoding="utf-8")
+        source_model = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
+        source_id = str((source_model or {}).get("id") or "").strip()
+        pushed_yaml = self.client.post_text("/metricflow/semantic-model/yaml", source_yaml)
+        pushed_model = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
+        pushed_id = str((pushed_model or {}).get("id") or "").strip()
+
+        if file_path.resolve().is_relative_to((self.vault_path / METRICFLOW_SEMANTIC_DIR).resolve()):
+            write_yaml_entity(self.vault_path, METRICFLOW_SEMANTIC_DIR, pushed_yaml, "id", name_key="name")
+            if source_id and pushed_id and source_id != pushed_id and file_path.exists():
+                file_path.unlink()
+        else:
+            file_path.write_text(pushed_yaml, encoding="utf-8")
+
+        return {
+            "status": "pushed",
+            "file": str(file_path),
+            "sourceId": source_id or None,
+            "id": pushed_id or None,
+            "replaced": bool(source_id and pushed_id and source_id != pushed_id)
+        }
+
+    def list_semantic_models_from_server(self) -> Dict[str, Any]:
+        models = self.client.get_json("/metricflow/semantic-models/all")
+        summaries = []
+        for model in models:
+            summaries.append({
+                "id": model.get("id"),
+                "name": model.get("name"),
+                "sourceType": model.get("sourceType"),
+                "topicId": model.get("topicId")
+            })
+        return {"count": len(summaries), "semanticModels": summaries}
+
+    def pull_one_metric_by_name(self, metric_name: str) -> Dict[str, Any]:
+        metric_yaml = self.client.get_text("/metricflow/metric/name/yaml", {"metric_name": metric_name})
+        write_yaml_entity(self.vault_path, METRICFLOW_METRIC_DIR, metric_yaml, "id", name_key="name")
+        return {"metricName": metric_name, "status": "pulled"}
+
+    def push_metric_yaml_file(self, file_path: Path) -> Dict[str, Any]:
+        if not file_path.exists():
+            raise AgentCliException(f"File not found: {file_path}")
+        source_yaml = file_path.read_text(encoding="utf-8")
+        source_metric = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
+        source_id = str((source_metric or {}).get("id") or "").strip()
+        pushed_yaml = self.client.post_text("/metricflow/metric/yaml", source_yaml)
+        pushed_metric = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
+        pushed_id = str((pushed_metric or {}).get("id") or "").strip()
+
+        if file_path.resolve().is_relative_to((self.vault_path / METRICFLOW_METRIC_DIR).resolve()):
+            write_yaml_entity(self.vault_path, METRICFLOW_METRIC_DIR, pushed_yaml, "id", name_key="name")
+            if source_id and pushed_id and source_id != pushed_id and file_path.exists():
+                file_path.unlink()
+        else:
+            file_path.write_text(pushed_yaml, encoding="utf-8")
+
+        return {
+            "status": "pushed",
+            "file": str(file_path),
+            "sourceId": source_id or None,
+            "id": pushed_id or None,
+            "replaced": bool(source_id and pushed_id and source_id != pushed_id)
+        }
+
+    def list_metrics_from_server(self) -> Dict[str, Any]:
+        metrics = self.client.get_json("/metricflow/metrics/all")
+        summaries = []
+        for metric in metrics:
+            summaries.append({
+                "id": metric.get("id"),
+                "name": metric.get("name"),
+                "type": metric.get("type"),
+                "topicId": metric.get("topicId")
+            })
+        return {"count": len(summaries), "metrics": summaries}
 
     def pull_one_enum(self, enum_id: str) -> Dict[str, Any]:
         enum_yaml = self.client.get_enum_yaml(enum_id)

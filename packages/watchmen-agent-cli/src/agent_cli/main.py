@@ -12,7 +12,7 @@ from agent_cli.exceptions import AgentCliException
 from agent_cli.http_client import RestClient
 from agent_cli.settings import settings
 from agent_cli.sync_service import SyncService
-from agent_cli.vault import ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CONFIG_DIR, INGEST_TABLE_CONFIG_DIR, PIPELINE_DIR, TOPIC_DIR, ensure_vault, list_local_files, load_config, save_config
+from agent_cli.vault import ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CONFIG_DIR, INGEST_TABLE_CONFIG_DIR, METRICFLOW_METRIC_DIR, METRICFLOW_SEMANTIC_DIR, PIPELINE_DIR, TOPIC_DIR, ensure_vault, list_local_files, load_config, save_config
 
 DISCOVER_COMMANDS = {
     "init": ["--vault", "--host", "--username", "--password", "--pat"],
@@ -33,6 +33,14 @@ DISCOVER_COMMANDS = {
     "enum push-file": ["file_path", "--vault"],
     "enum list": ["--vault"],
     "enum list-remote": ["--vault"],
+    "semantic pull-name": ["model_name", "--vault"],
+    "semantic push-file": ["file_path", "--vault"],
+    "semantic list": ["--vault"],
+    "semantic list-remote": ["--vault"],
+    "metric pull-name": ["metric_name", "--vault"],
+    "metric push-file": ["file_path", "--vault"],
+    "metric list": ["--vault"],
+    "metric list-remote": ["--vault"],
     "ingest table pull": ["table_name", "--vault"],
     "ingest table push-file": ["file_path", "--vault"],
     "ingest table list": ["--vault"],
@@ -82,6 +90,8 @@ def build_parser() -> argparse.ArgumentParser:
     register_topic_commands(subparsers)
     register_pipeline_commands(subparsers)
     register_enum_commands(subparsers)
+    register_semantic_commands(subparsers)
+    register_metric_commands(subparsers)
     register_ingest_commands(subparsers)
     register_tenant_command(subparsers)
     register_config_commands(subparsers)
@@ -179,6 +189,40 @@ def handle_enum_list(args: argparse.Namespace) -> None:
 
 def handle_enum_list_remote(args: argparse.Namespace) -> None:
     run_with_sync_service(args, lambda svc: svc.list_enums_from_server())
+
+
+def handle_semantic_pull_name(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.pull_one_semantic_model_by_name(args.model_name))
+
+
+def handle_semantic_push_file(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.push_semantic_model_yaml_file(Path(args.file_path)))
+
+
+def handle_semantic_list(args: argparse.Namespace) -> None:
+    vault_path = settings.resolved_vault(args.vault)
+    print_entity_file_list(vault_path, METRICFLOW_SEMANTIC_DIR)
+
+
+def handle_semantic_list_remote(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.list_semantic_models_from_server())
+
+
+def handle_metric_pull_name(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.pull_one_metric_by_name(args.metric_name))
+
+
+def handle_metric_push_file(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.push_metric_yaml_file(Path(args.file_path)))
+
+
+def handle_metric_list(args: argparse.Namespace) -> None:
+    vault_path = settings.resolved_vault(args.vault)
+    print_entity_file_list(vault_path, METRICFLOW_METRIC_DIR)
+
+
+def handle_metric_list_remote(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.list_metrics_from_server())
 
 
 def handle_ingest_table_pull(args: argparse.Namespace) -> None:
@@ -396,6 +440,52 @@ def register_enum_commands(subparsers: argparse._SubParsersAction) -> None:
     enum_list_remote = create_subparser(enum_sub, "list-remote", "List all enums available on the server")
     add_vault_arg(enum_list_remote)
     enum_list_remote.set_defaults(handler=handle_enum_list_remote)
+
+
+def register_semantic_commands(subparsers: argparse._SubParsersAction) -> None:
+    semantic_parser = create_subparser(subparsers, "semantic", "MetricFlow semantic model YAML/query commands")
+    semantic_sub = semantic_parser.add_subparsers(dest="semantic_cmd", required=True)
+
+    semantic_pull_name = create_subparser(semantic_sub, "pull-name", "Pull a semantic model YAML by name")
+    semantic_pull_name.add_argument("model_name")
+    add_vault_arg(semantic_pull_name)
+    semantic_pull_name.set_defaults(handler=handle_semantic_pull_name)
+
+    semantic_push_file = create_subparser(semantic_sub, "push-file", "Push a local semantic model YAML file")
+    semantic_push_file.add_argument("file_path", help="Path to the local .yml or .yaml file")
+    add_vault_arg(semantic_push_file)
+    semantic_push_file.set_defaults(handler=handle_semantic_push_file)
+
+    semantic_list = create_subparser(semantic_sub, "list", "List local semantic model files")
+    add_vault_arg(semantic_list)
+    semantic_list.set_defaults(handler=handle_semantic_list)
+
+    semantic_list_remote = create_subparser(semantic_sub, "list-remote", "List all semantic models on server")
+    add_vault_arg(semantic_list_remote)
+    semantic_list_remote.set_defaults(handler=handle_semantic_list_remote)
+
+
+def register_metric_commands(subparsers: argparse._SubParsersAction) -> None:
+    metric_parser = create_subparser(subparsers, "metric", "MetricFlow metric YAML/query commands")
+    metric_sub = metric_parser.add_subparsers(dest="metric_cmd", required=True)
+
+    metric_pull_name = create_subparser(metric_sub, "pull-name", "Pull a metric YAML by name")
+    metric_pull_name.add_argument("metric_name")
+    add_vault_arg(metric_pull_name)
+    metric_pull_name.set_defaults(handler=handle_metric_pull_name)
+
+    metric_push_file = create_subparser(metric_sub, "push-file", "Push a local metric YAML file")
+    metric_push_file.add_argument("file_path", help="Path to the local .yml or .yaml file")
+    add_vault_arg(metric_push_file)
+    metric_push_file.set_defaults(handler=handle_metric_push_file)
+
+    metric_list = create_subparser(metric_sub, "list", "List local metric files")
+    add_vault_arg(metric_list)
+    metric_list.set_defaults(handler=handle_metric_list)
+
+    metric_list_remote = create_subparser(metric_sub, "list-remote", "List all metrics on server")
+    add_vault_arg(metric_list_remote)
+    metric_list_remote.set_defaults(handler=handle_metric_list_remote)
 
 
 def register_ingest_commands(subparsers: argparse._SubParsersAction) -> None:

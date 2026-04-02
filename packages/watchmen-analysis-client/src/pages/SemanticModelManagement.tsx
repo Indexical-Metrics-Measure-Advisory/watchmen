@@ -951,29 +951,6 @@ const SemanticModelManagement: React.FC = () => {
             
             {/* Source fields moved to Datasource tab */}
             
-            <div>
-              <Label htmlFor="agg_time_dimension">Default Time Dimension</Label>
-              <Select
-                value={formData.defaults.agg_time_dimension || undefined}
-                onValueChange={(value) => setFormData(prev => ({
-                  ...prev,
-                  defaults: { ...prev.defaults, agg_time_dimension: value }
-                }))}
-              >
-                <SelectTrigger id="agg_time_dimension">
-                  <SelectValue placeholder="Select default time dimension" />
-                </SelectTrigger>
-                <SelectContent>
-                  {timeDimensionOptions.map(dimensionName => (
-                    <SelectItem key={dimensionName} value={dimensionName}>{dimensionName}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {timeDimensionOptions.length === 0
-                ? <p className="text-xs text-destructive mt-1">Please create at least one time dimension first.</p>
-                : null}
-            </div>
-            
             {/* DB relation moved to Datasource tab */}
           </TabsContent>
 
@@ -1276,6 +1253,47 @@ const SemanticModelManagement: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {(() => {
+                const resolvedSourceType = formData.sourceType || 'topic';
+                const hasSelectedDataSource = resolvedSourceType === 'topic'
+                  ? Boolean(formData.topicId)
+                  : Boolean(formData.node_relation.relation_name?.trim());
+
+                return (
+                  <div>
+                    <h4 className="text-sm font-medium mb-4">Default Settings</h4>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <Label htmlFor="agg_time_dimension">Default Time Dimension</Label>
+                        <Select
+                          value={formData.defaults.agg_time_dimension || undefined}
+                          onValueChange={(value) => setFormData(prev => ({
+                            ...prev,
+                            defaults: { ...prev.defaults, agg_time_dimension: value }
+                          }))}
+                          disabled={!hasSelectedDataSource || timeDimensionOptions.length === 0}
+                        >
+                          <SelectTrigger id="agg_time_dimension">
+                            <SelectValue placeholder={hasSelectedDataSource ? 'Select default time dimension' : 'Please select data source first'} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {timeDimensionOptions.map(dimensionName => (
+                              <SelectItem key={dimensionName} value={dimensionName}>{dimensionName}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {!hasSelectedDataSource
+                          ? <p className="text-xs text-muted-foreground mt-1">Please complete data source selection before setting the default time dimension.</p>
+                          : null}
+                        {hasSelectedDataSource && timeDimensionOptions.length === 0
+                          ? <p className="text-xs text-destructive mt-1">Please create at least one time dimension first.</p>
+                          : null}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </TabsContent>
           
@@ -1728,29 +1746,6 @@ const SemanticModelManagement: React.FC = () => {
                 </div>
               </div>
               
-              <div>
-                <Label htmlFor="edit-agg_time_dimension">Default Time Dimension</Label>
-                <Select
-                  value={formData.defaults.agg_time_dimension || undefined}
-                  onValueChange={(value) => setFormData(prev => ({
-                    ...prev,
-                    defaults: { ...prev.defaults, agg_time_dimension: value }
-                  }))}
-                >
-                  <SelectTrigger id="edit-agg_time_dimension">
-                    <SelectValue placeholder="Select default time dimension" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeDimensionOptions.map(dimensionName => (
-                      <SelectItem key={dimensionName} value={dimensionName}>{dimensionName}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {timeDimensionOptions.length === 0
-                  ? <p className="text-xs text-destructive mt-1">Please create at least one time dimension first.</p>
-                  : null}
-              </div>
-              
               {/* <div className="space-y-4">
                 <h4 className="text-sm font-medium">Database Relation</h4>
                 <div className="grid grid-cols-2 gap-4">
@@ -2102,6 +2097,46 @@ const SemanticModelManagement: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                {(() => {
+                  const hasSelectedDataSource = formData.sourceType === 'topic'
+                    ? Boolean(formData.topicId)
+                    : Boolean(formData.node_relation.relation_name?.trim());
+
+                  return (
+                    <div>
+                      <h4 className="text-sm font-medium mb-4">Default Settings</h4>
+                      <div className="grid grid-cols-1 gap-4">
+                        <div>
+                          <Label htmlFor="edit-agg_time_dimension">Default Time Dimension</Label>
+                          <Select
+                            value={formData.defaults.agg_time_dimension || undefined}
+                            onValueChange={(value) => setFormData(prev => ({
+                              ...prev,
+                              defaults: { ...prev.defaults, agg_time_dimension: value }
+                            }))}
+                            disabled={!hasSelectedDataSource || timeDimensionOptions.length === 0}
+                          >
+                            <SelectTrigger id="edit-agg_time_dimension">
+                              <SelectValue placeholder={hasSelectedDataSource ? 'Select default time dimension' : 'Please select data source first'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {timeDimensionOptions.map(dimensionName => (
+                                <SelectItem key={dimensionName} value={dimensionName}>{dimensionName}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {!hasSelectedDataSource
+                            ? <p className="text-xs text-muted-foreground mt-1">Please complete data source selection before setting the default time dimension.</p>
+                            : null}
+                          {hasSelectedDataSource && timeDimensionOptions.length === 0
+                            ? <p className="text-xs text-destructive mt-1">Please create at least one time dimension first.</p>
+                            : null}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
                 
                 {/* <div>
                   <h4 className="text-sm font-medium mb-4">Default Settings</h4>

@@ -1,14 +1,16 @@
 # Watchmen Agent CLI
 
-Watchmen Agent CLI is a tool for syncing Topics, Pipelines, and Enums between a **local vault** and the **Watchmen server**. It is designed for daily data development, configuration migration, and AI-assisted automation workflows.
+Watchmen Agent CLI is a tool for syncing Topics, Pipelines, Enums, MetricFlow Semantics, and Metrics between a **local vault** and the **Watchmen server**. It is designed for daily data development, configuration migration, and AI-assisted automation workflows.
 
 It also ships with a reusable Agent Skill (`agent-cli`) that lets AI directly perform pull, push, dependency sync, and remote listing operations within a conversation.
 
 ## Core Capabilities
 
 - Topic YAML sync (pull by ID/name, push single file, batch push/pull)
-- Pipeline JSON sync (pull by ID/name, batch push/pull)
+- Pipeline YAML sync (pull by ID/name, push single file, batch push/pull)
 - Enum codebook sync (pull by ID/name, push single file, remote listing)
+- MetricFlow Semantic Model YAML sync (pull by name, push single file, remote listing)
+- MetricFlow Metric YAML sync (pull by name, push single file, remote listing)
 - Automatic multi-entity dependency resolution:
   - Pipelines depend on Topics
   - Topics depend on Enums via `enumId`
@@ -67,6 +69,7 @@ poetry run agent-cli push --target topic --vault ./my_vault
 - Pipeline
   - `agent-cli pipeline pull <pipeline_id> --vault <vault>`
   - `agent-cli pipeline pull-name "<pipeline_name>" --vault <vault>`
+  - `agent-cli pipeline push-file <file_path> --vault <vault>`
   - `agent-cli pipeline list --vault <vault>`
   - `agent-cli pipeline list-remote --vault <vault>`
 - Enum
@@ -75,6 +78,16 @@ poetry run agent-cli push --target topic --vault ./my_vault
   - `agent-cli enum push-file <file_path> --vault <vault>`
   - `agent-cli enum list --vault <vault>`
   - `agent-cli enum list-remote --vault <vault>`
+- Semantic Model (MetricFlow)
+  - `agent-cli semantic pull-name "<model_name>" --vault <vault>`
+  - `agent-cli semantic push-file <file_path> --vault <vault>`
+  - `agent-cli semantic list --vault <vault>`
+  - `agent-cli semantic list-remote --vault <vault>`
+- Metric (MetricFlow)
+  - `agent-cli metric pull-name "<metric_name>" --vault <vault>`
+  - `agent-cli metric push-file <file_path> --vault <vault>`
+  - `agent-cli metric list --vault <vault>`
+  - `agent-cli metric list-remote --vault <vault>`
 
 ## How It Works with the Skill
 

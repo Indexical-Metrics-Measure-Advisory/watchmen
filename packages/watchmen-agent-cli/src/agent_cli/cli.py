@@ -28,6 +28,10 @@ from agent_cli.main import (
     handle_ingest_table_pull,
     handle_ingest_table_push_file,
     handle_init,
+    handle_metric_list,
+    handle_metric_list_remote,
+    handle_metric_pull_name,
+    handle_metric_push_file,
     handle_pipeline_list,
     handle_pipeline_list_remote,
     handle_pipeline_pull,
@@ -35,6 +39,10 @@ from agent_cli.main import (
     handle_pipeline_push_file,
     handle_pull,
     handle_push,
+    handle_semantic_list,
+    handle_semantic_list_remote,
+    handle_semantic_pull_name,
+    handle_semantic_push_file,
     handle_tenant_info,
     handle_topic_list,
     handle_topic_list_remote,
@@ -48,6 +56,8 @@ app = typer.Typer(help="Watchmen Topic/Pipeline sync CLI powered by Typer")
 topic_app = typer.Typer(help="Fine-grained topic commands")
 pipeline_app = typer.Typer(help="Fine-grained pipeline commands")
 enum_app = typer.Typer(help="Fine-grained enum commands")
+semantic_app = typer.Typer(help="MetricFlow semantic model commands")
+metric_app = typer.Typer(help="MetricFlow metric commands")
 ingest_app = typer.Typer(help="Ingest config YAML commands")
 ingest_table_app = typer.Typer(help="Collector table config commands")
 ingest_model_app = typer.Typer(help="Collector model config commands")
@@ -55,6 +65,8 @@ ingest_module_app = typer.Typer(help="Collector module config commands")
 app.add_typer(topic_app, name="topic")
 app.add_typer(pipeline_app, name="pipeline")
 app.add_typer(enum_app, name="enum")
+app.add_typer(semantic_app, name="semantic")
+app.add_typer(metric_app, name="metric")
 app.add_typer(ingest_app, name="ingest")
 ingest_app.add_typer(ingest_table_app, name="table")
 ingest_app.add_typer(ingest_model_app, name="model")
@@ -269,6 +281,74 @@ def enum_list_remote_command(
     vault: Optional[str] = typer.Option(None, "--vault"),
 ) -> None:
     _run_with_guard(ctx, lambda: handle_enum_list_remote(_namespace(vault=vault)))
+
+
+@semantic_app.command("pull-name")
+def semantic_pull_name_command(
+    ctx: typer.Context,
+    model_name: str,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_semantic_pull_name(_namespace(model_name=model_name, vault=vault)))
+
+
+@semantic_app.command("push-file")
+def semantic_push_file_command(
+    ctx: typer.Context,
+    file_path: str,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_semantic_push_file(_namespace(file_path=file_path, vault=vault)))
+
+
+@semantic_app.command("list")
+def semantic_list_command(
+    ctx: typer.Context,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_semantic_list(_namespace(vault=vault)))
+
+
+@semantic_app.command("list-remote")
+def semantic_list_remote_command(
+    ctx: typer.Context,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_semantic_list_remote(_namespace(vault=vault)))
+
+
+@metric_app.command("pull-name")
+def metric_pull_name_command(
+    ctx: typer.Context,
+    metric_name: str,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_metric_pull_name(_namespace(metric_name=metric_name, vault=vault)))
+
+
+@metric_app.command("push-file")
+def metric_push_file_command(
+    ctx: typer.Context,
+    file_path: str,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_metric_push_file(_namespace(file_path=file_path, vault=vault)))
+
+
+@metric_app.command("list")
+def metric_list_command(
+    ctx: typer.Context,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_metric_list(_namespace(vault=vault)))
+
+
+@metric_app.command("list-remote")
+def metric_list_remote_command(
+    ctx: typer.Context,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_metric_list_remote(_namespace(vault=vault)))
 
 
 @ingest_table_app.command("pull")

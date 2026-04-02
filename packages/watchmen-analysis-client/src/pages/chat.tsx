@@ -53,6 +53,8 @@ import { Textarea } from '@/components/ui/textarea';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { getAssistants } from '@/services/analysisAssistantService';
+import type { AssistantProfile } from '@/model/analysisAssistant';
 
 // Types
 interface Message {
@@ -88,6 +90,20 @@ interface Assistant {
   role: string;
   avatar?: string;
 }
+
+const mapAssistantProfileToAssistant = (assistant: AssistantProfile, index: number): Assistant => {
+  const primaryPurpose = assistant.config.purposes.find(item => item.language === 'en')?.text
+    || assistant.config.purposes.find(item => item.language === 'zh-CN')?.text
+    || assistant.config.purposes[0]?.text
+    || 'Analysis Assistant';
+
+  return {
+    id: assistant.id,
+    name: assistant.name,
+    role: primaryPurpose,
+    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(assistant.name || `assistant-${index + 1}`)}`
+  };
+};
 
 interface MetricQuery {
   metric?: string;
@@ -326,20 +342,35 @@ const ChatPage: React.FC = () => {
 
   // Load assistants
   useEffect(() => {
-    // Mock assistants
-    const mockAssistants: Assistant[] = [
-      { id: '1', name: 'Sales Analyst', role: 'Sales Performance', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix' },
-      { id: '2', name: 'Risk Assessor', role: 'Underwriting Risk', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka' },
-      { id: '3', name: 'Claims Specialist', role: 'Claims Processing', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mark' },
-    ];
-    setAssistants(mockAssistants);
+    let mounted = true;
 
-    const savedId = localStorage.getItem('selectedAssistantId');
-    if (savedId && mockAssistants.find(a => a.id === savedId)) {
-      setSelectedAssistantId(savedId);
-    } else {
-      setAssistantModalOpen(true);
-    }
+    const loadAssistants = async () => {
+      const profiles = await getAssistants();
+      if (!mounted) return;
+
+      const nextAssistants = profiles.map(mapAssistantProfileToAssistant);
+      setAssistants(nextAssistants);
+
+      const savedId = localStorage.getItem('selectedAssistantId');
+      if (savedId && nextAssistants.find(a => a.id === savedId)) {
+        setSelectedAssistantId(savedId);
+        setAssistantModalOpen(false);
+        return;
+      }
+
+      if (nextAssistants.length > 0) {
+        setSelectedAssistantId(nextAssistants[0].id);
+        localStorage.setItem('selectedAssistantId', nextAssistants[0].id);
+      }
+
+      setAssistantModalOpen(nextAssistants.length > 0);
+    };
+
+    void loadAssistants();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {

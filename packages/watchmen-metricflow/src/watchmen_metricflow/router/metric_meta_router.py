@@ -172,8 +172,6 @@ async def delete_metric(
         principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> MetricWithCategory:
     """Delete a metric"""
-    if not ask_tuple_delete_enabled():
-        raise_404('Not Found')
     
     if is_blank(metric_name):
         raise_400('Metric name is required.')

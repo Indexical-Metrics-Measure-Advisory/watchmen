@@ -19,3 +19,11 @@
   - `packages/watchmen-collector-kernel/src/watchmen_collector_kernel/model/collector_model_config.py`
 - Table config:
   - `packages/watchmen-collector-kernel/src/watchmen_collector_kernel/model/collector_table_config.py`
+
+## MetricFlow
+- Semantic model:
+  - `packages/watchmen-metricflow/src/watchmen_metricflow/model/semantic.py`
+  - YAML endpoints: `/metricflow/semantic-model/name/yaml`, `/metricflow/semantic-model/yaml`
+- Metric:
+  - `packages/watchmen-metricflow/src/watchmen_metricflow/model/metrics.py`
+  - YAML endpoints: `/metricflow/metric/name/yaml`, `/metricflow/metric/yaml`

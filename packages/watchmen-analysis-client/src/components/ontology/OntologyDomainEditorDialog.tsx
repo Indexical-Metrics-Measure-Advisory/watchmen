@@ -246,13 +246,13 @@ export const OntologyDomainEditorDialog: React.FC<OntologyDomainEditorDialogProp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[85vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-5xl h-[85vh] max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>{mode === 'edit' ? 'Edit Ontology Domain' : 'Create Ontology Domain'}</DialogTitle>
           <DialogDescription>Use structured sections to maintain ontology metadata, concepts, views, and relationships.</DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="overview" className="w-full flex-1 min-h-0 flex flex-col">
+        <Tabs defaultValue="overview" className="w-full flex-1 min-h-0 flex flex-col overflow-hidden">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="concepts">Concepts</TabsTrigger>
@@ -260,304 +260,298 @@ export const OntologyDomainEditorDialog: React.FC<OntologyDomainEditorDialogProp
             <TabsTrigger value="relationships">Relationships</TabsTrigger>
           </TabsList>
 
-          <div className="mt-4 flex-1 min-h-0">
-            <TabsContent value="overview" className="h-full mt-0 data-[state=inactive]:hidden">
+          <div className="mt-4 flex-1 min-h-0 flex flex-col overflow-hidden">
+            <TabsContent value="overview" className="flex-1 min-h-0 mt-0 data-[state=inactive]:hidden overflow-hidden">
               <ScrollArea className="h-full pr-4">
                 <div className="space-y-4 pb-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Domain Basics</CardTitle>
-                  <CardDescription>Define the ontology domain scope and stewardship.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="domain-name">Domain Name</Label>
-                      <Input id="domain-name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Policy Ontology Domain" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="domain-tags">Tags</Label>
-                      <Input id="domain-tags" value={tags} onChange={e => setTags(e.target.value)} placeholder="comma separated" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="domain-description">Description</Label>
-                    <Textarea
-                      id="domain-description"
-                      rows={4}
-                      value={description}
-                      onChange={e => setDescription(e.target.value)}
-                      placeholder="Describe the semantic boundary and value of this ontology domain."
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="domain-owner">Business Owner</Label>
-                      <Input id="domain-owner" value={owner} onChange={e => setOwner(e.target.value)} placeholder="team or person" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="domain-tech-owner">Tech Owner</Label>
-                      <Input
-                        id="domain-tech-owner"
-                        value={technicalOwner}
-                        onChange={e => setTechnicalOwner(e.target.value)}
-                        placeholder="team or person"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Sensitivity</Label>
-                      <Select value={sensitivity} onValueChange={value => setSensitivity(value as OntologySensitivity)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select sensitivity" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="public">🌍 Public</SelectItem>
-                          <SelectItem value="internal">🏢 Internal</SelectItem>
-                          <SelectItem value="confidential">🔒 Confidential</SelectItem>
-                          <SelectItem value="restricted">🚨 Restricted</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Status</Label>
-                      <Select value={status} onValueChange={value => setStatus(value as OntologyStatus)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="deprecated">Deprecated</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Domain Basics</CardTitle>
+                      <CardDescription>Define the ontology domain scope and stewardship.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="domain-name">Domain Name</Label>
+                          <Input id="domain-name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Policy Ontology Domain" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="domain-tags">Tags</Label>
+                          <Input id="domain-tags" value={tags} onChange={e => setTags(e.target.value)} placeholder="comma separated" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="domain-description">Description</Label>
+                        <Textarea
+                          id="domain-description"
+                          rows={4}
+                          value={description}
+                          onChange={e => setDescription(e.target.value)}
+                          placeholder="Describe the semantic boundary and value of this ontology domain."
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="domain-owner">Business Owner</Label>
+                          <Input id="domain-owner" value={owner} onChange={e => setOwner(e.target.value)} placeholder="team or person" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="domain-tech-owner">Tech Owner</Label>
+                          <Input
+                            id="domain-tech-owner"
+                            value={technicalOwner}
+                            onChange={e => setTechnicalOwner(e.target.value)}
+                            placeholder="team or person"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Sensitivity</Label>
+                          <Select value={sensitivity} onValueChange={value => setSensitivity(value as OntologySensitivity)}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select sensitivity" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="public">🌍 Public</SelectItem>
+                              <SelectItem value="internal">🏢 Internal</SelectItem>
+                              <SelectItem value="confidential">🔒 Confidential</SelectItem>
+                              <SelectItem value="restricted">🚨 Restricted</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Status</Label>
+                          <Select value={status} onValueChange={value => setStatus(value as OntologyStatus)}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="active">Active</SelectItem>
+                              <SelectItem value="deprecated">Deprecated</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="concepts" className="h-full mt-0 data-[state=inactive]:hidden">
-              <ScrollArea className="h-full pr-4">
+            <TabsContent value="concepts" className="flex-1 min-h-0 mt-0 data-[state=inactive]:hidden flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between pb-4 shrink-0">
+                <div>
+                  <div className="font-semibold">Ontology Concepts</div>
+                  <div className="text-sm text-muted-foreground">Maintain structured concept definitions instead of free-text rows.</div>
+                </div>
+                <Button variant="outline" className="gap-2" onClick={() => setConcepts(prev => [...prev, emptyConcept()])}>
+                  <Plus className="w-4 h-4" />
+                  Add Concept
+                </Button>
+              </div>
+              <ScrollArea className="flex-1 min-h-0 pr-4">
                 <div className="space-y-4 pb-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold">Ontology Concepts</div>
-                      <div className="text-sm text-muted-foreground">Maintain structured concept definitions instead of free-text rows.</div>
-                    </div>
-                    <Button variant="outline" className="gap-2" onClick={() => setConcepts(prev => [...prev, emptyConcept()])}>
-                      <Plus className="w-4 h-4" />
-                      Add Concept
-                    </Button>
-                  </div>
-                  <div className="space-y-4">
-                    {concepts.map((concept, index) => (
-                      <Card key={concept.id}>
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between gap-3">
-                            <CardTitle className="text-base">Concept {index + 1}</CardTitle>
-                            <Button variant="ghost" size="sm" onClick={() => setConcepts(prev => prev.filter(item => item.id !== concept.id))}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="grid gap-4">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="space-y-2 md:col-span-2">
-                              <Label>Concept Name</Label>
-                              <Input value={concept.name} onChange={e => updateConcept(concept.id, 'name', e.target.value)} placeholder="e.g., Policy" />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Concept Type</Label>
-                              <Select value={concept.type} onValueChange={value => updateConcept(concept.id, 'type', value)}>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="entity">Ontology Class</SelectItem>
-                                  <SelectItem value="event">Ontology Event</SelectItem>
-                                  <SelectItem value="aggregate">Aggregate Concept</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label>Attribute Count</Label>
-                              <Input value={concept.fields} onChange={e => updateConcept(concept.id, 'fields', e.target.value)} placeholder="0" />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Related Concepts</Label>
-                              <Input
-                                value={concept.relationshipsInput}
-                                onChange={e => updateConcept(concept.id, 'relationshipsInput', e.target.value)}
-                                placeholder="comma separated concept names"
-                              />
-                            </div>
+                  {concepts.map((concept, index) => (
+                    <Card key={concept.id}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <CardTitle className="text-base">Concept {index + 1}</CardTitle>
+                          <Button variant="ghost" size="sm" onClick={() => setConcepts(prev => prev.filter(item => item.id !== concept.id))}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="grid gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-2 md:col-span-2">
+                            <Label>Concept Name</Label>
+                            <Input value={concept.name} onChange={e => updateConcept(concept.id, 'name', e.target.value)} placeholder="e.g., Policy" />
                           </div>
                           <div className="space-y-2">
-                            <Label>Description</Label>
-                            <Textarea
-                              rows={3}
-                              value={concept.description}
-                              onChange={e => updateConcept(concept.id, 'description', e.target.value)}
-                              placeholder="Describe the concept semantics."
+                            <Label>Concept Type</Label>
+                            <Select value={concept.type} onValueChange={value => updateConcept(concept.id, 'type', value)}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="entity">Ontology Class</SelectItem>
+                                <SelectItem value="event">Ontology Event</SelectItem>
+                                <SelectItem value="aggregate">Aggregate Concept</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Attribute Count</Label>
+                            <Input value={concept.fields} onChange={e => updateConcept(concept.id, 'fields', e.target.value)} placeholder="0" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Related Concepts</Label>
+                            <Input
+                              value={concept.relationshipsInput}
+                              onChange={e => updateConcept(concept.id, 'relationshipsInput', e.target.value)}
+                              placeholder="comma separated concept names"
                             />
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Description</Label>
+                          <Textarea
+                            rows={3}
+                            value={concept.description}
+                            onChange={e => updateConcept(concept.id, 'description', e.target.value)}
+                            placeholder="Describe the concept semantics."
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="views" className="h-full mt-0 data-[state=inactive]:hidden">
-              <ScrollArea className="h-full pr-4">
+            <TabsContent value="views" className="flex-1 min-h-0 mt-0 data-[state=inactive]:hidden flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between pb-4 shrink-0">
+                <div>
+                  <div className="font-semibold">Semantic Views</div>
+                  <div className="text-sm text-muted-foreground">Define reusable semantic views and their linked concepts.</div>
+                </div>
+                <Button variant="outline" className="gap-2" onClick={() => setSemanticViews(prev => [...prev, emptySemanticView()])}>
+                  <Plus className="w-4 h-4" />
+                  Add View
+                </Button>
+              </div>
+              <ScrollArea className="flex-1 min-h-0 pr-4">
                 <div className="space-y-4 pb-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold">Semantic Views</div>
-                      <div className="text-sm text-muted-foreground">Define reusable semantic views and their linked concepts.</div>
-                    </div>
-                    <Button variant="outline" className="gap-2" onClick={() => setSemanticViews(prev => [...prev, emptySemanticView()])}>
-                      <Plus className="w-4 h-4" />
-                      Add View
-                    </Button>
-                  </div>
-                  <div className="space-y-4">
-                    {semanticViews.map((view, index) => (
-                      <Card key={view.id}>
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between gap-3">
-                            <CardTitle className="text-base">View {index + 1}</CardTitle>
-                            <Button variant="ghost" size="sm" onClick={() => setSemanticViews(prev => prev.filter(item => item.id !== view.id))}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="grid gap-4">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="space-y-2 md:col-span-2">
-                              <Label>View Name</Label>
-                              <Input value={view.name} onChange={e => updateSemanticView(view.id, 'name', e.target.value)} placeholder="e.g., Customer 360" />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>View Type</Label>
-                              <Select value={view.type} onValueChange={value => updateSemanticView(view.id, 'type', value)}>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="connected">Connected</SelectItem>
-                                  <SelectItem value="data_mart">Data Mart</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label>Subject Areas</Label>
-                              <Input value={view.subjects} onChange={e => updateSemanticView(view.id, 'subjects', e.target.value)} placeholder="0" />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Linked Concepts</Label>
-                              <Input
-                                value={view.conceptsInput}
-                                onChange={e => updateSemanticView(view.id, 'conceptsInput', e.target.value)}
-                                placeholder="comma separated concept names"
-                              />
-                            </div>
+                  {semanticViews.map((view, index) => (
+                    <Card key={view.id}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <CardTitle className="text-base">View {index + 1}</CardTitle>
+                          <Button variant="ghost" size="sm" onClick={() => setSemanticViews(prev => prev.filter(item => item.id !== view.id))}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="grid gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-2 md:col-span-2">
+                            <Label>View Name</Label>
+                            <Input value={view.name} onChange={e => updateSemanticView(view.id, 'name', e.target.value)} placeholder="e.g., Customer 360" />
                           </div>
                           <div className="space-y-2">
-                            <Label>Description</Label>
-                            <Textarea
-                              rows={3}
-                              value={view.description}
-                              onChange={e => updateSemanticView(view.id, 'description', e.target.value)}
-                              placeholder="Describe the view purpose and scope."
+                            <Label>View Type</Label>
+                            <Select value={view.type} onValueChange={value => updateSemanticView(view.id, 'type', value)}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="connected">Connected</SelectItem>
+                                <SelectItem value="data_mart">Data Mart</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Subject Areas</Label>
+                            <Input value={view.subjects} onChange={e => updateSemanticView(view.id, 'subjects', e.target.value)} placeholder="0" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Linked Concepts</Label>
+                            <Input
+                              value={view.conceptsInput}
+                              onChange={e => updateSemanticView(view.id, 'conceptsInput', e.target.value)}
+                              placeholder="comma separated concept names"
                             />
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Description</Label>
+                          <Textarea
+                            rows={3}
+                            value={view.description}
+                            onChange={e => updateSemanticView(view.id, 'description', e.target.value)}
+                            placeholder="Describe the view purpose and scope."
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="relationships" className="h-full mt-0 data-[state=inactive]:hidden">
-              <ScrollArea className="h-full pr-4">
+            <TabsContent value="relationships" className="flex-1 min-h-0 mt-0 data-[state=inactive]:hidden flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between pb-4 shrink-0">
+                <div>
+                  <div className="font-semibold">Domain Relationships</div>
+                  <div className="text-sm text-muted-foreground">Link this domain to other domains using explicit predicates.</div>
+                </div>
+                <Button variant="outline" className="gap-2" onClick={() => setRelationships(prev => [...prev, emptyRelationship()])}>
+                  <Plus className="w-4 h-4" />
+                  Add Relationship
+                </Button>
+              </div>
+              <ScrollArea className="flex-1 min-h-0 pr-4">
                 <div className="space-y-4 pb-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold">Domain Relationships</div>
-                      <div className="text-sm text-muted-foreground">Link this domain to other domains using explicit predicates.</div>
-                    </div>
-                    <Button variant="outline" className="gap-2" onClick={() => setRelationships(prev => [...prev, emptyRelationship()])}>
-                      <Plus className="w-4 h-4" />
-                      Add Relationship
-                    </Button>
-                  </div>
-                  <div className="space-y-4">
-                    {relationships.length === 0 && (
-                      <Card>
-                        <CardContent className="py-8 text-sm text-muted-foreground">
-                          No relationships yet. Add one to model inter-domain dependencies.
-                        </CardContent>
-                      </Card>
-                    )}
-                    {relationships.map((relationship, index) => (
-                      <Card key={relationship.id}>
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between gap-3">
-                            <CardTitle className="text-base">Relationship {index + 1}</CardTitle>
-                            <Button variant="ghost" size="sm" onClick={() => setRelationships(prev => prev.filter(item => item.id !== relationship.id))}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="grid gap-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label>Target Domain</Label>
-                              <Select value={relationship.domainId} onValueChange={value => updateRelationship(relationship.id, 'domainId', value)}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select target domain" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {availableRelationshipTargets.map(target => (
-                                    <SelectItem key={target.id} value={target.id}>
-                                      {target.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Predicate</Label>
-                              <Input
-                                value={relationship.relationshipType}
-                                onChange={e => updateRelationship(relationship.id, 'relationshipType', e.target.value)}
-                                placeholder="e.g., Depends on"
-                              />
-                            </div>
+                  {relationships.length === 0 && (
+                    <Card>
+                      <CardContent className="py-8 text-sm text-muted-foreground">
+                        No relationships yet. Add one to model inter-domain dependencies.
+                      </CardContent>
+                    </Card>
+                  )}
+                  {relationships.map((relationship, index) => (
+                    <Card key={relationship.id}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <CardTitle className="text-base">Relationship {index + 1}</CardTitle>
+                          <Button variant="ghost" size="sm" onClick={() => setRelationships(prev => prev.filter(item => item.id !== relationship.id))}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="grid gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Target Domain</Label>
+                            <Select value={relationship.domainId} onValueChange={value => updateRelationship(relationship.id, 'domainId', value)}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select target domain" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {availableRelationshipTargets.map(target => (
+                                  <SelectItem key={target.id} value={target.id}>
+                                    {target.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div className="space-y-2">
-                            <Label>Description</Label>
-                            <Textarea
-                              rows={2}
-                              value={relationship.description}
-                              onChange={e => updateRelationship(relationship.id, 'description', e.target.value)}
-                              placeholder="Optional description for the relationship."
+                            <Label>Predicate</Label>
+                            <Input
+                              value={relationship.relationshipType}
+                              onChange={e => updateRelationship(relationship.id, 'relationshipType', e.target.value)}
+                              placeholder="e.g., Depends on"
                             />
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Description</Label>
+                          <Textarea
+                            rows={2}
+                            value={relationship.description}
+                            onChange={e => updateRelationship(relationship.id, 'description', e.target.value)}
+                            placeholder="Optional description for the relationship."
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </ScrollArea>
             </TabsContent>

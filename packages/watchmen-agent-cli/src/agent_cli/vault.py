@@ -15,6 +15,8 @@ ENUM_DIR = "enums"
 INGEST_TABLE_CONFIG_DIR = "ingest-table-configs"
 INGEST_MODEL_CONFIG_DIR = "ingest-model-configs"
 INGEST_MODULE_CONFIG_DIR = "ingest-module-configs"
+METRICFLOW_SEMANTIC_DIR = "metricflow-semantics"
+METRICFLOW_METRIC_DIR = "metricflow-metrics"
 
 
 def ensure_vault(vault_path: Path) -> None:
@@ -26,6 +28,8 @@ def ensure_vault(vault_path: Path) -> None:
     (vault_path / INGEST_TABLE_CONFIG_DIR).mkdir(parents=True, exist_ok=True)
     (vault_path / INGEST_MODEL_CONFIG_DIR).mkdir(parents=True, exist_ok=True)
     (vault_path / INGEST_MODULE_CONFIG_DIR).mkdir(parents=True, exist_ok=True)
+    (vault_path / METRICFLOW_SEMANTIC_DIR).mkdir(parents=True, exist_ok=True)
+    (vault_path / METRICFLOW_METRIC_DIR).mkdir(parents=True, exist_ok=True)
 
 
 def config_path(vault_path: Path) -> Path:

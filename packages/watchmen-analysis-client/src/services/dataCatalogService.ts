@@ -348,8 +348,7 @@ const mockDataProducts: DataProduct[] = [
   }
 ];
 
-// 模拟统计数据
-const mockStats: DataCatalogStats = {
+const buildMockStats = (): DataCatalogStats => ({
   totalProducts: mockDataProducts.length,
   activeProducts: mockDataProducts.filter(p => p.product.en.status === DataProductStatus.ACTIVE).length,
   totalDomains: [...new Set(mockDataProducts.map(p => p.product.en.domain).filter(Boolean))].length,
@@ -367,11 +366,11 @@ const mockStats: DataCatalogStats = {
     [DataProductStatus.RETIRED]: mockDataProducts.filter(p => p.product.en.status === DataProductStatus.RETIRED).length,
   },
   productsByQuality: {
-    [DataQualityLevel.BRONZE]: 1,
-    [DataQualityLevel.SILVER]: 2,
-    [DataQualityLevel.GOLD]: 2,
+    [DataQualityLevel.BRONZE]: mockDataProducts.filter(p => p.outputPorts?.some(port => port.dataQuality === DataQualityLevel.BRONZE)).length,
+    [DataQualityLevel.SILVER]: mockDataProducts.filter(p => p.outputPorts?.some(port => port.dataQuality === DataQualityLevel.SILVER)).length,
+    [DataQualityLevel.GOLD]: mockDataProducts.filter(p => p.outputPorts?.some(port => port.dataQuality === DataQualityLevel.GOLD)).length,
   }
-};
+});
 
 /**
  * 数据目录服务类
@@ -590,6 +589,34 @@ export class DataCatalogService {
   }
 
   /**
+   * 创建数据产品
+   */
+  async createDataProduct(productData: DataProduct): Promise<DataProduct> {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const productId = productData.product.en.productID;
+      const exists = mockDataProducts.some(p => p.product.en.productID === productId);
+      if (exists) {
+        throw new Error(`Product with ID ${productId} already exists`);
+      }
+
+      const now = new Date().toISOString();
+      const nextProduct: DataProduct = {
+        ...productData,
+        createdAt: productData.createdAt ?? now,
+        updatedAt: productData.updatedAt ?? now
+      };
+
+      mockDataProducts.unshift(nextProduct);
+      return nextProduct;
+    } catch (error) {
+      console.error('Error creating data product:', error);
+      throw new Error('Failed to create data product');
+    }
+  }
+
+  /**
    * 获取数据目录统计信息
    */
   async getDataCatalogStats(): Promise<DataCatalogStats> {
@@ -601,7 +628,7 @@ export class DataCatalogService {
       // 模拟API延迟
       await new Promise(resolve => setTimeout(resolve, 200));
 
-      return mockStats;
+      return buildMockStats();
     } catch (error) {
       console.error('Error fetching data catalog stats:', error);
       throw new Error('Failed to fetch data catalog stats');

@@ -29,6 +29,18 @@
 - `enum list --vault`
 - `enum list-remote --vault`
 
+## Semantic Model (MetricFlow)
+- `semantic pull-name "<model_name>" --vault`
+- `semantic push-file <file_path> --vault`
+- `semantic list --vault`
+- `semantic list-remote --vault`
+
+## Metric (MetricFlow)
+- `metric pull-name "<metric_name>" --vault`
+- `metric push-file <file_path> --vault`
+- `metric list --vault`
+- `metric list-remote --vault`
+
 ## Ingestion
 - `ingest table pull "<table_name>" --vault`
 - `ingest table push-file <file_path> --vault`

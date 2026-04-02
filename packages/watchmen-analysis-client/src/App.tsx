@@ -42,6 +42,7 @@ import SharedAnalysisPage from './pages/SharedAnalysisPage';
 const queryClient = new QueryClient();
 
 const SHOW_METRIC_AI_AGENT = (import.meta.env.VITE_SHOW_METRIC_AI_AGENT ?? 'true') === 'true';
+const SHOW_DATA_CATALOG = (import.meta.env.VITE_SHOW_DATA_CATALOG ?? 'true') === 'true';
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -67,8 +68,12 @@ const App = () => (
                 <Route path="/metrics/bi-analysis" element={<BIAnalysisPage />} />
                 <Route path="/metrics/alert-configuration" element={<AlertConfigurationPage />} />
                 <Route path="/metrics/data-profiles" element={<DataProfileManagement />} />
-                <Route path="/data-catalog" element={<DataCatalog />} />
-                <Route path="/data-catalog/domain-map" element={<BusinessDomainMap />} />
+                {SHOW_DATA_CATALOG && (
+                  <Route path="/data-catalog" element={<DataCatalog />} />
+                )}
+                {SHOW_DATA_CATALOG && (
+                  <Route path="/data-catalog/domain-map" element={<BusinessDomainMap />} />
+                )}
                 {/* <Route path="/metric-detail" element={<MetricDetail />} /> */}
                 <Route path="/analysis" element={<Analysis />} />
                 <Route path="/challenge-analysis" element={<ChallengeAnalysis />} />

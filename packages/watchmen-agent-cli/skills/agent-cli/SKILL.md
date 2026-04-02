@@ -1,6 +1,6 @@
 ---
 name: agent-cli
-description: Synchronizes Watchmen metadata (topic/pipeline/enum/ingest) via CLI+REST. Invoke for init, pull/push, list-remote, pull by name/id, and ingestion YAML sync.
+description: Synchronizes Watchmen metadata (topic/pipeline/enum/semantic/metric/ingest) via CLI+REST. Invoke for init, pull/push, list-remote, pull by name/id, and YAML sync.
 ---
 
 # Agent CLI for Watchmen
@@ -15,7 +15,7 @@ Keep this file concise and load detailed references only when needed.
 
 ## When To Invoke
 - User asks to initialize CLI vault/config.
-- User asks to pull/push Topic, Pipeline, Enum, or Ingestion configs.
+- User asks to pull/push Topic, Pipeline, Enum, Semantic Model, Metric, or Ingestion configs.
 - User asks to list remote metadata.
 - User asks to pull by name/id, or push local YAML files.
 
@@ -46,6 +46,6 @@ Keep this file concise and load detailed references only when needed.
 6. If failure occurs, load troubleshooting reference and retry with fix.
 
 ## Scope
-- Supported entities: Topic, Pipeline, Enum, Ingestion Module/Model/Table.
+- Supported entities: Topic, Pipeline, Enum, MetricFlow Semantic Model, MetricFlow Metric, Ingestion Module/Model/Table.
 - Protocol: YAML for topic/pipeline/enum/ingestion.
 - Outputs: JSON summaries suitable for agent chaining.

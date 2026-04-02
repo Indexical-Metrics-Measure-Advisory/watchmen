@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Grid, List, Eye, Calendar, User, ExternalLink, Database, Activity, TrendingUp, Star, Edit, Save, X } from 'lucide-react';
+import { Search, Filter, Grid, List, Eye, Calendar, User, ExternalLink, Database, Activity, TrendingUp, Star, Edit, Save, X, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,6 +37,8 @@ const DataCatalog: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<DataProduct | null>(null);
   const [editFormData, setEditFormData] = useState<any>({});
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [createFormData, setCreateFormData] = useState<any>({});
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'relevance' | 'name' | 'createdAt'>('relevance');
   const [filters, setFilters] = useState({
@@ -110,6 +112,30 @@ const DataCatalog: React.FC = () => {
     });
     setSearchQuery('');
     loadData();
+  };
+
+  const getEmptyProductFormData = () => ({
+    name: '',
+    description: '',
+    version: '1.0.0',
+    status: DataProductStatus.DRAFT,
+    type: DataProductType.DATASET,
+    visibility: DataProductVisibility.INTERNAL,
+    archetype: DataProductArchetype.SOURCE_ALIGNED,
+    owner: '',
+    domain: '',
+    tags: '',
+    dataHolderName: '',
+    dataHolderEmail: '',
+    dataHolderRole: '',
+    documentationLink: '',
+    repositoryLink: '',
+    supportLink: ''
+  });
+
+  const handleOpenCreateProduct = () => {
+    setCreateFormData(getEmptyProductFormData());
+    setIsCreateDialogOpen(true);
   };
 
   const handleEditProduct = (product: DataProduct) => {
@@ -193,6 +219,70 @@ const DataCatalog: React.FC = () => {
     setIsEditDialogOpen(false);
     setEditingProduct(null);
     setEditFormData({});
+  };
+
+  const handleCancelCreate = () => {
+    setIsCreateDialogOpen(false);
+    setCreateFormData({});
+  };
+
+  const createProductId = (name: string) => {
+    const base = name
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'data-product';
+    const suffix = String(Date.now()).slice(-6);
+    return `${base}-${suffix}`;
+  };
+
+  const handleCreateProduct = async () => {
+    const name = (createFormData.name || '').trim();
+    if (!name) return;
+
+    try {
+      const newProduct: DataProduct = {
+        product: {
+          en: {
+            productID: createProductId(name),
+            name,
+            description: createFormData.description?.trim() || '',
+            version: createFormData.version?.trim() || '1.0.0',
+            status: createFormData.status || DataProductStatus.DRAFT,
+            type: createFormData.type || DataProductType.DATASET,
+            visibility: createFormData.visibility || DataProductVisibility.INTERNAL,
+            archetype: createFormData.archetype || DataProductArchetype.SOURCE_ALIGNED,
+            owner: createFormData.owner?.trim() || '',
+            domain: createFormData.domain?.trim() || '',
+            tags: createFormData.tags
+              ? createFormData.tags.split(',').map((tag: string) => tag.trim()).filter(Boolean)
+              : []
+          }
+        },
+        dataHolder: createFormData.dataHolderName || createFormData.dataHolderEmail || createFormData.dataHolderRole
+          ? {
+              name: createFormData.dataHolderName?.trim() || '',
+              email: createFormData.dataHolderEmail?.trim() || '',
+              role: createFormData.dataHolderRole?.trim() || ''
+            }
+          : undefined,
+        links: createFormData.documentationLink || createFormData.repositoryLink || createFormData.supportLink
+          ? {
+              documentation: createFormData.documentationLink?.trim() || undefined,
+              repository: createFormData.repositoryLink?.trim() || undefined,
+              support: createFormData.supportLink?.trim() || undefined
+            }
+          : undefined
+      };
+
+      const createdProduct = await dataCatalogService.createDataProduct(newProduct);
+      setProducts(prevProducts => [createdProduct, ...prevProducts]);
+      setStats(await dataCatalogService.getDataCatalogStats());
+      setIsCreateDialogOpen(false);
+      setCreateFormData({});
+    } catch (error) {
+      console.error('Failed to create product:', error);
+    }
   };
 
   const getStatusColor = (status: DataProductStatus) => {
@@ -502,6 +592,201 @@ const DataCatalog: React.FC = () => {
     return arr; // relevance (default order from backend)
   }, [products, sortBy]);
 
+  const ProductFormTabs = ({
+    formData,
+    setFormData
+  }: {
+    formData: any;
+    setFormData: React.Dispatch<React.SetStateAction<any>>;
+  }) => (
+    <Tabs defaultValue="basic" className="w-full">
+      <TabsList className="grid w-full grid-cols-3">
+        <TabsTrigger value="basic">Basic Info</TabsTrigger>
+        <TabsTrigger value="contact">Contact</TabsTrigger>
+        <TabsTrigger value="links">Links</TabsTrigger>
+      </TabsList>
+      
+      <TabsContent value="basic" className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Product Name</Label>
+            <Input
+              id="name"
+              value={formData.name || ''}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, name: e.target.value }))}
+              placeholder="Enter product name"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="version">Version</Label>
+            <Input
+              id="version"
+              value={formData.version || ''}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, version: e.target.value }))}
+              placeholder="e.g., 1.0.0"
+            />
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={formData.description || ''}
+            onChange={(e) => setFormData((prev: any) => ({ ...prev, description: e.target.value }))}
+            placeholder="Enter product description"
+            rows={3}
+          />
+        </div>
+        
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select value={formData.status} onValueChange={(value) => setFormData((prev: any) => ({ ...prev, status: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={DataProductStatus.DRAFT}>Draft</SelectItem>
+                <SelectItem value={DataProductStatus.ACTIVE}>Active</SelectItem>
+                <SelectItem value={DataProductStatus.DEPRECATED}>Deprecated</SelectItem>
+                <SelectItem value={DataProductStatus.RETIRED}>Retired</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="type">Type</Label>
+            <Select value={formData.type} onValueChange={(value) => setFormData((prev: any) => ({ ...prev, type: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={DataProductType.DATASET}>Dataset</SelectItem>
+                <SelectItem value={DataProductType.API}>API</SelectItem>
+                <SelectItem value={DataProductType.STREAM}>Stream</SelectItem>
+                <SelectItem value={DataProductType.MODEL}>Model</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="visibility">Visibility</Label>
+            <Select value={formData.visibility} onValueChange={(value) => setFormData((prev: any) => ({ ...prev, visibility: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select visibility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={DataProductVisibility.PUBLIC}>Public</SelectItem>
+                <SelectItem value={DataProductVisibility.INTERNAL}>Internal</SelectItem>
+                <SelectItem value={DataProductVisibility.PRIVATE}>Private</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="owner">Owner</Label>
+            <Input
+              id="owner"
+              value={formData.owner || ''}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, owner: e.target.value }))}
+              placeholder="Enter owner name"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="domain">Domain</Label>
+            <Input
+              id="domain"
+              value={formData.domain || ''}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, domain: e.target.value }))}
+              placeholder="Enter business domain"
+            />
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="tags">Tags</Label>
+          <Input
+            id="tags"
+            value={formData.tags || ''}
+            onChange={(e) => setFormData((prev: any) => ({ ...prev, tags: e.target.value }))}
+            placeholder="Separate multiple tags with commas"
+          />
+        </div>
+      </TabsContent>
+      
+      <TabsContent value="contact" className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="dataHolderName">Data Holder Name</Label>
+            <Input
+              id="dataHolderName"
+              value={formData.dataHolderName || ''}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, dataHolderName: e.target.value }))}
+              placeholder="Enter name"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="dataHolderEmail">Email</Label>
+            <Input
+              id="dataHolderEmail"
+              type="email"
+              value={formData.dataHolderEmail || ''}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, dataHolderEmail: e.target.value }))}
+              placeholder="Enter email address"
+            />
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="dataHolderRole">Role</Label>
+          <Input
+            id="dataHolderRole"
+            value={formData.dataHolderRole || ''}
+            onChange={(e) => setFormData((prev: any) => ({ ...prev, dataHolderRole: e.target.value }))}
+            placeholder="Enter role"
+          />
+        </div>
+      </TabsContent>
+      
+      <TabsContent value="links" className="space-y-4">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="documentationLink">Documentation Link</Label>
+            <Input
+              id="documentationLink"
+              value={formData.documentationLink || ''}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, documentationLink: e.target.value }))}
+              placeholder="https://docs.example.com"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="repositoryLink">Repository Link</Label>
+            <Input
+              id="repositoryLink"
+              value={formData.repositoryLink || ''}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, repositoryLink: e.target.value }))}
+              placeholder="https://github.com/example/repo"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="supportLink">Support Link</Label>
+            <Input
+              id="supportLink"
+              value={formData.supportLink || ''}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, supportLink: e.target.value }))}
+              placeholder="https://support.example.com"
+            />
+          </div>
+        </div>
+      </TabsContent>
+    </Tabs>
+  );
+
   // Edit dialog component
   const EditProductDialog = () => (
     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -512,192 +797,7 @@ const DataCatalog: React.FC = () => {
         </DialogHeader>
         
         <div className="space-y-6">
-          <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="basic">Basic Info</TabsTrigger>
-              <TabsTrigger value="contact">Contact</TabsTrigger>
-              <TabsTrigger value="links">Links</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="basic" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Product Name</Label>
-                  <Input
-                    id="name"
-                    value={editFormData.name || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter product name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="version">Version</Label>
-                  <Input
-                    id="version"
-                    value={editFormData.version || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, version: e.target.value }))}
-                    placeholder="e.g., 1.0.0"
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={editFormData.description || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Enter product description"
-                  rows={3}
-                />
-              </div>
-              
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select value={editFormData.status} onValueChange={(value) => setEditFormData(prev => ({ ...prev, status: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={DataProductStatus.DRAFT}>Draft</SelectItem>
-                      <SelectItem value={DataProductStatus.ACTIVE}>Active</SelectItem>
-                      <SelectItem value={DataProductStatus.DEPRECATED}>Deprecated</SelectItem>
-                      <SelectItem value={DataProductStatus.RETIRED}>Retired</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="type">Type</Label>
-                  <Select value={editFormData.type} onValueChange={(value) => setEditFormData(prev => ({ ...prev, type: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={DataProductType.DATASET}>Dataset</SelectItem>
-                      <SelectItem value={DataProductType.API}>API</SelectItem>
-                      <SelectItem value={DataProductType.STREAM}>Stream</SelectItem>
-                      <SelectItem value={DataProductType.MODEL}>Model</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="visibility">Visibility</Label>
-                  <Select value={editFormData.visibility} onValueChange={(value) => setEditFormData(prev => ({ ...prev, visibility: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select visibility" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={DataProductVisibility.PUBLIC}>Public</SelectItem>
-                      <SelectItem value={DataProductVisibility.INTERNAL}>Internal</SelectItem>
-                      <SelectItem value={DataProductVisibility.PRIVATE}>Private</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="owner">Owner</Label>
-                  <Input
-                    id="owner"
-                    value={editFormData.owner || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, owner: e.target.value }))}
-                    placeholder="Enter owner name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="domain">Domain</Label>
-                  <Input
-                    id="domain"
-                    value={editFormData.domain || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, domain: e.target.value }))}
-                    placeholder="Enter business domain"
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="tags">Tags</Label>
-                <Input
-                  id="tags"
-                  value={editFormData.tags || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, tags: e.target.value }))}
-                  placeholder="Separate multiple tags with commas"
-                />
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="contact" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="dataHolderName">Data Holder Name</Label>
-                  <Input
-                    id="dataHolderName"
-                    value={editFormData.dataHolderName || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, dataHolderName: e.target.value }))}
-                    placeholder="Enter name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dataHolderEmail">Email</Label>
-                  <Input
-                    id="dataHolderEmail"
-                    type="email"
-                    value={editFormData.dataHolderEmail || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, dataHolderEmail: e.target.value }))}
-                    placeholder="Enter email address"
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="dataHolderRole">Role</Label>
-                <Input
-                  id="dataHolderRole"
-                  value={editFormData.dataHolderRole || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, dataHolderRole: e.target.value }))}
-                  placeholder="Enter role"
-                />
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="links" className="space-y-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="documentationLink">Documentation Link</Label>
-                  <Input
-                    id="documentationLink"
-                    value={editFormData.documentationLink || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, documentationLink: e.target.value }))}
-                    placeholder="https://docs.example.com"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="repositoryLink">Repository Link</Label>
-                  <Input
-                    id="repositoryLink"
-                    value={editFormData.repositoryLink || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, repositoryLink: e.target.value }))}
-                    placeholder="https://github.com/example/repo"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="supportLink">Support Link</Label>
-                  <Input
-                    id="supportLink"
-                    value={editFormData.supportLink || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, supportLink: e.target.value }))}
-                    placeholder="https://support.example.com"
-                  />
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+          <ProductFormTabs formData={editFormData} setFormData={setEditFormData} />
           
           <div className="flex justify-end gap-2 pt-4 border-t">
             <Button variant="outline" onClick={handleCancelEdit}>
@@ -714,6 +814,32 @@ const DataCatalog: React.FC = () => {
     </Dialog>
   );
 
+  const CreateProductDialog = () => (
+    <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Create Data Product</DialogTitle>
+          <DialogDescription>Create a new data catalog entry for your data product</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          <ProductFormTabs formData={createFormData} setFormData={setCreateFormData} />
+
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={handleCancelCreate}>
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button onClick={handleCreateProduct} disabled={!createFormData.name?.trim()}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
@@ -723,6 +849,7 @@ const DataCatalog: React.FC = () => {
         
         {/* Edit Dialog */}
         <EditProductDialog />
+        <CreateProductDialog />
         
         <main className="container mx-auto p-6 space-y-6">
           {/* Header */}
@@ -732,6 +859,10 @@ const DataCatalog: React.FC = () => {
               <p className="text-muted-foreground">Browse and manage all data assets</p>
             </div>
             <div className="flex items-center gap-2">
+              <Button size="sm" onClick={handleOpenCreateProduct}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create
+              </Button>
               <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
                 <SelectTrigger className="w-[160px]"><SelectValue placeholder="Sort by" /></SelectTrigger>
                 <SelectContent>
