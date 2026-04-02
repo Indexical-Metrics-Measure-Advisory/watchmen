@@ -36,6 +36,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install poetry
+      - name: Change version [watchmen-agent-cli]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-utilities
+        with:
+          module-name: watchmen-agent-cli
+          target-version: ${{ inputs.version }}
       - name: Package [watchmen-agent-cli] and publish to Pypi
         working-directory: ./packages/watchmen-agent-cli
         run: |
