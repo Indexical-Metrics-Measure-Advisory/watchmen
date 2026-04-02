@@ -8,7 +8,6 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
 from watchmen_data_kernel.common import ask_all_date_formats, ask_replace_topic_to_storage, ask_sync_topic_to_storage
 from watchmen_data_kernel.service import sync_topic_structure_storage
-
 from watchmen_meta.admin import FactorService, PipelineService, TopicService, TopicSnapshotSchedulerService
 from watchmen_meta.analysis import TopicIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
@@ -17,7 +16,7 @@ from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_pipeline_kernel.topic_snapshot import as_snapshot_task_topic_name, create_snapshot_pipeline, \
 	create_snapshot_target_topic, create_snapshot_task_topic, rebuild_snapshot_pipeline, \
 	rebuild_snapshot_target_topic, rebuild_snapshot_task_topic
-from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
+from watchmen_rest import get_admin_principal, get_console_principal, get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail
@@ -417,10 +416,10 @@ def post_delete_topic(topic_id: TopicId, topic_service: TopicService) -> None:
 	CacheService.topic().remove(topic_id)
 
 
-@router.delete('/topic', tags=[UserRole.ADMIN], response_model=None)
+@router.delete('/topic', tags=[UserRole.SUPER_ADMIN, UserRole.ADMIN], response_model=None)
 async def delete_topic_by_id_by_admin(
 		topic_id: Optional[TopicId] = None,
-		principal_service: PrincipalService = Depends(get_admin_principal)
+		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> Topic:
 	if not ask_tuple_delete_enabled():
 		raise_404('Not Found')

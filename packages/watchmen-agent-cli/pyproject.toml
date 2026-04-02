@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "agent-cli"
+name = "watchmen-agent-cli"
 version = "18.0.80"
 description = "Watchmen agent friendly CLI for topic and pipeline synchronization"
 authors = ["imma-team"]
