@@ -3,11 +3,13 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 import { ConversionTypeParams, MetricDefinition, TimeGranularity, InputMeasure, MetricReference } from '@/model/metricsManagement';
 import { getMetrics } from '@/services/metricsManagementService';
 import { getSemanticModels } from '@/services/semanticModelService';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Trash2, Plus } from 'lucide-react';
 
 interface ConversionMetricParamsProps {
   params: ConversionTypeParams;
@@ -184,14 +186,16 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
                         <SelectItem value="percentage_change">Percentage Change</SelectItem>
                     </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">How to calculate conversion rate.</p>
             </div>
              <div className="space-y-2">
-                <Label>Entity</Label>
-                <Input 
+                <Label>Entity *</Label>
+                <Input
                     value={params.entity || ''}
                     onChange={(e) => updateParams({ entity: e.target.value })}
-                    placeholder="Entity name"
+                    placeholder="e.g., user_id"
                 />
+                <p className="text-xs text-muted-foreground">The entity being tracked for conversion (e.g., user, session).</p>
             </div>
         </div>
 
@@ -212,28 +216,29 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
         <Separator />
          <div className="space-y-2">
             <Label>Window Settings</Label>
+            <p className="text-xs text-muted-foreground">Optional time window for conversion tracking.</p>
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label className="text-xs text-muted-foreground">Count</Label>
-                    <Input 
-                        type="number"
+                    <Input
+                        type="text"
                         value={params.window?.count || ''}
-                        onChange={(e) => updateParams({ 
-                            window: { ...params.window, count: parseInt(e.target.value) || undefined } 
+                        onChange={(e) => updateParams({
+                            window: { ...params.window, count: parseInt(e.target.value) || undefined }
                         })}
-                        placeholder="Window count"
+                        placeholder="e.g., 7"
                     />
                 </div>
                 <div>
                     <Label className="text-xs text-muted-foreground">Granularity</Label>
                     <Select
                         value={params.window?.granularity || ''}
-                        onValueChange={(value) => updateParams({ 
-                            window: { ...params.window, granularity: value } 
+                        onValueChange={(value) => updateParams({
+                            window: { ...params.window, granularity: value }
                         })}
                     >
                         <SelectTrigger>
-                            <SelectValue placeholder="Window granularity" />
+                            <SelectValue placeholder="Select granularity" />
                         </SelectTrigger>
                         <SelectContent>
                             {Object.values(TimeGranularity).map((granularity) => (
@@ -244,6 +249,66 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
                         </SelectContent>
                     </Select>
                 </div>
+            </div>
+        </div>
+
+        <Separator />
+        <div className="space-y-2">
+            <Label>Constant Properties</Label>
+            <div className="space-y-2">
+                {(params.constant_properties || []).map((cp, index) => (
+                    <div key={index} className="grid grid-cols-2 gap-2 items-end">
+                        <div className="space-y-1">
+                            <Input
+                                placeholder="Property name"
+                                value={cp.property || ''}
+                                onChange={(e) => {
+                                    const updated = [...(params.constant_properties || [])];
+                                    updated[index] = { ...updated[index], property: e.target.value };
+                                    updateParams({ constant_properties: updated });
+                                }}
+                                className="h-8 text-xs"
+                            />
+                        </div>
+                        <div className="space-y-1 flex gap-1">
+                            <Input
+                                placeholder="Value"
+                                value={cp.value || ''}
+                                onChange={(e) => {
+                                    const updated = [...(params.constant_properties || [])];
+                                    updated[index] = { ...updated[index], value: e.target.value };
+                                    updateParams({ constant_properties: updated });
+                                }}
+                                className="h-8 text-xs"
+                            />
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                    const updated = [...(params.constant_properties || [])];
+                                    updated.splice(index, 1);
+                                    updateParams({ constant_properties: updated });
+                                }}
+                                className="h-8 px-2"
+                            >
+                                <Trash2 className="h-3 w-3" />
+                            </Button>
+                        </div>
+                    </div>
+                ))}
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                        updateParams({
+                            constant_properties: [...(params.constant_properties || []), { property: '', value: '' }]
+                        });
+                    }}
+                    className="text-xs"
+                >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Constant Property
+                </Button>
             </div>
         </div>
     </div>

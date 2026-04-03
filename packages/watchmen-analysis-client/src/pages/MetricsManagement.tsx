@@ -636,6 +636,8 @@ const MetricsManagement: React.FC = () => {
                       <SelectItem value="simple">Simple Metric</SelectItem>
                       <SelectItem value="ratio">Ratio Metric</SelectItem>
                       <SelectItem value="derived">Derived Metric</SelectItem>
+                      <SelectItem value="cumulative">Cumulative Metric</SelectItem>
+                      <SelectItem value="conversion">Conversion Metric</SelectItem>
                     </SelectContent>
                   </Select>
               </div>
@@ -882,20 +884,27 @@ const MetricsManagement: React.FC = () => {
             <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Metric Name</label>
+                <label className="text-sm font-medium">Metric Name *</label>
                 <Input
                   value={editForm.name || ''}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  placeholder="Enter metric name"
+                  placeholder="e.g., daily_active_users"
+                  className={editForm.name && !metricNamePattern.test(editForm.name) ? 'border-destructive' : ''}
                 />
+                {editForm.name && !metricNamePattern.test(editForm.name) ? (
+                  <p className="text-xs text-destructive">Invalid: use only letters, numbers, and underscores</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Only letters, numbers, and underscores. Used as unique identifier.</p>
+                )}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Display Label</label>
+                <label className="text-sm font-medium">Display Label *</label>
                 <Input
                   value={editForm.label || ''}
                   onChange={(e) => setEditForm({ ...editForm, label: e.target.value })}
-                  placeholder="Enter display label"
+                  placeholder="e.g., Daily Active Users"
                 />
+                <p className="text-xs text-muted-foreground">Human-readable name shown in dashboards.</p>
               </div>
             </div>
             <div className="space-y-2">
@@ -903,9 +912,10 @@ const MetricsManagement: React.FC = () => {
               <Textarea
                 value={editForm.description || ''}
                 onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                placeholder="Enter metric description"
+                placeholder="Describe what this metric measures and how it should be used..."
                 rows={3}
               />
+              <p className="text-xs text-muted-foreground">Explain the metric's purpose and business context.</p>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
@@ -1217,16 +1227,23 @@ const MetricsManagement: React.FC = () => {
                 <Input
                   value={createForm.name || ''}
                   onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-                  placeholder="Enter metric name"
+                  placeholder="e.g., daily_active_users"
+                  className={createForm.name && !metricNamePattern.test(createForm.name) ? 'border-destructive' : ''}
                 />
+                {createForm.name && !metricNamePattern.test(createForm.name) ? (
+                  <p className="text-xs text-destructive">Invalid: use only letters, numbers, and underscores</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Only letters, numbers, and underscores. Used as unique identifier.</p>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Display Label *</label>
                 <Input
                   value={createForm.label || ''}
                   onChange={(e) => setCreateForm({ ...createForm, label: e.target.value })}
-                  placeholder="Enter display label"
+                  placeholder="e.g., Daily Active Users"
                 />
+                <p className="text-xs text-muted-foreground">Human-readable name shown in dashboards.</p>
               </div>
             </div>
             <div className="space-y-2">
@@ -1234,9 +1251,10 @@ const MetricsManagement: React.FC = () => {
               <Textarea
                 value={createForm.description || ''}
                 onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
-                placeholder="Enter metric description"
+                placeholder="Describe what this metric measures and how it should be used..."
                 rows={3}
               />
+              <p className="text-xs text-muted-foreground">Explain the metric's purpose and business context.</p>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">

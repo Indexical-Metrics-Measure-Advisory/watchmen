@@ -111,13 +111,14 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
     <div className="space-y-6">
       {/* Expression */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Expression</label>
+        <label className="text-sm font-medium">Expression *</label>
         <Textarea
           value={params.expr || ''}
           onChange={(e) => updateParams({ expr: e.target.value })}
-          placeholder="Enter calculation expression (e.g., (current_premium - prev_premium) / prev_premium * 100)"
+          placeholder="e.g., (metric_a - metric_b) / metric_b * 100"
           rows={3}
         />
+        <p className="text-xs text-muted-foreground">Mathematical expression using referenced metric names. Example: (revenue - cost) / cost</p>
       </div>
 
       {/* Metric References */}

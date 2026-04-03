@@ -84,6 +84,7 @@ const CumulativeMetricParams: React.FC<CumulativeMetricParamsProps> = ({ params,
               ))}
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground">Reset cumulative calculation at this granularity (e.g., month-to-date).</p>
         </div>
 
         <div className="space-y-2">
@@ -103,33 +104,35 @@ const CumulativeMetricParams: React.FC<CumulativeMetricParamsProps> = ({ params,
                 <SelectItem value="count">Count</SelectItem>
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground">How to aggregate values within each period.</p>
         </div>
       </div>
 
       <div className="space-y-2">
         <Label>Window Settings</Label>
+        <p className="text-xs text-muted-foreground">Optional rolling window for cumulative calculation.</p>
         <div className="grid grid-cols-2 gap-4">
             <div>
                 <Label className="text-xs text-muted-foreground">Count</Label>
-                <Input 
-                    type="number"
+                <Input
+                    type="text"
                     value={params.window?.count || ''}
-                    onChange={(e) => updateParams({ 
-                        window: { ...params.window, count: parseInt(e.target.value) || undefined } 
+                    onChange={(e) => updateParams({
+                        window: { ...params.window, count: parseInt(e.target.value) || undefined }
                     })}
-                    placeholder="Window count"
+                    placeholder="e.g., 7"
                 />
             </div>
             <div>
                 <Label className="text-xs text-muted-foreground">Granularity</Label>
                 <Select
                     value={params.window?.granularity || ''}
-                    onValueChange={(value) => updateParams({ 
-                        window: { ...params.window, granularity: value } 
+                    onValueChange={(value) => updateParams({
+                        window: { ...params.window, granularity: value }
                     })}
                 >
                     <SelectTrigger>
-                        <SelectValue placeholder="Window granularity" />
+                        <SelectValue placeholder="Select granularity" />
                     </SelectTrigger>
                     <SelectContent>
                         {Object.values(TimeGranularity).map((granularity) => (

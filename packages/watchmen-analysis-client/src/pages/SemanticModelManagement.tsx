@@ -199,6 +199,14 @@ const SemanticModelManagement: React.FC = () => {
       });
       return;
     }
+    if (formData.entities.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "At least one entity is required",
+        variant: "destructive"
+      });
+      return;
+    }
     try {
       setIsLoading(true);
       await createSemanticModel(formData);
@@ -260,6 +268,14 @@ const SemanticModelManagement: React.FC = () => {
       toast({
         title: "Validation Error",
         description: "Default time dimension must be selected from time dimensions",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (formData.entities.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "At least one entity is required",
         variant: "destructive"
       });
       return;
