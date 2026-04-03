@@ -26,6 +26,7 @@ import { MetricBuilderSheet } from '@/components/bi/MetricBuilderSheet';
 import { SubscriptionModal } from '@/components/bi/SubscriptionModal';
 import { inferType } from '@/components/bi/utils';
 import { BIChartCard, BICardSize, BIMetric, BIChartType, GlobalAlertRule } from '@/model/biAnalysis';
+import type { ChartDatum } from '@/components/bi/ChartCard';
 import { saveAnalysis, listAnalyses, getAnalysis, deleteAnalysis, updateAnalysis, updateAnalysisTemplate } from '@/services/biAnalysisService';
 import { metricsService } from '@/services/metricsService';
 import { globalAlertService } from '@/services/globalAlertService';
@@ -40,6 +41,20 @@ import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { addDays, format } from "date-fns";
 
 const GLOBAL_TIME_RANGE_PER_CARD = '__card__';
+
+type FetchCardDataResult = {
+  id: string;
+  type: 'chart';
+  data: ChartDatum[];
+  rawData: MetricFlowResponse | null;
+  status?: never;
+} | {
+  id: string;
+  type: 'alert';
+  data: ChartDatum[];
+  rawData: null;
+  status: AlertStatus | null;
+};
 
 const toDimKey = (d: MetricDimension) => d.qualified_name || d.name;
 
@@ -116,7 +131,7 @@ const buildGlobalWhere = (filters: Record<string, string>): string | undefined =
   return parts.length > 0 ? parts.join(' AND ') : undefined;
 };
 
-const transformMetricFlowToChartData = (resp: MetricFlowResponse): unknown[] => {
+const transformMetricFlowToChartData = (resp: MetricFlowResponse): ChartDatum[] => {
   if (!resp || !Array.isArray(resp.column_names) || !Array.isArray(resp.data)) return [];
   const cols = resp.column_names;
   const valueIdx = Math.max(cols.lastIndexOf('value'), cols.length - 1);
@@ -184,7 +199,7 @@ const transformMetricFlowToChartData = (resp: MetricFlowResponse): unknown[] => 
        });
     }
 
-    return result;
+    return result.map(r => r as ChartDatum);
   }
 
   // Case: Single non-time dimension
@@ -270,7 +285,7 @@ const BIAnalysisPage: React.FC = () => {
 
   // Preview State
   const [previewState, setPreviewState] = useState<{
-    data: unknown[];
+    data: ChartDatum[];
     rawData: MetricFlowResponse | null;
     type: BIChartType;
   }>({
@@ -291,7 +306,7 @@ const BIAnalysisPage: React.FC = () => {
 
   // board
   const [cards, setCards] = useState<BIChartCard[]>([]);
-  const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: unknown[], rawData: MetricFlowResponse | null }>>({});
+  const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: ChartDatum[], rawData: MetricFlowResponse | null }>>({});
   const [alertStatusMap, setAlertStatusMap] = useState<Record<string, AlertStatus>>({});
   const [metricBuilderOpen, setMetricBuilderOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<'dashboard' | 'saved'>('dashboard');
@@ -309,9 +324,17 @@ const BIAnalysisPage: React.FC = () => {
   const [shareOpen, setShareOpen] = useState(false);
   const [subscriptionOpen, setSubscriptionOpen] = useState(false);
   const [templates, setTemplates] = useState<{ id: string; name: string; description?: string; isTemplate?: boolean }[]>([]);
+  const [isBoardRefreshing, setIsBoardRefreshing] = useState(false);
 
   // Cache for metric dimensions to avoid re-fetching
   const metricDimsCache = useRef<Map<string, MetricDimension[]>>(new Map());
+  const previewCache = useRef<Map<string, { data: unknown[]; rawData: MetricFlowResponse | null }>>(new Map());
+  const cardQueryCache = useRef<Map<string, { result: FetchCardDataResult; timestamp: number }>>(new Map());
+  const cardInFlightRequests = useRef<Map<string, number>>(new Map());
+  const boardRefreshRequestRef = useRef(0);
+  const globalFilterDebounceRef = useRef<number | null>(null);
+
+  const CARD_QUERY_CACHE_TTL = 30_000;
 
   // Fetch rules when alert metric changes
   useEffect(() => {
@@ -326,7 +349,7 @@ const BIAnalysisPage: React.FC = () => {
   }, [addAlertOpen]);
 
   // Fetch and cache card data
-  const fetchCardData = useCallback(async (card: BIChartCard, filtersOverride?: Record<string, string>, timeRangeOverride?: string) => {
+  const fetchCardData = useCallback(async (card: BIChartCard, filtersOverride?: Record<string, string>, timeRangeOverride?: string): Promise<FetchCardDataResult | null> => {
     try {
       if (card.chartType === 'alert' && card.alert) {
         if (!card.alert.enabled) {
@@ -334,11 +357,11 @@ const BIAnalysisPage: React.FC = () => {
         }
         const resp = await globalAlertService.fetchAlertData(card.alert as GlobalAlertRule);
         
-        let chartData: unknown[] = [];
+        let chartData: ChartDatum[] = [];
         if (resp && Array.isArray(resp.data)) {
-           chartData = resp.data;
+           chartData = (resp.data as ChartDatum[]);
         } else if (Array.isArray(resp)) {
-           chartData = resp;
+           chartData = (resp as ChartDatum[]);
         }
 
         let status: AlertStatus | null = null;
@@ -401,18 +424,74 @@ const BIAnalysisPage: React.FC = () => {
   }, [globalTimeRange, globalCustomDateRange, globalFilterValues]);
 
   const loadCardDataFor = useCallback(async (card: BIChartCard, filtersOverride?: Record<string, string>, timeRangeOverride?: string) => {
-    const result = await fetchCardData(card, filtersOverride, timeRangeOverride);
-    if (!result) return;
-
-    if (result.type === 'alert') {
-      setCardDataMap(prev => ({ ...prev, [result.id]: { chartData: result.data, rawData: result.rawData } }));
-      if (result.status) {
-        setAlertStatusMap(prev => ({ ...prev, [result.id]: result.status! }));
+    const cached = cardQueryCache.current.get(card.id);
+    if (cached && Date.now() - cached.timestamp < CARD_QUERY_CACHE_TTL && !filtersOverride) {
+      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: cached.result.data, rawData: cached.result.rawData as MetricFlowResponse } }));
+      if (cached.result.type === 'alert' && cached.result.status) {
+        setAlertStatusMap(prev => ({ ...prev, [card.id]: cached.result.status! }));
       }
-    } else {
-      setCardDataMap(prev => ({ ...prev, [result.id]: { chartData: result.data, rawData: result.rawData as MetricFlowResponse } }));
+      return;
+    }
+    if (cardInFlightRequests.current.has(card.id)) return;
+    const requestId = Date.now();
+    cardInFlightRequests.current.set(card.id, requestId);
+    try {
+      const result = await fetchCardData(card, filtersOverride, timeRangeOverride);
+      if (cardInFlightRequests.current.get(card.id) !== requestId) return;
+      if (!result) return;
+
+      cardQueryCache.current.set(card.id, { result, timestamp: Date.now() });
+
+      if (result.type === 'alert') {
+        setCardDataMap(prev => ({ ...prev, [result.id]: { chartData: result.data, rawData: result.rawData } }));
+        if (result.status) {
+          setAlertStatusMap(prev => ({ ...prev, [result.id]: result.status! }));
+        }
+      } else {
+        setCardDataMap(prev => ({ ...prev, [result.id]: { chartData: result.data, rawData: result.rawData as MetricFlowResponse } }));
+      }
+    } finally {
+      cardInFlightRequests.current.delete(card.id);
     }
   }, [fetchCardData]);
+
+  const applyCardResults = useCallback((results: Awaited<ReturnType<typeof fetchCardData>>[]) => {
+    setCardDataMap(prev => {
+      const next = { ...prev };
+      results.forEach(result => {
+        if (!result) return;
+        next[result.id] = { chartData: result.data, rawData: result.rawData as MetricFlowResponse };
+      });
+      return next;
+    });
+
+    setAlertStatusMap(prev => {
+      const next = { ...prev };
+      let hasUpdates = false;
+      results.forEach(result => {
+        if (result && result.type === 'alert' && result.status) {
+          next[result.id] = result.status;
+          hasUpdates = true;
+        }
+      });
+      return hasUpdates ? next : prev;
+    });
+  }, []);
+
+  const refreshCardsWithContext = useCallback(async (
+    cardsToRefresh: BIChartCard[],
+    options?: {
+      filtersOverride?: Record<string, string>;
+      timeRangeOverride?: string;
+    }
+  ) => {
+    const requestId = ++boardRefreshRequestRef.current;
+    const results = await Promise.all(
+      cardsToRefresh.map(card => fetchCardData(card, options?.filtersOverride, options?.timeRangeOverride))
+    );
+    if (requestId !== boardRefreshRequestRef.current) return;
+    applyCardResults(results);
+  }, [applyCardResults, fetchCardData]);
 
   const confirmAddAlert = useCallback(() => {
      if (!alertRuleId) return;
@@ -440,36 +519,17 @@ const BIAnalysisPage: React.FC = () => {
 
      setCards(prev => [...prev, newCard]);
      toast({ title: 'Added', description: 'Alert card added to dashboard' });
-     void loadCardDataFor(newCard);
      setAddAlertOpen(false);
      setAlertRuleId('');
      setAlertTimeRange('Past 30 days');
-  }, [alertRuleId, dialogRules, alertTimeRange, alertCustomDateRange, loadCardDataFor, toast]);
+  }, [alertRuleId, dialogRules, alertTimeRange, alertCustomDateRange, toast]);
 
   const refreshData = useCallback(async () => {
+    setIsBoardRefreshing(true);
     toast({ title: 'Refreshing', description: 'Refreshing all cards...' });
-    const results = await Promise.all(cards.map(c => fetchCardData(c)));
-
-    setCardDataMap(prev => {
-      const next = { ...prev };
-      results.forEach(r => {
-        if (r) next[r.id] = { chartData: r.data, rawData: r.rawData as MetricFlowResponse };
-      });
-      return next;
-    });
-
-    setAlertStatusMap(prev => {
-      const next = { ...prev };
-      let hasUpdates = false;
-      results.forEach(r => {
-        if (r && r.type === 'alert' && r.status) {
-          next[r.id] = r.status;
-          hasUpdates = true;
-        }
-      });
-      return hasUpdates ? next : prev;
-    });
-  }, [cards, fetchCardData, toast]);
+    await refreshCardsWithContext(cards);
+    setIsBoardRefreshing(false);
+  }, [cards, refreshCardsWithContext, toast]);
 
   const selectedMetric: BIMetric | null = useMemo(() => {
     const m = chartConfig.metricDef;
@@ -489,6 +549,45 @@ const BIAnalysisPage: React.FC = () => {
     };
   }, [chartConfig.metricDef, availableDims]);
 
+  const hasSelectedTimeDimension = useMemo(() => {
+    if (chartConfig.dimensions.length === 0 || availableDimsDetailed.length === 0) return false;
+    const selected = new Set(chartConfig.dimensions);
+    return availableDimsDetailed.some(d => selected.has(d.qualified_name || d.name) && inferType(d) === 'TIME');
+  }, [chartConfig.dimensions, availableDimsDetailed]);
+
+  const previewFallbackType = useMemo<BIChartType>(() => {
+    if (chartConfig.chartType !== 'auto') return chartConfig.chartType;
+    return chartTypeFromDims(chartConfig.dimensions, availableDimsDetailed);
+  }, [chartConfig.chartType, chartConfig.dimensions, availableDimsDetailed]);
+
+  const previewQueryKey = useMemo(() => {
+    if (!selectedMetric) return '';
+    const from = chartConfig.customDateRange?.from ? format(chartConfig.customDateRange.from, 'yyyy-MM-dd') : '';
+    const to = chartConfig.customDateRange?.to ? format(chartConfig.customDateRange.to, 'yyyy-MM-dd') : '';
+    return JSON.stringify({
+      metric: selectedMetric.name,
+      dimensions: chartConfig.dimensions,
+      timeRange: chartConfig.timeRange,
+      from,
+      to,
+      timeGranularity: hasSelectedTimeDimension ? chartConfig.timeGranularity : '',
+      limit: chartConfig.limit
+    });
+  }, [
+    selectedMetric,
+    chartConfig.dimensions,
+    chartConfig.timeRange,
+    chartConfig.customDateRange,
+    chartConfig.timeGranularity,
+    chartConfig.limit,
+    hasSelectedTimeDimension
+  ]);
+
+  const commonFilterSource = useMemo(() => cards.map(card => ({
+    metricId: card.metricId,
+    dimensions: Array.isArray(card.selection?.dimensions) ? card.selection.dimensions : []
+  })), [cards]);
+
 
 
 
@@ -503,11 +602,11 @@ const BIAnalysisPage: React.FC = () => {
   useEffect(() => {
     let alive = true;
     const loadCommon = async () => {
-      const selectedDimSets = cards
-        .map(c => (Array.isArray(c.selection?.dimensions) ? c.selection.dimensions : []))
+      const selectedDimSets = commonFilterSource
+        .map(c => (Array.isArray(c.dimensions) ? c.dimensions : []))
         .map(dims => dims.map(d => (d || '').trim()).filter(d => d.length > 0))
         .filter(dims => dims.length > 0)
-        .map(dims => new Set(dims));
+        .map(dims => new Set<string>(dims));
 
       if (selectedDimSets.length === 0) {
         if (alive) {
@@ -532,7 +631,7 @@ const BIAnalysisPage: React.FC = () => {
 
       const metricIds = Array.from(
         new Set(
-          cards
+          commonFilterSource
             .map(c => (c.metricId || '').trim())
             .filter(id => id.length > 0)
         )
@@ -606,7 +705,7 @@ const BIAnalysisPage: React.FC = () => {
     return () => {
       alive = false;
     };
-  }, [cards]);
+  }, [commonFilterSource]);
 
 
 
@@ -659,6 +758,50 @@ const BIAnalysisPage: React.FC = () => {
     };
   }, [metricBuilderOpen]);
 
+  useEffect(() => {
+    return () => {
+      if (globalFilterDebounceRef.current) {
+        window.clearTimeout(globalFilterDebounceRef.current);
+      }
+    };
+  }, []);
+
+  const handleMetricBuilderOpenChange = useCallback((open: boolean) => {
+    setMetricBuilderOpen(open);
+  }, []);
+
+  const handleMetricSelect = useCallback((id: string, def: MetricDefinition) => {
+    setChartConfig(prev => ({ ...prev, metricId: id, metricDef: def }));
+  }, []);
+
+  const handleTimeRangeChange = useCallback((value: string) => {
+    setChartConfig(prev => ({ ...prev, timeRange: value }));
+  }, []);
+
+  const handleTimeGranularityChange = useCallback((value: string) => {
+    setChartConfig(prev => ({ ...prev, timeGranularity: value }));
+  }, []);
+
+  const handleCustomDateRangeChange = useCallback((value: DateRange | undefined) => {
+    setChartConfig(prev => ({ ...prev, customDateRange: value }));
+  }, []);
+
+  const handleSelectedChartTypeChange = useCallback((value: BIChartType) => {
+    setChartConfig(prev => ({ ...prev, chartType: value }));
+  }, []);
+
+  const handleLimitChange = useCallback((value: number) => {
+    setChartConfig(prev => ({ ...prev, limit: value }));
+  }, []);
+
+  const openAddAlertDialog = useCallback(() => {
+    setAddAlertOpen(true);
+  }, []);
+
+  const openSubscriptionDialog = useCallback(() => {
+    setSubscriptionOpen(true);
+  }, []);
+
 
 
   // Preview update with real data and data-driven chart type
@@ -667,16 +810,36 @@ const BIAnalysisPage: React.FC = () => {
     const loadPreview = async () => {
       if (!selectedMetric) {
         if (alive) {
-          setPreviewState({ data: [], rawData: null, type: 'bar' });
+          setPreviewState({ data: [], rawData: null, type: previewFallbackType });
         }
         return;
       }
 
       try {
+        const cached = previewCache.current.get(previewQueryKey);
+        if (cached) {
+          let cachedType: BIChartType = 'bar';
+          if (chartConfig.chartType !== 'auto') {
+            cachedType = chartConfig.chartType;
+          } else if (isTimeData(cached.data)) {
+            cachedType = 'line';
+          } else if (isGroupedData(cached.data)) {
+            cachedType = 'groupedBar';
+          } else if (!chartConfig.dimensions || chartConfig.dimensions.length === 0) {
+            cachedType = 'kpi';
+          } else {
+            cachedType = previewFallbackType;
+          }
+          if (alive) {
+            setPreviewState({ data: cached.data as ChartDatum[], rawData: cached.rawData, type: cachedType });
+          }
+          return;
+        }
+
         const { start, end } = timeRangeToBounds(chartConfig.timeRange, chartConfig.customDateRange);
         
         let groupBy = chartConfig.dimensions.length > 0 ? [...chartConfig.dimensions] : undefined;
-        if (selectedDimType === 'TIME' && chartConfig.timeGranularity && groupBy) {
+        if (hasSelectedTimeDimension && chartConfig.timeGranularity && groupBy) {
           groupBy = groupBy.map(dim => `${dim}__${chartConfig.timeGranularity}`);
         }
 
@@ -690,6 +853,7 @@ const BIAnalysisPage: React.FC = () => {
         };
         const resp = await metricsService.getMetricValue(req);
         const data = transformMetricFlowToChartData(resp);
+        previewCache.current.set(previewQueryKey, { data, rawData: resp });
         if (alive) {
           let type: BIChartType = 'bar';
           if (chartConfig.chartType !== 'auto') {
@@ -707,19 +871,28 @@ const BIAnalysisPage: React.FC = () => {
       } catch (e) {
         console.warn('Preview: failed to load real data, showing empty.', e);
         if (alive) {
-          let type: BIChartType = 'bar';
-          if (chartConfig.chartType !== 'auto') {
-            type = chartConfig.chartType;
-          } else {
-            type = chartTypeFromDims(chartConfig.dimensions, availableDimsDetailed);
-          }
-          setPreviewState({ data: [], rawData: null, type });
+          setPreviewState({ data: [], rawData: null, type: previewFallbackType });
         }
       }
     };
-    loadPreview();
-    return () => { alive = false; };
-  }, [selectedMetric, chartConfig.dimensions, chartConfig.timeRange, chartConfig.customDateRange, availableDimsDetailed, selectedDimType, chartConfig.timeGranularity, chartConfig.chartType, chartConfig.limit]);
+    const timer = window.setTimeout(() => {
+      void loadPreview();
+    }, 180);
+    return () => {
+      alive = false;
+      window.clearTimeout(timer);
+    };
+  }, [
+    selectedMetric,
+    previewQueryKey,
+    chartConfig.timeRange,
+    chartConfig.customDateRange,
+    chartConfig.timeGranularity,
+    chartConfig.chartType,
+    chartConfig.dimensions,
+    hasSelectedTimeDimension,
+    previewFallbackType
+  ]);
 
   // templates list
   useEffect(() => {
@@ -746,11 +919,23 @@ const BIAnalysisPage: React.FC = () => {
         return;
       }
       try {
-        const resp = await findDimensionsByMetric(chartConfig.metricDef.name);
-        const dims = Array.isArray(resp?.dimensions) ? resp.dimensions : [];
-        setAvailableDimsDetailed(dims);
+        const cacheKey = chartConfig.metricDef.name;
+        const cachedDims = metricDimsCache.current.get(cacheKey);
+        const dims = cachedDims
+          ? cachedDims
+          : (() => {
+              return [];
+            })();
+        const nextDims = dims.length > 0
+          ? dims
+          : await findDimensionsByMetric(chartConfig.metricDef.name).then(resp => {
+              const resolved = Array.isArray(resp?.dimensions) ? resp.dimensions : [];
+              metricDimsCache.current.set(cacheKey, resolved);
+              return resolved;
+            });
+        setAvailableDimsDetailed(nextDims);
         // initialize selected type to the first inferred type (prefer CATEGORICAL/TIME)
-        const types = Array.from(new Set(dims.map(inferType)));
+        const types = Array.from(new Set(nextDims.map(inferType)));
         setSelectedDimType(types[0] ?? 'CATEGORICAL');
       } catch (e) {
         console.warn('Failed to load metric dimensions, defaulting to empty.', e);
@@ -822,27 +1007,25 @@ const BIAnalysisPage: React.FC = () => {
       selection: { 
         dimensions: chartConfig.dimensions, 
         timeRange: finalTimeRange,
-        timeGranularity: selectedDimType === 'TIME' ? chartConfig.timeGranularity : undefined,
+        timeGranularity: hasSelectedTimeDimension ? chartConfig.timeGranularity : undefined,
         limit: chartConfig.limit
       }
     };
 
     setCards(prev => [...prev, newCard]);
     toast({ title: 'Added', description: 'Chart has been added to the analysis board' });
-    // Load real data for the newly added card
-    void loadCardDataFor(newCard);
     setActiveSection('dashboard');
     setMetricBuilderOpen(false);
-  }, [selectedMetric, chartConfig, availableDimsDetailed, previewState, selectedDimType, loadCardDataFor, toast]);
+  }, [selectedMetric, chartConfig, availableDimsDetailed, previewState, hasSelectedTimeDimension, toast]);
 
   // drag-and-drop reorder
-  const onDragStart = (index: number) => (e: React.DragEvent<HTMLDivElement>) => {
+  const onDragStart = useCallback((index: number) => (e: React.DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData('text/plain', String(index));
-  };
-  const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+  }, []);
+  const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-  };
-  const onDrop = (index: number) => (e: React.DragEvent<HTMLDivElement>) => {
+  }, []);
+  const onDrop = useCallback((index: number) => (e: React.DragEvent<HTMLDivElement>) => {
     const fromIndex = Number(e.dataTransfer.getData('text/plain'));
     if (Number.isNaN(fromIndex)) return;
     setCards(prev => {
@@ -851,12 +1034,12 @@ const BIAnalysisPage: React.FC = () => {
       next.splice(index, 0, moved);
       return next;
     });
-  };
+  }, []);
 
-  const resizeCard = (index: number, size: BICardSize) => {
+  const resizeCard = useCallback((index: number, size: BICardSize) => {
     setCards(prev => prev.map((c, i) => i === index ? { ...c, size } : c));
-  };
-  const updateCard = (index: number, updatedCard: BIChartCard) => {
+  }, []);
+  const updateCard = useCallback((index: number, updatedCard: BIChartCard) => {
     setCards(prev => prev.map((c, i) => i === index ? updatedCard : c));
     // Clear data for this card to force reload
     setCardDataMap(prev => {
@@ -864,163 +1047,90 @@ const BIAnalysisPage: React.FC = () => {
       delete next[updatedCard.id];
       return next;
     });
-  };
-  const removeCard = (index: number) => {
+  }, []);
+  const removeCard = useCallback((index: number) => {
     setCards(prev => prev.filter((_, i) => i !== index));
-  };
+  }, []);
 
-  const handleGlobalFilterChange = async (dimensionKey: string, value: string) => {
+  const handleGlobalFilterChange = useCallback((dimensionKey: string, value: string) => {
     const next = { ...globalFilterValues, [dimensionKey]: value };
     setGlobalFilterValues(next);
-    setCardDataMap({});
-    setAlertStatusMap({});
 
-    const results = await Promise.all(cards.map(c => fetchCardData(c, next)));
+    if (globalFilterDebounceRef.current) {
+      window.clearTimeout(globalFilterDebounceRef.current);
+    }
 
-    setCardDataMap(prev => {
-      const map = { ...prev };
-      results.forEach(r => {
-        if (r) map[r.id] = { chartData: r.data, rawData: r.rawData as MetricFlowResponse };
-      });
-      return map;
-    });
+    globalFilterDebounceRef.current = window.setTimeout(async () => {
+      setIsBoardRefreshing(true);
+      await refreshCardsWithContext(cards, { filtersOverride: next });
+      setIsBoardRefreshing(false);
+    }, 220);
+  }, [cards, globalFilterValues, refreshCardsWithContext]);
 
-    setAlertStatusMap(prev => {
-      const map = { ...prev };
-      let hasUpdates = false;
-      results.forEach(r => {
-        if (r && r.type === 'alert' && r.status) {
-          map[r.id] = r.status;
-          hasUpdates = true;
-        }
-      });
-      return hasUpdates ? map : prev;
-    });
-  };
-
-  const handleGlobalTimeRangeChange = async (range: string) => {
+  const handleGlobalTimeRangeChange = useCallback(async (range: string) => {
     setGlobalTimeRange(range);
+    setIsBoardRefreshing(true);
 
     // Sync to cards if not "Per Card" and not "Custom" (Custom is handled in date change)
+    let nextCards = cards;
     if (range !== GLOBAL_TIME_RANGE_PER_CARD && range !== 'Custom') {
-      setCards(prev => prev.map(c => ({
+      nextCards = cards.map(c => ({
         ...c,
         selection: { ...c.selection, timeRange: range }
-      })));
+      }));
+      setCards(nextCards);
     } else if (range === 'Custom' && globalCustomDateRange?.from && globalCustomDateRange?.to) {
        // If switching to Custom and we already have a range, sync it
        const customStr = `Custom:${format(globalCustomDateRange.from, 'yyyy-MM-dd')}:${format(globalCustomDateRange.to, 'yyyy-MM-dd')}`;
-       setCards(prev => prev.map(c => ({
+       nextCards = cards.map(c => ({
         ...c,
         selection: { ...c.selection, timeRange: customStr }
-      })));
+      }));
+       setCards(nextCards);
     }
 
-    setCardDataMap({});
-    setAlertStatusMap({});
-    
-    const results = await Promise.all(cards.map(c => {
-      const override = range === GLOBAL_TIME_RANGE_PER_CARD ? c.selection.timeRange : range;
-      return fetchCardData(c, globalFilterValues, override);
-    }));
-
-    setCardDataMap(prev => {
-      const map = { ...prev };
-      results.forEach(r => {
-        if (r) map[r.id] = { chartData: r.data, rawData: r.rawData as MetricFlowResponse };
-      });
-      return map;
+    await refreshCardsWithContext(nextCards, {
+      filtersOverride: globalFilterValues,
+      timeRangeOverride: range === GLOBAL_TIME_RANGE_PER_CARD ? undefined : range
     });
+    setIsBoardRefreshing(false);
+  }, [cards, globalCustomDateRange, globalFilterValues, refreshCardsWithContext]);
 
-    setAlertStatusMap(prev => {
-      const map = { ...prev };
-      let hasUpdates = false;
-      results.forEach(r => {
-        if (r && r.type === 'alert' && r.status) {
-          map[r.id] = r.status;
-          hasUpdates = true;
-        }
-      });
-      return hasUpdates ? map : prev;
-    });
-  };
-
-  const handleGlobalCustomDateRangeChange = async (range: DateRange) => {
+  const handleGlobalCustomDateRangeChange = useCallback(async (range: DateRange) => {
     setGlobalCustomDateRange(range);
     if (globalTimeRange !== 'Custom') return;
 
     if (!range?.from || !range?.to) return;
     const override = `Custom:${format(range.from, 'yyyy-MM-dd')}:${format(range.to, 'yyyy-MM-dd')}`;
-    
+
     // Sync to cards
-    setCards(prev => prev.map(c => ({
+    const nextCards = cards.map(c => ({
       ...c,
       selection: { ...c.selection, timeRange: override }
-    })));
+    }));
+    setCards(nextCards);
 
-    setCardDataMap({});
-    setAlertStatusMap({});
-    
-    const results = await Promise.all(cards.map(c => fetchCardData(c, globalFilterValues, override)));
+    setIsBoardRefreshing(true);
+    await refreshCardsWithContext(nextCards, { filtersOverride: globalFilterValues, timeRangeOverride: override });
+    setIsBoardRefreshing(false);
+  }, [cards, globalFilterValues, globalTimeRange, refreshCardsWithContext]);
 
-    setCardDataMap(prev => {
-      const map = { ...prev };
-      results.forEach(r => {
-        if (r) map[r.id] = { chartData: r.data, rawData: r.rawData as MetricFlowResponse };
-      });
-      return map;
-    });
-
-    setAlertStatusMap(prev => {
-      const map = { ...prev };
-      let hasUpdates = false;
-      results.forEach(r => {
-        if (r && r.type === 'alert' && r.status) {
-          map[r.id] = r.status;
-          hasUpdates = true;
-        }
-      });
-      return hasUpdates ? map : prev;
-    });
-  };
-
-  const clearGlobalFilters = async () => {
+  const clearGlobalFilters = useCallback(async () => {
     const next: Record<string, string> = {};
     setGlobalFilterValues(next);
     setGlobalTimeRange(GLOBAL_TIME_RANGE_PER_CARD);
     setGlobalCustomDateRange(undefined);
-    setCardDataMap({});
-    setAlertStatusMap({});
-    
-    const results = await Promise.all(cards.map(c => fetchCardData(c, next, c.selection.timeRange)));
+    setIsBoardRefreshing(true);
+    await refreshCardsWithContext(cards, { filtersOverride: next });
+    setIsBoardRefreshing(false);
+  }, [cards, refreshCardsWithContext]);
 
-    setCardDataMap(prev => {
-      const map = { ...prev };
-      results.forEach(r => {
-        if (r) map[r.id] = { chartData: r.data, rawData: r.rawData as MetricFlowResponse };
-      });
-      return map;
-    });
-
-    setAlertStatusMap(prev => {
-      const map = { ...prev };
-      let hasUpdates = false;
-      results.forEach(r => {
-        if (r && r.type === 'alert' && r.status) {
-          map[r.id] = r.status;
-          hasUpdates = true;
-        }
-      });
-      return hasUpdates ? map : prev;
-    });
-  };
-
-  // Load card data when cards change (only for missing ones)
+  // Load card data when cards change (only for missing ones, skip in-flight)
   useEffect(() => {
     cards.forEach(c => {
-      if (!cardDataMap[c.id]) {
-        void loadCardDataFor(c);
-      }
+      if (cardDataMap[c.id]) return;
+      if (cardInFlightRequests.current.has(c.id)) return;
+      void loadCardDataFor(c);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cards]);
@@ -1074,10 +1184,8 @@ const BIAnalysisPage: React.FC = () => {
   const loadTemplate = useCallback(async (id: string) => {
     const tpl = await getAnalysis(id);
     if (!tpl) return;
-    setCards(tpl.cards);
     setCardDataMap({});
-    tpl.cards.forEach(c => { void loadCardDataFor(c); });
-    // If template, treat as new copy (cannot modify original)
+    setCards(tpl.cards);
     if (tpl.isTemplate) {
       setCurrentAnalysisId(null);
       localStorage.removeItem('watchmen_bi_last_analysis_id');
@@ -1091,7 +1199,7 @@ const BIAnalysisPage: React.FC = () => {
     setSaveDesc(tpl.description || '');
     setActiveSection('dashboard');
     setPendingScrollToDashboard(true);
-  }, [loadCardDataFor, toast]);
+  }, [toast]);
   
   // Load last visited analysis on mount
   const initialLoadDone = useRef(false);
@@ -1223,8 +1331,8 @@ const BIAnalysisPage: React.FC = () => {
                   onResize={resizeCard}
                   onRemove={removeCard}
                   onUpdate={updateCard}
-                  onAddAlert={() => setAddAlertOpen(true)}
-                  onSubscription={currentAnalysisId ? () => setSubscriptionOpen(true) : undefined}
+                  onAddAlert={openAddAlertDialog}
+                  onSubscription={currentAnalysisId ? openSubscriptionDialog : undefined}
                   alertStatusMap={alertStatusMap}
                   onAcknowledge={handleAcknowledge}
                   globalFilterDimensions={commonFilterDimensions}
@@ -1236,6 +1344,7 @@ const BIAnalysisPage: React.FC = () => {
                   onGlobalTimeRangeChange={handleGlobalTimeRangeChange}
                   onGlobalCustomDateRangeChange={handleGlobalCustomDateRangeChange}
                   onRefresh={refreshData}
+                  isRefreshing={isBoardRefreshing}
                 />
               </div>
             </TabsContent>
@@ -1294,7 +1403,7 @@ const BIAnalysisPage: React.FC = () => {
 
           <MetricBuilderSheet
             open={metricBuilderOpen}
-            onOpenChange={setMetricBuilderOpen}
+            onOpenChange={handleMetricBuilderOpenChange}
             search={search}
             onSearchChange={setSearch}
             categoryId={categoryId}
@@ -1303,7 +1412,7 @@ const BIAnalysisPage: React.FC = () => {
             metricsLoading={metricsLoading}
             metricsList={metricsList}
             selectedMetricId={chartConfig.metricId}
-            onSelectMetric={(id, def) => setChartConfig(prev => ({ ...prev, metricId: id, metricDef: def }))}
+            onSelectMetric={handleMetricSelect}
             selectedMetric={selectedMetric}
             availableDimsDetailed={availableDimsDetailed}
             selectedDimType={selectedDimType}
@@ -1314,15 +1423,15 @@ const BIAnalysisPage: React.FC = () => {
             selectedDims={chartConfig.dimensions}
             onToggleDim={toggleDim}
             timeRange={chartConfig.timeRange}
-            onTimeRangeChange={(v) => setChartConfig(prev => ({ ...prev, timeRange: v }))}
+            onTimeRangeChange={handleTimeRangeChange}
             timeGranularity={chartConfig.timeGranularity}
-            onTimeGranularityChange={(v) => setChartConfig(prev => ({ ...prev, timeGranularity: v }))}
+            onTimeGranularityChange={handleTimeGranularityChange}
             customDateRange={chartConfig.customDateRange}
-            onCustomDateRangeChange={(v) => setChartConfig(prev => ({ ...prev, customDateRange: v }))}
+            onCustomDateRangeChange={handleCustomDateRangeChange}
             selectedChartType={chartConfig.chartType}
-            onSelectedChartTypeChange={(v) => setChartConfig(prev => ({ ...prev, chartType: v }))}
+            onSelectedChartTypeChange={handleSelectedChartTypeChange}
             limit={chartConfig.limit}
-            onLimitChange={(v) => setChartConfig(prev => ({ ...prev, limit: v }))}
+            onLimitChange={handleLimitChange}
             previewType={previewState.type}
             previewData={previewState.data}
             previewRawData={previewState.rawData}

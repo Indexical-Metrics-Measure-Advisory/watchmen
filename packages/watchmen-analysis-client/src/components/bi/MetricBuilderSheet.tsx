@@ -24,6 +24,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { DateRange } from "react-day-picker";
 import { ChartCard, DataTable } from '@/components/bi/ChartCard';
+import type { ChartDatum } from '@/components/bi/ChartCard';
 import { BIMetric, BIChartType } from '@/model/biAnalysis';
 import type { MetricDefinition } from '@/model/metricsManagement';
 import type { MetricDimension } from '@/model/analysis';
@@ -62,12 +63,12 @@ export type MetricBuilderSheetProps = {
   limit: number;
   onLimitChange: (limit: number) => void;
   previewType: BIChartType;
-  previewData: unknown[];
+  previewData: ChartDatum[];
   previewRawData: MetricFlowResponse | null;
   onAddToDashboard: () => void;
 };
 
-export function MetricBuilderSheet({
+export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
   open,
   onOpenChange,
   search,
@@ -443,4 +444,4 @@ export function MetricBuilderSheet({
       </SheetContent>
     </Sheet>
   );
-}
+});

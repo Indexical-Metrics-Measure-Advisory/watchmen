@@ -1,114 +1,282 @@
-# Watchmen Agent CLI
+# Watchmen Agent Runtime CLI
 
-Watchmen Agent CLI is a tool for syncing Topics, Pipelines, and Enums between a **local vault** and the **Watchmen server**. It is designed for daily data development, configuration migration, and AI-assisted automation workflows.
+`agent-runtime-cli` is a lightweight command line tool for querying Watchmen MetricFlow runtime APIs from a local terminal or automation workflow.
 
-It also ships with a Trae Skill (`agent-cli`) that lets AI directly perform pull, push, dependency sync, and remote listing operations within a conversation.
+It is designed for:
+- health checking runtime services
+- inspecting available metrics and dimensions
+- fetching a single metric value with filters and grouping
+- sending batch metric queries from a JSON file
 
-## Core Capabilities
+The CLI outputs JSON so it can be used directly by scripts, agents, and pipelines.
 
-- Topic YAML sync (pull by ID/name, push single file, batch push/pull)
-- Pipeline JSON sync (pull by ID/name, batch push/pull)
-- Enum codebook sync (pull by ID/name, push single file, remote listing)
-- Automatic multi-entity dependency resolution:
-  - Pipelines depend on Topics
-  - Topics depend on Enums via `enumId`
-- Structured output suitable for consumption by AI and automation pipelines
+## Features
+
+- Local vault-based connection management
+- PAT authentication
+- Runtime health and current date checks
+- Metric discovery commands
+- Single metric query with filters, grouping, ordering, and time granularity
+- Batch query through a JSON request file
 
 ## Installation
 
-Make sure [Poetry](https://python-poetry.org/) is installed.
+From the package directory:
 
 ```bash
-cd packages/watchmen-agent-cli
+cd packages/watchmen-agent-runtime-cli
 poetry install
 ```
 
-It is recommended to install the Skill (callable directly from within Trae):
+Run commands with:
 
 ```bash
-./scripts/install-skill.sh
+poetry run agent-runtime-cli --help
 ```
 
-## Quick Start
+## Configuration
 
-1. Initialize the vault and configuration
+The CLI stores connection settings under the selected vault directory:
+
+```text
+<vault>/.agent-runtime-cli/config.json
+```
+
+You can initialize a vault with:
 
 ```bash
-poetry run agent-cli init --vault ./my_vault --host <WATCHMEN_HOST> --pat <YOUR_PAT>
+poetry run agent-runtime-cli init \
+  --vault ./runtime-vault \
+  --host http://localhost:8000 \
+  --pat <YOUR_PAT>
 ```
 
-1. Pull all resources (Topic + Pipeline + Enum)
+Supported config fields:
+- `host`
+- `pat`
+
+If `--host` does not start with `http://` or `https://`, the CLI automatically prefixes `http://`.
+
+## Environment Variables
+
+The CLI also supports environment-based defaults:
+
+- `AGENT_RUNTIME_CLI_HOST`
+- `AGENT_RUNTIME_CLI_PAT`
+- `AGENT_RUNTIME_CLI_VAULT`
+- `AGENT_RUNTIME_CLI_DEBUG`
+
+Priority order is:
+- explicit CLI arguments
+- vault config
+- environment variables
+
+## Authentication
+
+The CLI uses PAT authentication:
+
+- Sends `Authorization: pat <PAT>`
+
+If no PAT is available, the CLI fails with an authentication error.
+
+## Commands
+
+### Init
+
+Initialize local vault and save runtime connection config.
 
 ```bash
-poetry run agent-cli pull --target all --vault ./my_vault
+poetry run agent-runtime-cli init \
+  --vault ./runtime-vault \
+  --host http://localhost:8000 \
+  --pat <YOUR_PAT>
 ```
 
-1. Push local changes
+### Config
+
+Show current vault configuration with masked credentials.
 
 ```bash
-poetry run agent-cli push --target topic --vault ./my_vault
+poetry run agent-runtime-cli config --vault ./runtime-vault
 ```
 
-## Common Commands
+### Discover
 
-- Init & Config
-  - `agent-cli init --vault <vault> --host <host> --pat <token>`
-  - `agent-cli config --vault <vault>`
-  - `agent-cli tenant --vault <vault>`
-- Batch Sync
-  - `agent-cli pull --target topic|pipeline|all --vault <vault>`
-  - `agent-cli push --target topic|pipeline|all --vault <vault>`
-- Topic
-  - `agent-cli topic pull <topic_id> --vault <vault>`
-  - `agent-cli topic pull-name "<topic_name>" --vault <vault>`
-  - `agent-cli topic push-file <file_path> --vault <vault>`
-  - `agent-cli topic list --vault <vault>`
-  - `agent-cli topic list-remote --vault <vault>`
-- Pipeline
-  - `agent-cli pipeline pull <pipeline_id> --vault <vault>`
-  - `agent-cli pipeline pull-name "<pipeline_name>" --vault <vault>`
-  - `agent-cli pipeline list --vault <vault>`
-  - `agent-cli pipeline list-remote --vault <vault>`
-- Enum
-  - `agent-cli enum pull <enum_id> --vault <vault>`
-  - `agent-cli enum pull-name "<enum_name>" --vault <vault>`
-  - `agent-cli enum push-file <file_path> --vault <vault>`
-  - `agent-cli enum list --vault <vault>`
-  - `agent-cli enum list-remote --vault <vault>`
+Output the command catalog in JSON format.
 
-## How It Works with the Skill
+```bash
+poetry run agent-runtime-cli discover
+```
 
-Once the Skill is installed, the AI in Trae will automatically select the appropriate commands and resolve dependencies:
+### Health
 
-- When pulling a Pipeline, Topics are automatically fetched
-- When pulling a Topic, factor `enumId` references are checked and Enums are fetched accordingly
-- When pulling all, the full dependency chain is synced
+Call `/metricflow/health`.
 
-Skill definition:
+```bash
+poetry run agent-runtime-cli health --vault ./runtime-vault
+```
 
-- `packages/watchmen-agent-cli/skills/agent-cli/SKILL.md`
+### Date
 
-## Tips
+Call `/metricflow/current_date`.
 
-- When creating a new Topic, use `kind: business` in most cases
-- Always fill in `label` for each Factor using business-readable names
-- Set `enumId` on any factor that references an enumeration
-- Always pass `--vault` explicitly to avoid accidentally using the default path
+```bash
+poetry run agent-runtime-cli date --vault ./runtime-vault
+```
 
-## FAQ
+## Metric Commands
 
-- `agent-cli: command not found`
-  - Run `poetry install` first
-  - Use `poetry run agent-cli ...`
-- No `poetry shell` under Poetry 2.x
-  - Use `poetry run ...` directly instead
-- CLI entry point error
-  - Try `poetry run python -m agent_cli.main ...`
-- Push new Topic returns 500
-  - Use a fake id (`f-` prefix) or an empty id for new Topics/Factors to let the server regenerate them
+### List Metrics
 
-## Development Layout
+Call `/metricflow/list_metrics`.
 
-- CLI source: `packages/watchmen-agent-cli/src/agent_cli`
-- Skill definition: `packages/watchmen-agent-cli/skills/agent-cli/SKILL.md`
+```bash
+poetry run agent-runtime-cli metrics list --vault ./runtime-vault
+```
 
+### Metric Dimensions
+
+Call `/metricflow/dimensions_by_metric`.
+
+```bash
+poetry run agent-runtime-cli metrics dimensions total_premium --vault ./runtime-vault
+```
+
+### Find Shared Dimensions
+
+Call `/metricflow/find_dimensions` with a metric list.
+
+```bash
+poetry run agent-runtime-cli metrics find-dimensions \
+  --metrics total_premium,claim_count \
+  --vault ./runtime-vault
+```
+
+### Single Metric Value
+
+Call `/metricflow/get_metric_value`.
+
+```bash
+poetry run agent-runtime-cli metrics value total_premium \
+  --group-by policy_year,product_line \
+  --where "policy_year >= 2024" \
+  --start-time 2026-01-01T00:00:00 \
+  --end-time 2026-03-31T23:59:59 \
+  --order policy_year,-total_premium \
+  --limit 100 \
+  --time-granularity month \
+  --vault ./runtime-vault
+```
+
+Supported options:
+- `metric_name` positional metric name
+- `--group-by` comma-separated dimensions
+- `--where` filter expression string
+- `--start-time` ISO datetime
+- `--end-time` ISO datetime
+- `--order` comma-separated order fields
+- `--limit` integer row limit
+- `--time-granularity` runtime granularity value
+
+### Batch Query From File
+
+Call `/metricflow/query_metrics` using a JSON file.
+
+```bash
+poetry run agent-runtime-cli metrics query-file ./queries.json --vault ./runtime-vault
+```
+
+The file must be a JSON array.
+
+Example:
+
+```json
+[
+  {
+    "metric": "total_premium",
+    "group_by": ["policy_year"],
+    "start_time": "2026-01-01T00:00:00",
+    "end_time": "2026-03-31T23:59:59"
+  },
+  {
+    "metric": "claim_count",
+    "group_by": ["claim_status"]
+  }
+]
+```
+
+## Output Format
+
+All successful command responses are printed as formatted JSON:
+
+```json
+{
+  "status": "ok"
+}
+```
+
+Errors are written to stderr.
+
+## Debugging
+
+To print Python tracebacks for troubleshooting:
+
+```bash
+poetry run agent-runtime-cli --debug health --vault ./runtime-vault
+```
+
+Or set:
+
+```bash
+export AGENT_RUNTIME_CLI_DEBUG=1
+```
+
+## Common Usage Flow
+
+Initialize once:
+
+```bash
+poetry run agent-runtime-cli init --vault ./runtime-vault --host http://localhost:8000 --pat <PAT>
+```
+
+Check service:
+
+```bash
+poetry run agent-runtime-cli health --vault ./runtime-vault
+poetry run agent-runtime-cli date --vault ./runtime-vault
+```
+
+Inspect available metrics:
+
+```bash
+poetry run agent-runtime-cli metrics list --vault ./runtime-vault
+poetry run agent-runtime-cli metrics dimensions total_premium --vault ./runtime-vault
+```
+
+Run a metric query:
+
+```bash
+poetry run agent-runtime-cli metrics value total_premium \
+  --group-by policy_year \
+  --time-granularity month \
+  --vault ./runtime-vault
+```
+
+## Error Notes
+
+- **Vault config not found**
+  - Run `init` first or point `--vault` to the correct directory.
+- **Need PAT**
+  - Provide `--pat` during init, or configure `AGENT_RUNTIME_CLI_PAT`.
+- **Query file must be a JSON array**
+  - Ensure the file passed to `metrics query-file` is a top-level JSON array.
+- **HTTP 4xx/5xx errors**
+  - Verify host, credentials, API path availability, and request parameters.
+
+## Script Entry
+
+This package exposes the CLI entrypoint:
+
+```text
+agent-runtime-cli = agent_runtime_cli.main:run
+```

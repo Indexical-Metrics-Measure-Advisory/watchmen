@@ -4,6 +4,7 @@ import type { BIChartCard, BICardSize, BIChartType } from '@/model/biAnalysis';
 import type { AlertStatus } from '@/model/AlertConfig';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import type { MetricDimension } from '@/model/analysis';
+import type { ChartDatum } from '@/components/bi/ChartCard';
 import { LayoutDashboard, PlusCircle, AlertCircle, BellPlus, SlidersHorizontal, ChevronRight, X, RefreshCw, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +15,7 @@ import type { DateRange } from 'react-day-picker';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { cn } from '@/lib/utils';
 
-type ChartDataPoint = unknown;
+type ChartDataPoint = ChartDatum;
 
 interface AnalysisBoardProps {
   cards: BIChartCard[];
@@ -39,9 +40,123 @@ interface AnalysisBoardProps {
   onGlobalTimeRangeChange?: (range: string) => void;
   onGlobalCustomDateRangeChange?: (range: DateRange) => void;
   onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
-export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
+interface BoardCardItemProps {
+  card: BIChartCard;
+  index: number;
+  chartData: ChartDataPoint[];
+  rawData: MetricFlowResponse | null;
+  readOnly: boolean;
+  alertStatus?: AlertStatus;
+  onDragStart: AnalysisBoardProps['onDragStart'];
+  onDragOver: AnalysisBoardProps['onDragOver'];
+  onDrop: AnalysisBoardProps['onDrop'];
+  onResize: AnalysisBoardProps['onResize'];
+  onRemove: AnalysisBoardProps['onRemove'];
+  onUpdate?: AnalysisBoardProps['onUpdate'];
+  onAcknowledge?: AnalysisBoardProps['onAcknowledge'];
+}
+
+const getCardSizeClass = (size: BICardSize) => {
+  switch (size) {
+    case 'sm':
+      return 'col-span-12 md:col-span-6 lg:col-span-4';
+    case 'md':
+      return 'col-span-12 md:col-span-8 lg:col-span-6';
+    case 'lg':
+      return 'col-span-12';
+  }
+};
+
+const decideType = (data: ChartDataPoint[]): BIChartType => {
+  if (!data || data.length === 0) return 'bar';
+
+  const firstItem = data[0];
+  if (!firstItem || typeof firstItem !== 'object') return 'bar';
+
+  const record = firstItem as Record<string, unknown>;
+  const keys = Object.keys(record).filter(k => !['name', 'date', 'value', 'color', 'fill'].includes(k));
+  const hasDate = 'date' in record;
+  const dataCount = data.length;
+  const seriesCount = keys.length;
+
+  if (hasDate) {
+    if (seriesCount <= 1) return 'area';
+    return 'line';
+  }
+
+  if (seriesCount <= 1) {
+    if (dataCount <= 5) return 'pie';
+    return 'bar';
+  }
+
+  return seriesCount > 3 ? 'stackedBar' : 'groupedBar';
+};
+
+const BoardCardItem = React.memo(({
+  card,
+  index,
+  chartData,
+  rawData,
+  readOnly,
+  alertStatus,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onResize,
+  onRemove,
+  onUpdate,
+  onAcknowledge
+}: BoardCardItemProps) => {
+  if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert' && card.chartType !== 'kpi') {
+    return (
+      <div className={cn('transition-all duration-200', getCardSizeClass(card.size))}>
+        <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-muted-foreground border border-border/50 rounded-xl bg-card/30 p-8 text-center shadow-sm gap-3">
+          <AlertCircle className="w-8 h-8 text-muted-foreground/30" />
+          <div className="space-y-1">
+            <p className="font-medium text-foreground/80">Missing Configuration</p>
+            <p className="text-sm">Select dimensions and metrics to generate visualization</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ChartCard
+      card={card}
+      data={chartData}
+      sourceData={rawData ?? undefined}
+      draggable={!readOnly}
+      onDragStart={!readOnly ? onDragStart(index) : undefined}
+      onDragOver={!readOnly ? onDragOver : undefined}
+      onDrop={!readOnly ? onDrop(index) : undefined}
+      onResize={!readOnly ? (size) => onResize(index, size) : undefined}
+      onRemove={!readOnly ? () => onRemove(index) : undefined}
+      onUpdate={!readOnly ? (updatedCard) => onUpdate?.(index, updatedCard) : undefined}
+      alertStatus={alertStatus}
+      onAcknowledge={onAcknowledge}
+    />
+  );
+}, (prev, next) => (
+  prev.card === next.card &&
+  prev.index === next.index &&
+  prev.chartData === next.chartData &&
+  prev.rawData === next.rawData &&
+  prev.readOnly === next.readOnly &&
+  prev.alertStatus === next.alertStatus &&
+  prev.onDragStart === next.onDragStart &&
+  prev.onDragOver === next.onDragOver &&
+  prev.onDrop === next.onDrop &&
+  prev.onResize === next.onResize &&
+  prev.onRemove === next.onRemove &&
+  prev.onUpdate === next.onUpdate &&
+  prev.onAcknowledge === next.onAcknowledge
+));
+
+export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
   cards,
   cardDataMap,
   onDragStart,
@@ -64,70 +179,17 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
   onGlobalTimeRangeChange,
   onGlobalCustomDateRangeChange,
   onRefresh,
+  isRefreshing,
 }) => {
   const [filtersHidden, setFiltersHidden] = React.useState(true);
 
-  const globalFilterKeys = React.useMemo(() => {
-    return (globalFilterDimensions ?? []).map(d => d.qualified_name || d.name);
-  }, [globalFilterDimensions]);
+  const globalFilterKeys = React.useMemo(
+    () => (globalFilterDimensions ?? []).map(d => d.qualified_name || d.name),
+    [globalFilterDimensions]
+  );
 
   const hasGlobalFilters = globalFilterKeys.length > 0 || Boolean(onGlobalTimeRangeChange);
   const timeRangeValue = globalTimeRange ?? '__card__';
-
-  const decideType = (data: ChartDataPoint[]): BIChartType => {
-    if (!data || data.length === 0) return 'bar';
-
-    const firstItem = data[0];
-    if (!firstItem || typeof firstItem !== 'object') return 'bar';
-
-    const record = firstItem as Record<string, unknown>;
-    // Exclude standard keys to find series keys
-    const keys = Object.keys(record).filter(k => !['name', 'date', 'value', 'color', 'fill'].includes(k));
-    const hasDate = 'date' in record;
-    const dataCount = data.length;
-    const seriesCount = keys.length;
-
-    // 1. Time Series Data (Evolution)
-    // https://www.data-to-viz.com/#line
-    if (hasDate) {
-      // Single metric: Area chart emphasizes volume/trend
-      if (seriesCount <= 1) return 'area';
-      
-      // Multiple metrics: Line chart avoids clutter compared to bars
-      // StackedBar is okay for few dates, but Line is safer for general time series
-      return 'line';
-    }
-
-    // 2. Categorical Data (Distribution/Ranking/Part-to-whole)
-    // https://www.data-to-viz.com/#barplot
-    
-    // Single Series
-    if (seriesCount <= 1) {
-      // Very few items: Pie is acceptable for composition (Part-to-whole)
-      // https://www.data-to-viz.com/caveat/pie.html
-      if (dataCount <= 5) return 'pie';
-      
-      // Default to Bar (Ranking/Distribution)
-      // ChartCard handles horizontal layout for many items
-      return 'bar';
-    }
-
-    // Multiple Series (Comparison vs Composition)
-    // Few series: Grouped Bar allows precise comparison
-    // Many series: Stacked Bar prevents visual clutter
-    return seriesCount > 3 ? 'stackedBar' : 'groupedBar';
-  };
-
-  const sizeClass = (size: BICardSize) => {
-    switch (size) {
-      case 'sm':
-        return 'col-span-12 md:col-span-6 lg:col-span-4';
-      case 'md':
-        return 'col-span-12 md:col-span-8 lg:col-span-6';
-      case 'lg':
-        return 'col-span-12';
-    }
-  };
 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-500">
@@ -143,23 +205,13 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
         </div>
         <div className="flex items-center gap-2">
           {onRefresh && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onRefresh}
-              className="gap-2 h-8"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Refresh
+            <Button variant="outline" size="sm" onClick={onRefresh} disabled={isRefreshing} className="gap-2 h-8">
+              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+              {isRefreshing ? 'Refreshing...' : 'Refresh'}
             </Button>
           )}
           {hasGlobalFilters && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setFiltersHidden(v => !v)}
-              className="gap-2 h-8"
-            >
+            <Button variant="outline" size="sm" onClick={() => setFiltersHidden(v => !v)} className="gap-2 h-8">
               <SlidersHorizontal className="w-4 h-4" />
               Filters
             </Button>
@@ -200,40 +252,21 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
             <div className="grid grid-cols-12 gap-6">
               {cards.map((card, index) => {
                 const { chartData, rawData } = cardDataMap[card.id] ?? { chartData: [], rawData: null };
-
-                if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert' && card.chartType !== 'kpi') {
-                  return (
-                    <div key={card.id} className={cn("transition-all duration-200", sizeClass(card.size))}>
-                      <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-muted-foreground border border-border/50 rounded-xl bg-card/30 p-8 text-center shadow-sm gap-3">
-                        <AlertCircle className="w-8 h-8 text-muted-foreground/30" />
-                        <div className="space-y-1">
-                          <p className="font-medium text-foreground/80">Missing Configuration</p>
-                          <p className="text-sm">Select dimensions and metrics to generate visualization</p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-
-                const renderCard = {
-                  ...card,
-                  chartType: (card.chartType === 'alert' || card.chartType === 'kpi') ? card.chartType : decideType(chartData)
-                };
-
                 return (
-                  <ChartCard
+                  <BoardCardItem
                     key={card.id}
-                    card={renderCard}
-                    data={chartData}
-                    sourceData={rawData ?? undefined}
-                    draggable={!readOnly}
-                    onDragStart={!readOnly ? onDragStart(index) : undefined}
-                    onDragOver={!readOnly ? onDragOver : undefined}
-                    onDrop={!readOnly ? onDrop(index) : undefined}
-                    onResize={!readOnly ? (size) => onResize(index, size) : undefined}
-                    onRemove={!readOnly ? () => onRemove(index) : undefined}
-                    onUpdate={!readOnly ? (updatedCard) => onUpdate?.(index, updatedCard) : undefined}
+                    card={card}
+                    index={index}
+                    chartData={chartData}
+                    rawData={rawData}
+                    readOnly={readOnly}
                     alertStatus={alertStatusMap?.[card.id]}
+                    onDragStart={onDragStart}
+                    onDragOver={onDragOver}
+                    onDrop={onDrop}
+                    onResize={onResize}
+                    onRemove={onRemove}
+                    onUpdate={onUpdate}
                     onAcknowledge={onAcknowledge}
                   />
                 );
@@ -323,6 +356,6 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default AnalysisBoard;

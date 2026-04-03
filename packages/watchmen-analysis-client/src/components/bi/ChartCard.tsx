@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { format, isValid } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import type { BIChartCard, BICardSize, BIChartType } from '@/model/biAnalysis';
+import type { BIChartCard, BICardSize } from '@/model/biAnalysis';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import type { AlertStatus } from '@/model/AlertConfig';
 import { AlertCard } from './AlertCard';
-import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Download, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy, AlertTriangle, Settings, CheckCircle2, Activity } from 'lucide-react';
+import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy, AlertTriangle, Settings, CheckCircle2, Activity } from 'lucide-react';
 import { AlertConfigurationModal } from './AlertConfigurationModal';
 import {
   DropdownMenu,
@@ -28,6 +28,20 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 type RechartsModule = typeof import('recharts');
+export type ChartDatumValue = string | number | null | undefined;
+export type ChartDatum = Record<string, ChartDatumValue>;
+type TooltipEntry = {
+  color?: string;
+  name?: string;
+  value?: ChartDatumValue;
+};
+type TooltipProps = {
+  active?: boolean;
+  payload?: TooltipEntry[];
+  label?: React.ReactNode;
+};
+let rechartsModuleCache: RechartsModule | null = null;
+let rechartsModulePromise: Promise<RechartsModule> | null = null;
 
 // Modern color palette
 const COLORS = [
@@ -41,9 +55,11 @@ const COLORS = [
   '#6366f1', // Indigo
 ];
 
+const toNumericValue = (value: ChartDatumValue): number => typeof value === 'number' ? value : 0;
+
 export interface ChartCardProps {
   card: BIChartCard;
-  data: any[];
+  data: ChartDatum[];
   sourceData?: MetricFlowResponse;
   onResize?: (size: BICardSize) => void;
   onRemove?: () => void;
@@ -68,13 +84,13 @@ const sizeClass = (size: BICardSize) => {
   }
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = React.memo(({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-popover border border-border px-3 py-2 rounded-lg shadow-lg text-xs outline-none animate-in fade-in-0 zoom-in-95 z-50">
         <p className="font-semibold mb-1.5 text-popover-foreground">{label}</p>
         <div className="space-y-1">
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry, index: number) => (
             <div key={index} className="flex items-center gap-2">
               <div 
                 className="w-2 h-2 rounded-full shrink-0" 
@@ -84,7 +100,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
               <span className="font-medium text-popover-foreground tabular-nums">
                 {typeof entry.value === 'number' 
                   ? entry.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) 
-                  : entry.value}
+                  : (entry.value ?? '-')}
               </span>
             </div>
           ))}
@@ -93,10 +109,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     );
   }
   return null;
-};
+});
 
 // Data Table Component
-export const DataTable: React.FC<{ data: any[], sourceData?: MetricFlowResponse }> = ({ data, sourceData }) => {
+export const DataTable = React.memo(({ data, sourceData }: { data: ChartDatum[], sourceData?: MetricFlowResponse }) => {
+  const fallbackHeaders = useMemo(
+    () => (!data || data.length === 0 ? [] : Object.keys(data[0]).filter(k => k !== 'color' && k !== 'fill')),
+    [data]
+  );
+
   // Prefer sourceData (raw response) if available
   if (sourceData && Array.isArray(sourceData.column_names) && Array.isArray(sourceData.data)) {
     const headers = sourceData.column_names;
@@ -142,7 +163,7 @@ export const DataTable: React.FC<{ data: any[], sourceData?: MetricFlowResponse 
 
   // Extract headers from the first data item
   // Exclude 'color' or internal fields if any, keep 'date'/'name' and values
-  const headers = Object.keys(data[0]).filter(k => k !== 'color' && k !== 'fill');
+  const headers = fallbackHeaders;
 
   return (
     <ScrollArea className="h-full w-full rounded-md border">
@@ -163,7 +184,7 @@ export const DataTable: React.FC<{ data: any[], sourceData?: MetricFlowResponse 
                 <TableCell key={`${i}-${header}`} className="font-medium">
                   {typeof row[header] === 'number' 
                     ? row[header].toLocaleString(undefined, { maximumFractionDigits: 2 })
-                    : row[header]}
+                    : (row[header] === null || row[header] === undefined ? '-' : String(row[header]))}
                 </TableCell>
               ))}
             </TableRow>
@@ -172,9 +193,40 @@ export const DataTable: React.FC<{ data: any[], sourceData?: MetricFlowResponse 
       </Table>
     </ScrollArea>
   );
+});
+
+const useRechartsModule = () => {
+  const [lib, setLib] = useState<RechartsModule | null>(rechartsModuleCache);
+
+  useEffect(() => {
+    if (rechartsModuleCache) {
+      setLib(rechartsModuleCache);
+      return;
+    }
+
+    let mounted = true;
+    if (!rechartsModulePromise) {
+      rechartsModulePromise = import('recharts').then(mod => {
+        rechartsModuleCache = mod;
+        return mod;
+      });
+    }
+
+    void rechartsModulePromise.then(mod => {
+      if (mounted) {
+        setLib(mod);
+      }
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  return lib;
 };
 
-export const ChartCard: React.FC<ChartCardProps> = ({
+export const ChartCard = React.memo(({
   card,
   data,
   onResize,
@@ -188,18 +240,25 @@ export const ChartCard: React.FC<ChartCardProps> = ({
   alertStatus,
   onAcknowledge,
   sourceData,
-}) => {
+}: ChartCardProps) => {
   const { toast } = useToast();
-  const [lib, setLib] = useState<RechartsModule | null>(null);
+  const lib = useRechartsModule();
   const [activeTab, setActiveTab] = useState<string>("chart");
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   
   const dimensionsCount = card.selection?.dimensions?.length || 0;
   const isTooManyDimensions = dimensionsCount > 5;
+  const chartViewEnabled = activeTab === 'chart';
+  const dataViewEnabled = activeTab === 'data';
+  const copyEnabled = card.chartType !== 'alert' && data.length > 0;
+  const copyHeaders = useMemo(
+    () => (!data || data.length === 0 ? [] : Object.keys(data[0]).filter(k => k !== 'color' && k !== 'fill')),
+    [data]
+  );
 
   const handleCopy = async () => {
     try {
-      if (!data || data.length === 0) {
+      if (!copyEnabled) {
         toast({
           title: "No data",
           description: "There is no data to copy",
@@ -210,14 +269,10 @@ export const ChartCard: React.FC<ChartCardProps> = ({
 
       // Extract headers from the first data item
       // Exclude 'color' or internal fields if any
-      const headers = Object.keys(data[0]).filter(k => k !== 'color' && k !== 'fill');
-      
-      // Create TSV content (Tab Separated Values) which works well with Excel paste
-      const headerRow = headers.join('\t');
+      const headerRow = copyHeaders.join('\t');
       const rows = data.map(row => {
-        return headers.map(header => {
+        return copyHeaders.map(header => {
           const val = row[header];
-          // Handle null/undefined and escape tabs/newlines if necessary
           if (val === null || val === undefined) return '';
           return String(val).replace(/\t/g, ' ').replace(/\n/g, ' ');
         }).join('\t');
@@ -238,14 +293,6 @@ export const ChartCard: React.FC<ChartCardProps> = ({
       });
     }
   };
-
-  useEffect(() => {
-    let mounted = true;
-    import('recharts').then(mod => mounted && setLib(mod));
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   return (
     <Card
@@ -377,7 +424,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
 
         <CardContent className="p-4 pt-4 flex-1 min-h-[250px] relative overflow-hidden">
           <TabsContent value="chart" className="h-full w-full mt-0 data-[state=active]:flex flex-col">
-            {isTooManyDimensions ? (
+            {chartViewEnabled && isTooManyDimensions ? (
                <div className="h-full w-full flex flex-col">
                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 text-xs text-yellow-600 dark:text-yellow-400 text-center border-b border-yellow-100 dark:border-yellow-900/30 mb-2 rounded-sm">
                    Chart hidden: Too many dimensions selected (max 5)
@@ -386,12 +433,12 @@ export const ChartCard: React.FC<ChartCardProps> = ({
                     <DataTable data={data} sourceData={sourceData} />
                  </div>
                </div>
-            ) : !lib ? (
+            ) : chartViewEnabled && !lib ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground animate-pulse gap-2">
                 <BarChart2 className="w-8 h-8 opacity-20" />
                 <span className="text-xs font-medium">Loading visualization...</span>
               </div>
-            ) : (
+            ) : chartViewEnabled ? (
               <div className="h-full w-full min-h-[250px]">
                 <Chart 
                   lib={lib} 
@@ -403,11 +450,11 @@ export const ChartCard: React.FC<ChartCardProps> = ({
                   onAcknowledge={onAcknowledge} 
                 />
               </div>
-            )}
+            ) : null}
           </TabsContent>
           
           <TabsContent value="data" className="h-full w-full mt-0 overflow-hidden">
-            <DataTable data={data} sourceData={sourceData} />
+            {dataViewEnabled ? <DataTable data={data} sourceData={sourceData} /> : null}
           </TabsContent>
         </CardContent>
       </Tabs>
@@ -422,23 +469,37 @@ export const ChartCard: React.FC<ChartCardProps> = ({
       )}
     </Card>
   );
-};
+}, (prev, next) => (
+  prev.card === next.card &&
+  prev.data === next.data &&
+  prev.sourceData === next.sourceData &&
+  prev.onResize === next.onResize &&
+  prev.onRemove === next.onRemove &&
+  prev.className === next.className &&
+  prev.draggable === next.draggable &&
+  prev.onDragStart === next.onDragStart &&
+  prev.onDragOver === next.onDragOver &&
+  prev.onDrop === next.onDrop &&
+  prev.onUpdate === next.onUpdate &&
+  prev.alertStatus === next.alertStatus &&
+  prev.onAcknowledge === next.onAcknowledge
+));
 
 
 // Helper hook for axis configuration
-const useChartAxis = (card: BIChartCard, data: any[]) => {
-  const isTime = data.length > 0 && typeof data[0].date === 'string';
+const useChartAxis = (card: BIChartCard, data: ChartDatum[]) => {
+  const isTime = useMemo(() => data.length > 0 && typeof data[0].date === 'string', [data]);
   const xKey = isTime ? 'date' : 'name';
 
-  const formatTimeAxis = (value: any) => {
-    if (!isTime || !value) return value;
+  const formatTimeAxis = (value: ChartDatumValue) => {
+    if (!isTime || !value) return value == null ? '' : String(value);
 
     const granularity = card.selection?.timeGranularity;
 
     if (typeof value === 'string') {
       // Handle Year specifically to avoid timezone shifts for "YYYY" string
       if (granularity === 'year' && /^\d{4}$/.test(value)) {
-        return value;
+        return String(value);
       }
       
       // Handle Quarter specifically for "YYYY/Q" or "YYYY-Q" format (e.g. 2023/1, 2023-2)
@@ -456,7 +517,7 @@ const useChartAxis = (card: BIChartCard, data: any[]) => {
 
     try {
       const date = new Date(value);
-      if (!isValid(date)) return value;
+      if (!isValid(date)) return String(value);
 
       switch (granularity) {
         case 'year':
@@ -477,11 +538,11 @@ const useChartAxis = (card: BIChartCard, data: any[]) => {
           return format(date, 'yyyy-MM-dd');
       }
     } catch (e) {
-      return value;
+      return typeof value === 'number' || typeof value === 'string' ? String(value) : '';
     }
   };
 
-  const commonXAxisProps = {
+  const commonXAxisProps = useMemo(() => ({
     dataKey: xKey,
     stroke: "#888888",
     fontSize: 12,
@@ -491,28 +552,28 @@ const useChartAxis = (card: BIChartCard, data: any[]) => {
     minTickGap: 30,
     dy: 5,
     tickFormatter: isTime ? formatTimeAxis : undefined
-  };
+  }), [formatTimeAxis, isTime, xKey]);
 
-  const commonYAxisProps = {
+  const commonYAxisProps = useMemo(() => ({
     stroke: "#888888",
     fontSize: 12,
     tickLine: false,
     axisLine: false,
-    tickFormatter: (value: any) => `${value}`,
+    tickFormatter: (value: ChartDatumValue) => `${value ?? ''}`,
     width: 40,
-  };
+  }), []);
 
-  const commonGridProps = {
+  const commonGridProps = useMemo(() => ({
     strokeDasharray: "3 3",
     vertical: false,
     stroke: "currentColor",
     className: "opacity-10 dark:opacity-20",
-  };
+  }), []);
 
   return { commonXAxisProps, commonYAxisProps, commonGridProps, isTime };
 };
 
-const KPIView = ({ data }: { data: any[] }) => {
+const KPIView = React.memo(({ data }: { data: ChartDatum[] }) => {
   const value = data.length > 0 ? data[0].value : 0;
   const formattedValue = typeof value === 'number' 
     ? value.toLocaleString(undefined, { maximumFractionDigits: 2 })
@@ -528,9 +589,9 @@ const KPIView = ({ data }: { data: any[] }) => {
       </div>
     </div>
   );
-};
+});
 
-const BarChartView = ({ lib, data, chartType, axisProps }: { lib: RechartsModule, data: any[], chartType: string, axisProps: any }) => {
+const BarChartView = React.memo(({ lib, data, chartType, axisProps }: { lib: RechartsModule, data: ChartDatum[], chartType: string, axisProps: ReturnType<typeof useChartAxis> }) => {
   const { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar } = lib;
   const { commonXAxisProps, commonYAxisProps, commonGridProps, isTime } = axisProps;
   
@@ -557,7 +618,7 @@ const BarChartView = ({ lib, data, chartType, axisProps }: { lib: RechartsModule
         ...commonXAxisProps, 
         type: 'category' as const, 
         width: 120, // Give more space for labels
-        tickFormatter: (v: any) => typeof v === 'string' && v.length > 15 ? `${v.slice(0, 15)}...` : v
+        tickFormatter: (v: ChartDatumValue) => typeof v === 'string' && v.length > 15 ? `${v.slice(0, 15)}...` : `${v ?? ''}`
       }
     : commonYAxisProps;
 
@@ -590,22 +651,22 @@ const BarChartView = ({ lib, data, chartType, axisProps }: { lib: RechartsModule
       </BarChart>
     </ResponsiveContainer>
   );
-};
+});
 
-const PieChartView = ({ lib, data }: { lib: RechartsModule, data: any[] }) => {
+const PieChartView = React.memo(({ lib, data }: { lib: RechartsModule, data: ChartDatum[] }) => {
   const { ResponsiveContainer, PieChart, Tooltip, Legend, Pie, Cell } = lib;
 
   // Data-to-viz: Too many slices make pie charts unreadable. Group small slices into "Others".
   const processedData = React.useMemo(() => {
     if (data.length <= 8) return data;
     
-    const sorted = [...data].sort((a, b) => (b.value || 0) - (a.value || 0));
+    const sorted = [...data].sort((a, b) => toNumericValue(b.value) - toNumericValue(a.value));
     const top = sorted.slice(0, 7);
     const others = sorted.slice(7);
     
     if (others.length === 0) return top;
     
-    const otherValue = others.reduce((sum, item) => sum + (item.value || 0), 0);
+    const otherValue = others.reduce((sum, item) => sum + toNumericValue(item.value), 0);
     return [
       ...top,
       { name: 'Others', value: otherValue }
@@ -629,16 +690,16 @@ const PieChartView = ({ lib, data }: { lib: RechartsModule, data: any[] }) => {
           strokeWidth={2}
           stroke="hsl(var(--card))"
         >
-          {processedData.map((entry, index) => (
+          {processedData.map((_, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
       </PieChart>
     </ResponsiveContainer>
   );
-};
+});
 
-const AreaChartView = ({ lib, data, axisProps }: { lib: RechartsModule, data: any[], axisProps: any }) => {
+const AreaChartView = React.memo(({ lib, data, axisProps }: { lib: RechartsModule, data: ChartDatum[], axisProps: ReturnType<typeof useChartAxis> }) => {
   const { ResponsiveContainer, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Area, Legend } = lib;
   const { commonXAxisProps, commonYAxisProps, commonGridProps } = axisProps;
   
@@ -686,9 +747,9 @@ const AreaChartView = ({ lib, data, axisProps }: { lib: RechartsModule, data: an
       </AreaChart>
     </ResponsiveContainer>
   );
-};
+});
 
-const LineChartView = ({ lib, data, axisProps }: { lib: RechartsModule, data: any[], axisProps: any }) => {
+const LineChartView = React.memo(({ lib, data, axisProps }: { lib: RechartsModule, data: ChartDatum[], axisProps: ReturnType<typeof useChartAxis> }) => {
   const { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Line, Legend } = lib;
   const { commonXAxisProps, commonYAxisProps, commonGridProps } = axisProps;
 
@@ -726,17 +787,19 @@ const LineChartView = ({ lib, data, axisProps }: { lib: RechartsModule, data: an
       </LineChart>
     </ResponsiveContainer>
   );
-};
+});
 
-const Chart: React.FC<{ 
-  lib: RechartsModule; 
-  card: BIChartCard; 
-  data: any[]; 
+type ChartInnerProps = {
+  lib: RechartsModule;
+  card: BIChartCard;
+  data: ChartDatum[];
   sourceData?: MetricFlowResponse;
   onUpdate?: (card: BIChartCard) => void;
   alertStatus?: AlertStatus;
   onAcknowledge?: (alertId: string) => void;
-}> = ({ lib, card, data, sourceData, onUpdate, alertStatus, onAcknowledge }) => {
+};
+
+const Chart = React.memo(({ lib, card, data, sourceData, onUpdate, alertStatus, onAcknowledge }: ChartInnerProps) => {
   const { type: chartType } = { type: card.chartType };
   const axisProps = useChartAxis(card, data);
 
@@ -766,6 +829,6 @@ const Chart: React.FC<{
 
   // Default to line
   return <LineChartView lib={lib} data={data} axisProps={axisProps} />;
-};
+});
 
 export default ChartCard;

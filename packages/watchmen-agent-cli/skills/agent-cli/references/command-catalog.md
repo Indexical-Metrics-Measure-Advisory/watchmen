@@ -1,5 +1,13 @@
 # Command Catalog
 
+## Token-Efficient Discovery Examples
+- Find a factor ID by name in a large topic YAML:
+  `grep -A 5 "name: factor_name" path/to/topic__id.yml`
+- List all remote topics and search for a keyword:
+  `poetry run python -m agent_cli.main topic list-remote --vault <vault> | grep "keyword"`
+- Check for existing factor in target topic before update:
+  `grep "name: factor_name" path/to/target_topic.yml`
+
 ## Core
 - `init --vault --host --username --password --pat`
 - `pull --target topic|pipeline|all --vault`

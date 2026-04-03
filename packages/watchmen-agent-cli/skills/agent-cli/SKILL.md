@@ -29,6 +29,12 @@ Keep this file concise and load detailed references only when needed.
 4. For names containing spaces, enforce quotes:
    - `"Policy Admin System"`
 
+## Token Optimization Rules
+- **Precise YAML Reading**: For files > 50 lines, NEVER use full-file `Read`. Use `Grep` to locate keys (e.g., factor names) and `Read` with `offset/limit` to fetch specific chunks.
+- **Incremental Edits**: Always prefer `SearchReplace` over `Write` for large YAMLs to minimize the data sent in the diff.
+- **Discovery First**: Use `agent-cli topic list-remote` to find IDs/names instead of pulling all files.
+- **Context Management**: Once a metadata ID is found, store it in your internal thought process and avoid re-querying or re-reading the source.
+
 ## On-Demand Loading Rules
 - Load `references/command-catalog.md` when deciding exact command/args.
 - Load `references/dependency-chain.md` when deciding related entities to sync.
