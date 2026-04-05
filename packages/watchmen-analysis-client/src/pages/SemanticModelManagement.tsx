@@ -12,13 +12,25 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
-import { Plus, Edit, Trash2, Database, GitBranch, BarChart3, Users, Calendar, X, Tags } from 'lucide-react';
+import { Plus, Edit, Trash2, Database, GitBranch, BarChart3, Users, Calendar, X, Tags, Info } from 'lucide-react';
 import { SemanticModel, SemanticModelSummary, SemanticModelEntity, SemanticModelMeasure, SemanticModelDimension } from '@/model/semanticModel';
 import { getSemanticModels, deleteSemanticModel, createSemanticModel, updateSemanticModel } from '@/services/semanticModelService';
 import { topicService, Topic } from '@/services/topicService';
 import { useToast } from '@/hooks/use-toast';
+
+const HelpTooltip = ({ content }: { content: string }) => (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <Info size={14} className="text-muted-foreground cursor-help" />
+    </TooltipTrigger>
+    <TooltipContent>
+      <p className="max-w-xs">{content}</p>
+    </TooltipContent>
+  </Tooltip>
+);
 
 const SemanticModelManagement: React.FC = () => {
   const { collapsed } = useSidebar();
@@ -595,8 +607,9 @@ const SemanticModelManagement: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-background">
-      <Sidebar />
+    <TooltipProvider>
+      <div className="min-h-screen bg-background">
+        <Sidebar />
       
       <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
         <Header />
@@ -1351,15 +1364,21 @@ const SemanticModelManagement: React.FC = () => {
                             </Button>
                         </div>
                         <div>
-                          <Label>Name</Label>
+                          <Label className="flex items-center gap-1 mb-1">
+                            Name
+                            <HelpTooltip content="The name of the entity." />
+                          </Label>
                           <Input
                             value={entity.name}
                             onChange={(e) => updateEntity(index, 'name', e.target.value)}
-                            placeholder="Entity name"
+                            placeholder="e.g. customer, transaction"
                           />
                         </div>
                         <div>
-                          <Label>Type</Label>
+                          <Label className="flex items-center gap-1 mb-1">
+                            Type
+                            <HelpTooltip content="Primary entity of this model or foreign entity used to join with other models." />
+                          </Label>
                           <Select 
                             value={entity.type} 
                             onValueChange={(value) => updateEntity(index, 'type', value)}
@@ -1374,11 +1393,14 @@ const SemanticModelManagement: React.FC = () => {
                           </Select>
                         </div>
                         <div className="col-span-2">
-                          <Label>Expression</Label>
+                          <Label className="flex items-center gap-1 mb-1">
+                            Expression
+                            <HelpTooltip content="The column or expression used as the join key." />
+                          </Label>
                           <Input
                             value={entity.expr}
                             onChange={(e) => updateEntity(index, 'expr', e.target.value)}
-                            placeholder="Enter expression"
+                            placeholder="e.g. customer_id"
                           />
                         </div>
                       </div>
@@ -1433,15 +1455,21 @@ const SemanticModelManagement: React.FC = () => {
                             </Button>
                         </div>
                         <div>
-                          <Label>Name</Label>
+                          <Label className="flex items-center gap-1 mb-1">
+                            Name
+                            <HelpTooltip content="The name of the measure." />
+                          </Label>
                           <Input
                             value={measure.name}
                             onChange={(e) => updateMeasure(index, 'name', e.target.value)}
-                            placeholder="Measure name"
+                            placeholder="e.g. transaction_total"
                           />
                         </div>
                         <div>
-                          <Label>Aggregation Type</Label>
+                          <Label className="flex items-center gap-1 mb-1">
+                            Aggregation Type
+                            <HelpTooltip content="Aggregations applied to columns in your data model." />
+                          </Label>
                           <Select 
                             value={measure.agg} 
                             onValueChange={(value) => updateMeasure(index, 'agg', value)}
@@ -1458,19 +1486,25 @@ const SemanticModelManagement: React.FC = () => {
                           </Select>
                         </div>
                         <div>
-                          <Label>Description</Label>
+                          <Label className="flex items-center gap-1 mb-1">
+                            Description
+                            <HelpTooltip content="The description of the measure." />
+                          </Label>
                           <Input
                             value={measure.description || ''}
                             onChange={(e) => updateMeasure(index, 'description', e.target.value)}
-                            placeholder="Measure description"
+                            placeholder="e.g. The total value of the transaction."
                           />
                         </div>
                         <div>
-                          <Label>Expression</Label>
+                          <Label className="flex items-center gap-1 mb-1">
+                            Expression
+                            <HelpTooltip content="The column or expression to aggregate." />
+                          </Label>
                           <Input
                             value={measure.expr}
                             onChange={(e) => updateMeasure(index, 'expr', e.target.value)}
-                            placeholder="Enter expression"
+                            placeholder="e.g. transaction_total"
                           />
                         </div>
                       </div>
@@ -1525,15 +1559,21 @@ const SemanticModelManagement: React.FC = () => {
                             </Button>
                         </div>
                         <div>
-                          <Label>Name</Label>
+                          <Label className="flex items-center gap-1 mb-1">
+                            Name
+                            <HelpTooltip content="The name of the dimension." />
+                          </Label>
                           <Input
                             value={dimension.name}
                             onChange={(e) => updateDimension(index, 'name', e.target.value)}
-                            placeholder="Dimension name"
+                            placeholder="e.g. transaction_date"
                           />
                         </div>
                         <div>
-                          <Label>Type</Label>
+                          <Label className="flex items-center gap-1 mb-1">
+                            Type
+                            <HelpTooltip content="Time or categorical dimension." />
+                          </Label>
                           <Select 
                             value={dimension.type} 
                             onValueChange={(value) => updateDimension(index, 'type', value)}
@@ -1548,16 +1588,22 @@ const SemanticModelManagement: React.FC = () => {
                           </Select>
                         </div>
                         <div>
-                          <Label>Expression</Label>
+                          <Label className="flex items-center gap-1 mb-1">
+                            Expression
+                            <HelpTooltip content="The column or expression to use." />
+                          </Label>
                           <Input
                             value={dimension.expr}
                             onChange={(e) => updateDimension(index, 'expr', e.target.value)}
-                            placeholder="Enter expression"
+                            placeholder="e.g. created_at"
                           />
                         </div>
                         {dimension.type === 'time' && (
                           <div>
-                            <Label>Time Granularity</Label>
+                            <Label className="flex items-center gap-1 mb-1">
+                              Time Granularity
+                              <HelpTooltip content="The granularity of the time dimension." />
+                            </Label>
                             <Select 
                               value={dimension.type_params?.time_granularity || 'day'} 
                               onValueChange={(value) => updateDimension(index, 'type_params', {
@@ -2213,15 +2259,21 @@ const SemanticModelManagement: React.FC = () => {
                               </Button>
                           </div>
                           <div>
-                            <Label>Name</Label>
+                            <Label className="flex items-center gap-1 mb-1">
+                              Name
+                              <HelpTooltip content="The name of the entity." />
+                            </Label>
                             <Input
                               value={entity.name}
                               onChange={(e) => updateEntity(index, 'name', e.target.value)}
-                              placeholder="Entity name"
+                              placeholder="e.g. customer, transaction"
                             />
                           </div>
                           <div>
-                            <Label>Type</Label>
+                            <Label className="flex items-center gap-1 mb-1">
+                              Type
+                              <HelpTooltip content="Primary entity of this model or foreign entity used to join with other models." />
+                            </Label>
                             <Select 
                               value={entity.type} 
                               onValueChange={(value) => updateEntity(index, 'type', value)}
@@ -2236,11 +2288,14 @@ const SemanticModelManagement: React.FC = () => {
                             </Select>
                           </div>
                           <div className="col-span-2">
-                            <Label>Expression</Label>
+                            <Label className="flex items-center gap-1 mb-1">
+                              Expression
+                              <HelpTooltip content="The column or expression used as the join key." />
+                            </Label>
                             <Input
                               value={entity.expr}
                               onChange={(e) => updateEntity(index, 'expr', e.target.value)}
-                              placeholder="Enter expression"
+                              placeholder="e.g. customer_id"
                             />
                           </div>
                         </div>
@@ -2295,15 +2350,21 @@ const SemanticModelManagement: React.FC = () => {
                               </Button>
                           </div>
                           <div>
-                            <Label>Name</Label>
+                            <Label className="flex items-center gap-1 mb-1">
+                              Name
+                              <HelpTooltip content="The name of the measure." />
+                            </Label>
                             <Input
                               value={measure.name}
                               onChange={(e) => updateMeasure(index, 'name', e.target.value)}
-                              placeholder="Measure name"
+                              placeholder="e.g. transaction_total"
                             />
                           </div>
                           <div>
-                            <Label>Aggregation Type</Label>
+                            <Label className="flex items-center gap-1 mb-1">
+                              Aggregation Type
+                              <HelpTooltip content="Aggregations applied to columns in your data model." />
+                            </Label>
                             <Select 
                               value={measure.agg} 
                               onValueChange={(value) => updateMeasure(index, 'agg', value)}
@@ -2320,19 +2381,25 @@ const SemanticModelManagement: React.FC = () => {
                             </Select>
                           </div>
                           <div>
-                            <Label>Description</Label>
+                            <Label className="flex items-center gap-1 mb-1">
+                              Description
+                              <HelpTooltip content="The description of the measure." />
+                            </Label>
                             <Input
                               value={measure.description || ''}
                               onChange={(e) => updateMeasure(index, 'description', e.target.value)}
-                              placeholder="Measure description"
+                              placeholder="e.g. The total value of the transaction."
                             />
                           </div>
                           <div>
-                            <Label>Expression</Label>
+                            <Label className="flex items-center gap-1 mb-1">
+                              Expression
+                              <HelpTooltip content="The column or expression to aggregate." />
+                            </Label>
                             <Input
                               value={measure.expr}
                               onChange={(e) => updateMeasure(index, 'expr', e.target.value)}
-                              placeholder="Enter expression"
+                              placeholder="e.g. transaction_total"
                             />
                           </div>
                         </div>
@@ -2388,15 +2455,21 @@ const SemanticModelManagement: React.FC = () => {
                               </Button>
                           </div>
                           <div>
-                            <Label>Name</Label>
+                            <Label className="flex items-center gap-1 mb-1">
+                              Name
+                              <HelpTooltip content="The name of the dimension." />
+                            </Label>
                             <Input
                               value={dimension.name}
                               onChange={(e) => updateDimension(index, 'name', e.target.value)}
-                              placeholder="Dimension name"
+                              placeholder="e.g. transaction_date"
                             />
                           </div>
                           <div>
-                            <Label>Type</Label>
+                            <Label className="flex items-center gap-1 mb-1">
+                              Type
+                              <HelpTooltip content="Time or categorical dimension." />
+                            </Label>
                             <Select 
                               value={dimension.type} 
                               onValueChange={(value) => updateDimension(index, 'type', value)}
@@ -2411,16 +2484,22 @@ const SemanticModelManagement: React.FC = () => {
                             </Select>
                           </div>
                           <div>
-                            <Label>Expression</Label>
+                            <Label className="flex items-center gap-1 mb-1">
+                              Expression
+                              <HelpTooltip content="The column or expression to use." />
+                            </Label>
                             <Input
                               value={dimension.expr}
                               onChange={(e) => updateDimension(index, 'expr', e.target.value)}
-                              placeholder="Enter expression"
+                              placeholder="e.g. created_at"
                             />
                           </div>
                           {dimension.type === 'time' && (
                             <div>
-                              <Label>Time Granularity</Label>
+                              <Label className="flex items-center gap-1 mb-1">
+                                Time Granularity
+                                <HelpTooltip content="The granularity of the time dimension." />
+                              </Label>
                               <Select 
                                 value={dimension.type_params?.time_granularity || 'day'} 
                                 onValueChange={(value) => updateDimension(index, 'type_params', {
@@ -2476,6 +2555,7 @@ const SemanticModelManagement: React.FC = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </TooltipProvider>
   );
 };
 

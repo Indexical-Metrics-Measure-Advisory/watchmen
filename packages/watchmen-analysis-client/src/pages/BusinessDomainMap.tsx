@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { Search, Plus, Layers, Database, Grid3x3, Eye, Tag, Users, Sparkles, Network, Pencil } from 'lucide-react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { Search, Plus, Layers, Database, Grid3x3, Eye, Tag, Users, Sparkles, Network, Pencil, X, Keyboard } from 'lucide-react';
 import { useSidebar } from '@/contexts/SidebarContext';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
@@ -33,6 +33,8 @@ const BusinessDomainMap: React.FC = () => {
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [editingDomain, setEditingDomain] = useState<OntologyDomain | null>(null);
   const [aiPathOpen, setAiPathOpen] = useState(false);
+  const [keyboardShortcutsOpen, setKeyboardShortcutsOpen] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const allTags = useMemo(() => Array.from(new Set(domains.flatMap(domain => domain.tags))).sort(), [domains]);
 
@@ -44,6 +46,30 @@ const BusinessDomainMap: React.FC = () => {
       return matchesSearch && matchesTag;
     });
   }, [domains, filterTag, searchQuery]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        document.getElementById('domain-search')?.focus();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'n') {
+        e.preventDefault();
+        openCreateDomain();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('ontologyViewMode');
+    if (saved === 'grid' || saved === 'graph') setViewMode(saved);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('ontologyViewMode', viewMode);
+  }, [viewMode]);
 
   const openDomainDetail = (domain: OntologyDomain) => {
     setSelectedDomain(domain);
@@ -113,6 +139,9 @@ const BusinessDomainMap: React.FC = () => {
                 <Sparkles className="w-4 h-4 text-indigo-500" />
                 AI Discovery Path
               </Button>
+              <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setKeyboardShortcutsOpen(true)} title="Keyboard shortcuts">
+                <Keyboard className="w-4 h-4" />
+              </Button>
               <Button className="gap-2 h-10" onClick={openCreateDomain}>
                 <Plus className="w-4 h-4" />
                 Create Ontology Domain
@@ -125,26 +154,51 @@ const BusinessDomainMap: React.FC = () => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
+                  id="domain-search"
                   placeholder="Search ontology domains by name or description..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="pl-9"
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
+                  className="pl-9 pr-20"
                 />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="p-1 hover:bg-muted rounded transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5 text-muted-foreground" />
+                    </button>
+                  )}
+                  {!isSearchFocused && !searchQuery && (
+                    <kbd className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 text-xs text-muted-foreground bg-muted rounded border">
+                      <span className="text-[10px]">⌘</span>K
+                    </kbd>
+                  )}
+                </div>
               </div>
-              <div className="w-full md:w-64">
-                <Select value={filterTag} onValueChange={setFilterTag}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by tag" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Tags</SelectItem>
-                    {allTags.map(tag => (
-                      <SelectItem key={tag} value={tag}>
-                        {tag}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center gap-3">
+                {(searchQuery || filterTag !== 'all') && (
+                  <div className="text-sm text-muted-foreground whitespace-nowrap">
+                    <span className="font-medium text-foreground">{filteredDomains.length}</span> of {domains.length} domains
+                  </div>
+                )}
+                <div className="w-full md:w-64">
+                  <Select value={filterTag} onValueChange={setFilterTag}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by tag" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Tags</SelectItem>
+                      {allTags.map(tag => (
+                        <SelectItem key={tag} value={tag}>
+                          {tag}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           </div>
@@ -161,7 +215,10 @@ const BusinessDomainMap: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-muted/30 p-5 rounded-xl border">
+                <button
+                  onClick={() => { setFilterTag('all'); setSearchQuery(''); }}
+                  className="bg-muted/30 p-5 rounded-xl border text-left hover:bg-muted/50 transition-colors cursor-pointer"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div className="p-2 bg-blue-50 rounded-lg">
                       <Layers className="w-5 h-5 text-blue-600" />
@@ -170,8 +227,11 @@ const BusinessDomainMap: React.FC = () => {
                   </div>
                   <div className="font-semibold">Ontology Domains</div>
                   <div className="text-sm text-muted-foreground">Top-level business ontology contexts</div>
-                </div>
-                <div className="bg-muted/30 p-5 rounded-xl border">
+                </button>
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className="bg-muted/30 p-5 rounded-xl border text-left hover:bg-muted/50 transition-colors cursor-pointer"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div className="p-2 bg-purple-50 rounded-lg">
                       <Database className="w-5 h-5 text-purple-600" />
@@ -180,8 +240,11 @@ const BusinessDomainMap: React.FC = () => {
                   </div>
                   <div className="font-semibold">Ontology Concepts</div>
                   <div className="text-sm text-muted-foreground">Classes, events, and aggregate concepts</div>
-                </div>
-                <div className="bg-muted/30 p-5 rounded-xl border">
+                </button>
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className="bg-muted/30 p-5 rounded-xl border text-left hover:bg-muted/50 transition-colors cursor-pointer"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div className="p-2 bg-emerald-50 rounded-lg">
                       <Grid3x3 className="w-5 h-5 text-emerald-600" />
@@ -190,7 +253,7 @@ const BusinessDomainMap: React.FC = () => {
                   </div>
                   <div className="font-semibold">Semantic Views</div>
                   <div className="text-sm text-muted-foreground">Linked analytical views and marts</div>
-                </div>
+                </button>
               </div>
             </CardContent>
           </Card>
@@ -292,10 +355,10 @@ const BusinessDomainMap: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="flex pt-3 border-t gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex pt-3 border-t gap-2 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                       <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => openDomainDetail(domain)}>
                         <Eye className="w-4 h-4" />
-                        View Details
+                        View
                       </Button>
                       <Button variant="secondary" size="sm" className="flex-1 gap-2" onClick={() => openEditDomain(domain)}>
                         <Pencil className="w-4 h-4" />
@@ -311,9 +374,30 @@ const BusinessDomainMap: React.FC = () => {
           {filteredDomains.length === 0 && (
             <Card className="mt-6">
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <Layers className="w-12 h-12 text-muted-foreground mb-4" />
-                <div className="text-muted-foreground">No ontology domains found</div>
-                <div className="text-sm text-muted-foreground mt-1">Try adjusting your search or filters</div>
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <Layers className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <div className="text-lg font-medium mb-1">No ontology domains found</div>
+                <div className="text-sm text-muted-foreground text-center max-w-sm mb-4">
+                  {searchQuery || filterTag !== 'all'
+                    ? 'Try adjusting your search or filters to find what you\'re looking for.'
+                    : 'Get started by creating your first ontology domain to organize your business concepts.'}
+                </div>
+                {(searchQuery || filterTag !== 'all') ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => { setSearchQuery(''); setFilterTag('all'); }}
+                    className="gap-2"
+                  >
+                    <X className="w-4 h-4" />
+                    Clear filters
+                  </Button>
+                ) : (
+                  <Button onClick={openCreateDomain} className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    Create Ontology Domain
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}
@@ -433,6 +517,38 @@ const BusinessDomainMap: React.FC = () => {
                   </ScrollArea>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={keyboardShortcutsOpen} onOpenChange={setKeyboardShortcutsOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Keyboard className="w-5 h-5" />
+              Keyboard Shortcuts
+            </DialogTitle>
+            <DialogDescription>Quick keyboard shortcuts to navigate faster.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between py-2 border-b">
+              <span className="text-sm">Focus search</span>
+              <div className="flex items-center gap-1">
+                <kbd className="px-2 py-1 text-xs bg-muted rounded border">⌘</kbd>
+                <span className="text-muted-foreground">+</span>
+                <kbd className="px-2 py-1 text-xs bg-muted rounded border">K</kbd>
+              </div>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b">
+              <span className="text-sm">Create new domain</span>
+              <div className="flex items-center gap-1">
+                <kbd className="px-2 py-1 text-xs bg-muted rounded border">⌘</kbd>
+                <span className="text-muted-foreground">+</span>
+                <kbd className="px-2 py-1 text-xs bg-muted rounded border">⇧</kbd>
+                <span className="text-muted-foreground">+</span>
+                <kbd className="px-2 py-1 text-xs bg-muted rounded border">N</kbd>
+              </div>
             </div>
           </div>
         </DialogContent>

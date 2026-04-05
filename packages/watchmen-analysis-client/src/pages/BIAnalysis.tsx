@@ -56,6 +56,18 @@ type FetchCardDataResult = {
   status: AlertStatus | null;
 };
 
+const CARD_QUERY_CACHE_TTL = 30_000;
+const PREVIEW_DEBOUNCE_MS = 180;
+const METRICS_LOAD_DEBOUNCE_MS = 300;
+const FILTER_REFRESH_DEBOUNCE_MS = 220;
+const PREVIEW_CACHE_MAX_SIZE = 50;
+const CARD_QUERY_CACHE_MAX_SIZE = 50;
+const MAX_DIM_DISPLAY = 24;
+const DEFAULT_PREVIEW_LIMIT = 5;
+const DEFAULT_TIME_RANGE = 'Past 30 days';
+const DEFAULT_TIME_GRANULARITY = 'day';
+const TIME_KEYWORDS = ['date', 'day', 'month', 'week', 'quarter', 'year', 'hour', 'minute', 'second', 'time', 'timestamp', 'datetime', 'created_at', 'updated_at'];
+
 const toDimKey = (d: MetricDimension) => d.qualified_name || d.name;
 
 const formatDate = (d: Date) => format(d, 'yyyy-MM-dd');
@@ -242,16 +254,18 @@ const BIAnalysisPage: React.FC = () => {
   const { collapsed } = useSidebar();
   const { user } = useAuth();
 
-
-  // Current analysis ID being edited (null if new)
+  // ─────────────────────────────────────────────────────────────
+  // STATE: Analysis & Navigation
+  // ─────────────────────────────────────────────────────────────
   const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<'dashboard' | 'saved'>('dashboard');
 
-  // selector states
+  // ─────────────────────────────────────────────────────────────
+  // STATE: Metric Builder Configuration
+  // ─────────────────────────────────────────────────────────────
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState<string>('');
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-  
-  // Metric Builder Configuration State
   const [chartConfig, setChartConfig] = useState<{
     metricId: string;
     metricDef: MetricDefinition | null;
@@ -275,7 +289,6 @@ const BIAnalysisPage: React.FC = () => {
   const [metricsList, setMetricsList] = useState<MetricDefinition[]>([]);
   const [metricsLoading, setMetricsLoading] = useState<boolean>(false);
   const [metricsRefreshNonce, setMetricsRefreshNonce] = useState(0);
-  // Derived availableDims from detailed list
   const [availableDimsDetailed, setAvailableDimsDetailed] = useState<MetricDimension[]>([]);
   const availableDims = useMemo(() => availableDimsDetailed.map(d => d.qualified_name || d.name), [availableDimsDetailed]);
 
@@ -283,7 +296,9 @@ const BIAnalysisPage: React.FC = () => {
   const [dimSearch, setDimSearch] = useState<string>('');
   const showTopOnly = true;
 
-  // Preview State
+  // ─────────────────────────────────────────────────────────────
+  // STATE: Preview Data
+  // ─────────────────────────────────────────────────────────────
   const [previewState, setPreviewState] = useState<{
     data: ChartDatum[];
     rawData: MetricFlowResponse | null;
@@ -294,7 +309,27 @@ const BIAnalysisPage: React.FC = () => {
     type: 'line'
   });
 
-  // Alert Configuration State (Removed)
+  // ─────────────────────────────────────────────────────────────
+  // STATE: Dashboard Cards
+  // ─────────────────────────────────────────────────────────────
+  const [cards, setCards] = useState<BIChartCard[]>([]);
+  const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: ChartDatum[], rawData: MetricFlowResponse | null }>>({});
+  const [alertStatusMap, setAlertStatusMap] = useState<Record<string, AlertStatus>>({});
+  const [metricBuilderOpen, setMetricBuilderOpen] = useState(false);
+  const dashboardViewRef = useRef<HTMLDivElement>(null);
+  const [pendingScrollToDashboard, setPendingScrollToDashboard] = useState(false);
+
+  // ─────────────────────────────────────────────────────────────
+  // STATE: Global Filters
+  // ─────────────────────────────────────────────────────────────
+  const [commonFilterDimensions, setCommonFilterDimensions] = useState<MetricDimension[]>([]);
+  const [globalFilterValues, setGlobalFilterValues] = useState<Record<string, string>>({});
+  const [globalTimeRange, setGlobalTimeRange] = useState<string>(GLOBAL_TIME_RANGE_PER_CARD);
+  const [globalCustomDateRange, setGlobalCustomDateRange] = useState<DateRange | undefined>();
+
+  // ─────────────────────────────────────────────────────────────
+  // STATE: Dialogs & Modals
+  // ─────────────────────────────────────────────────────────────
   const [addAlertOpen, setAddAlertOpen] = useState(false);
   const [alertRuleId, setAlertRuleId] = useState('');
   const [dialogRules, setDialogRules] = useState<GlobalAlertRule[]>([]);
@@ -303,21 +338,6 @@ const BIAnalysisPage: React.FC = () => {
     from: addDays(new Date(), -30),
     to: new Date(),
   });
-
-  // board
-  const [cards, setCards] = useState<BIChartCard[]>([]);
-  const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: ChartDatum[], rawData: MetricFlowResponse | null }>>({});
-  const [alertStatusMap, setAlertStatusMap] = useState<Record<string, AlertStatus>>({});
-  const [metricBuilderOpen, setMetricBuilderOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<'dashboard' | 'saved'>('dashboard');
-  const dashboardViewRef = useRef<HTMLDivElement>(null);
-  const [pendingScrollToDashboard, setPendingScrollToDashboard] = useState(false);
-  
-  const [commonFilterDimensions, setCommonFilterDimensions] = useState<MetricDimension[]>([]);
-  const [globalFilterValues, setGlobalFilterValues] = useState<Record<string, string>>({});
-  const [globalTimeRange, setGlobalTimeRange] = useState<string>(GLOBAL_TIME_RANGE_PER_CARD);
-  const [globalCustomDateRange, setGlobalCustomDateRange] = useState<DateRange | undefined>();
-
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveName, setSaveName] = useState('');
   const [saveDesc, setSaveDesc] = useState('');
@@ -326,15 +346,16 @@ const BIAnalysisPage: React.FC = () => {
   const [templates, setTemplates] = useState<{ id: string; name: string; description?: string; isTemplate?: boolean }[]>([]);
   const [isBoardRefreshing, setIsBoardRefreshing] = useState(false);
 
-  // Cache for metric dimensions to avoid re-fetching
+  // ─────────────────────────────────────────────────────────────
+  // REFS: Caches & Utilities
+  // ─────────────────────────────────────────────────────────────
   const metricDimsCache = useRef<Map<string, MetricDimension[]>>(new Map());
   const previewCache = useRef<Map<string, { data: unknown[]; rawData: MetricFlowResponse | null }>>(new Map());
   const cardQueryCache = useRef<Map<string, { result: FetchCardDataResult; timestamp: number }>>(new Map());
   const cardInFlightRequests = useRef<Map<string, number>>(new Map());
   const boardRefreshRequestRef = useRef(0);
   const globalFilterDebounceRef = useRef<number | null>(null);
-
-  const CARD_QUERY_CACHE_TTL = 30_000;
+  const initialLoadDone = useRef(false);
 
   // Fetch rules when alert metric changes
   useEffect(() => {
@@ -968,7 +989,7 @@ const BIAnalysisPage: React.FC = () => {
       const ib = typeof b.importance === 'number' ? b.importance as number : 0;
       return ib - ia; // desc by importance
     });
-    if (showTopOnly) return sorted.slice(0, 24); // show top 24 by default
+    if (showTopOnly) return sorted.slice(0, MAX_DIM_DISPLAY);
     return sorted;
   }, [availableDimsDetailed, selectedDimType, dimSearch, showTopOnly]);
 
@@ -1202,7 +1223,6 @@ const BIAnalysisPage: React.FC = () => {
   }, [toast]);
   
   // Load last visited analysis on mount
-  const initialLoadDone = useRef(false);
   useEffect(() => {
     if (initialLoadDone.current) return;
     initialLoadDone.current = true;
