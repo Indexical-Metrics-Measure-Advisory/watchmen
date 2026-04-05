@@ -35,6 +35,11 @@ Keep this file concise and load detailed references only when needed.
 - **Discovery First**: Use `agent-cli topic list-remote` to find IDs/names instead of pulling all files.
 - **Context Management**: Once a metadata ID is found, store it in your internal thought process and avoid re-querying or re-reading the source.
 
+## File Naming Conventions
+- Local files MUST follow the `{name}__{id}.yml` pattern (e.g. `customer_360_wide__1486457832676011008.yml`).
+- Use double underscores `__` to separate the business name and the internal ID.
+- Refer to `references/source-of-truth.md` for specific directory structures per entity type.
+
 ## On-Demand Loading Rules
 - Load `references/command-catalog.md` when deciding exact command/args.
 - Load `references/dependency-chain.md` when deciding related entities to sync.
