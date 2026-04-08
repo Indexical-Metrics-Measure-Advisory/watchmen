@@ -21,7 +21,8 @@ Keep this file concise and load detailed references only when needed.
 
 ## Pre-Execution Checklist
 1. Ensure CLI is installed:
-   - `cd packages/watchmen-agent-cli && poetry install`
+   - Global: `pip install watchmen-agent-cli`
+   - Local Dev: `cd packages/watchmen-agent-cli && poetry install`
 2. Ensure vault config exists (`init` first if missing):
    - `agent-cli init --vault <vault> --host <host> --pat <token>`
 3. Prefer module entrypoint for compatibility:

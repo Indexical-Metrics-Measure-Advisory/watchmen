@@ -2,7 +2,8 @@
 
 ## `agent-cli: command not found`
 - Install package:
-  - `cd packages/watchmen-agent-cli && poetry install`
+  - Global: `pip install watchmen-agent-cli`
+  - Local Dev: `cd packages/watchmen-agent-cli && poetry install`
 
 ## `No such command 'ingest'`
 - Reinstall latest package and use module entrypoint:
