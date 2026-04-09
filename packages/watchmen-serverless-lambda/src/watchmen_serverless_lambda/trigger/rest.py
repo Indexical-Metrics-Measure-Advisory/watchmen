@@ -20,11 +20,11 @@ from watchmen_utilities import is_blank, serialize_to_json
 logger = getLogger(__name__)
 
 def url_trigger_handler(event, context):
-    if get_request_type(event) == RequestType.EVENT:
+    if get_request_type_v2(event) == RequestType.EVENT:
         return trigger_event_handler(event, context)
-    elif get_request_type(event) == RequestType.PIPELINE:
+    elif get_request_type_v2(event) == RequestType.PIPELINE:
         return trigger_pipeline_handler(event, context)
-    elif get_request_type(event) == RequestType.ONLINE:
+    elif get_request_type_v2(event) == RequestType.ONLINE:
         return trigger_online_handler(event, context)
     else:
         logger.error("not support event: %s", event)
@@ -35,7 +35,25 @@ class RequestType(StrEnum):
     EVENT = "event"
     ONLINE = "online"
    
- 
+
+def get_request_type_v2(event) -> Optional[RequestType]:
+    request_path = event.get("rawPath", "")
+    if request_path == "/collector/trigger/event":
+        return RequestType.EVENT
+    elif request_path == "/collector/trigger/event/table":
+        return RequestType.EVENT
+    elif request_path == "/collector/trigger/event/record":
+        return RequestType.EVENT
+    elif request_path == "/collector/trigger/event/pipeline":
+        return RequestType.PIPELINE
+    elif request_path == "/collector/trigger/event/schedule":
+        return RequestType.EVENT
+    elif request_path == "/collector/trigger/online":
+        return RequestType.ONLINE
+    else:
+        return None
+
+
 def get_request_type(event) -> Optional[RequestType]:
     body = event['body']
     payload = json.loads(body)
@@ -105,25 +123,24 @@ def trigger_event_handler(event, context):
         if is_blank(token):
             raise Exception('PAT not found.')
         
-        if get_trigger_event_type(submit_event) == TriggerEventType.EVENT:
-            if submit_event.get('startTime', None) is None and submit_event.get('endTime', None) is None:
-                submit_event['type'] = EventType.BY_SCHEDULE.value
-            else:
-                if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
-                    raise_400('start time or end time  is required.')
-                submit_event['type'] = EventType.DEFAULT.value
-        elif get_trigger_event_type(submit_event) == TriggerEventType.TABLE:
+        if get_trigger_event_type_v2(submit_event) == TriggerEventType.EVENT:
+            if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
+                raise_400('start time or end time  is required.')
+            submit_event['type'] = EventType.DEFAULT.value
+        elif get_trigger_event_type_v2(submit_event) == TriggerEventType.TABLE:
             if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
                 raise_400('start time or end time  is required.')
             if is_blank(submit_event.get('tableName')):
                 raise_400('table name is required.')
             submit_event['type'] = EventType.BY_TABLE.value
-        elif get_trigger_event_type(submit_event) == TriggerEventType.RECORD:
+        elif get_trigger_event_type_v2(submit_event) == TriggerEventType.RECORD:
             if is_blank(submit_event.get('tableName')):
                 raise_400('table name is required.')
             if submit_event.get('records') is None or len(submit_event.get('records')) == 0:
                 raise_400('records is required.')
             submit_event['type'] = EventType.BY_RECORD.value
+        elif get_trigger_event_type_v2(submit_event) == TriggerEventType.SCHEDULE:
+            submit_event['type'] = EventType.BY_SCHEDULE.value
             
         principal_service = get_principal_by_pat(
             retrieve_authentication_manager(), token, [UserRole.ADMIN, UserRole.SUPER_ADMIN])
@@ -152,6 +169,21 @@ class TriggerEventType(StrEnum):
     EVENT = "event"
     TABLE = "table"
     RECORD = "record"
+    SCHEDULE = "schedule"
+
+
+def get_trigger_event_type_v2(event) -> Optional[TriggerEventType]:
+    request_path = event.get("rawPath", "")
+    if request_path == "/collector/trigger/event":
+        return TriggerEventType.EVENT
+    elif request_path == "/collector/trigger/event/table":
+        return TriggerEventType.TABLE
+    elif request_path == "/collector/trigger/event/record":
+        return TriggerEventType.RECORD
+    elif request_path == "/collector/trigger/event/schedule":
+        return TriggerEventType.SCHEDULE
+    else:
+        return None
 
     
 def get_trigger_event_type(event) -> Optional[TriggerEventType]:
