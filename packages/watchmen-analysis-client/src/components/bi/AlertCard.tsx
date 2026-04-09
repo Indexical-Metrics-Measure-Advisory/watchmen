@@ -220,7 +220,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, aler
                       {(action.riskLevel || 'low').toUpperCase()}
                     </Badge>
                     <span className="font-medium text-sm">{action.name || 'Suggested Action'}</span>
-                  </div>
+                   </div>
                   <Badge variant="secondary" className="text-[10px]" title={action.type}>
                     {action.typeName || (action.type.length > 20 || (/^\d+$/.test(action.type) && action.type.length > 15) ? 'Action' : action.type)}
                   </Badge>
