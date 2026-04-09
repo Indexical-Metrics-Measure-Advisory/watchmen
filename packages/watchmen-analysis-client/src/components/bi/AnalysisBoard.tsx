@@ -14,8 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { DateRange } from 'react-day-picker';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { cn } from '@/lib/utils';
+import { RechartsProvider } from './charts/RechartsContext';
 
 type ChartDataPoint = ChartDatum;
+const INITIAL_VISIBLE_CARDS = 12;
+const CARD_RENDER_BATCH_SIZE = 12;
 
 interface AnalysisBoardProps {
   cards: BIChartCard[];
@@ -25,7 +28,6 @@ interface AnalysisBoardProps {
   onDrop: (index: number) => (e: React.DragEvent<HTMLDivElement>) => void;
   onResize: (index: number, size: BICardSize) => void;
   onRemove: (index: number) => void;
-  onUpdate?: (index: number, card: BIChartCard) => void;
   onAddAlert?: () => void;
   onSubscription?: () => void;
   readOnly?: boolean;
@@ -55,7 +57,6 @@ interface BoardCardItemProps {
   onDrop: AnalysisBoardProps['onDrop'];
   onResize: AnalysisBoardProps['onResize'];
   onRemove: AnalysisBoardProps['onRemove'];
-  onUpdate?: AnalysisBoardProps['onUpdate'];
   onAcknowledge?: AnalysisBoardProps['onAcknowledge'];
 }
 
@@ -107,12 +108,11 @@ const BoardCardItem = React.memo(({
   onDrop,
   onResize,
   onRemove,
-  onUpdate,
   onAcknowledge
 }: BoardCardItemProps) => {
   if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert' && card.chartType !== 'kpi') {
     return (
-      <div className={cn('transition-all duration-200', getCardSizeClass(card.size))}>
+      <div className={cn('transition-shadow duration-200', getCardSizeClass(card.size))} style={{ contain: 'layout style paint' }}>
         <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-muted-foreground border border-border/50 rounded-xl bg-card/30 p-8 text-center shadow-sm gap-3">
           <AlertCircle className="w-8 h-8 text-muted-foreground/30" />
           <div className="space-y-1">
@@ -135,7 +135,6 @@ const BoardCardItem = React.memo(({
       onDrop={!readOnly ? onDrop(index) : undefined}
       onResize={!readOnly ? (size) => onResize(index, size) : undefined}
       onRemove={!readOnly ? () => onRemove(index) : undefined}
-      onUpdate={!readOnly ? (updatedCard) => onUpdate?.(index, updatedCard) : undefined}
       alertStatus={alertStatus}
       onAcknowledge={onAcknowledge}
     />
@@ -152,7 +151,6 @@ const BoardCardItem = React.memo(({
   prev.onDrop === next.onDrop &&
   prev.onResize === next.onResize &&
   prev.onRemove === next.onRemove &&
-  prev.onUpdate === next.onUpdate &&
   prev.onAcknowledge === next.onAcknowledge
 ));
 
@@ -164,7 +162,6 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
   onDrop,
   onResize,
   onRemove,
-  onUpdate,
   onAddAlert,
   onSubscription,
   readOnly = false,
@@ -182,14 +179,60 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
   isRefreshing,
 }) => {
   const [filtersHidden, setFiltersHidden] = React.useState(true);
+  const [visibleCardCount, setVisibleCardCount] = React.useState(() => Math.min(cards.length, INITIAL_VISIBLE_CARDS));
+
+  // Stable callback refs to avoid inline arrow functions causing re-renders
+  const handleToggleFilters = React.useCallback(() => setFiltersHidden(v => !v), []);
+  const handleHideFilters = React.useCallback(() => setFiltersHidden(true), []);
+  const handleShowFilters = React.useCallback(() => setFiltersHidden(false), []);
 
   const globalFilterKeys = React.useMemo(
     () => (globalFilterDimensions ?? []).map(d => d.qualified_name || d.name),
     [globalFilterDimensions]
   );
+  const globalFilterDimensionMap = React.useMemo(() => {
+    const map = new Map<string, MetricDimension>();
+    (globalFilterDimensions ?? []).forEach(d => {
+      map.set(d.qualified_name || d.name, d);
+    });
+    return map;
+  }, [globalFilterDimensions]);
+  const visibleCards = React.useMemo(
+    () => cards.slice(0, visibleCardCount),
+    [cards, visibleCardCount]
+  );
 
-  const hasGlobalFilters = globalFilterKeys.length > 0 || Boolean(onGlobalTimeRangeChange);
+  const hasGlobalFilters = React.useMemo(
+    () => globalFilterKeys.length > 0 || Boolean(onGlobalTimeRangeChange),
+    [globalFilterKeys, onGlobalTimeRangeChange]
+  );
   const timeRangeValue = globalTimeRange ?? '__card__';
+
+  React.useEffect(() => {
+    if (cards.length <= INITIAL_VISIBLE_CARDS) {
+      setVisibleCardCount(cards.length);
+      return;
+    }
+    setVisibleCardCount(INITIAL_VISIBLE_CARDS);
+    let rafId = 0;
+    let cancelled = false;
+    const step = () => {
+      if (cancelled) return;
+      setVisibleCardCount(prev => {
+        if (prev >= cards.length) return prev;
+        const next = Math.min(cards.length, prev + CARD_RENDER_BATCH_SIZE);
+        if (next < cards.length) {
+          rafId = window.requestAnimationFrame(step);
+        }
+        return next;
+      });
+    };
+    rafId = window.requestAnimationFrame(step);
+    return () => {
+      cancelled = true;
+      if (rafId) window.cancelAnimationFrame(rafId);
+    };
+  }, [cards.length]);
 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-500">
@@ -211,7 +254,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
             </Button>
           )}
           {hasGlobalFilters && (
-            <Button variant="outline" size="sm" onClick={() => setFiltersHidden(v => !v)} className="gap-2 h-8">
+            <Button variant="outline" size="sm" onClick={handleToggleFilters} className="gap-2 h-8">
               <SlidersHorizontal className="w-4 h-4" />
               Filters
             </Button>
@@ -234,6 +277,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
         </div>
       </div>
 
+      <RechartsProvider>
       <div className="flex gap-6 items-start">
         <div className="flex-1 min-w-0">
           {cards.length === 0 ? (
@@ -249,8 +293,8 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-12 gap-6">
-              {cards.map((card, index) => {
+            <div className="grid grid-cols-12 gap-6" style={{ contain: 'layout style' }}>
+              {visibleCards.map((card, index) => {
                 const { chartData, rawData } = cardDataMap[card.id] ?? { chartData: [], rawData: null };
                 return (
                   <BoardCardItem
@@ -266,11 +310,15 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
                     onDrop={onDrop}
                     onResize={onResize}
                     onRemove={onRemove}
-                    onUpdate={onUpdate}
                     onAcknowledge={onAcknowledge}
                   />
                 );
               })}
+              {visibleCardCount < cards.length && (
+                <div className="col-span-12 text-center text-sm text-muted-foreground py-4">
+                  Rendering {visibleCardCount}/{cards.length} visualizations...
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -280,7 +328,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between gap-2">
                 <CardTitle className="text-sm">Global Filters</CardTitle>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setFiltersHidden(true)}>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleHideFilters}>
                   <X className="w-4 h-4" />
                 </Button>
               </div>
@@ -314,7 +362,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
               </div>
 
               {globalFilterKeys.map(key => {
-                const d = (globalFilterDimensions ?? []).find(x => (x.qualified_name || x.name) === key);
+                const d = globalFilterDimensionMap.get(key);
                 const label = d?.name || key;
                 const desc = d?.description;
                 const value = globalFilterValues?.[key] ?? '';
@@ -346,7 +394,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
               variant="outline"
               size="sm"
               className="h-10 w-8 p-0"
-              onClick={() => setFiltersHidden(false)}
+              onClick={handleShowFilters}
               title="Show filters"
             >
               <ChevronRight className="w-4 h-4" />
@@ -354,6 +402,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
           </div>
         )}
       </div>
+      </RechartsProvider>
     </div>
   );
 });

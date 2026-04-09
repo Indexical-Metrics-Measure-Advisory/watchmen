@@ -30,6 +30,7 @@ import type { MetricDefinition } from '@/model/metricsManagement';
 import type { MetricDimension } from '@/model/analysis';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import { inferType } from './utils';
+import { RechartsProvider } from './charts/RechartsContext';
 
 export type MetricBuilderSheetProps = {
   open: boolean;
@@ -385,6 +386,7 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                   </div>
                 </CardHeader>
                 <CardContent className="flex-1 p-6 min-h-[400px] flex flex-col">
+                  <RechartsProvider>
                   {selectedDims.length > 5 ? (
                     <div className="h-full w-full flex flex-col">
                       <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 text-xs text-yellow-600 dark:text-yellow-400 text-center border-b border-yellow-100 dark:border-yellow-900/30 mb-2 rounded-sm">
@@ -403,11 +405,11 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                           metricId: selectedMetric.name,
                           chartType: previewType,
                           size: 'lg',
-                          selection: { 
-                            dimensions: selectedDims, 
-                            timeRange, 
+                          selection: {
+                            dimensions: selectedDims,
+                            timeRange,
                             timeGranularity,
-                            limit 
+                            limit
                           }
                         }}
                         data={previewData}
@@ -422,6 +424,7 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                       <p>Start by selecting a metric from the configuration panel</p>
                     </div>
                   )}
+                  </RechartsProvider>
                 </CardContent>
                 <CardFooter className="border-t bg-muted/10 py-4 flex justify-between items-center">
                   <div className="text-sm text-muted-foreground">

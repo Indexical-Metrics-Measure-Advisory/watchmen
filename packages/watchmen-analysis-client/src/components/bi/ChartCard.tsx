@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { format, isValid } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -7,8 +6,7 @@ import type { BIChartCard, BICardSize } from '@/model/biAnalysis';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import type { AlertStatus } from '@/model/AlertConfig';
 import { AlertCard } from './AlertCard';
-import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy, AlertTriangle, Settings, CheckCircle2, Activity } from 'lucide-react';
-import { AlertConfigurationModal } from './AlertConfigurationModal';
+import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy, AlertTriangle, CheckCircle2, Activity } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,45 +15,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
-type RechartsModule = typeof import('recharts');
-export type ChartDatumValue = string | number | null | undefined;
-export type ChartDatum = Record<string, ChartDatumValue>;
-type TooltipEntry = {
-  color?: string;
-  name?: string;
-  value?: ChartDatumValue;
-};
-type TooltipProps = {
-  active?: boolean;
-  payload?: TooltipEntry[];
-  label?: React.ReactNode;
-};
-let rechartsModuleCache: RechartsModule | null = null;
-let rechartsModulePromise: Promise<RechartsModule> | null = null;
+import type { ChartDatum, RechartsModule } from './charts/types';
+import { MAX_TIME_SERIES_POINTS, MAX_CATEGORY_POINTS, sampleDataByIndex } from './charts/utils';
+import { DataTable } from './charts/DataTable';
+import { useChartAxis } from './charts/useChartAxis';
+import { KPIView, BarChartView, PieChartView, AreaChartView, LineChartView } from './charts/ChartViews';
+import { useRechartsModule } from './charts/RechartsContext';
 
-// Modern color palette
-const COLORS = [
-  '#3b82f6', // Blue
-  '#8b5cf6', // Violet
-  '#10b981', // Emerald
-  '#f59e0b', // Amber
-  '#ec4899', // Pink
-  '#06b6d4', // Cyan
-  '#f43f5e', // Rose
-  '#6366f1', // Indigo
-];
-
-const toNumericValue = (value: ChartDatumValue): number => typeof value === 'number' ? value : 0;
+export type { ChartDatum, ChartDatumValue } from './charts/types';
+export { DataTable } from './charts/DataTable';
 
 export interface ChartCardProps {
   card: BIChartCard;
@@ -68,7 +37,6 @@ export interface ChartCardProps {
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragOver?: (e: React.DragEvent<HTMLDivElement>) => void;
   onDrop?: (e: React.DragEvent<HTMLDivElement>) => void;
-  onUpdate?: (card: BIChartCard) => void;
   alertStatus?: AlertStatus;
   onAcknowledge?: (alertId: string) => void;
 }
@@ -84,147 +52,58 @@ const sizeClass = (size: BICardSize) => {
   }
 };
 
-const CustomTooltip = React.memo(({ active, payload, label }: TooltipProps) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-popover border border-border px-3 py-2 rounded-lg shadow-lg text-xs outline-none animate-in fade-in-0 zoom-in-95 z-50">
-        <p className="font-semibold mb-1.5 text-popover-foreground">{label}</p>
-        <div className="space-y-1">
-          {payload.map((entry, index: number) => (
-            <div key={index} className="flex items-center gap-2">
-              <div 
-                className="w-2 h-2 rounded-full shrink-0" 
-                style={{ backgroundColor: entry.color }} 
-              />
-              <span className="text-muted-foreground">{entry.name}:</span>
-              <span className="font-medium text-popover-foreground tabular-nums">
-                {typeof entry.value === 'number' 
-                  ? entry.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) 
-                  : (entry.value ?? '-')}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  return null;
-});
-
-// Data Table Component
-export const DataTable = React.memo(({ data, sourceData }: { data: ChartDatum[], sourceData?: MetricFlowResponse }) => {
-  const fallbackHeaders = useMemo(
-    () => (!data || data.length === 0 ? [] : Object.keys(data[0]).filter(k => k !== 'color' && k !== 'fill')),
-    [data]
-  );
-
-  // Prefer sourceData (raw response) if available
-  if (sourceData && Array.isArray(sourceData.column_names) && Array.isArray(sourceData.data)) {
-    const headers = sourceData.column_names;
-    const rows = sourceData.data;
-
-    if (rows.length === 0) {
-      return <div className="flex items-center justify-center h-full text-muted-foreground text-sm">No data available</div>;
-    }
-
-    return (
-      <ScrollArea className="h-full w-full rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
-              {headers.map((header, idx) => (
-                <TableHead key={idx} className="capitalize min-w-[100px]">
-                  {header}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((row, i) => (
-              <TableRow key={i} className="hover:bg-muted/50">
-                {row.map((cell, j) => (
-                  <TableCell key={`${i}-${j}`} className="font-medium">
-                    {typeof cell === 'number' 
-                      ? cell.toLocaleString(undefined, { maximumFractionDigits: 2 })
-                      : (cell === null || cell === undefined ? '-' : String(cell))}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </ScrollArea>
-    );
-  }
-
-  if (!data || data.length === 0) {
-    return <div className="flex items-center justify-center h-full text-muted-foreground text-sm">No data available</div>;
-  }
-
-  // Extract headers from the first data item
-  // Exclude 'color' or internal fields if any, keep 'date'/'name' and values
-  const headers = fallbackHeaders;
-
-  return (
-    <ScrollArea className="h-full w-full rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
-            {headers.map((header) => (
-              <TableHead key={header} className="capitalize min-w-[100px]">
-                {header}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((row, i) => (
-            <TableRow key={i} className="hover:bg-muted/50">
-              {headers.map((header) => (
-                <TableCell key={`${i}-${header}`} className="font-medium">
-                  {typeof row[header] === 'number' 
-                    ? row[header].toLocaleString(undefined, { maximumFractionDigits: 2 })
-                    : (row[header] === null || row[header] === undefined ? '-' : String(row[header]))}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </ScrollArea>
-  );
-});
-
-const useRechartsModule = () => {
-  const [lib, setLib] = useState<RechartsModule | null>(rechartsModuleCache);
-
-  useEffect(() => {
-    if (rechartsModuleCache) {
-      setLib(rechartsModuleCache);
-      return;
-    }
-
-    let mounted = true;
-    if (!rechartsModulePromise) {
-      rechartsModulePromise = import('recharts').then(mod => {
-        rechartsModuleCache = mod;
-        return mod;
-      });
-    }
-
-    void rechartsModulePromise.then(mod => {
-      if (mounted) {
-        setLib(mod);
-      }
-    });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  return lib;
+type ChartInnerProps = {
+  lib: RechartsModule;
+  card: BIChartCard;
+  data: ChartDatum[];
+  sourceData?: MetricFlowResponse;
+  alertStatus?: AlertStatus;
+  onAcknowledge?: (alertId: string) => void;
 };
+
+const Chart = React.memo(({ lib, card, data, sourceData, alertStatus, onAcknowledge }: ChartInnerProps) => {
+  const { type: chartType } = { type: card.chartType };
+  
+  const sampledData = useMemo(() => {
+    if (data.length <= 1) return data;
+    if (['line', 'area'].includes(chartType)) {
+      return sampleDataByIndex(data, MAX_TIME_SERIES_POINTS);
+    }
+    if (['bar', 'groupedBar', 'stackedBar'].includes(chartType)) {
+      return sampleDataByIndex(data, MAX_CATEGORY_POINTS);
+    }
+    return data;
+  }, [chartType, data]);
+  
+  const axisProps = useChartAxis(card, sampledData);
+
+  if (chartType === 'alert') {
+    return <AlertCard card={card} data={data} alertStatus={alertStatus} onAcknowledge={onAcknowledge} />;
+  }
+
+  if (chartType === 'table') {
+    return <DataTable data={data} sourceData={sourceData} />;
+  }
+
+  if (chartType === 'kpi') {
+    return <KPIView data={sampledData} />;
+  }
+
+  if (['bar', 'groupedBar', 'stackedBar'].includes(chartType)) {
+    return <BarChartView lib={lib} data={sampledData} chartType={chartType} axisProps={axisProps} />;
+  }
+
+  if (chartType === 'pie' && !axisProps.isTime) {
+    return <PieChartView lib={lib} data={sampledData} />;
+  }
+
+  if (chartType === 'area') {
+    return <AreaChartView lib={lib} data={sampledData} axisProps={axisProps} />;
+  }
+
+  // Default to line
+  return <LineChartView lib={lib} data={sampledData} axisProps={axisProps} />;
+});
 
 export const ChartCard = React.memo(({
   card,
@@ -236,7 +115,6 @@ export const ChartCard = React.memo(({
   onDragStart,
   onDragOver,
   onDrop,
-  onUpdate,
   alertStatus,
   onAcknowledge,
   sourceData,
@@ -244,13 +122,13 @@ export const ChartCard = React.memo(({
   const { toast } = useToast();
   const lib = useRechartsModule();
   const [activeTab, setActiveTab] = useState<string>("chart");
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
   
   const dimensionsCount = card.selection?.dimensions?.length || 0;
   const isTooManyDimensions = dimensionsCount > 5;
   const chartViewEnabled = activeTab === 'chart';
   const dataViewEnabled = activeTab === 'data';
   const copyEnabled = card.chartType !== 'alert' && data.length > 0;
+  
   const copyHeaders = useMemo(
     () => (!data || data.length === 0 ? [] : Object.keys(data[0]).filter(k => k !== 'color' && k !== 'fill')),
     [data]
@@ -267,8 +145,6 @@ export const ChartCard = React.memo(({
         return;
       }
 
-      // Extract headers from the first data item
-      // Exclude 'color' or internal fields if any
       const headerRow = copyHeaders.join('\t');
       const rows = data.map(row => {
         return copyHeaders.map(header => {
@@ -297,10 +173,11 @@ export const ChartCard = React.memo(({
   return (
     <Card
       className={cn(
-        'transition-all duration-200 hover:shadow-lg hover:border-primary/20 flex flex-col h-full bg-card/50 backdrop-blur-sm group', 
+        'transition-shadow duration-200 hover:shadow-lg hover:border-primary/20 flex flex-col h-full bg-card/50 backdrop-blur-sm group',
         sizeClass(card.size), 
         className
       )}
+      style={{ contain: 'layout style paint' }}
       draggable={draggable}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
@@ -343,7 +220,6 @@ export const ChartCard = React.memo(({
               </TabsList>
             )}
             
-            {/* Optional: Show title next to tabs if there's space, or tooltip */}
             <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-muted-foreground ml-2 border-l pl-2 max-w-[200px]">
               <span className="truncate">{card.title}</span>
               {card.alert?.enabled && (
@@ -372,18 +248,6 @@ export const ChartCard = React.memo(({
           </div>
 
           <div className="flex items-center gap-1 flex-shrink-0">
-            {card.chartType === 'alert' && onUpdate && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => setIsConfigOpen(true)} 
-                className="h-7 w-7 text-muted-foreground hover:text-foreground" 
-                title="Configure Rule"
-              >
-                <Settings className="h-3.5 w-3.5" />
-              </Button>
-            )}
-            
             {card.chartType !== 'alert' && (
               <Button variant="ghost" size="icon" onClick={handleCopy} className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Copy Data">
                 <Copy className="h-3.5 w-3.5" />
@@ -422,7 +286,7 @@ export const ChartCard = React.memo(({
           </div>
         </CardHeader>
 
-        <CardContent className="p-4 pt-4 flex-1 min-h-[250px] relative overflow-hidden">
+        <CardContent className="p-4 pt-4 flex-1 min-h-[250px] relative overflow-hidden" style={{ contain: 'layout style paint' }}>
           <TabsContent value="chart" className="h-full w-full mt-0 data-[state=active]:flex flex-col">
             {chartViewEnabled && isTooManyDimensions ? (
                <div className="h-full w-full flex flex-col">
@@ -439,13 +303,12 @@ export const ChartCard = React.memo(({
                 <span className="text-xs font-medium">Loading visualization...</span>
               </div>
             ) : chartViewEnabled ? (
-              <div className="h-full w-full min-h-[250px]">
+              <div className="h-full w-full min-h-[250px]" style={{ willChange: 'transform' }}>
                 <Chart 
                   lib={lib} 
                   card={card} 
                   data={data} 
                   sourceData={sourceData}
-                  onUpdate={onUpdate} 
                   alertStatus={alertStatus} 
                   onAcknowledge={onAcknowledge} 
                 />
@@ -458,15 +321,6 @@ export const ChartCard = React.memo(({
           </TabsContent>
         </CardContent>
       </Tabs>
-
-      {onUpdate && (
-        <AlertConfigurationModal 
-          open={isConfigOpen} 
-          onOpenChange={setIsConfigOpen} 
-          card={card} 
-          onSave={onUpdate} 
-        />
-      )}
     </Card>
   );
 }, (prev, next) => (
@@ -480,355 +334,8 @@ export const ChartCard = React.memo(({
   prev.onDragStart === next.onDragStart &&
   prev.onDragOver === next.onDragOver &&
   prev.onDrop === next.onDrop &&
-  prev.onUpdate === next.onUpdate &&
   prev.alertStatus === next.alertStatus &&
   prev.onAcknowledge === next.onAcknowledge
 ));
-
-
-// Helper hook for axis configuration
-const useChartAxis = (card: BIChartCard, data: ChartDatum[]) => {
-  const isTime = useMemo(() => data.length > 0 && typeof data[0].date === 'string', [data]);
-  const xKey = isTime ? 'date' : 'name';
-
-  const formatTimeAxis = (value: ChartDatumValue) => {
-    if (!isTime || !value) return value == null ? '' : String(value);
-
-    const granularity = card.selection?.timeGranularity;
-
-    if (typeof value === 'string') {
-      // Handle Year specifically to avoid timezone shifts for "YYYY" string
-      if (granularity === 'year' && /^\d{4}$/.test(value)) {
-        return String(value);
-      }
-      
-      // Handle Quarter specifically for "YYYY/Q" or "YYYY-Q" format (e.g. 2023/1, 2023-2)
-      if (granularity === 'quarter') {
-        const quarterMatch = value.match(/^(\d{4})[-/](\d{1})$/);
-        if (quarterMatch) {
-          const year = parseInt(quarterMatch[1]);
-          const quarter = parseInt(quarterMatch[2]);
-          if (quarter >= 1 && quarter <= 4) {
-             return format(new Date(year, (quarter - 1) * 3, 1), 'yyyy-QQQ');
-          }
-        }
-      }
-    }
-
-    try {
-      const date = new Date(value);
-      if (!isValid(date)) return String(value);
-
-      switch (granularity) {
-        case 'year':
-          return format(date, 'yyyy');
-        case 'month':
-          return format(date, 'yyyy-MM');
-        case 'quarter':
-          return format(date, 'yyyy-QQQ');
-        case 'week':
-          return format(date, 'yyyy-wo');
-        case 'day':
-          return format(date, 'MM-dd');
-        case 'hour':
-          return format(date, 'HH:mm');
-        case 'minute':
-          return format(date, 'HH:mm');
-        default:
-          return format(date, 'yyyy-MM-dd');
-      }
-    } catch (e) {
-      return typeof value === 'number' || typeof value === 'string' ? String(value) : '';
-    }
-  };
-
-  const commonXAxisProps = useMemo(() => ({
-    dataKey: xKey,
-    stroke: "#888888",
-    fontSize: 12,
-    tickLine: false,
-    axisLine: false,
-    tickMargin: 10,
-    minTickGap: 30,
-    dy: 5,
-    tickFormatter: isTime ? formatTimeAxis : undefined
-  }), [formatTimeAxis, isTime, xKey]);
-
-  const commonYAxisProps = useMemo(() => ({
-    stroke: "#888888",
-    fontSize: 12,
-    tickLine: false,
-    axisLine: false,
-    tickFormatter: (value: ChartDatumValue) => `${value ?? ''}`,
-    width: 40,
-  }), []);
-
-  const commonGridProps = useMemo(() => ({
-    strokeDasharray: "3 3",
-    vertical: false,
-    stroke: "currentColor",
-    className: "opacity-10 dark:opacity-20",
-  }), []);
-
-  return { commonXAxisProps, commonYAxisProps, commonGridProps, isTime };
-};
-
-const KPIView = React.memo(({ data }: { data: ChartDatum[] }) => {
-  const value = data.length > 0 ? data[0].value : 0;
-  const formattedValue = typeof value === 'number' 
-    ? value.toLocaleString(undefined, { maximumFractionDigits: 2 })
-    : value;
-  
-  return (
-    <div className="flex flex-col items-center justify-center h-full w-full p-6 animate-in fade-in zoom-in-50 duration-500">
-      <div className="text-4xl sm:text-5xl font-bold tracking-tight text-primary">
-        {formattedValue}
-      </div>
-      <div className="mt-2 text-sm text-muted-foreground font-medium uppercase tracking-wider">
-        Total Value
-      </div>
-    </div>
-  );
-});
-
-const BarChartView = React.memo(({ lib, data, chartType, axisProps }: { lib: RechartsModule, data: ChartDatum[], chartType: string, axisProps: ReturnType<typeof useChartAxis> }) => {
-  const { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar } = lib;
-  const { commonXAxisProps, commonYAxisProps, commonGridProps, isTime } = axisProps;
-  
-  const isStacked = chartType === 'stackedBar';
-  const isGrouped = chartType === 'groupedBar';
-  
-  // Data-to-viz: Use horizontal bars for long labels or many items (ranking)
-  const isHorizontalLayout = !isTime && (
-    data.length > 12 || 
-    data.some(d => String(d.name || '').length > 10)
-  );
-
-  const keys = (isGrouped || isStacked) && data.length > 0 
-    ? Object.keys(data[0]).filter(k => k !== 'name' && k !== 'date' && k !== 'value' && k !== 'fill' && k !== 'color') 
-    : ['value'];
-
-  // Adjust axis props for layout
-  const xAxisProps = isHorizontalLayout 
-    ? { ...commonYAxisProps, type: 'number' as const, dataKey: undefined, width: undefined, tickFormatter: undefined } 
-    : commonXAxisProps;
-
-  const yAxisProps = isHorizontalLayout
-    ? { 
-        ...commonXAxisProps, 
-        type: 'category' as const, 
-        width: 120, // Give more space for labels
-        tickFormatter: (v: ChartDatumValue) => typeof v === 'string' && v.length > 15 ? `${v.slice(0, 15)}...` : `${v ?? ''}`
-      }
-    : commonYAxisProps;
-
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart 
-        data={data} 
-        layout={isHorizontalLayout ? 'vertical' : 'horizontal'}
-        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-      >
-        <CartesianGrid {...commonGridProps} />
-        <XAxis {...xAxisProps} />
-        <YAxis {...yAxisProps} />
-        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} />
-        {(isGrouped || isStacked) && <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} />}
-        {keys.map((key, index) => (
-          <Bar 
-            key={key} 
-            dataKey={key} 
-            stackId={isStacked ? 'a' : undefined}
-            fill={COLORS[index % COLORS.length]} 
-            radius={
-              isHorizontalLayout 
-                ? (isStacked ? [0, 0, 0, 0] : [0, 4, 4, 0]) // Right rounded for horizontal
-                : (isStacked ? [0, 0, 0, 0] : [4, 4, 0, 0]) // Top rounded for vertical
-            }
-            maxBarSize={60}
-          />
-        ))}
-      </BarChart>
-    </ResponsiveContainer>
-  );
-});
-
-const PieChartView = React.memo(({ lib, data }: { lib: RechartsModule, data: ChartDatum[] }) => {
-  const { ResponsiveContainer, PieChart, Tooltip, Legend, Pie, Cell } = lib;
-
-  // Data-to-viz: Too many slices make pie charts unreadable. Group small slices into "Others".
-  const processedData = React.useMemo(() => {
-    if (data.length <= 8) return data;
-    
-    const sorted = [...data].sort((a, b) => toNumericValue(b.value) - toNumericValue(a.value));
-    const top = sorted.slice(0, 7);
-    const others = sorted.slice(7);
-    
-    if (others.length === 0) return top;
-    
-    const otherValue = others.reduce((sum, item) => sum + toNumericValue(item.value), 0);
-    return [
-      ...top,
-      { name: 'Others', value: otherValue }
-    ];
-  }, [data]);
-
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Tooltip content={<CustomTooltip />} />
-        <Legend wrapperStyle={{ fontSize: '12px' }} />
-        <Pie 
-          data={processedData} 
-          dataKey="value" 
-          nameKey="name" 
-          cx="50%" 
-          cy="50%" 
-          innerRadius={60} 
-          outerRadius={90} 
-          paddingAngle={2}
-          strokeWidth={2}
-          stroke="hsl(var(--card))"
-        >
-          {processedData.map((_, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-      </PieChart>
-    </ResponsiveContainer>
-  );
-});
-
-const AreaChartView = React.memo(({ lib, data, axisProps }: { lib: RechartsModule, data: ChartDatum[], axisProps: ReturnType<typeof useChartAxis> }) => {
-  const { ResponsiveContainer, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Area, Legend } = lib;
-  const { commonXAxisProps, commonYAxisProps, commonGridProps } = axisProps;
-  
-  // Identify keys for multiple series
-  const keys = React.useMemo(() => {
-    if (!data || data.length === 0) return ['value'];
-    const extractedKeys = Object.keys(data[0]).filter(k => 
-      k !== 'name' && k !== 'date' && k !== 'value' && k !== 'fill' && k !== 'color' &&
-      (typeof data[0][k] === 'number' || data[0][k] === null)
-    );
-    return extractedKeys.length > 0 ? extractedKeys : ['value'];
-  }, [data]);
-
-  const hasMultipleSeries = keys.length > 1 || (keys.length === 1 && keys[0] !== 'value');
-
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-        <defs>
-          {keys.map((key, index) => (
-            <linearGradient key={key} id={`colorValue-${index}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.3}/>
-              <stop offset="95%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0}/>
-            </linearGradient>
-          ))}
-        </defs>
-        <CartesianGrid {...commonGridProps} />
-        <XAxis {...commonXAxisProps} />
-        <YAxis {...commonYAxisProps} />
-        <Tooltip content={<CustomTooltip />} />
-        {hasMultipleSeries && <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />}
-        {keys.map((key, index) => (
-          <Area 
-            key={key}
-            type="monotone" 
-            dataKey={key} 
-            stroke={COLORS[index % COLORS.length]} 
-            fillOpacity={1} 
-            fill={`url(#colorValue-${index})`} 
-            strokeWidth={2}
-            activeDot={{ r: 4, strokeWidth: 0, fill: COLORS[index % COLORS.length] }}
-            stackId="1" 
-          />
-        ))}
-      </AreaChart>
-    </ResponsiveContainer>
-  );
-});
-
-const LineChartView = React.memo(({ lib, data, axisProps }: { lib: RechartsModule, data: ChartDatum[], axisProps: ReturnType<typeof useChartAxis> }) => {
-  const { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Line, Legend } = lib;
-  const { commonXAxisProps, commonYAxisProps, commonGridProps } = axisProps;
-
-  // Identify keys for multiple series
-  const keys = React.useMemo(() => {
-    if (!data || data.length === 0) return ['value'];
-    const extractedKeys = Object.keys(data[0]).filter(k => 
-      k !== 'name' && k !== 'date' && k !== 'value' && k !== 'fill' && k !== 'color' &&
-      (typeof data[0][k] === 'number' || data[0][k] === null)
-    );
-    return extractedKeys.length > 0 ? extractedKeys : ['value'];
-  }, [data]);
-
-  const hasMultipleSeries = keys.length > 1 || (keys.length === 1 && keys[0] !== 'value');
-
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-        <CartesianGrid {...commonGridProps} />
-        <XAxis {...commonXAxisProps} />
-        <YAxis {...commonYAxisProps} />
-        <Tooltip content={<CustomTooltip />} />
-        {hasMultipleSeries && <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />}
-        {keys.map((key, index) => (
-          <Line 
-            key={key}
-            type="monotone" 
-            dataKey={key} 
-            stroke={COLORS[index % COLORS.length]} 
-            strokeWidth={2.5} 
-            dot={false}
-            activeDot={{ r: 6, strokeWidth: 0, fill: COLORS[index % COLORS.length] }}
-          />
-        ))}
-      </LineChart>
-    </ResponsiveContainer>
-  );
-});
-
-type ChartInnerProps = {
-  lib: RechartsModule;
-  card: BIChartCard;
-  data: ChartDatum[];
-  sourceData?: MetricFlowResponse;
-  onUpdate?: (card: BIChartCard) => void;
-  alertStatus?: AlertStatus;
-  onAcknowledge?: (alertId: string) => void;
-};
-
-const Chart = React.memo(({ lib, card, data, sourceData, onUpdate, alertStatus, onAcknowledge }: ChartInnerProps) => {
-  const { type: chartType } = { type: card.chartType };
-  const axisProps = useChartAxis(card, data);
-
-  if (chartType === 'alert') {
-    return <AlertCard card={card} data={data} onUpdate={onUpdate} alertStatus={alertStatus} onAcknowledge={onAcknowledge} />;
-  }
-
-  if (chartType === 'table') {
-    return <DataTable data={data} sourceData={sourceData} />;
-  }
-
-  if (chartType === 'kpi') {
-    return <KPIView data={data} />;
-  }
-
-  if (['bar', 'groupedBar', 'stackedBar'].includes(chartType)) {
-    return <BarChartView lib={lib} data={data} chartType={chartType} axisProps={axisProps} />;
-  }
-
-  if (chartType === 'pie' && !axisProps.isTime) {
-    return <PieChartView lib={lib} data={data} />;
-  }
-
-  if (chartType === 'area') {
-    return <AreaChartView lib={lib} data={data} axisProps={axisProps} />;
-  }
-
-  // Default to line
-  return <LineChartView lib={lib} data={data} axisProps={axisProps} />;
-});
 
 export default ChartCard;

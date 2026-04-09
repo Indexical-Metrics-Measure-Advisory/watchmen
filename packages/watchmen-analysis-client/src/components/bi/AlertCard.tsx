@@ -1,6 +1,5 @@
 import React from 'react';
 import { Activity, PlayCircle, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
@@ -10,7 +9,6 @@ import type { AlertStatus } from '@/model/AlertConfig';
 export interface AlertCardProps {
   card: BIChartCard;
   data: any[];
-  onUpdate?: (card: BIChartCard) => void;
   alertStatus?: AlertStatus;
   onAcknowledge?: (alertId: string) => void;
 }
@@ -37,7 +35,21 @@ const checkAlert = (value: number, config: AlertConfig) => {
   return false;
 };
 
-export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, alertStatus, onAcknowledge }) => {
+const PRIORITY_COLOR: Record<string, string> = {
+  critical: "bg-destructive/10 text-destructive border-destructive/20",
+  high: "bg-red-500/10 text-red-600 border-red-500/20",
+  medium: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  low: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+};
+
+const RISK_COLOR: Record<string, string> = {
+  critical: "bg-destructive text-destructive-foreground",
+  high: "bg-red-500 text-white",
+  medium: "bg-amber-500 text-white",
+  low: "bg-blue-500 text-white",
+};
+
+export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }: AlertCardProps) => {
   const value = data.length > 0 ? (typeof data[0].value === 'number' ? data[0].value : 0) : 0;
   const alertConfig = card.alert;
   const isAcknowledged = alertStatus?.acknowledged;
@@ -51,38 +63,15 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, aler
     return <div className="flex items-center justify-center h-full text-muted-foreground">No alert configuration</div>;
   }
 
-  const handleToggle = (enabled: boolean) => {
-    if (onUpdate && card.alert) {
-      onUpdate({
-        ...card,
-        alert: {
-          ...card.alert,
-          enabled
-        }
-      });
-    }
-  };
-
   const isTriggeredLocal = alertConfig.enabled ? checkAlert(value, alertConfig) : false;
   const isTriggered = alertConfig.enabled ? (alertStatus ? alertStatus.triggered : isTriggeredLocal) : false;
 
-  const priorityColor = {
-    critical: "bg-destructive/10 text-destructive border-destructive/20",
-    high: "bg-red-500/10 text-red-600 border-red-500/20",
-    medium: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-    low: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  };
-
-  const riskColor = {
-    critical: "bg-destructive text-destructive-foreground",
-    high: "bg-red-500 text-white",
-    medium: "bg-amber-500 text-white",
-    low: "bg-blue-500 text-white",
-  };
-
-  const actions: AlertAction[] = alertConfig.actions && alertConfig.actions.length > 0 
-    ? alertConfig.actions 
-    : (alertConfig.nextAction ? [alertConfig.nextAction] : []);
+  const actions = React.useMemo<AlertAction[]>(() => 
+    alertConfig.actions && alertConfig.actions.length > 0 
+      ? alertConfig.actions 
+      : (alertConfig.nextAction ? [alertConfig.nextAction] : []),
+    [alertConfig.actions, alertConfig.nextAction]
+  );
 
   return (
     <div className="flex flex-col h-full justify-between p-1 w-full gap-2">
@@ -102,14 +91,8 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, aler
           </div>
         </div>
         <div className="flex flex-col items-end gap-2">
-           <Switch 
-             checked={alertConfig.enabled} 
-             onCheckedChange={handleToggle}
-             disabled={!onUpdate}
-             aria-label="Toggle alert" 
-           />
            {alertConfig.priority && (
-             <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-5", priorityColor[alertConfig.priority])}>
+             <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-5", PRIORITY_COLOR[alertConfig.priority])}>
                {alertConfig.priority.toUpperCase()}
              </Badge>
            )}
@@ -216,7 +199,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, aler
               <div key={idx} className="bg-muted/30 border rounded-md p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", riskColor[action.riskLevel || 'low'])}>
+                    <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", RISK_COLOR[action.riskLevel || 'low'])}>
                       {(action.riskLevel || 'low').toUpperCase()}
                     </Badge>
                     <span className="font-medium text-sm">{action.name || 'Suggested Action'}</span>
@@ -299,4 +282,4 @@ export const AlertCard: React.FC<AlertCardProps> = ({ card, data, onUpdate, aler
       </div>
     </div>
   );
-};
+});

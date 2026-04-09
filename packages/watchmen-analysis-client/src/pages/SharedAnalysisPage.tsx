@@ -13,6 +13,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { globalAlertService } from '@/services/globalAlertService';
 
 import { authService } from '@/services/authService';
+import { transformMetricFlowToChartData, timeRangeToBounds } from '@/utils/biAnalysisUtils';
 
 const SharedAnalysisPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,75 +33,6 @@ const SharedAnalysisPage: React.FC = () => {
   const [error, setError] = useState('');
   const [analysisName, setAnalysisName] = useState('');
   const { toast } = useToast();
-
-  const timeRangeToBounds = (range: string): { start: string; end: string } => {
-    // Handle Custom range string format "Custom:YYYY-MM-DD:YYYY-MM-DD"
-    if (range && range.startsWith('Custom:')) {
-      const parts = range.split(':');
-      if (parts.length === 3) {
-         return { start: parts[1], end: parts[2] };
-      }
-    }
-
-    const endDate = new Date();
-    const startDate = new Date(endDate);
-    switch (range) {
-      case 'Past 7 days': startDate.setDate(endDate.getDate() - 7); break;
-      case 'Past 30 days': startDate.setDate(endDate.getDate() - 30); break;
-      case 'Past 90 days': startDate.setDate(endDate.getDate() - 90); break;
-      case 'Past year': startDate.setFullYear(endDate.getFullYear() - 1); break;
-      default: startDate.setDate(endDate.getDate() - 30);
-    }
-    const toDateStr = (d: Date) => d.toISOString().slice(0, 10);
-    return { start: toDateStr(startDate), end: toDateStr(endDate) };
-  };
-
-  const transformMetricFlowToChartData = (resp: MetricFlowResponse): any[] => {
-    if (!resp || !Array.isArray(resp.column_names) || !Array.isArray(resp.data)) return [];
-    const cols = resp.column_names;
-    const valueIdx = Math.max(cols.lastIndexOf('value'), cols.length - 1);
-    const dimIdxs = cols.map((_, i) => i).filter(i => i !== valueIdx);
-    const timeKeywords = ['date', 'day', 'month', 'week', 'hour', 'time', 'timestamp', 'datetime', 'created_at', 'updated_at'];
-    const timeIdx = dimIdxs.find(i => timeKeywords.some(k => String(cols[i] ?? '').toLowerCase().includes(k)));
-
-    const fmt = (v: any) => (v === null || v === undefined) ? 'Null' : String(v);
-
-    if (typeof timeIdx === 'number') {
-      const acc = new Map<string, number>();
-      for (const row of resp.data) {
-        const t = fmt(row[timeIdx]);
-        const v = Number(row[valueIdx] ?? 0);
-        acc.set(t, (acc.get(t) ?? 0) + v);
-      }
-      const entries = Array.from(acc.entries());
-      const parsed = entries.map(([t, v]) => ({ t, v, d: Date.parse(t) }));
-      parsed.sort((a, b) => (Number.isFinite(a.d) && Number.isFinite(b.d)) ? a.d - b.d : a.t.localeCompare(b.t));
-      return parsed.map(p => ({ date: p.t, value: p.v }));
-    }
-
-    if (dimIdxs.length >= 2) {
-      const pivotMap = new Map<string, Record<string, any>>();
-      for (const row of resp.data) {
-        const name = fmt(row[dimIdxs[0]]);
-        const group = fmt(row[dimIdxs[1]]);
-        const val = Number(row[valueIdx] ?? 0);
-        
-        if (!pivotMap.has(name)) {
-          pivotMap.set(name, { name });
-        }
-        const record = pivotMap.get(name)!;
-        record[group] = (record[group] || 0) + val;
-      }
-      return Array.from(pivotMap.values());
-    }
-
-    return resp.data.map(row => {
-      const nameParts = dimIdxs.map(i => fmt(row[i])).filter(s => s.length > 0);
-      const name = nameParts.length > 0 ? nameParts.join(' · ') : 'Total';
-      const value = Number(row[valueIdx] ?? 0);
-      return { name, value };
-    });
-  };
 
   const loadCardDataFor = async (card: BIChartCard) => {
     try {
