@@ -140,3 +140,7 @@ packages/watchmen-auth/.run/app ai.run.xml
 packages/watchmen-auth/.run/app.run.xml
 packages/watchmen-auth/.run/metricflow.run.xml
 packages/watchmen-analysis-client/lint-results.txt
+packages/my_source_code.tar.gz
+my_source_code.tar.gz
+/packages/watchmen-dqc/external_deps
+/packages/watchmen-dqc/external_deps

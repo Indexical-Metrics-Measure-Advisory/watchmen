@@ -8,3 +8,7 @@
 *.LOG
 *.LoG
 *.log.*
+/.venv
+/.venv_new
+/dist
+
