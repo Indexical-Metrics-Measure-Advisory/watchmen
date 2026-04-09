@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import yaml
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
@@ -9,27 +10,52 @@ from agent_cli.exceptions import ConfigException
 
 VAULT_META_DIR = ".agent-cli"
 CONFIG_FILE = "config.json"
-TOPIC_DIR = "topics"
-PIPELINE_DIR = "pipelines"
-ENUM_DIR = "enums"
-INGEST_TABLE_CONFIG_DIR = "ingest-table-configs"
-INGEST_MODEL_CONFIG_DIR = "ingest-model-configs"
-INGEST_MODULE_CONFIG_DIR = "ingest-module-configs"
-METRICFLOW_SEMANTIC_DIR = "metricflow-semantics"
-METRICFLOW_METRIC_DIR = "metricflow-metrics"
+
+INGEST_DIR = "ingest"
+INGEST_TABLE_CONFIG_DIR = f"{INGEST_DIR}/tables"
+INGEST_MODEL_CONFIG_DIR = f"{INGEST_DIR}/models"
+INGEST_MODULE_CONFIG_DIR = f"{INGEST_DIR}/modules"
+
+TRANSFORMATION_DIR = "transformation"
+TOPIC_DIR = f"{TRANSFORMATION_DIR}/topics"
+PIPELINE_DIR = f"{TRANSFORMATION_DIR}/pipelines"
+SUBJECT_DIR = f"{TRANSFORMATION_DIR}/subjects"
+ENUM_DIR = f"{TRANSFORMATION_DIR}/enums"
+
+METRICS_DIR = "metrics"
+METRICFLOW_SEMANTIC_DIR = f"{METRICS_DIR}/semantics"
+METRICFLOW_METRIC_DIR = f"{METRICS_DIR}/metric"
+
+ALL_VAULT_SUBDIRS = [
+    VAULT_META_DIR,
+    INGEST_TABLE_CONFIG_DIR,
+    INGEST_MODEL_CONFIG_DIR,
+    INGEST_MODULE_CONFIG_DIR,
+    TOPIC_DIR,
+    PIPELINE_DIR,
+    SUBJECT_DIR,
+    ENUM_DIR,
+    METRICFLOW_SEMANTIC_DIR,
+    METRICFLOW_METRIC_DIR,
+]
+
+
+def _normalize_path(path: str | Path) -> Path:
+    p = Path(path).expanduser().resolve()
+    for part in p.parts:
+        if not part or part == ".":
+            continue
+        if part.startswith("~"):
+            raise ConfigException(f"Path contains unexpanded tilde: {path}")
+        if os.sep not in part and os.altsep is not None and os.altsep in part:
+            raise ConfigException(f"Path contains mixed separators: {path}")
+    return p
 
 
 def ensure_vault(vault_path: Path) -> None:
     vault_path.mkdir(parents=True, exist_ok=True)
-    (vault_path / VAULT_META_DIR).mkdir(parents=True, exist_ok=True)
-    (vault_path / TOPIC_DIR).mkdir(parents=True, exist_ok=True)
-    (vault_path / PIPELINE_DIR).mkdir(parents=True, exist_ok=True)
-    (vault_path / ENUM_DIR).mkdir(parents=True, exist_ok=True)
-    (vault_path / INGEST_TABLE_CONFIG_DIR).mkdir(parents=True, exist_ok=True)
-    (vault_path / INGEST_MODEL_CONFIG_DIR).mkdir(parents=True, exist_ok=True)
-    (vault_path / INGEST_MODULE_CONFIG_DIR).mkdir(parents=True, exist_ok=True)
-    (vault_path / METRICFLOW_SEMANTIC_DIR).mkdir(parents=True, exist_ok=True)
-    (vault_path / METRICFLOW_METRIC_DIR).mkdir(parents=True, exist_ok=True)
+    for subdir in ALL_VAULT_SUBDIRS:
+        (vault_path / subdir).mkdir(parents=True, exist_ok=True)
 
 
 def config_path(vault_path: Path) -> Path:
@@ -96,7 +122,7 @@ def write_yaml_entity(
     ensure_vault(vault_path)
     entity_dir = vault_path / entity_dir_name
     entity_dir.mkdir(parents=True, exist_ok=True)
-    
+
     entity = yaml.safe_load(entity_yaml_str)
     if not entity or not entity.get(id_key):
         return
@@ -107,7 +133,7 @@ def write_yaml_entity(
         file_name = f"{entity_name}__{entity_id}.yml"
     else:
         file_name = f"{entity_id}.yml"
-        
+
     (entity_dir / file_name).write_text(entity_yaml_str, encoding="utf-8")
 
 

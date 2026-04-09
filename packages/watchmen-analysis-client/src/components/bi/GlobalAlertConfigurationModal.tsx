@@ -396,10 +396,11 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                         <SelectItem value="!=">&ne; Not equals</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Input 
-                      type="number" 
-                      value={condition.value} 
+                    <Input
+                      type="text"
+                      value={condition.value}
                       onChange={(e) => handleConditionChange(index, 'value', e.target.value)}
+                      placeholder="Enter threshold value"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();

@@ -1,6 +1,12 @@
 from datetime import date, datetime
 from logging import getLogger
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+from tempfile import mkstemp
+from zipfile import ZIP_DEFLATED, ZipFile
+import shlex
+import subprocess
+import sys
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -27,6 +33,53 @@ from .rule import compute_date_range, disabled_rules, enum_service, rows_count_m
 logger = getLogger(__name__)
 
 
+def _find_packages_dir() -> Optional[Path]:
+	current = Path(__file__).resolve()
+	for parent in [current, *current.parents]:
+		if parent.name == "packages" and parent.is_dir():
+			return parent
+		candidate = parent / "packages"
+		if candidate.is_dir():
+			return candidate
+	return None
+
+
+def _collect_source_dirs(packages_dir: Path) -> List[Path]:
+	source_dirs: List[Path] = []
+	for package_dir in sorted(packages_dir.iterdir(), key=lambda p: p.name):
+		src_dir = package_dir / "src"
+		if src_dir.is_dir() and any(src_dir.rglob("*.py")):
+			source_dirs.append(src_dir)
+	return source_dirs
+
+
+def _build_watchmen_pyfiles_bundle() -> Optional[str]:
+	packages_dir = _find_packages_dir()
+	if packages_dir is None:
+		return None
+	source_dirs = _collect_source_dirs(packages_dir)
+	
+	if len(source_dirs) == 0:
+		return None
+		
+	fd, bundle_path = mkstemp(prefix="watchmen_spark_pyfiles_", suffix=".zip")
+	os.close(fd)
+	with ZipFile(bundle_path, mode="w", compression=ZIP_DEFLATED) as zf:
+		# Only collect watchmen source code. 
+		# Native libraries (like pydantic_core) in spark_libs cannot be loaded directly from a zip file.
+		for src_dir in source_dirs:
+			for file_path in src_dir.rglob("*.py"):
+				if not file_path.is_file():
+					continue
+				if "__pycache__" in file_path.parts:
+					continue
+				if not any(part.startswith("watchmen_") for part in file_path.parts):
+					continue
+				zf.write(file_path, arcname=str(file_path.relative_to(src_dir)))
+				
+	return bundle_path
+
+
 def get_rule_service(principal_service: PrincipalService) -> MonitorRuleService:
 	return MonitorRuleService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
@@ -34,8 +87,8 @@ def get_rule_service(principal_service: PrincipalService) -> MonitorRuleService:
 def should_run_rule(rule: MonitorRule, frequency: Optional[MonitorRuleStatisticalInterval]) -> bool:
 	if not rule.enabled:
 		return False
-	if frequency is not None and rule.params.statisticalInterval != frequency:
-		return False
+	# if frequency is not None and rule.params.statisticalInterval != frequency:
+	# 	return False
 	if rule.code in disabled_rules:
 		return False
 	return True
@@ -55,13 +108,15 @@ class MonitorRulesRunner:
 		rule_service = get_rule_service(self.principalService)
 		try:
 			rule_service.begin_transaction()
-			rules = rule_service.find_by_grade_or_topic_id(None, topic_id, self.principalService.get_tenant_id())
+			rules = rule_service.find_by_topic_id(topic_id, self.principalService.get_tenant_id())
 		finally:
 			rule_service.close_transaction()
+		print(rules)
 		rules = ArrayHelper(rules) \
 			.filter(lambda x: should_run_rule(x, frequency)) \
 			.filter(lambda x: x.topicId is not None) \
 			.to_list()
+
 		rules_by_topic: Dict[TopicId, List[MonitorRule]] = ArrayHelper(rules).group_by(lambda x: x.topicId)
 		ArrayHelper(list(rules_by_topic.keys())).each(lambda x: self.run_on_topic(x, process_date, rules_by_topic[x]))
 
@@ -88,7 +143,7 @@ class MonitorRulesRunner:
 
 		# group by frequency
 		rules_by_frequency: Dict[MonitorRuleStatisticalInterval, List[MonitorRule]] = \
-			ArrayHelper(rules).group_by(lambda x: x.params.statisticalInterval)
+			ArrayHelper(rules).group_by(lambda x: (x.params.statisticalInterval if x.params else MonitorRuleStatisticalInterval.DAILY))
 
 		ArrayHelper(list(rules_by_frequency)) \
 			.each(lambda x: self.run_on_topic_and_frequency(data_service, process_date, rules_by_frequency[x], x))
@@ -244,35 +299,63 @@ def run_monitor_rules(
 def offload_to_spark_submit(
 		tenant_id: TenantId, topic_id: TopicId, frequency: MonitorRuleStatisticalInterval, process_date: date
 ) -> None:
-	import subprocess
 	command = ask_monitor_spark_submit_command()
 	args = ask_monitor_spark_submit_args()
-	
-	# 获取当前执行器的路径
+
+	packages_dir = _find_packages_dir()
 	current_dir = os.path.dirname(os.path.abspath(__file__))
 	executor_path = os.path.join(current_dir, "spark", "spark_executor.py")
+	pyfiles_bundle = _build_watchmen_pyfiles_bundle()
+
+	args_parts = shlex.split(args) if args else []
+	if pyfiles_bundle is not None:
+		args_parts.extend(["--py-files", pyfiles_bundle])
+
+	# Prepare PYTHONPATH for executors
+	python_paths = []
+	if pyfiles_bundle:
+		python_paths.append(pyfiles_bundle)
 	
-	# 收集所有以 META_STORAGE_ 开头的环境变量
-	env_args = ""
+	# If spark_libs exists, add it to PYTHONPATH. 
+	# We don't zip it because it contains native extensions (.so) which Python cannot import from zip.
+	if packages_dir:
+		spark_libs_dir = packages_dir / "watchmen-rest-dqc" / "spark_libs"
+		if spark_libs_dir.is_dir():
+			python_paths.append(str(spark_libs_dir))
+
+	# Propagate important environment variables to Spark executors
 	for key, value in os.environ.items():
 		if key.startswith("META_STORAGE_") or key.startswith("WATCHMEN_") or key == "MONITOR_RULES_RUNNER_ENGINE":
-			# 如果是使用 YARN 等集群模式，可能需要使用 spark.executorEnv.KEY=VALUE
-			# 这里为了通用性，先假设是 client 模式或者是直接通过环境继承
-			pass
+			args_parts.extend(["--conf", f"spark.executorEnv.{key}={value}"])
 
-	# 构造完整命令
-	cmd = f"{command} {args} {executor_path} " \
-	      f"--tenant-id {tenant_id} --topic-id {topic_id} " \
-	      f"--frequency {frequency.value} --process-date {process_date.isoformat()}"
-	
-	logger.info(f"Offloading DQC task to spark-submit: {cmd}")
-	
-	# 确保 PYTHONPATH 包含必要的包（如果是在本地运行）
+	# Add PYTHONPATH to executor and driver
+	if python_paths:
+		path_str = os.pathsep.join(python_paths)
+		args_parts.extend([
+			"--conf", f"spark.executorEnv.PYTHONPATH={path_str}",
+			"--conf", f"spark.driver.extraClassPath={path_str}", # Just in case
+		])
+
+	args_parts.extend([
+		"--conf", f"spark.pyspark.python={sys.executable}",
+		"--conf", f"spark.pyspark.driver.python={sys.executable}"
+	])
+
+	cmd_parts = [command]
+	cmd_parts.extend(args_parts)
+	cmd_parts.append(executor_path)
+	cmd_parts.extend([
+		"--tenant-id", str(tenant_id),
+		"--topic-id", str(topic_id),
+		"--frequency", frequency.value,
+		"--process-date", process_date.isoformat()
+	])
+
+	cmd_str = " ".join(shlex.quote(p) for p in cmd_parts)
+	logger.info(f"Offloading DQC task to spark-submit: {cmd_str}")
+
 	current_env = os.environ.copy()
-	# 如果需要，可以在这里动态添加 PYTHONPATH
-	
-	# 同步执行并等待结果
-	result = subprocess.run(cmd, shell=True, capture_output=True, text=True, env=current_env)
+	result = subprocess.run(cmd_parts, capture_output=True, text=True, env=current_env)
 	
 	if result.returncode != 0:
 		logger.error(f"Spark submit failed: {result.stderr}")

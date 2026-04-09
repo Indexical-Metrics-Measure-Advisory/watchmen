@@ -14,9 +14,8 @@ class Settings:
 
     def resolved_vault(self, explicit: Optional[str]) -> Path:
         vault = explicit or self.vault
-        if vault:
-            return Path(vault).expanduser().resolve()
-        return Path.cwd().resolve()
+        base = Path(vault).expanduser() if vault else Path.cwd()
+        return base.resolve()
 
 
 settings = Settings()

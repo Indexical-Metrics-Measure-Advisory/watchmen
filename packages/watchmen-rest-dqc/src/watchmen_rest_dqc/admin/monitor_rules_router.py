@@ -37,7 +37,7 @@ async def find_monitor_rules(
 
 	def action() -> List[MonitorRule]:
 		# noinspection PyTypeChecker
-		return monitor_rule_service.find_by_grade_or_topic_id(grade, topic_id, principal_service.get_tenant_id())
+		return monitor_rule_service.find_by_topic_id(topic_id, principal_service.get_tenant_id())
 
 	return trans_readonly(monitor_rule_service, action)
 

@@ -241,7 +241,7 @@ export const SuggestedActionModal: React.FC<SuggestedActionModalProps> = ({
             </div>
           )}
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label>Trigger Conditions</Label>
             <div className="flex gap-2 items-end">
                 <div className="flex-1 space-y-1">
@@ -291,7 +291,7 @@ export const SuggestedActionModal: React.FC<SuggestedActionModalProps> = ({
                 </Badge>
               ))}
             </div>
-          </div>
+          </div> */}
 
           <div className="grid grid-cols-2 gap-4">
              <div className="space-y-2">

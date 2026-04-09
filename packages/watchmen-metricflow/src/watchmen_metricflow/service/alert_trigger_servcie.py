@@ -133,6 +133,8 @@ class AlertTriggerService:
         triggered, message, condition_results = await self._evaluate_rule(rule)
         severity = self._get_severity(rule.priority)
 
+
+
         return AlertStatus(
             id=str(self.alert_rule_service.snowflakeGenerator.next_id()),
             ruleId=rule.id,

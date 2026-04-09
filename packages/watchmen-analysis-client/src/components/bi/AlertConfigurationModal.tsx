@@ -388,10 +388,11 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
                              </Select>
                            </div>
                            <div className="col-span-3">
-                             <Input 
-                               type="number" 
-                               value={cond.value} 
+                             <Input
+                               type="text"
+                               value={cond.value}
                                onChange={(e) => handleConditionChange(index, 'value', e.target.value)}
+                               placeholder="Enter threshold value"
                              />
                            </div>
                            <div className="col-span-1 flex justify-end">

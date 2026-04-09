@@ -77,6 +77,17 @@ class MonitorRuleService(TupleService):
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria=criteria))
 
+	def find_by_topic_id(self, topic_id: TopicId, tenant_id: TenantId) -> List[MonitorRule]:
+		criteria = []
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		if is_not_blank(topic_id):
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='topic_id'), right=topic_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
+
 	def find_by_location(
 			self, code: MonitorRuleCode, topic_id: Optional[TopicId], factor_id: Optional[FactorId],
 			tenant_id: TenantId

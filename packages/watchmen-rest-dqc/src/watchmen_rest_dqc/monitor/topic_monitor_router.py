@@ -6,7 +6,9 @@ from starlette.responses import Response
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_data_kernel.meta import TenantService, TopicService
-from watchmen_dqc.monitor import MonitorDataService, SelfCleaningMonitorRulesRunner
+from watchmen_dqc.common import ask_monitor_rules_runner_engine
+from watchmen_dqc.monitor import MonitorDataService
+from watchmen_dqc.monitor.rules_runner import SelfCleaningMonitorRulesRunner, create_monitor_rules_runner
 from watchmen_model.admin import User, UserRole
 from watchmen_model.common import TenantId
 from watchmen_model.dqc import MonitorRuleLog, MonitorRuleLogCriteria, MonitorRuleStatisticalInterval
@@ -95,26 +97,26 @@ def run_topics_rules(
 	if process_date.year == now.year and process_date.month == now.month and process_date.day > now.day:
 		raise_400(f'Given process date[{process_date}] cannot be in future.')
 
+	if frequency is None:
+		frequency = MonitorRuleStatisticalInterval.DAILY
+
+	engine = ask_monitor_rules_runner_engine()
+	if engine == 'spark_submit':
+		runner: SelfCleaningMonitorRulesRunner = SelfCleaningMonitorRulesRunner(principal_service)
+	else:
+		runner = create_monitor_rules_runner(principal_service)
+
 	if frequency == MonitorRuleStatisticalInterval.MONTHLY:
-		# given process date is in this month, run previous month
-		# otherwise, run the given month
 		if process_date.year == now.year and process_date.month == now.month:
 			process_date = to_previous_month(process_date)
-		SelfCleaningMonitorRulesRunner(principal_service) \
-			.run(process_date, topic_id, MonitorRuleStatisticalInterval.MONTHLY)
+		runner.run(process_date, topic_id, MonitorRuleStatisticalInterval.MONTHLY)
 	elif frequency == MonitorRuleStatisticalInterval.WEEKLY:
-		# given process date is in this week, run previous week
-		# otherwise, run the given week
 		if process_date.year == now.year and int(process_date.strftime('%U')) == int(now.strftime('%U')):
 			process_date = to_previous_week(process_date)
-		SelfCleaningMonitorRulesRunner(principal_service) \
-			.run(process_date, topic_id, MonitorRuleStatisticalInterval.WEEKLY)
+		runner.run(process_date, topic_id, MonitorRuleStatisticalInterval.WEEKLY)
 	elif frequency == MonitorRuleStatisticalInterval.DAILY:
-		# given process date is today, run yesterday
-		# otherwise, run the given day
 		if process_date.year == now.year and process_date.month == now.month and process_date.day == now.day:
 			process_date = to_yesterday(process_date)
-		SelfCleaningMonitorRulesRunner(principal_service) \
-			.run(process_date, topic_id, MonitorRuleStatisticalInterval.DAILY)
+		runner.run(process_date, topic_id, MonitorRuleStatisticalInterval.DAILY)
 	else:
 		raise_400(f'Given frequency[{frequency}] is not supported.')

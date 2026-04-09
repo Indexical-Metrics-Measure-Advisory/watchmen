@@ -111,9 +111,9 @@ export const PeriodicPanel = (props: {
 					setData(logs.sort((r1, r2) => r1.count === r2.count ? 0 : (r1.count < r2.count) ? 1 : -1));
 				}
 			});
-		// load data once
-		// eslint-disable-next-line
-	}, [state]);
+		// load data when rule or topic changed, not when loader changed
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [state.ruleCode, state.topicId]);
 
 	const canBreakdown = !state.topicId;
 	const onBreakdownClicked = (ruleCode: MonitorRuleCode, topicId?: TopicId) => () => {

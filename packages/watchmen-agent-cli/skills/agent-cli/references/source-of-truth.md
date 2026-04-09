@@ -2,17 +2,33 @@
 
 ## Local File Naming Conventions
 - **General Pattern**: `{name}__{id}.yml`
-- **Topic**: `topics/{topic_name}__{topic_id}.yml`
-  - Example: `customer_360_wide__1486457832676011008.yml`
-- **Pipeline**: `pipelines/{pipeline_name}__{pipeline_id}.yml`
-  - Example: `pl_source_dm_pa_policy_his_to_customer_360_wide__1486478917287029760.yml`
-- **Enum**: `enums/{enum_name}__{enum_id}.yml`
-- **Semantic Model**: `semantic-models/{model_name}__{model_id}.yml`
-- **Metric**: `metrics/{metric_name}__{metric_id}.yml`
-- **Ingestion**: 
-  - Module: `ingest-modules/{module_name}__{module_id}.yml`
-  - Model: `ingest-models/{model_name}__{model_id}.yml`
-  - Table: `ingest-tables/{table_name}__{table_id}.yml`
+- **Directory Structure**:
+  ```
+  vault/
+  ├── .agent-cli/          # 元数据目录
+  │   └── config.json
+  ├── ingest/              # 采集配置
+  │   ├── tables/
+  │   ├── models/
+  │   └── modules/
+  ├── transformation/      # 转换配置（Topic/Pipeline/Subject/Enum）
+  │   ├── topics/
+  │   ├── pipelines/
+  │   ├── subjects/
+  │   └── enums/
+  └── metrics/              # 指标配置
+      ├── semantics/
+      └── metric/
+  ```
+- **Topic**: `transformation/topics/{topic_name}__{topic_id}.yml`
+- **Pipeline**: `transformation/pipelines/{pipeline_name}__{pipeline_id}.yml`
+- **Enum**: `transformation/enums/{enum_name}__{enum_id}.yml`
+- **Semantic Model**: `metrics/semantics/{model_name}__{model_id}.yml`
+- **Metric**: `metrics/metric/{metric_name}__{metric_id}.yml`
+- **Ingestion**:
+  - Module: `ingest/modules/{module_name}__{module_id}.yml`
+  - Model: `ingest/models/{model_name}__{model_id}.yml`
+  - Table: `ingest/tables/{table_name}__{table_id}.yml`
 
 ## Topic
 - Core fields and types: `topicId:str`, `name:str`, `description:str|None`, `type:str`, `kind:str`, `dataSourceId:str`, `factors:list[Factor]`.
