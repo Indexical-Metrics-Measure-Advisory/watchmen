@@ -38,6 +38,26 @@
 17. **will-change: transform**: On chart container div for GPU compositing hint
 18. **RechartsContext value memoized**: `useMemo` + stable NULL_CONTEXT_VALUE fallback
 19. **Stable callbacks**: handleAddAlert, handleOpenSubscription, filter toggle buttons all use useCallback
+20. **BoardCardItem stable callbacks**: `useMemo` for onDragStart/onDrop/onResize/onRemove — prevents ChartCard memo invalidation
+21. **useGlobalFilters commonFilterSourceKey**: String-based key instead of full cards dependency — avoids re-triggering dimension computation on card add
+22. **handleCardAdded eager load**: Direct `loadCardDataFor` call instead of useEffect traversal
+23. **visibleCardCount smart increment**: Adding 1-2 cards shows immediately, no batch reset
+
+## useMetricBuilder Return Value (Updated 2026-04-10)
+- Returns 5 grouped `useMemo` objects instead of flat 30+ props: `sheetProps`, `metricSelectionProps`, `dimensionProps`, `configProps`, `previewProps` + `onAddToDashboard`
+- BIAnalysisPage spreads these groups into MetricBuilderSheet: `{...metricBuilder.sheetProps} {...metricBuilder.metricSelectionProps} ...`
+- MetricBuilderSheet uses conditional rendering `{!open ? null : (...)}` to unmount subtree when closed
+
+## Add Metric & Drag Performance (2026-04-10 Round 3)
+24. **MetricBuilderSheet conditional render**: `{!open ? null : (...)}` unmounts ChartCard+RechartsProvider when sheet closed
+25. **previewCard useMemo**: Stable card object reference for ChartCard preview — avoids memo invalidation
+26. **useMetricBuilder grouped returns**: 5 useMemo groups instead of flat object — reduces shallow-compare cost
+27. **dimTypes useMemo**: Memoized `Array.from(new Set(availableDimsDetailed.map(inferType))).sort()`
+28. **EMPTY_CARD_DATA constant**: Module-level `{ chartData: [], rawData: null }` — same reference always, no new [] on missing card
+29. **commonFilterSourceKey order-independent**: `.sort()` key parts — drag reorder doesn't change key
+30. **cardIdsKey useMemo**: `useEffect([cardIdsKey])` instead of `useEffect([cards])` — order-independent, drag doesn't trigger
+31. **Grid will-change: transform**: GPU compositing hint on AnalysisBoard grid container
+32. **Removed dead code**: `decideType` function and unused `BIChartType` import from AnalysisBoard
 
 ## Remaining Known Issues
 - AlertConfigurationModal and GlobalAlertConfigurationModal have ~400 lines of duplicated logic

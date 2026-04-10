@@ -69,7 +69,12 @@ export const useGlobalFilters = (options: UseGlobalFiltersOptions) => {
     };
   }, []);
 
-  // ── Derive common filter source from cards ──
+  // ── Derive common filter source from cards (memoized by metricId+dimensions keys) ──
+  // Sort keys to make them order-independent — drag reorder shouldn't trigger recomputation
+  const commonFilterSourceKey = useMemo(() => {
+    return cards.map(card => `${card.metricId}|${(card.selection?.dimensions ?? []).sort().join(',')}`).sort().join(';;');
+  }, [cards]);
+
   const commonFilterSource = useMemo(() => cards.map(card => ({
     metricId: card.metricId,
     dimensions: Array.isArray(card.selection?.dimensions) ? card.selection.dimensions : []
@@ -182,7 +187,7 @@ export const useGlobalFilters = (options: UseGlobalFiltersOptions) => {
     return () => {
       alive = false;
     };
-  }, [commonFilterSource]);
+  }, [commonFilterSourceKey]);
 
   // ── Handlers ──
   const handleGlobalFilterChange = useCallback((dimensionKey: string, value: string) => {

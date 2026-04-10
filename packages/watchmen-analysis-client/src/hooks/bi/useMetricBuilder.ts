@@ -63,48 +63,50 @@ interface UseMetricBuilderOptions {
 // ─────────────────────────────────────────────────────────────
 
 export type UseMetricBuilderReturn = {
-  // Sheet props
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-
-  // Metric selection
-  search: string;
-  onSearchChange: (value: string) => void;
-  categoryId: string;
-  onCategoryIdChange: (value: string) => void;
-  categories: { id: string; name: string }[];
-  metricsLoading: boolean;
-  metricsList: MetricDefinition[];
-  selectedMetricId: string;
-  onSelectMetric: (id: string, def: MetricDefinition) => void;
-  selectedMetric: BIMetric | null;
-
-  // Dimensions
-  availableDimsDetailed: MetricDimension[];
-  selectedDimType: string;
-  onSelectedDimTypeChange: (value: string) => void;
-  dimSearch: string;
-  onDimSearchChange: (value: string) => void;
-  filteredDims: MetricDimension[];
-  selectedDims: string[];
-  onToggleDim: (dim: string) => void;
-
-  // Time & chart config
-  timeRange: string;
-  onTimeRangeChange: (value: string) => void;
-  timeGranularity: string;
-  onTimeGranularityChange: (value: string) => void;
-  customDateRange: DateRange | undefined;
-  onCustomDateRangeChange: (value: DateRange | undefined) => void;
-  selectedChartType: BIChartType | 'auto';
-  onSelectedChartTypeChange: (type: BIChartType | 'auto') => void;
-  limit: number;
-  onLimitChange: (limit: number) => void;
-
-  // Preview
-  previewType: BIChartType;
-  previewData: ChartDatum[];
-  previewRawData: MetricFlowResponse | null;
+  // Grouped props for stable references — reduces re-render cost
+  sheetProps: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+  };
+  metricSelectionProps: {
+    search: string;
+    onSearchChange: (value: string) => void;
+    categoryId: string;
+    onCategoryIdChange: (value: string) => void;
+    categories: { id: string; name: string }[];
+    metricsLoading: boolean;
+    metricsList: MetricDefinition[];
+    selectedMetricId: string;
+    onSelectMetric: (id: string, def: MetricDefinition) => void;
+    selectedMetric: BIMetric | null;
+  };
+  dimensionProps: {
+    availableDimsDetailed: MetricDimension[];
+    selectedDimType: string;
+    onSelectedDimTypeChange: (value: string) => void;
+    dimSearch: string;
+    onDimSearchChange: (value: string) => void;
+    filteredDims: MetricDimension[];
+    selectedDims: string[];
+    onToggleDim: (dim: string) => void;
+  };
+  configProps: {
+    timeRange: string;
+    onTimeRangeChange: (value: string) => void;
+    timeGranularity: string;
+    onTimeGranularityChange: (value: string) => void;
+    customDateRange: DateRange | undefined;
+    onCustomDateRangeChange: (value: DateRange | undefined) => void;
+    selectedChartType: BIChartType | 'auto';
+    onSelectedChartTypeChange: (type: BIChartType | 'auto') => void;
+    limit: number;
+    onLimitChange: (limit: number) => void;
+  };
+  previewProps: {
+    previewType: BIChartType;
+    previewData: ChartDatum[];
+    previewRawData: MetricFlowResponse | null;
+  };
 
   // Add to dashboard
   onAddToDashboard: () => void;
@@ -485,12 +487,15 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
     setMetricBuilderOpen(false);
   }, [selectedMetric, chartConfig, availableDimsDetailed, previewState, hasSelectedTimeDimension, toast, onCardAdded, setActiveSection, setMetricBuilderOpen]);
 
-  return {
-    // Sheet props
+  // ── Stable return value groups to minimize re-renders of MetricBuilderSheet ──
+  // Sheet props (stable: open/onOpenChange change rarely)
+  const sheetProps = useMemo(() => ({
     open: metricBuilderOpen,
     onOpenChange: handleMetricBuilderOpenChange,
+  }), [metricBuilderOpen, handleMetricBuilderOpenChange]);
 
-    // Metric selection
+  // Metric selection props
+  const metricSelectionProps = useMemo(() => ({
     search,
     onSearchChange: setSearch,
     categoryId,
@@ -501,8 +506,10 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
     selectedMetricId: chartConfig.metricId,
     onSelectMetric: handleMetricSelect,
     selectedMetric,
+  }), [search, categoryId, categories, metricsLoading, metricsList, chartConfig.metricId, handleMetricSelect, selectedMetric]);
 
-    // Dimensions
+  // Dimension props
+  const dimensionProps = useMemo(() => ({
     availableDimsDetailed,
     selectedDimType,
     onSelectedDimTypeChange: setSelectedDimType,
@@ -511,8 +518,10 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
     filteredDims,
     selectedDims: chartConfig.dimensions,
     onToggleDim: toggleDim,
+  }), [availableDimsDetailed, selectedDimType, dimSearch, filteredDims, chartConfig.dimensions, toggleDim]);
 
-    // Time & chart config
+  // Config props
+  const configProps = useMemo(() => ({
     timeRange: chartConfig.timeRange,
     onTimeRangeChange: handleTimeRangeChange,
     timeGranularity: chartConfig.timeGranularity,
@@ -523,13 +532,22 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
     onSelectedChartTypeChange: handleSelectedChartTypeChange,
     limit: chartConfig.limit,
     onLimitChange: handleLimitChange,
+  }), [chartConfig.timeRange, chartConfig.timeGranularity, chartConfig.customDateRange, chartConfig.chartType, chartConfig.limit,
+      handleTimeRangeChange, handleTimeGranularityChange, handleCustomDateRangeChange, handleSelectedChartTypeChange, handleLimitChange]);
 
-    // Preview
+  // Preview props
+  const previewProps = useMemo(() => ({
     previewType: previewState.type,
     previewData: previewState.data,
     previewRawData: previewState.rawData,
+  }), [previewState]);
 
-    // Add to dashboard
+  return {
+    sheetProps,
+    metricSelectionProps,
+    dimensionProps,
+    configProps,
+    previewProps,
     onAddToDashboard: addCardToBoard,
   };
 };

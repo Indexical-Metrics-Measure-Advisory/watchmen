@@ -69,6 +69,9 @@ export type MetricBuilderSheetProps = {
   onAddToDashboard: () => void;
 };
 
+// ── Module-level constants for stable references ──
+const EMPTY_CHART_DATA: ChartDatum[] = [];
+
 export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
   open,
   onOpenChange,
@@ -105,6 +108,27 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
   previewRawData,
   onAddToDashboard
 }: MetricBuilderSheetProps) {
+  // Memoize preview card object to avoid creating new reference on every render
+  const previewCard = React.useMemo(() => selectedMetric ? {
+    id: 'preview',
+    title: `${selectedMetric.name} · ${timeRange}`,
+    metricId: selectedMetric.name,
+    chartType: previewType,
+    size: 'lg' as const,
+    selection: {
+      dimensions: selectedDims,
+      timeRange,
+      timeGranularity,
+      limit
+    }
+  } : null, [selectedMetric, timeRange, previewType, selectedDims, timeGranularity, limit]);
+
+  // Memoize dimTypes computation to avoid repeated Set creation on each render
+  const dimTypes = React.useMemo(
+    () => Array.from(new Set(availableDimsDetailed.map(inferType))).sort(),
+    [availableDimsDetailed]
+  );
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-[95vw] sm:max-w-[1100px] p-0">
@@ -119,6 +143,9 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
             </SheetDescription>
           </SheetHeader>
 
+          {/* Conditionally render content only when open — avoids expensive subtree
+              staying mounted (ChartCard + RechartsProvider) when sheet is closed */}
+          {!open ? null : (
           <div className="flex-1 overflow-y-auto p-6">
             <div className="grid grid-cols-12 gap-6">
               <Card className="col-span-12 lg:col-span-4 h-fit border-l-4 border-l-primary/20">
@@ -214,7 +241,7 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
 
                       <Tabs value={selectedDimType || 'CATEGORICAL'} onValueChange={onSelectedDimTypeChange} className="w-full">
                         <TabsList className="w-full grid grid-cols-2 mb-2">
-                          {Array.from(new Set(availableDimsDetailed.map(inferType))).sort().map(t => (
+                          {dimTypes.map(t => (
                             <TabsTrigger key={t} value={t} className="text-xs">
                               {t === 'TIME' ? 'Time' : 'Categorical'}
                             </TabsTrigger>
@@ -396,23 +423,11 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                         <DataTable data={previewData} sourceData={previewRawData ?? undefined} />
                       </div>
                     </div>
-                  ) : selectedMetric ? (
+                  ) : selectedMetric && previewCard ? (
                     <div className="flex-1 w-full h-full min-h-[350px]">
                       <ChartCard
-                        card={{
-                          id: 'preview',
-                          title: `${selectedMetric.name} · ${timeRange}`,
-                          metricId: selectedMetric.name,
-                          chartType: previewType,
-                          size: 'lg',
-                          selection: {
-                            dimensions: selectedDims,
-                            timeRange,
-                            timeGranularity,
-                            limit
-                          }
-                        }}
-                        data={previewData}
+                        card={previewCard}
+                        data={previewData ?? EMPTY_CHART_DATA}
                         sourceData={previewRawData ?? undefined}
                       />
                     </div>
@@ -443,6 +458,7 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
               </Card>
             </div>
           </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

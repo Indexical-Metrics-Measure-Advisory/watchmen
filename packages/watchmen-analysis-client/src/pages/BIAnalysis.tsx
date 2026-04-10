@@ -134,9 +134,16 @@ const BIAnalysisPage: React.FC = () => {
   const handleOpenSubscription = React.useCallback(() => setSubscriptionOpen(true), []);
 
   // ── Stable callback: add card from MetricBuilder ──
+  // Directly load data for the new card instead of relying on useEffect traversal
   const handleCardAdded = React.useCallback((card: BIChartCard) => {
     setCards(prev => [...prev, card]);
-  }, [setCards]);
+    // Eagerly load data for the new card — avoids useEffect traversal over all cards
+    void loadCardDataFor(card, {
+      globalTimeRange,
+      globalCustomDateRange,
+      globalFilterValues,
+    });
+  }, [setCards, loadCardDataFor, globalTimeRange, globalCustomDateRange, globalFilterValues]);
 
   // ── Hook: Metric Builder ──
   const metricBuilder = useMetricBuilder({
@@ -159,27 +166,37 @@ const BIAnalysisPage: React.FC = () => {
     setIsBoardRefreshing(false);
   }, [refreshCardsWithContext, globalTimeRange, globalCustomDateRange, globalFilterValues, cardsRef, toast, setIsBoardRefreshing]);
 
+  // ── Stable card IDs key for effects — order-independent so drag reorder doesn't trigger ──
+  const cardIdsKey = useMemo(() => cards.map(c => c.id).sort().join(','), [cards]);
+
   // ── Load card data when cards change (only for missing ones) ──
-  // Using a ref to track loaded card IDs avoids re-checking already-loaded cards
-  // and prevents unnecessary iterations over the full card list on each render.
+  // Using a ref to track dispatched card IDs avoids re-dispatching loads
+  // for cards that are already in-flight or have data.
+  // NOTE: Depends on cardIdsKey (order-independent), NOT the full cards reference,
+  // so drag reorder (which changes array order but not IDs) does NOT trigger this.
   const loadedCardIdsRef = React.useRef<Set<string>>(new Set());
   useEffect(() => {
+    if (cards.length === 0) return;
+    let hasNewCards = false;
     cards.forEach(c => {
       if (cardDataMap[c.id] || loadedCardIdsRef.current.has(c.id)) return;
       loadedCardIdsRef.current.add(c.id);
+      hasNewCards = true;
       void loadCardDataFor(c, {
         globalTimeRange,
         globalCustomDateRange,
         globalFilterValues,
       });
     });
-    // Clean up IDs for removed cards
-    const currentIds = new Set(cards.map(c => c.id));
-    loadedCardIdsRef.current.forEach(id => {
-      if (!currentIds.has(id)) loadedCardIdsRef.current.delete(id);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cards]);
+    // Only clean up removed card IDs when the list actually changed
+    if (hasNewCards) {
+      const currentIds = new Set(cards.map(c => c.id));
+      loadedCardIdsRef.current.forEach(id => {
+        if (!currentIds.has(id)) loadedCardIdsRef.current.delete(id);
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardIdsKey]);
 
   // ─────────────────────────────────────────────────────────────
   // Render
@@ -316,39 +333,11 @@ const BIAnalysisPage: React.FC = () => {
           </Tabs>
 
           <MetricBuilderSheet
-            open={metricBuilder.open}
-            onOpenChange={metricBuilder.onOpenChange}
-            search={metricBuilder.search}
-            onSearchChange={metricBuilder.onSearchChange}
-            categoryId={metricBuilder.categoryId}
-            onCategoryIdChange={metricBuilder.onCategoryIdChange}
-            categories={metricBuilder.categories}
-            metricsLoading={metricBuilder.metricsLoading}
-            metricsList={metricBuilder.metricsList}
-            selectedMetricId={metricBuilder.selectedMetricId}
-            onSelectMetric={metricBuilder.onSelectMetric}
-            selectedMetric={metricBuilder.selectedMetric}
-            availableDimsDetailed={metricBuilder.availableDimsDetailed}
-            selectedDimType={metricBuilder.selectedDimType}
-            onSelectedDimTypeChange={metricBuilder.onSelectedDimTypeChange}
-            dimSearch={metricBuilder.dimSearch}
-            onDimSearchChange={metricBuilder.onDimSearchChange}
-            filteredDims={metricBuilder.filteredDims}
-            selectedDims={metricBuilder.selectedDims}
-            onToggleDim={metricBuilder.onToggleDim}
-            timeRange={metricBuilder.timeRange}
-            onTimeRangeChange={metricBuilder.onTimeRangeChange}
-            timeGranularity={metricBuilder.timeGranularity}
-            onTimeGranularityChange={metricBuilder.onTimeGranularityChange}
-            customDateRange={metricBuilder.customDateRange}
-            onCustomDateRangeChange={metricBuilder.onCustomDateRangeChange}
-            selectedChartType={metricBuilder.selectedChartType}
-            onSelectedChartTypeChange={metricBuilder.onSelectedChartTypeChange}
-            limit={metricBuilder.limit}
-            onLimitChange={metricBuilder.onLimitChange}
-            previewType={metricBuilder.previewType}
-            previewData={metricBuilder.previewData}
-            previewRawData={metricBuilder.previewRawData}
+            {...metricBuilder.sheetProps}
+            {...metricBuilder.metricSelectionProps}
+            {...metricBuilder.dimensionProps}
+            {...metricBuilder.configProps}
+            {...metricBuilder.previewProps}
             onAddToDashboard={metricBuilder.onAddToDashboard}
           />
 

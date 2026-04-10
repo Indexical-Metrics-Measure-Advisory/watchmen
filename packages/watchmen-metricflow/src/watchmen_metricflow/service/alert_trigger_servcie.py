@@ -1,16 +1,19 @@
 from datetime import datetime
-from typing import Optional, Tuple, Union, List
+from typing import Optional, Tuple, Union, List, Dict, Any
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_rest.util import raise_404, raise_500
 from watchmen_metricflow.meta.alert_rule_meta_service import AlertRuleService
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
+from watchmen_metricflow.meta.suggest_action_meta_service import SuggestedActionService, ActionTypeService
 from watchmen_metricflow.model.alert_rule import GlobalAlertRule, AlertStatus, AlertSeverity, AlertConditionLogic, \
-    AlertOperator, AlertCondition, AlertConditionResult
+    AlertOperator, AlertCondition, AlertConditionResult, AlertAction
 from watchmen_metricflow.model.metrics import Metric
+from watchmen_metricflow.model.suggest_action import SuggestedAction, ActionType
 from watchmen_metricflow.router.metric_router import build_metric_config
 from watchmen_metricflow.metricflow.main_api import query
+from watchmen_metricflow.service.hooks import build_alert_hook_dispatcher
 from metricflow.engine.metricflow_engine import MetricFlowQueryResult
 from watchmen_metricflow.util import trans_readonly
 
@@ -19,6 +22,9 @@ class AlertTriggerService:
         self.principal_service = principal_service
         self.alert_rule_service = AlertRuleService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
         self.metric_service = MetricService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+        self.suggested_action_service = SuggestedActionService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+        self.action_type_service = ActionTypeService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+        self.hook_dispatcher = build_alert_hook_dispatcher()
 
     def _load_rule(self, rule_id: str) -> GlobalAlertRule:
 
@@ -36,6 +42,16 @@ class AlertTriggerService:
                 raise_500(f'Metric with id {metric_id} not found.')
             return metric
         return trans_readonly(self.metric_service, load_metric)
+
+    def _load_suggested_action(self, action_id: str) -> Optional[SuggestedAction]:
+        def load_action() -> Optional[SuggestedAction]:
+            return self.suggested_action_service.find_by_id(action_id)
+        return trans_readonly(self.suggested_action_service, load_action)
+
+    def _load_action_type(self, action_type_id: str) -> Optional[ActionType]:
+        def load_action_type() -> Optional[ActionType]:
+            return self.action_type_service.find_by_id(action_type_id)
+        return trans_readonly(self.action_type_service, load_action_type)
 
     async def _get_metric_value(self, metric_name: str) -> float:
         config = await build_metric_config(self.principal_service)
@@ -127,13 +143,84 @@ class AlertTriggerService:
             return AlertSeverity.WARNING
         return AlertSeverity.INFO
 
+    @staticmethod
+    def _to_dict(value: Optional[Union[dict, Any]]) -> Dict[str, Any]:
+        if value is None:
+            return {}
+        if isinstance(value, dict):
+            return value
+        if hasattr(value, 'model_dump'):
+            return value.model_dump()
+        return {}
+
+    def _resolve_action(self, action_ref: Union[AlertAction, dict]) -> AlertAction:
+        ref_data = self._to_dict(action_ref)
+        action_id = ref_data.get('suggestedActionId')
+        if action_id is None:
+            return AlertAction(**ref_data)
+        suggested = self._load_suggested_action(action_id)
+
+        if suggested is None:
+            ref_type_id = ref_data.get('typeId')
+            ref_action_type = self._load_action_type(ref_type_id) if ref_type_id is not None else None
+            ref_action_type_data = self._to_dict(ref_action_type) if ref_action_type is not None else {}
+            return AlertAction(
+                id=action_id,
+                type=ref_data.get('type'),
+                riskLevel=ref_data.get('riskLevel'),
+                name=ref_data.get('name'),
+                content=ref_data.get('content'),
+                expectedEffect=ref_data.get('expectedEffect'),
+                target=ref_data.get('target'),
+                template=ref_data.get('template'),
+                parameters=ref_data.get('parameters'),
+                suggestedAction=None,
+                actionType=ref_action_type_data
+            )
+        suggested_data = self._to_dict(suggested)
+        merged_parameters = {}
+        suggested_params = suggested_data.get('parameters')
+        if isinstance(suggested_params, dict):
+            merged_parameters.update(suggested_params)
+        ref_params = ref_data.get('parameters')
+        if isinstance(ref_params, dict):
+            merged_parameters.update(ref_params)
+        action_type = None
+        type_id = suggested.typeId
+        if type_id is not None:
+            action_type = self._load_action_type(type_id)
+        action_type_data = self._to_dict(action_type) if action_type is not None else {}
+
+        return AlertAction(
+            id=action_id,
+            type=ref_data.get('type'),
+            typeId=type_id or ref_data.get('typeId'),
+            riskLevel=ref_data.get('riskLevel') or suggested_data.get('riskLevel'),
+            name=ref_data.get('name') or suggested_data.get('name'),
+            content=ref_data.get('content') or suggested_data.get('description'),
+            expectedEffect=ref_data.get('expectedEffect') or suggested_data.get('expectedOutcome'),
+            target=ref_data.get('target') or merged_parameters.get('to'),
+            template=ref_data.get('template'),
+            parameters=merged_parameters if len(merged_parameters) > 0 else None,
+            suggestedAction=suggested_data,
+            actionType=action_type_data
+        )
+
+    async def _notify_callbacks(self, rule: GlobalAlertRule, message: str, actions: List[AlertAction]) -> None:
+        await self.hook_dispatcher.execute_actions(rule, message, actions)
+
+    def _resolve_actions(self, rule: GlobalAlertRule) -> List[AlertAction]:
+        if rule.actions is None or len(rule.actions) == 0:
+            return []
+        return [self._resolve_action(x) for x in rule.actions]
+
     async def run_alert_rule(self, rule_id: str) -> AlertStatus:
         rule = self._load_rule(rule_id)
-        
         triggered, message, condition_results = await self._evaluate_rule(rule)
         severity = self._get_severity(rule.priority)
-
-
+        actions = self._resolve_actions(rule)
+        if triggered and len(actions) > 0:
+            await self._notify_callbacks(rule, message, actions)
 
         return AlertStatus(
             id=str(self.alert_rule_service.snowflakeGenerator.next_id()),
@@ -144,5 +231,6 @@ class AlertTriggerService:
             severity=severity,
             message=message,
             acknowledged=False,
-            conditionResults=condition_results
+            conditionResults=condition_results,
+            actions=actions
         )

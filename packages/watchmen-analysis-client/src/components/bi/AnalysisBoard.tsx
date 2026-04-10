@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChartCard } from '@/components/bi/ChartCard';
-import type { BIChartCard, BICardSize, BIChartType } from '@/model/biAnalysis';
+import type { BIChartCard, BICardSize } from '@/model/biAnalysis';
 import type { AlertStatus } from '@/model/AlertConfig';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import type { MetricDimension } from '@/model/analysis';
@@ -19,6 +19,12 @@ import { RechartsProvider } from './charts/RechartsContext';
 type ChartDataPoint = ChartDatum;
 const INITIAL_VISIBLE_CARDS = 12;
 const CARD_RENDER_BATCH_SIZE = 12;
+
+// ── Stable empty default to avoid new []/null references on each render ──
+const EMPTY_CARD_DATA: { chartData: ChartDataPoint[]; rawData: MetricFlowResponse | null } = {
+  chartData: [],
+  rawData: null,
+};
 
 interface AnalysisBoardProps {
   cards: BIChartCard[];
@@ -71,31 +77,6 @@ const getCardSizeClass = (size: BICardSize) => {
   }
 };
 
-const decideType = (data: ChartDataPoint[]): BIChartType => {
-  if (!data || data.length === 0) return 'bar';
-
-  const firstItem = data[0];
-  if (!firstItem || typeof firstItem !== 'object') return 'bar';
-
-  const record = firstItem as Record<string, unknown>;
-  const keys = Object.keys(record).filter(k => !['name', 'date', 'value', 'color', 'fill'].includes(k));
-  const hasDate = 'date' in record;
-  const dataCount = data.length;
-  const seriesCount = keys.length;
-
-  if (hasDate) {
-    if (seriesCount <= 1) return 'area';
-    return 'line';
-  }
-
-  if (seriesCount <= 1) {
-    if (dataCount <= 5) return 'pie';
-    return 'bar';
-  }
-
-  return seriesCount > 3 ? 'stackedBar' : 'groupedBar';
-};
-
 const BoardCardItem = React.memo(({
   card,
   index,
@@ -110,6 +91,24 @@ const BoardCardItem = React.memo(({
   onRemove,
   onAcknowledge
 }: BoardCardItemProps) => {
+  // Stable callbacks: avoid creating new arrow functions on each render
+  const handleDragStart = React.useMemo(
+    () => !readOnly ? onDragStart(index) : undefined,
+    [readOnly, onDragStart, index]
+  );
+  const handleDrop = React.useMemo(
+    () => !readOnly ? onDrop(index) : undefined,
+    [readOnly, onDrop, index]
+  );
+  const handleResize = React.useMemo(
+    () => !readOnly ? (size: BICardSize) => onResize(index, size) : undefined,
+    [readOnly, onResize, index]
+  );
+  const handleRemove = React.useMemo(
+    () => !readOnly ? () => onRemove(index) : undefined,
+    [readOnly, onRemove, index]
+  );
+
   if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert' && card.chartType !== 'kpi') {
     return (
       <div className={cn('transition-shadow duration-200', getCardSizeClass(card.size))} style={{ contain: 'layout style paint' }}>
@@ -130,11 +129,11 @@ const BoardCardItem = React.memo(({
       data={chartData}
       sourceData={rawData ?? undefined}
       draggable={!readOnly}
-      onDragStart={!readOnly ? onDragStart(index) : undefined}
+      onDragStart={handleDragStart}
       onDragOver={!readOnly ? onDragOver : undefined}
-      onDrop={!readOnly ? onDrop(index) : undefined}
-      onResize={!readOnly ? (size) => onResize(index, size) : undefined}
-      onRemove={!readOnly ? () => onRemove(index) : undefined}
+      onDrop={handleDrop}
+      onResize={handleResize}
+      onRemove={handleRemove}
       alertStatus={alertStatus}
       onAcknowledge={onAcknowledge}
     />
@@ -213,7 +212,14 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
       setVisibleCardCount(cards.length);
       return;
     }
-    setVisibleCardCount(INITIAL_VISIBLE_CARDS);
+    // Only reset to INITIAL_VISIBLE_CARDS if we have MORE new cards than currently visible
+    setVisibleCardCount(prev => {
+      if (prev >= cards.length) return cards.length;
+      // If cards grew by just 1-2, just show them immediately instead of resetting
+      if (cards.length - prev <= 2) return cards.length;
+      return INITIAL_VISIBLE_CARDS;
+    });
+    // Gradual rendering only when there are many cards not yet visible
     let rafId = 0;
     let cancelled = false;
     const step = () => {
@@ -227,7 +233,13 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
         return next;
       });
     };
-    rafId = window.requestAnimationFrame(step);
+    // Only start batch rendering if we're below the total
+    setVisibleCardCount(current => {
+      if (current < cards.length) {
+        rafId = window.requestAnimationFrame(step);
+      }
+      return current;
+    });
     return () => {
       cancelled = true;
       if (rafId) window.cancelAnimationFrame(rafId);
@@ -293,9 +305,9 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-12 gap-6" style={{ contain: 'layout style' }}>
+            <div className="grid grid-cols-12 gap-6" style={{ contain: 'layout style', willChange: 'transform' }}>
               {visibleCards.map((card, index) => {
-                const { chartData, rawData } = cardDataMap[card.id] ?? { chartData: [], rawData: null };
+                const { chartData, rawData } = cardDataMap[card.id] ?? EMPTY_CARD_DATA;
                 return (
                   <BoardCardItem
                     key={card.id}

@@ -1,7 +1,7 @@
 import json
 
 from enum import Enum
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any
 from datetime import datetime
 
 from pydantic import ConfigDict
@@ -49,13 +49,18 @@ class AlertCondition(ExtendedBaseModel):
 
 
 class AlertAction(ExtendedBaseModel):
+    id: Optional[str] = None
     type: Optional[str] = None
+    typeId: Optional[str] = None
     riskLevel: Optional[AlertPriority] = None
     name: Optional[str] = None
     content: Optional[str] = None
     expectedEffect: Optional[str] = None
     target: Optional[str] = None
     template: Optional[str] = None
+    parameters: Optional[Dict[str, Any]] = None
+    suggestedAction: Optional[Dict[str, Any]] = None
+    actionType: Optional[Dict[str, Any]] = None
 
 
 class AlertConfig(ExtendedBaseModel, UserBasedTuple, Auditable):
@@ -106,3 +111,4 @@ class AlertStatus(ExtendedBaseModel):
     acknowledgedBy: Optional[str] = None
     acknowledgedAt: Optional[datetime] = None
     conditionResults: Optional[List[AlertConditionResult]] = None
+    actions: Optional[List[AlertAction]] = None
