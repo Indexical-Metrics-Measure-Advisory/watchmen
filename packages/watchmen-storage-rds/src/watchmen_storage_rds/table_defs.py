@@ -697,6 +697,7 @@ table_metric_subscriptions = Table(
 	create_str('month', 10),
 	create_json('recipients'),
 	create_bool('enabled', False),
+	create_bool('only_on_alert_triggered', False),
 	create_tenant_id(), *create_tuple_audit_columns(), create_user_id()
 )
 

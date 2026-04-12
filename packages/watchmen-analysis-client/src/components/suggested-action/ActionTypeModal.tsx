@@ -205,6 +205,7 @@ export const ActionTypeModal: React.FC<ActionTypeModalProps> = ({
                                     <SelectItem value="boolean">Boolean</SelectItem>
                                     <SelectItem value="email">Email</SelectItem>
                                     <SelectItem value="url">URL</SelectItem>
+                                    <SelectItem value="password">Password</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

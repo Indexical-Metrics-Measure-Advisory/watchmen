@@ -121,6 +121,7 @@ export interface Subscription {
   month?: string; // 'jan', 'feb', ... for 'year'
   recipients: string[];
   enabled: boolean;
+  onlyOnAlertTriggered?: boolean; // if true, only send when an alert is triggered
   createdAt?: string;
   updatedAt?: string;
 }

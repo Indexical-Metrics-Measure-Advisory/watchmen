@@ -10,3 +10,4 @@
 *.LOG
 *.LoG
 *.log.*
+__pycache__

@@ -1,34 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ActionType } from '@/model/suggestedAction';
 import { actionTypeService } from '@/services/actionTypeService';
 import { ActionTypeManagement } from '@/components/suggested-action/ActionTypeManagement';
 import { ActionTypeModal } from '@/components/suggested-action/ActionTypeModal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
-export const ActionTypeConfiguration: React.FC = () => {
-  const [types, setTypes] = useState<ActionType[]>([]);
-  const [loading, setLoading] = useState(true);
-  
+interface ActionTypeConfigurationProps {
+  types: ActionType[];
+  onTypesChange: (types: ActionType[]) => void;
+}
+
+export const ActionTypeConfiguration: React.FC<ActionTypeConfigurationProps> = ({ types, onTypesChange }) => {
   const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
   const [editingType, setEditingType] = useState<ActionType | null>(null);
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const typesData = await actionTypeService.getActionTypes();
-      setTypes(typesData);
-    } catch (error) {
-      console.error("Failed to fetch action types", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAddType = () => {
     setEditingType(null);
@@ -42,7 +28,8 @@ export const ActionTypeConfiguration: React.FC = () => {
 
   const handleSaveType = async (type: ActionType) => {
     await actionTypeService.saveActionType(type);
-    fetchData();
+    const updated = await actionTypeService.getActionTypes();
+    onTypesChange(updated);
     setIsTypeModalOpen(false);
   };
 
@@ -53,14 +40,16 @@ export const ActionTypeConfiguration: React.FC = () => {
   const confirmDelete = async () => {
     if (deleteId) {
         await actionTypeService.deleteActionType(deleteId);
-        fetchData();
+        const updated = await actionTypeService.getActionTypes();
+        onTypesChange(updated);
         setDeleteId(null);
     }
   };
-  
+
   const handleToggleType = async (type: ActionType) => {
       await actionTypeService.saveActionType({ ...type, enabled: !type.enabled });
-      fetchData();
+      const updated = await actionTypeService.getActionTypes();
+      onTypesChange(updated);
   }
 
   return (
@@ -70,7 +59,7 @@ export const ActionTypeConfiguration: React.FC = () => {
           <p className="text-muted-foreground">Define and manage the types of actions available for suggestions.</p>
         </div>
 
-        <ActionTypeManagement 
+        <ActionTypeManagement
             types={types}
             onAdd={handleAddType}
             onEdit={handleEditType}
@@ -78,7 +67,7 @@ export const ActionTypeConfiguration: React.FC = () => {
             onToggle={handleToggleType}
         />
 
-        <ActionTypeModal 
+        <ActionTypeModal
             open={isTypeModalOpen}
             onOpenChange={setIsTypeModalOpen}
             type={editingType}

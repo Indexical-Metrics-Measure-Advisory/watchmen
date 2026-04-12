@@ -5,7 +5,7 @@ export type ActionPriority = 'low' | 'medium' | 'high';
 
 export interface ActionTypeParameter {
   name: string;
-  type: 'string' | 'number' | 'boolean' | 'email' | 'url';
+  type: 'string' | 'number' | 'boolean' | 'email' | 'url' | 'password';
   required: boolean;
   description?: string;
 }

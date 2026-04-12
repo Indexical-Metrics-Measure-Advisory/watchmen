@@ -222,14 +222,18 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
                   <div className="bg-background/50 p-2 rounded border border-dashed space-y-1">
                      <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Parameters</div>
                      <div className="grid gap-1">
-                        {Object.entries(action.parameters).map(([key, value]) => (
+                        {Object.entries(action.parameters).map(([key, value]) => {
+                          const isSensitive = /password|secret|token|api_key|credential|auth|private_key/i.test(key);
+                          const displayValue = isSensitive ? '••••••••' : (typeof value === 'object' ? JSON.stringify(value) : String(value ?? ''));
+                          return (
                            <div key={key} className="flex text-[10px]">
                               <span className="text-muted-foreground w-24 shrink-0 truncate" title={key}>{key}</span>
-                              <span className="font-mono text-foreground truncate flex-1" title={typeof value === 'object' ? JSON.stringify(value) : String(value)}>
-                                {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                              <span className="font-mono text-foreground truncate flex-1" title={isSensitive ? '***' : (typeof value === 'object' ? JSON.stringify(value) : String(value))}>
+                                {displayValue}
                               </span>
                            </div>
-                        ))}
+                          );
+                        })}
                      </div>
                   </div>
                 )}

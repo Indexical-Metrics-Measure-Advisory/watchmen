@@ -30,6 +30,7 @@ class ActionParameterType(str, Enum):
     BOOLEAN = 'boolean'
     EMAIL = 'email'
     URL = 'url'
+    PASSWORD = 'password'
 
 
 class ActionTypeParameter(ExtendedBaseModel):

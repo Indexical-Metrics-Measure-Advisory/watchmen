@@ -214,8 +214,8 @@ class AlertTriggerService:
             return []
         return [self._resolve_action(x) for x in rule.actions]
 
-    async def run_alert_rule(self, rule_id: str) -> AlertStatus:
-        rule = self._load_rule(rule_id)
+    async def run_alert_rule(self, rule_or_id: Union[str, GlobalAlertRule]) -> AlertStatus:
+        rule = rule_or_id if isinstance(rule_or_id, GlobalAlertRule) else self._load_rule(rule_or_id)
         triggered, message, condition_results = await self._evaluate_rule(rule)
         severity = self._get_severity(rule.priority)
         actions = self._resolve_actions(rule)
