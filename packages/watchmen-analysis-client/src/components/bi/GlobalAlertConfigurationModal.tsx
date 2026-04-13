@@ -33,7 +33,8 @@ interface MetricSelectorProps {
 
 const MetricSelector: React.FC<MetricSelectorProps> = ({ value, onChange, metrics }) => {
   const [open, setOpen] = useState(false);
-  const selectedMetric = metrics.find(m => m.id === value);
+  // Match by name since AlertCondition.metricId stores metric name (not database ID)
+  const selectedMetric = metrics.find(m => m.name === value || m.id === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -59,14 +60,14 @@ const MetricSelector: React.FC<MetricSelectorProps> = ({ value, onChange, metric
                   key={metric.id}
                   value={metric.name}
                   onSelect={() => {
-                    onChange(metric.id);
+                    onChange(metric.name);
                     setOpen(false);
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === metric.id ? "opacity-100" : "opacity-0"
+                      (value === metric.name || value === metric.id) ? "opacity-100" : "opacity-0"
                     )}
                   />
                   {metric.name}
@@ -130,6 +131,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
           ...rule,
           conditions: rule.conditions || [{
             metricId: '',
+            metricName: '',
             operator: '>',
             value: 0
           }],
@@ -144,7 +146,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
           enabled: true,
           nextAction: { type: 'notification' },
           actions: [],
-          conditions: [{ metricId: '', operator: '>', value: 0 }],
+          conditions: [{ metricId: '', metricName: '', operator: '>', value: 0 }],
           conditionLogic: 'and',
           name: '',
           priority: 'medium',
@@ -185,7 +187,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
       ...prev,
       conditions: [
         ...(prev.conditions || []),
-        { metricId: '', operator: '>', value: 0 }
+        { metricId: '', metricName: '', operator: '>', value: 0 }
       ]
     }));
   };
@@ -373,9 +375,9 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                     <MetricSelector
                       value={condition.metricId || ''}
                       onChange={(val) => {
+                        // Store metric name in metricId (backend expects name, not database ID)
                         handleConditionChange(index, 'metricId', val);
-                        const m = metrics.find(x => x.id === val);
-                        if (m) handleConditionChange(index, 'metricName', m.name);
+                        handleConditionChange(index, 'metricName', val);
                       }}
                       metrics={metrics}
                     />

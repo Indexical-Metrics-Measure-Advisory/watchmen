@@ -33,7 +33,8 @@ interface MetricSelectorProps {
 
 const MetricSelector: React.FC<MetricSelectorProps> = ({ value, onChange, metrics }) => {
   const [open, setOpen] = useState(false);
-  const selectedMetric = metrics.find(m => m.id === value);
+  // Match by name since AlertCondition.metricId stores metric name (not database ID)
+  const selectedMetric = metrics.find(m => m.name === value || m.id === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -59,14 +60,14 @@ const MetricSelector: React.FC<MetricSelectorProps> = ({ value, onChange, metric
                   key={metric.id}
                   value={metric.name}
                   onSelect={() => {
-                    onChange(metric.id);
+                    onChange(metric.name);
                     setOpen(false);
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === metric.id ? "opacity-100" : "opacity-0"
+                      (value === metric.name || value === metric.id) ? "opacity-100" : "opacity-0"
                     )}
                   />
                   {metric.name}
@@ -139,7 +140,7 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
       if (!initialConfig.conditions || initialConfig.conditions.length === 0) {
         initialConfig.conditions = [{
           metricId: card.metricId,
-          metricName: card.title || card.metricId,
+          metricName: card.metricId,
           operator: '>',
           value: 0
         }];
@@ -163,7 +164,7 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
       ...prev,
       conditions: [
         ...(prev.conditions || []),
-        { metricId: card.metricId, metricName: card.title || card.metricId, operator: '>', value: 0 }
+        { metricId: card.metricId, metricName: card.metricId, operator: '>', value: 0 }
       ]
     }));
   };
@@ -362,9 +363,9 @@ export const AlertConfigurationModal: React.FC<AlertConfigurationModalProps> = (
                              <MetricSelector
                                value={cond.metricId || card.metricId}
                                onChange={(val) => {
+                                 // Store metric name in metricId (backend expects name, not database ID)
                                  handleConditionChange(index, 'metricId', val);
-                                 const m = metrics.find(x => x.id === val);
-                                 if (m) handleConditionChange(index, 'metricName', m.name);
+                                 handleConditionChange(index, 'metricName', val);
                                }}
                                metrics={metrics}
                              />
