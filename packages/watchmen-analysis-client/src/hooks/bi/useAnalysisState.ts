@@ -252,7 +252,7 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
     const newCard: BIChartCard = {
       id: `card_${Date.now()}`,
       title: rule.name || `${metricName} · Alert`,
-      metricId: metricId,
+      metricId: metricName, // Use metricName for compatibility with MetricFlow
       chartType: 'alert',
       size: 'md',
       selection: { dimensions: [], timeRange: rangeStr },

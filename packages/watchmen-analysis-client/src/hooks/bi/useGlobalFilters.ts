@@ -130,10 +130,22 @@ export const useGlobalFilters = (options: UseGlobalFiltersOptions) => {
       try {
         const missingIds = metricIds.filter(id => !metricDimsCache.current.has(id));
         if (missingIds.length > 0) {
-          const responses = await Promise.all(missingIds.map(id => findDimensionsByMetric(id)));
-          responses.forEach((r, i) => {
-            const dims = Array.isArray(r?.dimensions) ? r.dimensions : [];
-            metricDimsCache.current.set(missingIds[i], dims);
+          // Filter out purely numeric IDs which cause UnknownMetricError in MetricFlow backend
+          const validMissingNames = missingIds.filter(id => !/^\d+$/.test(id));
+          
+          if (validMissingNames.length > 0) {
+            const responses = await Promise.all(validMissingNames.map(name => findDimensionsByMetric(name)));
+            responses.forEach((r, i) => {
+              const dims = Array.isArray(r?.dimensions) ? r.dimensions : [];
+              metricDimsCache.current.set(validMissingNames[i], dims);
+            });
+          }
+          
+          // Mark purely numeric IDs as having no dimensions to avoid re-fetching
+          missingIds.forEach(id => {
+            if (/^\d+$/.test(id) && !metricDimsCache.current.has(id)) {
+              metricDimsCache.current.set(id, []);
+            }
           });
         }
 
