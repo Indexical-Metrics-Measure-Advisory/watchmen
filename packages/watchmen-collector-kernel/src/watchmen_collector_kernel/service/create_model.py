@@ -64,7 +64,8 @@ def  to_factors_from_instance_data(topic: Topic, factors_map: Dict[str, Factor],
             factor_name = f"{prefix}.{name}" if prefix is not None else name
             factor = factors_map.get(factor_name) or create_initial_factor(factor_name)
             if value is None:
-                continue
+                if factor.type is None:
+                    factor.type = FactorType.TEXT
             elif isinstance(value, (int, float, Decimal)):
                 if factor.type is None:
                     factor.type = FactorType.NUMBER
