@@ -3,18 +3,21 @@ import { Button } from "@/components/ui/button";
 import { Plus } from 'lucide-react';
 import { SuggestedAction, ActionType } from '@/model/suggestedAction';
 import { suggestedActionService } from '@/services/suggestedActionService';
-import { actionTypeService } from '@/services/actionTypeService';
 import { SuggestedActionList } from '@/components/suggested-action/SuggestedActionList';
 import { SuggestedActionModal } from '@/components/suggested-action/SuggestedActionModal';
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
-export const SuggestedActionManagement: React.FC = () => {
+interface SuggestedActionManagementProps {
+  types: ActionType[];
+  onTypesChange: (types: ActionType[]) => void;
+}
+
+export const SuggestedActionManagement: React.FC<SuggestedActionManagementProps> = ({ types, onTypesChange }) => {
   const [actions, setActions] = useState<SuggestedAction[]>([]);
-  const [types, setTypes] = useState<ActionType[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // View State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAction, setEditingAction] = useState<SuggestedAction | null>(null);
@@ -27,20 +30,16 @@ export const SuggestedActionManagement: React.FC = () => {
   const [riskFilter, setRiskFilter] = useState('all');
 
   useEffect(() => {
-    fetchData();
+    fetchActions();
   }, []);
 
-  const fetchData = async () => {
+  const fetchActions = async () => {
     try {
       setLoading(true);
-      const [actionsData, typesData] = await Promise.all([
-        suggestedActionService.getSuggestedActions(),
-        actionTypeService.getActionTypes()
-      ]);
+      const actionsData = await suggestedActionService.getSuggestedActions();
       setActions(actionsData);
-      setTypes(typesData);
     } catch (error) {
-      console.error("Failed to fetch data", error);
+      console.error("Failed to fetch actions", error);
     } finally {
       setLoading(false);
     }
@@ -63,30 +62,30 @@ export const SuggestedActionManagement: React.FC = () => {
   const confirmDelete = async () => {
     if (deleteId) {
         await suggestedActionService.deleteSuggestedAction(deleteId);
-        fetchData();
+        fetchActions();
         setDeleteId(null);
     }
   };
 
   const handleSave = async (action: SuggestedAction) => {
     await suggestedActionService.saveSuggestedAction(action);
-    fetchData();
+    fetchActions();
     setIsModalOpen(false);
   };
 
   const handleToggleAction = async (action: SuggestedAction) => {
      await suggestedActionService.saveSuggestedAction({ ...action, enabled: !action.enabled });
-     fetchData();
+     fetchActions();
   };
 
   // Filter Logic
   const filteredActions = actions.filter(action => {
-    const matchesSearch = action.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch = action.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           action.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const type = types.find(t => t.id === action.typeId);
     const matchesCategory = categoryFilter === 'all' || type?.category === categoryFilter;
-    
+
     const matchesRisk = riskFilter === 'all' || action.riskLevel === riskFilter;
 
     return matchesSearch && matchesCategory && matchesRisk;
@@ -106,8 +105,8 @@ export const SuggestedActionManagement: React.FC = () => {
       <div className="flex items-center justify-between gap-4">
          <div className="flex-1 flex items-center gap-4">
             <div className="flex-1">
-                <Input 
-                    placeholder="Search action name or description..." 
+                <Input
+                    placeholder="Search action name or description..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -134,22 +133,22 @@ export const SuggestedActionManagement: React.FC = () => {
                 </SelectContent>
             </Select>
          </div>
-         
+
          <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" /> New Action
          </Button>
       </div>
 
-      <SuggestedActionList 
-        actions={filteredActions} 
+      <SuggestedActionList
+        actions={filteredActions}
         types={types}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onToggle={handleToggleAction}
       />
-      
-      <SuggestedActionModal 
-        open={isModalOpen} 
+
+      <SuggestedActionModal
+        open={isModalOpen}
         onOpenChange={setIsModalOpen}
         action={editingAction}
         types={types}

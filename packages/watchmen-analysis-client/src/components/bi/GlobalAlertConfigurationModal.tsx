@@ -91,7 +91,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
   const [actionTypes, setActionTypes] = useState<ActionType[]>([]);
   const [suggestedActions, setSuggestedActions] = useState<SuggestedAction[]>([]);
   const [testResult, setTestResult] = useState<{ triggered: boolean; message: string } | null>(null);
-  const [testValue, setTestValue] = useState<number>(0);
+  const [testValue, setTestValue] = useState<string>('0');
   const [config, setConfig] = useState<GlobalAlertRule>({
     id: '',
     enabled: true,
@@ -260,7 +260,6 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
   };
 
   const runTest = () => {
-    // Simulate test logic
     const isTriggered = config.conditions?.every(c => {
       const val = Number(testValue);
       const limit = Number(c.value);
@@ -441,10 +440,10 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
               <div className="flex items-end gap-4">
                 <div className="flex-1 space-y-2">
                   <Label>Simulate Metric Value</Label>
-                  <Input 
-                    type="number" 
+                  <Input
+                    type="text"
                     value={testValue}
-                    onChange={(e) => setTestValue(Number(e.target.value))}
+                    onChange={(e) => setTestValue(e.target.value as any)}
                     placeholder="Enter a value to test..."
                   />
                 </div>

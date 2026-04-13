@@ -52,5 +52,6 @@ class Subscription(ExtendedBaseModel, UserBasedTuple, Auditable):
 	month: Optional[SubscriptionMonth] = None  # 'jan', 'feb', ... for 'year'
 	recipients: List[str] = []
 	enabled: bool = True
+	onlyOnAlertTriggered: bool = False
 
 	model_config = ConfigDict(use_enum_values=True)

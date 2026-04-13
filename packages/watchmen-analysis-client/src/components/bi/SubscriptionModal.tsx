@@ -267,6 +267,13 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                            />
                            <span className="text-sm text-muted-foreground whitespace-nowrap">{sub.enabled ? 'Active' : 'Paused'}</span>
                         </div>
+                        <div className="flex items-center space-x-2">
+                           <Switch
+                             checked={sub.onlyOnAlertTriggered ?? false}
+                             onCheckedChange={(checked) => handleUpdateSubscription(index, 'onlyOnAlertTriggered', checked)}
+                           />
+                           <span className="text-xs text-muted-foreground whitespace-nowrap">Only on alert</span>
+                        </div>
                       </div>
                     </div>
                   </div>

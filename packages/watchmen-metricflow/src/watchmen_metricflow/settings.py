@@ -5,7 +5,7 @@ class MetricFlowSettings(RestSettings):
     APP_NAME: str = 'Watchmen Metric Flow'
     MCP_FLAG:bool = True
     TUPLE_DELETABLE: bool = True
-
+    ANALYSIS_WEB_BASE_URL: str = 'http://localhost:8080'
 
 
 mf_settings = MetricFlowSettings()
@@ -15,6 +15,9 @@ def ask_mcp_flag() -> bool:
 
 def ask_tuple_delete_enabled() -> bool:
     return mf_settings.TUPLE_DELETABLE
+
+def ask_analysis_web_base_url() -> str:
+    return mf_settings.ANALYSIS_WEB_BASE_URL
 #
 #
 # def ask_azure_api_base() -> str:

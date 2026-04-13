@@ -28,34 +28,59 @@ class EmailHookPlugin(AlertHookPlugin):
                 return False
         return default
 
+    def _get_from_dict(self, params: dict, key: str) -> Any:
+        if params is None:
+            return None
+        return params.get(key)
+
+    def _resolve(self, action: AlertAction, key: str, default: Any = None) -> Any:
+        val = self._get_from_dict(action.parameters, key)
+        if val is not None:
+            return val
+        suggested_params = (action.suggestedAction or {}).get('parameters')
+        val = self._get_from_dict(suggested_params, key)
+        if val is not None:
+            return val
+        # action_type_params = (action.actionType or {}).get('parameters')
+        # val = self._get_from_dict(action_type_params, key)
+        return default if val is None else val
+
     async def execute(self, action: AlertAction, rule: GlobalAlertRule, message: str) -> bool:
-        print("email:",message)
-        params = action.parameters or {}
-        server = params.get('server') or params.get('host')
+        server = self._resolve(action, 'host') or self._resolve(action, 'server')
         if server is None:
+            logger.warning('smtp server not configured, skipping email')
             return False
-        port = int(params.get('port', 465))
-        ssl = self._safe_bool(params.get('ssl'), True)
-        username = params.get('username') or params.get('user')
-        password = params.get('password')
-        send_from = params.get('from') or username
-        send_to = params.get('to') or action.target
-        subject = params.get('subject') or f'Alert triggered: {rule.name}'
-        content = params.get('content') or action.content or message
+        timeout = int(self._resolve(action, 'timeout', 30))
+        port = int(self._resolve(action, 'port', 465))
+        ssl = self._safe_bool(self._resolve(action, 'ssl'), True)
+        username = self._resolve(action, 'username') or self._resolve(action, 'user')
+        password = self._resolve(action, 'password')
+        send_from = self._resolve(action, 'from') or username
+        send_to = self._resolve(action, 'to') or action.target
+        subject = self._resolve(action, 'subject') or f'Alert triggered: {rule.name}'
+        content = self._resolve(action, 'content') or action.content or message
         if username is None or password is None or send_from is None or send_to is None:
+            logger.warning('email credential incomplete, skipping email')
             return False
         try:
+            recipients = send_to if isinstance(send_to, list) else [x.strip() for x in str(send_to).split(',') if x.strip()]
+            if len(recipients) == 0:
+                return False
             msg = MIMEMultipart()
             msg['From'] = send_from
-            msg['To'] = send_to
+            msg['To'] = ', '.join(recipients)
             msg['Date'] = formatdate(localtime=True)
             msg['Subject'] = subject
-            msg.attach(MIMEText(content))
-            smtp = smtplib.SMTP_SSL(server, port) if ssl else smtplib.SMTP(server, port)
+            msg.attach(MIMEText(content, 'html'))
+            if ssl:
+                smtp = smtplib.SMTP_SSL(server, port, timeout=timeout)
+            else:
+                smtp = smtplib.SMTP(server, port, timeout=timeout)
             smtp.login(username, password)
-            smtp.sendmail(send_from, send_to, msg.as_string())
+            smtp.sendmail(send_from, recipients, msg.as_string())
             smtp.close()
+            logger.info(f'alert email sent to {recipients}')
             return True
         except Exception:
-            logger.exception('failed to send alert email')
+            logger.exception(f'failed to send alert email to {send_to}')
             return False

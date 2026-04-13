@@ -16,7 +16,8 @@ class SubscriptionShaper(UserBasedTupleShaper):
 			'day_of_month': subscription.dayOfMonth,
 			'month': subscription.month,
 			'recipients': subscription.recipients,
-			'enabled': subscription.enabled
+			'enabled': subscription.enabled,
+			'only_on_alert_triggered': subscription.onlyOnAlertTriggered
 		}
 		row = AuditableShaper.serialize(subscription, row)
 		row = UserBasedTupleShaper.serialize(subscription, row)
@@ -34,7 +35,8 @@ class SubscriptionShaper(UserBasedTupleShaper):
 			dayOfMonth=row.get('day_of_month'),
 			month=row.get('month'),
 			recipients=row.get('recipients'),
-			enabled=row.get('enabled')
+			enabled=row.get('enabled'),
+			onlyOnAlertTriggered=row.get('only_on_alert_triggered', False)
 		)
 		# noinspection PyTypeChecker
 		subscription: Subscription = AuditableShaper.deserialize(row, subscription)

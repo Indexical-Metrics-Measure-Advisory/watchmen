@@ -9,7 +9,8 @@ class NotificationHookPlugin(AlertHookPlugin):
         self.email_hook = EmailHookPlugin()
 
     def support(self, action_type: str) -> bool:
-        return False
+        normalized = action_type.lower()
+        return normalized in {'notification', 'notifycation'}
 
     async def execute(self, action: AlertAction, rule: GlobalAlertRule, message: str) -> bool:
         params = action.parameters or {}

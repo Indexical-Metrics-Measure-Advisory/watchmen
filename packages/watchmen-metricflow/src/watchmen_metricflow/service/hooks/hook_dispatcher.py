@@ -13,9 +13,16 @@ class AlertHookDispatcher:
         self.plugins = plugins
 
     def _find_plugin(self, action: AlertAction) -> Optional[AlertHookPlugin]:
-        action_type = action.actionType.get('category').lower()
+        action_type = None
+        if action.actionType is not None:
+            action_type = action.actionType.get('category') or action.actionType.get('code')
+        if action_type is None:
+            action_type = action.type
+        if action_type is None:
+            return None
+        normalized = str(action_type).lower()
         for plugin in self.plugins:
-            if plugin.support(action_type):
+            if plugin.support(normalized):
                 return plugin
         return None
 

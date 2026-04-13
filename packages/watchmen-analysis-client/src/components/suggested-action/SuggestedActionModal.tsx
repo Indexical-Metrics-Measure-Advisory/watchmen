@@ -66,6 +66,21 @@ export const SuggestedActionModal: React.FC<SuggestedActionModalProps> = ({
     }
   }, [open, action, types]);
 
+  useEffect(() => {
+    setFormData(prev => {
+      if (!prev.typeId) return prev;
+      const newType = types.find(t => t.id === prev.typeId);
+      if (!newType?.parameters?.length) return { ...prev, parameters: {} };
+      const filteredParams: Record<string, unknown> = {};
+      newType.parameters.forEach(p => {
+        if (prev.parameters?.[p.name] !== undefined) {
+          filteredParams[p.name] = prev.parameters[p.name];
+        }
+      });
+      return { ...prev, parameters: filteredParams };
+    });
+  }, [formData.typeId]);
+
   const handleSave = () => {
     if (!formData.name || !formData.typeId) return;
     onSave(formData as SuggestedAction);
@@ -122,6 +137,18 @@ export const SuggestedActionModal: React.FC<SuggestedActionModalProps> = ({
                 />
                 <span className="text-sm text-muted-foreground">{value ? 'Yes' : 'No'}</span>
              </div>
+         );
+    }
+
+    if (param.type === 'password') {
+         return (
+             <Input 
+                 type="password"
+                 value={value}
+                 onChange={(e) => handleChange(e.target.value)}
+                 placeholder={`Enter ${param.name}...`}
+                 autoComplete="off"
+             />
          );
     }
 
