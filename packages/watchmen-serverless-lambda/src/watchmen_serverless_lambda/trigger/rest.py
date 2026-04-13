@@ -45,11 +45,13 @@ def get_request_type_v2(event) -> Optional[RequestType]:
     elif request_path == "/collector/trigger/event/record":
         return RequestType.EVENT
     elif request_path == "/collector/trigger/event/pipeline":
-        return RequestType.PIPELINE
+        return RequestType.EVENT
     elif request_path == "/collector/trigger/event/schedule":
         return RequestType.EVENT
     elif request_path == "/collector/trigger/online":
         return RequestType.ONLINE
+    elif request_path == "/pipeline/data":
+        return RequestType.PIPELINE
     else:
         return None
 
@@ -123,23 +125,23 @@ def trigger_event_handler(event, context):
         if is_blank(token):
             raise Exception('PAT not found.')
         
-        if get_trigger_event_type_v2(submit_event) == TriggerEventType.EVENT:
+        if get_trigger_event_type_v2(event) == TriggerEventType.EVENT:
             if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
                 raise_400('start time or end time  is required.')
             submit_event['type'] = EventType.DEFAULT.value
-        elif get_trigger_event_type_v2(submit_event) == TriggerEventType.TABLE:
+        elif get_trigger_event_type_v2(event) == TriggerEventType.TABLE:
             if submit_event.get('startTime', None) is None or submit_event.get('endTime', None) is None:
                 raise_400('start time or end time  is required.')
             if is_blank(submit_event.get('tableName')):
                 raise_400('table name is required.')
             submit_event['type'] = EventType.BY_TABLE.value
-        elif get_trigger_event_type_v2(submit_event) == TriggerEventType.RECORD:
+        elif get_trigger_event_type_v2(event) == TriggerEventType.RECORD:
             if is_blank(submit_event.get('tableName')):
                 raise_400('table name is required.')
             if submit_event.get('records') is None or len(submit_event.get('records')) == 0:
                 raise_400('records is required.')
             submit_event['type'] = EventType.BY_RECORD.value
-        elif get_trigger_event_type_v2(submit_event) == TriggerEventType.SCHEDULE:
+        elif get_trigger_event_type_v2(event) == TriggerEventType.SCHEDULE:
             submit_event['type'] = EventType.BY_SCHEDULE.value
             
         principal_service = get_principal_by_pat(
