@@ -41,15 +41,15 @@ class MonitorDataService:
 		if is_not_blank(criteria.ruleCode):
 			# noinspection SpellCheckingInspection
 			storage_criteria.append(EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName='rulecode'), right=criteria.ruleCode.value))
+				left=ColumnNameLiteral(columnName='ruleCode'), right=criteria.ruleCode.value))
 		if is_not_blank(criteria.topicId):
 			# noinspection SpellCheckingInspection
 			storage_criteria.append(EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName='topicid'), right=criteria.topicId))
+				left=ColumnNameLiteral(columnName='topicId'), right=criteria.topicId))
 		if is_not_blank(criteria.factorId):
 			# noinspection SpellCheckingInspection
 			storage_criteria.append(EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName='factorid'), right=criteria.factorId))
+				left=ColumnNameLiteral(columnName='factorId'), right=criteria.factorId))
 
 		if is_not_blank(criteria.startDate):
 			parsed, start_date = is_date(criteria.startDate, ask_datetime_formats())
@@ -61,7 +61,7 @@ class MonitorDataService:
 						year=start_date.year, month=start_date.month, day=start_date.day,
 						hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
 				storage_criteria.append(EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName='processdate'),
+					left=ColumnNameLiteral(columnName='processDate'),
 					operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
 					right=start_date
 				))
@@ -78,7 +78,7 @@ class MonitorDataService:
 						year=end_date.year, month=end_date.month, day=end_date.day,
 						hour=23, minute=59, second=59, microsecond=999999, tzinfo=None)
 				storage_criteria.append(EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName='processdate'),
+					left=ColumnNameLiteral(columnName='processDate'),
 					operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
 					right=end_date
 				))
@@ -87,7 +87,9 @@ class MonitorDataService:
 
 		# noinspection SpellCheckingInspection
 		columns = [
-			EntityStraightColumn(columnName='rulecode'),
+			EntityStraightColumn(columnName='ruleCode'),
+			EntityStraightColumn(columnName='topicId'),
+			EntityStraightColumn(columnName='factorId'),
 			EntityStraightAggregateColumn(
 				columnName='count', alias='occurredtimes',
 				arithmetic=EntityColumnAggregateArithmetic.COUNT),
@@ -95,25 +97,15 @@ class MonitorDataService:
 				columnName=TopicDataColumnNames.UPDATE_TIME.value, alias='lastoccurred',
 				arithmetic=EntityColumnAggregateArithmetic.MAX),
 		]
-		if is_not_blank(criteria.topicId):
-			# noinspection SpellCheckingInspection
-			columns.append(EntityStraightColumn(columnName='topicid'))
-			# noinspection SpellCheckingInspection
-			columns.append(EntityStraightColumn(columnName='factorid'))
-		elif is_not_blank(criteria.ruleCode):
-			# noinspection SpellCheckingInspection
-			columns.append(EntityStraightColumn(columnName='topicid'))
-			# noinspection SpellCheckingInspection
-			columns.append(EntityStraightColumn(columnName='factorid'))
 
 		data = service.find_straight_values(criteria=storage_criteria, columns=columns)
 
 		def to_log(row: Dict[str, Any]) -> MonitorRuleLog:
 			# noinspection SpellCheckingInspection
 			return MonitorRuleLog(
-				ruleCode=row.get('rulecode'),
-				topicId=row.get('topicid'),
-				factorId=row.get('factorid'),
+				ruleCode=row.get('ruleCode') if row.get('ruleCode') is not None else row.get('rulecode'),
+				topicId=row.get('topicId') if row.get('topicId') is not None else row.get('topicid'),
+				factorId=row.get('factorId') if row.get('factorId') is not None else row.get('factorid'),
 				count=row.get('occurredtimes'),
 				lastOccurredTime=row.get('lastoccurred')
 			)
