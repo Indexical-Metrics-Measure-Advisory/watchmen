@@ -173,7 +173,7 @@ export const ChartCard = React.memo(({
   return (
     <Card
       className={cn(
-        'transition-shadow duration-200 hover:shadow-lg hover:border-primary/20 flex flex-col h-full bg-card/50 backdrop-blur-sm group',
+        'transition-shadow duration-200 hover:shadow-lg hover:border-primary/20 flex flex-col h-full bg-card group',
         sizeClass(card.size), 
         className
       )}
@@ -231,7 +231,7 @@ export const ChartCard = React.memo(({
                         <span className="hidden xl:inline">Acked</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1 text-destructive bg-destructive/10 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0 animate-pulse" title="Alert Triggered">
+                      <div className="flex items-center gap-1 text-destructive bg-destructive/10 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0" title="Alert Triggered">
                         <AlertTriangle className="h-3 w-3" />
                         <span className="hidden xl:inline">Triggered</span>
                       </div>
@@ -298,12 +298,12 @@ export const ChartCard = React.memo(({
                  </div>
                </div>
             ) : chartViewEnabled && !lib ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground animate-pulse gap-2">
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground gap-2">
                 <BarChart2 className="w-8 h-8 opacity-20" />
                 <span className="text-xs font-medium">Loading visualization...</span>
               </div>
             ) : chartViewEnabled ? (
-              <div className="h-full w-full min-h-[250px]" style={{ willChange: 'transform' }}>
+              <div className="h-full w-full min-h-[250px]">
                 <Chart 
                   lib={lib} 
                   card={card} 

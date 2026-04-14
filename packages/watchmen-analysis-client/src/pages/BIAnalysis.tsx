@@ -206,7 +206,7 @@ const BIAnalysisPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       <Sidebar />
 
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
+      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-[padding] duration-300`}>
         <Header />
 
         <main className="container py-6 space-y-6">

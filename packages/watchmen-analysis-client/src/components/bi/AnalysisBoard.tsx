@@ -91,6 +91,21 @@ const BoardCardItem = React.memo(({
   onRemove,
   onAcknowledge
 }: BoardCardItemProps) => {
+  const [isVisible, setIsVisible] = React.useState(true);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  // IntersectionObserver: unload chart content when off-screen
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { rootMargin: '200px 0px', threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   // Stable callbacks: avoid creating new arrow functions on each render
   const handleDragStart = React.useMemo(
     () => !readOnly ? onDragStart(index) : undefined,
@@ -111,7 +126,7 @@ const BoardCardItem = React.memo(({
 
   if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert' && card.chartType !== 'kpi') {
     return (
-      <div className={cn('transition-shadow duration-200', getCardSizeClass(card.size))} style={{ contain: 'layout style paint' }}>
+      <div ref={ref} className={cn('transition-shadow duration-200', getCardSizeClass(card.size))} style={{ contain: 'layout style paint' }}>
         <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-muted-foreground border border-border/50 rounded-xl bg-card/30 p-8 text-center shadow-sm gap-3">
           <AlertCircle className="w-8 h-8 text-muted-foreground/30" />
           <div className="space-y-1">
@@ -124,19 +139,29 @@ const BoardCardItem = React.memo(({
   }
 
   return (
-    <ChartCard
-      card={card}
-      data={chartData}
-      sourceData={rawData ?? undefined}
-      draggable={!readOnly}
-      onDragStart={handleDragStart}
-      onDragOver={!readOnly ? onDragOver : undefined}
-      onDrop={handleDrop}
-      onResize={handleResize}
-      onRemove={handleRemove}
-      alertStatus={alertStatus}
-      onAcknowledge={onAcknowledge}
-    />
+    <div
+      ref={ref}
+      className={cn(getCardSizeClass(card.size))}
+      style={{ contain: 'layout style paint' }}
+    >
+      {isVisible ? (
+        <ChartCard
+          card={card}
+          data={chartData}
+          sourceData={rawData ?? undefined}
+          draggable={!readOnly}
+          onDragStart={handleDragStart}
+          onDragOver={!readOnly ? onDragOver : undefined}
+          onDrop={handleDrop}
+          onResize={handleResize}
+          onRemove={handleRemove}
+          alertStatus={alertStatus}
+          onAcknowledge={onAcknowledge}
+        />
+      ) : (
+        <div className="h-full min-h-[300px] border border-border/30 rounded-xl bg-muted/10" />
+      )}
+    </div>
   );
 }, (prev, next) => (
   prev.card === next.card &&
@@ -247,7 +272,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
   }, [cards.length]);
 
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-500">
+    <div className="space-y-6">
       <div className="flex items-center justify-between border-b pb-4">
         <div className="flex items-center gap-2">
           <div className="p-2 bg-primary/10 rounded-lg">
@@ -305,7 +330,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-12 gap-6" style={{ contain: 'layout style', willChange: 'transform' }}>
+            <div className="grid grid-cols-12 gap-6" style={{ contain: 'layout style paint' }}>
               {visibleCards.map((card, index) => {
                 const { chartData, rawData } = cardDataMap[card.id] ?? EMPTY_CARD_DATA;
                 return (

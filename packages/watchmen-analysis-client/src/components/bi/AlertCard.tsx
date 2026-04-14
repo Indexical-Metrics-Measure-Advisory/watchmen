@@ -273,7 +273,7 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
                  Resolved
                </Badge>
              ) : (
-               <Badge variant="destructive" className="px-2 py-0.5 text-[10px] font-medium animate-pulse">
+               <Badge variant="destructive" className="px-2 py-0.5 text-[10px] font-medium">
                  Active
                </Badge>
              )

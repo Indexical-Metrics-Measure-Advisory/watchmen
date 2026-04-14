@@ -66,7 +66,7 @@ export const BarChartView = React.memo(({ lib, data, chartType, axisProps }: { l
   const shouldAnimate = data.length <= 40;
 
   return (
-    <ResponsiveContainer width="100%" height="100%" debounce={200}>
+    <ResponsiveContainer width="100%" height="100%" debounce={300}>
       <BarChart 
         data={data} 
         margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
@@ -118,7 +118,7 @@ export const PieChartView = React.memo(({ lib, data }: { lib: RechartsModule, da
   const shouldAnimate = processedData.length <= 16;
 
   return (
-    <ResponsiveContainer width="100%" height="100%" debounce={200}>
+    <ResponsiveContainer width="100%" height="100%" debounce={300}>
       <PieChart>
         <Tooltip {...TOOLTIP_SHARED_PROPS} />
         <Legend wrapperStyle={{ fontSize: '12px' }} />
@@ -155,7 +155,7 @@ export const AreaChartView = React.memo(({ lib, data, axisProps }: { lib: Rechar
   const showActiveDot = data.length <= 120;
 
   return (
-    <ResponsiveContainer width="100%" height="100%" debounce={200}>
+    <ResponsiveContainer width="100%" height="100%" debounce={300}>
       <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
         <defs>
           {keys.map((key, index) => (
@@ -200,7 +200,7 @@ export const LineChartView = React.memo(({ lib, data, axisProps }: { lib: Rechar
   const showActiveDot = data.length <= 120;
 
   return (
-    <ResponsiveContainer width="100%" height="100%" debounce={200}>
+    <ResponsiveContainer width="100%" height="100%" debounce={300}>
       <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
         <CartesianGrid {...commonGridProps} />
         <XAxis {...commonXAxisProps} />
