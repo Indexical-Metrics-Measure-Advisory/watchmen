@@ -37,20 +37,19 @@ class EmailHookPlugin(AlertHookPlugin):
         val = self._get_from_dict(action.parameters, key)
         if val is not None:
             return val
-        suggested_params = None
-        if action.suggestedAction is not None:
-            suggested_params = action.suggestedAction.get('parameters')
+        suggested_params = (action.suggestedAction or {}).get('parameters')
         val = self._get_from_dict(suggested_params, key)
         if val is not None:
             return val
-        if action.actionType is not None:
-            action_type_params = action.actionType.get('parameters')
-            val = self._get_from_dict(action_type_params, key)
-            if val is not None:
-                return val
-        return default
+        # action_type_params = (action.actionType or {}).get('parameters')
+        # val = self._get_from_dict(action_type_params, key)
+        return default if val is None else val
 
     async def execute(self, action: AlertAction, rule: GlobalAlertRule, message: str) -> bool:
+        logger.info(f'[EmailHookPlugin] action.parameters: {action.parameters}')
+        logger.info(f'[EmailHookPlugin] action.suggestedAction: {action.suggestedAction}')
+        logger.info(f'[EmailHookPlugin] action.actionType: {action.actionType}')
+        logger.info(f'[EmailHookPlugin] action.target: {action.target}')
         server = self._resolve(action, 'host') or self._resolve(action, 'server')
         if server is None:
             logger.warning('smtp server not configured, skipping email')
@@ -61,9 +60,11 @@ class EmailHookPlugin(AlertHookPlugin):
         username = self._resolve(action, 'username') or self._resolve(action, 'user')
         password = self._resolve(action, 'password')
         send_from = self._resolve(action, 'from') or username
-        send_to = self._resolve(action, 'to') or action.target or self._resolve(action, 'recipient_email')
+        send_to = self._resolve(action, 'to') or action.target
         subject = self._resolve(action, 'subject') or f'Alert triggered: {rule.name}'
         content = self._resolve(action, 'content') or action.content or message
+        logger.info(f'[EmailHookPlugin] resolved params - server: {server}, port: {port}, ssl: {ssl}, '
+                    f'username: {username}, send_from: {send_from}, send_to: {send_to}, subject: {subject}')
         if username is None or password is None or send_from is None or send_to is None:
             logger.warning('email credential incomplete, skipping email')
             return False
