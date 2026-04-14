@@ -18,8 +18,9 @@ Invoke this skill when the user wants to:
 - run batch metric queries from a JSON file
 
 ## Install ClI and Init 
+0 .make sure you alreay have pyhton 3.12+
 1. Ensure CLI is installed:
-   - Global: `pip install watchmen-agent-runtime-cli`
+   - Global: `pip install watchmen-agent-runtime-cli` 
 2. Ensure vault config exists (`init` first if missing):
    - `agent-runtime-cli init --vault <vault> --host <host> --pat <token>`
 3. Prefer module entrypoint for compatibility:
