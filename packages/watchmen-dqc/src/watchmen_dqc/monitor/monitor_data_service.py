@@ -103,6 +103,8 @@ class MonitorDataService:
 		elif is_not_blank(criteria.ruleCode):
 			# noinspection SpellCheckingInspection
 			columns.append(EntityStraightColumn(columnName='topicid'))
+			# noinspection SpellCheckingInspection
+			columns.append(EntityStraightColumn(columnName='factorid'))
 
 		data = service.find_straight_values(criteria=storage_criteria, columns=columns)
 
