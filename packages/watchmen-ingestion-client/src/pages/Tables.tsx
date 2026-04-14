@@ -18,6 +18,7 @@ import {
 import { tableService, TableServiceError } from '@/services/tableService';
 import dataSourceService from '@/services/dataSourceService';
 import { modelService } from '@/services/modelService';
+import { systemService } from '@/services/systemService';
 
 // Helper components for complex data structures
 const ConditionEditor = ({ 
@@ -267,7 +268,8 @@ const TableForm = ({
   isEdit = false,
   onSubmit,
   onCancel,
-  loading
+  loading,
+  disableSubmit = false
 }: {
   formData: Partial<CollectorTableConfig>;
   setFormData: (data: Partial<CollectorTableConfig>) => void;
@@ -281,6 +283,7 @@ const TableForm = ({
   onSubmit: () => void;
   onCancel: () => void;
   loading: boolean;
+  disableSubmit?: boolean;
 }) => {
   return (
     <div className="space-y-6">
@@ -550,7 +553,7 @@ const TableForm = ({
         <Button 
             type="button"
             onClick={onSubmit}
-            disabled={loading}
+            disabled={loading || disableSubmit}
         >
           {loading ? (
             <>
@@ -622,9 +625,18 @@ const Tables = () => {
   const [dataSources, setDataSources] = useState<any[]>([]);
   const [dataSourcesLoading, setDataSourcesLoading] = useState<boolean>(false);
   const [dataSourcesError, setDataSourcesError] = useState<string | null>(null);
+  const [isRuntimeEnv, setIsRuntimeEnv] = useState<boolean>(false);
 
   // Unique model names for filter options
   const [modelNames, setModelNames] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchSystemEnv = async () => {
+      const env = (await systemService.fetchSystemEnv()).trim().toUpperCase();
+      setIsRuntimeEnv(env === 'RUNTIME');
+    };
+    fetchSystemEnv();
+  }, []);
 
   useEffect(() => {
     const fetchModels = async () => {
@@ -821,6 +833,7 @@ const Tables = () => {
   };
 
   const handleEditTable = (table: CollectorTableConfig) => {
+    if (isRuntimeEnv) return;
     setSelectedTable(table);
     setEditFormData({
       configId: table.configId,
@@ -852,6 +865,7 @@ const Tables = () => {
   };
 
   const handleSaveEdit = async () => {
+    if (isRuntimeEnv) return;
       
     if (!selectedTable || !editFormData) return;
 
@@ -1101,6 +1115,7 @@ const Tables = () => {
 
   // Handle create table
   const handleCreateTable = async () => {
+    if (isRuntimeEnv) return;
     try {
       setCreateLoading(true);
       setError(null);
@@ -1159,6 +1174,7 @@ const Tables = () => {
           <Button 
             className="gap-2"
             onClick={() => setCreateDialogOpen(true)}
+            disabled={isRuntimeEnv}
           >
             <Plus className="h-4 w-4" />
             Add New Table
@@ -1344,6 +1360,7 @@ const Tables = () => {
                       size="sm" 
                       className="h-8 border-gray-200 text-gray-700 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
                       onClick={() => handleEditTable(table)}
+                      disabled={isRuntimeEnv}
                     >
                       <Edit className="h-3.5 w-3.5 mr-1.5" />
                       Configure
@@ -1653,6 +1670,7 @@ const Tables = () => {
               onSubmit={handleSaveEdit}
               onCancel={() => setEditDialogOpen(false)}
               loading={loading}
+              disableSubmit={isRuntimeEnv}
             />
           )}
         </DialogContent>
@@ -1713,6 +1731,7 @@ const Tables = () => {
               resetCreateForm();
             }}
             loading={createLoading}
+            disableSubmit={isRuntimeEnv}
           />
         </DialogContent>
       </Dialog>

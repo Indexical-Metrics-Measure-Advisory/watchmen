@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Module, CreateModuleRequest, UpdateModuleRequest } from '../models/module';
 import { moduleService } from '../services/moduleService';
+import { systemService } from '@/services/systemService';
 import { toast } from '@/hooks/use-toast';
 import { ExecutionFlowDiagram } from '../components/flow/ExecutionFlowDiagram';
 import { useAuth } from '@/context/AuthContext';
@@ -39,6 +40,7 @@ const Modules: React.FC = () => {
   const [editLoading, setEditLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [isRuntimeEnv, setIsRuntimeEnv] = useState(false);
 
 
   // Disable mock data mode to use remote service
@@ -67,6 +69,14 @@ const Modules: React.FC = () => {
   // Initial data fetch
   useEffect(() => {
     fetchModules();
+  }, []);
+
+  useEffect(() => {
+    const fetchSystemEnv = async () => {
+      const env = (await systemService.fetchSystemEnv()).trim().toUpperCase();
+      setIsRuntimeEnv(env === 'RUNTIME');
+    };
+    fetchSystemEnv();
   }, []);
 
   // Clear messages after 3 seconds
@@ -121,11 +131,13 @@ const Modules: React.FC = () => {
 
   // CRUD handlers
   const handleCreate = () => {
+    if (isRuntimeEnv) return;
     setCreateDialogOpen(true);
     resetCreateForm();
   };
 
   const handleEdit = (module: Module) => {
+    if (isRuntimeEnv) return;
     setSelectedModule(module);
     setEditFormData(module);
     setEditDialogOpen(true);
@@ -134,6 +146,7 @@ const Modules: React.FC = () => {
   };
 
   const handleCreateModule = async () => {
+    if (isRuntimeEnv) return;
     try {
       setCreateLoading(true);
       setError(null);
@@ -179,6 +192,7 @@ const Modules: React.FC = () => {
   };
 
   const handleSaveEdit = async () => {
+    if (isRuntimeEnv) return;
     if (!selectedModule || !editFormData) return;
 
     try {
@@ -276,7 +290,7 @@ const Modules: React.FC = () => {
               </div>
             </DialogContent>
           </Dialog>
-          <Button onClick={handleCreate} className="gap-2 shadow-sm">
+          <Button onClick={handleCreate} className="gap-2 shadow-sm" disabled={isRuntimeEnv}>
             <Plus className="h-4 w-4" />
             Create Module
           </Button>
@@ -358,7 +372,7 @@ const Modules: React.FC = () => {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No Modules Found</h3>
             <p className="text-gray-500 mb-6 max-w-sm mx-auto">Get started by creating your first module to organize your system.</p>
-            <Button onClick={handleCreate} className="gap-2">
+            <Button onClick={handleCreate} className="gap-2" disabled={isRuntimeEnv}>
               <Plus className="h-4 w-4" />
               Create First Module
             </Button>
@@ -404,6 +418,7 @@ const Modules: React.FC = () => {
                     size="icon" 
                     className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={() => handleEdit(module)}
+                    disabled={isRuntimeEnv}
                   >
                     <Edit className="h-4 w-4 text-gray-500 hover:text-blue-600" />
                   </Button>
@@ -495,7 +510,7 @@ const Modules: React.FC = () => {
             }}>
               Cancel
             </Button>
-            <Button onClick={handleCreateModule} disabled={createLoading}>
+            <Button onClick={handleCreateModule} disabled={createLoading || isRuntimeEnv}>
               {createLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Module
             </Button>
@@ -562,7 +577,7 @@ const Modules: React.FC = () => {
             }}>
               Cancel
             </Button>
-            <Button onClick={handleSaveEdit} disabled={editLoading}>
+            <Button onClick={handleSaveEdit} disabled={editLoading || isRuntimeEnv}>
               {editLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>

@@ -10,13 +10,14 @@ import {DropdownOption} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import dayjs from 'dayjs';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useDataQualityCacheEventBus} from '../../cache/cache-event-bus';
 import {DataQualityCacheEventTypes} from '../../cache/cache-event-bus-types';
 import {DQCCacheData} from '../../cache/types';
 import {RuleDefs} from '../../rule-defs';
 import {getTopicName} from '../../utils';
 import {DEFAULT_LAYOUTS} from '../constants';
+import {StatsChart} from '../chart';
 import {DataPanel} from '../data-panel';
 import {useLayout} from '../data-panel/use-layout';
 import {
@@ -45,25 +46,21 @@ interface Criteria {
 	topicId?: TopicId;
 }
 
-interface State extends Criteria {
-	loader?: number;
-}
-
 export const FreeWalkPanel = () => {
 	const {layout} = useLayout(DataPanels.FREE_WALK);
 
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireCache} = useDataQualityCacheEventBus();
+	const [topics, setTopics] = useState<Array<Topic>>([]);
 	const [criteria, setCriteria] = useState<Criteria>({
 		startDate: dayjs().subtract(3, 'day').startOf('date').format('YYYY/MM/DD HH:mm:ss'),
 		endDate: dayjs().startOf('date').subtract(1, 'millisecond').format('YYYY/MM/DD HH:mm:ss')
 	});
-	const [state, setState] = useState<State>({
-		startDate: dayjs().subtract(3, 'day').startOf('date').format('YYYY/MM/DD HH:mm:ss'),
-		endDate: dayjs().startOf('date').subtract(1, 'millisecond').format('YYYY/MM/DD HH:mm:ss')
-	});
-	const [topics, setTopics] = useState<Array<Topic>>([]);
 	const [data, setData] = useState<Array<MonitorRuleLog>>([]);
+	const [loading, setLoading] = useState(false);
+
+	const debounceRef = useRef<number | null>(null);
+
 	useEffect(() => {
 		const ask = () => {
 			fireCache(DataQualityCacheEventTypes.ASK_DATA_LOADED, (loaded: boolean) => {
@@ -77,31 +74,33 @@ export const FreeWalkPanel = () => {
 			});
 		};
 		ask();
-		// only once
-		// eslint-disable-next-line
-	}, []);
+	}, [fireCache]);
+
+	const loadData = useCallback((c: Criteria) => {
+		if (debounceRef.current) {
+			window.clearTimeout(debounceRef.current);
+		}
+		debounceRef.current = window.setTimeout(() => {
+			setLoading(true);
+			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
+				async () => await fetchMonitorRuleLogs({criteria: c}),
+				(logs: MonitorRuleLogs) => {
+					setData(logs.sort((r1, r2) => {
+						return r1.count === r2.count ? 0 : (r1.count < r2.count) ? 1 : -1;
+					}));
+					setLoading(false);
+				});
+		}, 300);
+	}, [fireGlobal]);
+
 	useEffect(() => {
-		fetchData(criteria);
-		// only once
-		// eslint-disable-next-line
-	}, []);
-	const fetchData = (criteria: Criteria) => {
-		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-			async () => await fetchMonitorRuleLogs({criteria}),
-			(logs: MonitorRuleLogs) => {
-				setData(logs.sort((r1, r2) => {
-					return r1.count === r2.count ? 0 : (r1.count < r2.count) ? 1 : -1;
-				}));
-				setState({...criteria, loader: (void 0)});
-			});
-	};
+		loadData(criteria);
+	}, [loadData, criteria]);
 
 	const changeCriteria = (newCriteria: Partial<Criteria>) => {
-		if (state.loader) {
-			window.clearTimeout(state.loader);
-		}
-		setCriteria({...criteria, ...newCriteria});
-		setState({...state, loader: window.setTimeout(() => fetchData({...criteria, ...newCriteria}), 500)});
+		const updated = {...criteria, ...newCriteria};
+		setCriteria(updated);
+		loadData(updated);
 	};
 	const onStartDateChanged = (value?: string) => {
 		changeCriteria({
@@ -114,27 +113,24 @@ export const FreeWalkPanel = () => {
 		});
 	};
 	const onRuleCodeChanged = (option: DropdownOption) => {
-		const {value} = option;
-		changeCriteria({ruleCode: value === '' ? (void 0) : value});
+		changeCriteria({ruleCode: option.value === '' ? (void 0) : option.value as MonitorRuleCode});
 	};
 	const onTopicChanged = (option: DropdownOption) => {
-		const {value} = option;
-		changeCriteria({topicId: value === '' ? (void 0) : value});
+		changeCriteria({topicId: option.value === '' ? (void 0) : option.value as TopicId});
 	};
 
 	const showCriteria = layout.spanColumn === 3 && layout.spanRow === 3;
 	let gridColumns = GRID_ALL_COLUMNS;
 	let showTopicColumn = true;
 	let showFactorColumn = true;
-	if (state.ruleCode && state.topicId) {
-	} else if (state.ruleCode && !state.topicId) {
-		// show rule code & topic
+	if (criteria.ruleCode && criteria.topicId) {
+		// all
+	} else if (criteria.ruleCode && !criteria.topicId) {
 		gridColumns = GRID_COLUMNS_NO_FACTOR;
 		showFactorColumn = false;
-	} else if (!state.ruleCode && state.topicId) {
+	} else if (!criteria.ruleCode && criteria.topicId) {
 		// show all
 	} else {
-		// show rule only
 		gridColumns = GRID_COLUMNS_NO_TOPIC;
 		showTopicColumn = false;
 		showFactorColumn = false;
@@ -164,7 +160,16 @@ export const FreeWalkPanel = () => {
 		})
 	];
 	const format = new Intl.NumberFormat(undefined, {useGrouping: true});
-	const headerButtons = [{iconProps: {icon: ICON_REFRESH}, tooltip: 'Refresh', action: () => fetchData(criteria)}];
+	const reload = () => loadData(criteria);
+	const headerButtons = [{iconProps: {icon: ICON_REFRESH}, tooltip: 'Refresh', action: reload}];
+
+	const chartData = useMemo(() => {
+		if (data.length === 0) return [];
+		return data.map(row => {
+			const ruleName = RuleDefs[row.ruleCode].name;
+			return {name: ruleName, value: row.count};
+		});
+	}, [data]);
 
 	return <DataPanel which={DataPanels.FREE_WALK} title="Free Walk"
 	                  layout={layout} defaultLayout={DEFAULT_LAYOUTS[DataPanels.FREE_WALK]}
@@ -182,6 +187,7 @@ export const FreeWalkPanel = () => {
 			</DataPanelCriteria>
 			: null}
 		<DataPanelBody>
+			{chartData.length > 0 ? <StatsChart data={chartData} type="bar" title="Rule Distribution"/> : null}
 			<DataPanelBodyHeader columns={gridColumns}>
 				<DataPanelBodyHeaderSeqCell>#</DataPanelBodyHeaderSeqCell>
 				{showTopicColumn ? <DataPanelBodyHeaderCell>Topic</DataPanelBodyHeaderCell> : null}

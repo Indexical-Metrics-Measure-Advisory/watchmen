@@ -17,6 +17,7 @@ import { Module } from '@/models/module';
 import { modelService } from '@/services/modelService';
 import { moduleService } from '@/services/moduleService';
 import dataSourceService from '@/services/dataSourceService';
+import { systemService } from '@/services/systemService';
 
 const Models = () => {
   // Auth context
@@ -44,6 +45,7 @@ const Models = () => {
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [syncingModelId, setSyncingModelId] = useState<string | null>(null);
+  const [isRuntimeEnv, setIsRuntimeEnv] = useState(false);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -78,6 +80,14 @@ const Models = () => {
     };
 
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchSystemEnv = async () => {
+      const env = (await systemService.fetchSystemEnv()).trim().toUpperCase();
+      setIsRuntimeEnv(env === 'RUNTIME');
+    };
+    fetchSystemEnv();
   }, []);
 
   // Apply filters
@@ -221,11 +231,13 @@ const Models = () => {
   };
 
   const handleCreate = () => {
+    if (isRuntimeEnv) return;
     setCreateDialogOpen(true);
     resetCreateForm();
   };
 
   const handleEdit = (model: Model) => {
+    if (isRuntimeEnv) return;
     console.log('Edit button clicked for model:', model.modelName);
     setSelectedModel(model);
     setEditFormData(model);
@@ -235,6 +247,7 @@ const Models = () => {
   };
 
   const handleCreateModel = async () => {
+    if (isRuntimeEnv) return;
     try {
       setCreateLoading(true);
       setError(null);
@@ -285,6 +298,7 @@ const Models = () => {
   };
 
   const handleSaveEdit = async () => {
+    if (isRuntimeEnv) return;
     // console.log('handleSaveEdit called');
     if (!selectedModel || !editFormData) {
       // console.log('No selected model or edit form data');
@@ -387,7 +401,7 @@ const Models = () => {
           <p className="text-gray-500 mt-2">Manage your data models and definitions.</p>
         </div>
         <div className="flex gap-3">
-          <Button onClick={handleCreate} className="gap-2 shadow-sm">
+          <Button onClick={handleCreate} className="gap-2 shadow-sm" disabled={isRuntimeEnv}>
             <Plus className="h-4 w-4" />
             Create Model
           </Button>
@@ -499,7 +513,7 @@ const Models = () => {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No Models Found</h3>
             <p className="text-gray-500 mb-6 max-w-sm mx-auto">Get started by creating your first model to define your data structure.</p>
-            <Button onClick={handleCreate} className="gap-2">
+            <Button onClick={handleCreate} className="gap-2" disabled={isRuntimeEnv}>
               <Plus className="h-4 w-4" />
               Create First Model
             </Button>
@@ -576,6 +590,7 @@ const Models = () => {
                     size="icon" 
                     className="h-8 w-8"
                     onClick={() => handleEdit(model)}
+                    disabled={isRuntimeEnv}
                     title="Edit Model"
                   >
                     <Edit className="h-4 w-4 text-gray-500 hover:text-blue-600" />
@@ -840,7 +855,7 @@ const Models = () => {
             </div>
           </div>
           <div className="flex gap-3 mt-6">
-            <Button onClick={handleCreateModel} disabled={createLoading}>
+            <Button onClick={handleCreateModel} disabled={createLoading || isRuntimeEnv}>
               {createLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               Create Model
             </Button>
@@ -955,7 +970,7 @@ const Models = () => {
             </div>
           </div>
           <div className="flex gap-3 mt-6">
-            <Button onClick={handleSaveEdit} disabled={editLoading}>
+            <Button onClick={handleSaveEdit} disabled={editLoading || isRuntimeEnv}>
               {editLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               Save Changes
             </Button>
