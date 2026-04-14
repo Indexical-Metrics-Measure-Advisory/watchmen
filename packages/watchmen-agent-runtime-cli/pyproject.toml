@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "agent-runtime-cli"
-version = "16.0.0"
+name = "watchmen-agent-runtime-cli"
+version = "18.0.0"
 description = "Watchmen runtime metric query CLI"
 authors = ["imma-team"]
 packages = [
