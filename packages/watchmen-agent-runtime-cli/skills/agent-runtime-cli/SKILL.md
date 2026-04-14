@@ -17,6 +17,15 @@ Invoke this skill when the user wants to:
 - query metric values with filters, grouping, ordering, or time granularity
 - run batch metric queries from a JSON file
 
+## Install ClI and Init 
+1. Ensure CLI is installed:
+   - Global: `pip install watchmen-agent-runtime-cli`
+2. Ensure vault config exists (`init` first if missing):
+   - `agent-runtime-cli init --vault <vault> --host <host> --pat <token>`
+3. Prefer module entrypoint for compatibility:
+   - `poetry run python -m agent_runtime_cli ...`
+
+
 ## What It Does
 
 - Initializes a local vault and saves runtime connection config
