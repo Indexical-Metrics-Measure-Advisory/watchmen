@@ -1,11 +1,3 @@
-# Docker ignore file generated from .gitignore
-# See https://docs.docker.com/engine/reference/builder/#dockerignore-file
-
-# Git
-.git
-.gitignore
-
-# Logs
 logs
 *.log
 npm-debug.log*
@@ -15,12 +7,8 @@ pnpm-debug.log*
 lerna-debug.log*
 .workbuddy/*
 .vscode/*
-
-# Dependencies and build output
-node_modules
-dist
-dist-ssr
 *.local
+
 
 # Editor directories and files
 .vscode/*
@@ -35,17 +23,3 @@ dist-ssr
 .idea/*
 .trae
 .vercel
-
-# dotenv environment variables file
-.env
-.env.test
-
-# Docker
-Dockerfile
-docker-compose.yml
-.dockerignore
-
-# Documentation and CI
-README.md
-LICENSE
-.github
