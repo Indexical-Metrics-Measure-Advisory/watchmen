@@ -58,10 +58,8 @@ export const PeriodicPanel = (props: {
 	const [title, setTitle] = useState(givenTitle);
 	const [state, setState] = useState<State>({});
 	const [data, setData] = useState<Array<DataRow>>([]);
-	const [loading, setLoading] = useState(false);
 
 	const loadData = useCallback((ruleCode?: MonitorRuleCode, topicId?: TopicId) => {
-		setLoading(true);
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 			async () => await fetchMonitorRuleLogs({
 				criteria: {
@@ -108,7 +106,6 @@ export const PeriodicPanel = (props: {
 						} else {
 							setTitle(`${givenTitle} @ ${RuleDefs[ruleCode].name}`);
 						}
-						setLoading(false);
 					};
 
 					const askTopics = () => {
@@ -126,7 +123,6 @@ export const PeriodicPanel = (props: {
 				} else {
 					setTitle(givenTitle);
 					setData(logs.sort((r1, r2) => r1.count === r2.count ? 0 : (r1.count < r2.count) ? 1 : -1));
-					setLoading(false);
 				}
 			});
 	}, [fireGlobal, fireCache, start, end, givenTitle]);

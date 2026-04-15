@@ -57,7 +57,6 @@ export const FreeWalkPanel = () => {
 		endDate: dayjs().startOf('date').subtract(1, 'millisecond').format('YYYY/MM/DD HH:mm:ss')
 	});
 	const [data, setData] = useState<Array<MonitorRuleLog>>([]);
-	const [loading, setLoading] = useState(false);
 
 	const debounceRef = useRef<number | null>(null);
 
@@ -81,14 +80,12 @@ export const FreeWalkPanel = () => {
 			window.clearTimeout(debounceRef.current);
 		}
 		debounceRef.current = window.setTimeout(() => {
-			setLoading(true);
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 				async () => await fetchMonitorRuleLogs({criteria: c}),
 				(logs: MonitorRuleLogs) => {
 					setData(logs.sort((r1, r2) => {
 						return r1.count === r2.count ? 0 : (r1.count < r2.count) ? 1 : -1;
 					}));
-					setLoading(false);
 				});
 		}, 300);
 	}, [fireGlobal]);
