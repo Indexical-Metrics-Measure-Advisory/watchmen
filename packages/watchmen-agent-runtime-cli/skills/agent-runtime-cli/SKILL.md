@@ -17,13 +17,17 @@ Invoke this skill when the user wants to:
 - query metric values with filters, grouping, ordering, or time granularity
 - run batch metric queries from a JSON file
 
-## Install ClI and Init 
-0 .make sure you alreay have pyhton 3.12+
-1. Ensure CLI is installed:
-   - Global: `pip install watchmen-agent-runtime-cli` 
-2. Ensure vault config exists (`init` first if missing):
+## Install CLI And Init
+
+Before using this skill:
+
+1. Ensure Python version is `3.12+`.
+   - If Python is below `3.12`, stop and fix the environment first.
+2. Ensure CLI is installed:
+   - Global: `pip install watchmen-agent-runtime-cli`
+3. Ensure vault config exists (`init` first if missing):
    - `agent-runtime-cli init --vault <vault> --host <host> --pat <token>`
-3. Prefer module entrypoint for compatibility:
+4. Prefer module entrypoint for compatibility:
    - `poetry run python -m agent_runtime_cli ...`
 
 
@@ -117,6 +121,63 @@ poetry run agent-runtime-cli metrics query-file ./queries.json --vault ./runtime
 Authorization: pat <PAT>
 ```
 
+## Troubleshooting Checklist
+
+When the user reports a runtime CLI problem, check these items in order:
+
+1. Python version
+   - `python --version`
+   - Requires `3.12+`
+   - If version is lower than `3.12`, explain that the runtime CLI requires Python `3.12+` and fix that first.
+2. CLI installation
+   - Confirm `agent-runtime-cli` is installed and executable.
+   - Prefer `poetry run python -m agent_runtime_cli ...` when environment resolution is unclear.
+3. Vault config
+   - Confirm `<vault>/.agent-runtime-cli/config.json` exists.
+   - If missing, run `init`.
+4. Host and PAT
+   - Verify host is reachable.
+   - Verify PAT is present and valid.
+5. Runtime endpoint
+   - Check `/metricflow/health` first before deeper troubleshooting.
+6. Query payload
+   - Confirm metric names, dimensions, time range, filters, and JSON file format are valid.
+
+## Known Issues List
+
+Maintain this section as a living issue list for recurring runtime CLI problems.
+
+- Python version mismatch
+  - Symptom: CLI fails to install or run.
+  - Cause: Python version is below `3.12`.
+  - Fix: switch to Python `3.12+`.
+- Missing vault config
+  - Symptom: command cannot find config or PAT.
+  - Cause: vault was not initialized.
+  - Fix: run `agent-runtime-cli init --vault <vault> --host <host> --pat <token>`.
+- Invalid or missing PAT
+  - Symptom: runtime returns `401` or `403`.
+  - Cause: PAT missing, expired, or incorrect.
+  - Fix: re-run init with a valid PAT or update the vault config.
+- Runtime health check failed
+  - Symptom: `/metricflow/health` is unreachable or returns `4xx/5xx`.
+  - Cause: host is wrong, service is down, or networking is blocked.
+  - Fix: verify host, service status, and network access.
+- Query file parse failure
+  - Symptom: `metrics query-file` fails before execution.
+  - Cause: file is not valid JSON or top level is not an array.
+  - Fix: correct the JSON structure.
+
+## Issue List Maintenance
+
+Each time you solve a new runtime CLI problem, update the `Known Issues List` in this skill.
+
+- Add a new item when the problem pattern is new and likely to recur.
+- Update an existing item when the root cause or fix becomes clearer.
+- Keep each item short and structured as: `Symptom`, `Cause`, `Fix`.
+- Prefer practical, reproducible issues over one-off local accidents.
+- If the issue is only temporary and not reusable, do not add it.
+
 ## References
 
 - Command catalog: `references/command-catalog.md`
@@ -126,6 +187,7 @@ Authorization: pat <PAT>
 ## Error Guidance
 
 - If vault config is missing, run `init` first.
+- If Python version is below `3.12`, upgrade Python before continuing.
 - If PAT is missing, provide `--pat` during init or configure it in the vault.
 - If query file parsing fails, verify the file is valid JSON and the top level is an array.
 - If runtime returns 4xx/5xx, verify host, PAT, and endpoint availability.
