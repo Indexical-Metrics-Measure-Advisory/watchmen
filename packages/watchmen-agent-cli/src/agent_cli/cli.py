@@ -9,6 +9,7 @@ import typer
 from agent_cli.exceptions import AgentCliException
 from agent_cli.main import (
     handle_config_show,
+    handle_datasource_list_remote,
     handle_discover,
     handle_enum_list,
     handle_enum_list_remote,
@@ -62,6 +63,7 @@ ingest_app = typer.Typer(help="Ingest config YAML commands")
 ingest_table_app = typer.Typer(help="Collector table config commands")
 ingest_model_app = typer.Typer(help="Collector model config commands")
 ingest_module_app = typer.Typer(help="Collector module config commands")
+datasource_app = typer.Typer(help="DataSource commands")
 app.add_typer(topic_app, name="topic")
 app.add_typer(pipeline_app, name="pipeline")
 app.add_typer(enum_app, name="enum")
@@ -71,6 +73,7 @@ app.add_typer(ingest_app, name="ingest")
 ingest_app.add_typer(ingest_table_app, name="table")
 ingest_app.add_typer(ingest_model_app, name="model")
 ingest_app.add_typer(ingest_module_app, name="module")
+app.add_typer(datasource_app, name="datasource")
 
 
 def _namespace(**kwargs) -> Namespace:
@@ -453,6 +456,14 @@ def ingest_module_list_remote_command(
     vault: Optional[str] = typer.Option(None, "--vault"),
 ) -> None:
     _run_with_guard(ctx, lambda: handle_ingest_module_list_remote(_namespace(vault=vault)))
+
+
+@datasource_app.command("list-remote")
+def datasource_list_remote_command(
+    ctx: typer.Context,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_datasource_list_remote(_namespace(vault=vault)))
 
 
 def run() -> None:
