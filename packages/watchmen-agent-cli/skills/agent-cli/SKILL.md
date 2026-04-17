@@ -21,7 +21,7 @@ Keep this file concise and load detailed references only when needed.
 
 ## Install ClI and Init 
 1. Ensure CLI is installed:
-   - Global: `pip install watchmen-agent-cli`
+   - Follow `references/cli-install-guide.en.md` for detailed install instructions.
 2. Ensure vault config exists (`init` first if missing):
    - `agent-cli init --vault <vault> --host <host> --pat <token>`
 3. Prefer module entrypoint for compatibility:
