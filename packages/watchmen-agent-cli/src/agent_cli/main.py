@@ -53,6 +53,7 @@ DISCOVER_COMMANDS = {
     "ingest module push-file": ["file_path", "--vault"],
     "ingest module list": ["--vault"],
     "ingest module list-remote": ["--vault"],
+    "datasource list-remote": ["--vault"],
     "tenant": ["--vault"],
     "config": ["--vault"],
     "discover": [],
@@ -93,6 +94,7 @@ def build_parser() -> argparse.ArgumentParser:
     register_semantic_commands(subparsers)
     register_metric_commands(subparsers)
     register_ingest_commands(subparsers)
+    register_datasource_commands(subparsers)
     register_tenant_command(subparsers)
     register_config_commands(subparsers)
     return parser
@@ -280,6 +282,10 @@ def handle_ingest_module_list(args: argparse.Namespace) -> None:
 
 def handle_ingest_module_list_remote(args: argparse.Namespace) -> None:
     run_with_sync_service(args, lambda svc: svc.list_ingest_module_configs_from_server())
+
+
+def handle_datasource_list_remote(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.list_data_sources_from_server())
 
 
 def handle_tenant_info(args: argparse.Namespace) -> None:
@@ -556,6 +562,13 @@ def register_ingest_commands(subparsers: argparse._SubParsersAction) -> None:
     module_list_remote = create_subparser(module_sub, "list-remote", "List all module configs on server")
     add_vault_arg(module_list_remote)
     module_list_remote.set_defaults(handler=handle_ingest_module_list_remote)
+
+
+def register_datasource_commands(subparsers: argparse._SubParsersAction) -> None:
+    datasource_parser = create_subparser(subparsers, "datasource", "DataSource list commands")
+    datasource_list_remote = create_subparser(datasource_parser, "list-remote", "List all data sources on server")
+    add_vault_arg(datasource_list_remote)
+    datasource_list_remote.set_defaults(handler=handle_datasource_list_remote)
 
 
 def register_tenant_command(subparsers: argparse._SubParsersAction) -> None:

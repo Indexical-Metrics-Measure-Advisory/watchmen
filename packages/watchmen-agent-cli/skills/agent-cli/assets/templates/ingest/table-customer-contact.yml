@@ -1,0 +1,33 @@
+configId: f-table_customer_contact_001
+name: Customer Contact Info
+tableName: customer_contact
+modelName: CustomerProfile
+primaryKey:
+  - contact_id
+objectKey: contact_id
+sequenceKey: contact_id
+label: CustomerContactInfo
+joinKeys:
+  - parentKey:
+      columnName: customer_id
+      operator: equals
+      columnValue: null
+    childKey:
+      columnName: customer_id
+      operator: equals
+      columnValue: null
+conditions:
+  - conjunction: or
+    children:
+      - columnName: contact_type
+        operator: equals
+        columnValue: email
+      - columnName: contact_type
+        operator: equals
+        columnValue: phone
+      - columnName: is_verified
+        operator: equals
+        columnValue: "true"
+dataSourceId: ds_warehouse_001
+isList: true
+triggered: false

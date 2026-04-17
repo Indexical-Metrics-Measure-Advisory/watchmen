@@ -1,0 +1,7 @@
+modelId: f-model_customer_profile_001
+modelName: CustomerProfile
+moduleId: f-module_customer_001
+dependOn: []
+priority: 1
+rawTopicCode: raw_customer_profile
+isParalleled: true

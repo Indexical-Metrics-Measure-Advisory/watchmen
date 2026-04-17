@@ -1,5 +1,18 @@
 # Source of Truth
 
+## ID Naming Rules
+
+When creating new resources locally, use **fake IDs** with `f-` prefix or leave the ID **empty** — the server will assign a real Snowflake ID on push:
+
+| Scenario | ID format | Example |
+|----------|-----------|---------|
+| Create (local file) | `f-{type}_{name}_{seq}` or empty | `f-module_customer_001`, `f-table_order_001` |
+| Update (local file) | real Snowflake ID from server | `1491090766418725888` |
+
+- **`f-` prefix** signals "this is a placeholder, generate real ID on server".
+- When the CLI pulls from server, real Snowflake IDs are stored — subsequent pushes update the existing resource.
+- All IDs in local files should match the pattern `f-{resource_type}_{meaningful_name}_{sequence}` for readability.
+
 ## Local File Naming Conventions
 - **General Pattern**: `{name}__{id}.yml`
 - **Directory Structure**:
@@ -49,13 +62,19 @@
 - Current CLI pipeline sync uses YAML endpoints (with fallback to JSON for legacy `pipeline/import`).
 
 ## Ingestion
-- Module model:
-  - Core fields and types: `moduleId:str`, `moduleName:str`, `tenantId:str|None`, `description:str|None`.
-- Model config:
-  - Core fields and types: `modelId:str`, `modelName:str`, `moduleId:str`, `tenantId:str|None`.
-- Table config:
-  - Core fields and types: `configId:str`, `name:str`, `modelName:str`, `tenantId:str|None`.
-- Ingestion relation types: `module(1) -> model(N) -> table config(N)`.
+- Module model (`CollectorModuleConfig`):
+  - Core fields: `moduleId:str`, `moduleName:str`, `tenantId:str|None`, `description:str|None`, `priority:int (=0)`.
+- Model config (`CollectorModelConfig`):
+  - Core fields: `modelId:str`, `modelName:str`, `moduleId:str`, `tenantId:str|None`, `dependOn:list[str]|None`, `priority:int (=0)`, `rawTopicCode:str|None`, `isParalleled:bool|None`.
+- Table config (`CollectorTableConfig`):
+  - Core fields: `configId:str`, `name:str`, `tableName:str`, `modelName:str`, `tenantId:str|None`, `primaryKey:list[str]|None`, `objectKey:str|None`, `sequenceKey:str|None`, `parentName:str|None`, `label:str|None`, `joinKeys:list[JoinCondition]|None`, `dependOn:list[Dependence]|None`, `auditColumn:str|None`, `ignoredColumns:list[str]|None`, `jsonColumns:list[JsonColumn]|None`, `conditions:list[Condition]|None`, `dataSourceId:str|None`, `isList:bool (=False)`, `triggered:bool (=False)`.
+  - `JoinCondition`: `parentKey:Condition|None`, `childKey:Condition|None`.
+  - `Dependence`: `modelName:str|None`, `objectKey:str|None`.
+  - `JsonColumn`: `columnName:str|None`, `ignoredPath:list[str]|None`, `needFlatten:bool|None`, `flattenPath:list[str]|None`, `jsonPath:list[str]|None`.
+  - `Condition` (supports two forms):
+    - Expression: `columnName:str`, `operator:str` (e.g. `equals`, `greater_than`, `less_than`, `like`, `in`), `columnValue:str|int|list|None`.
+    - Joint: `conjunction:str` (`and`|`or`), `children:list[Condition]|None`.
+  - Ingestion relation: `module(1) -> model(N) -> table config(N)`.
 
 ## MetricFlow
 - Semantic model:

@@ -1,0 +1,20 @@
+configId: f-table_customer_basic_001
+name: Customer Basic Info
+tableName: customer_basic
+modelName: CustomerProfile
+primaryKey:
+  - customer_id
+objectKey: customer_id
+sequenceKey: customer_id
+label: CustomerBasicInfo
+auditColumn: last_modified
+ignoredColumns:
+  - _etl_timestamp
+  - _batch_id
+conditions:
+  - columnName: is_active
+    operator: equals
+    columnValue: "true"
+dataSourceId: ds_warehouse_001
+isList: false
+triggered: false

@@ -7,7 +7,7 @@ import yaml
 
 from agent_cli.exceptions import AgentCliException
 from agent_cli.http_client import RestClient
-from agent_cli.vault import ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CONFIG_DIR, INGEST_TABLE_CONFIG_DIR, METRICFLOW_METRIC_DIR, METRICFLOW_SEMANTIC_DIR, PIPELINE_DIR, TOPIC_DIR, read_entities, write_entities, write_yaml_entity, read_yaml_entities
+from agent_cli.vault import DATASOURCE_DIR, ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CONFIG_DIR, INGEST_TABLE_CONFIG_DIR, METRICFLOW_METRIC_DIR, METRICFLOW_SEMANTIC_DIR, PIPELINE_DIR, TOPIC_DIR, read_entities, write_entities, write_yaml_entity, read_yaml_entities
 
 SyncTarget = Literal["topic", "pipeline", "all"]
 
@@ -475,6 +475,19 @@ class SyncService:
         configs = self.client.get_json("/ingest/config/module/all")
         summaries = [{"moduleId": c.get("moduleId"), "moduleName": c.get("moduleName")} for c in configs]
         return {"count": len(summaries), "moduleConfigs": summaries}
+
+    def list_data_sources_from_server(self) -> Dict[str, Any]:
+        datasources = self.client.get_json("/datasource/all")
+        summaries = [{
+            "dataSourceId": ds.get("dataSourceId"),
+            "dataSourceCode": ds.get("dataSourceCode"),
+            "name": ds.get("name"),
+            "dataSourceType": ds.get("dataSourceType"),
+            "host": ds.get("host"),
+            "port": ds.get("port"),
+            "username": ds.get("username"),
+        } for ds in datasources]
+        return {"count": len(summaries), "dataSources": summaries}
 
     def resolve_tenant_info(self) -> Dict[str, Any]:
         topic_tenant_ids = self._tenant_ids_from_topics()

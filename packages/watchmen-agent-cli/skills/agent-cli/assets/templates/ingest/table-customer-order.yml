@@ -1,0 +1,48 @@
+configId: f-table_customer_order_001
+name: Customer Order Detail
+tableName: customer_order_detail
+modelName: CustomerProfile
+primaryKey:
+  - order_id
+objectKey: order_id
+sequenceKey: order_id
+label: CustomerOrderDetail
+joinKeys:
+  - parentKey:
+      columnName: customer_id
+      operator: equals
+      columnValue: null
+    childKey:
+      columnName: customer_id
+      operator: equals
+      columnValue: null
+dependOn:
+  - modelName: CustomerProfile
+    objectKey: customer_id
+auditColumn: update_time
+ignoredColumns:
+  - etl_time
+  - batch_id
+conditions:
+  - conjunction: and
+    children:
+      - columnName: order_status
+        operator: equals
+        columnValue: "active"
+      - columnName: order_amount
+        operator: greater_than
+        columnValue: "0"
+      - columnName: created_date
+        operator: greater_than_or_equals
+        columnValue: "2024-01-01"
+jsonColumns:
+  - columnName: extra_info
+    needFlatten: true
+    flattenPath:
+      - metadata
+      - tags
+    jsonPath:
+      - $.metadata.tags
+dataSourceId: ds_warehouse_001
+isList: true
+triggered: false
