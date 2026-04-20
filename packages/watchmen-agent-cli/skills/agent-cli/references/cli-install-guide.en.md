@@ -7,7 +7,7 @@
 
 ## 1. Prerequisites
 
-- Python: need   **3.12+** +
+- Python: need   **3.10+** +
 - Network access to PyPI (or your mirror / private index)
 
 ---

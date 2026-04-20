@@ -57,8 +57,10 @@
 - `ingest model pull "<model_name>" --all --vault`
 - `ingest model push-file <file_path> --vault`
 - `ingest model list --vault`
+- `ingest model create-raw-topic "<model_name>" --vault`
 - `ingest model list-remote --vault`
 - `ingest module pull "<module_name>" --all --vault`
 - `ingest module push-file <file_path> --vault`
 - `ingest module list --vault`
 - `ingest module list-remote --vault`
+

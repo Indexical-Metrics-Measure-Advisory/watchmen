@@ -16,8 +16,9 @@ Keep this file concise and load detailed references only when needed.
 ## When To Invoke
 - User asks to initialize CLI vault/config.
 - User asks to pull/push Topic, Pipeline, Enum, Semantic Model, Metric, or Ingestion configs.
-- User asks to list remote metadata.
+- User asks to list remote metadata or pull data sources.
 - User asks to pull by name/id, or push local YAML files.
+- User asks to create a raw topic from a collector model (generate Topic YAML from Ingestion model).
 
 ## Install ClI and Init 
 1. Ensure CLI is installed:
@@ -57,6 +58,7 @@ Keep this file concise and load detailed references only when needed.
 6. If failure occurs, load troubleshooting reference and retry with fix.
 
 ## Scope
-- Supported entities: Topic, Pipeline, Enum, MetricFlow Semantic Model, MetricFlow Metric, Ingestion Module/Model/Table.
+- Supported entities: Topic, Pipeline, Enum, MetricFlow Semantic Model, MetricFlow Metric, Ingestion Module/Model/Table, DataSource.
+- Supported actions: pull, push, list, list-remote, pull by name/id, push local YAML files, create raw topic from ingestion model.
 - Protocol: YAML for topic/pipeline/enum/ingestion.
 - Outputs: JSON summaries suitable for agent chaining.
