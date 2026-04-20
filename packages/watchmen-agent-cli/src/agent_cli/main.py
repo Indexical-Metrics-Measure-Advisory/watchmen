@@ -49,6 +49,7 @@ DISCOVER_COMMANDS = {
     "ingest model push-file": ["file_path", "--vault"],
     "ingest model list": ["--vault"],
     "ingest model list-remote": ["--vault"],
+    "ingest model create-raw-topic": ["model_name", "--vault"],
     "ingest module pull": ["module_name", "--all", "--vault"],
     "ingest module push-file": ["file_path", "--vault"],
     "ingest module list": ["--vault"],
@@ -262,6 +263,11 @@ def handle_ingest_model_list(args: argparse.Namespace) -> None:
 
 def handle_ingest_model_list_remote(args: argparse.Namespace) -> None:
     run_with_sync_service(args, lambda svc: svc.list_ingest_model_configs_from_server())
+
+
+def handle_ingest_model_create_raw_topic(args: argparse.Namespace) -> None:
+    result = run_with_sync_service(args, lambda svc: svc.create_raw_topic_by_model_name(args.model_name))
+    print(json.dumps(result, indent=2, default=str))
 
 
 def handle_ingest_module_pull(args: argparse.Namespace) -> None:
@@ -540,6 +546,12 @@ def register_ingest_commands(subparsers: argparse._SubParsersAction) -> None:
     model_list_remote = create_subparser(model_sub, "list-remote", "List all model configs on server")
     add_vault_arg(model_list_remote)
     model_list_remote.set_defaults(handler=handle_ingest_model_list_remote)
+
+    model_create_raw_topic = create_subparser(model_sub, "create-raw-topic",
+                                              "Create raw topic from a collector model")
+    model_create_raw_topic.add_argument("model_name", help="Collector model name")
+    add_vault_arg(model_create_raw_topic)
+    model_create_raw_topic.set_defaults(handler=handle_ingest_model_create_raw_topic)
 
     module_parser = create_subparser(ingest_sub, "module", "Collector module config commands")
     module_sub = module_parser.add_subparsers(dest="ingest_module_cmd", required=True)

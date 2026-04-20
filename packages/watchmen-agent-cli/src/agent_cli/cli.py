@@ -16,6 +16,7 @@ from agent_cli.main import (
     handle_enum_pull,
     handle_enum_pull_name,
     handle_enum_push_file,
+    handle_ingest_model_create_raw_topic,
     handle_ingest_model_list,
     handle_ingest_model_list_remote,
     handle_ingest_model_pull,
@@ -421,6 +422,15 @@ def ingest_model_list_remote_command(
     vault: Optional[str] = typer.Option(None, "--vault"),
 ) -> None:
     _run_with_guard(ctx, lambda: handle_ingest_model_list_remote(_namespace(vault=vault)))
+
+
+@ingest_model_app.command("create-raw-topic")
+def ingest_model_create_raw_topic_command(
+    ctx: typer.Context,
+    model_name: str,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ingest_model_create_raw_topic(_namespace(model_name=model_name, vault=vault)))
 
 
 @ingest_module_app.command("pull")

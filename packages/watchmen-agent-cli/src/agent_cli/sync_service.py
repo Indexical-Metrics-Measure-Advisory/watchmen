@@ -489,6 +489,10 @@ class SyncService:
         } for ds in datasources]
         return {"count": len(summaries), "dataSources": summaries}
 
+    def create_raw_topic_by_model_name(self, model_name: str) -> Dict[str, Any]:
+        result = self.client.get_json(f"/collector/create/raw/topic?model_name={model_name}")
+        return result
+
     def resolve_tenant_info(self) -> Dict[str, Any]:
         topic_tenant_ids = self._tenant_ids_from_topics()
         pipeline_tenant_ids = self._tenant_ids_from_pipelines()
