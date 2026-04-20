@@ -11,11 +11,11 @@ joinKeys:
   - parentKey:
       columnName: customer_id
       operator: equals
-      columnValue: null
+      columnValue: {customer_id}
     childKey:
       columnName: customer_id
       operator: equals
-      columnValue: null
+      columnValue: {customer_id}
 dependOn:
   - modelName: CustomerProfile
     objectKey: customer_id
