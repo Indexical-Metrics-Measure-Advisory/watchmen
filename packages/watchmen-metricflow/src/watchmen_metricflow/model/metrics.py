@@ -30,8 +30,6 @@ class ConversionTypeParams(BaseModel):
     
     model_config = ConfigDict(use_enum_values=True)
 
-    
-    pass
 
 
 class CumulativeTypeParams(BaseModel):

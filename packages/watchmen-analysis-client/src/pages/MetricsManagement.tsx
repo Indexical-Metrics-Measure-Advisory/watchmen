@@ -29,6 +29,7 @@ import {
 } from '@/model/metricsManagement';
 import {
   getMetrics,
+  getAllMetrics,
   deleteMetric,
   updateMetric,
   createMetric,
@@ -67,6 +68,9 @@ const MetricsManagement: React.FC = () => {
   });
   const { toast } = useToast();
   const metricNamePattern = /^[A-Za-z0-9_]+$/;
+
+  // Separate state for dropdown selectors — always contains ALL metrics regardless of search filter
+  const [allMetricsForSelect, setAllMetricsForSelect] = useState<MetricDefinition[]>([]);
 
   const normalizeMeasure = (measure?: MetricTypeParams['measure']) => {
     return {
@@ -142,6 +146,10 @@ const MetricsManagement: React.FC = () => {
   useEffect(() => {
     loadData();
   }, [filter, loadData]);
+
+  useEffect(() => {
+    getAllMetrics().then(setAllMetricsForSelect).catch(() => setAllMetricsForSelect([]));
+  }, []);
 
   useEffect(() => {
     loadCategories();
@@ -1044,7 +1052,7 @@ const MetricsManagement: React.FC = () => {
                       <SelectValue placeholder="Select numerator metric" />
                     </SelectTrigger>
                     <SelectContent>
-                      {metrics.map((m) => (
+                      {allMetricsForSelect.filter(m => m.type === 'simple').map((m) => (
                         <SelectItem key={m.name} value={m.name}>
                           {m.label || m.name}
                         </SelectItem>
@@ -1076,7 +1084,7 @@ const MetricsManagement: React.FC = () => {
                       <SelectValue placeholder="Select denominator metric" />
                     </SelectTrigger>
                     <SelectContent>
-                      {metrics.map((m) => (
+                      {allMetricsForSelect.filter(m => m.type === 'simple').map((m) => (
                         <SelectItem key={m.name} value={m.name}>
                           {m.label || m.name}
                         </SelectItem>
@@ -1386,7 +1394,7 @@ const MetricsManagement: React.FC = () => {
                       <SelectValue placeholder="Select numerator metric" />
                     </SelectTrigger>
                     <SelectContent>
-                      {metrics.map((m) => (
+                      {allMetricsForSelect.filter(m => m.type === 'simple').map((m) => (
                         <SelectItem key={m.name} value={m.name}>
                           {m.label || m.name}
                         </SelectItem>
@@ -1418,7 +1426,7 @@ const MetricsManagement: React.FC = () => {
                       <SelectValue placeholder="Select denominator metric" />
                     </SelectTrigger>
                     <SelectContent>
-                      {metrics.map((m) => (
+                      {allMetricsForSelect.filter(m => m.type === 'simple').map((m) => (
                         <SelectItem key={m.name} value={m.name}>
                           {m.label || m.name}
                         </SelectItem>

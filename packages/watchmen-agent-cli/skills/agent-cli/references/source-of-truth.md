@@ -76,6 +76,8 @@ When creating new resources locally, use **fake IDs** with `f-` prefix or leave 
     - Joint: `conjunction:str` (`and`|`or`), `children:list[Condition]|None`.
   - Ingestion relation: `module(1) -> model(N) -> table config(N)`.
 
+
+
 ## MetricFlow
 - Semantic model:
   - Core fields and types: `id:str`, `name:str`, `sourceType:str`, `topicId:str|None`, `node_relation:dict|None`, `entities:list[dict]`, `measures:list[dict]`, `dimensions:list[dict]`.
@@ -86,7 +88,46 @@ When creating new resources locally, use **fake IDs** with `f-` prefix or leave 
   - `dimensions[]` item shape: `name:str`, `type:str`, `expr:str|None`, `type_params:dict|None`.
   - YAML endpoints: `/metricflow/semantic-model/name/yaml`, `/metricflow/semantic-model/yaml`
 - Metric:
-  - Core fields and types: `id:str`, `name:str`, `type:str`, `label:str|None`, `description:str|None`, `filter:dict|None`, `category:str|None`, `topicId:str|None`.
-  - Metric type candidates: `SIMPLE`, `RATIO`, `CUMULATIVE`, `DERIVED`.
-  - Common metric expression shape: `type:str`, `measure:str|None`, `numerator:str|None`, `denominator:str|None`, `window:str|None`.
+  - Core fields and types: `id:str`, `name:str`, `type:MetricType`, `label:str|None`, `description:str|None`, `filter:str|None`, `categoryId:str|None`, `time_granularity:str|None`, `type_params:MetricTypeParams`.
+  - Metric type candidates: `simple`, `ratio`, `cumulative`, `derived`, `conversion`.
+  - `MetricTypeParams` common fields: `measure:MeasureReference|None`, `numerator:MeasureReference|None`, `denominator:MeasureReference|None`, `expr:str|None`, `window:WindowParams|None`, `grain_to_date:str|None`, `metrics:list[MetricRef]|None`, `conversion_type_params:ConversionTypeParams|None`, `cumulative_type_params:CumulativeTypeParams|None`, `input_measures:list[MeasureReference]`.
+  - `MeasureReference`: `name:str`, `filter:str|None`, `alias:str|None`, `join_to_timespine:bool (=False)`, `fill_Nones_with:Any|None`.
+  - `WindowParams`: `count:int|None`, `granularity:str|None`, `window_string:str|None`, `is_standard_granularity:bool|None`.
+  - `MetricRef`: `name:str`, `filter:str|None`, `alias:str|None`, `offset_window:OffsetWindow|None`, `offset_to_grain:str|None`.
+  - `OffsetWindow`: `count:int`, `granularity:str|None`.
+  - `ConversionTypeParams`: `entity:str`, `calculation:ConversionCalculationType`, `base_measure:MetricInput`, `conversion_measure:MetricInput`, `window:MetricTimeWindow|None`, `constant_properties:list[dict]|None`.
+    - `calculation` options: `conversions` (buys), `conversion_rate` (buys/visits).
+    - `base_measure` / `conversion_measure` (`MetricInput`): `name:str`, `filter:str|None`, `fill_Nones_with:Any|None`, `join_to_timespine:bool`.
+    - `window` (`MetricTimeWindow`): `count:int`, `granularity:TimeGranularity` (e.g., `day`, `week`, `month`).
+    - `constant_properties[]` item: `base_property:str`, `conversion_property:str`.
+  - `CumulativeTypeParams`: `window:MetricTimeWindow|None`, other cumulative-specific fields.
+  - Example YAML (simple metric):
+    ```yaml
+    id: f-metric_total_claims_001
+    name: total_claim_cases
+    label: Total Claim Cases
+    description: Total number of claim cases
+    type: simple
+    type_params:
+      expr: null
+      window: null
+      measure:
+        name: count_claim_cases
+        alias: null
+        filter: null
+        fill_Nones_with: null
+        join_to_timespine: false
+      metrics: []
+      numerator: null
+      denominator: null
+      grain_to_date: null
+      input_measures:
+        - name: count_claim_cases
+          alias: null
+          filter: null
+          fill_Nones_with: null
+          join_to_timespine: false
+      conversion_type_params: null
+      cumulative_type_params: null
+    ```
   - YAML endpoints: `/metricflow/metric/name/yaml`, `/metricflow/metric/yaml`

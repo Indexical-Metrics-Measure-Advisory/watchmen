@@ -329,6 +329,24 @@ export const performBulkCategoryOperation = async (operation: BulkCategoryOperat
 
 // ===== Extension of Existing Metrics API =====
 
+// Get all metrics without any filter — used for dropdown selectors (e.g. ratio numerator/denominator)
+export const getAllMetrics = async (): Promise<MetricDefinition[]> => {
+  const isMockMode = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+  if (isMockMode) {
+    return getMockMetricDefinitions();
+  }
+  try {
+    const isAPIAvailable = await isRealTimeMetricsAvailable();
+    if (isAPIAvailable) {
+      const realTimeData = await fetchRealTimeMetrics();
+      return (realTimeData?.metrics ?? realTimeData ?? []) as MetricDefinition[];
+    }
+  } catch {
+    // fall through to mock
+  }
+  return getMockMetricDefinitions();
+};
+
 // Get all metrics with optional real-time data (extended support for category filtering)
 export const getMetrics = async (filter?: MetricFilter): Promise<MetricDefinition[]> => {
   await delay(500);
