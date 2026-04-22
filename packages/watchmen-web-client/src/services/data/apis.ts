@@ -127,6 +127,7 @@ export const Apis = {
 	 */
 	// SUBJECT_SHARE: 'subject/share',
 	SUBJECT_DATA: 'subject/data?subject_id=:subjectId',
+	SUBJECT_VIEW_SQL: 'subject/view-sql?subject_id=:subjectId',
 
 	REPORT_CREATE: 'report',
 	REPORT_SAVE: 'report',

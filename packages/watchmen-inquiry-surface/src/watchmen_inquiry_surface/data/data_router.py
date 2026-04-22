@@ -66,6 +66,14 @@ async def fetch_subject_data_sql(
 	return get_subject_data_service(subject, principal_service).page_sql(pageable)
 
 
+@router.get('/subject/view-sql', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=str)
+async def fetch_subject_view_sql(
+		subject_id: Optional[SubjectId],
+		principal_service: PrincipalService = Depends(get_console_principal)) -> str:
+	subject = ask_subject(subject_id, principal_service)
+	return get_subject_data_service(subject, principal_service).find_sql()
+
+
 def ask_report(report_id: Optional[ReportId], principal_service: PrincipalService) -> Tuple[Subject, Report]:
 	if is_blank(report_id):
 		raise_400('Report id is required.')

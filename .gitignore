@@ -147,3 +147,5 @@ my_source_code.tar.gz
 packages/watchmen-analysis-client/.workbuddy/memory/MEMORY.md
 /packages/watchmen-analysis-client/.workbuddy
 /packages/watchmen-analysis-client/.workbuddy/memory
+/packages/watchmen-web-client/.workbuddy
+/packages/watchmen-analysis-client/.workbuddy

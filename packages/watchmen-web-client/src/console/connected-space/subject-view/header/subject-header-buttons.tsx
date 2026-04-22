@@ -5,6 +5,7 @@ import React from 'react';
 import {useLocation} from 'react-router-dom';
 import {HeaderCatalogButton} from '../../header/header-catalog-button';
 import {HeaderAddReportButton} from './header-add-report-button';
+import {HeaderViewSqlButton} from './header-view-sql-button';
 import {HeaderDeleteSubjectButton} from './header-delete-subject-button';
 import {HeaderSubjectDataButton} from './header-subject-data-button';
 import {HeaderSubjectDefButton} from './header-subject-def-button';
@@ -31,6 +32,8 @@ export const SubjectHeaderButtons = (props: { connectedSpace: ConnectedSpace, su
 			</>
 			: null
 		}
+		<PageHeaderButtonSeparator/>
+		<HeaderViewSqlButton connectedSpace={connectedSpace} subject={subject}/>
 		<PageHeaderButtonSeparator/>
 		<HeaderSwitchSubjectButton connectedSpace={connectedSpace} subject={subject}/>
 		<PageHeaderButtonSeparator/>
