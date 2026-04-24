@@ -35,6 +35,7 @@ import OnlineEvaluation from "./pages/OnlineEvaluation";
 import ChatPage from "./pages/chat";
 import AnalysisAssistantConfigPage from './pages/AnalysisAssistantConfig';
 import BIAnalysisPage from './pages/BIAnalysis';
+import MetricDependencyTree from './pages/MetricDependencyTree';
 import { AlertConfigurationPage } from './pages/AlertConfigurationPage';
 import SharedAnalysisPage from './pages/SharedAnalysisPage';
 
@@ -65,6 +66,7 @@ const App = () => (
                   <Route path="/metrics/assistant-config" element={<AnalysisAssistantConfigPage />} />
                 )}
                 <Route path="/metrics/bi-analysis" element={<BIAnalysisPage />} />
+                <Route path="/metrics/tree" element={<MetricDependencyTree />} />
                 <Route path="/metrics/alert-configuration" element={<AlertConfigurationPage />} />
                 <Route path="/metrics/data-profiles" element={<DataProfileManagement />} />
                 <Route path="/data-catalog" element={<DataCatalog />} />

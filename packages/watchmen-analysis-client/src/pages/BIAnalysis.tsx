@@ -20,8 +20,10 @@ import {
   LayoutTemplate, 
   RotateCcw, 
   Share2, 
-  Copy
+  Copy,
+  Network
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { AnalysisBoard } from '@/components/bi/AnalysisBoard';
 import { MetricBuilderSheet } from '@/components/bi/MetricBuilderSheet';
 const LazySubscriptionModal = lazy(() => import('@/components/bi/SubscriptionModal').then(m => ({ default: m.SubscriptionModal })));
@@ -44,6 +46,7 @@ const BIAnalysisPage: React.FC = () => {
   const { collapsed } = useSidebar();
   const { user } = useAuth();
   const { token } = useAuth();
+  const navigate = useNavigate();
 
   // ── Hook: Card data loader ──
   const {
@@ -221,6 +224,10 @@ const BIAnalysisPage: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center flex-wrap gap-2">
+              <Button variant="outline" onClick={() => navigate('/metrics/tree', { state: { cards } })} className="gap-2">
+                <Network className="h-4 w-4" />
+                Metric Tree
+              </Button>
               <Button variant="outline" onClick={() => setMetricBuilderOpen(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
                 Add Metric
