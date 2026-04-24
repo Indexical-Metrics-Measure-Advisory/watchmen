@@ -1,0 +1,2 @@
+ALTER TABLE metrics ADD COLUMN validation_status VARCHAR(50) DEFAULT NULL;
+ALTER TABLE metrics ADD COLUMN validation_result JSON DEFAULT NULL;

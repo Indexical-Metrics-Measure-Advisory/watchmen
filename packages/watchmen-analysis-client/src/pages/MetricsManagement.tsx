@@ -18,14 +18,16 @@ import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import {
-  Plus, Edit, Trash2, BarChart3, GitBranch, Calculator, Search, Filter, Eye, Folder, FolderOpen, Tag, MoreHorizontal, LayoutGrid, List as ListIcon, Clock, Timer, RefreshCcw
+  Plus, Edit, Trash2, BarChart3, GitBranch, Calculator, Search, Filter, Eye, Folder, FolderOpen, Tag, MoreHorizontal, LayoutGrid, List as ListIcon, Clock, Timer, RefreshCcw,
+  CheckCircle2, XCircle, CircleDot, ShieldCheck, AlertTriangle
 } from 'lucide-react';
 import {
   MetricDefinition,
   MetricFilter,
   MetricTypeParams, Category,
   CumulativeTypeParams,
-  ConversionTypeParams
+  ConversionTypeParams,
+  MetricValidationStatus
 } from '@/model/metricsManagement';
 import {
   getMetrics,
@@ -33,7 +35,8 @@ import {
   deleteMetric,
   updateMetric,
   createMetric,
-  getCategories
+  getCategories,
+  validateMetric
 } from '@/services/metricsManagementService';
 import { getSemanticModels } from '@/services/semanticModelService';
 import DerivedMetricParams from '@/components/DerivedMetricParams';
@@ -41,6 +44,30 @@ import CumulativeMetricParams from '@/components/metrics/CumulativeMetricParams'
 import ConversionMetricParams from '@/components/metrics/ConversionMetricParams';
 import CategoryManagement from '@/components/metrics/CategoryManagement';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+
+/** Validation status badge — standalone sub-component */
+const ValidationBadge = ({ status, size = 'default' }: { status?: MetricValidationStatus; size?: 'sm' | 'default' }) => {
+  if (!status || status === 'pending') {
+    return (
+      <Badge variant="outline" className={cn("border-muted-foreground/30 text-muted-foreground", size === 'sm' && "text-[10px] px-1.5 py-0")}>
+        <CircleDot className="mr-1 h-3 w-3" /> Pending
+      </Badge>
+    );
+  }
+  if (status === 'validated') {
+    return (
+      <Badge className={cn("bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100", size === 'sm' && "text-[10px] px-1.5 py-0")}>
+        <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Validated
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="destructive" className={cn(size === 'sm' && "text-[10px] px-1.5 py-0")}>
+      <XCircle className="mr-1 h-3.5 w-3.5" /> Failed
+    </Badge>
+  );
+};
 
 const MetricsManagement: React.FC = () => {
   const { collapsed } = useSidebar();
@@ -59,7 +86,8 @@ const MetricsManagement: React.FC = () => {
   const [editForm, setEditForm] = useState<Partial<MetricDefinition>>({});
   const [createForm, setCreateForm] = useState<Partial<MetricDefinition>>({});
   const [showCategoryManagement, setShowCategoryManagement] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+  const [validatingSet, setValidatingSet] = useState<Set<string>>(new Set());
 
   const [filter, setFilter] = useState<MetricFilter>({
     categoryId: 'all',
@@ -404,7 +432,9 @@ const MetricsManagement: React.FC = () => {
       setIsEditDialogOpen(false);
       setMetricToEdit(null);
       setEditForm({});
-      loadData();
+      await loadData();
+      // Auto-validate after save
+      handleValidateMetric(formDataToSubmit as MetricDefinition);
     } catch (error) {
       toast({
         title: "Error",
@@ -461,6 +491,53 @@ const MetricsManagement: React.FC = () => {
     setIsCreateDialogOpen(true);
   };
 
+  // ===== Validation Logic =====
+
+  const handleValidateMetric = useCallback(async (metric: MetricDefinition) => {
+    const metricName = metric.name;
+    if (validatingSet.has(metricName)) return;
+
+    setValidatingSet(prev => new Set(prev).add(metricName));
+    try {
+      const result = await validateMetric(metricName);
+
+      const merged: MetricDefinition = {
+        ...metric,
+        validationStatus: result.status,
+        validationResult: result,
+      };
+
+      // Persist full metric with validation results back to backend
+      await updateMetric(metricName, merged);
+
+      // Update the metric in local state
+      setMetrics(prev => prev.map(m =>
+        m.name === metricName
+          ? { ...m, validationStatus: result.status, validationResult: result }
+          : m
+      ));
+
+      if (result.status === 'validated') {
+        toast({ title: "Validation Passed", description: `"${metricName}" is validated successfully.` });
+      } else {
+        toast({
+          title: "Validation Failed",
+          description: `"${metricName}" failed: ${result.error || 'Unknown error'}`,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Unexpected validation error:', error);
+      toast({ title: "Validation Error", description: "An unexpected error occurred during validation.", variant: "destructive" });
+    } finally {
+      setValidatingSet(prev => {
+        const next = new Set(prev);
+        next.delete(metricName);
+        return next;
+      });
+    }
+  }, [validatingSet, toast]);
+
   // Helper function to update create form type params
   const updateCreateFormTypeParams = (params: MetricTypeParams) => {
     setCreateForm({ ...createForm, type_params: params });
@@ -514,6 +591,8 @@ const MetricsManagement: React.FC = () => {
         title: "Success",
         description: "Metric created successfully",
       });
+      // Auto-validate after create
+      handleValidateMetric(formDataToSubmit as MetricDefinition);
     } catch (error) {
       console.error('Error creating metric:', error);
       toast({
@@ -718,12 +797,13 @@ const MetricsManagement: React.FC = () => {
                   <Table>
                     <TableHeader className="bg-muted/40">
                       <TableRow>
-                        <TableHead className="w-[30%]">Metric Name</TableHead>
-                        <TableHead className="w-[15%]">Category</TableHead>
-                        <TableHead className="w-[15%]">Type</TableHead>
-                        <TableHead className="w-[15%]">Format</TableHead>
-                        <TableHead className="w-[15%]">Last Updated</TableHead>
-                        <TableHead className="w-[10%] text-right">Actions</TableHead>
+                        <TableHead className="w-[25%]">Metric Name</TableHead>
+                        <TableHead className="w-[12%]">Category</TableHead>
+                        <TableHead className="w-[12%]">Type</TableHead>
+                        <TableHead className="w-[12%]">Format</TableHead>
+                        <TableHead className="w-[13%]">Validation</TableHead>
+                        <TableHead className="w-[13%]">Last Updated</TableHead>
+                        <TableHead className="w-[13%] text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -765,6 +845,16 @@ const MetricsManagement: React.FC = () => {
                             <span className="text-xs text-muted-foreground">{metric.unit || '-'}</span>
                           </TableCell>
                           <TableCell>
+                            {validatingSet.has(metric.name) ? (
+                              <div className="flex items-center gap-1.5 text-muted-foreground">
+                                <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
+                                <span className="text-xs">Validating...</span>
+                              </div>
+                            ) : (
+                              <ValidationBadge status={metric.validationStatus} />
+                            )}
+                          </TableCell>
+                          <TableCell>
                             <div className="flex flex-col text-xs text-muted-foreground">
                                 <div className="flex items-center gap-1">
                                     <Clock className="h-3 w-3" />
@@ -783,6 +873,10 @@ const MetricsManagement: React.FC = () => {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => handleValidateMetric(metric)}>
+                                  <RefreshCcw className="mr-2 h-4 w-4" /> Re-validate
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => setSelectedMetric(metric)}>
                                   <Eye className="mr-2 h-4 w-4" /> View Details
                                 </DropdownMenuItem>
@@ -815,6 +909,7 @@ const MetricsManagement: React.FC = () => {
                                         <Badge variant="secondary" className={`${getTypeColor(metric.type)} bg-opacity-10 text-[10px] px-1.5 py-0.5 h-5`}>
                                             {metric.type}
                                         </Badge>
+                                        <ValidationBadge status={metric.validationStatus} size="sm" />
                                         {metric.categoryId && (
                                             <span className="text-[10px] text-muted-foreground border px-1.5 rounded-sm bg-muted/20">
                                                 {getCategoryName(metric.categoryId)}
@@ -862,6 +957,14 @@ const MetricsManagement: React.FC = () => {
                                     Updated {metric.updatedAt ? new Date(metric.updatedAt).toLocaleDateString() : 'Unknown'}
                                 </span>
                                 <div className="flex gap-1">
+                                    <Button 
+                                      size="icon" variant="ghost" className="h-7 w-7" 
+                                      onClick={() => handleValidateMetric(metric)}
+                                      disabled={validatingSet.has(metric.name)}
+                                      title="Re-validate"
+                                    >
+                                      <RefreshCcw className={`h-3.5 w-3.5 ${validatingSet.has(metric.name) ? 'animate-spin' : ''}`} />
+                                    </Button>
                                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setSelectedMetric(metric)}>
                                         <Eye className="h-3.5 w-3.5" />
                                     </Button>
@@ -1572,6 +1675,102 @@ const MetricsManagement: React.FC = () => {
             </DialogHeader>
             <ScrollArea className="max-h-[60vh] pr-4">
               <div className="space-y-4">
+                {/* Validation Status Block */}
+                <div className={`rounded-lg p-4 border ${
+                  selectedMetric.validationStatus === 'validated' ? 'bg-emerald-50/50 border-emerald-200' :
+                  selectedMetric.validationStatus === 'failed' ? 'bg-red-50/50 border-red-200' :
+                  'bg-muted/40 border-muted'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4" />
+                      Validation Status
+                    </h4>
+                    {selectedMetric.validationStatus && (
+                      <ValidationBadge status={selectedMetric.validationStatus} />
+                    )}
+                    {!selectedMetric.validationStatus && (
+                      <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground">
+                        <CircleDot className="mr-1 h-3 w-3" /> Pending
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {validatingSet.has(selectedMetric.name) && (
+                    <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                      <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
+                      Validating metric...
+                    </div>
+                  )}
+
+                  {selectedMetric.validationResult?.status === 'validated' && (
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <span className="text-muted-foreground block">Dimensions Found</span>
+                        <span className="font-semibold text-emerald-700">{selectedMetric.validationResult.dimensionCount ?? '-'}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block">Sample Value</span>
+                        <span className="font-semibold">{selectedMetric.validationResult.sampleValue ?? '-'}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedMetric.validationResult?.status === 'failed' && (
+                    <div className="mt-3 bg-red-100/60 rounded-md p-3">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+                        <span className="text-sm text-red-700">{selectedMetric.validationResult.error || 'Validation failed'}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedMetric.validationResult?.lastValidatedAt && (
+                    <p className="mt-2 text-[11px] text-muted-foreground">
+                      Last validated: {new Date(selectedMetric.validationResult.lastValidatedAt).toLocaleString()}
+                    </p>
+                  )}
+
+                  {/* Re-validate button inside detail dialog */}
+                  <div className="mt-3">
+                    <Button 
+                      size="sm" variant="outline"
+                      onClick={() => {
+                        handleValidateMetric(selectedMetric);
+                        setSelectedMetric(selectedMetric); // keep dialog open
+                      }}
+                      disabled={validatingSet.has(selectedMetric.name)}
+                      className="h-7 text-xs"
+                    >
+                      <RefreshCcw className="mr-1.5 h-3 w-3" />
+                      Re-validate Now
+                    </Button>
+                  </div>
+
+                  {/* Validation Log */}
+                  {selectedMetric.validationResult?.logs && selectedMetric.validationResult.logs.length > 0 && (
+                    <div className="mt-4 space-y-1.5">
+                      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Validation Log</p>
+                      {selectedMetric.validationResult.logs.map((log, idx) => (
+                        <div key={idx} className={`flex items-start gap-2 rounded px-2 py-1.5 text-xs ${
+                          log.status === 'success' ? 'bg-emerald-50/80' : 'bg-red-50/80'
+                        }`}>
+                          <span className="text-muted-foreground min-w-[90px] shrink-0">{log.step.replace('_', ' ')}</span>
+                          <span className={log.status === 'success' ? 'text-emerald-600' : 'text-red-600'}>
+                            {log.status.toUpperCase()}
+                          </span>
+                          <span className="text-muted-foreground truncate">{log.message}</span>
+                          <span className="ml-auto text-muted-foreground tabular-nums">
+                            {new Date(log.timestamp).toLocaleTimeString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <Separator />
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">Metric Name</label>

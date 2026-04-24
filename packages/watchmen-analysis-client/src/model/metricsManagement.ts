@@ -138,6 +138,10 @@ export interface MetricDefinition {
   metadata?: Record<string, any>;
   config?: MetricConfig;
   time_granularity?: string;
+
+  // Validation fields
+  validationStatus?: MetricValidationStatus;
+  validationResult?: MetricValidationResult;
 }
 
 // Compatible configuration placeholder, specific structure defined by backend
@@ -230,4 +234,28 @@ export interface CategoryImportResult {
   };
   errors: string[];
   warnings: string[];
+}
+
+// ===== Metric Validation Types =====
+
+/** Validation status enum */
+export type MetricValidationStatus = 'pending' | 'validated' | 'failed';
+
+/** Single step validation log entry */
+export interface ValidationLogEntry {
+  step: 'dimension_check' | 'value_check';
+  status: 'success' | 'error';
+  message: string;
+  timestamp: string;
+  details?: Record<string, unknown>;
+}
+
+/** Complete validation result */
+export interface MetricValidationResult {
+  status: MetricValidationStatus;
+  logs: ValidationLogEntry[];
+  dimensionCount?: number;
+  sampleValue?: number;
+  lastValidatedAt?: string;
+  error?: string;
 }

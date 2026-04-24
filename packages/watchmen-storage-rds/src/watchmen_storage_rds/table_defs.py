@@ -550,6 +550,8 @@ table_metrics = Table(
     create_str('label', 255),
     create_json('config'),
     create_str('time_granularity', 50),
+    create_str('validation_status', 50),
+    create_json('validation_result'),
     create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(),
 )
 

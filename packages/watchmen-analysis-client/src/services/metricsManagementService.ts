@@ -7,7 +7,10 @@ import {
   Category,
   CategoryFilter,
   CategoryStats,
-  CategoryOperationResult, BulkCategoryOperation
+  CategoryOperationResult, BulkCategoryOperation,
+  MetricValidationResult,
+  MetricValidationStatus,
+  ValidationLogEntry
 } from '@/model/metricsManagement';
 import { Message } from '@/components/ai/AIMessage';
 import { API_BASE_URL, getDefaultHeaders, checkResponse } from '@/utils/apiConfig';
@@ -560,110 +563,6 @@ function getMockMetricDefinitions(): MetricDefinition[] {
     tags: [] as string[]
   };
   return [
-    {
-      id: 'premium_revenue',
-      name: 'premium_revenue',
-      label: 'Premium Revenue',
-      description: 'Total insurance premium revenue for the current period',
-      type: 'simple',
-      type_params: { measure: { name: 'premium_revenue', join_to_timespine: true } as any },
-      categoryId: 'sales-premium',
-      unit: '¥',
-      format: 'currency',
-      ...common,
-      tags: ['financial', 'revenue']
-    },
-    {
-      id: 'policy_renewal_rate',
-      name: 'policy_renewal_rate',
-      label: 'Policy Renewal Rate',
-      description: 'Percentage of policies renewed upon expiration',
-      type: 'ratio',
-      type_params: { numerator: { name: 'renewed_policies', join_to_timespine: true } as any, denominator: { name: 'policies_total', join_to_timespine: true } as any },
-      categoryId: 'sales-policies',
-      unit: '%',
-      format: 'percentage',
-      ...common,
-      tags: ['operational', 'ratio']
-    },
-    {
-      id: 'conversion_rate',
-      name: 'conversion_rate',
-      label: 'Conversion Rate',
-      description: 'Percentage of potential customers converted to actual customers',
-      type: 'ratio',
-      type_params: { numerator: { name: 'converted_customers', join_to_timespine: true } as any, denominator: { name: 'leads_total', join_to_timespine: true } as any },
-      categoryId: 'channel',
-      unit: '%',
-      format: 'percentage',
-      ...common,
-      tags: ['marketing', 'conversion']
-    },
-    {
-      id: 'customer_satisfaction',
-      name: 'customer_satisfaction',
-      label: 'Customer Satisfaction',
-      description: 'Average rating of customer service experience',
-      type: 'simple',
-      type_params: { measure: { name: 'customer_satisfaction', join_to_timespine: true } as any },
-      categoryId: 'customer-demographics',
-      unit: '/5',
-      format: 'number',
-      ...common,
-      tags: ['customer', 'experience']
-    },
-    {
-      id: 'claim_ratio',
-      name: 'claim_ratio',
-      label: 'Claim Ratio',
-      description: 'Ratio of claim expenses to premium revenue',
-      type: 'ratio',
-      type_params: { numerator: { name: 'claims_amount', join_to_timespine: true } as any, denominator: { name: 'premium_revenue', join_to_timespine: true } as any },
-      categoryId: 'sales-premium',
-      unit: '%',
-      format: 'percentage',
-      ...common,
-      tags: ['risk', 'claims']
-    },
-    {
-      id: 'customer_retention_rate',
-      name: 'customer_retention_rate',
-      label: 'Customer Retention Rate',
-      description: 'Percentage of customers maintaining relationship with the company',
-      type: 'ratio',
-      type_params: { numerator: { name: 'retained_customers', join_to_timespine: true } as any, denominator: { name: 'customers_total', join_to_timespine: true } as any },
-      categoryId: 'sales-policies',
-      unit: '%',
-      format: 'percentage',
-      ...common,
-      tags: ['customer', 'retention']
-    },
-    {
-      id: 'combined_ratio',
-      name: 'combined_ratio',
-      label: 'Combined Ratio',
-      description: 'Ratio of claims and expenses to premium revenue',
-      type: 'derived',
-      type_params: { expr: '(claims + expenses) / premium_revenue' },
-      categoryId: 'sales-premium',
-      unit: '%',
-      format: 'percentage',
-      ...common,
-      tags: ['financial', 'efficiency']
-    },
-    {
-      id: 'risk_score',
-      name: 'risk_score',
-      label: 'Risk Score',
-      description: 'Overall risk assessment score of the insurance portfolio',
-      type: 'simple',
-      type_params: { measure: { name: 'risk_score', join_to_timespine: true } as any },
-      categoryId: 'channel',
-      unit: '/100',
-      format: 'number',
-      ...common,
-      tags: ['risk']
-    }
   ];
 };
 
@@ -1126,6 +1025,134 @@ export const getAIMetricsRecommendations = async (category?: string): Promise<Me
     role: 'ai',
     timestamp: new Date()
   };
+};
+
+// ===== Metric Validation Service =====
+
+import { MetricsService } from '@/services/metricsService';
+import type { MetricQueryRequest } from '@/model/metricFlow';
+
+const metricsService = new MetricsService();
+
+/** Build a timestamp string for validation logs */
+const nowISO = () => new Date().toISOString();
+
+/**
+ * Validate a metric by running two checks sequentially:
+ *   1. Dimension check — findDimensionsByMetric(metricName)
+ *   2. Value check — metricsService.getMetricValue({ metric: metricName })
+ * 
+ * Both must succeed for the metric to be considered "validated".
+ */
+export const validateMetric = async (metricName: string): Promise<MetricValidationResult> => {
+  const logs: ValidationLogEntry[] = [];
+
+  // Step 1: Check dimensions
+  try {
+    const dimResult = await findDimensionsByMetric(metricName);
+    if (dimResult.dimensions && dimResult.dimensions.length > 0) {
+      logs.push({
+        step: 'dimension_check',
+        status: 'success',
+        message: `Found ${dimResult.dimensions.length} dimension(s)`,
+        timestamp: nowISO(),
+        details: { count: dimResult.total ?? dimResult.dimensions.length }
+      });
+    } else {
+      // Dimensions returned empty — treat as failure
+      logs.push({
+        step: 'dimension_check',
+        status: 'error',
+        message: 'No dimensions returned for this metric',
+        timestamp: nowISO()
+      });
+      return {
+        status: 'failed',
+        logs,
+        error: 'Dimension check failed: no dimensions found',
+        lastValidatedAt: nowISO()
+      };
+    }
+  } catch (error) {
+    logs.push({
+      step: 'dimension_check',
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error querying dimensions',
+      timestamp: nowISO()
+    });
+    return {
+      status: 'failed',
+      logs,
+      error: `Dimension check failed: ${error instanceof Error ? error.message : 'unknown'}`,
+      lastValidatedAt: nowISO()
+    };
+  }
+
+  // Step 2: Check value query
+  try {
+    const queryReq: MetricQueryRequest = { metric: metricName, limit: 1 };
+    const valueResult = await metricsService.getMetricValue(queryReq);
+    if (valueResult.data && valueResult.data.length > 0) {
+      const firstRow = valueResult.data[0];
+      // Extract numeric sample from first row (skip group_by columns if any)
+      const numVal = firstRow.find((v): v is number => typeof v === 'number');
+      logs.push({
+        step: 'value_check',
+        status: 'success',
+        message: `Value query returned ${valueResult.data.length} row(s)`,
+        timestamp: nowISO(),
+        details: { rowCount: valueResult.data.length, columns: valueResult.column_names }
+      });
+      return {
+        status: 'validated',
+        logs,
+        dimensionCount: logs[0].details?.count as number,
+        sampleValue: numVal,
+        lastValidatedAt: nowISO()
+      };
+    } else {
+      logs.push({
+        step: 'value_check',
+        status: 'error',
+        message: 'Value query returned empty result set',
+        timestamp: nowISO()
+      });
+      return {
+        status: 'failed',
+        logs,
+        error: 'Value check failed: empty data response',
+        lastValidatedAt: nowISO()
+      };
+    }
+  } catch (error) {
+    logs.push({
+      step: 'value_check',
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error querying value',
+      timestamp: nowISO()
+    });
+    return {
+      status: 'failed',
+      logs,
+      error: `Value check failed: ${error instanceof Error ? error.message : 'unknown'}`,
+      lastValidatedAt: nowISO()
+    };
+  }
+};
+
+/**
+ * Batch validate multiple metrics. Returns results keyed by metric name.
+ */
+export const validateMetricsBatch = async (
+  metricNames: string[],
+  onProgress?: (completed: number, total: number) => void
+): Promise<Record<string, MetricValidationResult>> => {
+  const results: Record<string, MetricValidationResult> = {};
+  for (let i = 0; i < metricNames.length; i++) {
+    results[metricNames[i]] = await validateMetric(metricNames[i]);
+    onProgress?.(i + 1, metricNames.length);
+  }
+  return results;
 };
 
 // Error types for better error handling

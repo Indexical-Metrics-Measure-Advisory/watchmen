@@ -79,6 +79,38 @@ class MetricConfig(BaseModel):
 
     meta: Dict[str, Any] = Field(default_factory=dict)
 
+class MetricValidationStatus(Enum):
+    PENDING = "pending"
+    VALIDATED = "validated"
+    FAILED = "failed"
+
+
+class ValidationLogEntry(BaseModel):
+
+    model_config = ConfigDict(use_enum_values=True)
+
+    step: str
+    status: str
+    message: str
+    timestamp: str
+    details: Optional[Dict[str, Any]] = None
+
+
+class MetricValidationResult(BaseModel):
+
+    model_config = ConfigDict(use_enum_values=True)
+
+    status: MetricValidationStatus
+    logs: List[ValidationLogEntry] = Field(default_factory=list)
+    dimension_count: Optional[int] = None
+    sample_value: Optional[float] = None
+    last_validated_at: Optional[str] = None
+    error: Optional[str] = None
+
+
+
+
+
 
 class Metric(ExtendedBaseModel, TenantBasedTuple, Auditable,OptimisticLock):
     
@@ -98,6 +130,10 @@ class Metric(ExtendedBaseModel, TenantBasedTuple, Auditable,OptimisticLock):
 
 class MetricWithCategory(Metric):
     categoryId: Optional[str] = None
+
+    validationStatus: Optional[MetricValidationStatus] = None
+    validationResult: Optional[MetricValidationResult] = None
+
 
 
 

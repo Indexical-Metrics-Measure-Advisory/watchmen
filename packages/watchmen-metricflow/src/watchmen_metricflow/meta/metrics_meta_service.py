@@ -5,7 +5,7 @@ from watchmen_model.common import TenantId
 from watchmen_storage import EntityShaper, EntityRow, EntityCriteriaExpression, ColumnNameLiteral
 from watchmen_utilities import ArrayHelper
 from ..model.metrics import MetricWithCategory, MetricConfig, MetricTypeParams, MeasureReference, WindowParams, \
-    ConversionTypeParams, CumulativeTypeParams
+    ConversionTypeParams, CumulativeTypeParams, MetricValidationStatus, MetricValidationResult
 
 
 class MetricShaper(UserBasedTupleShaper):
@@ -87,8 +87,22 @@ class MetricShaper(UserBasedTupleShaper):
         else:
             return config.model_dump()
 
+    @staticmethod
+    def serialize_validation_status(status: MetricValidationStatus) -> Optional[str]:
+        if status is None:
+            return None
+        return status.value if hasattr(status, 'value') else status
+
+    @staticmethod
+    def serialize_validation_result(result: MetricValidationResult) -> Optional[dict]:
+        if result is None:
+            return None
+        if isinstance(result, dict):
+            return result
+        return result.model_dump()
+
     def serialize(self, metric: MetricWithCategory) -> EntityRow:
-        
+
         row = {
             "id":metric.id,
             'name': metric.name,
@@ -100,7 +114,9 @@ class MetricShaper(UserBasedTupleShaper):
             'metadata': metric.metadata,
             'label': metric.label,
             'config': MetricShaper.serialize_metric_config(metric.config) if metric.config else None,
-            'time_granularity': metric.time_granularity
+            'time_granularity': metric.time_granularity,
+            'validation_status': MetricShaper.serialize_validation_status(metric.validationStatus),
+            'validation_result': MetricShaper.serialize_validation_result(metric.validationResult)
         }
 
         row = TupleShaper.serialize_tenant_based(metric,row)
@@ -109,7 +125,7 @@ class MetricShaper(UserBasedTupleShaper):
         return row
 
     def deserialize(self, row: EntityRow) -> MetricWithCategory:
-       
+
         metric_data = {
             "id":row.get("id"),
             'name': row.get('name'),
@@ -121,10 +137,12 @@ class MetricShaper(UserBasedTupleShaper):
             'metadata': row.get('metadata'),
             'label': row.get('label'),
             'config': row.get('config'),
-            'time_granularity': row.get('time_granularity')
+            'time_granularity': row.get('time_granularity'),
+            'validationStatus': row.get('validation_status'),
+            'validationResult': row.get('validation_result')
         }
 
-        
+
         metric = MetricWithCategory.model_validate(metric_data)
         
         # noinspection PyTypeChecker
