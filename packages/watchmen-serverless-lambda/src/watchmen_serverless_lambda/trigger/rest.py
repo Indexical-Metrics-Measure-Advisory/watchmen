@@ -143,7 +143,9 @@ def trigger_event_handler(event, context):
             submit_event['type'] = EventType.BY_RECORD.value
         elif get_trigger_event_type_v2(event) == TriggerEventType.SCHEDULE:
             submit_event['type'] = EventType.BY_SCHEDULE.value
-            
+        elif get_trigger_event_type_v2(event) == TriggerEventType.PIPELINE:
+            submit_event['type'] = EventType.BY_PIPELINE.value
+        
         principal_service = get_principal_by_pat(
             retrieve_authentication_manager(), token, [UserRole.ADMIN, UserRole.SUPER_ADMIN])
         
@@ -172,6 +174,7 @@ class TriggerEventType(StrEnum):
     TABLE = "table"
     RECORD = "record"
     SCHEDULE = "schedule"
+    PIPELINE = "pipeline"
 
 
 def get_trigger_event_type_v2(event) -> Optional[TriggerEventType]:
@@ -184,6 +187,8 @@ def get_trigger_event_type_v2(event) -> Optional[TriggerEventType]:
         return TriggerEventType.RECORD
     elif request_path == "/collector/trigger/event/schedule":
         return TriggerEventType.SCHEDULE
+    elif request_path == "/collector/trigger/event/pipeline":
+        return TriggerEventType.PIPELINE
     else:
         return None
 

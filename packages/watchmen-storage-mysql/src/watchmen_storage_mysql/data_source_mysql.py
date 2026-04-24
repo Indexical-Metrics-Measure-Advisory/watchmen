@@ -110,6 +110,8 @@ class MySQLDataSourceHelper(DataSourceHelper):
         charset = MySQLDataSourceHelper.find_param(url_params, 'charset')
         if is_blank(charset):
             url_params = MySQLDataSourceHelper.append_param(url_params, 'charset', 'utf8')
+        else:
+            url_params = MySQLDataSourceHelper.append_param(url_params, 'charset', charset)
         
         return url_params
     
