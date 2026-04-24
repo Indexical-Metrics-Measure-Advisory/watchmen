@@ -20,6 +20,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Minus, LayoutDashboard } from 'lucide-react';
 import { getAllMetrics } from '@/services/metricsManagementService';
+import { metricsService } from '@/services/metricsService';
 import { MetricDefinition } from '@/model/metricsManagement';
 import { BIChartCard } from '@/model/biAnalysis';
 import { useLocation } from 'react-router-dom';
@@ -167,22 +168,16 @@ const MetricDependencyTree: React.FC = () => {
         
         // Build nodes
         allMetrics.forEach((metric) => {
-          // Mocking some values for visual appeal as in the screenshot
-          const val = (Math.random() * 100).toFixed(1);
-          const change = (Math.random() * 20 - 5).toFixed(1);
-          const yoy = (Math.random() * 30).toFixed(1);
-          const trend = Number(change) > 0 ? 'up' : Number(change) === 0 ? 'stable' : 'down';
-
           newNodes.push({
             id: metric.name,
             type: 'metricNode',
             data: {
               label: metric.label || metric.name,
               type: metric.type,
-              value: val,
-              changePercent: Math.abs(Number(change)),
-              yoyPercent: Math.abs(Number(yoy)),
-              trend,
+              value: 'Loading...',
+              changePercent: 0,
+              yoyPercent: 0,
+              trend: 'stable',
             },
             position: { x: 0, y: 0 },
           });
@@ -249,8 +244,8 @@ const MetricDependencyTree: React.FC = () => {
             if (inEdges[e.target]) inEdges[e.target].push(e.source);
           });
           
-          // Find dependencies (ancestors) - Go backwards
-          let queue = [...targetMetricIds];
+          // Find dependencies (ancestors) - Go backwards (what these metrics depend on)
+          const queue = [...targetMetricIds];
           const visitedUp = new Set<string>(targetMetricIds);
           while(queue.length > 0) {
             const curr = queue.shift()!;
@@ -263,20 +258,6 @@ const MetricDependencyTree: React.FC = () => {
             });
           }
           
-          // Find dependents (descendants) - Go forwards
-          queue = [...targetMetricIds];
-          const visitedDown = new Set<string>(targetMetricIds);
-          while(queue.length > 0) {
-            const curr = queue.shift()!;
-            (outEdges[curr] || []).forEach(child => {
-               if (!visitedDown.has(child)) {
-                 visitedDown.add(child);
-                 queue.push(child);
-                 relevantIds.add(child);
-               }
-            });
-          }
-          
           filteredNodes = newNodes.filter(n => relevantIds.has(n.id));
           filteredEdges = newEdges.filter(e => relevantIds.has(e.source) && relevantIds.has(e.target));
         }
@@ -284,7 +265,42 @@ const MetricDependencyTree: React.FC = () => {
         // Apply Layout
         const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(filteredNodes, filteredEdges);
         
-        setNodes(layoutedNodes);
+        // Fetch actual values for the layouted nodes
+        const nodesWithValues = await Promise.all(
+          layoutedNodes.map(async (node) => {
+            try {
+              const res = await metricsService.getMetricValue({ metric: node.id });
+              let val: number | string = 'N/A';
+              if (res && res.data && res.data.length > 0 && res.data[0].length > 0) {
+                const fetchedVal = res.data[0][0];
+                if (typeof fetchedVal === 'number') {
+                  val = Number.isInteger(fetchedVal) ? fetchedVal : fetchedVal.toFixed(2);
+                } else if (fetchedVal !== null && fetchedVal !== undefined) {
+                  val = String(fetchedVal);
+                }
+              }
+              
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  value: val,
+                }
+              };
+            } catch (err) {
+              console.error(`Failed to fetch value for metric ${node.id}:`, err);
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  value: 'Error',
+                }
+              };
+            }
+          })
+        );
+        
+        setNodes(nodesWithValues);
         setEdges(layoutedEdges);
       } catch (error) {
         console.error('Failed to load metrics for tree:', error);
