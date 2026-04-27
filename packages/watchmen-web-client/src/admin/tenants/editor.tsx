@@ -19,7 +19,7 @@ const TenantEditor = (props: { tenant: Tenant }) => {
 		}
 	};
 
-	const onValueChange = (prop: 'enableAi') => (value: boolean) => {
+	const onValueChange = (prop: 'enableAI') => (value: boolean) => {
 		if (tenant[prop] !== value) {
 			tenant[prop] = value;
 			fire(TupleEventTypes.CHANGE_TUPLE_STATE, TupleState.CHANGED);
@@ -31,7 +31,7 @@ const TenantEditor = (props: { tenant: Tenant }) => {
 		<TuplePropertyLabel>Zone Name:</TuplePropertyLabel>
 		<TuplePropertyInput value={tenant.name || ''} onChange={onPropChange('name')}/>
 		<TuplePropertyLabel>Enable AI Features:</TuplePropertyLabel>
-		<TuplePropertyCheckBox value={tenant.enableAi || false} onChange={onValueChange('enableAi')}/>
+		<TuplePropertyCheckBox value={tenant.enableAI || false} onChange={onValueChange('enableAI')}/>
 	</>;
 };
 export const renderEditor = (tenant: Tenant) => {
