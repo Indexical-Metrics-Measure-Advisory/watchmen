@@ -95,7 +95,16 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
 };
 
 // Custom Node Component
-const MetricNode = ({ data }: { data: any }) => {
+interface MetricNodeData {
+  label: string;
+  type: string;
+  value: number | string;
+  changePercent?: number;
+  yoyPercent?: number;
+  trend?: 'up' | 'down' | 'stable';
+}
+
+const MetricNode = ({ data }: { data: MetricNodeData }) => {
   const isPositive = data.trend === 'up';
   const isNeutral = data.trend === 'stable';
 

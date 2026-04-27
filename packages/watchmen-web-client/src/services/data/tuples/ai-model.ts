@@ -1,4 +1,4 @@
-import {Apis, get, page, post} from '../apis';
+import {Apis, del, get, page, post} from '../apis';
 import {TuplePage} from '../query/tuple-page';
 import {AiModel, AiModelId} from './ai-model-types';
 
@@ -8,23 +8,21 @@ export const listAiModels = async (options: {
 	pageSize?: number;
 }): Promise<TuplePage<AiModel>> => {
 	const {search = '', pageNumber = 1, pageSize = 9} = options;
-	return await page({api: Apis.AI_MODEL_LIST_BY_NAME, search: {search}, pageable: {pageNumber, pageSize}});
+	return await page({api: Apis.AI_MODEL_LIST_BY_NAME, search: {query_name: search}, pageable: {pageNumber, pageSize}});
 };
 
-export const fetchAiModel = async (modelId: AiModelId): Promise<{ model: AiModel }> => {
-	const model = await get({api: Apis.AI_MODEL_GET, search: {modelId}});
-	return {model};
+export const fetchAiModel = async (modelId: AiModelId): Promise<AiModel> => {
+	return await get({api: Apis.AI_MODEL_GET, search: {model_id: modelId}});
 };
 
-export const saveAiModel = async (model: AiModel): Promise<void> => {
-	if (model.modelId) {
-		const data = await post({api: Apis.AI_MODEL_SAVE, data: model});
-		model.version = data.version;
-		model.lastModifiedAt = data.lastModifiedAt;
-	} else {
-		const data = await post({api: Apis.AI_MODEL_CREATE, data: model});
-		model.modelId = data.modelId;
-		model.version = data.version;
-		model.lastModifiedAt = data.lastModifiedAt;
-	}
+export const saveAiModel = async (model: AiModel): Promise<AiModel> => {
+	return await post({api: Apis.AI_MODEL_SAVE, data: model});
+};
+
+export const loadAllAiModels = async (): Promise<Array<AiModel>> => {
+	return await get({api: Apis.AI_MODEL_LOAD_ALL});
+};
+
+export const deleteAiModel = async (modelId: AiModelId): Promise<void> => {
+	await del({api: Apis.AI_MODEL_DELETE, search: {model_id: modelId}});
 };

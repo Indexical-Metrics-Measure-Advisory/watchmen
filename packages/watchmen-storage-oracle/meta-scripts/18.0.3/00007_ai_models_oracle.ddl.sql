@@ -19,6 +19,7 @@ CREATE TABLE ai_models (
     telemetry NUMBER(1, 0) DEFAULT 1,
     generation_url VARCHAR2(500),
     model_token VARCHAR2(500),
+    enable_monitor NUMBER(1, 0) DEFAULT 0,
     tenant_id VARCHAR2(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by VARCHAR2(50),

@@ -19,6 +19,7 @@ CREATE TABLE ai_models (
     telemetry BOOLEAN DEFAULT TRUE,
     generation_url VARCHAR(500),
     model_token VARCHAR(500),
+    enable_monitor BOOLEAN DEFAULT FALSE,
     tenant_id VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by VARCHAR(50),

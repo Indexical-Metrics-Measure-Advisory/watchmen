@@ -1,35 +1,41 @@
 import {TenantId} from './tenant-types';
 import {OptimisticLock, Tuple} from './tuple-types';
 
-export enum AiModelProviderType {
+export enum LiteLLMProvider {
 	OPENAI = 'openai',
-	AZURE_OPENAI = 'azure',
-	ALI_QWEN = 'ali-qwen',
+	AZURE = 'azure',
 	ANTHROPIC = 'anthropic',
-	BEDROCK = 'bedrock',
-	GEMINI = 'gemini',
-	HUGGINGFACE = 'huggingface',
-	MISTRAL = 'mistral',
-	COHERE = 'cohere',
-	TOGETHERAI = 'together_ai',
-	GROQ = 'groq',
 	OLLAMA = 'ollama',
+	DASHSCOPE = 'dashscope',
+	ZHIPU = 'zhipu',
+	SPARK = 'spark',
 	DEEPSEEK = 'deepseek',
-	OPENROUTER = 'openrouter',
-	VERTEX_AI = 'vertex_ai',
-	DATABRICKS = 'databricks'
+	MINIMAX = 'minimax',
+	TONGYI = 'tongyi',
+	CUSTOM = 'custom'
 }
 
 export type AiModelId = string;
 
 export interface AiModel extends Tuple, OptimisticLock {
 	modelId: AiModelId;
-	enable: boolean;
-	modelCode: string;
-	provider: AiModelProviderType;
-	baseUrl: string;
-	token: string;
-	modelName: string;
-	params: any; // For extra params
+	name: string | null;
+	enabled: boolean | null;
+	provider: LiteLLMProvider;
+	apiBase: string | null;
+	apiKey: string | null;
+	apiVersion: string | null;
+	modelName: string | null;
+	customLlmProvider: string | null;
+	timeout: number | null;
+	temperature: number | null;
+	topP: number | null;
+	maxTokens: number | null;
+	safeMode: boolean | null;
+	dropParams: boolean | null;
+	telemetry: boolean | null;
+	generationUrl: string | null;
+	modelToken: string | null;
+	enableMonitor: boolean | null;
 	tenantId?: TenantId;
 }

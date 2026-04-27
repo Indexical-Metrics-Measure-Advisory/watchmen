@@ -5,17 +5,16 @@ import {useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes, TupleState} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import React, {ChangeEvent} from 'react';
 
-export const AiModelInput = (props: { model: AiModel, propName: keyof AiModel, placeholder?: string }) => {
-	const {model, propName, placeholder} = props;
+export const AiModelNameInput = (props: { model: AiModel }) => {
+	const {model} = props;
 	const forceUpdate = useForceUpdate();
 	const {fire: fireTuple} = useTupleEventBus();
 
 	const onValueChange = (event: ChangeEvent<HTMLInputElement>) => {
-		const value = event.target.value;
-		(model as any)[propName] = value;
+		model.name = event.target.value;
 		fireTuple(TupleEventTypes.CHANGE_TUPLE_STATE, TupleState.CHANGED);
 		forceUpdate();
 	};
 
-	return <TuplePropertyInput value={model[propName] as string ?? ''} onChange={onValueChange} placeholder={placeholder}/>;
+	return <TuplePropertyInput value={model.name || ''} onChange={onValueChange}/>;
 };

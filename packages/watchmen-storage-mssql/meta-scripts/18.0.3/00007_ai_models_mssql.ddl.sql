@@ -20,6 +20,7 @@ CREATE TABLE ai_models (
     telemetry BIT DEFAULT 1,
     generation_url VARCHAR(500),
     model_token VARCHAR(500),
+    enable_monitor BIT DEFAULT 0,
     tenant_id VARCHAR(50),
     created_at DATETIME2 DEFAULT GETDATE(),
     created_by VARCHAR(50),

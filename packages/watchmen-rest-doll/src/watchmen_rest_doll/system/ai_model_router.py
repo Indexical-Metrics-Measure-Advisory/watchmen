@@ -11,8 +11,9 @@ from watchmen_model.common.tuple_ids import AIModelId
 from watchmen_model.system import AIModel
 from watchmen_rest import get_any_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_404
+from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import is_blank
 
 router = APIRouter()
 
@@ -98,17 +99,22 @@ async def find_all_ai_models(
 
 
 @router.delete('/aiModel', tags=[UserRole.SUPER_ADMIN], response_model=None)
-async def delete_ai_model(
-		model_id: AIModelId,
+async def delete_ai_model_by_id(
+		model_id: Optional[AIModelId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> AIModel:
+	if not ask_tuple_delete_enabled():
+		raise_404('Not Found')
+
+	if is_blank(model_id):
+		raise_400('Model id is required.')
+
 	ai_model_service = get_ai_model_service(principal_service)
 
 	def action() -> AIModel:
-		ai_model = ai_model_service.find_by_id(model_id)
+		ai_model = ai_model_service.delete(model_id)
 		if ai_model is None:
 			raise_404()
-		ai_model_service.delete(model_id)
 		return ai_model
 
 	return trans(ai_model_service, action)

@@ -82,11 +82,12 @@ export const Apis = {
 	DATASOURCE_SAVE: 'datasource',
 	DATASOURCE_LOAD_ALL: 'datasource/all',
 
-	AI_MODEL_LIST_BY_NAME: 'ai_model/name?query_name=:search',
-	AI_MODEL_GET: 'ai_model?model_id=:modelId',
-	AI_MODEL_CREATE: 'ai_model',
-	AI_MODEL_SAVE: 'ai_model',
-	AI_MODEL_LOAD_ALL: 'ai_model/all',
+	AI_MODEL_LIST_BY_NAME: 'aiModel/name?query_name=:query_name',
+	AI_MODEL_GET: 'aiModel?model_id=:model_id',
+	AI_MODEL_CREATE: 'aiModel',
+	AI_MODEL_SAVE: 'aiModel',
+	AI_MODEL_LOAD_ALL: 'aiModel/all',
+	AI_MODEL_DELETE: 'aiModel?model_id=:model_id',
 
 	EXTERNAL_WRITER_LIST_BY_NAME: 'external_writer/name?query_name=:search',
 	EXTERNAL_WRITER_GET: 'external_writer?writer_id=:writerId',

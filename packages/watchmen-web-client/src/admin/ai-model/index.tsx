@@ -1,4 +1,3 @@
-
 import {fetchAiModel, listAiModels, saveAiModel} from '@/services/data/tuples/ai-model';
 import {AiModel} from '@/services/data/tuples/ai-model-types';
 import {listTenants} from '@/services/data/tuples/tenant';
@@ -18,7 +17,7 @@ import {renderEditor} from './editor';
 import {createAiModel} from './utils';
 
 const fetchAiModelAndCodes = async (model: AiModel) => {
-	const {model: fetchedModel} = await fetchAiModel(model.modelId);
+	const fetchedModel = await fetchAiModel(model.modelId);
 	const {data: tenants} = await listTenants({search: '', pageNumber: 1, pageSize: 9999});
 	return {tuple: fetchedModel, tenants};
 };
@@ -50,20 +49,14 @@ const AdminAiModels = () => {
 				(page: TuplePage<QueryTuple>) => fire(TupleEventTypes.TUPLE_SEARCHED, page, searchText));
 		};
 		const onSaveAiModel = async (model: AiModel, onSaved: (model: AiModel, saved: boolean) => void) => {
-			if (!model.modelCode || !model.modelCode.trim()) {
-				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Model code is required.</AlertLabel>, () => {
+			if (!model.name || !model.name.trim()) {
+				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Name is required.</AlertLabel>, () => {
 					onSaved(model, false);
 				});
 				return;
 			}
 			if (!model.provider) {
 				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Provider is required.</AlertLabel>, () => {
-					onSaved(model, false);
-				});
-				return;
-			}
-			if (!model.tenantId) {
-				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Data zone is required.</AlertLabel>, () => {
 					onSaved(model, false);
 				});
 				return;
