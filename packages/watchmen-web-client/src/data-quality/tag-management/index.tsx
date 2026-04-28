@@ -2,6 +2,8 @@ import {TagDef, loadTags, saveTags} from '@/services/data/tuples/tag-types';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {Button} from '@/widgets/basic/button';
 import {ButtonInk} from '@/widgets/basic/types';
+import {EventTypes} from '@/widgets/events/types';
+import {useEventBus} from '@/widgets/events/event-bus';
 import {FullWidthPageHeaderContainer, PageTitle} from '@/widgets/basic/page-header';
 import {PageHeaderButtons} from '@/widgets/basic/page-header-buttons';
 import React, {useEffect, useState} from 'react';
@@ -39,6 +41,7 @@ const TagManagement = () => {
 	const [editingTag, setEditingTag] = useState<TagDef | undefined>(undefined);
 	const [showEditor, setShowEditor] = useState(false);
 	const [expandedTagId, setExpandedTagId] = useState<string | null>(null);
+	const {fire} = useEventBus();
 
 	const loadTagList = () => {
 		const data = loadTags();
@@ -61,12 +64,16 @@ const TagManagement = () => {
 	};
 
 	const handleDelete = (tag: TagDef) => {
-		if (!window.confirm(`Are you sure to delete tag "${tag.name}"?`)) {
-			return;
-		}
-		const updated = tags.filter(t => t.tagId !== tag.tagId);
-		saveTags(updated);
-		setTags(updated);
+		fire(EventTypes.SHOW_YES_NO_DIALOG,
+			`Are you sure to delete tag "${tag.name}"?`,
+			() => {
+				const updated = tags.filter(t => t.tagId !== tag.tagId);
+				saveTags(updated);
+				setTags(updated);
+				fire(EventTypes.HIDE_DIALOG);
+			},
+			() => fire(EventTypes.HIDE_DIALOG)
+		);
 	};
 
 	const handleSave = () => {
