@@ -6,6 +6,8 @@ import {TopicId} from '@/services/data/tuples/topic-types';
 import {TupleHolder} from '@/services/data/tuples/tuple-types';
 import {UserId} from '@/services/data/tuples/user-types';
 import {isFakedUuid} from '@/services/data/tuples/utils';
+import {fetchMonitorRules} from '@/services/data/data-quality/rules';
+import {MonitorRule, MonitorRuleGrade} from '@/services/data/data-quality/rule-types';
 import {Button} from '@/widgets/basic/button';
 import {ICON_LOADING} from '@/widgets/basic/constants';
 import {Dropdown} from '@/widgets/basic/dropdown';
@@ -18,7 +20,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {TupleEventBusProvider} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleItemPicker} from '@/widgets/tuple-workbench/tuple-item-picker';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import React, {ChangeEvent, useState} from 'react';
+import React, {ChangeEvent, useEffect, useState} from 'react';
 import {DQCCacheData} from '../../cache/types';
 import {useDataQualityCacheData} from '../../cache/use-cache-data';
 import {useCatalogEventBus} from '../catalog-event-bus';
@@ -32,16 +34,17 @@ import {
 	CatalogRowContainer,
 	CatalogSeqCell
 } from './widgets';
+import {TagPicker} from '@/data-quality/widgets/tag-picker';
 
 interface EditCatalog extends Omit<Catalog, 'tags'>, TupleHolder {
-	flatTags: string;
+	tagIds: Array<string>;
 }
 
 const asEditingCatalog = (catalog: Catalog): EditCatalog => {
 	return {
 		...catalog,
 		topicIds: [...(catalog.topicIds || [])],
-		flatTags: (catalog.tags || []).join(' ')
+		tagIds: [...(catalog.tags || [])]
 	};
 };
 const getUserName = (users: Array<QueryUserForHolder>, userId?: UserId): string => {
@@ -108,24 +111,67 @@ export const CatalogRow = (props: { catalog: Catalog; index: number }) => {
 	const onBizOwnerChanged = (option: DropdownOption) => {
 		changeOwnerId(option.value, 'bizOwnerId');
 	};
-	const onTagsChanged = (event: ChangeEvent<HTMLInputElement>) => {
-		editingCatalog.flatTags = event.target.value;
+	const onTagsChanged = (tagIds: Array<string>) => {
+		editingCatalog.tagIds = tagIds;
 		changeAndForceUpdate();
 	};
 	const onDescChanged = (event: ChangeEvent<HTMLTextAreaElement>) => {
 		editingCatalog.description = event.target.value;
 		changeAndForceUpdate();
 	};
+	const [rules, setRules] = useState<Array<MonitorRule>>([]);
+	const [rulesLoading, setRulesLoading] = useState(false);
+
+	// 当 topicIds 变化时，加载关联的 Monitor Rules
+	useEffect(() => {
+		const topicIds = editingCatalog.topicIds || [];
+		if (topicIds.length === 0) {
+			setRules([]);
+			return;
+		}
+		setRulesLoading(true);
+		const loadRules = async () => {
+			try {
+				const promiseResults = await Promise.all(
+					topicIds.map(topicId =>
+						fetchMonitorRules({
+							criteria: {grade: MonitorRuleGrade.TOPIC, topicId}
+						}).catch(() => [])
+					)
+				);
+				const ruleArrays = promiseResults as Array<Array<MonitorRule>>;
+				const merged: Array<MonitorRule> = [];
+				const seenIds = new Set<string>();
+				ruleArrays.forEach(ruleArray => {
+					(ruleArray || []).forEach((rule: MonitorRule) => {
+						const ruleId = rule.ruleId;
+						if (ruleId && !seenIds.has(ruleId)) {
+							seenIds.add(ruleId);
+							merged.push(rule);
+						}
+					});
+				});
+				setRules(merged);
+			} catch (e) {
+				console.error('Failed to load monitor rules:', e);
+				setRules([]);
+			} finally {
+				setRulesLoading(false);
+			}
+		};
+		loadRules();
+	}, [JSON.stringify(editingCatalog.topicIds)]);
+
 	const onSaveClicked = () => {
 		setSaving(true);
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 			async () => {
 				const catalogToSave: Catalog = {
 					...editingCatalog,
-					tags: (editingCatalog.flatTags || '').split(' ').map(tag => tag.trim()).filter(tag => tag !== '').map(tag => tag.toLowerCase())
+					tags: (editingCatalog.tagIds || []).map(tagId => tagId.toLowerCase())
 				};
 				// @ts-ignore
-				delete catalogToSave.flatTags;
+				delete catalogToSave.tagIds;
 				await saveCatalog(catalogToSave);
 				return catalogToSave;
 			}, (catalogToSave: Catalog) => {
@@ -242,6 +288,7 @@ export const CatalogRow = (props: { catalog: Catalog; index: number }) => {
 				: getUserName(users, editingCatalog.bizOwnerId)}
 		</CatalogCell>
 		<CatalogCell>
+			{rulesLoading ? '...' : (rules.length === 0 ? '0' : rules.length)}
 		</CatalogCell>
 		<CatalogEditCell data-expanded={expanded}>
 			<CatalogEditLabel>Topics</CatalogEditLabel>
@@ -254,10 +301,25 @@ export const CatalogRow = (props: { catalog: Catalog; index: number }) => {
 				                 isCandidateHold={isTopicHold} removeHold={removeTopic} addHold={addTopic}/>
 			</TupleEventBusProvider>
 			<CatalogEditLabel>Tags</CatalogEditLabel>
-			<Input value={editingCatalog.flatTags} onChange={onTagsChanged}
-			       placeholder="Tags split by space character."/>
+			<TagPicker value={editingCatalog.tagIds || []} onChange={onTagsChanged}/>
 			<CatalogEditLabel>Description</CatalogEditLabel>
 			<InputLines value={editingCatalog.description ?? ''} onChange={onDescChanged}/>
+			<CatalogEditLabel>Associated Rules ({rules.length})</CatalogEditLabel>
+			<div>
+				{rulesLoading ? 'Loading...' : rules.map(rule => (
+					<div key={rule.ruleId} style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0'}}>
+						<div style={{
+							width: '4px', height: '20px',
+							backgroundColor: rule.severity === 'fatal' ? '#ff4d4f' : rule.severity === 'warn' ? '#faad14' : '#d9d9d9'
+						}}/>
+						<span>{rule.code}</span>
+						<span style={{fontSize: '12px', opacity: 0.6}}>{rule.enabled ? 'ON' : 'OFF'}</span>
+					</div>
+				))}
+				{!rulesLoading && rules.length === 0 ? (
+					<span style={{opacity: 0.6, fontSize: '14px'}}>No associated rules found.</span>
+				) : null}
+			</div>
 			<CatalogEditLabel/>
 			<CatalogEditButtons>
 				<Button ink={ButtonInk.PRIMARY} onClick={onCollapseClicked}>

@@ -18,6 +18,7 @@ import {useDataQualityCacheData} from '../../cache/use-cache-data';
 import {useCatalogEventBus} from '../catalog-event-bus';
 import {CatalogEventTypes} from '../catalog-event-bus-types';
 import {useUserData} from '../user-cache/use-user-data';
+import {TagPicker} from '@/data-quality/widgets/tag-picker';
 import {SearchCriteriaButtons, SearchCriteriaContainer, SearchLabel} from './widgets';
 
 interface StateDataHolder {
@@ -41,6 +42,10 @@ export const SearchCriteria = () => {
 	const [topics, setTopics] = useState<Array<Topic>>([]);
 	const [users, setUsers] = useState<Array<QueryUserForHolder>>([]);
 	const [criteria, setCriteria] = useState<CatalogCriteria>({});
+	const [selectedTagIds, setSelectedTagIds] = useState<Array<string>>([]);
+	const onTagsChanged = (tagIds: Array<string>) => {
+		setSelectedTagIds(tagIds);
+	};
 	const [dataHolder] = useState<StateDataHolder>(() => {
 		return {
 			onTopicData: (data?: DQCCacheData) => {
@@ -92,6 +97,7 @@ export const SearchCriteria = () => {
 	};
 	const onSearchClicked = () => {
 		fire(CatalogEventTypes.DO_SEARCH, criteria);
+		fire(CatalogEventTypes.TAGS_FILTER_CHANGED, selectedTagIds);
 	};
 	const onCreateClicked = () => {
 		const catalog = createCatalog();
@@ -130,6 +136,8 @@ export const SearchCriteria = () => {
 		<Dropdown options={ownerOptions} value={criteria.techOwnerId ?? ''} onChange={onTechOwnerChanged}/>
 		<SearchLabel>Business Owner</SearchLabel>
 		<Dropdown options={ownerOptions} value={criteria.bizOwnerId ?? ''} onChange={onBizOwnerChanged}/>
+		<SearchLabel>Tags</SearchLabel>
+		<TagPicker value={selectedTagIds} onChange={onTagsChanged}/>
 		<SearchCriteriaButtons>
 			<Button ink={ButtonInk.PRIMARY} onClick={onSearchClicked}>
 				<FontAwesomeIcon icon={ICON_SEARCH}/>
