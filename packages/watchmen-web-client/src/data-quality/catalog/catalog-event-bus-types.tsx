@@ -13,7 +13,9 @@ export enum CatalogEventTypes {
 	CATALOG_CHANGED = 'catalog-changed',
 	CATALOG_SAVED = 'catalog-saved',
 	CATALOG_DELETED = 'catalog-deleted',
-	CLEAR_CATALOG_STATE = 'clear-catalog-state'
+	CLEAR_CATALOG_STATE = 'clear-catalog-state',
+
+	TAGS_FILTER_CHANGED = 'tags-filter-changed'
 }
 
 export interface CatalogEventBus {
@@ -48,4 +50,8 @@ export interface CatalogEventBus {
 	fire(type: CatalogEventTypes.CLEAR_CATALOG_STATE): this;
 	on(type: CatalogEventTypes.CLEAR_CATALOG_STATE, listener: () => void): this;
 	off(type: CatalogEventTypes.CLEAR_CATALOG_STATE, listener: () => void): this;
+
+	fire(type: CatalogEventTypes.TAGS_FILTER_CHANGED, tagIds: Array<string>): this;
+	on(type: CatalogEventTypes.TAGS_FILTER_CHANGED, listener: (tagIds: Array<string>) => void): this;
+	off(type: CatalogEventTypes.TAGS_FILTER_CHANGED, listener: (tagIds: Array<string>) => void): this;
 }

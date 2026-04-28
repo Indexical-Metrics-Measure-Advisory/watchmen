@@ -59,6 +59,7 @@ export enum Router {
 	DQC_STATISTICS = '/dqc/statistics',
 	DQC_END_USER = '/dqc/end-user',
 	DQC_SETTINGS = '/dqc/settings',
+	DQC_TAG_MANAGEMENT = '/dqc/tag-management',
 
 	IDW = '/idw',
 	IDW_ALL = '/idw/*',

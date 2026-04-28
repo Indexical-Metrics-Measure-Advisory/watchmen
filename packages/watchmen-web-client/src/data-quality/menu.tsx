@@ -9,7 +9,8 @@ import {
 	ICON_RULE_DEFINE,
 	ICON_SETTINGS,
 	ICON_STATISTICS,
-	ICON_SWITCH_WORKBENCH
+	ICON_SWITCH_WORKBENCH,
+	ICON_TAG
 } from '@/widgets/basic/constants';
 import {SideMenuItem} from '@/widgets/basic/side-menu/side-menu-item';
 import {SideMenuLogo} from '@/widgets/basic/side-menu/side-menu-logo';
@@ -92,6 +93,9 @@ export const DataQualityMenu = () => {
 		<SideMenuItem icon={ICON_CATALOG} label="Catalog" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.DQC_CATALOG}, location.pathname)}
 		              onClick={navigateTo(Router.DQC_CATALOG)}/>
+		<SideMenuItem icon={ICON_TAG} label="Tag Management" showTooltip={showTooltip}
+		              active={!!matchPath({path: Router.DQC_TAG_MANAGEMENT}, location.pathname)}
+		              onClick={navigateTo(Router.DQC_TAG_MANAGEMENT)}/>
 		<SideMenuItem icon={ICON_RULE_DEFINE} label="Monitor Rules" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.DQC_RULES}, location.pathname)}
 		              onClick={navigateTo(Router.DQC_RULES)}/>

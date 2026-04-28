@@ -31,7 +31,7 @@ export const SearchResultTargetLabel = styled.div.attrs({'data-widget': 'catalog
 `;
 export const SearchResultHeader = styled.div.attrs({'data-widget': 'catalog-result-header'})`
 	display               : grid;
-	grid-template-columns : 40px 350px 120px 200px 200px 1fr;
+	grid-template-columns : 40px 350px 120px 200px 200px 120px 1fr;
 	grid-auto-rows        : var(--height);
 	border-bottom         : var(--border);
 	border-bottom-width   : 2px;
@@ -79,7 +79,7 @@ export const NoData = styled.div`
 export const CatalogRowContainer = styled.div`
 	display               : grid;
 	position              : relative;
-	grid-template-columns : 40px 350px 120px 200px 200px 1fr;
+	grid-template-columns : 40px 350px 120px 200px 200px 120px 1fr;
 	min-height            : calc(var(--height) + 1px);
 	border-bottom         : var(--border);
 	cursor                : pointer;

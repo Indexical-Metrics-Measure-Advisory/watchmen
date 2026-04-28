@@ -95,6 +95,7 @@ export const SearchResult = () => {
 			<SearchResultHeaderCell>Topic Count</SearchResultHeaderCell>
 			<SearchResultHeaderCell>Technical Owner</SearchResultHeaderCell>
 			<SearchResultHeaderCell>Business Owner</SearchResultHeaderCell>
+			<SearchResultHeaderCell>Rule Count</SearchResultHeaderCell>
 			<SearchResultHeaderCell/>
 		</SearchResultHeader>
 		<SearchResultBody>
