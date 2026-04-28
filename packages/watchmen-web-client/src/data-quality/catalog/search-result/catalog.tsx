@@ -58,7 +58,7 @@ const getUserName = (users: Array<QueryUserForHolder>, userId?: UserId): string 
 };
 
 export const CatalogCard = (props: { catalog: Catalog; index: number }) => {
-	const {catalog, index} = props;
+	const {catalog} = props;
 
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useCatalogEventBus();
@@ -162,7 +162,8 @@ export const CatalogCard = (props: { catalog: Catalog; index: number }) => {
 			}
 		};
 		loadRules();
-	}, [JSON.stringify(editingCatalog.topicIds)]);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [JSON.stringify(editingCatalog?.topicIds ?? [])]);
 
 	const onSaveClicked = () => {
 		setSaving(true);

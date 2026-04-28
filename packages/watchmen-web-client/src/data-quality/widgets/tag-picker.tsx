@@ -3,7 +3,6 @@ import React, {ChangeEvent, useEffect, useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {ICON_ADD, ICON_DROPDOWN} from '@/widgets/basic/constants';
 import {DropdownOption} from '@/widgets/basic/types';
-import styled from 'styled-components';
 import {
 	TagPickerContainer,
 	TagItem,
