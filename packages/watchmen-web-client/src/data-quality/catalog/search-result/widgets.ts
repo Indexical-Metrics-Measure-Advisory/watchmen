@@ -29,29 +29,6 @@ export const SearchResultTargetLabel = styled.div.attrs({'data-widget': 'catalog
 		margin-left : calc(var(--margin) / 4);
 	}
 `;
-export const SearchResultHeader = styled.div.attrs({'data-widget': 'catalog-result-header'})`
-	display               : grid;
-	grid-template-columns : 40px 350px 120px 200px 200px 120px 1fr;
-	grid-auto-rows        : var(--height);
-	border-bottom         : var(--border);
-	border-bottom-width   : 2px;
-	overflow-x            : hidden;
-`;
-export const SearchResultHeaderCell = styled.div.attrs({'data-widget': 'catalog-result-header-cell'})`
-	display      : flex;
-	align-items  : center;
-	font-variant : petite-caps;
-	font-weight  : var(--font-demi-bold);
-	height       : var(--height);
-	padding      : 0 calc(var(--margin) / 2);
-	border-right : var(--border);
-	&:last-child {
-		border-right : 0;
-	}
-`;
-export const SearchResultHeaderSeqCell = styled(SearchResultHeaderCell)`
-	padding : 0 calc(var(--margin) / 4);
-`;
 export const SearchResultBody = styled.div.attrs({
 	'data-widget': 'catalog-result-body',
 	'data-v-scroll': ''
@@ -59,75 +36,98 @@ export const SearchResultBody = styled.div.attrs({
 	display        : flex;
 	flex-direction : column;
 	flex-grow      : 1;
-	height         : calc(100vh - var(--page-header-height) - 81px - 40px - var(--height) - 2px);
+	height         : calc(100vh - var(--page-header-height) - 81px - 40px);
 	overflow-y     : auto;
 	overflow-x     : hidden;
+	padding        : calc(var(--margin) / 2);
 `;
 export const NoData = styled.div`
-	display       : flex;
-	position      : absolute;
-	grid-column   : 1 / span 5;
-	align-items   : center;
-	height        : var(--height);
-	width         : 100%;
-	padding       : 0 calc(var(--margin) / 2);
-	border-bottom : var(--border);
+	display      : flex;
+	align-items  : center;
+	justify-content : center;
+	height       : var(--height);
+	width        : 100%;
+	padding      : 0 calc(var(--margin) / 2);
 	> svg {
 		margin-right : calc(var(--margin) / 4);
 	}
 `;
-export const CatalogRowContainer = styled.div`
+// Card grid container
+export const CatalogCardGrid = styled.div.attrs({'data-widget': 'catalog-card-grid'})`
 	display               : grid;
-	position              : relative;
-	grid-template-columns : 40px 350px 120px 200px 200px 120px 1fr;
-	min-height            : calc(var(--height) + 1px);
-	border-bottom         : var(--border);
-	cursor                : pointer;
-	&[data-expanded=true]:hover {
-		min-height       : unset;
-		background-color : unset;
-		cursor           : default;
-	}
+	grid-template-columns : repeat(auto-fill, minmax(320px, 1fr));
+	gap                   : calc(var(--margin) / 2);
+`;
+// Card container — follows TupleCard visual style
+export const CatalogCardContainer = styled.div.attrs({'data-widget': 'catalog-card'})`
+	display         : flex;
+	flex-direction  : column;
+	padding         : calc(var(--margin) / 2) var(--margin);
+	position        : relative;
+	border-radius   : calc(var(--border-radius) * 2);
+	box-shadow      : var(--shadow);
+	cursor          : pointer;
+	transition      : all 300ms ease-in-out;
 	&:hover {
-		background-color : var(--hover-color);
+		box-shadow : var(--hover-shadow);
+	}
+	&[data-expanded=true] {
+		cursor : default;
+	}
+	&[data-changed=true] {
+		border-left : 3px solid var(--primary-color, #1890ff);
 	}
 `;
-export const CatalogCell = styled.div`
+// Card title
+export const CatalogCardTitle = styled.div.attrs({'data-widget': 'catalog-card-title'})`
+	display      : flex;
+	align-items  : center;
+	font-family  : var(--title-font-family);
+	font-size    : 1.3em;
+	font-weight  : var(--font-demi-bold);
+	> span {
+		flex-grow     : 1;
+		word-break    : break-word;
+		overflow      : hidden;
+		text-overflow : ellipsis;
+		white-space   : nowrap;
+	}
+`;
+// Card description (collapsed)
+export const CatalogCardDescription = styled.div.attrs({'data-widget': 'catalog-card-description'})`
+	display            : -webkit-box;
+	word-break         : break-word;
+	font-size          : 0.85em;
+	opacity            : 0.7;
+	margin-top         : calc(var(--margin) / 4);
+	-webkit-line-clamp : 2;
+	-webkit-line-break : after-white-space;
+	-webkit-box-orient : vertical;
+	white-space        : normal;
+	overflow           : hidden;
+`;
+// Card meta row (Topic Count / Owners / Rule Count)
+export const CatalogCardMeta = styled.div.attrs({'data-widget': 'catalog-card-meta'})`
+	display         : flex;
+	flex-wrap       : wrap;
+	gap             : calc(var(--margin) / 2);
+	font-size       : 0.8em;
+	opacity         : 0.7;
+	margin-top      : calc(var(--margin) / 2);
+`;
+export const CatalogCardMetaItem = styled.div.attrs({'data-widget': 'catalog-card-meta-item'})`
 	display       : flex;
 	align-items   : center;
-	height        : var(--height);
-	padding       : 0 calc(var(--margin) / 2);
-	border-right  : var(--border);
+	gap           : 4px;
+	padding       : 2px calc(var(--margin) / 4);
+	border-radius : calc(var(--border-radius) / 2);
+	background    : var(--light-color, rgba(0,0,0,0.04));
 	white-space   : nowrap;
-	overflow      : hidden;
-	text-overflow : ellipsis;
-	> input {
-		border  : 0;
-		margin  : calc(var(--margin) / -2);
-		padding : 0 calc(var(--margin) / 2);
-		width   : calc(100% + var(--margin));
-	}
-	> div[data-widget=checkbox] {
-		border : 0;
-	}
-	> div[data-widget=dropdown] {
-		border  : 0;
-		margin  : calc(var(--margin) / -2);
-		padding : 0 calc(var(--margin) / 2);
-		width   : calc(100% + var(--margin));
-		span[data-widget="dropdown-option"] {
-			padding : 0 calc(var(--margin) / 2);
-		}
-	}
 `;
-export const CatalogSeqCell = styled(CatalogCell)`
-	padding : 0 calc(var(--margin) / 4);
-`;
+// Edit cell (expanded inside card)
 export const CatalogEditCell = styled.div`
 	display               : grid;
 	position              : relative;
-	grid-column           : 1 / span 6;
-	align-items           : center;
 	grid-template-columns : auto 1fr;
 	grid-column-gap       : calc(var(--margin) / 2);
 	grid-row-gap          : calc(var(--margin) / 4);
@@ -136,7 +136,8 @@ export const CatalogEditCell = styled.div`
 	&[data-expanded=true] {
 		border-top : var(--border);
 		height     : auto;
-		padding    : calc(var(--margin) / 4) var(--margin) calc(var(--margin) / 4) calc(var(--margin) / 4 + 40px);
+		padding    : calc(var(--margin) / 2) 0 0 0;
+		margin-top : calc(var(--margin) / 2);
 	}
 	> div[data-widget=tuple-property-item-picker] {
 		grid-template-rows : var(--height) 1fr;

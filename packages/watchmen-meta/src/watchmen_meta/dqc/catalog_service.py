@@ -17,7 +17,8 @@ class CatalogShaper(EntityShaper):
 			'tech_owner_id': catalog.techOwnerId,
 			'biz_owner_id': catalog.bizOwnerId,
 			'tags': catalog.tags,
-			'description': catalog.description
+			'description': catalog.description,
+			'version': catalog.version
 		})
 
 	def deserialize(self, row: EntityRow) -> Catalog:
@@ -29,7 +30,8 @@ class CatalogShaper(EntityShaper):
 			techOwnerId=row.get('tech_owner_id'),
 			bizOwnerId=row.get('biz_owner_id'),
 			tags=row.get('tags'),
-			description=row.get('description')
+			description=row.get('description'),
+			version=row.get('version')
 		))
 
 

@@ -8,15 +8,13 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
 import {useCatalogEventBus} from '../catalog-event-bus';
 import {CatalogEventTypes} from '../catalog-event-bus-types';
-import {CatalogRow} from './catalog';
+import {CatalogCard} from './catalog';
 import {CatalogState} from './catalog-state';
 import {
+	CatalogCardGrid,
 	NoData,
 	SearchResultBody,
 	SearchResultContainer,
-	SearchResultHeader,
-	SearchResultHeaderCell,
-	SearchResultHeaderSeqCell,
 	SearchResultTargetLabel
 } from './widgets';
 
@@ -89,15 +87,6 @@ export const SearchResult = () => {
 		<SearchResultTargetLabel>
 			<span>Catalogs</span>
 		</SearchResultTargetLabel>
-		<SearchResultHeader>
-			<SearchResultHeaderSeqCell>#</SearchResultHeaderSeqCell>
-			<SearchResultHeaderCell>Name</SearchResultHeaderCell>
-			<SearchResultHeaderCell>Topic Count</SearchResultHeaderCell>
-			<SearchResultHeaderCell>Technical Owner</SearchResultHeaderCell>
-			<SearchResultHeaderCell>Business Owner</SearchResultHeaderCell>
-			<SearchResultHeaderCell>Rule Count</SearchResultHeaderCell>
-			<SearchResultHeaderCell/>
-		</SearchResultHeader>
 		<SearchResultBody>
 			{loading
 				? <NoData>
@@ -106,9 +95,11 @@ export const SearchResult = () => {
 				</NoData>
 				: (catalogs.length === 0
 					? <NoData>No catalogs found.</NoData>
-					: catalogs.map((catalog, index) => {
-						return <CatalogRow catalog={catalog} index={index + 1} key={catalog.catalogId}/>;
-					}))}
+					: <CatalogCardGrid>
+						{catalogs.map((catalog, index) => {
+							return <CatalogCard catalog={catalog} index={index + 1} key={catalog.catalogId}/>;
+						})}
+					</CatalogCardGrid>)}
 		</SearchResultBody>
 	</SearchResultContainer>;
 };

@@ -27,12 +27,14 @@ import {useCatalogEventBus} from '../catalog-event-bus';
 import {CatalogEventTypes} from '../catalog-event-bus-types';
 import {useUserData} from '../user-cache/use-user-data';
 import {
-	CatalogCell,
+	CatalogCardContainer,
+	CatalogCardDescription,
+	CatalogCardMeta,
+	CatalogCardMetaItem,
+	CatalogCardTitle,
 	CatalogEditButtons,
 	CatalogEditCell,
-	CatalogEditLabel,
-	CatalogRowContainer,
-	CatalogSeqCell
+	CatalogEditLabel
 } from './widgets';
 import {TagPicker} from '@/data-quality/widgets/tag-picker';
 
@@ -55,7 +57,7 @@ const getUserName = (users: Array<QueryUserForHolder>, userId?: UserId): string 
 	return users.find(user => user.userId == userId)?.name ?? 'Not Designated';
 };
 
-export const CatalogRow = (props: { catalog: Catalog; index: number }) => {
+export const CatalogCard = (props: { catalog: Catalog; index: number }) => {
 	const {catalog, index} = props;
 
 	const {fire: fireGlobal} = useEventBus();
@@ -180,6 +182,8 @@ export const CatalogRow = (props: { catalog: Catalog; index: number }) => {
 					// @ts-ignore
 					catalog[prop as keyof Catalog] = catalogToSave[prop as keyof Catalog];
 				});
+				// update editingCatalog with new version/lastModifiedAt from server
+				setEditingCatalog(asEditingCatalog(catalog));
 				setChanged(false);
 				setSaving(false);
 				fire(CatalogEventTypes.CATALOG_SAVED, catalog);
@@ -266,81 +270,96 @@ export const CatalogRow = (props: { catalog: Catalog; index: number }) => {
 		}
 	};
 
-	return <CatalogRowContainer data-changed={changed} data-expanded={expanded}
-	                            onClick={expanded ? (void 0) : onExpandClicked}>
-		<CatalogSeqCell>{index}</CatalogSeqCell>
-		<CatalogCell>
-			{expanded
-				? <Input value={editingCatalog.name || ''} onChange={onNameChanged}/>
-				: (editingCatalog.name || 'Noname Catalog')}
-		</CatalogCell>
-		<CatalogCell>{(editingCatalog.topicIds || []).length}</CatalogCell>
-		<CatalogCell>
-			{expanded
-				? <Dropdown value={editingCatalog.techOwnerId ?? ''} options={ownerOptions}
-				            onChange={onTechOwnerChanged}/>
-				: getUserName(users, editingCatalog.techOwnerId)}
-		</CatalogCell>
-		<CatalogCell>
-			{expanded
-				?
-				<Dropdown value={editingCatalog.bizOwnerId ?? ''} options={ownerOptions} onChange={onBizOwnerChanged}/>
-				: getUserName(users, editingCatalog.bizOwnerId)}
-		</CatalogCell>
-		<CatalogCell>
-			{rulesLoading ? '...' : (rules.length === 0 ? '0' : rules.length)}
-		</CatalogCell>
-		<CatalogEditCell data-expanded={expanded}>
-			<CatalogEditLabel>Topics</CatalogEditLabel>
-			<TupleEventBusProvider>
-				<TupleItemPicker actionLabel="Pick topics"
-				                 holder={editingCatalog} codes={topics}
-				                 isHolding={isHolding} getHoldIds={getHoldIds} getNameOfHold={getNameOfHold}
-				                 listCandidates={listTopics} getIdOfCandidate={getTopicId}
-				                 getNameOfCandidate={getTopicName}
-				                 isCandidateHold={isTopicHold} removeHold={removeTopic} addHold={addTopic}/>
-			</TupleEventBusProvider>
-			<CatalogEditLabel>Tags</CatalogEditLabel>
-			<TagPicker value={editingCatalog.tagIds || []} onChange={onTagsChanged}/>
-			<CatalogEditLabel>Description</CatalogEditLabel>
-			<InputLines value={editingCatalog.description ?? ''} onChange={onDescChanged}/>
-			<CatalogEditLabel>Associated Rules ({rules.length})</CatalogEditLabel>
-			<div>
-				{rulesLoading ? 'Loading...' : rules.map(rule => (
-					<div key={rule.ruleId} style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0'}}>
-						<div style={{
-							width: '4px', height: '20px',
-							backgroundColor: rule.severity === 'fatal' ? '#ff4d4f' : rule.severity === 'warn' ? '#faad14' : '#d9d9d9'
-						}}/>
-						<span>{rule.code}</span>
-						<span style={{fontSize: '12px', opacity: 0.6}}>{rule.enabled ? 'ON' : 'OFF'}</span>
+	const topicCount = (editingCatalog.topicIds || []).length;
+	const techOwner = getUserName(users, editingCatalog.techOwnerId);
+	const bizOwner = getUserName(users, editingCatalog.bizOwnerId);
+	const ruleCount = rulesLoading ? '...' : rules.length;
+
+	return <CatalogCardContainer data-changed={changed} data-expanded={expanded}
+	                             onClick={expanded ? (void 0) : onExpandClicked}>
+		{expanded
+			? <>
+				<CatalogCardTitle>
+					<Input value={editingCatalog.name || ''} onChange={onNameChanged} style={{fontSize: '1em'}}/>
+				</CatalogCardTitle>
+				<CatalogEditCell data-expanded={expanded}>
+					<CatalogEditLabel>Topics</CatalogEditLabel>
+					<TupleEventBusProvider>
+						<TupleItemPicker actionLabel="Pick topics"
+						                 holder={editingCatalog} codes={topics}
+						                 isHolding={isHolding} getHoldIds={getHoldIds} getNameOfHold={getNameOfHold}
+						                 listCandidates={listTopics} getIdOfCandidate={getTopicId}
+						                 getNameOfCandidate={getTopicName}
+						                 isCandidateHold={isTopicHold} removeHold={removeTopic} addHold={addTopic}/>
+					</TupleEventBusProvider>
+					<CatalogEditLabel>Tags</CatalogEditLabel>
+					<TagPicker value={editingCatalog.tagIds || []} onChange={onTagsChanged}/>
+					<CatalogEditLabel>Description</CatalogEditLabel>
+					<InputLines value={editingCatalog.description ?? ''} onChange={onDescChanged}/>
+					<CatalogEditLabel>Technical Owner</CatalogEditLabel>
+					<Dropdown value={editingCatalog.techOwnerId ?? ''} options={ownerOptions}
+					          onChange={onTechOwnerChanged}/>
+					<CatalogEditLabel>Business Owner</CatalogEditLabel>
+					<Dropdown value={editingCatalog.bizOwnerId ?? ''} options={ownerOptions}
+					          onChange={onBizOwnerChanged}/>
+					<CatalogEditLabel>Associated Rules ({rules.length})</CatalogEditLabel>
+					<div>
+						{rulesLoading ? 'Loading...' : rules.map(rule => (
+							<div key={rule.ruleId} style={{
+								display: 'flex',
+								alignItems: 'center',
+								gap: '8px',
+								padding: '4px 0'
+							}}>
+								<div style={{
+									width: '4px', height: '20px',
+									backgroundColor: rule.severity === 'fatal' ? '#ff4d4f' : rule.severity === 'warn' ? '#faad14' : '#d9d9d9'
+								}}/>
+								<span>{rule.code}</span>
+								<span style={{fontSize: '12px', opacity: 0.6}}>{rule.enabled ? 'ON' : 'OFF'}</span>
+							</div>
+						))}
+						{!rulesLoading && rules.length === 0 ? (
+							<span style={{opacity: 0.6, fontSize: '14px'}}>No associated rules found.</span>
+						) : null}
 					</div>
-				))}
-				{!rulesLoading && rules.length === 0 ? (
-					<span style={{opacity: 0.6, fontSize: '14px'}}>No associated rules found.</span>
-				) : null}
-			</div>
-			<CatalogEditLabel/>
-			<CatalogEditButtons>
-				<Button ink={ButtonInk.PRIMARY} onClick={onCollapseClicked}>
-					<span>Collapse</span>
-				</Button>
-				{changed
-					? <>
-						<Button ink={ButtonInk.PRIMARY} onClick={onSaveClicked}>
+					<CatalogEditLabel/>
+					<CatalogEditButtons>
+						<Button ink={ButtonInk.PRIMARY} onClick={onCollapseClicked}>
+							<span>Collapse</span>
+						</Button>
+						{changed
+							? <>
+								<Button ink={ButtonInk.PRIMARY} onClick={onSaveClicked}>
+									{saving ? <FontAwesomeIcon icon={ICON_LOADING} spin={true}/> : null}
+									<span>Save</span>
+								</Button>
+								<Button ink={ButtonInk.PRIMARY} onClick={onDiscardClicked}>
+									<span>Discard</span>
+								</Button>
+							</>
+							: null}
+						<Button ink={ButtonInk.DANGER} onClick={onDeleteClicked}>
 							{saving ? <FontAwesomeIcon icon={ICON_LOADING} spin={true}/> : null}
-							<span>Save</span>
+							<span>Delete</span>
 						</Button>
-						<Button ink={ButtonInk.PRIMARY} onClick={onDiscardClicked}>
-							<span>Discard</span>
-						</Button>
-					</>
+					</CatalogEditButtons>
+				</CatalogEditCell>
+			</>
+			: <>
+				<CatalogCardTitle>
+					<span>{editingCatalog.name || 'Noname Catalog'}</span>
+				</CatalogCardTitle>
+				{editingCatalog.description
+					? <CatalogCardDescription>{editingCatalog.description}</CatalogCardDescription>
 					: null}
-				<Button ink={ButtonInk.DANGER} onClick={onDeleteClicked}>
-					{saving ? <FontAwesomeIcon icon={ICON_LOADING} spin={true}/> : null}
-					<span>Delete</span>
-				</Button>
-			</CatalogEditButtons>
-		</CatalogEditCell>
-	</CatalogRowContainer>;
+				<CatalogCardMeta>
+					<CatalogCardMetaItem>{topicCount} Topic{topicCount !== 1 ? 's' : ''}</CatalogCardMetaItem>
+					<CatalogCardMetaItem>Tech: {techOwner}</CatalogCardMetaItem>
+					<CatalogCardMetaItem>Biz: {bizOwner}</CatalogCardMetaItem>
+					<CatalogCardMetaItem>{ruleCount} Rule{ruleCount !== 1 ? 's' : ''}</CatalogCardMetaItem>
+				</CatalogCardMeta>
+			</>
+		}
+	</CatalogCardContainer>;
 };

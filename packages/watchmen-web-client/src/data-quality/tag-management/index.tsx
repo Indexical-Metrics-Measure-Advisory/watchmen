@@ -1,12 +1,44 @@
 import {TagDef, loadTags, saveTags} from '@/services/data/tuples/tag-types';
+import {generateUuid} from '@/services/data/tuples/utils';
+import {Button} from '@/widgets/basic/button';
+import {ButtonInk} from '@/widgets/basic/types';
+import {FullWidthPageHeaderContainer, PageTitle} from '@/widgets/basic/page-header';
+import {PageHeaderButtons} from '@/widgets/basic/page-header-buttons';
 import React, {useEffect, useState} from 'react';
-import {TagEditor} from './tag-editor';
-import {TagActionButtons, TagCell, TagListHeader, TagListHeaderCell, TagManagementContainer, TagRow} from './widgets';
+import {
+	TagCardActions,
+	TagCardBody,
+	TagCardColorDot,
+	TagCardContainer,
+	TagCardDeleteBtn,
+	TagCardDescription,
+	TagCardEditBtn,
+	TagCardGrid,
+	TagCardMeta,
+	TagCardMetaItem,
+	TagCardTitle,
+	TagEditorActions,
+	TagEditorCancelBtn,
+	TagEditorColorInput,
+	TagEditorColorPicker,
+	TagEditorColorSwatch,
+	TagEditorField,
+	TagEditorInput,
+	TagEditorLabel,
+	TagEditorOverlay,
+	TagEditorPanel,
+	TagEditorSaveBtn,
+	TagEditorTextarea,
+	TagEditorTitle,
+	TagManagementContainer,
+	TagNoData,
+} from './widgets';
 
 const TagManagement = () => {
 	const [tags, setTags] = useState<Array<TagDef>>([]);
 	const [editingTag, setEditingTag] = useState<TagDef | undefined>(undefined);
 	const [showEditor, setShowEditor] = useState(false);
+	const [expandedTagId, setExpandedTagId] = useState<string | null>(null);
 
 	const loadTagList = () => {
 		const data = loadTags();
@@ -19,6 +51,7 @@ const TagManagement = () => {
 
 	const handleCreate = () => {
 		setEditingTag(undefined);
+		setExpandedTagId(null);
 		setShowEditor(true);
 	};
 
@@ -39,6 +72,7 @@ const TagManagement = () => {
 	const handleSave = () => {
 		setShowEditor(false);
 		setEditingTag(undefined);
+		setExpandedTagId(null);
 		loadTagList();
 	};
 
@@ -47,128 +81,179 @@ const TagManagement = () => {
 		setEditingTag(undefined);
 	};
 
-	return (
-		<TagManagementContainer>
-			<div style={{
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'space-between',
-				padding: '12px 16px',
-				borderBottom: 'var(--border)'
-			}}>
-				<h2 style={{margin: 0, fontSize: '16px', fontWeight: 700}}>Tag Management</h2>
-				<button
-					onClick={handleCreate}
-					style={{
-						backgroundColor: 'var(--primary-color)',
-						color: 'white',
-						border: 'none',
-						borderRadius: '4px',
-						padding: '6px 16px',
-						cursor: 'pointer',
-						fontSize: '13px'
-					}}
-				>
-					+ Create Tag
-				</button>
-			</div>
+	const toggleExpand = (tagId: string) => {
+		setExpandedTagId(prev => prev === tagId ? null : tagId);
+	};
 
-			<div style={{flexGrow: 1, overflowY: 'auto', padding: '0 16px 16px 16px'}}>
+	const renderTagCard = (tag: TagDef) => {
+		const isExpanded = expandedTagId === tag.tagId;
+
+		return (
+			<TagCardContainer
+				key={tag.tagId}
+				data-widget="tag-card"
+				onClick={() => !isExpanded && toggleExpand(tag.tagId)}
+			>
+				<TagCardBody onClick={isExpanded ? () => toggleExpand(tag.tagId) : undefined}>
+					<TagCardTitle>
+						<TagCardColorDot $color={tag.color} data-widget="tag-color-dot" />
+						<span>{tag.name}</span>
+					</TagCardTitle>
+					{tag.description ? (
+						<TagCardDescription>{tag.description}</TagCardDescription>
+					) : null}
+					<TagCardMeta>
+						{tag.category ? (
+							<TagCardMetaItem>{tag.category}</TagCardMetaItem>
+						) : null}
+						<TagCardMetaItem style={{display: 'flex', alignItems: 'center', gap: 4}}>
+							<TagCardColorDot $color={tag.color} style={{width: 8, height: 8, borderRadius: 2}} />
+							{tag.color}
+						</TagCardMetaItem>
+					</TagCardMeta>
+				</TagCardBody>
+
+				<TagCardActions>
+					<TagCardEditBtn
+						data-widget="tag-edit-btn"
+						onClick={(e) => { e.stopPropagation(); handleEdit(tag); }}
+					>
+						Edit
+					</TagCardEditBtn>
+					<TagCardDeleteBtn
+						data-widget="tag-delete-btn"
+						onClick={(e) => { e.stopPropagation(); handleDelete(tag); }}
+					>
+						Delete
+					</TagCardDeleteBtn>
+				</TagCardActions>
+			</TagCardContainer>
+		);
+	};
+
+		return (
+		<TagManagementContainer>
+			<FullWidthPageHeaderContainer>
+				<PageTitle>Tag Management</PageTitle>
+				<PageHeaderButtons>
+					<Button ink={ButtonInk.PRIMARY} onClick={handleCreate}>
+						Create Tag
+					</Button>
+				</PageHeaderButtons>
+			</FullWidthPageHeaderContainer>
+
+			<div style={{flexGrow: 1, overflowY: 'auto'}}>
 				{tags.length === 0 ? (
-					<div style={{
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						height: '200px',
-						opacity: 0.5
-					}}>
-						<span>No tags found. Create your first tag to get started.</span>
-					</div>
+					<TagNoData>No tags found. Create your first tag to get started.</TagNoData>
 				) : (
-					<div style={{marginTop: '16px'}}>
-						<div style={{
-							display: 'grid',
-							gridTemplateColumns: '40px 1fr 120px 1fr 120px',
-							borderBottom: '2px solid var(--border-color)',
-							height: '40px',
-							alignItems: 'center'
-						}}>
-						<div style={{fontWeight: 600, fontSize: '12px', padding: '0 8px'}}>#</div>
-						<div style={{fontWeight: 600, fontSize: '12px', padding: '0 8px'}}>Name</div>
-						<div style={{fontWeight: 600, fontSize: '12px', padding: '0 8px'}}>Color</div>
-						<div style={{fontWeight: 600, fontSize: '12px', padding: '0 8px'}}>Category</div>
-						<div style={{fontWeight: 600, fontSize: '12px', padding: '0 8px'}}>Actions</div>
-						</div>
-						{tags.map((tag, index) => (
-							<div
-								key={tag.tagId}
-								style={{
-									display: 'grid',
-									gridTemplateColumns: '40px 1fr 120px 1fr 120px',
-									borderBottom: '1px solid var(--border-color)',
-									alignItems: 'center',
-									padding: '8px 0',
-									position: 'relative'
-								}}
-							>
-								<div style={{
-									position: 'absolute',
-									left: 0,
-									top: 0,
-									bottom: 0,
-									width: '4px',
-									backgroundColor: tag.color
-								}} />
-								<div style={{padding: '0 8px', textAlign: 'center'}}>{index + 1}</div>
-								<div style={{padding: '0 8px', fontWeight: 500}}>{tag.name}</div>
-								<div style={{padding: '0 8px', display: 'flex', alignItems: 'center', gap: '8px'}}>
-									<div style={{
-										width: '20px',
-										height: '20px',
-										borderRadius: '4px',
-										backgroundColor: tag.color,
-										flexShrink: 0
-									}} />
-									<span style={{fontSize: '12px', opacity: 0.6}}>{tag.color}</span>
-								</div>
-								<div style={{padding: '0 8px', fontSize: '14px'}}>{tag.category || '-'}</div>
-								<div style={{padding: '0 8px', display: 'flex', gap: '8px'}}>
-									<button
-										onClick={() => handleEdit(tag)}
-										style={{
-											backgroundColor: 'transparent',
-											border: 'var(--border)',
-											borderRadius: '4px',
-											padding: '4px 12px',
-											cursor: 'pointer',
-											fontSize: '12px'
-										}}
-									>Edit</button>
-									<button
-										onClick={() => handleDelete(tag)}
-										style={{
-											backgroundColor: '#ff4d4f',
-											color: 'white',
-											border: 'none',
-											borderRadius: '4px',
-											padding: '4px 12px',
-											cursor: 'pointer',
-											fontSize: '12px'
-										}}
-									>Delete</button>
-								</div>
-							</div>
-						))}
-					</div>
+					<TagCardGrid>{tags.map(tag => renderTagCard(tag))}</TagCardGrid>
 				)}
 			</div>
 
 			{showEditor ? (
-				<TagEditor
-					tag={editingTag}
-					onSave={handleSave}
-					onCancel={handleCancel}
-				/>
+				<TagEditorOverlay
+					onClick={(e: React.MouseEvent) => {
+						if (e.target === e.currentTarget) handleCancel();
+					}}
+				>
+					<TagEditorPanel>
+						<TagEditorTitle>
+							{editingTag ? 'Edit Tag' : 'Create Tag'}
+						</TagEditorTitle>
+
+						<TagEditorField>
+							<TagEditorLabel>Name *</TagEditorLabel>
+							<TagEditorInput
+								type="text"
+								value={editingTag?.name ?? ''}
+								placeholder="Tag name"
+								autoFocus
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+									setEditingTag(prev => prev ? {...prev, name: e.target.value} : {tagId: '', name: e.target.value, color: '#1890ff', createdAt: '', lastModifiedAt: ''});
+								}}
+							/>
+						</TagEditorField>
+
+						<TagEditorField>
+							<TagEditorLabel>Color *</TagEditorLabel>
+							<TagEditorColorPicker>
+								{['#ff4d4f', '#fa8c16', '#faad14', '#52c41a', '#1890ff', '#2f54eb', '#722ed1', '#eb2f96', '#13c2c2', '#a0d911'].map(c => (
+									<TagEditorColorSwatch
+										key={c}
+										$color={c}
+										$selected={editingTag?.color === c}
+										onClick={() => setEditingTag(prev => prev ? {...prev, color: c} : {tagId: '', name: '', color: c, createdAt: '', lastModifiedAt: ''})}
+									/>
+								))}
+							</TagEditorColorPicker>
+							<TagEditorColorInput
+								type="text"
+								value={editingTag?.color ?? '#1890ff'}
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingTag(prev => prev ? {...prev, color: e.target.value} : {tagId: '', name: '', color: e.target.value, createdAt: '', lastModifiedAt: ''})}
+							/>
+						</TagEditorField>
+
+						<TagEditorField>
+							<TagEditorLabel>Category</TagEditorLabel>
+							<TagEditorInput
+								type="text"
+								value={editingTag?.category ?? ''}
+								placeholder="Optional category"
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingTag(prev => prev ? {...prev, category: e.target.value} : {tagId: '', name: '', color: '#1890ff', category: e.target.value, createdAt: '', lastModifiedAt: ''})}
+							/>
+						</TagEditorField>
+
+						<TagEditorField>
+							<TagEditorLabel>Description</TagEditorLabel>
+							<TagEditorTextarea
+								value={editingTag?.description ?? ''}
+								placeholder="Optional description"
+								onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditingTag(prev => prev ? {...prev, description: e.target.value} : {tagId: '', name: '', color: '#1890ff', description: e.target.value, createdAt: '', lastModifiedAt: ''})}
+							/>
+						</TagEditorField>
+
+						<TagEditorActions>
+							<TagEditorCancelBtn onClick={handleCancel}>Cancel</TagEditorCancelBtn>
+							<TagEditorSaveBtn
+								disabled={!editingTag?.name?.trim()}
+								onClick={() => {
+									if (!editingTag?.name?.trim()) return;
+									const tags = loadTags();
+									if (editingTag.tagId) {
+										// edit existing
+										const index = tags.findIndex(t => t.tagId === editingTag.tagId);
+										if (index !== -1) {
+											tags[index] = {
+												...tags[index],
+												name: editingTag.name.trim(),
+												color: editingTag.color,
+												category: editingTag.category?.trim() || undefined,
+												description: editingTag.description?.trim() || undefined,
+												lastModifiedAt: new Date().toISOString()
+											};
+										}
+									} else {
+										// create new
+										const newTag: TagDef = {
+											tagId: generateUuid(),
+											name: editingTag.name.trim(),
+											color: editingTag.color,
+											category: editingTag.category?.trim() || undefined,
+											description: editingTag.description?.trim() || undefined,
+											createdAt: new Date().toISOString(),
+											lastModifiedAt: new Date().toISOString()
+										};
+										tags.push(newTag);
+									}
+									saveTags(tags);
+									handleSave();
+								}}
+							>
+								{editingTag?.tagId ? 'Save' : 'Create'}
+							</TagEditorSaveBtn>
+						</TagEditorActions>
+					</TagEditorPanel>
+				</TagEditorOverlay>
 			) : null}
 		</TagManagementContainer>
 	);

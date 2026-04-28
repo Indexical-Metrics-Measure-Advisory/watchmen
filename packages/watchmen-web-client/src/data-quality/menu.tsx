@@ -87,6 +87,9 @@ export const DataQualityMenu = () => {
 		<SideMenuItem icon={ICON_STATISTICS} label="Run Statistics" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.DQC_STATISTICS}, location.pathname)}
 		              onClick={navigateTo(Router.DQC_STATISTICS)}/>
+		<SideMenuItem icon={ICON_RULE_DEFINE} label="Monitor Rules" showTooltip={showTooltip}
+		              active={!!matchPath({path: Router.DQC_RULES}, location.pathname)}
+		              onClick={navigateTo(Router.DQC_RULES)}/>
 		<SideMenuItem icon={ICON_CONSANGUINITY} label="Consanguinity" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.DQC_CONSANGUINITY}, location.pathname)}
 		              onClick={navigateTo(Router.DQC_CONSANGUINITY)}/>
@@ -96,9 +99,7 @@ export const DataQualityMenu = () => {
 		<SideMenuItem icon={ICON_TAG} label="Tag Management" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.DQC_TAG_MANAGEMENT}, location.pathname)}
 		              onClick={navigateTo(Router.DQC_TAG_MANAGEMENT)}/>
-		<SideMenuItem icon={ICON_RULE_DEFINE} label="Monitor Rules" showTooltip={showTooltip}
-		              active={!!matchPath({path: Router.DQC_RULES}, location.pathname)}
-		              onClick={navigateTo(Router.DQC_RULES)}/>
+	
 		<SideMenuItem icon={ICON_END_USER} label="End User's Console" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.DQC_END_USER}, location.pathname)}
 		              onClick={navigateTo(Router.DQC_END_USER)}
