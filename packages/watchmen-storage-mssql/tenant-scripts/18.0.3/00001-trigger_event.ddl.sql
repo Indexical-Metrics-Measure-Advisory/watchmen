@@ -1,0 +1,1 @@
+ALTER TABLE trigger_event ADD result NVARCHAR(MAX);

@@ -38,7 +38,8 @@ class TriggerEventShaper(EntityShaper):
 			'table_name': entity.tableName,
 			'records': entity.records,
 			'pipeline_id': entity.pipelineId,
-			'params': TriggerEventShaper.serialize_params(entity.params)
+			'params': TriggerEventShaper.serialize_params(entity.params),
+			'result': entity.result
 		})
 
 	def deserialize(self, row: EntityRow) -> TriggerEvent:
@@ -53,7 +54,8 @@ class TriggerEventShaper(EntityShaper):
 			tableName=row.get('table_name'),
 			records=row.get('records'),
 			pipelineId=row.get('pipeline_id'),
-			params=row.get('params')
+			params=row.get('params'),
+			result=row.get('result')
 		))
 
 

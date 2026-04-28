@@ -37,6 +37,7 @@ class TriggerEvent(TenantBasedTuple, ExtendedBaseModel):
 	records: Optional[List[Dict]] = []
 	pipelineId: Optional[str] = None
 	params: Optional[List[QueryParam]] = None
+	result: Optional[Dict] = None
 
 	def __setattr__(self, name, value):
 		if name == 'params':

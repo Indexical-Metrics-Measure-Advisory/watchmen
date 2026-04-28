@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import List, Optional, Callable
 
 from watchmen_model.system import Tenant
 
@@ -15,6 +15,7 @@ from watchmen_collector_kernel.storage import get_competitive_lock_service, get_
 from watchmen_collector_surface.settings import ask_monitor_event_wait
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
 from watchmen_utilities import ArrayHelper
+from traceback import format_exc
 
 logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
@@ -162,20 +163,37 @@ class CollectorEventListener:
 	def queuing_event(self, tenant: Tenant):
 		event = self.get_initial_trigger_event(tenant)
 		if event:
-			if event.type == EventType.DEFAULT.value:
-				trigger_event_by_default(event)
-			elif event.type == EventType.BY_TABLE.value:
-				trigger_event_by_table(event)
-			elif event.type == EventType.BY_RECORD.value:
-				trigger_event_by_records(event)
-			elif event.type == EventType.BY_PIPELINE.value:
-				trigger_event_by_pipeline(event)
-			elif event.type == EventType.BY_SCHEDULE.value:
-				trigger_event_by_schedule(event)
-			else:
-				raise Exception(f'Event type {event.type} is not supported.')
+			self.trigger_event_with_exception_handler(
+				event=event,
+				trigger_func=self.run_event
+			)
 		else:
 			logger.info(f'tenant {tenant.name} have no event')
+	
+	
+	def run_event(self, event: TriggerEvent) -> None:
+		if event.type == EventType.DEFAULT.value:
+			trigger_event_by_default(event)
+		elif event.type == EventType.BY_TABLE.value:
+			trigger_event_by_table(event)
+		elif event.type == EventType.BY_RECORD.value:
+			trigger_event_by_records(event)
+		elif event.type == EventType.BY_PIPELINE.value:
+			trigger_event_by_pipeline(event)
+		elif event.type == EventType.BY_SCHEDULE.value:
+			trigger_event_by_schedule(event)
+		else:
+			raise Exception(f'Event type {event.type} is not supported.')
+	
+	def trigger_event_with_exception_handler(self, event: TriggerEvent, trigger_func: Callable[[TriggerEvent], None]) -> None:
+		try:
+			trigger_func(event)
+		except Exception as e:
+			logger.error(f"Trigger event failed, event id: {event.eventTriggerId}, error: {str(e)}", exc_info=True,  stack_info=True)
+			event.isFinished = True
+			event.status = Status.FAIL.value
+			event.result = {"error": format_exc()}
+			self.trigger_event_service.update_trigger_event(event)
 
 	def get_executing_trigger_event(self, tenant: Tenant) -> Optional[TriggerEvent]:
 		return self.trigger_event_service.find_executing_event_by_tenant_id(tenant.tenantId)

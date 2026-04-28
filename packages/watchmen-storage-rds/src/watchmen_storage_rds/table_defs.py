@@ -389,7 +389,7 @@ table_trigger_event = Table(
 	create_bool('is_finished', False), create_int('status', False),
 	create_int('type', False),
 	create_str('table_name', 50), create_json('records'), create_str('pipeline_id', 50),
-	create_json('params'),
+	create_json('params'), create_json('result'),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_trigger_online = Table(
