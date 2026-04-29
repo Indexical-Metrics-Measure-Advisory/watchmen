@@ -1,4 +1,4 @@
-import {isSuperAdmin} from '@/services/data/account';
+import {isAdmin, isSuperAdmin} from '@/services/data/account';
 import {QueryTenant} from '@/services/data/tuples/query-tenant-types';
 import {QueryUserGroupForHolder} from '@/services/data/tuples/query-user-group-types';
 import {User, UserRole} from '@/services/data/tuples/user-types';
@@ -101,7 +101,7 @@ const UserEditor = (props: { user: User, codes?: HoldByUser }) => {
 		<TuplePropertyInput value={user.email || ''} onChange={onPropChange('email')}/>
 		<TuplePropertyLabel>User Role:</TuplePropertyLabel>
 		<TuplePropertyDropdown value={user.role || UserRole.CONSOLE} options={roleOptions} onChange={onRoleChange}/>
-		{isSuperAdmin()
+		{isSuperAdmin() || isAdmin()
 			? <>
 				<TuplePropertyLabel>Is Active:</TuplePropertyLabel>
 				<TuplePropertyCheckBox value={user.isActive !== false} onChange={onIsActiveChange}/>
