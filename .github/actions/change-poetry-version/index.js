@@ -27,6 +27,7 @@ try {
                 .replace(/path\s?=/, '"path":')
                 .replace(/develop\s?=/, '"develop":')
                 .replace(/optional\s?=/, '"optional":')
+                .replace(/extras\s?=/, '"extras":')
             const shouldReplace = name.startsWith('watchmen-');
             if (version.startsWith('"')) {
                 if (shouldReplace) {
