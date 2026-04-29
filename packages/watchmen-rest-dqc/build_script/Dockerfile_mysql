@@ -1,4 +1,4 @@
-FROM python:3.12.11-slim-bookworm
+FROM python:3.12.13-slim-trixie
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y build-essential

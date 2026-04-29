@@ -1,13 +1,13 @@
-FROM python:3.12.5-slim-bookworm
+FROM python:3.12.13-slim-trixie
 
 WORKDIR    /opt/mssql
 RUN        apt-get update && apt-get install -y curl && apt-get install -y gnupg gcc g++ \
-           && curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg \
-           && curl https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+           && curl https://packages.microsoft.com/keys/microsoft-2025.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg \
+           && curl https://packages.microsoft.com/config/debian/13/prod.list > /etc/apt/sources.list.d/mssql-release.list \
            && apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
 
 WORKDIR    /opt/oracle
-RUN        apt-get update && apt-get install -y libaio1 wget unzip build-essential \
+RUN        apt-get update && apt-get install -y wget unzip build-essential libaio-dev \
             && wget https://download.oracle.com/otn_software/linux/instantclient/2326000/instantclient-basiclite-linux.x64-23.26.0.0.0.zip \
             && unzip instantclient-basiclite-linux.x64-23.26.0.0.0.zip \
             && rm -f instantclient-basiclite-linux.x64-23.26.0.0.0.zip \
@@ -18,7 +18,7 @@ RUN        apt-get update && apt-get install -y libaio1 wget unzip build-essenti
 
 WORKDIR /app
 ADD . .
-RUN pip install dspy==2.5.43 && pip install lancedb && pip install cx_Oracle && pip install poetry && poetry config virtualenvs.create false && poetry install --without dev -vv -E mongodb -E mysql -E mssql -E oracle -E postgresql -E trino -E rabbit -E s3 -E collector -E adls
+RUN pip install dspy==2.5.43 && pip install lancedb && pip install poetry && poetry config virtualenvs.create false && poetry install --without dev -vv -E mongodb -E mysql -E mssql -E oracle -E postgresql -E trino -E rabbit -E s3 -E collector -E adls
 
 EXPOSE 8900
 CMD ["uvicorn","watchmen_ai.main:app","--host", "0.0.0.0", "--port", "8900"]

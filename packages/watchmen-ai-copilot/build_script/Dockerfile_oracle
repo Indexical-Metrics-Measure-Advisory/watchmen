@@ -1,7 +1,7 @@
-FROM python:3.12.5-slim-bookworm
+FROM python:3.12.13-slim-trixie
 
 WORKDIR    /opt/oracle
-RUN        apt-get update && apt-get install -y libaio1 wget unzip build-essential \
+RUN        apt-get update && apt-get install -y wget unzip build-essential libaio-dev \
             && wget https://download.oracle.com/otn_software/linux/instantclient/2326000/instantclient-basiclite-linux.x64-23.26.0.0.0.zip \
             && unzip instantclient-basiclite-linux.x64-23.26.0.0.0.zip \
             && rm -f instantclient-basiclite-linux.x64-23.26.0.0.0.zip \
@@ -12,7 +12,7 @@ RUN        apt-get update && apt-get install -y libaio1 wget unzip build-essenti
 
 WORKDIR /app
 ADD . .
-RUN pip install dspy==2.5.43 && pip install lancedb && pip install cx_Oracle && pip install poetry && poetry config virtualenvs.create false && poetry install --without dev -vv -E oracle -E trino -E s3
+RUN pip install dspy==2.5.43 && pip install lancedb && pip install poetry && poetry config virtualenvs.create false && poetry install --without dev -vv -E oracle -E trino -E s3
 
 EXPOSE 8900
 CMD ["uvicorn","watchmen_ai.main:app","--host", "0.0.0.0", "--port", "8900"]
