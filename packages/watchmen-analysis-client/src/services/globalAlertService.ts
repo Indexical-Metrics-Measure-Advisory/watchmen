@@ -169,11 +169,20 @@ class GlobalAlertService {
       };
     }
     
-    // In real mode, we might want to call a specific alert evaluation endpoint
-    // For now, let's assume there is an endpoint or we can't implement it fully without backend specs
-    // But per requirement, we must have this service method.
-    // If no specific endpoint exists, we might default to returning empty or calling a placeholder
     const response = await fetch(`${BASE_URL}/run/${rule.id}`, {
+        method: 'GET',
+        headers: getDefaultHeaders(),
+    });
+    return checkResponse(response);
+  }
+
+  async runAlertRulesByAnalysis(analysisId: string): Promise<unknown> {
+    if (isMockMode) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return { triggered: false, data: [] };
+    }
+    const response = await fetch(`${BASE_URL}/run/by-analysis/${analysisId}`, {
+        method: 'POST',
         headers: getDefaultHeaders(),
     });
     return checkResponse(response);
@@ -192,7 +201,7 @@ class GlobalAlertService {
         ruleName: rule?.name || 'Unknown Rule',
         triggered: isTriggered,
         triggeredAt: isTriggered ? new Date().toISOString() : undefined,
-        severity: (rule?.priority as any) || 'medium',
+        severity: (rule?.priority === 'high' ? 'critical' : rule?.priority === 'low' ? 'info' : 'warning') as 'info' | 'warning' | 'critical',
         message: isTriggered ? `Rule ${rule?.name} triggered` : 'Normal',
         acknowledged: false,
         conditionResults: rule?.conditions?.map(c => ({
@@ -211,14 +220,19 @@ class GlobalAlertService {
     return checkResponse(response);
   }
 
-  async acknowledgeAlert(alertId: string): Promise<void> {
+  async acknowledgeAlert(alertId: string, reason?: string, intervalDays?: number): Promise<void> {
     if (isMockMode) {
         await new Promise(resolve => setTimeout(resolve, 300));
         return;
     }
-    const response = await fetch(`${BASE_URL}/acknowledge/${alertId}`, {
+    const response = await fetch(`${BASE_URL}/ack`, {
         method: 'POST',
         headers: getDefaultHeaders(),
+        body: JSON.stringify({
+            instanceId: alertId,
+            reason,
+            intervalMinutes: intervalDays ? intervalDays * 24 * 60 : undefined
+        })
     });
     return checkResponse(response);
   }

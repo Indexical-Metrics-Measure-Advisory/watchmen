@@ -188,7 +188,7 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
                   size="sm" 
                   variant="outline" 
                   className="w-full h-7 text-xs border-destructive/30 hover:bg-destructive/10 hover:text-destructive" 
-                  onClick={() => onAcknowledge?.(alertStatus.id)}
+                  onClick={() => onAcknowledge && onAcknowledge(alertStatus.id)}
                 >
                    Acknowledge Alert
                 </Button>

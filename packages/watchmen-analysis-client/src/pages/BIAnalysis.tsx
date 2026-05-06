@@ -26,6 +26,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { AnalysisBoard } from '@/components/bi/AnalysisBoard';
 import { MetricBuilderSheet } from '@/components/bi/MetricBuilderSheet';
+import { AcknowledgeAlertDialog } from '@/components/bi/AcknowledgeAlertDialog';
 const LazySubscriptionModal = lazy(() => import('@/components/bi/SubscriptionModal').then(m => ({ default: m.SubscriptionModal })));
 import { BIChartCard, GlobalAlertRule } from '@/model/biAnalysis';
 import type { DateRange } from 'react-day-picker';
@@ -94,6 +95,8 @@ const BIAnalysisPage: React.FC = () => {
     templates,
     cardsRef,
     initialLoadDone,
+    ackAlertId,
+    setAckAlertId,
     setActiveSection,
     onDragStart,
     onDragOver,
@@ -109,6 +112,7 @@ const BIAnalysisPage: React.FC = () => {
     copyShareLink,
     confirmAddAlert,
     handleAcknowledge,
+    confirmAcknowledge,
     refreshTemplates,
   } = useAnalysisState({
     clearCardDataMap,
@@ -379,6 +383,12 @@ const BIAnalysisPage: React.FC = () => {
             currentAnalysisId={currentAnalysisId}
             onCopyLink={copyShareLink}
             token={token || undefined}
+          />
+
+          <AcknowledgeAlertDialog
+            open={!!ackAlertId}
+            onOpenChange={(open) => !open && setAckAlertId(null)}
+            onConfirm={confirmAcknowledge}
           />
 
           <Suspense fallback={null}>

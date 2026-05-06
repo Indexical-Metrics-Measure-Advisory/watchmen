@@ -266,18 +266,27 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
     setAlertTimeRange('Past 30 days');
   }, [alertRuleId, dialogRules, alertTimeRange, alertCustomDateRange, toast]);
 
-  const handleAcknowledge = useCallback(async (alertId: string) => {
+  // ── Alert Acknowledge Dialog ──
+  const [ackAlertId, setAckAlertId] = useState<string | null>(null);
+
+  const handleAcknowledge = useCallback((alertId: string) => {
+    setAckAlertId(alertId);
+  }, []);
+
+  const confirmAcknowledge = useCallback(async (reason?: string, intervalDays?: number) => {
+    if (!ackAlertId) return;
     try {
-      await globalAlertService.acknowledgeAlert(alertId);
+      await globalAlertService.acknowledgeAlert(ackAlertId, reason, intervalDays);
       setAlertStatusMap(prev => {
         const next = { ...prev };
-        const cardId = Object.keys(next).find(k => next[k].id === alertId);
+        const cardId = Object.keys(next).find(k => next[k].id === ackAlertId);
         if (cardId && next[cardId]) {
           next[cardId] = {
             ...next[cardId],
             acknowledged: true,
             acknowledgedBy: user?.name || 'User',
-            acknowledgedAt: new Date().toISOString()
+            acknowledgedAt: new Date().toISOString(),
+            acknowledgeReason: reason
           };
         }
         return next;
@@ -286,8 +295,10 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
     } catch (e) {
       console.error('Failed to acknowledge alert', e);
       toast({ title: 'Error', description: 'Failed to acknowledge alert', variant: 'destructive' });
+    } finally {
+      setAckAlertId(null);
     }
-  }, [user?.name, toast, setAlertStatusMap]);
+  }, [ackAlertId, user?.name, toast, setAlertStatusMap]);
 
   return {
     // State
@@ -323,6 +334,8 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
     templates,
     cardsRef,
     initialLoadDone,
+    ackAlertId,
+    setAckAlertId,
 
     // Actions
     setActiveSection,
@@ -340,6 +353,7 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
     copyShareLink,
     confirmAddAlert,
     handleAcknowledge,
+    confirmAcknowledge,
     refreshTemplates,
   };
 };

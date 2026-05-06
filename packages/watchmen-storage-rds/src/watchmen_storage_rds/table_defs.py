@@ -729,14 +729,24 @@ table_global_alert_rules = Table(
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(), create_user_id()
 )
 
-
-
-
-
-
-
-
-
+table_alert_instances = Table(
+	'alert_instances', meta_data,
+	create_pk('instance_id'),
+	create_str('rule_id', 50),
+	create_str('rule_name', 128),
+	create_datetime('trigger_time'),
+	create_str('severity', 20),
+	create_str('message', 1024),
+	create_json('condition_results'),
+	create_json('actions'),
+	create_bool('acknowledged'),
+	create_str('acknowledged_by', 50),
+	create_datetime('acknowledged_at'),
+	create_str('acknowledge_reason', 1024),
+	create_datetime('next_trigger_time'),
+	create_int('interval_minutes'),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(), create_user_id()
+)
 
 # noinspection DuplicatedCode
 tables: Dict[str, Table] = {
@@ -823,6 +833,7 @@ tables: Dict[str, Table] = {
 	'bi_analysis': table_bi_analysis,
 	'metric_subscriptions': table_metric_subscriptions,
 	'global_alert_rules': table_global_alert_rules,
+	'alert_instances': table_alert_instances,
 	'action_types': table_action_types,
 	'suggested_actions': table_suggested_actions,
 }

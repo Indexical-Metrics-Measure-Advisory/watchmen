@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { AlertStatus, MetricAnomaly } from '@/model/AlertConfig';
 import { alertService } from '@/services/alertService';
 import { formatDistanceToNow } from 'date-fns';
+import { AcknowledgeAlertDialog } from '@/components/bi/AcknowledgeAlertDialog';
 
 interface AlertPanelProps {
   className?: string;
@@ -16,6 +17,8 @@ const AlertPanel: React.FC<AlertPanelProps> = ({ className }) => {
   const [anomalies, setAnomalies] = useState<MetricAnomaly[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  const [ackAlertId, setAckAlertId] = useState<string | null>(null);
+  const [isAcknowledging, setIsAcknowledging] = useState(false);
 
   useEffect(() => {
     const fetchAlertData = async () => {
@@ -41,14 +44,19 @@ const AlertPanel: React.FC<AlertPanelProps> = ({ className }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleAcknowledgeAlert = async (alertId: string) => {
+  const handleAcknowledgeConfirm = async (reason?: string, intervalDays?: number) => {
+    if (!ackAlertId) return;
     try {
-      await alertService.acknowledgeAlert(alertId, 'current-user@company.com');
+      setIsAcknowledging(true);
+      await alertService.acknowledgeAlert(ackAlertId, 'current-user@company.com', reason, intervalDays);
       // Refresh alert list
       const updatedAlerts = await alertService.getActiveAlerts();
       setActiveAlerts(updatedAlerts);
     } catch (error) {
       console.error('Error acknowledging alert:', error);
+    } finally {
+      setIsAcknowledging(false);
+      setAckAlertId(null);
     }
   };
 
@@ -229,7 +237,7 @@ const AlertPanel: React.FC<AlertPanelProps> = ({ className }) => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleAcknowledgeAlert(alert.id)}
+                        onClick={() => setAckAlertId(alert.id)}
                         className="text-xs"
                       >
                         <CheckCircle className="h-3 w-3 mr-1" />
@@ -304,6 +312,13 @@ const AlertPanel: React.FC<AlertPanelProps> = ({ className }) => {
           </div>
         )}
       </CardContent>
+
+      <AcknowledgeAlertDialog
+        open={!!ackAlertId}
+        onOpenChange={(open) => !open && setAckAlertId(null)}
+        onConfirm={handleAcknowledgeConfirm}
+        isSubmitting={isAcknowledging}
+      />
     </Card>
   );
 };

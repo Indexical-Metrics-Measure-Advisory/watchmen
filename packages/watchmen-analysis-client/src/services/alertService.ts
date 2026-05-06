@@ -199,20 +199,20 @@ class AlertService {
   }
 
   // 确认预警
-  async acknowledgeAlert(alertId: string, acknowledgedBy: string): Promise<AlertStatus> {
+  async acknowledgeAlert(alertId: string, acknowledgedBy: string, reason?: string, intervalDays?: number): Promise<AlertStatus> {
     await new Promise(resolve => setTimeout(resolve, 300));
     const index = mockAlertStatuses.findIndex(alert => alert.id === alertId);
     if (index === -1) {
       throw new Error('Alert not found');
     }
-    
+
     mockAlertStatuses[index] = {
       ...mockAlertStatuses[index],
       acknowledged: true,
       acknowledgedBy,
       acknowledgedAt: new Date().toISOString()
     };
-    
+
     return mockAlertStatuses[index];
   }
 

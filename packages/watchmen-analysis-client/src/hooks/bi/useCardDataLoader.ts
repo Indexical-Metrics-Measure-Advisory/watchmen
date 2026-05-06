@@ -95,10 +95,18 @@ export const useCardDataLoader = () => {
         }
 
         let status: AlertStatus | null = null;
-        if (resp && typeof resp.triggered === 'boolean') {
-          if (resp.alertStatus) {
-            status = resp.alertStatus;
-          } else {
+        if (resp && resp.id) {
+            status = {
+              id: resp.id,
+              ruleId: resp.ruleId || card.id,
+              ruleName: resp.ruleName || card.alert?.name || 'Alert',
+              triggered: resp.triggered ?? false,
+              severity: resp.severity || 'info',
+              message: resp.message || (resp.triggered ? 'Alert Triggered' : 'Normal'),
+              acknowledged: resp.acknowledged || false,
+              conditionResults: resp.conditionResults || []
+            };
+        } else if (resp && typeof resp.triggered === 'boolean') {
             const alertRule = card.alert as GlobalAlertRule;
             const priority = alertRule.priority || 'medium';
             let severity: 'info' | 'warning' | 'critical' = 'info';
@@ -115,7 +123,6 @@ export const useCardDataLoader = () => {
               acknowledged: resp.acknowledged || false,
               conditionResults: resp.conditionResults || []
             };
-          }
         }
         return { id: card.id, type: 'alert', data: chartData, rawData: null, status };
       }

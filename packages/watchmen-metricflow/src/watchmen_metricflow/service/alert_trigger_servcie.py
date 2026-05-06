@@ -5,22 +5,25 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_rest.util import raise_404, raise_500
 from watchmen_metricflow.meta.alert_rule_meta_service import AlertRuleService
+from watchmen_metricflow.meta.alert_instance_meta_service import AlertInstanceService
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
 from watchmen_metricflow.meta.suggest_action_meta_service import SuggestedActionService, ActionTypeService
 from watchmen_metricflow.model.alert_rule import GlobalAlertRule, AlertStatus, AlertSeverity, AlertConditionLogic, \
     AlertOperator, AlertCondition, AlertConditionResult, AlertAction
+from watchmen_metricflow.model.alert_instance import AlertInstance
 from watchmen_metricflow.model.metrics import Metric
 from watchmen_metricflow.model.suggest_action import SuggestedAction, ActionType
 from watchmen_metricflow.router.metric_router import build_metric_config
 from watchmen_metricflow.metricflow.main_api import query
 from watchmen_metricflow.service.hooks import build_alert_hook_dispatcher
 from metricflow.engine.metricflow_engine import MetricFlowQueryResult
-from watchmen_metricflow.util import trans_readonly
+from watchmen_metricflow.util import trans, trans_readonly
 
 class AlertTriggerService:
     def __init__(self, principal_service: PrincipalService):
         self.principal_service = principal_service
         self.alert_rule_service = AlertRuleService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+        self.alert_instance_service = AlertInstanceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
         self.metric_service = MetricService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
         self.suggested_action_service = SuggestedActionService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
         self.action_type_service = ActionTypeService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
@@ -214,16 +217,64 @@ class AlertTriggerService:
             return []
         return [self._resolve_action(x) for x in rule.actions]
 
+    def _find_suppressed_instance(self, rule_id: str) -> Optional[AlertInstance]:
+        def find_suppressed() -> Optional[AlertInstance]:
+            instances = self.alert_instance_service.find_by_rule_id(rule_id)
+            now = datetime.now()
+            for instance in instances:
+                if instance.acknowledged and instance.nextTriggerTime is not None:
+                    if instance.nextTriggerTime > now:
+                        return instance
+            return None
+        return trans_readonly(self.alert_instance_service, find_suppressed)
+
     async def run_alert_rule(self, rule_or_id: Union[str, GlobalAlertRule]) -> AlertStatus:
         rule = rule_or_id if isinstance(rule_or_id, GlobalAlertRule) else self._load_rule(rule_or_id)
+
+        suppressed_instance = self._find_suppressed_instance(rule.id)
+        if suppressed_instance is not None:
+            return AlertStatus(
+                id=suppressed_instance.instanceId,
+                ruleId=rule.id,
+                ruleName=rule.name,
+                triggered=False,
+                triggeredAt=None,
+                severity=None,
+                message="Alert suppressed until " + suppressed_instance.nextTriggerTime.strftime("%Y-%m-%d %H:%M:%S"),
+                acknowledged=True,
+                conditionResults=None,
+                actions=[]
+            )
+
         triggered, message, condition_results = await self._evaluate_rule(rule)
         severity = self._get_severity(rule.priority)
         actions = self._resolve_actions(rule)
-        if triggered and len(actions) > 0:
-            await self._notify_callbacks(rule, message, actions)
+        instance_id = str(self.alert_rule_service.snowflakeGenerator.next_id())
+
+        if triggered:
+            def create_instance():
+                instance = AlertInstance(
+                    instanceId=instance_id,
+                    ruleId=rule.id,
+                    ruleName=rule.name,
+                    triggerTime=datetime.now(),
+                    severity=severity,
+                    message=message,
+                    conditionResults=condition_results,
+                    actions=actions,
+                    acknowledged=False,
+                    tenantId=self.principal_service.get_tenant_id(),
+                    userId=self.principal_service.userId
+                )
+                self.alert_instance_service.create(instance)
+
+            trans(self.alert_instance_service, create_instance)
+
+            if len(actions) > 0:
+                await self._notify_callbacks(rule, message, actions)
 
         return AlertStatus(
-            id=str(self.alert_rule_service.snowflakeGenerator.next_id()),
+            id=instance_id,
             ruleId=rule.id,
             ruleName=rule.name,
             triggered=triggered,

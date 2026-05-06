@@ -105,8 +105,8 @@ class AlertStatus(ExtendedBaseModel):
     ruleName: str
     triggered: bool
     triggeredAt: Optional[datetime] = None
-    severity: AlertSeverity
-    message: str
+    severity: Optional[AlertSeverity] = None
+    message: Optional[str] = None
     acknowledged: bool
     acknowledgedBy: Optional[str] = None
     acknowledgedAt: Optional[datetime] = None

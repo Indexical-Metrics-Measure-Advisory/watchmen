@@ -54,6 +54,7 @@ export interface AlertStatus {
   acknowledged: boolean;
   acknowledgedBy?: string;
   acknowledgedAt?: string;
+  acknowledgeReason?: string;
   conditionResults?: AlertConditionResult[];
 }
 
