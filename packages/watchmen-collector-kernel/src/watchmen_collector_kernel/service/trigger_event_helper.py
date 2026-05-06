@@ -379,7 +379,7 @@ def trigger_event_by_schedule(trigger_event: TriggerEvent):
 	principal_service = ask_super_admin()
 	trigger_event_service = get_trigger_event_service(storage, snowflake_generator, principal_service)
 	
-	if not (trigger_event.startTime and trigger_event.endTime):
+	if not trigger_event.startTime:
 		last_event = trigger_event_service.find_last_finished_schedule_event_by_tenant_id(trigger_event.tenantId)
 		if last_event:
 			trigger_event.startTime = last_event.endTime
@@ -393,6 +393,8 @@ def trigger_event_by_schedule(trigger_event: TriggerEvent):
 				minute=0,
 				second=0
 			)
+
+	if not trigger_event.endTime:
 		trigger_event.endTime = datetime.now().replace(second=0, microsecond=0)
 	
 	trigger_event_service.begin_transaction()

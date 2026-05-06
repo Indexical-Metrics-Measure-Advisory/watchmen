@@ -211,8 +211,12 @@ async def trigger_event_by_pipeline(
 @router.post('/collector/trigger/event/schedule', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
              response_model=TriggerEvent)
 async def trigger_event_by_schedule(
-        event: TriggerEvent, principal_service: PrincipalService = Depends(get_any_admin_principal)
+        event: Optional[TriggerEvent]=None, principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> TriggerEvent:
+    
+    if event is None:
+        event = TriggerEvent()
+        
     validate_tenant_id(event, principal_service)
     trigger_event_service = get_trigger_event_service(ask_meta_storage(),
                                                       ask_snowflake_generator(),
