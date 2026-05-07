@@ -1,3 +1,3 @@
-from .table_extractor import init_table_extractor
+from .table_extractor import init_table_extractor, get_collector_table_extractor_service
 from .record_to_json import init_record_listener
 from .monitor_event import init_event_listener

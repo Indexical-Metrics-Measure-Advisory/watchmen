@@ -2,6 +2,9 @@ from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
+
+from watchmen_collector_kernel.service import get_table_config_service
+from watchmen_collector_surface.cdc import get_collector_table_extractor_service
 from watchmen_utilities.pydantic_helper import ExtendedBaseModel
 
 from watchmen_auth import PrincipalService
@@ -229,3 +232,32 @@ async def trigger_event_by_schedule(
         event.status = Status.INITIAL.value
         event.type = EventType.BY_SCHEDULE.value
         return trigger_event_service.create_trigger_event(event)
+
+
+@router.post('/collector/count/table/volume', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
+             response_model=TriggerEvent)
+async def count_data_volume_by_table(
+        event: TriggerEvent, principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> int:
+    if event.startTime is None or event.endTime is None:
+        raise_400('start time or end time  is required.')
+
+    if is_blank(event.tableName):
+        raise_400('table name is required.')
+
+    validate_tenant_id(event, principal_service)
+    trigger_event_service = get_trigger_event_service(ask_meta_storage(),
+                                                      ask_snowflake_generator(),
+                                                      principal_service)
+    
+    if trigger_event_service.is_storable_id_faked(event.eventTriggerId):
+        trigger_event_service.redress_storable_id(event)
+        event.isFinished = False
+        event.status = Status.INITIAL.value
+        event.type = EventType.BY_TABLE.value
+        
+    table_config_service = get_table_config_service(principal_service)
+    config = table_config_service.find_by_name(event.tableName, event.tenantId)
+    
+    table_extractor = get_collector_table_extractor_service()
+    return table_extractor.count_data_volume(event, config)
