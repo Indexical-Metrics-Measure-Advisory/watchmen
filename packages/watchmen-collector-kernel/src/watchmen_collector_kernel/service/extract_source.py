@@ -274,30 +274,34 @@ class SourceExtractor(ExtractorSPI, ABC):
 			for key, value in row.items():
 				for column in json_columns:
 					if key == column.columnName:
-						if value:
-							if isinstance(value, str) or isinstance(value, bytes) or isinstance(value, bytearray):
-								tmp_data = json.loads(value)
-							elif isinstance(value, Dict):
-								tmp_data = value
-							else:
-								raise ValueError(
-									f'table_name: {self.config.tableName}, column: {key}, value: {value}, is not json string')
-
-							if column.needFlatten:
-								tmp_data = process_need_flatten(tmp_data)
-							else:
-								if column.ignoredPath:
-									tmp_data = process_json_ignored(column.ignoredPath, tmp_data)
-
-								if column.flattenPath:
-									tmp_data = process_flatten_path(column.flattenPath, tmp_data)
-
-								if column.jsonPath:
-									tmp_data = process_json_path(column.jsonPath, tmp_data)
-
-							row[key] = tmp_data
+						if not value:
+							continue
+							
+						if isinstance(value, str) and value.strip() == "":
+							continue
+							
+						
+						if isinstance(value, str) or isinstance(value, bytes) or isinstance(value, bytearray):
+							tmp_data = json.loads(value)
+						elif isinstance(value, Dict):
+							tmp_data = value
 						else:
-							pass
+							raise ValueError(
+								f'table_name: {self.config.tableName}, column: {key}, value: {value}, is not json string')
+
+						if column.needFlatten:
+							tmp_data = process_need_flatten(tmp_data)
+						else:
+							if column.ignoredPath:
+								tmp_data = process_json_ignored(column.ignoredPath, tmp_data)
+
+							if column.flattenPath:
+								tmp_data = process_flatten_path(column.flattenPath, tmp_data)
+
+							if column.jsonPath:
+								tmp_data = process_json_path(column.jsonPath, tmp_data)
+
+						row[key] = tmp_data
 			return row
 
 		if json_columns:

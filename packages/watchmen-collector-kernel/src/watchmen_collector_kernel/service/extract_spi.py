@@ -6,7 +6,7 @@ from watchmen_storage import EntityCriteria, EntityStraightColumn, DataSourceHel
 class ExtractorSPI(ABC):
 
 	@abstractmethod
-	def count_by_criteria(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
+	def count_by_criteria(self, criteria: EntityCriteria) -> Optional[int]:
 		pass
 
 	@abstractmethod
