@@ -1,10 +1,12 @@
-import React from 'react';
-import { Activity, PlayCircle, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Activity, PlayCircle, AlertTriangle, CheckCircle2, Clock, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import type { BIChartCard, AlertConfig, AlertAction } from '@/model/biAnalysis';
 import type { AlertStatus } from '@/model/AlertConfig';
+import { globalAlertService } from '@/services/globalAlertService';
+import { formatDistanceToNow } from 'date-fns';
 
 export interface AlertCardProps {
   card: BIChartCard;
@@ -12,6 +14,15 @@ export interface AlertCardProps {
   alertStatus?: AlertStatus;
   onAcknowledge?: (alertId: string) => void;
 }
+
+const ACKNOWLEDGE_REASON_LABELS: Record<string, string> = {
+  processed: 'Processed',
+  ignored: 'Ignored',
+  escalated: 'Escalated',
+  false_alarm: 'False Alarm',
+  maintenance: 'Maintenance',
+  other: 'Other',
+};
 
 const checkSingleCondition = (value: number, condition: { operator: string; value: number | string }) => {
   const threshold = Number(condition.value);
@@ -54,10 +65,36 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
   const alertConfig = card.alert;
   const isAcknowledged = alertStatus?.acknowledged;
   const [showDetails, setShowDetails] = React.useState(!isAcknowledged);
+  const [showHistory, setShowHistory] = React.useState(false);
+  const [ackStats, setAckStats] = React.useState<{ total: number; byReason: Record<string, number>; lastAcknowledgedAt?: string; lastAcknowledgedBy?: string } | null>(null);
+  const [ackHistory, setAckHistory] = React.useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = React.useState(false);
 
   React.useEffect(() => {
     setShowDetails(!isAcknowledged);
   }, [isAcknowledged]);
+
+  React.useEffect(() => {
+    if (!alertStatus?.ruleId || !alertStatus?.triggered) return;
+
+    const fetchHistory = async () => {
+      setLoadingHistory(true);
+      try {
+        const [stats, history] = await Promise.all([
+          globalAlertService.getAlertInstanceStatistics(alertStatus.ruleId),
+          globalAlertService.getAlertInstanceHistory(alertStatus.ruleId),
+        ]);
+        setAckStats(stats);
+        setAckHistory(history);
+      } catch (err) {
+        console.error('Failed to fetch alert history:', err);
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+
+    fetchHistory();
+  }, [alertStatus?.ruleId, alertStatus?.triggered]);
   
   if (!alertConfig) {
     return <div className="flex items-center justify-center h-full text-muted-foreground">No alert configuration</div>;
@@ -257,6 +294,71 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
             {actions.length === 0 && (
               <div className="text-center p-4 text-xs text-muted-foreground border border-dashed rounded-md">
                 No specific actions configured
+              </div>
+            )}
+
+            {/* ACK History Section */}
+            {loadingHistory ? (
+              <div className="flex items-center justify-center py-4 text-xs text-muted-foreground">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                Loading history...
+              </div>
+            ) : ackStats && (
+              <div className="border-t pt-2 mt-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full h-7 text-xs flex items-center justify-between px-2"
+                  onClick={() => setShowHistory(!showHistory)}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <BarChart3 className="h-3.5 w-3.5" />
+                    <span>ACK History</span>
+                    <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">{ackStats.total}</Badge>
+                  </div>
+                  {showHistory ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                </Button>
+
+                {showHistory && (
+                  <div className="space-y-2 mt-2 animate-in slide-in-from-top-2 duration-200">
+                    {/* Statistics Summary */}
+                    <div className="bg-muted/30 border rounded-md p-2 space-y-1.5">
+                      <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Statistics</div>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
+                        {ackStats.lastAcknowledgedAt && (
+                          <div className="flex items-center gap-1 text-muted-foreground col-span-2">
+                            <Clock className="h-3 w-3" />
+                            Last: {formatDistanceToNow(new Date(ackStats.lastAcknowledgedAt), { addSuffix: true })} by {ackStats.lastAcknowledgedBy}
+                          </div>
+                        )}
+                        {Object.entries(ackStats.byReason).filter(([, count]) => count > 0).map(([reason, count]) => (
+                          <div key={reason} className="flex items-center justify-between">
+                            <span className="text-muted-foreground">{ACKNOWLEDGE_REASON_LABELS[reason] || reason}</span>
+                            <Badge variant="outline" className="h-4 px-1 text-[10px]">{count}</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Recent History List */}
+                    {ackHistory.length > 0 && (
+                      <div className="space-y-1">
+                        <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-1">Recent</div>
+                        {ackHistory.slice(0, 5).map((item: any, idx: number) => (
+                          <div key={idx} className="flex items-center justify-between text-[10px] bg-background/50 p-1.5 rounded border">
+                            <div className="flex items-center gap-1.5">
+                              <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                              <span className="text-muted-foreground">{ACKNOWLEDGE_REASON_LABELS[item.acknowledgeReason] || item.acknowledgeReason}</span>
+                            </div>
+                            <div className="text-muted-foreground">
+                              {formatDistanceToNow(new Date(item.acknowledgedAt), { addSuffix: true })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -236,6 +236,37 @@ class GlobalAlertService {
     });
     return checkResponse(response);
   }
+
+  async getAlertInstanceHistory(ruleId: string): Promise<any[]> {
+    if (isMockMode) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return [
+        { id: '1', ruleId, acknowledgedAt: '2024-01-10T10:00:00Z', acknowledgedBy: 'user1@company.com', acknowledgeReason: 'processed' },
+        { id: '2', ruleId, acknowledgedAt: '2024-01-08T14:30:00Z', acknowledgedBy: 'user2@company.com', acknowledgeReason: 'ignored' },
+        { id: '3', ruleId, acknowledgedAt: '2024-01-05T09:15:00Z', acknowledgedBy: 'user1@company.com', acknowledgeReason: 'false_alarm' },
+      ];
+    }
+    const response = await fetch(`${BASE_URL}/instances/history/${ruleId}`, {
+        headers: getDefaultHeaders(),
+    });
+    return checkResponse(response);
+  }
+
+  async getAlertInstanceStatistics(ruleId: string): Promise<{ total: number; byReason: Record<string, number>; lastAcknowledgedAt?: string; lastAcknowledgedBy?: string }> {
+    if (isMockMode) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return {
+        total: 12,
+        byReason: { processed: 5, ignored: 3, false_alarm: 2, escalated: 1, maintenance: 1, other: 0 },
+        lastAcknowledgedAt: '2024-01-10T10:00:00Z',
+        lastAcknowledgedBy: 'user1@company.com'
+      };
+    }
+    const response = await fetch(`${BASE_URL}/instances/statistics/${ruleId}`, {
+        headers: getDefaultHeaders(),
+    });
+    return checkResponse(response);
+  }
 }
 
 export const globalAlertService = GlobalAlertService.getInstance();
