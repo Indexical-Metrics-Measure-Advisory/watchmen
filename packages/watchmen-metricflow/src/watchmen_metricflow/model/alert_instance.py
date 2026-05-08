@@ -39,3 +39,19 @@ class AlertAckRequest(ExtendedBaseModel):
     instanceId: str
     reason: Optional[AcknowledgeReason] = None
     intervalMinutes: Optional[int] = None
+
+
+class AlertInstanceHistory(ExtendedBaseModel):
+    id: str
+    ruleId: str
+    acknowledgedAt: Optional[datetime] = None
+    acknowledgedBy: Optional[str] = None
+    acknowledgeReason: Optional[AcknowledgeReason] = None
+    muteUntilMinutes: Optional[int] = None
+
+
+class AlertInstanceStatistics(ExtendedBaseModel):
+    total: int = 0
+    byReason: dict = {}
+    lastAcknowledgedAt: Optional[datetime] = None
+    lastAcknowledgedBy: Optional[str] = None

@@ -5,7 +5,7 @@ from watchmen_meta.common import UserBasedTupleService, UserBasedTupleShaper, Au
 from watchmen_model.common import TenantId
 from watchmen_storage import EntityShaper, EntityRow, EntityCriteriaExpression, ColumnNameLiteral
 from watchmen_utilities import ArrayHelper
-from ..model.alert_instance import AlertInstance, AlertAckRequest
+from ..model.alert_instance import AlertInstance, AlertAckRequest, AlertInstanceHistory, AlertInstanceStatistics
 from ..model.alert_rule import AlertSeverity, AlertConditionResult, AlertAction
 
 
@@ -120,6 +120,57 @@ class AlertInstanceService(UserBasedTupleService):
                 right=tenant_id
             ))
         return self.storage.find(self.get_entity_finder(criteria=criteria))
+
+    def find_acknowledged_history(self, rule_id: str, tenant_id: Optional[TenantId] = None) -> List[AlertInstance]:
+        criteria = [
+            EntityCriteriaExpression(
+                left=ColumnNameLiteral(columnName='rule_id'),
+                right=rule_id
+            ),
+            EntityCriteriaExpression(
+                left=ColumnNameLiteral(columnName='acknowledged'),
+                right=True
+            )
+        ]
+        if tenant_id is not None and len(tenant_id.strip()) != 0:
+            criteria.append(EntityCriteriaExpression(
+                left=ColumnNameLiteral(columnName='tenant_id'),
+                right=tenant_id
+            ))
+        return self.storage.find(self.get_entity_finder(criteria=criteria))
+
+    def count_acknowledged_by_rule(self, rule_id: str, tenant_id: Optional[TenantId] = None) -> dict:
+        instances = self.find_acknowledged_history(rule_id, tenant_id)
+        total = len(instances)
+        by_reason = {
+            'processed': 0,
+            'ignored': 0,
+            'escalated': 0,
+            'false_alarm': 0,
+            'maintenance': 0,
+            'other': 0
+        }
+        last_acknowledged_at = None
+        last_acknowledged_by = None
+
+        for instance in instances:
+            if instance.acknowledgeReason:
+                reason_value = instance.acknowledgeReason.value if hasattr(instance.acknowledgeReason, 'value') else str(instance.acknowledgeReason)
+                if reason_value in by_reason:
+                    by_reason[reason_value] += 1
+                else:
+                    by_reason['other'] += 1
+            if instance.acknowledgedAt:
+                if last_acknowledged_at is None or instance.acknowledgedAt > last_acknowledged_at:
+                    last_acknowledged_at = instance.acknowledgedAt
+                    last_acknowledged_by = instance.acknowledgedBy
+
+        return {
+            'total': total,
+            'byReason': by_reason,
+            'lastAcknowledgedAt': last_acknowledged_at,
+            'lastAcknowledgedBy': last_acknowledged_by
+        }
 
     def ack_alert(self, ack_request: AlertAckRequest, user_id: str) -> Optional[AlertInstance]:
         instance = self.find_by_id(ack_request.instanceId)

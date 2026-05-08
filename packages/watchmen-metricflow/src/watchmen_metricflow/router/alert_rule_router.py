@@ -12,7 +12,7 @@ from watchmen_metricflow.meta.alert_rule_meta_service import AlertRuleService
 from watchmen_metricflow.meta.alert_instance_meta_service import AlertInstanceService
 from watchmen_metricflow.meta.bi_analysis_meta_service import BIAnalysisService
 from watchmen_metricflow.model.alert_rule import GlobalAlertRule, AlertStatus
-from watchmen_metricflow.model.alert_instance import AlertInstance, AlertAckRequest
+from watchmen_metricflow.model.alert_instance import AlertInstance, AlertAckRequest, AlertInstanceHistory, AlertInstanceStatistics
 from watchmen_metricflow.model.bi_analysis_board import BIChartCard
 from watchmen_metricflow.settings import ask_tuple_delete_enabled
 from watchmen_metricflow.util import trans, trans_readonly
@@ -235,6 +235,57 @@ async def get_unacknowledged_alert_instances(
     def action() -> List[AlertInstance]:
         tenant_id: TenantId = principal_service.get_tenant_id()
         return service.find_unacknowledged(tenant_id)
+
+    return trans_readonly(service, action)
+
+
+@router.get('/metricflow/alert-rule/instances/history/{rule_id}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+async def get_alert_instance_history(
+        rule_id: str,
+        principal_service: PrincipalService = Depends(get_console_principal)
+) -> List[AlertInstanceHistory]:
+    if is_blank(rule_id):
+        raise_400('Alert rule id is required.')
+
+    service = get_alert_instance_service(principal_service)
+
+    def action() -> List[AlertInstanceHistory]:
+        tenant_id: TenantId = principal_service.get_tenant_id()
+        instances = service.find_acknowledged_history(rule_id, tenant_id)
+        history_list = []
+        for instance in instances:
+            history_list.append(AlertInstanceHistory(
+                id=instance.instanceId,
+                ruleId=instance.ruleId,
+                acknowledgedAt=instance.acknowledgedAt,
+                acknowledgedBy=instance.acknowledgedBy,
+                acknowledgeReason=instance.acknowledgeReason,
+                muteUntilMinutes=instance.intervalMinutes
+            ))
+        return history_list
+
+    return trans_readonly(service, action)
+
+
+@router.get('/metricflow/alert-rule/instances/statistics/{rule_id}', tags=['CONSOLE', 'ADMIN'], response_model=AlertInstanceStatistics)
+async def get_alert_instance_statistics(
+        rule_id: str,
+        principal_service: PrincipalService = Depends(get_console_principal)
+) -> AlertInstanceStatistics:
+    if is_blank(rule_id):
+        raise_400('Alert rule id is required.')
+
+    service = get_alert_instance_service(principal_service)
+
+    def action() -> AlertInstanceStatistics:
+        tenant_id: TenantId = principal_service.get_tenant_id()
+        stats_dict = service.count_acknowledged_by_rule(rule_id, tenant_id)
+        return AlertInstanceStatistics(
+            total=stats_dict.get('total', 0),
+            byReason=stats_dict.get('byReason', {}),
+            lastAcknowledgedAt=stats_dict.get('lastAcknowledgedAt'),
+            lastAcknowledgedBy=stats_dict.get('lastAcknowledgedBy')
+        )
 
     return trans_readonly(service, action)
 

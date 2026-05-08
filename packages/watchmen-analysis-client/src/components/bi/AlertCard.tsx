@@ -75,15 +75,22 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
   }, [isAcknowledged]);
 
   React.useEffect(() => {
-    if (!alertStatus?.ruleId || !alertStatus?.triggered) return;
+    console.log('[AlertCard] alertStatus changed:', alertStatus);
+  }, [alertStatus]);
+
+  React.useEffect(() => {
+    const ruleId = (alertConfig as any)?.id || alertStatus?.ruleId;
+    if (!ruleId) return;
 
     const fetchHistory = async () => {
       setLoadingHistory(true);
       try {
+        console.log('[AlertCard] Fetching history for ruleId:', ruleId);
         const [stats, history] = await Promise.all([
-          globalAlertService.getAlertInstanceStatistics(alertStatus.ruleId),
-          globalAlertService.getAlertInstanceHistory(alertStatus.ruleId),
+          globalAlertService.getAlertInstanceStatistics(ruleId),
+          globalAlertService.getAlertInstanceHistory(ruleId),
         ]);
+        console.log('[AlertCard] Got stats:', stats, 'history:', history);
         setAckStats(stats);
         setAckHistory(history);
       } catch (err) {
@@ -94,7 +101,7 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
     };
 
     fetchHistory();
-  }, [alertStatus?.ruleId, alertStatus?.triggered]);
+  }, [(alertConfig as any)?.id, alertStatus?.ruleId, alertStatus?.acknowledged]);
   
   if (!alertConfig) {
     return <div className="flex items-center justify-center h-full text-muted-foreground">No alert configuration</div>;
@@ -296,75 +303,85 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
                 No specific actions configured
               </div>
             )}
+          </div>
+          )}
+        </div>
+      )}
 
-            {/* ACK History Section */}
-            {loadingHistory ? (
-              <div className="flex items-center justify-center py-4 text-xs text-muted-foreground">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                Loading history...
+      {/* ACK History Section - Always visible if data exists */}
+      <div className="mt-2 empty:hidden">
+        {loadingHistory ? (
+          <div className="flex items-center justify-center py-4 text-xs text-muted-foreground bg-muted/5 rounded-md border border-dashed">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+            Loading history...
+          </div>
+        ) : ackStats && ackStats.total > 0 ? (
+          <div className="border rounded-md bg-card overflow-hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full h-8 text-xs flex items-center justify-between px-3 hover:bg-muted/50 rounded-none border-b"
+              onClick={() => setShowHistory(!showHistory)}
+            >
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-3.5 w-3.5 text-primary" />
+                <span className="font-medium">ACK History</span>
+                <Badge variant="secondary" className="h-4 px-1.5 text-[10px] bg-primary/10 text-primary border-none">{ackStats.total}</Badge>
               </div>
-            ) : ackStats && (
-              <div className="border-t pt-2 mt-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full h-7 text-xs flex items-center justify-between px-2"
-                  onClick={() => setShowHistory(!showHistory)}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <BarChart3 className="h-3.5 w-3.5" />
-                    <span>ACK History</span>
-                    <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">{ackStats.total}</Badge>
-                  </div>
-                  {showHistory ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                </Button>
+              {showHistory ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            </Button>
 
-                {showHistory && (
-                  <div className="space-y-2 mt-2 animate-in slide-in-from-top-2 duration-200">
-                    {/* Statistics Summary */}
-                    <div className="bg-muted/30 border rounded-md p-2 space-y-1.5">
-                      <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Statistics</div>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
-                        {ackStats.lastAcknowledgedAt && (
-                          <div className="flex items-center gap-1 text-muted-foreground col-span-2">
-                            <Clock className="h-3 w-3" />
-                            Last: {formatDistanceToNow(new Date(ackStats.lastAcknowledgedAt), { addSuffix: true })} by {ackStats.lastAcknowledgedBy}
-                          </div>
-                        )}
-                        {Object.entries(ackStats.byReason).filter(([, count]) => count > 0).map(([reason, count]) => (
-                          <div key={reason} className="flex items-center justify-between">
-                            <span className="text-muted-foreground">{ACKNOWLEDGE_REASON_LABELS[reason] || reason}</span>
-                            <Badge variant="outline" className="h-4 px-1 text-[10px]">{count}</Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Recent History List */}
-                    {ackHistory.length > 0 && (
-                      <div className="space-y-1">
-                        <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-1">Recent</div>
-                        {ackHistory.slice(0, 5).map((item: any, idx: number) => (
-                          <div key={idx} className="flex items-center justify-between text-[10px] bg-background/50 p-1.5 rounded border">
-                            <div className="flex items-center gap-1.5">
-                              <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                              <span className="text-muted-foreground">{ACKNOWLEDGE_REASON_LABELS[item.acknowledgeReason] || item.acknowledgeReason}</span>
-                            </div>
-                            <div className="text-muted-foreground">
-                              {formatDistanceToNow(new Date(item.acknowledgedAt), { addSuffix: true })}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+            {showHistory && (
+              <div className="p-3 space-y-3 animate-in slide-in-from-top-2 duration-200">
+                {/* Statistics Summary */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    <span>Statistics</span>
+                    {ackStats.lastAcknowledgedAt && (
+                      <span className="normal-case font-normal flex items-center gap-1">
+                        <Clock className="h-2.5 w-2.5" />
+                        Last: {formatDistanceToNow(new Date(ackStats.lastAcknowledgedAt), { addSuffix: true })}
+                      </span>
                     )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.entries(ackStats.byReason).filter(([, count]) => count > 0).map(([reason, count]) => (
+                      <div key={reason} className="flex items-center justify-between bg-muted/30 p-1.5 rounded border border-border/50">
+                        <span className="text-[10px] text-muted-foreground">{ACKNOWLEDGE_REASON_LABELS[reason] || reason}</span>
+                        <span className="text-[10px] font-bold">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recent History List */}
+                {ackHistory.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Recent Logs</div>
+                    <div className="space-y-1.5">
+                      {ackHistory.slice(0, 3).map((item: any, idx: number) => (
+                        <div key={idx} className="flex flex-col gap-1 text-[10px] bg-muted/20 p-2 rounded border border-border/40">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                              <Badge variant="outline" className="h-4 px-1 text-[9px] capitalize border-emerald-500/30 text-emerald-600 bg-emerald-50/50">
+                                {ACKNOWLEDGE_REASON_LABELS[item.acknowledgeReason] || item.acknowledgeReason}
+                              </Badge>
+                              <span className="text-muted-foreground truncate max-w-[80px]" title={item.acknowledgedBy}>{item.acknowledgedBy}</span>
+                            </div>
+                            <span className="text-muted-foreground/70">
+                              {formatDistanceToNow(new Date(item.acknowledgedAt), { addSuffix: true })}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
             )}
           </div>
-          )}
-        </div>
-      )}
+        ) : null}
+      </div>
 
       {/* Footer Stats */}
       <div className="flex items-center justify-between mt-auto pt-2 border-t">
