@@ -9,7 +9,7 @@ from watchmen_rest.util import raise_400, raise_404
 from watchmen_utilities import is_blank
 
 from watchmen_metricflow.meta.metric_subscription_meta_service import SubscriptionService
-from watchmen_metricflow.model.metric_subscription import Subscription
+from watchmen_metricflow.model.metric_subscription import Subscription, SchedulerRunRequest, SchedulerRunResponse
 from watchmen_metricflow.service.subscription_runner import SubscriptionRunner
 from watchmen_metricflow.util import trans, trans_readonly
 
@@ -144,6 +144,21 @@ async def run_subscription_by_id(
 	"""Test run a specific subscription immediately"""
 	runner = SubscriptionRunner(principal_service)
 	await runner.run_by_id(subscription_id)
+
+
+@router.post('/metricflow/subscription/scheduler/run', tags=['CONSOLE', 'ADMIN'], response_model=SchedulerRunResponse)
+async def run_subscription_scheduler(
+		request: SchedulerRunRequest,
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> SchedulerRunResponse:
+	"""Run subscriptions for scheduler with given execution time.
+
+	External schedulers (cron, Airflow, Kubernetes CronJob) can call this API
+	with a specific execution time to trigger due subscriptions.
+	"""
+	runner = SubscriptionRunner(principal_service)
+	return await runner.run_scheduler(request.executionTime)
+
 
 
 

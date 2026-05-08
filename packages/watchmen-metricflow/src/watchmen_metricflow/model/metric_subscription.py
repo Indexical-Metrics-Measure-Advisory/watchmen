@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 
@@ -55,3 +56,21 @@ class Subscription(ExtendedBaseModel, UserBasedTuple, Auditable):
 	onlyOnAlertTriggered: bool = False
 
 	model_config = ConfigDict(use_enum_values=True)
+
+
+class SubscriptionTriggerResult(ExtendedBaseModel):
+	subscriptionId: str
+	analysisId: str
+	status: str
+	message: Optional[str] = None
+
+
+class SchedulerRunRequest(ExtendedBaseModel):
+	executionTime: datetime = None
+
+
+class SchedulerRunResponse(ExtendedBaseModel):
+	triggered: List[SubscriptionTriggerResult] = []
+	totalTriggered: int = 0
+	totalSkipped: int = 0
+	executionTime: datetime

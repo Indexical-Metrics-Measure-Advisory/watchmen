@@ -10,7 +10,7 @@ from watchmen_metricflow.meta.metric_subscription_meta_service import Subscripti
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
 from watchmen_metricflow.metricflow.main_api import query
 from watchmen_metricflow.model.bi_analysis_board import BIAnalysis, BIChartCard
-from watchmen_metricflow.model.metric_subscription import Subscription, SubscriptionFrequency
+from watchmen_metricflow.model.metric_subscription import Subscription, SubscriptionFrequency, SchedulerRunResponse, SubscriptionTriggerResult
 from watchmen_metricflow.router.metric_router import build_metric_config
 from watchmen_metricflow.model.alert_rule import GlobalAlertRule, AlertAction, AlertStatus
 from watchmen_metricflow.service.alert_trigger_servcie import AlertTriggerService
@@ -51,7 +51,7 @@ class SubscriptionRunner:
 			return self.subscription_service.find_by_id(subscription_id)
 
 		subscription = trans_readonly(self.subscription_service, load_subscription)
-		
+
 		if not subscription:
 			return
 
@@ -59,6 +59,76 @@ class SubscriptionRunner:
 			return
 
 		await self._execute_subscription(subscription)
+
+	async def run_scheduler(self, execution_time: datetime = None) -> SchedulerRunResponse:
+		if execution_time is None:
+			execution_time = datetime.now()
+
+		def load_subscriptions():
+			tenant_id = self.principal_service.get_tenant_id()
+			return self.subscription_service.find_by_tenant_id(tenant_id)
+
+		subscriptions = trans_readonly(self.subscription_service, load_subscriptions)
+
+		triggered = []
+		total_triggered = 0
+		total_skipped = 0
+
+		for subscription in subscriptions:
+			if not self._is_due(subscription, execution_time):
+				continue
+
+			if subscription.onlyOnAlertTriggered:
+				def load_analysis() -> BIAnalysis:
+					return self.analysis_service.find_by_id(subscription.analysisId)
+				analysis = trans_readonly(self.analysis_service, load_analysis)
+
+				has_triggered = False
+				if analysis and analysis.cards:
+					for card in analysis.cards:
+						if card.alert is not None:
+							rule = GlobalAlertRule.model_validate(card.alert)
+							rule.id = f"{analysis.id}_{card.id}"
+							rule.name = f"{analysis.name} / {card.title}"
+							alert_status = await self.alert_trigger_service.run_alert_rule(rule)
+							if alert_status.triggered:
+								has_triggered = True
+								break
+
+				if not has_triggered:
+					triggered.append(SubscriptionTriggerResult(
+						subscriptionId=subscription.id,
+						analysisId=subscription.analysisId,
+						status='skipped',
+						message='Alert not triggered, onlyOnAlertTriggered=true'
+					))
+					total_skipped += 1
+					continue
+
+			try:
+				await self._execute_subscription(subscription)
+				triggered.append(SubscriptionTriggerResult(
+					subscriptionId=subscription.id,
+					analysisId=subscription.analysisId,
+					status='success',
+					message=None
+				))
+				total_triggered += 1
+			except Exception as e:
+				triggered.append(SubscriptionTriggerResult(
+					subscriptionId=subscription.id,
+					analysisId=subscription.analysisId,
+					status='error',
+					message=str(e)
+				))
+				total_skipped += 1
+
+		return SchedulerRunResponse(
+			triggered=triggered,
+			totalTriggered=total_triggered,
+			totalSkipped=total_skipped,
+			executionTime=execution_time
+		)
 
 	def _is_due(self, subscription: Subscription, execution_time: datetime) -> bool:
 		if not subscription.enabled:
