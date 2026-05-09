@@ -7,7 +7,10 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, TrendingDown, TrendingUp, Filter, X, BarChart3 } from 'lucide-react';
 import { MetricDimension } from '@/model/analysis';
-import { drillDownService, DrillDownResponse, DrillDownFilter } from '@/services/drillDownService';
+import { DrillDownResponse, DrillDownFilter } from '@/services/drillDownService';
+import { findDimensionsByMetric } from '@/services/metricsManagementService';
+import { metricsService } from '@/services/metricsService';
+import { transformMetricFlowToChartData, buildGlobalWhere } from '@/utils/biAnalysisUtils';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
 
 interface DrillDownPanelProps {
@@ -52,7 +55,8 @@ export const DrillDownPanel: React.FC<DrillDownPanelProps> = ({
   const loadDimensions = async () => {
     setDimensionsLoading(true);
     try {
-      const dims = await drillDownService.getAvailableDimensions(metricId);
+      const response = await findDimensionsByMetric(metricId);
+      const dims = response.dimensions || [];
       setDimensions(dims);
       if (dims.length > 0) {
         setSelectedDimension(dims[0].qualified_name || dims[0].name);
@@ -69,13 +73,38 @@ export const DrillDownPanel: React.FC<DrillDownPanelProps> = ({
     
     setLoading(true);
     try {
-      const response = await drillDownService.getDrillDownData({
-        metricId,
-        dimension: selectedDimension,
-        filters: appliedFilters,
-        limit: 10
+      // Map appliedFilters to Record<string, string> for buildGlobalWhere
+      const filterMap: Record<string, string> = {};
+      appliedFilters.forEach(f => {
+        filterMap[f.dimension] = f.value;
       });
-      setDrillDownData(response);
+
+      const where = buildGlobalWhere(filterMap);
+
+      const response = await metricsService.getMetricValue({
+        metric: metricId,
+        group_by: [selectedDimension],
+        where: where,
+        limit: 15
+      });
+
+      const chartData = transformMetricFlowToChartData(response);
+      
+      // Calculate total for percentages
+      const total = chartData.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+      
+      const formattedData = chartData.map(item => ({
+        name: String(item.name || 'Unknown'),
+        value: Number(item.value) || 0,
+        percentage: total > 0 ? ((Number(item.value) || 0) / total * 100) : 0
+      }));
+
+      setDrillDownData({
+        dimension: selectedDimension,
+        data: formattedData,
+        totalCount: formattedData.length,
+        hasMore: false
+      });
     } catch (error) {
       console.error('Error loading drill-down data:', error);
     } finally {

@@ -18,9 +18,11 @@ import Sidebar from '@/components/layout/Sidebar';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Minus, LayoutDashboard } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, LayoutDashboard, BarChart3 } from 'lucide-react';
 import { getAllMetrics } from '@/services/metricsManagementService';
 import { metricsService } from '@/services/metricsService';
+import { DrillDownPanel } from '@/components/analysis/DrillDownPanel';
+import { Button } from '@/components/ui/button';
 import { MetricDefinition } from '@/model/metricsManagement';
 import { BIChartCard } from '@/model/biAnalysis';
 import { useLocation } from 'react-router-dom';
@@ -96,12 +98,14 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
 
 // Custom Node Component
 interface MetricNodeData {
+  id: string;
   label: string;
   type: string;
   value: number | string;
   changePercent?: number;
   yoyPercent?: number;
   trend?: 'up' | 'down' | 'stable';
+  onBreakdown?: (id: string, label: string) => void;
 }
 
 const MetricNode = ({ data }: { data: MetricNodeData }) => {
@@ -109,17 +113,34 @@ const MetricNode = ({ data }: { data: MetricNodeData }) => {
   const isNeutral = data.trend === 'stable';
 
   return (
-    <div className="relative">
+    <div className="relative group">
       <Handle type="target" position={Position.Top} className="w-3 h-3 bg-muted-foreground !-top-1.5" />
-      <Card className="w-[280px] shadow-md border-border bg-card">
+      <Card className="w-[280px] shadow-md border-border bg-card hover:border-primary/50 transition-colors">
         <CardHeader className="p-4 pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium truncate" title={data.label}>
-              {data.label}
-            </CardTitle>
-            <Badge variant="secondary" className="text-[10px] capitalize">
-              {data.type}
-            </Badge>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col min-w-0 flex-1">
+              <CardTitle className="text-sm font-medium truncate" title={data.label}>
+                {data.label}
+              </CardTitle>
+              <span className="text-[10px] text-muted-foreground uppercase">{data.type}</span>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  data.onBreakdown?.(data.id, data.label);
+                }}
+                title="Breakdown Analysis"
+              >
+                <BarChart3 className="h-4 w-4 text-primary" />
+              </Button>
+              <Badge variant="secondary" className="text-[10px] h-5 hidden sm:flex">
+                {data.type}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-4 pt-0">
@@ -165,6 +186,15 @@ const MetricDependencyTree: React.FC = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Breakdown state
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
+  const [breakdownMetric, setBreakdownMetric] = useState<{ id: string; label: string } | null>(null);
+
+  const handleBreakdown = useCallback((id: string, label: string) => {
+    setBreakdownMetric({ id, label });
+    setBreakdownOpen(true);
+  }, []);
 
   useEffect(() => {
     const fetchAndBuildGraph = async () => {
@@ -181,12 +211,14 @@ const MetricDependencyTree: React.FC = () => {
             id: metric.name,
             type: 'metricNode',
             data: {
+              id: metric.name,
               label: metric.label || metric.name,
               type: metric.type,
               value: 'Loading...',
               changePercent: 0,
               yoyPercent: 0,
               trend: 'stable',
+              onBreakdown: handleBreakdown,
             },
             position: { x: 0, y: 0 },
           });
@@ -319,7 +351,7 @@ const MetricDependencyTree: React.FC = () => {
     };
 
     fetchAndBuildGraph();
-  }, [setNodes, setEdges, targetMetricIds]);
+  }, [setNodes, setEdges, targetMetricIds, handleBreakdown]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -372,6 +404,15 @@ const MetricDependencyTree: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {breakdownMetric && (
+        <DrillDownPanel
+          isOpen={breakdownOpen}
+          onClose={() => setBreakdownOpen(false)}
+          metricId={breakdownMetric.id}
+          metricName={breakdownMetric.label}
+        />
+      )}
     </div>
   );
 };
