@@ -220,10 +220,10 @@ class GlobalAlertService {
     return checkResponse(response);
   }
 
-  async acknowledgeAlert(alertId: string, reason?: string, intervalDays?: number): Promise<void> {
+  async acknowledgeAlert(alertId: string, reason?: string, intervalMinutes?: number): Promise<any> {
     if (isMockMode) {
         await new Promise(resolve => setTimeout(resolve, 300));
-        return;
+        return { acknowledged: true, acknowledgedBy: 'User', acknowledgedAt: new Date().toISOString(), actionExecuted: false };
     }
     const response = await fetch(`${BASE_URL}/ack`, {
         method: 'POST',
@@ -231,8 +231,21 @@ class GlobalAlertService {
         body: JSON.stringify({
             instanceId: alertId,
             reason,
-            intervalMinutes: intervalDays ? intervalDays * 24 * 60 : undefined
+            intervalMinutes
         })
+    });
+    return checkResponse(response);
+  }
+
+  async executeAlertActions(instanceId: string): Promise<any> {
+    if (isMockMode) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return { instanceId, actionExecuted: true };
+    }
+    const response = await fetch(`${BASE_URL}/action/execute`, {
+      method: 'POST',
+      headers: getDefaultHeaders(),
+      body: JSON.stringify({ instanceId })
     });
     return checkResponse(response);
   }
@@ -253,6 +266,27 @@ class GlobalAlertService {
     const data = await checkResponse(response);
     console.log('[AlertHistory] GET /instances/statistics/' + ruleId, data);
     return data;
+  }
+
+  async getUnacknowledgedInstances(): Promise<any[]> {
+    const response = await fetch(`${BASE_URL}/instance/unacknowledged`, {
+        headers: getDefaultHeaders(),
+    });
+    return checkResponse(response);
+  }
+
+  async getAlertInstance(instanceId: string): Promise<any> {
+    const response = await fetch(`${BASE_URL}/instance/${instanceId}`, {
+        headers: getDefaultHeaders(),
+    });
+    return checkResponse(response);
+  }
+
+  async getAlertInstancesByRule(ruleId: string): Promise<any[]> {
+    const response = await fetch(`${BASE_URL}/instance/by-rule/${ruleId}`, {
+        headers: getDefaultHeaders(),
+    });
+    return checkResponse(response);
   }
 }
 

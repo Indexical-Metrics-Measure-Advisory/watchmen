@@ -12,7 +12,9 @@ from watchmen_metricflow.meta.alert_rule_meta_service import AlertRuleService
 from watchmen_metricflow.meta.alert_instance_meta_service import AlertInstanceService
 from watchmen_metricflow.meta.bi_analysis_meta_service import BIAnalysisService
 from watchmen_metricflow.model.alert_rule import GlobalAlertRule, AlertStatus
-from watchmen_metricflow.model.alert_instance import AlertInstance, AlertAckRequest, AlertInstanceHistory, AlertInstanceStatistics
+from watchmen_metricflow.model.alert_instance import (
+    AlertInstance, AlertAckRequest, AlertActionExecuteRequest, AlertInstanceHistory, AlertInstanceStatistics
+)
 from watchmen_metricflow.model.bi_analysis_board import BIChartCard
 from watchmen_metricflow.settings import ask_tuple_delete_enabled
 from watchmen_metricflow.util import trans, trans_readonly
@@ -174,20 +176,44 @@ async def ack_alert_rule(
         ack_request: AlertAckRequest,
         principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> AlertInstance:
-
-    print(ack_request)
     if is_blank(ack_request.instanceId):
         raise_400('Alert instance id is required.')
 
     service = get_alert_instance_service(principal_service)
 
     def action() -> AlertInstance:
-        result = service.ack_alert(ack_request, principal_service.userId)
+        tenant_id = principal_service.get_tenant_id()
+        result = service.ack_alert(ack_request, principal_service.userId, tenant_id)
         if result is None:
             raise_404('Alert instance not found.')
         return result
 
-    return trans(service, action)
+    result = trans(service, action)
+
+    return result
+
+
+@router.post('/metricflow/alert-rule/action/execute', tags=['ADMIN'], response_model=None)
+async def execute_alert_actions(
+        execute_request: AlertActionExecuteRequest,
+        principal_service: PrincipalService = Depends(get_admin_principal)
+) -> AlertInstance:
+    if is_blank(execute_request.instanceId):
+        raise_400('Alert instance id is required.')
+
+    service = get_alert_instance_service(principal_service)
+    tenant_id = principal_service.get_tenant_id()
+    alert_trigger_service = AlertTriggerService(principal_service)
+
+    def load_instance() -> AlertInstance:
+        result = service.find_by_id_and_tenant(execute_request.instanceId, tenant_id)
+        if result is None:
+            raise_404('Alert instance not found.')
+        return result
+
+    trans_readonly(service, load_instance)
+    await alert_trigger_service.execute_pending_actions_for_instance(execute_request.instanceId, tenant_id)
+    return trans_readonly(service, load_instance)
 
 
 @router.get('/metricflow/alert-rule/instance/{instance_id}', tags=['CONSOLE', 'ADMIN'], response_model=None)
@@ -288,5 +314,3 @@ async def get_alert_instance_statistics(
         )
 
     return trans_readonly(service, action)
-
-

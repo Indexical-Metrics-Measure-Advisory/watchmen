@@ -104,7 +104,14 @@ export const useCardDataLoader = () => {
               severity: resp.severity || 'info',
               message: resp.message || (resp.triggered ? 'Alert Triggered' : 'Normal'),
               acknowledged: resp.acknowledged || false,
-              conditionResults: resp.conditionResults || []
+              acknowledgedBy: resp.acknowledgedBy,
+              acknowledgedAt: resp.acknowledgedAt,
+              acknowledgeReason: resp.acknowledgeReason,
+              conditionResults: resp.conditionResults || [],
+              actions: resp.actions,
+              actionExecuted: resp.actionExecuted,
+              nextTriggerTime: resp.nextTriggerTime,
+              intervalMinutes: resp.intervalMinutes
             };
         } else if (resp && typeof resp.triggered === 'boolean') {
             const alertRule = card.alert as GlobalAlertRule;
@@ -121,7 +128,9 @@ export const useCardDataLoader = () => {
               severity: severity,
               message: resp.message || (resp.triggered ? 'Alert Triggered' : 'Normal'),
               acknowledged: resp.acknowledged || false,
-              conditionResults: resp.conditionResults || []
+              conditionResults: resp.conditionResults || [],
+              actions: resp.actions,
+              actionExecuted: resp.actionExecuted
             };
         }
         return { id: card.id, type: 'alert', data: chartData, rawData: null, status };

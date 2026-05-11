@@ -30,6 +30,7 @@ class AlertInstance(ExtendedBaseModel, TenantBasedTuple, Auditable):
     acknowledgedBy: Optional[str] = None
     acknowledgedAt: Optional[datetime] = None
     acknowledgeReason: Optional[AcknowledgeReason] = None
+    actionExecuted: bool = False
 
     nextTriggerTime: Optional[datetime] = None
     intervalMinutes: Optional[int] = None
@@ -39,6 +40,10 @@ class AlertAckRequest(ExtendedBaseModel):
     instanceId: str
     reason: Optional[AcknowledgeReason] = None
     intervalMinutes: Optional[int] = None
+
+
+class AlertActionExecuteRequest(ExtendedBaseModel):
+    instanceId: str
 
 
 class AlertInstanceHistory(ExtendedBaseModel):

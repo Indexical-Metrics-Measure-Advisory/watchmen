@@ -276,7 +276,9 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
   const confirmAcknowledge = useCallback(async (reason?: string, intervalDays?: number) => {
     if (!ackAlertId) return;
     try {
-      await globalAlertService.acknowledgeAlert(ackAlertId, reason, intervalDays);
+      const intervalMinutes = intervalDays ? intervalDays * 24 * 60 : undefined;
+      const result = await globalAlertService.acknowledgeAlert(ackAlertId, reason, intervalMinutes);
+
       setAlertStatusMap(prev => {
         const next = { ...prev };
         const cardId = Object.keys(next).find(k => next[k].id === ackAlertId);
@@ -284,14 +286,34 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
           next[cardId] = {
             ...next[cardId],
             acknowledged: true,
-            acknowledgedBy: user?.name || 'User',
-            acknowledgedAt: new Date().toISOString(),
-            acknowledgeReason: reason
+            acknowledgedBy: result?.acknowledgedBy || user?.name || 'User',
+            acknowledgedAt: result?.acknowledgedAt || new Date().toISOString(),
+            acknowledgeReason: reason,
+            actionExecuted: result?.actionExecuted,
+            nextTriggerTime: result?.nextTriggerTime,
+            intervalMinutes: result?.intervalMinutes
           };
         }
         return next;
       });
-      toast({ title: 'Acknowledged', description: 'Alert has been acknowledged' });
+
+      const messages: string[] = [];
+      if (result?.actionExecuted) {
+        messages.push('Notification sent');
+      }
+      if (result?.nextTriggerTime) {
+        const muteUntil = new Date(result.nextTriggerTime).toLocaleString();
+        messages.push(`Muted until ${muteUntil}`);
+      } else if (result?.intervalMinutes) {
+        const muteMins = result.intervalMinutes;
+        const muteLabel = muteMins >= 1440 ? `${Math.round(muteMins / 1440)} days` : muteMins >= 60 ? `${Math.round(muteMins / 60)} hours` : `${muteMins} minutes`;
+        messages.push(`Mute period: ${muteLabel}`);
+      }
+
+      toast({
+        title: 'Confirmed',
+        description: messages.length > 0 ? messages.join(', ') : 'Alert confirmed'
+      });
     } catch (e) {
       console.error('Failed to acknowledge alert', e);
       toast({ title: 'Error', description: 'Failed to acknowledge alert', variant: 'destructive' });

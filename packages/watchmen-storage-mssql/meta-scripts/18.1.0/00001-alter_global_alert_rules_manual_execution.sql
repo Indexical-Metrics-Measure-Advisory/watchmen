@@ -1,1 +1,0 @@
-ALTER TABLE global_alert_rules ADD manual_execution SMALLINT DEFAULT 0;

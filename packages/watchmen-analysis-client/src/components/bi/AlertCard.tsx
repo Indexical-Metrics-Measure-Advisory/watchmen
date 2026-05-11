@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Activity, PlayCircle, AlertTriangle, CheckCircle2, Clock, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
+import React from 'react';
+import { Activity, PlayCircle, AlertTriangle, CheckCircle2, Clock, ChevronDown, ChevronUp, BarChart3, Loader2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
@@ -7,6 +7,7 @@ import type { BIChartCard, AlertConfig, AlertAction } from '@/model/biAnalysis';
 import type { AlertStatus } from '@/model/AlertConfig';
 import { globalAlertService } from '@/services/globalAlertService';
 import { formatDistanceToNow } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 export interface AlertCardProps {
   card: BIChartCard;
@@ -64,19 +65,44 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
   const value = data.length > 0 ? (typeof data[0].value === 'number' ? data[0].value : 0) : 0;
   const alertConfig = card.alert;
   const isAcknowledged = alertStatus?.acknowledged;
+  const { toast } = useToast();
   const [showDetails, setShowDetails] = React.useState(!isAcknowledged);
   const [showHistory, setShowHistory] = React.useState(false);
   const [ackStats, setAckStats] = React.useState<{ total: number; byReason: Record<string, number>; lastAcknowledgedAt?: string; lastAcknowledgedBy?: string } | null>(null);
   const [ackHistory, setAckHistory] = React.useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = React.useState(false);
+  const [executingActionIdx, setExecutingActionIdx] = React.useState<number | null>(null);
+  const [localActionExecuted, setLocalActionExecuted] = React.useState<boolean>(!!alertStatus?.actionExecuted);
+
+  const handleExecuteAction = React.useCallback(async (actionIdx: number) => {
+    if (!alertStatus?.id) return;
+    setExecutingActionIdx(actionIdx);
+    try {
+      await globalAlertService.executeAlertActions(alertStatus.id);
+      setLocalActionExecuted(true);
+      toast({
+        title: 'Action Executed',
+        description: 'The notification has been sent successfully.'
+      });
+    } catch (e) {
+      console.error('Failed to execute action:', e);
+      toast({
+        title: 'Execution Failed',
+        description: 'Failed to execute the action. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setExecutingActionIdx(null);
+    }
+  }, [alertStatus?.id, toast]);
 
   React.useEffect(() => {
     setShowDetails(!isAcknowledged);
   }, [isAcknowledged]);
 
   React.useEffect(() => {
-    console.log('[AlertCard] alertStatus changed:', alertStatus);
-  }, [alertStatus]);
+    setLocalActionExecuted(!!alertStatus?.actionExecuted);
+  }, [alertStatus?.actionExecuted]);
 
   React.useEffect(() => {
     const ruleId = (alertConfig as any)?.id || alertStatus?.ruleId;
@@ -110,12 +136,72 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
   const isTriggeredLocal = alertConfig.enabled ? checkAlert(value, alertConfig) : false;
   const isTriggered = alertConfig.enabled ? (alertStatus ? alertStatus.triggered : isTriggeredLocal) : false;
 
-  const actions = React.useMemo<AlertAction[]>(() => 
-    alertConfig.actions && alertConfig.actions.length > 0 
-      ? alertConfig.actions 
-      : (alertConfig.nextAction ? [alertConfig.nextAction] : []),
-    [alertConfig.actions, alertConfig.nextAction]
-  );
+  const pendingManualActions = React.useMemo<AlertAction[]>(() => {
+    const instanceActions = (alertStatus?.actions || []) as any[];
+    if (instanceActions && instanceActions.length > 0) {
+      const normalizedInstanceActions = instanceActions
+        .filter(() => !localActionExecuted)
+        .map((instanceAction): AlertAction => {
+          const configAction = alertConfig.actions?.find(a => a.type === instanceAction.type || a.name === instanceAction.name);
+          const executionMode = instanceAction.manualExecution === true
+            ? 'manual'
+            : instanceAction.suggestedAction?.executionMode === 'approval' || instanceAction.actionType?.requiresApproval
+              ? 'approval'
+              : instanceAction.suggestedAction?.executionMode === 'manual'
+                ? 'manual'
+                : configAction?.executionMode;
+
+          return {
+            type: instanceAction.type,
+            name: instanceAction.name || configAction?.name || 'Notification',
+            riskLevel: instanceAction.riskLevel || configAction?.riskLevel || 'medium',
+            executionMode,
+            content: instanceAction.content || configAction?.content,
+            parameters: instanceAction.parameters || configAction?.parameters,
+            expectedEffect: instanceAction.expectedEffect || configAction?.expectedEffect,
+            typeName: instanceAction.actionType?.name || configAction?.typeName
+          };
+        });
+
+      const actionableInstanceActions = normalizedInstanceActions.filter(a =>
+        a.executionMode === 'manual' ||
+        a.executionMode === 'approval' ||
+        (!a.executionMode && (a.riskLevel === 'medium' || a.riskLevel === 'high' || a.riskLevel === 'critical'))
+      );
+
+      if (actionableInstanceActions.length > 0) {
+        return actionableInstanceActions;
+      }
+    }
+    const configActions = alertConfig.actions;
+    if (configActions && configActions.length > 0) {
+      return configActions;
+    }
+    if (alertConfig.nextAction) {
+      return [alertConfig.nextAction];
+    }
+    return [{
+      type: 'notification',
+      name: 'Send Notification',
+      riskLevel: 'medium',
+      executionMode: 'manual',
+      content: 'Send notification when alert is triggered'
+    }];
+  }, [alertConfig.actions, alertConfig.nextAction, alertStatus?.actions, localActionExecuted]);
+
+  const actions = pendingManualActions;
+
+  const hasPendingManualActions = React.useMemo(() => {
+    return actions.length > 0;
+  }, [actions]);
+
+  const pendingManualCount = React.useMemo(() => {
+    return actions.length;
+  }, [actions]);
+
+  const ackButtonText = hasPendingManualActions
+    ? `Confirm and Send Notification (${pendingManualCount})`
+    : 'Acknowledge Alert';
 
   return (
     <div className="flex flex-col h-full justify-between p-1 w-full gap-2">
@@ -225,16 +311,35 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
                </div>
             )}
 
+            {/* Pending Manual Actions Warning */}
+            {hasPendingManualActions && (
+              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md p-2 text-xs">
+                <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-medium">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>{pendingManualCount} notifications pending manual confirmation</span>
+                </div>
+                <div className="text-[10px] text-amber-600 dark:text-amber-500 mt-0.5 ml-5">
+                  These notifications will be sent immediately after confirmation.
+                </div>
+              </div>
+            )}
+
             {/* Acknowledge Button */}
             {alertStatus && isTriggered && !isAcknowledged && (
               <div className="mb-2">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="w-full h-7 text-xs border-destructive/30 hover:bg-destructive/10 hover:text-destructive" 
+                <Button
+                  size="sm"
+                  variant={hasPendingManualActions ? "default" : "outline"}
+                  className={cn(
+                    "w-full h-7 text-xs gap-1.5",
+                    hasPendingManualActions
+                      ? "bg-amber-500 hover:bg-amber-600 text-white border-amber-500"
+                      : "border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                  )}
                   onClick={() => onAcknowledge && onAcknowledge(alertStatus.id)}
                 >
-                   Acknowledge Alert
+                  {hasPendingManualActions ? <Activity className="w-3.5 h-3.5" /> : null}
+                  {ackButtonText}
                 </Button>
               </div>
             )}
@@ -290,8 +395,18 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
                 )}
 
                 {(action.executionMode === 'manual' || action.executionMode === 'approval' || (!action.executionMode && (action.riskLevel === 'medium' || action.riskLevel === 'high' || action.riskLevel === 'critical'))) && (
-                  <Button size="sm" className="w-full gap-2 mt-2" variant={action.riskLevel === 'medium' ? "default" : "destructive"}>
-                    <PlayCircle className="w-4 h-4" />
+                  <Button
+                    size="sm"
+                    className="w-full gap-2 mt-2"
+                    variant={action.riskLevel === 'medium' ? "default" : "destructive"}
+                    onClick={() => handleExecuteAction(idx)}
+                    disabled={executingActionIdx === idx}
+                  >
+                    {executingActionIdx === idx ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <PlayCircle className="w-4 h-4" />
+                    )}
                     {action.executionMode === 'approval' ? 'Request Execution' : 'Execute Manually'}
                   </Button>
                 )}

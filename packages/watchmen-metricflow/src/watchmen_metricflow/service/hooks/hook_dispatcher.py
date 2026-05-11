@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 from watchmen_metricflow.model.alert_rule import AlertAction, GlobalAlertRule
 
@@ -26,12 +26,35 @@ class AlertHookDispatcher:
                 return plugin
         return None
 
-    async def execute_actions(self, rule: GlobalAlertRule, message: str, actions: List[AlertAction]) -> None:
+    async def execute_actions(self, rule: GlobalAlertRule, message: str, actions: List[AlertAction],
+                           condition_results: list = None,
+                           report_data: List[Dict[str, Any]] = None,
+                           share_link: str = None) -> bool:
+        all_success = True
         for action in actions:
             plugin = self._find_plugin(action)
             if plugin is None:
+                logger.warning('no plugin matched for alert action, action_type=%s, action_name=%s',
+                               action.type, action.name)
+                all_success = False
                 continue
             try:
-                await plugin.execute(action, rule, message)
+                try:
+                    success = await plugin.execute(
+                        action, rule, message, condition_results, report_data, share_link
+                    )
+                except TypeError:
+                    # Backward compatibility for plugins still using old signature:
+                    # execute(action, rule, message)
+                    logger.warning(
+                        'plugin execute signature mismatch, fallback to legacy signature, '
+                        'plugin=%s, action_type=%s, action_name=%s',
+                        plugin.__class__.__name__, action.type, action.name
+                    )
+                    success = await plugin.execute(action, rule, message)
+                if not success:
+                    all_success = False
             except Exception:
                 logger.exception('failed to execute alert hook plugin')
+                all_success = False
+        return all_success

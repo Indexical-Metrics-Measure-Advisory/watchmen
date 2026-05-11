@@ -43,6 +43,12 @@ export interface AlertConditionResult {
   triggered: boolean;
 }
 
+export interface AlertInstanceAction {
+  type: string;
+  name?: string;
+  manualExecution: boolean;
+}
+
 export interface AlertStatus {
   id: string;
   ruleId: string;
@@ -56,6 +62,10 @@ export interface AlertStatus {
   acknowledgedAt?: string;
   acknowledgeReason?: string;
   conditionResults?: AlertConditionResult[];
+  actions?: AlertInstanceAction[];
+  actionExecuted?: boolean;
+  nextTriggerTime?: string;
+  intervalMinutes?: number;
 }
 
 export interface MetricAnomaly {

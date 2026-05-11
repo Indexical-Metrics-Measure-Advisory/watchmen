@@ -61,6 +61,7 @@ class AlertAction(ExtendedBaseModel):
     parameters: Optional[Dict[str, Any]] = None
     suggestedAction: Optional[Dict[str, Any]] = None
     actionType: Optional[Dict[str, Any]] = None
+    manualExecution: bool = False
 
 
 class AlertConfig(ExtendedBaseModel, UserBasedTuple, Auditable):

@@ -737,6 +737,7 @@ table_alert_instances = Table(
 	create_datetime('trigger_time'),
 	create_str('severity', 20),
 	create_str('message', 1024),
+	create_bool('action_executed'),
 	create_json('condition_results'),
 	create_json('actions'),
 	create_bool('acknowledged'),

@@ -1,1 +1,0 @@
-ALTER TABLE global_alert_rules ADD COLUMN IF NOT EXISTS manual_execution SMALLINT DEFAULT 0;

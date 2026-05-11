@@ -36,6 +36,7 @@ class AlertInstanceShaper(UserBasedTupleShaper):
             'acknowledged_by': instance.acknowledgedBy,
             'acknowledged_at': instance.acknowledgedAt,
             'acknowledge_reason': instance.acknowledgeReason,
+            'action_executed': instance.actionExecuted,
             'next_trigger_time': instance.nextTriggerTime,
             'interval_minutes': instance.intervalMinutes
         }
@@ -57,6 +58,7 @@ class AlertInstanceShaper(UserBasedTupleShaper):
             'acknowledgedBy': row.get('acknowledged_by'),
             'acknowledgedAt': row.get('acknowledged_at'),
             'acknowledgeReason': row.get('acknowledge_reason'),
+            'actionExecuted': row.get('action_executed', False),
             'nextTriggerTime': row.get('next_trigger_time'),
             'intervalMinutes': row.get('interval_minutes')
         }
@@ -95,6 +97,19 @@ class AlertInstanceService(UserBasedTupleService):
             left=ColumnNameLiteral(columnName='instance_id'),
             right=instance_id
         )]
+        return self.storage.find_one(self.get_entity_finder(criteria=criteria))
+
+    def find_by_id_and_tenant(self, instance_id: str, tenant_id: TenantId) -> Optional[AlertInstance]:
+        criteria = [
+            EntityCriteriaExpression(
+                left=ColumnNameLiteral(columnName='instance_id'),
+                right=instance_id
+            ),
+            EntityCriteriaExpression(
+                left=ColumnNameLiteral(columnName='tenant_id'),
+                right=tenant_id
+            )
+        ]
         return self.storage.find_one(self.get_entity_finder(criteria=criteria))
 
     def find_by_rule_id(self, rule_id: str, tenant_id: Optional[TenantId] = None) -> List[AlertInstance]:
@@ -172,8 +187,8 @@ class AlertInstanceService(UserBasedTupleService):
             'lastAcknowledgedBy': last_acknowledged_by
         }
 
-    def ack_alert(self, ack_request: AlertAckRequest, user_id: str) -> Optional[AlertInstance]:
-        instance = self.find_by_id(ack_request.instanceId)
+    def ack_alert(self, ack_request: AlertAckRequest, user_id: str, tenant_id: TenantId) -> Optional[AlertInstance]:
+        instance = self.find_by_id_and_tenant(ack_request.instanceId, tenant_id)
         if instance is None:
             return None
 

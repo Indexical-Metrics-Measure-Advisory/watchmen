@@ -1,1 +1,0 @@
-ALTER TABLE global_alert_rules ADD manual_execution NUMBER(1) DEFAULT 0;
