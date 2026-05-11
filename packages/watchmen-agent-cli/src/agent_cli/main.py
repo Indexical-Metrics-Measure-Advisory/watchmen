@@ -125,7 +125,7 @@ def handle_init(args: argparse.Namespace) -> None:
 
 def handle_pull(args: argparse.Namespace) -> None:
     target = args.target
-    if args.all:
+    if getattr(args, 'all', False):
         target = "all"
     run_with_sync_service(args, lambda svc: svc.pull(target))
 
