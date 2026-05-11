@@ -9,7 +9,10 @@ from agent_cli.exceptions import AgentCliException
 from agent_cli.http_client import RestClient
 from agent_cli.vault import DATASOURCE_DIR, ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CONFIG_DIR, INGEST_TABLE_CONFIG_DIR, METRICFLOW_METRIC_DIR, METRICFLOW_SEMANTIC_DIR, PIPELINE_DIR, TOPIC_DIR, read_entities, write_entities, write_yaml_entity, read_yaml_entities
 
-SyncTarget = Literal["topic", "pipeline", "all"]
+SyncTarget = Literal[
+    "topic", "pipeline", "enum", "semantic", "metric",
+    "ingest_table", "ingest_model", "ingest_module", "all"
+]
 
 
 class SyncService:
@@ -18,21 +21,55 @@ class SyncService:
         self.vault_path = vault_path
 
     def pull(self, target: SyncTarget) -> Dict[str, int]:
-        result = {"topics": 0, "pipelines": 0}
+        result: Dict[str, int] = {}
         if target in ("topic", "all"):
-            import yaml
             topics = self.client.get_json("/topic/all")
             for topic in topics:
                 yaml_str = yaml.dump(topic, sort_keys=False)
                 write_yaml_entity(self.vault_path, TOPIC_DIR, yaml_str, "topicId", name_key="name")
             result["topics"] = len(topics)
         if target in ("pipeline", "all"):
-            import yaml
             pipelines = self.client.get_json("/pipeline/all")
             for pipeline in pipelines:
                 yaml_str = yaml.dump(pipeline, sort_keys=False)
                 write_yaml_entity(self.vault_path, PIPELINE_DIR, yaml_str, "pipelineId", name_key="name")
             result["pipelines"] = len(pipelines)
+        if target in ("enum", "all"):
+            enums = self.client.get_json("/enum/all")
+            for enum in enums:
+                yaml_str = yaml.dump(enum, sort_keys=False)
+                write_yaml_entity(self.vault_path, ENUM_DIR, yaml_str, "enumId", name_key="name")
+            result["enums"] = len(enums)
+        if target in ("semantic", "all"):
+            semantic_models = self.client.get_json("/metricflow/semantic/all")
+            for model in semantic_models:
+                yaml_str = yaml.dump(model, sort_keys=False)
+                write_yaml_entity(self.vault_path, METRICFLOW_SEMANTIC_DIR, yaml_str, "modelId", name_key="name")
+            result["semantic_models"] = len(semantic_models)
+        if target in ("metric", "all"):
+            metrics = self.client.get_json("/metricflow/metric/all")
+            for metric in metrics:
+                yaml_str = yaml.dump(metric, sort_keys=False)
+                write_yaml_entity(self.vault_path, METRICFLOW_METRIC_DIR, yaml_str, "metricId", name_key="name")
+            result["metrics"] = len(metrics)
+        if target in ("ingest_table", "all"):
+            tables = self.client.get_json("/collector/table/all")
+            for table in tables:
+                yaml_str = yaml.dump(table, sort_keys=False)
+                write_yaml_entity(self.vault_path, INGEST_TABLE_CONFIG_DIR, yaml_str, "tableId", name_key="tableName")
+            result["ingest_tables"] = len(tables)
+        if target in ("ingest_model", "all"):
+            models = self.client.get_json("/collector/model/all")
+            for model in models:
+                yaml_str = yaml.dump(model, sort_keys=False)
+                write_yaml_entity(self.vault_path, INGEST_MODEL_CONFIG_DIR, yaml_str, "modelId", name_key="modelName")
+            result["ingest_models"] = len(models)
+        if target in ("ingest_module", "all"):
+            modules = self.client.get_json("/collector/module/all")
+            for module in modules:
+                yaml_str = yaml.dump(module, sort_keys=False)
+                write_yaml_entity(self.vault_path, INGEST_MODULE_CONFIG_DIR, yaml_str, "moduleId", name_key="moduleName")
+            result["ingest_modules"] = len(modules)
         return result
 
     def push_topic_yaml(self, topic_yaml: str, skip_name_check: bool = False) -> str:
@@ -68,26 +105,23 @@ class SyncService:
 
     def push(self, target: SyncTarget) -> Dict[str, int]:
         result = {"topics": 0, "pipelines": 0}
-        if target in ("topic", "all"):
+        if target in ("topic",):
             self._validate_local_topic_name_uniqueness()
             topic_dir = self.vault_path / TOPIC_DIR
             topic_yaml_files = sorted(topic_dir.glob("*.yml")) + sorted(topic_dir.glob("*.yaml"))
             for topic_file in topic_yaml_files:
                 self.push_topic_yaml_file(topic_file, skip_name_check=True)
                 result["topics"] += 1
-            
-            # Legacy json topics push
             topics = read_entities(self.vault_path, TOPIC_DIR)
             if topics:
                 self.client.post_json("/topic/import", topics)
                 result["topics"] += len(topics)
-        if target in ("pipeline", "all"):
+        if target in ("pipeline",):
             pipeline_dir = self.vault_path / PIPELINE_DIR
             pipeline_yaml_files = sorted(pipeline_dir.glob("*.yml")) + sorted(pipeline_dir.glob("*.yaml"))
             for pipeline_file in pipeline_yaml_files:
                 self.push_pipeline_yaml_file(pipeline_file)
                 result["pipelines"] += 1
-
             pipelines = read_entities(self.vault_path, PIPELINE_DIR)
             if pipelines:
                 self.client.post_json("/pipeline/import", pipelines)

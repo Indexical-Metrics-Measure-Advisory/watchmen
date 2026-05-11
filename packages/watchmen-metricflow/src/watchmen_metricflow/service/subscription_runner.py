@@ -222,9 +222,15 @@ class SubscriptionRunner:
 				rule.id = f"{analysis.id}_{card.id}"
 				rule.name = f"{analysis.name} / {card.title}"
 				alert_status = await self.alert_trigger_service.run_alert_rule(rule, report_data, share_link)
-				alert_statuses.append(alert_status)
 				if alert_status.triggered:
+					alert_statuses.append(alert_status)
 					print(f"Alert triggered for card {card.id}: {alert_status.message}")
+
+		if subscription.onlyOnAlertTriggered:
+			any_triggered = any(s.triggered for s in alert_statuses)
+			if not any_triggered:
+				print("No alerts triggered, skipping report production")
+				return
 
 		if subscription.onlyOnAlertTriggered:
 			any_triggered = any(s.triggered for s in alert_statuses)

@@ -10,8 +10,9 @@
 
 ## Core
 - `init --vault --host --username --password --pat`
-- `pull --target topic|pipeline|all --vault`
-- `push --target topic|pipeline|all --vault`
+- `pull --target topic|pipeline|enum|semantic|metric|ingest_table|ingest_model|ingest_module|all [--vault]`
+- `pull --all --vault`  (equivalent to `--target all`)
+- `push --target topic|pipeline --vault`
 - `tenant --vault`
 - `config --vault`
 - `discover`

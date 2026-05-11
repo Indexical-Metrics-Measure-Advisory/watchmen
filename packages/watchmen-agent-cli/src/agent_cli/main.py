@@ -16,7 +16,7 @@ from agent_cli.vault import ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CON
 
 DISCOVER_COMMANDS = {
     "init": ["--vault", "--host", "--username", "--password", "--pat"],
-    "pull": ["--target", "--vault"],
+    "pull": ["--target", "--all", "--vault"],
     "push": ["--target", "--vault"],
     "topic pull": ["topic_id", "--vault"],
     "topic pull-name": ["topic_name", "--vault"],
@@ -124,7 +124,10 @@ def handle_init(args: argparse.Namespace) -> None:
 
 
 def handle_pull(args: argparse.Namespace) -> None:
-    run_with_sync_service(args, lambda svc: svc.pull(args.target))
+    target = args.target
+    if args.all:
+        target = "all"
+    run_with_sync_service(args, lambda svc: svc.pull(target))
 
 
 def handle_push(args: argparse.Namespace) -> None:
@@ -360,12 +363,16 @@ def register_init_command(subparsers: argparse._SubParsersAction) -> None:
 
 def register_sync_commands(subparsers: argparse._SubParsersAction) -> None:
     pull_parser = create_subparser(subparsers, "pull", "Pull data from server to local")
-    pull_parser.add_argument("--target", choices=["topic", "pipeline", "all"], default="all")
+    pull_parser.add_argument("--target", choices=["topic", "pipeline", "enum", "semantic", "metric",
+                                                  "ingest_table", "ingest_model", "ingest_module", "all"],
+                             default="all")
+    pull_parser.add_argument("--all", action="store_true",
+                             help="Pull all modules (same as --target all)")
     add_vault_arg(pull_parser)
     pull_parser.set_defaults(handler=handle_pull)
 
     push_parser = create_subparser(subparsers, "push", "Push local modifications to server")
-    push_parser.add_argument("--target", choices=["topic", "pipeline", "all"], default="all")
+    push_parser.add_argument("--target", choices=["topic", "pipeline"], default="all")
     add_vault_arg(push_parser)
     push_parser.set_defaults(handler=handle_push)
 

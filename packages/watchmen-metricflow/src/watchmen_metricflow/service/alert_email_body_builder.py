@@ -9,6 +9,7 @@ from watchmen_metricflow.model.alert_rule import (
 )
 from watchmen_metricflow.model.bi_analysis_board import BIAnalysis
 from watchmen_metricflow.model.metric_subscription import Subscription
+from watchmen_metricflow.service.alert_action_utils import is_manual_execution_action
 
 
 def _pick_value(item: Any, *keys: str, default: Any = None) -> Any:
@@ -24,7 +25,14 @@ def _pick_value(item: Any, *keys: str, default: Any = None) -> Any:
     return default
 
 
-def build_alert_detail_html(alert_statuses: List[AlertStatus]) -> str:
+def _has_manual_actions(status: AlertStatus) -> bool:
+    for action in getattr(status, 'actions', None) or []:
+        if is_manual_execution_action(action):
+            return True
+    return False
+
+
+def build_alert_detail_html(alert_statuses: List[AlertStatus], share_link: str = '') -> str:
     if not alert_statuses:
         return ''
 
@@ -80,6 +88,17 @@ def build_alert_detail_html(alert_statuses: List[AlertStatus]) -> str:
                 f'</div>'
             )
 
+        manual_action_link = ''
+        if status.triggered and _has_manual_actions(status) and share_link:
+            manual_action_link = (
+                f'<div style="margin-top:10px;padding-top:10px;border-top:1px solid #e0e0e0;">'
+                f'<a href="{share_link}" target="_blank" '
+                f'style="display:inline-block;background:#d93025;color:#ffffff;padding:8px 16px;'
+                f'border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;">'
+                f'Open Dashboard To Execute Manual Action</a>'
+                f'</div>'
+            )
+
         alert_cards.append(
             f'<div style="background:{status_bg};border:1px solid {status_border};'
             f'border-radius:8px;padding:14px 16px;margin:0 0 10px 0;">'
@@ -90,6 +109,7 @@ def build_alert_detail_html(alert_statuses: List[AlertStatus]) -> str:
             f'</div>'
             f'<p style="margin:6px 0 0 0;color:#5f6368;font-size:13px;">{escape(str(status.message or ""))}</p>'
             f'{condition_details}'
+            f'{manual_action_link}'
             f'</div>'
         )
 
@@ -170,7 +190,7 @@ def build_alert_body_from_rule(rule: GlobalAlertRule, message: str, condition_re
         generated_at=generated_at,
         share_link=share_link
     )
-    detail = build_alert_detail_html([status])
+    detail = build_alert_detail_html([status], share_link)
     metrics_table = build_condition_results_table(normalized_results)
     footer = build_footer_html(share_link)
 
@@ -383,7 +403,7 @@ def build_report_html(subscription: Subscription, analysis: BIAnalysis, report_d
 
     header = build_header_html(analysis.name, frequency_desc, generated_at, share_link)
 
-    alert_section = build_alert_detail_html(alert_statuses) if alert_statuses else ''
+    alert_section = build_alert_detail_html(alert_statuses, share_link) if alert_statuses else ''
 
     metric_cards = ''.join(build_metric_card_html(item) for item in report_data)
 

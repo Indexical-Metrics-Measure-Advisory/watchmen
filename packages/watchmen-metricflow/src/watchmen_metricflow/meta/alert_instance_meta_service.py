@@ -205,3 +205,10 @@ class AlertInstanceService(UserBasedTupleService):
 
         self.update(instance)
         return instance
+
+    def update_action_executed(self, instance_id: str, tenant_id: str, executed: bool) -> None:
+        instance = self.find_by_id_and_tenant(instance_id, tenant_id)
+        if instance is None:
+            return
+        instance.actionExecuted = executed
+        self.update(instance)

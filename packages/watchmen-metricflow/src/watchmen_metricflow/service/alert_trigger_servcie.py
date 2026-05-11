@@ -6,6 +6,7 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_rest.util import raise_404, raise_500
 from watchmen_metricflow.meta.alert_rule_meta_service import AlertRuleService
+from watchmen_metricflow.service.alert_action_utils import is_manual_execution_action as _is_manual_execution_action_utils
 from watchmen_metricflow.meta.alert_instance_meta_service import AlertInstanceService
 from watchmen_metricflow.meta.bi_analysis_meta_service import BIAnalysisService
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
@@ -179,9 +180,20 @@ class AlertTriggerService:
             ref_type_id = ref_data.get('typeId')
             ref_action_type = self._load_action_type(ref_type_id) if ref_type_id is not None else None
             ref_action_type_data = self._to_dict(ref_action_type) if ref_action_type is not None else {}
-            execution_mode = str(ref_data.get('executionMode') or '').lower()
-            requires_approval = bool(ref_action_type_data.get('requiresApproval')) if ref_action_type_data else False
-            manual_execution = execution_mode in {'manual', 'approval'} or requires_approval
+            manual_execution = _is_manual_execution_action_utils(AlertAction(
+                id=action_id,
+                type=ref_data.get('type'),
+                typeId=ref_data.get('typeId'),
+                riskLevel=ref_data.get('riskLevel'),
+                name=ref_data.get('name'),
+                content=ref_data.get('content'),
+                expectedEffect=ref_data.get('expectedEffect'),
+                target=ref_data.get('target'),
+                template=ref_data.get('template'),
+                parameters=ref_data.get('parameters'),
+                suggestedAction=None,
+                actionType=ref_action_type_data
+            ))
             return AlertAction(
                 id=action_id,
                 type=ref_data.get('type'),
@@ -210,9 +222,20 @@ class AlertTriggerService:
         if type_id is not None:
             action_type = self._load_action_type(type_id)
         action_type_data = self._to_dict(action_type) if action_type is not None else {}
-        suggested_execution_mode = str(suggested_data.get('executionMode') or '').lower()
-        requires_approval = bool(action_type_data.get('requiresApproval')) if action_type_data else False
-        manual_execution = suggested_execution_mode in {'manual', 'approval'} or requires_approval
+        manual_execution = _is_manual_execution_action_utils(AlertAction(
+            id=action_id,
+            type=ref_data.get('type'),
+            typeId=type_id or ref_data.get('typeId'),
+            riskLevel=ref_data.get('riskLevel') or suggested_data.get('riskLevel'),
+            name=ref_data.get('name') or suggested_data.get('name'),
+            content=ref_data.get('content') or suggested_data.get('description'),
+            expectedEffect=ref_data.get('expectedEffect') or suggested_data.get('expectedOutcome'),
+            target=ref_data.get('target') or merged_parameters.get('to'),
+            template=ref_data.get('template'),
+            parameters=merged_parameters if len(merged_parameters) > 0 else None,
+            suggestedAction=suggested_data,
+            actionType=action_type_data
+        ))
 
         return AlertAction(
             id=action_id,
@@ -266,16 +289,7 @@ class AlertTriggerService:
 
     @staticmethod
     def _is_manual_execution_action(action: AlertAction) -> bool:
-        if bool(getattr(action, 'manualExecution', False)):
-            return True
-        suggested = getattr(action, 'suggestedAction', None) or {}
-        mode = str(suggested.get('executionMode') or '').lower()
-        if mode in {'manual', 'approval'}:
-            return True
-        action_type = getattr(action, 'actionType', None) or {}
-        if bool(action_type.get('requiresApproval')):
-            return True
-        return False
+        return _is_manual_execution_action_utils(action)
 
     def _resolve_subscription_recipients(self, rule_id: Optional[str], tenant_id: str) -> List[str]:
         if rule_id is None or len(str(rule_id).strip()) == 0:
@@ -536,12 +550,16 @@ class AlertTriggerService:
                 logger.info('[AlertTriggerService] action skipped (not manual), instance_id=%s, index=%s, action_id=%s',
                             instance_id, idx, getattr(action, 'id', None))
 
-        all_manual_succeeded = manual_count > 0 and success_count == manual_count
-        if all_manual_succeeded:
-            def update_instance():
-                instance.actionExecuted = True
-                self.alert_instance_service.update(instance)
-            trans(self.alert_instance_service, update_instance)
+        if manual_count > 0 and success_count == manual_count:
+            def update_executed():
+                try:
+                    self.alert_instance_service.update_action_executed(instance.instanceId, tenant_id, True)
+                except Exception as e:
+                    logger.exception('[AlertTriggerService] update_action_executed failed, instance_id=%s, error=%s',
+                                     instance.instanceId, str(e))
+                    raise
+            trans(self.alert_instance_service, update_executed)
+            logger.info('[AlertTriggerService] all manual actions executed, marked actionExecuted=True, instance_id=%s', instance_id)
         else:
             logger.warning('[AlertTriggerService] not all manual actions succeeded, keep actionExecuted=false, '
                            'instance_id=%s, manual_count=%s, success_count=%s',

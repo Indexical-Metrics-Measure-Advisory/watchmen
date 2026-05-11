@@ -9,7 +9,7 @@
 ## Pull Behaviors
 - Pulling a pipeline should ensure its related topics are available.
 - Pulling a topic should ensure referenced enums are available.
-- `pull --target all` should synchronize topic + pipeline + enum.
+- `pull --target all` (or `pull --all`) synchronizes all modules: topic + pipeline + enum + semantic + metric + ingest_table + ingest_model + ingest_module.
 - `ingest module pull "<module_name>" --all` should pull module + related models + related tables.
 - `ingest model pull "<model_name>" --all` should pull model + parent module + related tables.
 
