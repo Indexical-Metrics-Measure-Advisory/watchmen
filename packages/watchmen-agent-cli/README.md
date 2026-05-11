@@ -11,6 +11,8 @@ It also ships with a reusable Agent Skill (`agent-cli`) that lets AI directly pe
 - Enum codebook sync (pull by ID/name, push single file, remote listing)
 - MetricFlow Semantic Model YAML sync (pull by name, push single file, remote listing)
 - MetricFlow Metric YAML sync (pull by name, push single file, remote listing)
+- Ingest Table/Model/Module YAML sync (pull all, push single file, remote listing)
+- Batch pull all modules with `pull --all`
 - Automatic multi-entity dependency resolution:
   - Pipelines depend on Topics
   - Topics depend on Enums via `enumId`
@@ -39,10 +41,10 @@ It is recommended to install the Skill (callable from skills-compatible agents):
 poetry run agent-cli init --vault ./my_vault --host <WATCHMEN_HOST> --pat <YOUR_PAT>
 ```
 
-1. Pull all resources (Topic + Pipeline + Enum)
+1. Pull all resources (Topic + Pipeline + Enum + Semantic Model + Metric + Ingest Table/Model/Module)
 
 ```bash
-poetry run agent-cli pull --target all --vault ./my_vault
+poetry run agent-cli pull --all --vault ./my_vault
 ```
 
 1. Push local changes
@@ -58,8 +60,9 @@ poetry run agent-cli push --target topic --vault ./my_vault
   - `agent-cli config --vault <vault>`
   - `agent-cli tenant --vault <vault>`
 - Batch Sync
-  - `agent-cli pull --target topic|pipeline|all --vault <vault>`
-  - `agent-cli push --target topic|pipeline|all --vault <vault>`
+  - `agent-cli pull --all --vault <vault>`  (pull all modules)
+  - `agent-cli pull --target topic|pipeline|enum|semantic|metric|ingest_table|ingest_model|ingest_module --vault <vault>`
+  - `agent-cli push --target topic|pipeline --vault <vault>`
 - Topic
   - `agent-cli topic pull <topic_id> --vault <vault>`
   - `agent-cli topic pull-name "<topic_name>" --vault <vault>`
@@ -95,7 +98,7 @@ Once the Skill is installed, compatible agents can automatically select the appr
 
 - When pulling a Pipeline, Topics are automatically fetched
 - When pulling a Topic, factor `enumId` references are checked and Enums are fetched accordingly
-- When pulling all, the full dependency chain is synced
+- When pulling all (`--all` or `--target all`), the full dependency chain is synced: topic + pipeline + enum + semantic + metric + ingest_table + ingest_model + ingest_module
 
 Skill definition:
 

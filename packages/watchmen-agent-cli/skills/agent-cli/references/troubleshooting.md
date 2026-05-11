@@ -3,11 +3,11 @@
 ## `agent-cli: command not found`
 - Install package:
   - Global: `pip install watchmen-agent-cli`
-  - Local Dev: `cd packages/watchmen-agent-cli && poetry install`
+  - Local Dev: `poetry install`
 
 ## `No such command 'ingest'`
 - Reinstall latest package and use module entrypoint:
-  - `cd packages/watchmen-agent-cli && poetry install`
+  - `poetry install`
   - `poetry run python -m agent_cli ingest ...`
 
 ## Vault config missing
