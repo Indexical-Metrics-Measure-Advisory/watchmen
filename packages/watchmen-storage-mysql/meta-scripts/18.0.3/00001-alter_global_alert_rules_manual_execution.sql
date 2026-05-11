@@ -1,0 +1,1 @@
+ALTER TABLE global_alert_rules ADD COLUMN manual_execution TINYINT DEFAULT 0;

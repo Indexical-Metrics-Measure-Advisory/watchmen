@@ -1,0 +1,1 @@
+ALTER TABLE alert_instances ADD COLUMN action_executed TINYINT DEFAULT 0;

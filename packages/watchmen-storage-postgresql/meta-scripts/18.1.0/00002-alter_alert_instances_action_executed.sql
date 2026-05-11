@@ -1,0 +1,1 @@
+ALTER TABLE alert_instances ADD COLUMN IF NOT EXISTS action_executed SMALLINT DEFAULT 0;

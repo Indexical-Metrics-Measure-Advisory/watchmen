@@ -1,0 +1,1 @@
+ALTER TABLE alert_instances ADD action_executed SMALLINT DEFAULT 0;
