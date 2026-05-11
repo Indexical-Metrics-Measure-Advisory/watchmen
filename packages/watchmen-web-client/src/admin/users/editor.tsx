@@ -1,4 +1,4 @@
-import {isAdmin, isSuperAdmin} from '@/services/data/account';
+import {findAccount, isAdmin, isSuperAdmin} from '@/services/data/account';
 import {QueryTenant} from '@/services/data/tuples/query-tenant-types';
 import {QueryUserGroupForHolder} from '@/services/data/tuples/query-user-group-types';
 import {User, UserRole} from '@/services/data/tuples/user-types';
@@ -89,6 +89,11 @@ const UserEditor = (props: { user: User, codes?: HoldByUser }) => {
 		return {label: tenant.name, value: tenant.tenantId};
 	});
 
+	const currentAccount = findAccount();
+	const isOwnUser = currentAccount?.name === user.name;
+	const canEditIsActive = (isSuperAdmin() || isAdmin()) && !isOwnUser;
+	const canEditTenantAndRole = isSuperAdmin() || isAdmin();
+
 	return <>
 		<TuplePropertyLabel>User Name:</TuplePropertyLabel>
 		<TuplePropertyInput value={user.name || ''} onChange={onPropChange('name')} onBlur={onNameBlur}/>
@@ -101,10 +106,14 @@ const UserEditor = (props: { user: User, codes?: HoldByUser }) => {
 		<TuplePropertyInput value={user.email || ''} onChange={onPropChange('email')}/>
 		<TuplePropertyLabel>User Role:</TuplePropertyLabel>
 		<TuplePropertyDropdown value={user.role || UserRole.CONSOLE} options={roleOptions} onChange={onRoleChange}/>
-		{isSuperAdmin() || isAdmin()
+		{canEditIsActive
 			? <>
 				<TuplePropertyLabel>Is Active:</TuplePropertyLabel>
 				<TuplePropertyCheckBox value={user.isActive !== false} onChange={onIsActiveChange}/>
+			</>
+			: null}
+		{canEditTenantAndRole
+			? <>
 				<TuplePropertyLabel>Data Zone:</TuplePropertyLabel>
 				<TuplePropertyDropdown value={user.tenantId} options={tenantOptions} onChange={onTenantChange}/>
 			</>
