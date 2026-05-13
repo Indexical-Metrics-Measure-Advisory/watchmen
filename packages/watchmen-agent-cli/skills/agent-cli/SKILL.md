@@ -46,6 +46,7 @@ Keep this file concise and load detailed references only when needed.
 - Load `references/dependency-chain.md` when deciding related entities to sync.
 - Load `references/troubleshooting.md` when command fails.
 - Load `references/source-of-truth.md` when generating or validating YAML/JSON payloads.
+- Load `references/id-management-guide.md` when creating new entities or handling server-assigned IDs and placeholder/null ID rules.
 - Load `references/pipeline-development.md` when user asks to build/modify pipeline logic.
 - Load `assets/templates/` only when user asks to generate starter content.
 
@@ -53,9 +54,13 @@ Keep this file concise and load detailed references only when needed.
 1. Identify user intent and entity type.
 2. Load minimal required reference file(s).
 3. Resolve prerequisites (`--vault`, auth, host).
-4. Execute smallest safe command.
-5. Return structured JSON result summary.
-6. If failure occurs, load troubleshooting reference and retry with fix.
+4. When creating a new entity or model, load `references/id-management-guide.md` first and follow its null/server-assigned ID rules.
+5. Generate the local draft first, then ask the customer for confirmation before any follow-up action.
+6. After customer confirmation, sync the new entity/model to remote immediately.
+7. Only continue to the next step after the remote sync succeeds.
+8. For non-creation tasks, execute the smallest safe command.
+9. Return structured JSON result summary.
+10. If failure occurs, load troubleshooting reference and retry with fix.
 
 ## Scope
 - Supported entities: Topic, Pipeline, Enum, MetricFlow Semantic Model, MetricFlow Metric, Ingestion Module/Model/Table, DataSource.

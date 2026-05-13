@@ -18,18 +18,18 @@ When creating new resources locally, use **fake IDs** with `f-` prefix or leave 
 - **Directory Structure**:
   ```
   vault/
-  ├── .agent-cli/          # 元数据目录
+  ├── .agent-cli/          # metadata directory
   │   └── config.json
-  ├── ingest/              # 采集配置
+  ├── ingest/              # ingestion configs
   │   ├── tables/
   │   ├── models/
   │   └── modules/
-  ├── transformation/      # 转换配置（Topic/Pipeline/Subject/Enum）
+  ├── transformation/      # transformation configs (Topic/Pipeline/Subject/Enum)
   │   ├── topics/
   │   ├── pipelines/
   │   ├── subjects/
   │   └── enums/
-  └── metrics/              # 指标配置
+  └── metrics/              # metric configs
       ├── semantics/
       └── metric/
   ```
