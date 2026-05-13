@@ -95,7 +95,7 @@ const MetricsManagement: React.FC = () => {
     searchTerm: ''
   });
   const { toast } = useToast();
-  const metricNamePattern = /^[A-Za-z0-9_]+$/;
+  const metricNamePattern = /^[a-z0-9_]+$/;
 
   // Separate state for dropdown selectors — always contains ALL metrics regardless of search filter
   const [allMetricsForSelect, setAllMetricsForSelect] = useState<MetricDefinition[]>([]);
@@ -227,7 +227,7 @@ const MetricsManagement: React.FC = () => {
     if (!form.name?.trim()) {
       errors.push('Metric name cannot be empty');
     } else if (!metricNamePattern.test(form.name.trim())) {
-      errors.push('Metric name can contain only letters, numbers, and underscores');
+      errors.push('Metric name can contain only lowercase letters, numbers, and underscores');
     }
     
     if (!form.label?.trim()) {
@@ -1003,9 +1003,9 @@ const MetricsManagement: React.FC = () => {
                   className={editForm.name && !metricNamePattern.test(editForm.name) ? 'border-destructive' : ''}
                 />
                 {editForm.name && !metricNamePattern.test(editForm.name) ? (
-                  <p className="text-xs text-destructive">Invalid: use only letters, numbers, and underscores</p>
+                  <p className="text-xs text-destructive">Invalid: use only lowercase letters, numbers, and underscores</p>
                 ) : (
-                  <p className="text-xs text-muted-foreground">Only letters, numbers, and underscores. Used as unique identifier.</p>
+                  <p className="text-xs text-muted-foreground">Only lowercase letters, numbers, and underscores. Used as unique identifier.</p>
                 )}
               </div>
               <div className="space-y-2">
@@ -1342,9 +1342,9 @@ const MetricsManagement: React.FC = () => {
                   className={createForm.name && !metricNamePattern.test(createForm.name) ? 'border-destructive' : ''}
                 />
                 {createForm.name && !metricNamePattern.test(createForm.name) ? (
-                  <p className="text-xs text-destructive">Invalid: use only letters, numbers, and underscores</p>
+                  <p className="text-xs text-destructive">Invalid: use only lowercase letters, numbers, and underscores</p>
                 ) : (
-                  <p className="text-xs text-muted-foreground">Only letters, numbers, and underscores. Used as unique identifier.</p>
+                  <p className="text-xs text-muted-foreground">Only lowercase letters, numbers, and underscores. Used as unique identifier.</p>
                 )}
               </div>
               <div className="space-y-2">
