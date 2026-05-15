@@ -19,6 +19,7 @@ Keep this file concise and load detailed references only when needed.
 - User asks to list remote metadata or pull data sources.
 - User asks to pull by name/id, or push local YAML files.
 - User asks to create a raw topic from a collector model (generate Topic YAML from Ingestion model).
+- **IMPORTANT**: Before creating or modifying any Pipeline, you MUST read `references/pipeline-development.md` first.
 
 ## Install ClI and Init 
 1. Ensure CLI is installed:
@@ -41,12 +42,21 @@ Keep this file concise and load detailed references only when needed.
 - Use double underscores `__` to separate the business name and the internal ID.
 - Refer to `references/source-of-truth.md` for specific directory structures per entity type.
 
+## Pipeline Update Rules (CRITICAL)
+- ** NEVER create duplicate pipelines** - always check remote first.
+- Before creating a pipeline:
+  1. Run `agent-cli pipeline list-remote --vault <vault>` to check if pipeline with same name exists.
+  2. If exists, set `pipelineId` to the existing pipeline ID to update it.
+  3. If not exists, use `pipelineId: null` to create new.
+- When updating an existing pipeline, ensure local file is named with the correct existing ID.
+
 ## On-Demand Loading Rules
 - Load `references/command-catalog.md` when deciding exact command/args.
 - Load `references/dependency-chain.md` when deciding related entities to sync.
 - Load `references/troubleshooting.md` when command fails.
 - Load `references/source-of-truth.md` when generating or validating YAML/JSON payloads.
 - Load `references/pipeline-development.md` when user asks to build/modify pipeline logic.
+- Load `references/pipeline-workflow-guide.md` for pipeline creation/update workflow and naming conventions.
 - Load `assets/templates/` only when user asks to generate starter content.
 
 ## Default Execution Flow
@@ -69,10 +79,10 @@ DataMo topics follow a **four-layer architecture**:
 
 | Layer | Topic Type | Description | Example |
 |-------|------------|-------------|---------|
-| **Bronze/Raw** | `raw` | Raw data ingestion from external systems or source databases | `source_crm_lead_raw`, `crm_activity_event` |
-| **Silver/ODS** | `distinct` | Transactional data layer, maintains business event details with traceability | `crm_lead`, `crm_opportunity`, `crm_contact` |
-| **Gold/Domain** | `distinct` | Domain layer, aggregates business domain entities with related data | `customer_profile`, `customer_360_wide` |
-| **Datamart** | `aggregate`/`distinct` | Data mart layer - wide tables optimized for query | `sales_pipeline_summary`, `lead_conversion_agg` |
+| **Bronze/Raw** | `raw` | Raw data ingestion from external systems or source databases | `source_insurance_quotation_raw`, `broker_commission_transaction` |
+| **Silver/ODS** | `distinct` | Transactional data layer, maintains business event details with traceability | `policy_policy`, `quotation_main`, `claims_fnol` |
+| **Gold/Domain** | `distinct` | Domain layer, aggregates business domain entities with related data | `party_individual_customer`, `customer_360_wide` |
+| **Datamart** | `aggregate`/`distinct` | Data mart layer - wide tables optimized for query | `broker_commission_statement`, `quotation_premium_agg` |
 
 ### Topic Type Guidelines
 
@@ -87,16 +97,16 @@ DataMo topics follow a **four-layer architecture**:
 ```
 transformation/topics/
 ├── {source_system}__{id}.yml              # Raw: prefix is data source name
-│   Example: source_crm_lead_raw__1468658271836859392.yml
+│   Example: source_insurance_quotation_raw__1468658271836859392.yml
 │
 ├── {business_entity}__{id}.yml            # ODS Silver: business entity name
-│   Example: crm_lead__1083070031199647744.yml
+│   Example: policy_policy__1083070031199647744.yml
 │
 ├── {domain_entity}__{id}.yml              # Gold Domain: domain entity name
-│   Example: customer_profile__1083070021775046656.yml
+│   Example: party_individual_customer__1083070021775046656.yml
 │
 └── {datamart_name}__{id}.yml              # Datamart: data mart name
-    Example: sales_pipeline_summary__1504225603996594176.yml
+    Example: broker_commission_statement__1504225603996594176.yml
 ```
 
 ### Pipeline Layer Patterns

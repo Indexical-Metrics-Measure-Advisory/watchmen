@@ -47,6 +47,14 @@ def is_system_topic_by_id(topic_id: TopicId, principal_service: PrincipalService
 	return topic.kind == TopicKind.SYSTEM
 
 
+def filter_pipelines_by_source_topic_system(
+		pipelines: List[Pipeline], principal_service: PrincipalService
+) -> List[Pipeline]:
+	return ArrayHelper(pipelines).filter(
+		lambda x: not is_system_topic_by_id(x.topicId, principal_service)
+	).to_list()
+
+
 @router.get('/pipeline', tags=[UserRole.ADMIN], response_model=None)
 async def load_pipeline_by_id(
 		pipeline_id: Optional[PipelineId],
@@ -265,6 +273,20 @@ async def find_all_pipelines(principal_service: PrincipalService = Depends(get_a
 		return pipeline_service.find_all(tenant_id)
 
 	return trans_readonly(pipeline_service, action)
+
+
+@router.get('/pipeline/all/yaml', tags=[UserRole.ADMIN], response_class=Response)
+async def find_all_pipelines_yaml(principal_service: PrincipalService = Depends(get_admin_principal)) -> Response:
+	pipeline_service = get_pipeline_service(principal_service)
+
+	def action() -> List[Pipeline]:
+		tenant_id = principal_service.get_tenant_id()
+		pipelines = pipeline_service.find_all(tenant_id)
+		return filter_pipelines_by_source_topic_system(pipelines, principal_service)
+
+	pipelines = trans_readonly(pipeline_service, action)
+	yaml_str = yaml.dump([p.model_dump(mode='json', by_alias=True, exclude_none=True) for p in pipelines], sort_keys=False)
+	return Response(content=yaml_str, media_type="application/x-yaml")
 
 
 class LastModified(ExtendedBaseModel):

@@ -18,18 +18,18 @@ When creating new resources locally, use **fake IDs** with `f-` prefix or leave 
 - **Directory Structure**:
   ```
   vault/
-  ├── .agent-cli/          # metadata directory
+  ├── .agent-cli/          # 元数据目录
   │   └── config.json
-  ├── ingest/              # ingestion configs
+  ├── ingest/              # 采集配置
   │   ├── tables/
   │   ├── models/
   │   └── modules/
-  ├── transformation/      # transformation configs (Topic/Pipeline/Subject/Enum)
+  ├── transformation/      # 转换配置（Topic/Pipeline/Subject/Enum）
   │   ├── topics/
   │   ├── pipelines/
   │   ├── subjects/
   │   └── enums/
-  └── metrics/              # metric configs
+  └── metrics/              # 指标配置
       ├── semantics/
       └── metric/
   ```
@@ -48,12 +48,20 @@ When creating new resources locally, use **fake IDs** with `f-` prefix or leave 
 - Factor core fields and types: `factorId:str`, `name:str`, `type:str`, `label:str`, `enumId:str|None`.
 - Topic type candidates: `raw`, `distinct`, `aggregate`, `ratio`, `time`.
 - Factor type candidates: `sequence`, `number`, `unsigned`, `text`, `address`, `continent`, `region`, `country`, `province`, `city`, `district`, `road`, `community`, `floor`, `residence_type`, `residential_area`, `email`, `phone`, `mobile`, `fax`, `gender`, `occupation`, `date_of_birth`, `age`, `id_no`, `relation`, `name`, `description`, `zip_code`, `full_name`, `first_name`, `middle_name`, `last_name`, `unit_number`, `display_name`, `abbreviation`, `nick_name`, `resource_url`, `image`, `attachment`, `institute`, `department_head`, `team`, `business_unit`, `loyalty`, `currency`, `percentage`, `permillage`, `code`, `json`, `xml`, `yaml`, `datetime`, `full_datetime`, `date`, `time`, `year`, `half_year`, `quarter`, `month`, `half_month`, `ten_days`, `week_of_year`, `week_of_month`, `half_week`, `day_of_month`, `day_of_week`, `day_kind`, `hour`, `minute`, `second`, `millisecond`, `am_pm`, `enum`.
+- **System Topics**: Topics with `kind: system` (e.g., monitor logs, DQC results) **cannot be pulled or pushed** via CLI. These are managed internally by the platform.
 - Prefer `kind: business` for newly created topics.
 - Ensure each factor has a business-friendly `label`.
 - Use `enumId` when factor value comes from enum code table.
 
 ## Pipeline
 - Core fields and types: `pipelineId:str`, `name:str`, `topicId:str`, `type:str`, `enabled:bool`, `stages:list[PipelineStage]`.
+- **IMPORTANT**: `topicId` MUST be at the **root level** of the YAML (same level as `name`, `type`, `tenantId`), not inside `stages`. This is the source topic ID.
+- **Pipeline Update Rule**: When modifying an existing pipeline, **DO NOT create a new pipeline**. Pull the existing pipeline YAML, modify it, and push it back using the **same `pipelineId`** to update in place.
+- **Pipeline Type Selection Rule**:
+  - **`insert-or-merge` (DEFAULT)**: Use for most business data pipelines (Bronze→Silver, Silver→Gold, Gold→Datamart). This handles both insert new records and merge/update existing records.
+  - **`insert`**: Only use for append-only data such as **logs, history, audit trails, or monitoring data** where records are never updated.
+  - **`merge`**: Use when only updating existing records (no new inserts).
+  - **`delete`**: Use for soft-delete or CDC delete operations.
 - Trigger types: `insert`, `merge`, `insert-or-merge`, `delete`.
 - Structure and types: `stages:list[PipelineStage] -> units:list[PipelineUnit] -> do:list[PipelineAction]`.
 - PipelineStage: `stageId:str`, `name:str|None`, `conditional:bool|None`, `on:dict|None`, `units:list[PipelineUnit]`.

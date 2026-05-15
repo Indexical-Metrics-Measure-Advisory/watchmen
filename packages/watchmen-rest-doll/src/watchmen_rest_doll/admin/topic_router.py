@@ -391,6 +391,20 @@ async def find_all_topics(principal_service: PrincipalService = Depends(get_cons
 	return trans_readonly(topic_service, action)
 
 
+@router.get('/topic/all/yaml', tags=[UserRole.ADMIN], response_class=Response)
+async def find_all_topics_yaml(principal_service: PrincipalService = Depends(get_admin_principal)) -> Response:
+	tenant_id = principal_service.get_tenant_id()
+	topic_service = get_topic_service(principal_service)
+
+	def action() -> List[Topic]:
+		topics = topic_service.find_all(tenant_id)
+		return ArrayHelper(topics).filter(lambda x: not is_system_topic(x)).to_list()
+
+	topics = trans_readonly(topic_service, action)
+	yaml_str = yaml.dump([t.model_dump(mode='json', by_alias=True, exclude_none=True) for t in topics], sort_keys=False)
+	return Response(content=yaml_str, media_type="application/x-yaml")
+
+
 class LastModified(ExtendedBaseModel):
 	at: Optional[str] = None
 

@@ -29,10 +29,10 @@ DataMo uses a **four-layer data architecture** to organize topics:
 **Examples:**
 | Topic Name | Description |
 |------------|-------------|
-| `source_crm_lead_raw` | Raw lead data from CRM system |
+| `source_insurance_quotation_raw` | Raw quotation data from insurance system |
 | `raw_pipeline_monitor_log` | Pipeline execution logs |
 | `dqc_raw_rule_result` | Data quality check raw results |
-| `crm_activity_event` | Raw CRM activity events |
+| `broker_commission_transaction` | Raw commission transactions |
 
 ---
 
@@ -47,16 +47,31 @@ DataMo uses a **four-layer data architecture** to organize topics:
 - Business keys for join/lookup
 - Single source of truth per entity
 
+**Important: Sub-Object Handling**
+- **DO NOT** embed child object fields (array-type factors) into the parent topic
+- **Each sub-object should be a separate independent topic** (type: distinct)
+- Parent topic only contains the main entity fields + foreign keys for linking
+- Sub-objects are linked via their `aid_root` field pointing to parent's `aid_me`
+- Use Pipeline with **loop mapping** to iterate and write sub-object records
+
+**Example:**
+| Topic Name | Role | Fields |
+|------------|------|--------|
+| `customer` | Parent | customer_id, name, risk_level, audit fields |
+| `crm_address` | Child (sub-object) | aid_me, aid_root, address_id, customer_id, city, detail_addr |
+
 **Naming:** `{business_entity}`
 
 **Examples:**
 | Topic Name | Description |
 |------------|-------------|
-| `crm_lead` | CRM lead records |
-| `crm_opportunity` | Sales opportunity records |
-| `crm_contact` | Customer contact records |
-| `crm_account` | Customer account records |
-| `crm_owner` | Sales owner records |
+| `policy_policy` | Insurance policy records |
+| `quotation_main` | Quotation master records |
+| `claims_fnol` | First Notice of Loss records |
+| `party_individual_customer` | Individual customer records |
+| `common_producer` | Producer/agent records |
+| `policy_vehicle` | Vehicle sub-entity linked to policy via aid_root |
+| `claim_item` | Claim line item sub-entity linked to claim via aid_root |
 
 ---
 
@@ -77,8 +92,8 @@ DataMo uses a **four-layer data architecture** to organize topics:
 | Topic Name | Description |
 |------------|-------------|
 | `customer_360_wide` | 360-degree customer view |
-| `customer_account_relationship` | Customer-account relationship |
-| `customer_lifecycle_value` | Customer lifecycle value analysis |
+| `party_customer_policy` | Customer-policy relationship |
+| `datamart_claim_value` | Claim value analysis |
 
 ---
 
@@ -98,10 +113,10 @@ DataMo uses a **four-layer data architecture** to organize topics:
 **Examples:**
 | Topic Name | Description |
 |------------|-------------|
-| `sales_pipeline_summary` | Sales pipeline summary by stage |
-| `lead_conversion_agg` | Lead conversion metrics by dimension |
+| `broker_commission_statement` | Broker pending commission summary |
+| `quotation_premium_agg` | Quotation premium by dimension |
 | `query_performance_summary` | Query performance metrics |
-| `sales_performance_summary` | Sales performance metrics |
+| `policy_performance_summary` | Policy performance metrics |
 
 ---
 
@@ -116,8 +131,8 @@ DataMo uses a **four-layer data architecture** to organize topics:
 │  BRONZE/RAW LAYER                                                           │
 │  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐  │
 │  │ External Systems    │  │ Source Databases   │  │ Event Streams       │  │
-│  │ • CRM Platform      │  │ • Customer DB       │  │ • Kafka Topics      │  │
-│  │ • External API      │  │ • Sales DB          │  │ • Webhook Events    │  │
+│  │ • InsureMO          │  │ • Policy DB         │  │ • Kafka Topics      │  │
+│  │ • External API      │  │ • Claims DB        │  │ • Webhook Events    │  │
 │  └──────────┬──────────┘  └──────────┬──────────┘  └──────────┬──────────┘  │
 │             │                        │                        │            │
 │             └────────────────────────┬┴────────────────────────┘            │
@@ -137,17 +152,17 @@ DataMo uses a **four-layer data architecture** to organize topics:
 │                                     ┌─────────────────────┐                  │
 │                                     │  ODS Topics        │                  │
 │                                     │  (type: distinct)  │                  │
-│                         ┌───────────►│  • crm_lead_*      │                  │
-│                         │            │  • crm_account_*   │                  │
-│                         │            │  • crm_contact_*   │                  │
-│                         │            │  • crm_owner_*     │                  │
+│                         ┌───────────►│  • policy_*        │                  │
+│                         │            │  • quotation_*     │                  │
+│                         │            │  • claims_*        │                  │
+│                         │            │  • party_*         │                  │
 │                         │            └──────────┬──────────┘                  │
 │                         │                       │                             │
 │                         │            ┌──────────┴──────────┐                │
 │                         │            │                     │                │
 │                         │            ▼                     ▼                │
 │                         │   ┌────────────────┐    ┌────────────────┐       │
-│                         │   │ crm_lead      │    │ crm_contact    │       │
+│                         │   │ policy_policy │    │ claims_fnol    │       │
 │                         │   └────────────────┘    └────────────────┘       │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
@@ -158,16 +173,16 @@ DataMo uses a **four-layer data architecture** to organize topics:
 │                                     │  Domain Topics      │                  │
 │                                     │  (type: distinct)   │                  │
 │                         ┌───────────│  • customer_360_*   │                  │
-│                         │            │  • customer_*       │                  │
-│                         │            │  • sales_*          │                  │
+│                         │            │  • party_*          │                  │
+│                         │            │  • datamart_*       │                  │
 │                         │            └──────────┬──────────┘                  │
 │                         │                       │                             │
 │                         │            ┌──────────┴──────────┐                │
 │                         │            │                     │                │
 │                         │            ▼                     ▼                │
 │                         │   ┌────────────────┐    ┌────────────────┐       │
-│                         │   │customer_360   │    │customer_accoun-│       │
-│                         │   │_wide          │    │t_relationship  │       │
+│                         │   │customer_360   │    │party_customer  │       │
+│                         │   │_wide          │    │_policy         │       │
 │                         │   └────────────────┘    └────────────────┘       │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
@@ -186,8 +201,8 @@ DataMo uses a **four-layer data architecture** to organize topics:
 │                         │            │                     │                │
 │                         │            ▼                     ▼                │
 │                         │   ┌────────────────┐    ┌────────────────┐       │
-│                         │   │sales_pipeline- │    │lead_conversio- │       │
-│                         │   │summary         │    │n_agg           │       │
+│                         │   │broker_commiss- │    │quotation_prem-  │       │
+│                         │   │ion_statement   │    │ium_agg         │       │
 │                         │   └────────────────┘    └────────────────┘       │
 │                         │                                                     │
 │                         │                    ┌─────────────────────┐        │
@@ -211,40 +226,40 @@ DataMo uses a **four-layer data architecture** to organize topics:
 
 ---
 
-## Example: CRM Revenue DataMart Architecture
+## Example: Commission DataMart Architecture
 
 ### Bronze Layer
 ```yaml
-# crm_activity_event__raw.yml
+# broker_commission_transaction__raw.yml
 topicId: null
-name: crm_activity_event
+name: broker_commission_transaction
 type: raw
 kind: business
 factors:
 - factorId: null
   type: text
-  name: activity_id
+  name: transaction_id
 - factorId: null
   type: enum
-  name: source_system     # CRM / EXTERNAL
+  name: source_system     # INSUREMO / EXTERNAL
 # ...
 ```
 
 ### Silver Layer
 ```yaml
-# crm_opportunity__existing.yml
+# policy_policy__existing.yml
 topicId: '1083070031199647744'
-name: crm_opportunity
+name: policy_policy
 type: distinct
 kind: business
-# Opportunity transaction records
+# Policy transaction records
 ```
 
 ### Gold Layer
 ```yaml
-# customer_profile__existing.yml
+# party_individual_customer__existing.yml
 topicId: '1083070021775046656'
-name: customer_profile
+name: party_individual_customer
 type: distinct
 kind: business
 # Customer domain entity
@@ -252,18 +267,18 @@ kind: business
 
 ### Datamart Layer
 ```yaml
-# sales_pipeline_summary__new.yml
+# broker_commission_statement__new.yml
 topicId: null
-name: sales_pipeline_summary
+name: broker_commission_statement
 type: aggregate
 kind: business
 factors:
 - factorId: null
   type: text
-  name: sales_owner_id
+  name: broker_id
 - factorId: null
   type: number
-  name: pipeline_amount_sum
+  name: pending_amount_sum
 # ...
 ```
 
@@ -281,7 +296,24 @@ Target: Raw Topic
     ↓
 Pipeline: Normalization, key mapping
     ↓
-Target: ODS Topic
+Target: ODS Topic (Parent)
+    ↓
+Pipeline: Loop through array fields, write sub-objects
+    ↓
+Target: ODS Topic (Child/Sub-object)
+```
+
+### Loop Pipeline Pattern for Sub-Objects
+```
+Bronze Raw Topic
+    │
+    ├── Parent fields → ODS Parent Topic
+    │
+    └── Array (sub-object) fields
+              │
+              └── Pipeline with loop/iterate action
+                        │
+                        └── Sub-Object Topic (aid_root = parent.aid_me)
 ```
 
 ### Silver → Gold (Domain Aggregation)
@@ -310,9 +342,9 @@ Target: Datamart Topic
 
 ### 1. Naming Convention
 - **Raw topics:** `{source_system}_{table_name}_raw` or `{source_system}_{entity}`
-- **ODS topics:** `{business_entity}` (e.g., `crm_lead`, `crm_contact`)
+- **ODS topics:** `{business_entity}` (e.g., `policy_policy`, `claims_fnol`)
 - **Domain topics:** `{domain_entity}` (e.g., `customer_360_wide`)
-- **Datamart topics:** `{subject_area}_{metric_type}` (e.g., `sales_pipeline_summary`)
+- **Datamart topics:** `{subject_area}_{metric_type}` (e.g., `broker_commission_statement`)
 
 ### 2. Topic Type Selection
 - Use `raw` for incoming data that has not been cleaned
