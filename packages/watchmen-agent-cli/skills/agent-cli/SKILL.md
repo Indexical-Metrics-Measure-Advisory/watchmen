@@ -46,7 +46,6 @@ Keep this file concise and load detailed references only when needed.
 - Load `references/dependency-chain.md` when deciding related entities to sync.
 - Load `references/troubleshooting.md` when command fails.
 - Load `references/source-of-truth.md` when generating or validating YAML/JSON payloads.
-- Load `references/id-management-guide.md` when creating new entities or handling server-assigned IDs and placeholder/null ID rules.
 - Load `references/pipeline-development.md` when user asks to build/modify pipeline logic.
 - Load `assets/templates/` only when user asks to generate starter content.
 
@@ -54,16 +53,59 @@ Keep this file concise and load detailed references only when needed.
 1. Identify user intent and entity type.
 2. Load minimal required reference file(s).
 3. Resolve prerequisites (`--vault`, auth, host).
-4. When creating a new entity or model, load `references/id-management-guide.md` first and follow its null/server-assigned ID rules.
-5. Generate the local draft first, then ask the customer for confirmation before any follow-up action.
-6. After customer confirmation, sync the new entity/model to remote immediately.
-7. Only continue to the next step after the remote sync succeeds.
-8. For non-creation tasks, execute the smallest safe command.
-9. Return structured JSON result summary.
-10. If failure occurs, load troubleshooting reference and retry with fix.
+4. Execute smallest safe command.
+5. Return structured JSON result summary.
+6. If failure occurs, load troubleshooting reference and retry with fix.
 
 ## Scope
 - Supported entities: Topic, Pipeline, Enum, MetricFlow Semantic Model, MetricFlow Metric, Ingestion Module/Model/Table, DataSource.
 - Supported actions: pull, push, list, list-remote, pull by name/id, push local YAML files, create raw topic from ingestion model.
 - Protocol: YAML for topic/pipeline/enum/ingestion.
 - Outputs: JSON summaries suitable for agent chaining.
+
+## DataMo Topic Layer Architecture
+
+DataMo topics follow a **four-layer architecture**:
+
+| Layer | Topic Type | Description | Example |
+|-------|------------|-------------|---------|
+| **Bronze/Raw** | `raw` | Raw data ingestion from external systems or source databases | `source_crm_lead_raw`, `crm_activity_event` |
+| **Silver/ODS** | `distinct` | Transactional data layer, maintains business event details with traceability | `crm_lead`, `crm_opportunity`, `crm_contact` |
+| **Gold/Domain** | `distinct` | Domain layer, aggregates business domain entities with related data | `customer_profile`, `customer_360_wide` |
+| **Datamart** | `aggregate`/`distinct` | Data mart layer - wide tables optimized for query | `sales_pipeline_summary`, `lead_conversion_agg` |
+
+### Topic Type Guidelines
+
+| Type | Usage | Layer |
+|------|-------|-------|
+| `raw` | External system ingestion - raw data without schema constraints | Bronze |
+| `distinct` | Unique business entity details within a domain | Silver/Gold/Datamart |
+| `aggregate` | Pre-aggregated summary data for BI/reporting | Datamart |
+
+### Topic Naming Convention by Layer
+
+```
+transformation/topics/
+├── {source_system}__{id}.yml              # Raw: prefix is data source name
+│   Example: source_crm_lead_raw__1468658271836859392.yml
+│
+├── {business_entity}__{id}.yml            # ODS Silver: business entity name
+│   Example: crm_lead__1083070031199647744.yml
+│
+├── {domain_entity}__{id}.yml              # Gold Domain: domain entity name
+│   Example: customer_profile__1083070021775046656.yml
+│
+└── {datamart_name}__{id}.yml              # Datamart: data mart name
+    Example: sales_pipeline_summary__1504225603996594176.yml
+```
+
+### Pipeline Layer Patterns
+
+| Pattern | Source Layer | Target Layer | Use Case |
+|---------|--------------|--------------|----------|
+| **ETL Ingestion** | External System → | Raw Topic | Data ingestion |
+| **ODS Enrichment** | Raw Topic → | ODS Silver | Data cleansing, normalization |
+| **Domain Aggregation** | ODS Silver → | Gold Domain | Cross-topic association and aggregation |
+| **Datamart Build** | Gold/ODS → | Datamart | Business-oriented wide tables |
+
+For detailed data layer design patterns, see `references/data-layer-architecture.md`.
