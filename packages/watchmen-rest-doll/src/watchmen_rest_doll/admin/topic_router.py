@@ -35,6 +35,10 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 	return TopicService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
+def is_system_topic(topic: Topic) -> bool:
+	return topic.kind == TopicKind.SYSTEM
+
+
 def get_factor_service(topic_service: TopicService) -> FactorService:
 	return FactorService(topic_service.snowflakeGenerator)
 
@@ -90,6 +94,8 @@ async def load_topic_yaml_by_id(
 			raise_404()
 		# tenant id must match current principal's
 		if topic.tenantId != principal_service.get_tenant_id():
+			raise_404()
+		if is_system_topic(topic):
 			raise_404()
 		return topic
 	
@@ -258,8 +264,10 @@ async def save_topic_yaml(
 		topic = Topic.model_validate(topic_dict)
 	except Exception as e:
 		raise_400(f'Invalid YAML: {str(e)}')
-		
+
 	validate_tenant_id(topic, principal_service)
+	if is_system_topic(topic):
+		raise_400('System topics cannot be saved via YAML.')
 	topic_service = get_topic_service(principal_service)
 	action = ask_save_topic_action(topic_service, principal_service, True)
 	saved_topic = trans_with_tail(topic_service, lambda: action(topic))
@@ -345,8 +353,10 @@ async def find_topic_yaml_by_name(
 		topic: Optional[Topic] = topic_service.find_by_name_and_tenant(query_name, tenant_id)
 		if topic is None:
 			raise_404()
+		if is_system_topic(topic):
+			raise_404()
 		return topic
-		
+
 	topic = trans_readonly(topic_service, action)
 	yaml_str = yaml.dump(topic.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
 	return Response(content=yaml_str, media_type="application/x-yaml")

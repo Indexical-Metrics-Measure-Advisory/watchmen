@@ -8,11 +8,11 @@ from starlette.responses import Response
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
 from watchmen_data_kernel.common import ask_all_date_formats, ask_replace_topic_to_storage, ask_sync_topic_to_storage
-from watchmen_meta.admin import PipelineService
+from watchmen_meta.admin import PipelineService, TopicService
 from watchmen_meta.analysis import PipelineIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, TupleService
-from watchmen_model.admin import Pipeline, PipelineAction, PipelineStage, PipelineUnit, UserRole
-from watchmen_model.common import PipelineId, TenantId
+from watchmen_model.admin import Pipeline, PipelineAction, PipelineStage, PipelineUnit, TopicKind, UserRole
+from watchmen_model.common import PipelineId, TenantId, TopicId
 from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
@@ -33,6 +33,18 @@ def get_pipeline_service(principal_service: PrincipalService) -> PipelineService
 
 def get_pipeline_index_service(pipeline_service: PipelineService) -> PipelineIndexService:
 	return PipelineIndexService(pipeline_service.storage, pipeline_service.snowflakeGenerator)
+
+
+def get_topic_service(principal_service: PrincipalService) -> TopicService:
+	return TopicService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def is_system_topic_by_id(topic_id: TopicId, principal_service: PrincipalService) -> bool:
+	topic_service = get_topic_service(principal_service)
+	topic = topic_service.find_by_id(topic_id)
+	if topic is None:
+		return False
+	return topic.kind == TopicKind.SYSTEM
 
 
 @router.get('/pipeline', tags=[UserRole.ADMIN], response_model=None)
@@ -75,6 +87,8 @@ async def load_pipeline_yaml_by_id(
 			raise_404()
 		# tenant id must match current principal's
 		if pipeline.tenantId != principal_service.get_tenant_id():
+			raise_404()
+		if is_system_topic_by_id(pipeline.topicId, principal_service):
 			raise_404()
 		return pipeline
 
@@ -149,6 +163,8 @@ async def save_pipeline(
 		pipeline: Pipeline, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Pipeline:
 	validate_tenant_id(pipeline, principal_service)
+	if is_system_topic_by_id(pipeline.topicId, principal_service):
+		raise_400('Pipelines with system topic as source cannot be saved via YAML.')
 	pipeline_service = get_pipeline_service(principal_service)
 	action = ask_save_pipeline_action(pipeline_service, principal_service)
 	return trans(pipeline_service, lambda: action(pipeline))
@@ -292,6 +308,8 @@ async def find_pipeline_yaml_by_name(
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		pipeline: Optional[Pipeline] = pipeline_service.find_by_name_and_tenant(query_name, tenant_id)
 		if pipeline is None:
+			raise_404()
+		if is_system_topic_by_id(pipeline.topicId, principal_service):
 			raise_404()
 		return pipeline
 
