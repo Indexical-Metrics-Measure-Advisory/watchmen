@@ -97,6 +97,7 @@ class SyncService:
         pushed_yaml = self.push_topic_yaml(source_yaml, skip_name_check=skip_name_check)
         pushed_topic = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
         pushed_topic_id = str((pushed_topic or {}).get("topicId") or "").strip()
+        replaced = bool(source_topic_id and pushed_topic_id and source_topic_id == pushed_topic_id)
 
         if file_path.resolve().is_relative_to((self.vault_path / TOPIC_DIR).resolve()):
             write_yaml_entity(self.vault_path, TOPIC_DIR, pushed_yaml, "topicId", name_key="name")
@@ -110,7 +111,7 @@ class SyncService:
             "file": str(file_path),
             "sourceTopicId": source_topic_id or None,
             "topicId": pushed_topic_id or None,
-            "replaced": bool(source_topic_id and pushed_topic_id and source_topic_id != pushed_topic_id)
+            "replaced": replaced
         }
 
     def push(self, target: SyncTarget) -> Dict[str, int]:
@@ -170,6 +171,7 @@ class SyncService:
         pushed_yaml = self.push_pipeline_yaml(source_yaml)
         pushed_pipeline = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
         pushed_pipeline_id = str((pushed_pipeline or {}).get("pipelineId") or "").strip()
+        replaced = bool(source_pipeline_id and pushed_pipeline_id and source_pipeline_id == pushed_pipeline_id)
 
         if file_path.resolve().is_relative_to((self.vault_path / PIPELINE_DIR).resolve()):
             write_yaml_entity(self.vault_path, PIPELINE_DIR, pushed_yaml, "pipelineId", name_key="name")
@@ -183,7 +185,7 @@ class SyncService:
             "file": str(file_path),
             "sourcePipelineId": source_pipeline_id or None,
             "pipelineId": pushed_pipeline_id or None,
-            "replaced": bool(source_pipeline_id and pushed_pipeline_id and source_pipeline_id != pushed_pipeline_id)
+            "replaced": replaced
         }
 
     def list_topics_from_server(self) -> Dict[str, Any]:
@@ -227,6 +229,7 @@ class SyncService:
         pushed_yaml = self.client.post_text("/metricflow/semantic-model/yaml", source_yaml)
         pushed_model = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
         pushed_id = str((pushed_model or {}).get("id") or "").strip()
+        replaced = bool(source_id and pushed_id and source_id == pushed_id)
 
         if file_path.resolve().is_relative_to((self.vault_path / METRICFLOW_SEMANTIC_DIR).resolve()):
             write_yaml_entity(self.vault_path, METRICFLOW_SEMANTIC_DIR, pushed_yaml, "id", name_key="name")
@@ -240,7 +243,7 @@ class SyncService:
             "file": str(file_path),
             "sourceId": source_id or None,
             "id": pushed_id or None,
-            "replaced": bool(source_id and pushed_id and source_id != pushed_id)
+            "replaced": replaced
         }
 
     def list_semantic_models_from_server(self) -> Dict[str, Any]:
@@ -269,6 +272,7 @@ class SyncService:
         pushed_yaml = self.client.post_text("/metricflow/metric/yaml", source_yaml)
         pushed_metric = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
         pushed_id = str((pushed_metric or {}).get("id") or "").strip()
+        replaced = bool(source_id and pushed_id and source_id == pushed_id)
 
         if file_path.resolve().is_relative_to((self.vault_path / METRICFLOW_METRIC_DIR).resolve()):
             write_yaml_entity(self.vault_path, METRICFLOW_METRIC_DIR, pushed_yaml, "id", name_key="name")
@@ -282,7 +286,7 @@ class SyncService:
             "file": str(file_path),
             "sourceId": source_id or None,
             "id": pushed_id or None,
-            "replaced": bool(source_id and pushed_id and source_id != pushed_id)
+            "replaced": replaced
         }
 
     def list_metrics_from_server(self) -> Dict[str, Any]:
@@ -342,6 +346,7 @@ class SyncService:
         pushed_yaml = self.client.save_enum_yaml(source_yaml)
         pushed_enum = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
         pushed_enum_id = str((pushed_enum or {}).get("enumId") or "").strip()
+        replaced = bool(source_enum_id and pushed_enum_id and source_enum_id == pushed_enum_id)
 
         if file_path.resolve().is_relative_to((self.vault_path / ENUM_DIR).resolve()):
             write_yaml_entity(self.vault_path, ENUM_DIR, pushed_yaml, "enumId", name_key="name")
@@ -355,7 +360,7 @@ class SyncService:
             "file": str(file_path),
             "sourceEnumId": source_enum_id or None,
             "enumId": pushed_enum_id or None,
-            "replaced": bool(source_enum_id and pushed_enum_id and source_enum_id != pushed_enum_id)
+            "replaced": replaced
         }
 
     def pull_one_ingest_table_config(self, table_config_id: str) -> Dict[str, Any]:

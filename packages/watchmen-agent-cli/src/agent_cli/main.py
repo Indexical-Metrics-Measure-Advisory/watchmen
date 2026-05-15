@@ -3,8 +3,10 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import traceback
+from importlib.metadata import PackageNotFoundError, version as package_version
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
@@ -61,6 +63,19 @@ DISCOVER_COMMANDS = {
 }
 
 
+def get_cli_version() -> str:
+    try:
+        return package_version("watchmen-agent-cli")
+    except PackageNotFoundError:
+        pyproject = Path(__file__).resolve().parents[2] / "pyproject.toml"
+        if pyproject.exists():
+            content = pyproject.read_text(encoding="utf-8")
+            matched = re.search(r'^version\s*=\s*"([^"]+)"', content, re.MULTILINE)
+            if matched:
+                return matched.group(1)
+        return "unknown"
+
+
 def run() -> None:
     parser = build_parser()
     args: Optional[argparse.Namespace] = None
@@ -85,6 +100,7 @@ def run() -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="agent-cli", description="Watchmen Topic/Pipeline sync CLI")
     parser.add_argument("--debug", action="store_true", help="Print exception traceback for debugging")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {get_cli_version()}")
     add_help_alias(parser)
     subparsers = parser.add_subparsers(dest="command", required=True)
     register_init_command(subparsers)
