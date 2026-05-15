@@ -8,6 +8,7 @@ import typer
 
 from agent_cli.exceptions import AgentCliException
 from agent_cli.main import (
+    get_cli_version,
     handle_config_show,
     handle_datasource_list_remote,
     handle_discover,
@@ -96,10 +97,17 @@ def _run_with_guard(ctx: typer.Context, action: Callable[[], None]) -> None:
         raise typer.Exit(10)
 
 
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"agent-cli {get_cli_version()}")
+        raise typer.Exit()
+
+
 @app.callback(invoke_without_command=True)
 def cli_callback(
     ctx: typer.Context,
     debug: bool = typer.Option(False, "--debug", help="Print exception traceback for debugging"),
+    version: bool = typer.Option(False, "--version", callback=_version_callback, is_eager=True, help="Show version and exit"),
 ) -> None:
     ctx.obj = {"debug": debug}
     if ctx.invoked_subcommand is None:
