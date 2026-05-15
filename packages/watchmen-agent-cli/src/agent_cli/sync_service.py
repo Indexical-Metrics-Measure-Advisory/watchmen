@@ -20,16 +20,26 @@ class SyncService:
         self.client = client
         self.vault_path = vault_path
 
+    def _load_all_topics_from_yaml_endpoint(self) -> List[Dict[str, Any]]:
+        topics_yaml = self.client.get_text("/topic/all/yaml")
+        topics = yaml.safe_load(topics_yaml) if topics_yaml.strip() else []
+        return topics if isinstance(topics, list) else []
+
+    def _load_all_pipelines_from_yaml_endpoint(self) -> List[Dict[str, Any]]:
+        pipelines_yaml = self.client.get_text("/pipeline/all/yaml")
+        pipelines = yaml.safe_load(pipelines_yaml) if pipelines_yaml.strip() else []
+        return pipelines if isinstance(pipelines, list) else []
+
     def pull(self, target: SyncTarget) -> Dict[str, int]:
         result: Dict[str, int] = {}
         if target in ("topic", "all"):
-            topics = self.client.get_json("/topic/all")
+            topics = self._load_all_topics_from_yaml_endpoint()
             for topic in topics:
                 yaml_str = yaml.dump(topic, sort_keys=False)
                 write_yaml_entity(self.vault_path, TOPIC_DIR, yaml_str, "topicId", name_key="name")
             result["topics"] = len(topics)
         if target in ("pipeline", "all"):
-            pipelines = self.client.get_json("/pipeline/all")
+            pipelines = self._load_all_pipelines_from_yaml_endpoint()
             for pipeline in pipelines:
                 yaml_str = yaml.dump(pipeline, sort_keys=False)
                 write_yaml_entity(self.vault_path, PIPELINE_DIR, yaml_str, "pipelineId", name_key="name")
@@ -177,7 +187,7 @@ class SyncService:
         }
 
     def list_topics_from_server(self) -> Dict[str, Any]:
-        topics = self.client.get_json("/topic/all")
+        topics = self._load_all_topics_from_yaml_endpoint()
         # Just return basic metadata to the user
         topic_summaries = []
         for t in topics:
@@ -190,7 +200,7 @@ class SyncService:
         return {"count": len(topic_summaries), "topics": topic_summaries}
 
     def list_pipelines_from_server(self) -> Dict[str, Any]:
-        pipelines = self.client.get_json("/pipeline/all")
+        pipelines = self._load_all_pipelines_from_yaml_endpoint()
         # Just return basic metadata to the user
         pipeline_summaries = []
         for p in pipelines:
@@ -542,13 +552,13 @@ class SyncService:
         }
 
     def _tenant_ids_from_topics(self) -> List[str]:
-        topics = self.client.get_json("/topic/all")
+        topics = self._load_all_topics_from_yaml_endpoint()
         tenant_ids = {topic.get("tenantId") for topic in topics if topic.get("tenantId")}
         return sorted(tenant_ids)
 
     def _tenant_ids_from_pipelines(self) -> List[str]:
         try:
-            pipelines = self.client.get_json("/pipeline/all")
+            pipelines = self._load_all_pipelines_from_yaml_endpoint()
         except Exception:
             return []
         tenant_ids = {pipeline.get("tenantId") for pipeline in pipelines if pipeline.get("tenantId")}
