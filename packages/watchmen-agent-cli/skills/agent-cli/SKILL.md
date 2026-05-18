@@ -50,6 +50,21 @@ Keep this file concise and load detailed references only when needed.
   3. If not exists, use `pipelineId: null` to create new.
 - When updating an existing pipeline, ensure local file is named with the correct existing ID.
 
+## Topic Creation Rules (CRITICAL)
+- **dataSourceId is REQUIRED** when creating any topic.
+- If dataSourceId is unknown, ASK the user before proceeding.
+- Do NOT use placeholder or fake dataSourceId values.
+- When asking user, use datasource **name** not the ID.
+- Run `agent-cli datasource list-remote --vault <vault>` to find available data sources.
+
+## Topic Index Design (IMPORTANT)
+- When designing a topic, always consider index design for query optimization.
+- Primary/unique indexes: fields used in `by` conditions (e.g., customer_id, policy_no).
+- Query indexes: fields frequently used in filters, joins, and aggregations.
+- Common index candidates: business keys, foreign keys, datetime fields used in range queries.
+- For aggregate topics: include group-by fields as part of the index design.
+- Balance between query performance and storage overhead - not all fields need indexes.
+
 ## On-Demand Loading Rules
 - Load `references/command-catalog.md` when deciding exact command/args.
 - Load `references/dependency-chain.md` when deciding related entities to sync.
