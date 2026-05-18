@@ -9,7 +9,7 @@ import {ButtonInk} from '@/widgets/basic/types';
 import {
 	downloadAsZip,
 	uploadFile,
-	UploadFileAcceptsTxtCsvJson,
+	UploadFileAcceptsCsvJson,
 	useCollapseFixedThing,
 	useForceUpdate
 } from '@/widgets/basic/utils';
@@ -76,7 +76,6 @@ export const ImportMetaDataButton = (props: { topic: Topic }) => {
 		const name = file.name;
 		try {
 			switch (true) {
-				case name.endsWith('.txt'):
 				case name.endsWith('.csv'): {
 					const content = await file.text();
 					parseCSV(content, {
@@ -137,7 +136,7 @@ export const ImportMetaDataButton = (props: { topic: Topic }) => {
 			'Existing data will be truncated and replaced by imported data, are you sure to continue?',
 			async () => {
 				fireGlobal(EventTypes.HIDE_DIALOG);
-				uploadFile(UploadFileAcceptsTxtCsvJson, onDataFileSelected);
+				uploadFile(UploadFileAcceptsCsvJson, onDataFileSelected);
 			},
 			() => fireGlobal(EventTypes.HIDE_DIALOG));
 	};

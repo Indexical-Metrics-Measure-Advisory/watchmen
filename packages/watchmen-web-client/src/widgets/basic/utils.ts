@@ -99,6 +99,8 @@ export enum UploadFileType {
 }
 
 export const UploadFileAcceptsJson = [UploadFileType.JSON, UploadFileType.JSON5];
+export const UploadFileAcceptsCsv = [UploadFileType.CSV];
+export const UploadFileAcceptsCsvJson = [UploadFileType.CSV, UploadFileType.JSON, UploadFileType.JSON5];
 export const UploadFileAcceptsTxtCsvJson = [UploadFileType.TXT, UploadFileType.CSV, UploadFileType.JSON, UploadFileType.JSON5];
 
 export const uploadFile = (accepts: UploadFileType | Array<UploadFileType>, onSelected: (file: File) => void) => {
