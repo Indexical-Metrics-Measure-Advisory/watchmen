@@ -99,7 +99,7 @@ const computeParameterFrom = (parameter: Parameter, variables: { [key in string]
 /**
  * source read target
  */
-export const computeReadFlowTopicIds = (pipelines: Array<Pipeline>): Array<{ source: TopicId, target: TopicId }> => {
+export const computeReadFlowTopicIds = (pipelines: Array<Pipeline>): Array<{ source: TopicId, target: TopicId, pipeline: Pipeline }> => {
 	return pipelines.map(pipeline => {
 		const variables: { [key in string]: TopicId } = {};
 		return pipeline.stages.map(stage => {
@@ -110,13 +110,13 @@ export const computeReadFlowTopicIds = (pipelines: Array<Pipeline>): Array<{ sou
 						const mapping = action.mapping;
 						return (mapping || []).map(({source}) => {
 							return computeParameterFrom(source, variables).map(sourceTopicId => {
-								return {source: sourceTopicId, target: targetTopicId};
+								return {source: sourceTopicId, target: targetTopicId, pipeline};
 							});
 						}).flat();
 					} else if (isWriteFactorAction(action)) {
 						const targetTopicId = action.topicId;
 						return computeParameterFrom(action.source, variables).map(sourceTopicId => {
-							return {source: sourceTopicId, target: targetTopicId};
+							return {source: sourceTopicId, target: targetTopicId, pipeline};
 						});
 					} else if (isReadTopicAction(action) && !isExistsAction(action)) {
 						variables[action.variableName] = action.topicId;
@@ -124,7 +124,7 @@ export const computeReadFlowTopicIds = (pipelines: Array<Pipeline>): Array<{ sou
 					} else {
 						return null;
 					}
-				}).filter(x => !!x).flat() as Array<{ source: TopicId, target: TopicId }>;
+				}).filter(x => !!x).flat() as Array<{ source: TopicId, target: TopicId, pipeline: Pipeline }>;
 			}).flat();
 		}).flat();
 	}).flat();

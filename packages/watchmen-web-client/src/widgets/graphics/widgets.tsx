@@ -1,17 +1,17 @@
 import styled, {keyframes} from 'styled-components';
 import {RelationCurvePoints} from './types';
 
-export const Curve = styled.path.attrs<{ lattice: RelationCurvePoints, dash?: boolean }>(
-	({lattice: {drawn}, dash = false}) => {
+export const Curve = styled.path.attrs<{ lattice: RelationCurvePoints, dash?: boolean, disabled?: boolean }>(
+	({lattice: {drawn}, dash = false, disabled = false}) => {
 		return {
 			d: drawn,
 			style: {
-				strokeDasharray: dash ? '5 2' : (void 0),
-				opacity: dash ? 0.15 : 1,
-				stroke: dash ? 'var(--info-color)' : (void 0)
+				strokeDasharray: dash ? '5 2' : (disabled ? '8 4' : (void 0)),
+				opacity: dash ? 0.15 : (disabled ? 0.4 : 1),
+				stroke: dash ? 'var(--info-color)' : (disabled ? 'var(--border-color)' : (void 0))
 			}
 		};
-	})<{ lattice: RelationCurvePoints, dash?: boolean }>`
+	})<{ lattice: RelationCurvePoints, dash?: boolean, disabled?: boolean }>`
 	stroke       : var(--waive-color);
 	stroke-width : 2px;
 	fill         : transparent;

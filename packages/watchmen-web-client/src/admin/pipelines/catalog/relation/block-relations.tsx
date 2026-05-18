@@ -25,10 +25,11 @@ export const BlockRelations = (props: {
 				}
 				return <TopicsRelation graphics={graphics}
 				                       source={source} target={target}
+				                       disabled={!pipeline.enabled}
 				                       key={v4()}/>;
 			});
 		}).flat().filter(x => !!x)}
-		{computeReadFlowTopicIds(pipelines).map(({source: sourceTopicId, target: targetTopicId}) => {
+		{computeReadFlowTopicIds(pipelines).map(({source: sourceTopicId, target: targetTopicId, pipeline: flowPipeline}) => {
 			const {topic: source} = topicsMap.get(sourceTopicId) || {};
 			const {topic: target} = topicsMap.get(targetTopicId) || {};
 			if (!source || !target) {
@@ -37,6 +38,7 @@ export const BlockRelations = (props: {
 			return <TopicsRelation graphics={graphics}
 			                       source={source} target={target}
 			                       read={true}
+			                       disabled={!flowPipeline?.enabled}
 			                       key={v4()}/>;
 		})}
 	</>;

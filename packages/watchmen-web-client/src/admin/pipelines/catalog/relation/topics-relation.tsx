@@ -8,9 +8,9 @@ import {CatalogEventTypes} from '../catalog-event-bus-types';
 import {AssembledPipelinesGraphics, GraphicsRole} from '../types';
 
 export const TopicsRelation = (props: {
-	graphics: AssembledPipelinesGraphics, source: Topic, target: Topic, read?: boolean
+	graphics: AssembledPipelinesGraphics, source: Topic, target: Topic, read?: boolean, disabled?: boolean
 }) => {
-	const {graphics, source, target, read = false} = props;
+	const {graphics, source, target, read = false, disabled = false} = props;
 
 	const {on, off} = useCatalogEventBus();
 	const containerRef = useRef<SVGGElement>(null);
@@ -38,6 +38,6 @@ export const TopicsRelation = (props: {
 	const curvePoints = computeRelationPoints({source: sourceGraphics, target: targetGraphics});
 
 	return <g data-role={GraphicsRole.TOPICS_RELATION} ref={containerRef}>
-		<Curve lattice={curvePoints} data-role={GraphicsRole.TOPICS_RELATION_LINK} dash={read}/>
+		<Curve lattice={curvePoints} data-role={GraphicsRole.TOPICS_RELATION_LINK} dash={read} disabled={disabled}/>
 	</g>;
 };
