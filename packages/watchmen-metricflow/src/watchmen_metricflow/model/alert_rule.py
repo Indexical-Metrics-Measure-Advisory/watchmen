@@ -41,6 +41,12 @@ class AlertActionType(str, Enum):
     PROCESS = "process"
 
 
+class ActionExecutionMode(str, Enum):
+    AUTO = "auto"
+    MANUAL = "manual"
+    APPROVAL = "approval"
+
+
 class AlertCondition(ExtendedBaseModel):
     metricId: Optional[str] = None
     metricName: Optional[str] = None
@@ -61,7 +67,8 @@ class AlertAction(ExtendedBaseModel):
     parameters: Optional[Dict[str, Any]] = None
     suggestedAction: Optional[Dict[str, Any]] = None
     actionType: Optional[Dict[str, Any]] = None
-    manualExecution: bool = False
+    executionMode: Optional[ActionExecutionMode] = None
+    manualExecution: Optional[bool] = None
 
 
 class AlertConfig(ExtendedBaseModel, UserBasedTuple, Auditable):

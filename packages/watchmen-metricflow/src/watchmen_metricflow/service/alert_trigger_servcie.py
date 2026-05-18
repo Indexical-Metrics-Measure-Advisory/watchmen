@@ -170,9 +170,7 @@ class AlertTriggerService:
         ref_data = self._to_dict(action_ref)
         action_id = ref_data.get('suggestedActionId')
         if action_id is None:
-            execution_mode = str(ref_data.get('executionMode') or '').lower()
-            manual_execution = execution_mode in {'manual', 'approval'}
-            ref_data = {**ref_data, 'manualExecution': manual_execution or bool(ref_data.get('manualExecution', False))}
+            ref_data = {k: v for k, v in ref_data.items() if k not in ('manualExecution',)}
             return AlertAction(**ref_data)
         suggested = self._load_suggested_action(action_id)
 
@@ -180,20 +178,7 @@ class AlertTriggerService:
             ref_type_id = ref_data.get('typeId')
             ref_action_type = self._load_action_type(ref_type_id) if ref_type_id is not None else None
             ref_action_type_data = self._to_dict(ref_action_type) if ref_action_type is not None else {}
-            manual_execution = _is_manual_execution_action_utils(AlertAction(
-                id=action_id,
-                type=ref_data.get('type'),
-                typeId=ref_data.get('typeId'),
-                riskLevel=ref_data.get('riskLevel'),
-                name=ref_data.get('name'),
-                content=ref_data.get('content'),
-                expectedEffect=ref_data.get('expectedEffect'),
-                target=ref_data.get('target'),
-                template=ref_data.get('template'),
-                parameters=ref_data.get('parameters'),
-                suggestedAction=None,
-                actionType=ref_action_type_data
-            ))
+            ref_data = {k: v for k, v in ref_data.items() if k not in ('manualExecution',)}
             return AlertAction(
                 id=action_id,
                 type=ref_data.get('type'),
@@ -206,8 +191,7 @@ class AlertTriggerService:
                 template=ref_data.get('template'),
                 parameters=ref_data.get('parameters'),
                 suggestedAction=None,
-                actionType=ref_action_type_data,
-                manualExecution=manual_execution
+                actionType=ref_action_type_data
             )
         suggested_data = self._to_dict(suggested)
         merged_parameters = {}
@@ -222,20 +206,7 @@ class AlertTriggerService:
         if type_id is not None:
             action_type = self._load_action_type(type_id)
         action_type_data = self._to_dict(action_type) if action_type is not None else {}
-        manual_execution = _is_manual_execution_action_utils(AlertAction(
-            id=action_id,
-            type=ref_data.get('type'),
-            typeId=type_id or ref_data.get('typeId'),
-            riskLevel=ref_data.get('riskLevel') or suggested_data.get('riskLevel'),
-            name=ref_data.get('name') or suggested_data.get('name'),
-            content=ref_data.get('content') or suggested_data.get('description'),
-            expectedEffect=ref_data.get('expectedEffect') or suggested_data.get('expectedOutcome'),
-            target=ref_data.get('target') or merged_parameters.get('to'),
-            template=ref_data.get('template'),
-            parameters=merged_parameters if len(merged_parameters) > 0 else None,
-            suggestedAction=suggested_data,
-            actionType=action_type_data
-        ))
+        ref_data = {k: v for k, v in ref_data.items() if k not in ('manualExecution',)}
 
         return AlertAction(
             id=action_id,
@@ -249,8 +220,7 @@ class AlertTriggerService:
             template=ref_data.get('template'),
             parameters=merged_parameters if len(merged_parameters) > 0 else None,
             suggestedAction=suggested_data,
-            actionType=action_type_data,
-            manualExecution=manual_execution
+            actionType=action_type_data
         )
 
     async def _notify_callbacks(self, rule: GlobalAlertRule, message: str, actions: List[AlertAction],

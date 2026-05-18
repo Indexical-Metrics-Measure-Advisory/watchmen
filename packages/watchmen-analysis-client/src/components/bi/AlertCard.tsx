@@ -54,6 +54,19 @@ const PRIORITY_COLOR: Record<string, string> = {
   low: "bg-blue-500/10 text-blue-600 border-blue-500/20",
 };
 
+const isManualExecutionAction = (action: AlertAction): boolean => {
+  if (action.executionMode === 'manual' || action.executionMode === 'approval') {
+    return true;
+  }
+  if (action.suggestedAction?.executionMode === 'manual' || action.suggestedAction?.executionMode === 'approval') {
+    return true;
+  }
+  if (action.actionType?.requiresApproval) {
+    return true;
+  }
+  return false;
+};
+
 const RISK_COLOR: Record<string, string> = {
   critical: "bg-destructive text-destructive-foreground",
   high: "bg-red-500 text-white",
@@ -143,13 +156,9 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
         .filter(() => !localActionExecuted)
         .map((instanceAction): AlertAction => {
           const configAction = alertConfig.actions?.find(a => a.type === instanceAction.type || a.name === instanceAction.name);
-          const executionMode = instanceAction.manualExecution === true
-            ? 'manual'
-            : instanceAction.suggestedAction?.executionMode === 'approval' || instanceAction.actionType?.requiresApproval
-              ? 'approval'
-              : instanceAction.suggestedAction?.executionMode === 'manual'
-                ? 'manual'
-                : configAction?.executionMode;
+          const executionMode = instanceAction.executionMode
+            || configAction?.executionMode
+            || instanceAction.suggestedAction?.executionMode;
 
           return {
             type: instanceAction.type,
@@ -159,15 +168,13 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
             content: instanceAction.content || configAction?.content,
             parameters: instanceAction.parameters || configAction?.parameters,
             expectedEffect: instanceAction.expectedEffect || configAction?.expectedEffect,
-            typeName: instanceAction.actionType?.name || configAction?.typeName
+            typeName: instanceAction.actionType?.name || configAction?.typeName,
+            suggestedAction: instanceAction.suggestedAction,
+            actionType: instanceAction.actionType,
           };
         });
 
-      const actionableInstanceActions = normalizedInstanceActions.filter(a =>
-        a.executionMode === 'manual' ||
-        a.executionMode === 'approval' ||
-        (!a.executionMode && (a.riskLevel === 'medium' || a.riskLevel === 'high' || a.riskLevel === 'critical'))
-      );
+      const actionableInstanceActions = normalizedInstanceActions.filter(a => isManualExecutionAction(a));
 
       if (actionableInstanceActions.length > 0) {
         return actionableInstanceActions;
@@ -175,9 +182,9 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
     }
     const configActions = alertConfig.actions;
     if (configActions && configActions.length > 0) {
-      return configActions;
+      return configActions.filter(a => isManualExecutionAction(a));
     }
-    if (alertConfig.nextAction) {
+    if (alertConfig.nextAction && isManualExecutionAction(alertConfig.nextAction as AlertAction)) {
       return [alertConfig.nextAction];
     }
     return [{
@@ -394,7 +401,7 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
                   </div>
                 )}
 
-                {(action.executionMode === 'manual' || action.executionMode === 'approval' || (!action.executionMode && (action.riskLevel === 'medium' || action.riskLevel === 'high' || action.riskLevel === 'critical'))) && (
+                {isManualExecutionAction(action) && (
                   <Button
                     size="sm"
                     className="w-full gap-2 mt-2"

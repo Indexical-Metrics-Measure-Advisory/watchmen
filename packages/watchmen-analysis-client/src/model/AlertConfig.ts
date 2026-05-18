@@ -46,7 +46,22 @@ export interface AlertConditionResult {
 export interface AlertInstanceAction {
   type: string;
   name?: string;
-  manualExecution: boolean;
+  executionMode?: 'auto' | 'manual' | 'approval';
+  riskLevel?: 'low' | 'medium' | 'high' | 'critical';
+  content?: string;
+  parameters?: Record<string, any>;
+  suggestedAction?: {
+    id?: string;
+    name?: string;
+    executionMode?: 'auto' | 'manual' | 'approval';
+    riskLevel?: 'low' | 'medium' | 'high' | 'critical';
+    parameters?: Record<string, any>;
+  };
+  actionType?: {
+    name?: string;
+    requiresApproval?: boolean;
+  };
+  actionExecuted?: boolean;
 }
 
 export interface AlertStatus {

@@ -28,9 +28,20 @@ export interface BIDimensionSelection {
 
 export interface AlertAction {
   type: string;
-  typeName?: string; // Human readable type name
+  typeName?: string;
   suggestedActionId?: string;
   executionMode?: 'auto' | 'manual' | 'approval';
+  suggestedAction?: {
+    id?: string;
+    name?: string;
+    executionMode?: 'auto' | 'manual' | 'approval';
+    riskLevel?: 'low' | 'medium' | 'high' | 'critical';
+    parameters?: Record<string, any>;
+  };
+  actionType?: {
+    name?: string;
+    requiresApproval?: boolean;
+  };
   target?: string;
   template?: string;
   riskLevel?: 'low' | 'medium' | 'high' | 'critical';
@@ -38,6 +49,7 @@ export interface AlertAction {
   content?: string;
   expectedEffect?: string;
   parameters?: Record<string, any>;
+  actionExecuted?: boolean;
 }
 
 export interface AlertCondition {
