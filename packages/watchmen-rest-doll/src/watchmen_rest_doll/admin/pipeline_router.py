@@ -41,7 +41,7 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 
 def is_system_topic_by_id(topic_id: TopicId, principal_service: PrincipalService) -> bool:
 	topic_service = get_topic_service(principal_service)
-	topic = topic_service.find_by_id(topic_id)
+	topic = trans_readonly(topic_service, lambda: topic_service.find_by_id(topic_id))
 	if topic is None:
 		return False
 	return topic.kind == TopicKind.SYSTEM
