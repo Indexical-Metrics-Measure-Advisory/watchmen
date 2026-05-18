@@ -68,6 +68,7 @@ export const useCardDataLoader = () => {
   const cardQueryCache = useRef<Map<string, { result: FetchCardDataResult; timestamp: number }>>(new Map());
   const cardInFlightRequests = useRef<Map<string, number>>(new Map());
   const boardRefreshRequestRef = useRef(0);
+  const loadedCardIdsRef = useRef<Set<string>>(new Set());
 
   // ── Fetch single card data ──
   const fetchCardData = useCallback(async (
@@ -273,6 +274,7 @@ export const useCardDataLoader = () => {
     setAlertStatusMap({});
     cardQueryCache.current.clear();
     cardInFlightRequests.current.clear();
+    loadedCardIdsRef.current.clear();
   }, []);
 
   return {
@@ -286,5 +288,6 @@ export const useCardDataLoader = () => {
     refreshCardsWithContext,
     refreshData,
     clearCardDataMap,
+    loadedCardIdsRef,
   };
 };

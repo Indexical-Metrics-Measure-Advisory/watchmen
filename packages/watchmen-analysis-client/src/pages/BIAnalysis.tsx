@@ -59,6 +59,7 @@ const BIAnalysisPage: React.FC = () => {
     refreshCardsWithContext,
     refreshData,
     clearCardDataMap,
+    loadedCardIdsRef,
     setAlertStatusMap,
   } = useCardDataLoader();
 
@@ -177,11 +178,9 @@ const BIAnalysisPage: React.FC = () => {
   const cardIdsKey = useMemo(() => cards.map(c => c.id).sort().join(','), [cards]);
 
   // ── Load card data when cards change (only for missing ones) ──
-  // Using a ref to track dispatched card IDs avoids re-dispatching loads
-  // for cards that are already in-flight or have data.
+  // loadedCardIdsRef lives inside useCardDataLoader so it can be reset when loading a new template.
   // NOTE: Depends on cardIdsKey (order-independent), NOT the full cards reference,
   // so drag reorder (which changes array order but not IDs) does NOT trigger this.
-  const loadedCardIdsRef = React.useRef<Set<string>>(new Set());
   useEffect(() => {
     if (cards.length === 0) return;
     let hasNewCards = false;
@@ -307,7 +306,9 @@ const BIAnalysisPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {templates.map(t => (
+                  {templates.map(t => {
+                    const isCurrentAnalysis = !t.isTemplate && currentAnalysisId === t.id;
+                    return (
                     <Card key={t.id} className="group hover:shadow-md transition-all duration-200">
                       <CardHeader className="pb-3">
                         <div className="flex justify-between items-start gap-2">
@@ -320,8 +321,15 @@ const BIAnalysisPage: React.FC = () => {
                       </CardHeader>
 
                       <CardFooter className="pt-0 flex justify-between gap-2">
-                        <Button variant="outline" size="sm" className="flex-1" onClick={() => loadTemplate(t.id)}>
-                          Load
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => loadTemplate(t.id)}
+                          disabled={isCurrentAnalysis}
+                          title={isCurrentAnalysis ? 'This analysis is already open' : 'Load this analysis'}
+                        >
+                          {isCurrentAnalysis ? 'Opened' : 'Load'}
                         </Button>
                         <Button
                           variant="ghost"
@@ -337,7 +345,7 @@ const BIAnalysisPage: React.FC = () => {
                         </Button>
                       </CardFooter>
                     </Card>
-                  ))}
+                  )})}
                 </div>
               )}
             </TabsContent>
