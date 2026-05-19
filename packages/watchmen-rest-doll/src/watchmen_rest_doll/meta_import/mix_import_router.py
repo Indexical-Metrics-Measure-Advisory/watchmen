@@ -48,6 +48,18 @@ class MixImportDataRequest(ExtendedBaseModel):
 	def __setattr__(self, name, value):
 		if name == 'topics':
 			super().__setattr__(name, construct_topics(value))
+		elif name == 'pipelines':
+			super().__setattr__(name, construct_pipelines(value))
+		elif name == 'spaces':
+			super().__setattr__(name, construct_spaces(value))
+		elif name == 'connectedSpaces':
+			super().__setattr__(name, construct_connected_spaces(value))
+		elif name == 'indicators':
+			super().__setattr__(name, construct_indicators(value))
+		elif name == 'buckets':
+			super().__setattr__(name, construct_buckets(value))
+		elif name == 'monitorRules':
+			super().__setattr__(name, construct_monitor_rules(value))
 		else:
 			super().__setattr__(name, value)
 
@@ -65,6 +77,100 @@ def construct_topics(topics: List[Union[dict, Topic]]) -> List[Topic]:
 	if topics is None:
 		return []
 	return ArrayHelper(topics).map(lambda x: construct_topic(x)).to_list()
+
+
+def construct_pipeline(pipeline: Optional[Union[dict, Pipeline]]) -> Optional[Pipeline]:
+	if pipeline is None:
+		return None
+	elif isinstance(pipeline, Pipeline):
+		return pipeline
+	else:
+		return Pipeline(**pipeline)
+
+
+def construct_pipelines(pipelines: Optional[List[Union[dict, Pipeline]]]) -> List[Pipeline]:
+	if pipelines is None:
+		return []
+	return ArrayHelper(pipelines).map(lambda x: construct_pipeline(x)).to_list()
+
+
+def construct_space(space: Optional[Union[dict, Space]]) -> Optional[Space]:
+	if space is None:
+		return None
+	elif isinstance(space, Space):
+		return space
+	else:
+		return Space(**space)
+
+
+def construct_spaces(spaces: Optional[List[Union[dict, Space]]]) -> List[Space]:
+	if spaces is None:
+		return []
+	return ArrayHelper(spaces).map(lambda x: construct_space(x)).to_list()
+
+
+def construct_connected_space(
+		connected_space: Optional[Union[dict, ConnectedSpaceWithSubjects]]
+) -> Optional[ConnectedSpaceWithSubjects]:
+	if connected_space is None:
+		return None
+	elif isinstance(connected_space, ConnectedSpaceWithSubjects):
+		return connected_space
+	else:
+		return ConnectedSpaceWithSubjects(**connected_space)
+
+
+def construct_connected_spaces(
+		connected_spaces: Optional[List[Union[dict, ConnectedSpaceWithSubjects]]]
+) -> List[ConnectedSpaceWithSubjects]:
+	if connected_spaces is None:
+		return []
+	return ArrayHelper(connected_spaces).map(lambda x: construct_connected_space(x)).to_list()
+
+
+def construct_indicator(indicator: Optional[Union[dict, Indicator]]) -> Optional[Indicator]:
+	if indicator is None:
+		return None
+	elif isinstance(indicator, Indicator):
+		return indicator
+	else:
+		return Indicator(**indicator)
+
+
+def construct_indicators(indicators: Optional[List[Union[dict, Indicator]]]) -> List[Indicator]:
+	if indicators is None:
+		return []
+	return ArrayHelper(indicators).map(lambda x: construct_indicator(x)).to_list()
+
+
+def construct_bucket(bucket: Optional[Union[dict, Bucket]]) -> Optional[Bucket]:
+	if bucket is None:
+		return None
+	elif isinstance(bucket, Bucket):
+		return bucket
+	else:
+		return Bucket(**bucket)
+
+
+def construct_buckets(buckets: Optional[List[Union[dict, Bucket]]]) -> List[Bucket]:
+	if buckets is None:
+		return []
+	return ArrayHelper(buckets).map(lambda x: construct_bucket(x)).to_list()
+
+
+def construct_monitor_rule(monitor_rule: Optional[Union[dict, MonitorRule]]) -> Optional[MonitorRule]:
+	if monitor_rule is None:
+		return None
+	elif isinstance(monitor_rule, MonitorRule):
+		return monitor_rule
+	else:
+		return MonitorRule(**monitor_rule)
+
+
+def construct_monitor_rules(monitor_rules: Optional[List[Union[dict, MonitorRule]]]) -> List[MonitorRule]:
+	if monitor_rules is None:
+		return []
+	return ArrayHelper(monitor_rules).map(lambda x: construct_monitor_rule(x)).to_list()
 
 
 class ImportDataResult(ExtendedBaseModel):
