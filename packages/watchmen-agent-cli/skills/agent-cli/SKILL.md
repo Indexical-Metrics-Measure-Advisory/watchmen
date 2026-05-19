@@ -66,26 +66,7 @@ Keep this file concise and load detailed references only when needed.
 - Balance between query performance and storage overhead - not all fields need indexes.
 
 ## Pre-Submission Validation (CRITICAL)
-Before pushing any YAML to remote, validate locally:
-
-### Topic Validation
-- **No duplicate topic names** in the same vault
-- **No duplicate factor names** within the same topic
-- **No duplicate factor labels** within the same topic
-- **factorId must be unique** across the topic
-- **dataSourceId must exist** and be valid
-
-### Pipeline Validation
-- **No duplicate pipeline names** in the same vault
-- **pipelineId must match** the existing remote ID when updating
-- **All factor IDs must reference** existing factors in source/target topics
-- **mapping sources and targets** must have valid factorId references
-
-### Common Checks
-1. Run `agent-cli topic list-remote` to check for name conflicts before creating new topics
-2. Run `agent-cli pipeline list-remote` to check for name conflicts before creating new pipelines
-3. Verify all factorId references are correct before push
-4. Check that `topicId` in pipeline matches the actual source topic ID
+- Load `references/pre-submission-validation.md` and complete all checks before pushing any YAML to remote.
 
 ## On-Demand Loading Rules
 - Load `references/command-catalog.md` when deciding exact command/args.
