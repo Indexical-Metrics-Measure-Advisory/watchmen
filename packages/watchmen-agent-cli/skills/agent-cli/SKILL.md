@@ -65,6 +65,28 @@ Keep this file concise and load detailed references only when needed.
 - For aggregate topics: include group-by fields as part of the index design.
 - Balance between query performance and storage overhead - not all fields need indexes.
 
+## Pre-Submission Validation (CRITICAL)
+Before pushing any YAML to remote, validate locally:
+
+### Topic Validation
+- **No duplicate topic names** in the same vault
+- **No duplicate factor names** within the same topic
+- **No duplicate factor labels** within the same topic
+- **factorId must be unique** across the topic
+- **dataSourceId must exist** and be valid
+
+### Pipeline Validation
+- **No duplicate pipeline names** in the same vault
+- **pipelineId must match** the existing remote ID when updating
+- **All factor IDs must reference** existing factors in source/target topics
+- **mapping sources and targets** must have valid factorId references
+
+### Common Checks
+1. Run `agent-cli topic list-remote` to check for name conflicts before creating new topics
+2. Run `agent-cli pipeline list-remote` to check for name conflicts before creating new pipelines
+3. Verify all factorId references are correct before push
+4. Check that `topicId` in pipeline matches the actual source topic ID
+
 ## On-Demand Loading Rules
 - Load `references/command-catalog.md` when deciding exact command/args.
 - Load `references/dependency-chain.md` when deciding related entities to sync.
@@ -72,6 +94,7 @@ Keep this file concise and load detailed references only when needed.
 - Load `references/source-of-truth.md` when generating or validating YAML/JSON payloads.
 - Load `references/pipeline-development.md` when user asks to build/modify pipeline logic.
 - Load `references/pipeline-workflow-guide.md` for pipeline creation/update workflow and naming conventions.
+- Load `references/pre-submission-validation.md` before pushing any topic or pipeline YAML.
 - Load `assets/templates/` only when user asks to generate starter content.
 
 ## Default Execution Flow
