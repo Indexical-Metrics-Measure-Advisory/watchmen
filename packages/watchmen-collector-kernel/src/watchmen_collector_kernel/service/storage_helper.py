@@ -49,23 +49,33 @@ def get_data_source_service(principal_service: PrincipalService) -> DataSourceSe
 
 
 def ask_collector_storage(tenant_id: str, principal_service: PrincipalService) -> TransactionalStorageSPI:
+    data_source: DataSource = ask_datasource_by_param_name(tenant_id, principal_service, "collector")
+    if data_source:
+        return ask_storage_by_data_source(data_source)
+    else:
+        return ask_meta_storage()
+
+
+def ask_datasource_by_param_name(tenant_id: str, principal_service: PrincipalService, param_name: str) -> Optional[DataSource]:
     
     def filter_datasource(datasource: DataSource) -> bool:
         if datasource.params:
             for param in datasource.params:
-                if param.name == "collector" and param.value:
+                if param.name == param_name and param.value == "true":
                     return True
         return False
     
     collector_datasource_service = get_collector_data_source_service(principal_service)
-    data_source: DataSource = collector_datasource_service.find_datasource_by_tenant_id(tenant_id, filter_datasource)
-    if data_source:
-        build = CacheService.data_source().get_builder(data_source.dataSourceId)
-        if build is not None:
-            return build()
-           
-        build = build_topic_data_storage(data_source)
-        CacheService.data_source().put_builder(data_source.dataSourceId, build)
+    data_source: DataSource = collector_datasource_service.find_datasource_by_tenant_id(tenant_id,
+                                                                                        filter_datasource)
+    return data_source
+
+
+def ask_storage_by_data_source( data_source: DataSource) -> TransactionalStorageSPI:
+    build = CacheService.data_source().get_builder(data_source.dataSourceId)
+    if build is not None:
         return build()
-    else:
-        return ask_meta_storage()
+    
+    build = build_topic_data_storage(data_source)
+    CacheService.data_source().put_builder(data_source.dataSourceId, build)
+    return build()

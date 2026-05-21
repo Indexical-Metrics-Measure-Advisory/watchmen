@@ -3,7 +3,7 @@ from typing import Callable, Optional, Dict, List
 import yaml
 from fastapi import APIRouter, Depends, Body, Request, Response
 from watchmen_collector_kernel.service import DataCaptureService, parse_from_instance_json, \
-    get_collector_data_source_service
+    get_collector_data_source_service, ask_datasource_by_param_name
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_replace_topic_to_storage, ask_sync_topic_to_storage
@@ -766,17 +766,9 @@ async def create_raw_topic(model_name: str, principal_service: PrincipalService 
         if existed_topic is None:
             existed_topic = create_initial_topic(model.rawTopicCode)
             validate_tenant_id(existed_topic, principal_service)
-            
-            def filter_datasource(datasource: DataSource) -> bool:
-                if datasource.params:
-                    for param in datasource.params:
-                        if param.name == "collector" and param.value:
-                            return True
-                return False
-            
-            collector_datasource_service = get_collector_data_source_service(principal_service)
-            data_source: DataSource = collector_datasource_service.find_datasource_by_tenant_id(principal_service.tenantId,
-                                                                                                filter_datasource)
+            data_source: DataSource = ask_datasource_by_param_name(principal_service.tenantId,
+                                                                   principal_service,
+                                                                   "datadb")
             if data_source is None:
                 raise RuntimeError('datasource not found')
             else:
