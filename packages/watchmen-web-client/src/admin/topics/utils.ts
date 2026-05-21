@@ -12,6 +12,7 @@ export const createTopic = (): Topic => {
 		kind: TopicKind.BUSINESS,
 		type: TopicType.DISTINCT,
 		factors: [],
+		storage: {alternator: {indexes: []}},
 		version: 1,
 		createdAt: getCurrentTime(),
 		lastModifiedAt: getCurrentTime()

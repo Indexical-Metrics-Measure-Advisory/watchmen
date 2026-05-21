@@ -115,14 +115,15 @@ table_enum_items = Table(
 	create_tenant_id()
 )
 table_topics = Table(
-	'topics', meta_data,
-	create_pk('topic_id'),
-	create_str('name', 25, False), create_description(),
-	create_str('type', 20, False), create_str('kind', 20, False),
-	create_tuple_id_column('data_source_id'),
-	create_json('factors'),
-	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
-)
+		'topics', meta_data,
+		create_pk('topic_id'),
+		create_str('name', 25, False), create_description(),
+		create_str('type', 20, False), create_str('kind', 20, False),
+		create_tuple_id_column('data_source_id'),
+		create_json('factors'),
+		create_json('storage'),
+		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+	)
 table_pipelines = Table(
 	'pipelines', meta_data,
 	create_pk('pipeline_id'),

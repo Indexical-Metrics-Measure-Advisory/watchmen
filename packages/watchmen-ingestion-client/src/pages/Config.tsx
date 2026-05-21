@@ -10,8 +10,8 @@ const Config = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Test Config</h1>
-          <p className="text-gray-500 mt-2">Test your data extraction configuration settings</p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Run Ingestion</h1>
+          <p className="text-gray-500 mt-2">Trigger data extraction events with different modes</p>
         </div>
       </div>
 
@@ -19,7 +19,7 @@ const Config = () => {
       <Alert className="bg-blue-50/50 border-blue-100 text-blue-900">
         <Sparkles className="h-4 w-4 text-blue-600" />
         <AlertDescription className="ml-2">
-          This wizard guides you through selecting a module and model, choosing a time range, and triggering a test event.
+          Choose a trigger mode (Full Sync, By Table, or By Record), configure the parameters, and run the ingestion.
         </AlertDescription>
       </Alert>
 

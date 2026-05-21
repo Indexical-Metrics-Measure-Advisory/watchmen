@@ -20,6 +20,7 @@ class TopicShaper(EntityShaper):
 			'kind': topic.kind,
 			'data_source_id': topic.dataSourceId,
 			'factors': ArrayHelper(topic.factors).map(lambda x: x.dict()).to_list(),
+			'storage': topic.storage.dict() if topic.storage else None,
 		})
 
 	def deserialize(self, row: EntityRow) -> Topic:
@@ -31,7 +32,8 @@ class TopicShaper(EntityShaper):
 			type=row.get('type'),
 			kind=row.get('kind'),
 			dataSourceId=row.get('data_source_id'),
-			factors=row.get('factors')
+			factors=row.get('factors'),
+			storage=row.get('storage'),
 		))
 
 

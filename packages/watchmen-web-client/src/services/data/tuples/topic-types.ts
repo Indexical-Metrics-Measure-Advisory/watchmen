@@ -20,6 +20,26 @@ export enum TopicType {
 
 export type TopicId = string;
 
+export interface TopicStoragePrimaryKey {
+	pk?: Array<string>;
+	sk?: Array<string>;
+}
+
+export interface TopicStorageIndex {
+	name?: string;
+	pk?: Array<string>;
+	sk?: Array<string>;
+}
+
+export interface TopicAlternatorStorage {
+	primaryKey?: TopicStoragePrimaryKey;
+	indexes?: Array<TopicStorageIndex>;
+}
+
+export interface TopicStorage {
+	alternator?: TopicAlternatorStorage;
+}
+
 export interface Topic extends Tuple, OptimisticLock {
 	topicId: TopicId;
 	name: string;
@@ -29,6 +49,7 @@ export interface Topic extends Tuple, OptimisticLock {
 	factors: Array<Factor>;
 	tenantId?: TenantId;
 	dataSourceId?: DataSourceId;
+	storage?: TopicStorage;
 }
 
 export interface TopicHolder extends TupleHolder {

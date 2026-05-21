@@ -1,3 +1,4 @@
+import {DataSourceType} from '@/services/data/tuples/data-source-types';
 import {Factor, FactorEncryptMethod, FactorType} from '@/services/data/tuples/factor-types';
 import {QueryEnumForHolder} from '@/services/data/tuples/query-enum-types';
 import {Topic, TopicType} from '@/services/data/tuples/topic-types';
@@ -107,8 +108,8 @@ const filterFactors = (topic: Topic, search: string): Array<Factor> => {
 	return factors;
 };
 
-export const FactorsTableBody = (props: { topic: Topic, enums: Array<QueryEnumForHolder> }) => {
-	const {topic, enums} = props;
+export const FactorsTableBody = (props: { topic: Topic, enums: Array<QueryEnumForHolder>, dataSourceType?: DataSourceType }) => {
+	const {topic, enums, dataSourceType} = props;
 
 	const {on, off} = useTopicEventBus();
 	const [pageNumber, setPageNumber] = useState(1);
@@ -182,7 +183,7 @@ export const FactorsTableBody = (props: { topic: Topic, enums: Array<QueryEnumFo
 
 	return <FactorsTableBodyContainer>
 		{items.map(factor => {
-			return <FactorRow topic={topic} factor={factor} enums={enums}
+			return <FactorRow topic={topic} factor={factor} enums={enums} dataSourceType={dataSourceType}
 			                  key={factor.factorId}/>;
 		})}
 		{pages > 1
