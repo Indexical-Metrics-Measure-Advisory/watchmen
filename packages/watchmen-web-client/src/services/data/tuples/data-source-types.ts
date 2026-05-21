@@ -12,6 +12,7 @@ export enum DataSourceType {
 	AZURE_BLOB_STORAGE = 'azure_blob_storage',
 	SNOWFLAKE = 'snowflake',
 	REDSHIFT = 'redshift',
+	DYNAMODB = 'dynamodb',
 }
 
 export interface DataSourceParam {

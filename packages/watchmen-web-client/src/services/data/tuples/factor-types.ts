@@ -316,6 +316,8 @@ export type FactorIndexGroup =
 	'i-1' | 'i-2' | 'i-3' | 'i-4' | 'i-5' | 'i-6' | 'i-7' | 'i-8' | 'i-9' | 'i-10'
 	| 'u-1' | 'u-2' | 'u-3' | 'u-4' | 'u-5' | 'u-6' | 'u-7' | 'u-8' | 'u-9' | 'u-10';
 
+export type FactorKeyType = 'partition' | 'sort';
+
 export interface Factor {
 	factorId: FactorId;
 	name: string;
@@ -329,4 +331,6 @@ export interface Factor {
 	encrypt?: FactorEncryptMethod;
 	precision?: string;
 	description?: string;
+	keyType?: FactorKeyType;
+	keyIndex?: number;
 }

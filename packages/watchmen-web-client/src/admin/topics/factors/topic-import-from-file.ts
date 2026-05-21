@@ -5,6 +5,7 @@ import {
 	FactorEncryptMethod,
 	FactorId,
 	FactorIndexGroup,
+	FactorKeyType,
 	FactorType
 } from '@/services/data/tuples/factor-types';
 import {Topic, TopicType} from '@/services/data/tuples/topic-types';
@@ -20,6 +21,9 @@ const ValidIndexGroups = [
 ];
 const isIndexGroupValid = (indexGroup?: string): boolean => {
 	return !indexGroup || ValidIndexGroups.includes(indexGroup);
+};
+const isKeyTypeValid = (keyType?: string): keyType is FactorKeyType => {
+	return keyType === 'partition' || keyType === 'sort';
 };
 
 type ShouldBeFactorsStructure = any;
@@ -63,6 +67,20 @@ const toFactorsFromStructureData = (topic: Topic, data: ShouldBeFactorsStructure
 			}
 		} else {
 			delete factor.encrypt;
+		}
+		factor.keyType = row.keyType ? `${row.keyType}`.toLowerCase() as FactorKeyType : (void 0);
+		if (!isKeyTypeValid(factor.keyType)) {
+			delete factor.keyType;
+		}
+		if (factor.keyType != null && row.keyIndex != null && `${row.keyIndex}`.trim().length !== 0) {
+			const keyIndex = Number(row.keyIndex);
+			if (Number.isInteger(keyIndex) && keyIndex > 0) {
+				factor.keyIndex = keyIndex;
+			}
+		}
+		if (factor.keyType == null || factor.keyIndex == null) {
+			delete factor.keyType;
+			delete factor.keyIndex;
 		}
 
 		factor.description = `${row.description || ''}`;

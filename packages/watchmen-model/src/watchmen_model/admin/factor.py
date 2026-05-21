@@ -117,6 +117,12 @@ class FactorEncryptMethod(str, Enum):
 	MASK_MONTH_DAY = 'MASK-MONTH-DAY'
 
 
+class FactorKeyType(str, Enum):
+	NONE = '',
+	PARTITION = 'partition',
+	SORT = 'sort'
+
+
 class Factor(ExtendedBaseModel, Storable):
 	factorId: Optional[FactorId] = None
 	type: Optional[FactorType] = None
@@ -129,3 +135,5 @@ class Factor(ExtendedBaseModel, Storable):
 	indexGroup: Optional[FactorIndexGroup] = None
 	encrypt: Optional[FactorEncryptMethod] = None
 	precision: Optional[str] = None
+	keyType: Optional[FactorKeyType] = None
+	keyIndex: Optional[int] = None

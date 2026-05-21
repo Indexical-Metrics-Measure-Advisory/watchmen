@@ -36,6 +36,13 @@ def build_postgresql_storage(data_source: DataSource) -> Callable[[], TopicDataS
 	return lambda: configuration.create_topic_data_storage()
 
 
+def build_dynamo_storage(data_source: DataSource) -> Callable[[], TopicDataStorageSPI]:
+	from watchmen_storage_dynamo import StorageDynamoConfiguration, DynamoDataSourceParams
+	configuration = StorageDynamoConfiguration(
+		data_source, DynamoDataSourceParams(echo=ask_storage_echo_enabled()))
+	return lambda: configuration.create_topic_data_storage()
+
+
 def build_oss_storage(data_source: DataSource) -> Callable[[], TopicDataStorageSPI]:
 	from watchmen_storage_oss import StorageOssConfiguration, OssDataSourceParams
 	configuration = StorageOssConfiguration(
@@ -68,6 +75,8 @@ def build_topic_data_storage(data_source: DataSource) -> Callable[[], TopicDataS
 		return build_mssql_storage(data_source)
 	if data_source.dataSourceType == DataSourceType.POSTGRESQL:
 		return build_postgresql_storage(data_source)
+	if data_source.dataSourceType == DataSourceType.DYNAMO:
+		return build_dynamo_storage(data_source)
 	if data_source.dataSourceType == DataSourceType.OSS:
 		return build_oss_storage(data_source)
 	if data_source.dataSourceType == DataSourceType.S3:

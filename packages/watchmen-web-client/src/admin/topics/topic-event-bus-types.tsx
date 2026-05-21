@@ -7,6 +7,7 @@ export enum TopicEventTypes {
 	TOPIC_TYPE_CHANGED = 'topic-type-changed',
 	TOPIC_DATA_SOURCE_CHANGED = 'topic-data-source-changed',
 	TOPIC_DESCRIPTION_CHANGED = 'topic-description-changed',
+	TOPIC_STORAGE_CHANGED = 'topic-storage-changed',
 
 	FACTOR_ADDED = 'factor-added',
 	FACTOR_REMOVED = 'factor-removed',
@@ -17,6 +18,8 @@ export enum TopicEventTypes {
 	FACTOR_TYPE_CHANGED = 'factor-type-changed',
 	FACTOR_ENUM_CHANGED = 'factor-enum-changed',
 	FACTOR_INDEX_GROUP_CHANGED = 'factor-index-group-changed',
+	FACTOR_KEY_TYPE_CHANGED = 'factor-key-type-changed',
+	FACTOR_KEY_INDEX_CHANGED = 'factor-key-index-changed',
 	FACTOR_DEFAULT_VALUE_CHANGED = 'factor-default-value-changed',
 	FACTOR_FLATTEN_CHANGED = 'factor-flatten-changed',
 	FACTOR_ENCRYPT_CHANGED = 'factor-encrypt-changed',
@@ -47,6 +50,10 @@ export interface TopicEventBus {
 	fire(type: TopicEventTypes.TOPIC_DESCRIPTION_CHANGED, topic: Topic): this;
 	on(type: TopicEventTypes.TOPIC_DESCRIPTION_CHANGED, listener: (topic: Topic) => void): this;
 	off(type: TopicEventTypes.TOPIC_DESCRIPTION_CHANGED, listener: (topic: Topic) => void): this;
+
+	fire(type: TopicEventTypes.TOPIC_STORAGE_CHANGED, topic: Topic): this;
+	on(type: TopicEventTypes.TOPIC_STORAGE_CHANGED, listener: (topic: Topic) => void): this;
+	off(type: TopicEventTypes.TOPIC_STORAGE_CHANGED, listener: (topic: Topic) => void): this;
 
 	fire(type: TopicEventTypes.FACTOR_ADDED, factor: Factor): this;
 	on(type: TopicEventTypes.FACTOR_ADDED, listener: (factor: Factor) => void): this;
@@ -79,6 +86,14 @@ export interface TopicEventBus {
 	fire(type: TopicEventTypes.FACTOR_INDEX_GROUP_CHANGED, factor: Factor): this;
 	on(type: TopicEventTypes.FACTOR_INDEX_GROUP_CHANGED, listener: (factor: Factor) => void): this;
 	off(type: TopicEventTypes.FACTOR_INDEX_GROUP_CHANGED, listener: (factor: Factor) => void): this;
+
+	fire(type: TopicEventTypes.FACTOR_KEY_TYPE_CHANGED, factor: Factor): this;
+	on(type: TopicEventTypes.FACTOR_KEY_TYPE_CHANGED, listener: (factor: Factor) => void): this;
+	off(type: TopicEventTypes.FACTOR_KEY_TYPE_CHANGED, listener: (factor: Factor) => void): this;
+
+	fire(type: TopicEventTypes.FACTOR_KEY_INDEX_CHANGED, factor: Factor): this;
+	on(type: TopicEventTypes.FACTOR_KEY_INDEX_CHANGED, listener: (factor: Factor) => void): this;
+	off(type: TopicEventTypes.FACTOR_KEY_INDEX_CHANGED, listener: (factor: Factor) => void): this;
 
 	fire(type: TopicEventTypes.FACTOR_DEFAULT_VALUE_CHANGED, factor: Factor): this;
 	on(type: TopicEventTypes.FACTOR_DEFAULT_VALUE_CHANGED, listener: (factor: Factor) => void): this;

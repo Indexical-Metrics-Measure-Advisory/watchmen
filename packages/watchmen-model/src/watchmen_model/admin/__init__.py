@@ -1,6 +1,6 @@
 from .conditional import Conditional
 from .enumeration import Enum, EnumItem
-from .factor import Factor, FactorEncryptMethod, FactorIndexGroup, FactorType
+from .factor import Factor, FactorEncryptMethod, FactorIndexGroup, FactorKeyType, FactorType
 from .pipeline import Pipeline, PipelineStage, PipelineTriggerType, PipelineUnit
 from .pipeline_action import AggregateArithmetic, AggregateArithmeticHolder, DeleteTopicActionType, FindBy, \
 	FromFactor, FromTopic, MemoryWriter, PipelineAction, PipelineActionType, ReadTopicActionType, SystemActionType, \
@@ -13,7 +13,8 @@ from .pipeline_action_write import AccumulateMode, InsertRowAction, MappingFacto
 	WriteFactorAction, WriteTopicAction
 from .pipeline_graphic import PipelineGraphic, TopicGraphic, TopicRect
 from .space import Space
-from .topic import is_aggregation_topic, is_raw_topic, Topic, TopicKind, TopicType
+from .topic import is_aggregation_topic, is_raw_topic, Topic, TopicAlternatorStorage, TopicKind, TopicQueryProfile, \
+	TopicStorage, TopicStorageIndex, TopicStoragePrimaryKey, TopicStorageQueryLimit, TopicStorageReference, TopicType
 from .topic_snapshot import TopicSnapshotFrequency, TopicSnapshotJobLock, TopicSnapshotJobLockId, \
 	TopicSnapshotJobLockStatus, TopicSnapshotScheduler, TopicSnapshotSchedulerId
 from .user import User, UserRole

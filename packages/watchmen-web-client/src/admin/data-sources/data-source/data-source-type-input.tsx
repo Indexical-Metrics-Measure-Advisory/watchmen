@@ -29,7 +29,8 @@ export const DataSourceTypeInput = (props: { dataSource: DataSource }) => {
 		{value: DataSourceType.AZURE_BLOB_STORAGE, label: 'Azure Blob Storage'},
 		{value: DataSourceType.SNOWFLAKE, label: 'Snowflake'},
 		{value: DataSourceType.REDSHIFT, label: 'Redshift'},
-	
+		{value: DataSourceType.DYNAMODB, label: 'AWS DynamoDB'},
+
 	];
 
 	return <TuplePropertyDropdown value={dataSource.dataSourceType} options={options} onChange={onTypeChange}/>;
