@@ -14,13 +14,29 @@ from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import UserRole
 from watchmen_model.common import Pageable, DataPage, TenantId
 from watchmen_rest import get_any_admin_principal
+from watchmen_rest.util import raise_400
 from watchmen_rest_doll.util import trans_readonly
+from watchmen_utilities import is_blank
 
 router = APIRouter()
 
 
 class QueryTriggerEventDataPage(DataPage):
     data: List[TriggerEvent]
+
+
+@router.get('/ingest/monitor/event/detail', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def find_event_by_id(event_trigger_id: Optional[int] = None,  principal_service: PrincipalService = Depends(get_any_admin_principal)
+                                     ) -> TriggerEvent:
+    if is_blank(event_trigger_id):
+        raise_400('Trigger event id is required.')
+        
+    tenant_id: TenantId = principal_service.get_tenant_id()
+    trigger_event_service = get_trigger_event_service(ask_collector_storage(tenant_id, principal_service),
+                                                      ask_snowflake_generator(),
+                                                      principal_service)
+    
+    return trigger_event_service.find_event_by_id(event_trigger_id)
 
 
 @router.post('/ingest/monitor/event', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
