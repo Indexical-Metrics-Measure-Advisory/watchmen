@@ -120,6 +120,21 @@ export const rerunTopic = async (topicId: TopicId, pipelineId: PipelineId, dataI
 	}
 };
 
+export interface CollectorPipelineTriggerParams {
+	startTime: string;
+	endTime: string;
+	tableName: string;
+	pipelineId: PipelineId;
+}
+
+export const triggerCollectorPipeline = async (params: CollectorPipelineTriggerParams): Promise<void> => {
+	if (isMockService()) {
+		return;
+	} else {
+		return await post({api: Apis.COLLECTOR_TRIGGER_PIPELINE, data: params});
+	}
+};
+
 export const importTopics = async (topics: Array<Topic>): Promise<Array<Topic>> => {
 	if (isMockService()) {
 		topics.forEach(saveMockTopic);

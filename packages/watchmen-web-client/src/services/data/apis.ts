@@ -43,6 +43,7 @@ export const Apis = {
 	TOPIC_DELETE: 'topic?topic_id=:topicId',
 	TOPIC_PROFILE: 'dqc/topic/profile?topic_id=:topicId&date=:date',
 	TOPIC_RERUN: 'topic/data/rerun?topic_id=:topicId&pipeline_id=:pipelineId&data_id=:dataId',
+	COLLECTOR_TRIGGER_PIPELINE: 'collector/trigger/event/pipeline',
 	TOPIC_SNAPSHOT_SCHEDULER_LIST: 'topic/snapshot/scheduler/list',
 	TOPIC_SNAPSHOT_SCHEDULER_SAVE: 'topic/snapshot/scheduler',
 	TOPIC_SYNONYM_ASK_FACTORS: 'topic/synonym/factors?name=:topicName&data_source_id=:dataSourceId',

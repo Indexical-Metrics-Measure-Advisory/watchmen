@@ -1,5 +1,6 @@
 import {Button} from '@/widgets/basic/button';
 import {Dropdown} from '@/widgets/basic/dropdown';
+import {Input} from '@/widgets/basic/input';
 import styled from 'styled-components';
 
 export const TriggerContainer = styled.div.attrs({'data-widget': 'pipeline-trigger-container'})`
@@ -8,6 +9,7 @@ export const TriggerContainer = styled.div.attrs({'data-widget': 'pipeline-trigg
 	grid-template-columns : 200px 1fr;
 	grid-column-gap       : calc(var(--margin) / 2);
 	grid-row-gap          : calc(var(--margin) / 2);
+	align-content         : start;
 `;
 export const TriggerLabel = styled.span.attrs({'data-widget': 'pipeline-trigger-label'})`
 	display      : flex;
@@ -122,4 +124,81 @@ export const RunInBrowserContainer = styled.div`
 		height    : var(--tall-height);
 		padding   : 0 calc(var(--margin) / 2);
 	}
+`;
+export const CollectorTriggerContainer = styled.div.attrs<{ standalone?: boolean }>(({standalone = false}) => {
+	return {
+		'data-widget': 'collector-trigger-container',
+		'data-standalone': standalone
+	};
+})<{ standalone?: boolean }>`
+	display               : grid;
+	position              : relative;
+	grid-template-columns : 200px minmax(350px, 520px);
+	grid-column-gap       : calc(var(--margin) / 2);
+	grid-row-gap          : var(--margin);
+	padding-top           : calc(var(--margin) * 2);
+	border-top            : 1px solid var(--border-color);
+	margin-top            : calc(var(--margin) * 2);
+	align-items           : center;
+	align-content         : start;
+	&[data-standalone=true] {
+		padding-top : 0;
+		border-top  : 0;
+		margin-top  : 0;
+	}
+`;
+export const CollectorTriggerInput = styled(Input).attrs({'data-widget': 'collector-trigger-input'})`
+	font-size    : calc(var(--font-size) * 1.2);
+	height       : var(--tall-height);
+	padding      : 0 calc(var(--margin) / 2);
+	width        : auto;
+	min-width    : 300px;
+	justify-self : baseline;
+`;
+export const CollectorDateTimeInput = styled(Input).attrs({
+	'data-widget': 'collector-trigger-datetime-input',
+	type: 'datetime-local',
+	autoSelect: false
+})`
+	font-size        : calc(var(--font-size) * 1.2);
+	height           : var(--tall-height);
+	padding          : 0 calc(var(--margin) / 2);
+	width            : auto;
+	min-width        : 350px;
+	justify-self     : baseline;
+	transition       : all 300ms ease-in-out;
+	padding-right    : calc(var(--margin) * 2.5);
+	box-sizing       : border-box;
+	line-height      : var(--tall-height);
+	-webkit-appearance: none;
+	&::-webkit-date-and-time-value {
+		text-align : left;
+	}
+	&::-webkit-datetime-edit {
+		padding : 0;
+	}
+	&::-webkit-datetime-edit-fields-wrapper {
+		padding : 0;
+	}
+	&::-webkit-calendar-picker-indicator {
+		cursor     : pointer;
+		opacity    : 0.75;
+		filter     : grayscale(1);
+		transition : opacity 300ms ease-in-out;
+	}
+	&:hover::-webkit-calendar-picker-indicator,
+	&:focus::-webkit-calendar-picker-indicator {
+		opacity : 1;
+	}
+`;
+export const CollectorPipelineDropdown = styled(Dropdown).attrs({'data-widget': 'collector-trigger-pipeline-dropdown'})`
+	font-size    : calc(var(--font-size) * 1.2);
+	height       : var(--tall-height);
+	padding      : 0 calc(var(--margin) / 2);
+	width        : auto;
+	min-width    : 350px;
+	justify-self : baseline;
+`;
+export const CollectorSectionLabel = styled(TriggerLabel)`
+	margin-top : calc(var(--margin) / 2);
 `;
