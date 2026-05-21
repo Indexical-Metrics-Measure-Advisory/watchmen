@@ -99,6 +99,11 @@ class TaskWorker:
             remaining_tasks.clear()
         
         for unfinished_task in unfinished_tasks:
+            
+            if not self.time_manager.is_safe:
+                release_remaining_tasks()
+                break
+            
             del remaining_tasks[unfinished_task.taskId]
             
             if len(unfinished_task.changeJsonIds) > self.data_size_threshold:
@@ -180,7 +185,7 @@ class TaskWorker:
     
     def restore_task(self, task: ScheduledTask) -> ScheduledTask:
         return self.scheduled_task_service.update_task(self.change_status(task, Status.INITIAL.value))
-    
+
     # noinspection PyMethodMayBeStatic
     def change_status(self, task: ScheduledTask, status: int) -> ScheduledTask:
         task.status = status
