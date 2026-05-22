@@ -10,7 +10,8 @@ from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeRecordId, Pageable, OptimisticLock
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	EntityCriteriaExpression, ColumnNameLiteral, EntityStraightValuesFinder, EntityStraightColumn, EntityColumnType, \
-	EntityPager, EntityLimitedFinder, EntityCriteriaOperator, EntityUpdater, EntitySortColumn, EntitySortMethod
+	EntityPager, EntityLimitedFinder, EntityCriteriaOperator, EntityUpdater, EntitySortColumn, EntitySortMethod, \
+	EntityFinder
 from watchmen_utilities import ArrayHelper
 
 
@@ -387,6 +388,22 @@ class ChangeDataRecordService(TupleService):
 				update=data_
 			)
 		)
+	
+	def is_existed_by_table_trigger_id(self, table_trigger_id: int) -> bool:
+		try:
+			self.storage.connect()
+			return self.storage.exists(
+				EntityFinder(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_trigger_id'),
+						                         right=table_trigger_id)
+					]
+				)
+			)
+		finally:
+			self.storage.close()
 
 
 def get_change_data_record_service(storage: TransactionalStorageSPI,

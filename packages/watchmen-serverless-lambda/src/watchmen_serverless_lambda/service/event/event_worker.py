@@ -5,7 +5,7 @@ from watchmen_collector_kernel.model import TriggerEvent, TriggerModel, TriggerT
 from watchmen_collector_kernel.service import ask_collector_storage
 from watchmen_collector_kernel.storage import get_trigger_event_service, \
     get_trigger_model_service, get_trigger_table_service, get_change_data_record_service, get_change_data_json_service, \
-    get_trigger_module_service, get_scheduled_task_service
+    get_trigger_module_service, get_scheduled_task_service, get_change_data_record_history_service
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
 from watchmen_model.system import Tenant
 from watchmen_serverless_lambda.storage import ask_file_log_service
@@ -39,6 +39,9 @@ class EventWorker:
         self.data_record_service = get_change_data_record_service(self.collector_storage,
                                                                   self.snowflake_generator,
                                                                   self.principal_service)
+        self.data_record_service_history = get_change_data_record_history_service(self.collector_storage,
+                                                                                  self.snowflake_generator,
+                                                                                  self.principal_service)
         self.data_json_service = get_change_data_json_service(self.collector_storage,
                                                               self.snowflake_generator,
                                                               self.principal_service)
@@ -115,7 +118,16 @@ class EventWorker:
     
     # noinspection PyMethodMayBeStatic
     def is_table_extracted(self, trigger_table: TriggerTable) -> bool:
-        return trigger_table.isExtracted
+        if trigger_table.dataCount > 0:
+            if self.data_record_service.is_existed_by_table_trigger_id(trigger_table.tableTriggerId):
+                return trigger_table.isExtracted
+            elif self.data_record_service_history.is_existed_by_table_trigger_id(trigger_table.tableTriggerId):
+                return trigger_table.isExtracted
+            else:
+                return False
+        else:
+            return trigger_table.isExtracted
+        
     
     # noinspection PyMethodMayBeStatic
     def is_finished(self, event: TriggerEvent) -> bool:
