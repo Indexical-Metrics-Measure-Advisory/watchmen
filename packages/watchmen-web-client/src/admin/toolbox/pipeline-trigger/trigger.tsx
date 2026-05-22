@@ -227,7 +227,7 @@ export const Trigger = (props: { topics: Array<Topic>, pipelines: Array<Pipeline
 				...prev,
 				collector: {
 					...prev.collector,
-					selectedPipelineIds: prev.collector.selectedPipelineIds.filter(id => id != pipelineId)
+					selectedPipelineIds: prev.collector.selectedPipelineIds.filter(id => id !== pipelineId)
 				}
 			}));
 		} else {
