@@ -9,6 +9,7 @@ class CollectorSettings(ExtendedBaseSettings):
 	LOCK_TIMEOUT: int = 1800
 	TRIGGER_EVENT_LOCK_TIMEOUT: int = 300
 	EXTRACT_TABLE_LOCK_TIMEOUT: int = 7200
+	TRIGGER_MODEL_LOCK_TIMEOUT: int = 14400
 	CLEAN_UP_LOCK_TIMEOUT: int = 300
 	COLLECTOR_TIMEOUT: int = 600
 	COLLECTOR_TASK_TIMEOUT: int = 900
@@ -31,6 +32,10 @@ def ask_clean_of_timeout_interval() -> int:
 
 def ask_clean_up_lock_timeout() -> int:
 	return collector_settings.CLEAN_UP_LOCK_TIMEOUT
+
+
+def ask_trigger_model_lock_timeout() -> int:
+	return collector_settings.TRIGGER_MODEL_LOCK_TIMEOUT
 
 
 def ask_trigger_event_lock_timeout() -> int:

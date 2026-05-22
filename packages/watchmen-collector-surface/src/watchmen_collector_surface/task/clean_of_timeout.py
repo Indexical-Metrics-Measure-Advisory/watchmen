@@ -10,7 +10,7 @@ from watchmen_data_kernel.meta import TenantService
 
 from watchmen_collector_kernel.common import ask_clean_of_timeout_interval, ask_lock_timeout, ask_collector_timeout, \
 	ask_clean_up_lock_timeout, ask_trigger_event_lock_timeout, ask_extract_table_lock_timeout, \
-	ask_s3_connector_lock_timeout, ask_collector_task_timeout
+	ask_s3_connector_lock_timeout, ask_collector_task_timeout, ask_trigger_model_lock_timeout
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
 	get_change_data_json_service, get_scheduled_task_service, get_change_data_json_history_service
 
@@ -47,6 +47,7 @@ class CleanOfTimeout:
 		self.self_cleaning_lock_timeout = ask_clean_up_lock_timeout()
 		self.trigger_event_lock_timeout = ask_trigger_event_lock_timeout()
 		self.trigger_table_lock_timeout = ask_extract_table_lock_timeout()
+		self.trigger_model_lock_timeout = ask_trigger_model_lock_timeout()
 		self.s3_connector_lock_timeout = ask_s3_connector_lock_timeout()
 		self.lockTimeout = ask_lock_timeout()
 		self.timeout = ask_collector_timeout()
@@ -99,6 +100,9 @@ class CleanOfTimeout:
 				self.lock_service.delete_by_id(lock.lockId)
 			elif lock.resourceId.startswith("trigger_table") and lock.registeredAt < (
 					datetime.now() - timedelta(seconds=self.trigger_table_lock_timeout)):
+				self.lock_service.delete_by_id(lock.lockId)
+			elif lock.resourceId.startswith("trigger_model") and lock.registeredAt < (
+					datetime.now() - timedelta(seconds=self.trigger_model_lock_timeout)):
 				self.lock_service.delete_by_id(lock.lockId)
 			else:
 				logger.debug(
