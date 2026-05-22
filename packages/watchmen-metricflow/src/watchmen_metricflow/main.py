@@ -4,7 +4,7 @@ from fastapi_mcp import FastApiMCP
 from watchmen_metricflow.app import metric_flow_app
 from watchmen_metricflow.router import metric_meta_router, semantic_meta_router, metric_router, data_profile_router, \
     topic_router, metric_category_router, bi_analysis_router, alert_rule_router, suggest_action_router, \
-    metric_subscription_router
+    metric_subscription_router, metric_lineage_router
 from watchmen_metricflow.settings import ask_mcp_flag
 
 from watchmen_rest.system import health_router
@@ -42,9 +42,9 @@ ArrayHelper([
     bi_analysis_router.router,
     alert_rule_router.router,
     suggest_action_router.router,
-    metric_subscription_router.router
+    metric_subscription_router.router,
+    metric_lineage_router.router
 
 
 ]).each(lambda x: app.include_router(x))
-
 

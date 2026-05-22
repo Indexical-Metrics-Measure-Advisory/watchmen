@@ -221,6 +221,10 @@ const MetricsManagement: React.FC = () => {
     setIsEditDialogOpen(true);
   };
 
+  const handleViewLineage = (metric: MetricDefinition) => {
+    navigate(`/metrics/lineage?metric=${encodeURIComponent(metric.name)}`);
+  };
+
   const validateForm = (form: Partial<MetricDefinition>, isCreate: boolean = false): string[] => {
     const errors: string[] = [];
     
@@ -880,6 +884,9 @@ const MetricsManagement: React.FC = () => {
                                 <DropdownMenuItem onClick={() => setSelectedMetric(metric)}>
                                   <Eye className="mr-2 h-4 w-4" /> View Details
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleViewLineage(metric)}>
+                                  <GitBranch className="mr-2 h-4 w-4" /> View Lineage
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleEditMetric(metric)}>
                                   <Edit className="mr-2 h-4 w-4" /> Edit
                                 </DropdownMenuItem>
@@ -928,6 +935,7 @@ const MetricsManagement: React.FC = () => {
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
                                     <DropdownMenuItem onClick={() => setSelectedMetric(metric)}>View Details</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleViewLineage(metric)}>View Lineage</DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleEditMetric(metric)}>Edit</DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteMetric(metric.name)}>Delete</DropdownMenuItem>
