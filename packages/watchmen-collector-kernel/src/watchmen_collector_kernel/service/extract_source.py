@@ -214,9 +214,9 @@ class SourceExtractor(ExtractorSPI, ABC):
 			else:
 				return data_need_flatten
 
-		def process_flatten_path(flatten_path_list: List[str], data_dict: Dict) -> Dict:
+		def process_flatten_path(flatten_path_list: List[str], data_dict: Union[List, Dict]) -> Union[List, Dict]:
 
-			def flatten_path(data_need_flatten: Dict, json_flatten_path: str) -> Dict:
+			def flatten_path(data_need_flatten: Union[List, Dict], json_flatten_path: str) -> Union[List, Dict]:
 				flatten_list = json_flatten_path.split(".")
 				flatten_link_head = LinkList().create_tail(flatten_list)
 
@@ -249,9 +249,9 @@ class SourceExtractor(ExtractorSPI, ABC):
 
 			return ArrayHelper(flatten_path_list).reduce(flatten_path, data_dict)
 
-		def process_json_path(inner_json_path_list: List[str], data_dict: Dict) -> Dict:
+		def process_json_path(inner_json_path_list: List[str], data_dict: Union[List, Dict]) -> Union[List, Dict]:
 
-			def json_path(data_need_load: Dict, inner_json_path: str) -> Dict:
+			def json_path(data_need_load: Union[List, Dict], inner_json_path: str) -> Union[List, Dict]:
 				json_path_list = inner_json_path.split(".")
 				json_path_link_head = LinkList().create_tail(json_path_list)
 
