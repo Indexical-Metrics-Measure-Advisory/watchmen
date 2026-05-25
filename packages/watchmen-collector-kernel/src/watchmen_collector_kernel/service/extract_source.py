@@ -1,6 +1,6 @@
 import json
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Dict, Any, Union
 from logging import getLogger
 
 from watchmen_data_kernel.meta import TopicService, DataSourceService
@@ -173,11 +173,17 @@ class SourceExtractor(ExtractorSPI, ABC):
 	def process_json_columns(self, data_: List) -> Optional[List[Dict]]:
 		json_columns = self.config.jsonColumns
 
-		def process_json_ignored(ignored_path_list: List[str], data_dict: Dict) -> Dict:
+		def process_json_ignored(ignored_path_list: List[str], data_dict: Union[List, Dict]) -> Union[List, Dict]:
 
-			def ignored_path(data_need_ignored: Dict, json_ignored_path: str) -> Dict:
+			def ignored_path(data_need_ignored: Union[List, Dict], json_ignored_path: str) -> Dict:
 				ignored_list = json_ignored_path.split(".")
 				ignored_link_head = LinkList().create_tail(ignored_list)
+
+				def ignored_with_list_or_dict(data_ignored: Union[List, Dict], node: LinkNode) -> Optional[Union[List, Dict]]:
+					if isinstance(data_ignored, List):
+						return ArrayHelper(data_ignored).map(lambda item: ignored(item, node)).to_list()
+					else:
+						return ignored(data_ignored, node)
 
 				def ignored(data_ignored: Dict, node: LinkNode) -> Optional[Dict]:
 					if data_ignored is None:
@@ -198,11 +204,11 @@ class SourceExtractor(ExtractorSPI, ABC):
 					else:
 						return data_ignored
 
-				return ignored(data_need_ignored, ignored_link_head)
+				return ignored_with_list_or_dict(data_need_ignored, ignored_link_head)
 
 			return ArrayHelper(ignored_path_list).reduce(ignored_path, data_dict)
 
-		def process_need_flatten(data_need_flatten: Optional[Tuple[List[Tuple[str, int]], str]]) -> Optional[str]:
+		def process_need_flatten(data_need_flatten: Optional[Union[List[Union[str, int]], str]]) -> Optional[str]:
 			if isinstance(data_need_flatten, List):
 				return ','.join(data_need_flatten)
 			else:
@@ -213,6 +219,12 @@ class SourceExtractor(ExtractorSPI, ABC):
 			def flatten_path(data_need_flatten: Dict, json_flatten_path: str) -> Dict:
 				flatten_list = json_flatten_path.split(".")
 				flatten_link_head = LinkList().create_tail(flatten_list)
+
+				def flatten_with_list_or_dict(data_flattened: Union[List, Dict], node: LinkNode) -> Optional[Union[List, Dict]]:
+					if isinstance(data_flattened, List):
+						return ArrayHelper(data_flattened).map(lambda item: flatten(item, node)).to_list()
+					else:
+						return flatten(data_flattened, node)
 
 				def flatten(data_flattened: Dict, node: LinkNode) -> Optional[Dict]:
 					if data_flattened is None:
@@ -233,7 +245,7 @@ class SourceExtractor(ExtractorSPI, ABC):
 					else:
 						return data_flattened
 
-				return flatten(data_need_flatten, flatten_link_head)
+				return flatten_with_list_or_dict(data_need_flatten, flatten_link_head)
 
 			return ArrayHelper(flatten_path_list).reduce(flatten_path, data_dict)
 
@@ -242,6 +254,12 @@ class SourceExtractor(ExtractorSPI, ABC):
 			def json_path(data_need_load: Dict, inner_json_path: str) -> Dict:
 				json_path_list = inner_json_path.split(".")
 				json_path_link_head = LinkList().create_tail(json_path_list)
+
+				def load_with_list_or_dict(data_loaded: Union[List, Dict], node: LinkNode) -> Optional[Union[List, Dict]]:
+					if isinstance(data_loaded, List):
+						return ArrayHelper(data_loaded).map(lambda item: load(item, node)).to_list()
+					else:
+						return load(data_loaded, node)
 
 				def load(data_loaded: Dict, node: LinkNode) -> Optional[Dict]:
 					if data_loaded is None:
@@ -266,7 +284,7 @@ class SourceExtractor(ExtractorSPI, ABC):
 					else:
 						return data_loaded
 
-				return load(data_need_load, json_path_link_head)
+				return load_with_list_or_dict(data_need_load, json_path_link_head)
 
 			return ArrayHelper(inner_json_path_list).reduce(json_path, data_dict)
 
@@ -284,6 +302,8 @@ class SourceExtractor(ExtractorSPI, ABC):
 						if isinstance(value, str) or isinstance(value, bytes) or isinstance(value, bytearray):
 							tmp_data = json.loads(value)
 						elif isinstance(value, Dict):
+							tmp_data = value
+						elif isinstance(value, List):
 							tmp_data = value
 						else:
 							raise ValueError(
