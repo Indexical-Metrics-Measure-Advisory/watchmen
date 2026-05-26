@@ -11,3 +11,5 @@
 *.LoG
 *.log.*
 __pycache__
+/docs
+
