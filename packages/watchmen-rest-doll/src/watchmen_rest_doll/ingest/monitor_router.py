@@ -25,7 +25,7 @@ class QueryTriggerEventDataPage(DataPage):
     data: List[TriggerEvent]
 
 
-@router.get('/ingest/monitor/event/detail', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+@router.get('/ingest/query/event', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_event_by_id(event_trigger_id: Optional[int] = None,  principal_service: PrincipalService = Depends(get_any_admin_principal)
                                      ) -> TriggerEvent:
     if is_blank(event_trigger_id):
