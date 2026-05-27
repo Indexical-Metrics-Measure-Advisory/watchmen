@@ -20,6 +20,19 @@ def get_bi_analysis_service(principal_service: PrincipalService) -> BIAnalysisSe
     return BIAnalysisService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
+def ask_accessible_analysis(
+        service: BIAnalysisService,
+        analysis_id: str,
+        principal_service: PrincipalService
+) -> BIAnalysis:
+    analysis = service.find_by_id(analysis_id)
+    if analysis is None:
+        raise_404('BI analysis not found.')
+    if analysis.tenantId != principal_service.get_tenant_id() or analysis.userId != principal_service.userId:
+        raise_404('BI analysis not found.')
+    return analysis
+
+
 @router.get('/metricflow/bi-analysis/all', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_all_bi_analyses(
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -46,14 +59,7 @@ async def get_bi_analysis_by_name(
     service = get_bi_analysis_service(principal_service)
 
     def action() -> BIAnalysis:
-        # tenant_id: TenantId = principal_service.get_tenant_id()
-        analysis = service.find_by_id(analysis_id)
-
-        #TODO add check for user access rights
-
-        if analysis is None:
-            raise_404()
-        return analysis
+        return ask_accessible_analysis(service, analysis_id, principal_service)
 
     return trans_readonly(service, action)
 
@@ -69,6 +75,7 @@ async def create_bi_analysis(
 
     # Set tenant ID from principal
     analysis.tenantId = principal_service.get_tenant_id()
+    analysis.userId = principal_service.userId
 
     service = get_bi_analysis_service(principal_service)
     analysis.id = str(service.snowflakeGenerator.next_id())
@@ -100,10 +107,10 @@ async def update_bi_analysis(
 
     def action() -> BIAnalysis:
         # Check if analysis exists
-        existing_analysis = service.find_by_id(analysis.id)
-        if existing_analysis is None:
-            raise_404('BI analysis not found.')
+        existing_analysis = ask_accessible_analysis(service, analysis.id, principal_service)
         analysis.id = existing_analysis.id
+        analysis.userId = existing_analysis.userId
+        analysis.tenantId = existing_analysis.tenantId
         return service.update(analysis)
 
     return trans(service, action)
@@ -124,9 +131,7 @@ async def update_bi_analysis(
 
     def action() -> BIAnalysis:
         # Check if analysis exists
-        existing_analysis :BIAnalysis = service.find_by_id(analysis_input.id)
-        if existing_analysis is None:
-            raise_404('BI analysis not found.')
+        existing_analysis: BIAnalysis = ask_accessible_analysis(service, analysis_input.id, principal_service)
         existing_analysis.isTemplate = analysis_input.isTemplate
         return service.update(existing_analysis)
 
@@ -150,11 +155,8 @@ async def delete_bi_analysis(
     service = get_bi_analysis_service(principal_service)
 
     def action() -> BIAnalysis:
-
         # Check if analysis exists
-        existing_analysis = service.find_by_id(analysis_id)
-        if existing_analysis is None:
-            raise_404('BI analysis not found.')
+        ask_accessible_analysis(service, analysis_id, principal_service)
 
         return service.delete_by_id(analysis_id)
 

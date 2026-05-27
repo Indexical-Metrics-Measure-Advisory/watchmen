@@ -37,6 +37,34 @@ export interface LineagePath {
   isPrimary?: boolean;
 }
 
+export interface LineageRoute {
+  id: string;
+  title: string;
+  nodeIds: string[];
+  hopDepth: number;
+  reachesSource: boolean;
+  reachesRawTopic: boolean;
+  isPrimary?: boolean;
+}
+
+export interface LineageGroup {
+  id: string;
+  stage: LineageStage;
+  title: string;
+  totalNodes: number;
+  activeNodes: number;
+  collapsedNodeCount: number;
+  previewNodeIds: string[];
+}
+
+export interface LineageRoot {
+  nodeId: string;
+  label: string;
+  nodeType: 'topic' | 'source_table' | 'source_field';
+  routeIds: string[];
+  hopDepth: number;
+}
+
 export interface MetricLineageViewData {
   metricName: string;
   status: 'resolved' | 'partial' | 'unresolved';
@@ -46,9 +74,16 @@ export interface MetricLineageViewData {
     topicCount: number;
     pipelineCount: number;
     sourceFieldCount: number;
+    sourceTableCount?: number;
+    routeCount?: number;
+    maxHopDepth?: number;
+    rawTopicCount?: number;
   };
   nodes: LineageNode[];
   edges: LineageEdge[];
   paths: LineagePath[];
+  routes?: LineageRoute[];
+  groups?: LineageGroup[];
+  roots?: LineageRoot[];
   diagnostics?: string[];
 }

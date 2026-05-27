@@ -1,4 +1,5 @@
 import re
+from dataclasses import dataclass, field
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from watchmen_auth import PrincipalService
@@ -17,6 +18,30 @@ from watchmen_model.admin.pipeline_action_write import InsertOrMergeRowAction, I
 from watchmen_model.common import ComputedParameter, Parameter, ParameterCondition, ParameterExpression, \
     ParameterJoint, TopicFactorParameter
 
+@dataclass
+class UpstreamDependency:
+    topic_id: Optional[str]
+    factor_id: Optional[str] = None
+
+
+@dataclass
+class UpstreamTraceStep:
+    kind: str
+    pipeline: Optional[Pipeline] = None
+    topic: Optional[Topic] = None
+    factor: Optional[Factor] = None
+    source_table_name: Optional[str] = None
+    source_field_name: Optional[str] = None
+
+
+@dataclass
+class UpstreamTraceRoute:
+    id_suffix: str
+    title: str
+    steps: List[UpstreamTraceStep] = field(default_factory=list)
+    diagnostics: List[str] = field(default_factory=list)
+
+
 from .metric_lineage_models import MetricLineageBranch
 
 
@@ -32,6 +57,8 @@ class MetricLineageResolver:
         self._pipeline_service = PipelineService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
         self._semantic_models_cache: Optional[List[SemanticModel]] = None
         self._metric_cache: Dict[str, Optional[MetricWithCategory]] = {}
+        self._topic_cache: Dict[str, Optional[Topic]] = {}
+        self._all_pipelines_cache: Optional[List[Pipeline]] = None
 
     def resolve_metric(self, metric_name: str, tenant_id: str) -> Optional[MetricWithCategory]:
         cached = self._metric_cache.get(metric_name)
@@ -115,6 +142,62 @@ class MetricLineageResolver:
             key=lambda pipeline: (
                 not bool(pipeline.enabled), not bool(pipeline.validated), pipeline.name or '', pipeline.pipelineId or '')
         )
+
+    def resolve_topic_by_id(self, topic_id: Optional[str]) -> Optional[Topic]:
+        if topic_id is None:
+            return None
+        if topic_id in self._topic_cache:
+            return self._topic_cache.get(topic_id)
+
+        def load() -> Optional[Topic]:
+            return self._topic_service.find_by_id(topic_id)
+
+        topic = trans_readonly(self._topic_service, load)
+        self._topic_cache[topic_id] = topic
+        return topic
+
+    def resolve_topic_factor_by_id(self, topic: Optional[Topic], factor_id: Optional[str]) -> Optional[Factor]:
+        if topic is None or factor_id is None:
+            return None
+        for factor in topic.factors or []:
+            if factor.factorId == factor_id:
+                return factor
+        return None
+
+    def trace_upstream_routes(
+            self, topic: Optional[Topic], factor: Optional[Factor], semantic_model: Optional[SemanticModel],
+            measure: Optional[Measure], tenant_id: str
+    ) -> List[UpstreamTraceRoute]:
+        if topic is None:
+            return []
+
+        routes = self._trace_upstream_from_topic(
+            topic=topic,
+            factor=factor,
+            tenant_id=tenant_id,
+            visited_topic_keys=set(),
+            visited_pipeline_ids=set()
+        )
+        if len(routes) != 0:
+            return routes
+
+        source_table_name, source_field_name = self.resolve_source(semantic_model, measure)
+        if source_table_name is None:
+            return []
+        diagnostics = ['Source lineage resolved from semantic metadata fallback.']
+        steps = [UpstreamTraceStep(kind='source_table', source_table_name=source_table_name)]
+        if source_field_name is not None:
+            steps.append(UpstreamTraceStep(
+                kind='source_field',
+                source_table_name=source_table_name,
+                source_field_name=source_field_name
+            ))
+        return [UpstreamTraceRoute(
+            id_suffix='semantic-fallback',
+            title='Semantic source fallback',
+            steps=steps,
+            diagnostics=diagnostics
+        )]
 
     def resolve_pipeline_factor_dependencies(
             self, pipelines: List[Pipeline], topic: Optional[Topic], factor: Optional[Factor]
@@ -414,6 +497,230 @@ class MetricLineageResolver:
                 if self._parameter_mentions_factor(nested, topic_id, factor_id):
                     return True
         return False
+
+    def _trace_upstream_from_topic(
+            self, topic: Topic, factor: Optional[Factor], tenant_id: str, visited_topic_keys: Set[str],
+            visited_pipeline_ids: Set[str]
+    ) -> List[UpstreamTraceRoute]:
+        topic_key = f'{topic.topicId or topic.name}:{factor.factorId if factor is not None else "*"}'
+        if topic_key in visited_topic_keys:
+            return []
+        next_visited_topic_keys = set(visited_topic_keys)
+        next_visited_topic_keys.add(topic_key)
+
+        if self._is_raw_topic(topic):
+            return [UpstreamTraceRoute(
+                id_suffix=f'raw-{topic.topicId or topic.name}',
+                title=f'Raw topic[{topic.name}]',
+                steps=[],
+                diagnostics=[]
+            )]
+
+        writing_pipelines = self._find_pipelines_writing_topic_factor(topic, factor, tenant_id)
+        if len(writing_pipelines) == 0:
+            return []
+
+        routes: List[UpstreamTraceRoute] = []
+        for pipeline in writing_pipelines:
+            pipeline_id = pipeline.pipelineId or pipeline.name
+            if pipeline_id is None or pipeline_id in visited_pipeline_ids:
+                continue
+
+            next_visited_pipeline_ids = set(visited_pipeline_ids)
+            next_visited_pipeline_ids.add(pipeline_id)
+            dependencies, diagnostics = self._extract_upstream_dependencies_from_pipeline(pipeline, topic, factor)
+
+            if len(dependencies) == 0 and pipeline.topicId is not None:
+                dependencies = [UpstreamDependency(topic_id=pipeline.topicId)]
+                diagnostics = diagnostics + [
+                    f'Pipeline[{pipeline.name or pipeline.pipelineId}] used trigger topic fallback for upstream trace.'
+                ]
+
+            if len(dependencies) == 0:
+                routes.append(UpstreamTraceRoute(
+                    id_suffix=self._sanitize_route_suffix(pipeline.name or pipeline.pipelineId or topic.name),
+                    title=f'Pipeline[{pipeline.name or pipeline.pipelineId}]',
+                    steps=[UpstreamTraceStep(kind='pipeline', pipeline=pipeline)],
+                    diagnostics=diagnostics
+                ))
+                continue
+
+            for index, dependency in enumerate(dependencies):
+                upstream_topic = self.resolve_topic_by_id(dependency.topic_id)
+                upstream_factor = self.resolve_topic_factor_by_id(upstream_topic, dependency.factor_id)
+                step_prefix = [UpstreamTraceStep(kind='pipeline', pipeline=pipeline)]
+                if upstream_topic is not None:
+                    step_prefix.append(UpstreamTraceStep(kind='topic', topic=upstream_topic))
+                    if upstream_factor is not None:
+                        step_prefix.append(UpstreamTraceStep(kind='topic_factor', topic=upstream_topic, factor=upstream_factor))
+
+                child_routes = []
+                if upstream_topic is not None:
+                    child_routes = self._trace_upstream_from_topic(
+                        topic=upstream_topic,
+                        factor=upstream_factor,
+                        tenant_id=tenant_id,
+                        visited_topic_keys=next_visited_topic_keys,
+                        visited_pipeline_ids=next_visited_pipeline_ids
+                    )
+
+                suffix = self._sanitize_route_suffix(
+                    f'{pipeline.name or pipeline.pipelineId or "pipeline"}-{upstream_topic.name if upstream_topic is not None else index}'
+                )
+                if len(child_routes) == 0:
+                    routes.append(UpstreamTraceRoute(
+                        id_suffix=suffix,
+                        title=f'Pipeline[{pipeline.name or pipeline.pipelineId}]',
+                        steps=step_prefix,
+                        diagnostics=diagnostics + (
+                            [f'Upstream topic[{dependency.topic_id}] could not be further resolved.']
+                            if upstream_topic is None else []
+                        )
+                    ))
+                    continue
+
+                for child_route in child_routes:
+                    routes.append(UpstreamTraceRoute(
+                        id_suffix=f'{suffix}-{child_route.id_suffix}',
+                        title=f'Pipeline[{pipeline.name or pipeline.pipelineId}] -> {child_route.title}',
+                        steps=step_prefix + child_route.steps,
+                        diagnostics=diagnostics + child_route.diagnostics
+                    ))
+
+        return routes
+
+    def _find_pipelines_writing_topic_factor(
+            self, topic: Topic, factor: Optional[Factor], tenant_id: str
+    ) -> List[Pipeline]:
+        matches: List[Tuple[int, Pipeline]] = []
+        target_factor_id = factor.factorId if factor is not None else None
+        for pipeline in self._load_all_pipelines(tenant_id):
+            score = self._pipeline_writes_target_score(pipeline, topic.topicId, target_factor_id)
+            if score > 0:
+                matches.append((score, pipeline))
+        matches.sort(key=lambda item: (
+            -item[0], not bool(item[1].enabled), not bool(item[1].validated), item[1].name or '', item[1].pipelineId or ''
+        ))
+        return [pipeline for _, pipeline in matches]
+
+    def _pipeline_writes_target_score(self, pipeline: Pipeline, topic_id: Optional[str], factor_id: Optional[str]) -> int:
+        if topic_id is None:
+            return 0
+        score = 0
+        for action in self._iter_actions(pipeline):
+            score = max(score, self._write_action_target_score(action, topic_id, factor_id))
+        return score
+
+    def _write_action_target_score(self, action: PipelineAction, topic_id: str, factor_id: Optional[str]) -> int:
+        action_topic_id = getattr(action, 'topicId', None)
+        if action_topic_id != topic_id:
+            return 0
+        if isinstance(action, WriteFactorAction):
+            if factor_id is None:
+                return 2
+            return 4 if getattr(action, 'factorId', None) == factor_id else 0
+        if isinstance(action, (InsertRowAction, MergeRowAction, InsertOrMergeRowAction)):
+            if factor_id is None:
+                return 2
+            for mapping in getattr(action, 'mapping', []) or []:
+                if getattr(mapping, 'factorId', None) == factor_id:
+                    return 3
+            return 1
+        return 0
+
+    def _extract_upstream_dependencies_from_pipeline(
+            self, pipeline: Pipeline, target_topic: Topic, target_factor: Optional[Factor]
+    ) -> Tuple[List[UpstreamDependency], List[str]]:
+        dependencies: List[UpstreamDependency] = []
+        diagnostics: List[str] = []
+        target_factor_id = target_factor.factorId if target_factor is not None else None
+
+        for action in self._iter_actions(pipeline):
+            if isinstance(action, WriteFactorAction):
+                if self._write_action_target_score(action, target_topic.topicId, target_factor_id) == 0:
+                    continue
+                dependencies.extend(self._extract_dependencies_from_parameter(action.source))
+                dependencies.extend(self._extract_dependencies_from_joint(getattr(action, 'by', None)))
+            elif isinstance(action, (InsertRowAction, MergeRowAction, InsertOrMergeRowAction)):
+                if getattr(action, 'topicId', None) != target_topic.topicId:
+                    continue
+                matched = False
+                for mapping in getattr(action, 'mapping', []) or []:
+                    mapping_factor_id = getattr(mapping, 'factorId', None)
+                    if target_factor_id is not None and mapping_factor_id != target_factor_id:
+                        continue
+                    matched = True
+                    dependencies.extend(self._extract_dependencies_from_parameter(mapping.source))
+                if matched or target_factor_id is None:
+                    dependencies.extend(self._extract_dependencies_from_joint(getattr(action, 'by', None)))
+
+        deduped = self._deduplicate_dependencies(dependencies)
+        if len(deduped) == 0:
+            diagnostics.append(
+                f'Pipeline[{pipeline.name or pipeline.pipelineId}] writes topic[{target_topic.name}] but upstream factor mapping was not resolved.'
+            )
+        return deduped, diagnostics
+
+    def _extract_dependencies_from_joint(self, joint: Optional[ParameterCondition]) -> List[UpstreamDependency]:
+        if joint is None:
+            return []
+        if isinstance(joint, ParameterExpression):
+            return self._extract_dependencies_from_parameter(joint.left) + self._extract_dependencies_from_parameter(joint.right)
+        if isinstance(joint, ParameterJoint):
+            dependencies: List[UpstreamDependency] = []
+            for condition in joint.filters or []:
+                dependencies.extend(self._extract_dependencies_from_joint(condition))
+            return dependencies
+        return []
+
+    def _extract_dependencies_from_parameter(self, parameter: Optional[Parameter]) -> List[UpstreamDependency]:
+        if parameter is None:
+            return []
+        dependencies = self._extract_dependencies_from_joint(parameter.on)
+        if isinstance(parameter, TopicFactorParameter):
+            dependencies.append(UpstreamDependency(topic_id=parameter.topicId, factor_id=parameter.factorId))
+        elif isinstance(parameter, ComputedParameter):
+            for nested in parameter.parameters or []:
+                dependencies.extend(self._extract_dependencies_from_parameter(nested))
+        return dependencies
+
+    @staticmethod
+    def _deduplicate_dependencies(dependencies: List[UpstreamDependency]) -> List[UpstreamDependency]:
+        deduped: List[UpstreamDependency] = []
+        seen: Set[Tuple[Optional[str], Optional[str]]] = set()
+        for dependency in dependencies:
+            key = dependency.topic_id, dependency.factor_id
+            if key in seen or dependency.topic_id is None:
+                continue
+            seen.add(key)
+            deduped.append(dependency)
+        return deduped
+
+    def _load_all_pipelines(self, tenant_id: str) -> List[Pipeline]:
+        if self._all_pipelines_cache is None:
+            def load() -> List[Pipeline]:
+                return self._pipeline_service.find_all(tenant_id)
+
+            pipelines = trans_readonly(self._pipeline_service, load)
+            self._all_pipelines_cache = sorted(
+                pipelines,
+                key=lambda pipeline: (
+                    not bool(pipeline.enabled), not bool(pipeline.validated), pipeline.name or '', pipeline.pipelineId or ''
+                )
+            )
+        return self._all_pipelines_cache
+
+    @staticmethod
+    def _sanitize_route_suffix(value: str) -> str:
+        return re.sub(r'[^A-Za-z0-9_-]+', '-', value).strip('-').lower() or 'route'
+
+    @staticmethod
+    def _is_raw_topic(topic: Optional[Topic]) -> bool:
+        if topic is None:
+            return False
+        topic_type = MetricLineageResolver._read_attr(topic, 'type')
+        topic_type = getattr(topic_type, 'value', topic_type)
+        return topic_type == 'raw'
 
     @classmethod
     def extract_field_candidates(cls, expression: Optional[str]) -> List[str]:

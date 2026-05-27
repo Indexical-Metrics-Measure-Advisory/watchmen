@@ -139,6 +139,4 @@ class MetricWithCategory(Metric):
 
 
 
-# json ={"name":"total_claim_cases","label":"Total Claim Cases","description":"Total number of claim cases","type":"simple","type_params":{"expr":None,"window":None,"measure":{"name":"count_claim_cases","alias":None,"filter":None,"fill_Nones_with":None,"join_to_timespine":False},"metrics":[],"numerator":None,"denominator":None,"grain_to_date":None,"input_measures":[{"name":"count_claim_cases","alias":None,"filter":None,"fill_Nones_with":None,"join_to_timespine":False}],"conversion_type_params":None,"cumulative_type_params":None},"categoryId":"1443739740389882880"}
 
-# MetricWithCategory(**json)

@@ -12,8 +12,15 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import type { MetricLineageViewData, LineageNode, LineageStage, LineageEdge, LineagePath } from '@/model/metricLineage';
-import { getMetricLineage, getMetricLineageSuggestions } from '@/services/metricLineageService';
+import type {
+  MetricLineageViewData, LineageNode, LineageStage, LineageEdge, LineagePath, LineageGroup, LineageRoot, LineageRoute,
+} from '@/model/metricLineage';
+import {
+  getMetricLineage,
+  getMetricLineageSuggestions,
+  isMetricLineageMockData,
+  isMetricLineageMockMetric,
+} from '@/services/metricLineageService';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -120,7 +127,9 @@ const readRecentMetrics = (): string[] => {
     const raw = localStorage.getItem(RECENT_METRICS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter(item => typeof item === 'string') : [];
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === 'string' && !isMetricLineageMockMetric(item))
+      : [];
   } catch {
     return [];
   }
@@ -158,6 +167,69 @@ const PathSignalCard = ({
   </div>
 );
 
+const GroupSummaryCard = ({
+  group,
+  nodeMap,
+  onSelect,
+}: {
+  group: LineageGroup;
+  nodeMap: Map<string, LineageNode>;
+  onSelect: (nodeId: string) => void;
+}) => (
+  <div className="rounded-2xl border bg-background/80 p-4">
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <div className="text-sm font-medium">{group.title}</div>
+        <div className="mt-1 text-xs text-muted-foreground">
+          {group.totalNodes} nodes, {group.activeNodes} active in the rendered routes
+        </div>
+      </div>
+      <Badge variant="secondary">{group.totalNodes}</Badge>
+    </div>
+    <div className="mt-3 flex flex-wrap gap-2">
+      {group.previewNodeIds.map(nodeId => {
+        const node = nodeMap.get(nodeId);
+        if (!node) return null;
+        return (
+          <button
+            key={nodeId}
+            type="button"
+            onClick={() => onSelect(nodeId)}
+            className="rounded-full border px-3 py-1 text-xs transition-colors hover:bg-muted"
+          >
+            {node.label || node.name}
+          </button>
+        );
+      })}
+      {group.collapsedNodeCount > 0 && (
+        <Badge variant="outline">+{group.collapsedNodeCount} more</Badge>
+      )}
+    </div>
+  </div>
+);
+
+const RootSummaryCard = ({
+  root,
+  onSelect,
+}: {
+  root: LineageRoot;
+  onSelect: (nodeId: string) => void;
+}) => (
+  <button
+    type="button"
+    onClick={() => onSelect(root.nodeId)}
+    className="flex w-full items-center justify-between rounded-xl border p-3 text-left transition-colors hover:bg-muted/30"
+  >
+    <div>
+      <div className="font-medium">{root.label}</div>
+      <div className="mt-1 text-xs text-muted-foreground">
+          {root.nodeType === 'topic' ? 'Raw topic' : root.nodeType === 'source_table' ? 'Source table' : 'Source field'} · {root.routeIds.length} route{root.routeIds.length === 1 ? '' : 's'}
+      </div>
+    </div>
+    <Badge variant="outline">Hop {root.hopDepth}</Badge>
+  </button>
+);
+
 const getEdgeKindLabel = (kind: LineageEdge['kind']): string => {
   switch (kind) {
     case 'defines':
@@ -174,10 +246,6 @@ const getEdgeKindLabel = (kind: LineageEdge['kind']): string => {
       return kind;
   }
 };
-
-const getNodeStageLabel = (node: LineageNode): string => STAGE_META[node.stage].title;
-
-const isReferencedMetricNode = (node: LineageNode): boolean => node.type === 'metric_ref';
 
 const getMetricRoleLabel = (node: LineageNode): string | null => {
   if (node.type === 'metric') return 'Requested Metric';
@@ -201,73 +269,12 @@ const getMetricDependencyDiagnostics = (diagnostics?: string[], referencedMetric
   })
 );
 
-const LineageNodeCard = ({
-  node,
-  selected,
-  dimmed,
-  pathStep,
-  onSelect,
-}: {
-  node: LineageNode;
-  selected: boolean;
-  dimmed: boolean;
-  pathStep?: number;
-  onSelect: (node: LineageNode) => void;
-}) => (
-  <button
-    type="button"
-    onClick={() => onSelect(node)}
-    className={cn(
-      'w-full rounded-xl border bg-card p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md',
-      selected && 'border-primary ring-2 ring-primary/20',
-      dimmed && 'opacity-45',
-      isReferencedMetricNode(node) && 'border-dashed border-blue-300 bg-blue-50/40',
-      !selected && !dimmed && 'border-border/60'
-    )}
-  >
-    <div className="flex items-start gap-3">
-      <div className={cn('mt-0.5 rounded-lg border p-2', STAGE_META[node.stage].className)}>
-        {getNodeIcon(node)}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <div className="truncate font-medium">{node.label || node.name}</div>
-          {node.badge && (
-            <Badge variant="outline" className="h-5 shrink-0 text-[10px] uppercase tracking-wide">
-              {node.badge}
-            </Badge>
-          )}
-        </div>
-        <div className="mt-1 truncate font-mono text-[11px] text-muted-foreground">{node.name}</div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="h-5 text-[10px] uppercase tracking-wide">
-            {getNodeStageLabel(node)}
-          </Badge>
-          {getMetricRoleLabel(node) && (
-            <Badge className="h-5 border-blue-200 bg-blue-100 text-[10px] uppercase tracking-wide text-blue-700">
-              {getMetricRoleLabel(node)}
-            </Badge>
-          )}
-          {typeof pathStep === 'number' && (
-            <Badge className="h-5 border-primary/20 bg-primary/10 text-[10px] uppercase tracking-wide text-primary">
-              Step {pathStep}
-            </Badge>
-          )}
-        </div>
-        {node.description && (
-          <div className="mt-3 line-clamp-2 text-xs text-muted-foreground">{node.description}</div>
-        )}
-      </div>
-    </div>
-  </button>
-);
-
 const MetricLineagePage: React.FC = () => {
   const { collapsed } = useSidebar();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [query, setQuery] = React.useState(searchParams.get('metric') || 'total_claim_cases');
+  const [query, setQuery] = React.useState(searchParams.get('metric') || '');
   const [data, setData] = React.useState<MetricLineageViewData | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [selectedNodeId, setSelectedNodeId] = React.useState<string | null>(null);
@@ -291,7 +298,7 @@ const MetricLineagePage: React.FC = () => {
       setSelectedPathId(primaryPath?.id || null);
       setSelectedNodeId(nextSelectedNodeId);
       setSearchParams({ metric: trimmed });
-      setRecentMetrics(writeRecentMetrics(trimmed));
+      setRecentMetrics(isMetricLineageMockData(result) ? readRecentMetrics() : writeRecentMetrics(trimmed));
     } catch (error) {
       console.error('Failed to load metric lineage:', error);
       toast({
@@ -330,7 +337,7 @@ const MetricLineagePage: React.FC = () => {
   }, []);
 
   React.useEffect(() => {
-    void runTrace(searchParams.get('metric') || 'total_claim_cases');
+    void runTrace(searchParams.get('metric') || '');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -347,11 +354,6 @@ const MetricLineagePage: React.FC = () => {
   const activePath = React.useMemo(
     () => data?.paths.find(path => path.id === selectedPathId) || data?.paths[0] || null,
     [data?.paths, selectedPathId]
-  );
-
-  const activePathNodeIds = React.useMemo(
-    () => new Set(activePath?.nodeIds || []),
-    [activePath?.nodeIds]
   );
 
   const activePathStepMap = React.useMemo(
@@ -374,25 +376,11 @@ const MetricLineagePage: React.FC = () => {
     return next;
   }, [data?.edges]);
 
-  const groupedNodes = React.useMemo(() => {
-    const next: Record<LineageStage, LineageNode[]> = {
-      metric: [],
-      semantic: [],
-      topic: [],
-      pipeline: [],
-      source: [],
-    };
-    data?.nodes.forEach(node => {
-      next[node.stage].push(node);
-    });
-    return next;
-  }, [data?.nodes]);
+  const routes = React.useMemo<LineageRoute[]>(() => data?.routes || [], [data?.routes]);
 
-  const stageProgress = React.useMemo(() => STAGE_ORDER.map(stage => ({
-    stage,
-    count: groupedNodes[stage].length,
-    active: (activePath?.nodeIds || []).some(nodeId => nodeMap.get(nodeId)?.stage === stage),
-  })), [activePath?.nodeIds, groupedNodes, nodeMap]);
+  const groups = React.useMemo<LineageGroup[]>(() => data?.groups || [], [data?.groups]);
+
+  const roots = React.useMemo<LineageRoot[]>(() => data?.roots || [], [data?.roots]);
 
   const referencedMetricNodes = React.useMemo(
     () => (data?.nodes || []).filter(node => node.type === 'metric_ref'),
@@ -407,6 +395,11 @@ const MetricLineagePage: React.FC = () => {
   );
 
   const dependencyDepth = Math.max(activeMetricChain.length - 1, 0);
+
+  const activeRoute = React.useMemo(
+    () => routes.find(route => route.id === selectedPathId) || routes.find(route => route.isPrimary) || routes[0] || null,
+    [routes, selectedPathId]
+  );
 
   const dependencyDiagnostics = React.useMemo(
     () => getMetricDependencyDiagnostics(
@@ -544,7 +537,7 @@ const MetricLineagePage: React.FC = () => {
                         void runTrace(query);
                       }
                     }}
-                    placeholder="Enter metric name, for example total_claim_cases"
+                    placeholder="Enter metric name"
                     className="h-11 pl-10"
                   />
                 </div>
@@ -587,10 +580,11 @@ const MetricLineagePage: React.FC = () => {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-7">
             <SummaryCard title="Metric Type" value={data?.summary.metricType || '--'} description="Definition shape resolved from the query." />
             <SummaryCard title="Metric Dependencies" value={referencedMetricNodes.length} description="Referenced metrics used in this lineage graph." />
-            <SummaryCard title="Semantic Models" value={data?.summary.semanticModelCount || 0} description="Semantic assets contributing to this lineage." />
-            <SummaryCard title="Topics" value={data?.summary.topicCount || 0} description="Topics matched from semantic model mappings." />
-            <SummaryCard title="Pipelines" value={data?.summary.pipelineCount || 0} description="Pipeline nodes included in the displayed path." />
-            <SummaryCard title="Source Fields" value={data?.summary.sourceFieldCount || 0} description="Leaf fields currently displayed at the source stage." />
+            <SummaryCard title="Routes" value={data?.summary.routeCount || data?.paths.length || 0} description="Distinct lineage routes currently available." />
+            <SummaryCard title="Max Hop Depth" value={data?.summary.maxHopDepth || 0} description="Deepest route length from metric to root." />
+            <SummaryCard title="Topics" value={data?.summary.topicCount || 0} description="Topics matched from semantic and upstream mappings." />
+            <SummaryCard title="Pipelines" value={data?.summary.pipelineCount || 0} description="Pipelines included in the returned lineage graph." />
+            <SummaryCard title="Source Roots" value={(data?.summary.sourceTableCount || 0) + (data?.summary.sourceFieldCount || 0)} description="Source tables and fields resolved as route roots." />
             <Card className="border-border/60 shadow-sm">
               <CardContent className="flex h-full flex-col justify-between p-4">
                 <div className="text-xs uppercase tracking-wide text-muted-foreground">Resolution Status</div>
@@ -659,12 +653,12 @@ const MetricLineagePage: React.FC = () => {
                   <div>
                     <CardTitle className="text-lg">Lineage Canvas</CardTitle>
                     <CardDescription>
-                      A stage-based lineage flow optimized for business review and future backend integration.
+                      Focus on the active route, grouped fan-out, and resolved source roots instead of rendering every topic and pipeline at once.
                     </CardDescription>
                   </div>
                   <Badge variant="outline" className="gap-1">
                     <Route className="h-3.5 w-3.5" />
-                    {data?.paths.length || 0} Paths
+                    {routes.length || 0} Routes
                   </Badge>
                 </div>
               </CardHeader>
@@ -674,13 +668,13 @@ const MetricLineagePage: React.FC = () => {
                     <div className="rounded-3xl border bg-gradient-to-br from-primary/5 via-background to-background p-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <div className="text-sm font-medium">Active Path Focus</div>
+                          <div className="text-sm font-medium">Focused Route</div>
                           <div className="mt-1 text-xs text-muted-foreground">
-                            Review the currently selected path before drilling into node details.
+                            Review one compact route first, then expand groups and roots as needed.
                           </div>
                         </div>
                         <Badge className="border-primary/20 bg-primary/10 text-primary">
-                          {activePath.title}
+                          {activeRoute?.title || activePath.title}
                         </Badge>
                       </div>
 
@@ -744,101 +738,141 @@ const MetricLineagePage: React.FC = () => {
                       )}
 
                       <div className="mt-4 grid gap-2 md:grid-cols-5">
-                        {stageProgress.map(item => (
+                        {STAGE_ORDER.map(stage => {
+                          const group = groups.find(item => item.stage === stage);
+                          const active = (activePath?.nodeIds || []).some(nodeId => nodeMap.get(nodeId)?.stage === stage);
+                          return (
                           <div
-                            key={item.stage}
+                            key={stage}
                             className={cn(
                               'rounded-2xl border p-3 transition-colors',
-                              item.active ? 'border-primary/30 bg-primary/5' : 'border-border/60 bg-background/70'
+                              active ? 'border-primary/30 bg-primary/5' : 'border-border/60 bg-background/70'
                             )}
                           >
                             <div className="flex items-center justify-between gap-2">
-                              <div className="text-xs font-medium">{STAGE_META[item.stage].title}</div>
-                              <Badge variant="secondary">{item.count}</Badge>
+                              <div className="text-xs font-medium">{STAGE_META[stage].title}</div>
+                              <Badge variant="secondary">{group?.totalNodes || 0}</Badge>
                             </div>
                             <div className="mt-2 text-[11px] text-muted-foreground">
-                              {item.active ? 'Included in active path' : 'Not used in active path'}
+                              {active ? 'Included in active route' : 'Collapsed outside the active route'}
                             </div>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
 
                     <div className="grid gap-3">
                       <PathSignalCard
                         label="Stage Coverage"
-                        value={`${stageProgress.filter(item => item.active).length}/${STAGE_ORDER.length}`}
-                        description="Stages activated by the current path."
+                        value={`${STAGE_ORDER.filter(stage => (activePath?.nodeIds || []).some(nodeId => nodeMap.get(nodeId)?.stage === stage)).length}/${STAGE_ORDER.length}`}
+                        description="Stages activated by the current route."
                       />
                       <PathSignalCard
                         label="Relations"
                         value={activePathEdges.length}
-                        description="Edge transitions available in the selected path."
+                        description="Edge transitions available in the selected route."
                       />
                       <PathSignalCard
-                        label="End State"
-                        value={STATUS_META[data.status].label}
-                        description="Resolution state for the current metric lineage."
+                        label="Raw Roots"
+                        value={roots.length}
+                        description="Resolved raw/source roots currently visible in the response."
                       />
                     </div>
                   </div>
                 )}
 
                 {loading ? (
-                  <div className="grid gap-4 xl:grid-cols-5">
-                    {STAGE_ORDER.map(stage => (
-                      <div key={stage} className="space-y-3">
+                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+                    <div className="space-y-4">
+                      <div className="h-24 rounded-xl bg-muted animate-pulse" />
+                      <div className="h-32 rounded-xl bg-muted/80 animate-pulse" />
+                      <div className="h-32 rounded-xl bg-muted/60 animate-pulse" />
+                    </div>
+                    <div className="space-y-3">
+                      <div className="space-y-3">
                         <div className="h-10 rounded-xl bg-muted animate-pulse" />
                         <div className="h-28 rounded-xl bg-muted/80 animate-pulse" />
-                        <div className="h-24 rounded-xl bg-muted/60 animate-pulse" />
                       </div>
-                    ))}
+                    </div>
                   </div>
                 ) : data && data.nodes.length > 0 ? (
-                  <div className="grid gap-4 xl:grid-cols-5">
-                    {STAGE_ORDER.map((stage, index) => (
-                      <div key={stage} className="relative">
-                        <div className={cn('rounded-2xl border p-3', STAGE_META[stage].className)}>
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              {STAGE_META[stage].icon}
+                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_320px]">
+                    <div className="space-y-4">
+                      <Card className="border-border/60 shadow-sm">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base">Route Groups</CardTitle>
+                          <CardDescription>
+                            Large topic and pipeline fan-out is collapsed into groups so the first view stays readable.
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-3">
+                          {groups.map(group => (
+                            <GroupSummaryCard
+                              key={group.id}
+                              group={group}
+                              nodeMap={nodeMap}
+                              onSelect={selectNodeAndSyncPath}
+                            />
+                          ))}
+                        </CardContent>
+                      </Card>
+
+                      <Card className="border-border/60 shadow-sm">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base">Available Routes</CardTitle>
+                          <CardDescription>
+                            Review each compact route before deciding whether a branch needs deeper expansion.
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {routes.map(route => (
+                            <button
+                              type="button"
+                              key={route.id}
+                              onClick={() => selectPath({id: route.id, title: route.title, nodeIds: route.nodeIds, isPrimary: route.isPrimary})}
+                              className={cn(
+                                'flex w-full items-center justify-between rounded-2xl border p-4 text-left transition-all hover:shadow-sm',
+                                route.id === activeRoute?.id ? 'border-primary bg-primary/5' : 'border-border/60 bg-card'
+                              )}
+                            >
                               <div>
-                                <div className="font-medium">{STAGE_META[stage].title}</div>
-                                <div className="text-[11px] opacity-80">{STAGE_META[stage].description}</div>
+                                <div className="font-medium">{route.title}</div>
+                                <div className="mt-1 text-xs text-muted-foreground">
+                                  {route.hopDepth} hops · {route.reachesSource ? 'reaches source' : 'source unresolved'} · {route.reachesRawTopic ? 'raw topic reached' : 'raw topic pending'}
+                                </div>
                               </div>
-                            </div>
-                            <Badge variant="secondary">{groupedNodes[stage].length}</Badge>
-                          </div>
-                        </div>
-
-                        <div className={cn('mt-3 rounded-2xl border bg-gradient-to-b p-3', STAGE_META[stage].accentClass)}>
-                          <div className="space-y-3">
-                            {groupedNodes[stage].length > 0 ? groupedNodes[stage].map(node => (
-                              <LineageNodeCard
-                                key={node.id}
-                                node={node}
-                                selected={node.id === selectedNodeId}
-                                dimmed={activePathNodeIds.size > 0 && !activePathNodeIds.has(node.id)}
-                                pathStep={activePathStepMap.get(node.id)}
-                                onSelect={nextNode => selectNodeAndSyncPath(nextNode.id)}
-                              />
-                            )) : (
-                              <div className="rounded-xl border border-dashed border-border/60 bg-background/70 p-4 text-center text-xs text-muted-foreground">
-                                No nodes in this stage
+                              <div className="flex items-center gap-2">
+                                {route.isPrimary && <Badge>Primary</Badge>}
+                                <Badge variant="outline">{route.nodeIds.length} nodes</Badge>
                               </div>
-                            )}
-                          </div>
-                        </div>
+                            </button>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    </div>
 
-                        {index < STAGE_ORDER.length - 1 && (
-                          <div className="pointer-events-none absolute -right-3 top-1/2 hidden -translate-y-1/2 xl:flex">
-                            <div className="rounded-full border bg-background p-1 shadow-sm">
-                              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                            </div>
+                    <Card className="border-border/60 shadow-sm">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Raw Roots</CardTitle>
+                        <CardDescription>
+                          Confirm which source tables and fields have actually been reached by the current lineage response.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {roots.length > 0 ? roots.map(root => (
+                          <RootSummaryCard
+                            key={root.nodeId}
+                            root={root}
+                            onSelect={selectNodeAndSyncPath}
+                          />
+                        )) : (
+                          <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+                            No raw/source roots are available in the current lineage response yet.
                           </div>
                         )}
-                      </div>
-                    ))}
+                      </CardContent>
+                    </Card>
                   </div>
                 ) : (
                   <div className="flex min-h-[440px] flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/20 px-6 text-center">
@@ -1041,14 +1075,14 @@ const MetricLineagePage: React.FC = () => {
             <CardContent className="p-5">
               <Tabs defaultValue="paths" className="w-full">
                 <TabsList>
-                  <TabsTrigger value="paths">Paths</TabsTrigger>
+                  <TabsTrigger value="paths">Routes</TabsTrigger>
                   <TabsTrigger value="json">Raw JSON</TabsTrigger>
                   <TabsTrigger value="diagnostics">Diagnostics</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="paths">
                   <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                    {(data?.paths || []).map(path => (
+                    {(routes.length > 0 ? routes : (data?.paths || [])).map(path => (
                       <button
                         type="button"
                         key={path.id}
@@ -1064,7 +1098,9 @@ const MetricLineagePage: React.FC = () => {
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <div className="font-medium">{path.title}</div>
-                            <div className="mt-1 text-xs text-muted-foreground">{path.nodeIds.length} nodes in this path</div>
+                            <div className="mt-1 text-xs text-muted-foreground">
+                              {path.nodeIds.length} nodes · {'hopDepth' in path ? `${path.hopDepth} hops` : 'route depth pending'}
+                            </div>
                           </div>
                           {path.isPrimary && <Badge>Primary</Badge>}
                         </div>
@@ -1163,7 +1199,7 @@ const MetricLineagePage: React.FC = () => {
               <Button variant="outline" onClick={() => navigate('/metrics/management')}>
                 Open Metrics Management
               </Button>
-              <Button variant="ghost" onClick={() => navigate(`/metrics/lineage?metric=${encodeURIComponent('total_claim_cases')}`)}>
+              <Button variant="ghost" onClick={() => navigate('/metrics/lineage')}>
                 Use Example Metric
               </Button>
             </CardContent>

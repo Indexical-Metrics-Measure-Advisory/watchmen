@@ -95,7 +95,6 @@ const BIAnalysisPage: React.FC = () => {
     setSubscriptionOpen,
     templates,
     cardsRef,
-    initialLoadDone,
     ackAlertId,
     setAckAlertId,
     setActiveSection,

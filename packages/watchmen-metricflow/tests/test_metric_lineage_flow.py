@@ -1,5 +1,6 @@
 import sys
 import unittest
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -20,6 +21,7 @@ from watchmen_metricflow.lineage.metric_lineage_service import MetricLineageServ
 from watchmen_metricflow.model.metrics import MeasureReference, MetricRef, MetricType, MetricTypeParams, MetricWithCategory
 from watchmen_metricflow.model.semantic import AggregationType, Measure, NodeRelation, SemanticModel
 from watchmen_model.admin import Factor, Pipeline, Topic
+from watchmen_model.admin.topic import TopicType
 
 
 class _FakePrincipal:
@@ -31,6 +33,24 @@ class _FakePrincipal:
         return "t-test"
 
 
+@dataclass
+class _FakeUpstreamTraceStep:
+    kind: str
+    pipeline: Optional[Pipeline] = None
+    topic: Optional[Topic] = None
+    factor: Optional[Factor] = None
+    source_table_name: Optional[str] = None
+    source_field_name: Optional[str] = None
+
+
+@dataclass
+class _FakeUpstreamTraceRoute:
+    id_suffix: str
+    title: str
+    steps: List[_FakeUpstreamTraceStep] = field(default_factory=list)
+    diagnostics: List[str] = field(default_factory=list)
+
+
 class _FakeResolver:
     def __init__(
             self, metric, semantic_model=None, measure=None, topic=None, factor=None, pipeline=None,
@@ -40,7 +60,8 @@ class _FakeResolver:
             factors: Optional[Dict[str, Optional[Factor]]] = None,
             pipelines: Optional[Dict[str, List[Pipeline]]] = None,
             pipeline_matches: Optional[Dict[str, Tuple[List[Pipeline], List[str]]]] = None,
-            sources: Optional[Dict[str, Tuple[Optional[str], Optional[str]]]] = None
+            sources: Optional[Dict[str, Tuple[Optional[str], Optional[str]]]] = None,
+            upstream_routes: Optional[Dict[str, List[_FakeUpstreamTraceRoute]]] = None
     ):
         self.metric = metric
         self.semantic_model = semantic_model
@@ -55,6 +76,7 @@ class _FakeResolver:
         self.pipelines = pipelines or {}
         self.pipeline_matches = pipeline_matches or {}
         self.sources = sources or {}
+        self.upstream_routes = upstream_routes or {}
 
     @staticmethod
     def normalize_metric_type(metric):
@@ -109,6 +131,10 @@ class _FakeResolver:
             return self.sources[measure_name]
         return semantic_model.node_relation.relation_name, "claim_id"
 
+    def trace_upstream_routes(self, topic, factor, semantic_model, measure, tenant_id):
+        topic_name = getattr(topic, "name", None)
+        return self.upstream_routes.get(topic_name, [])
+
     @staticmethod
     def _read_name(instance):
         if isinstance(instance, dict):
@@ -155,11 +181,13 @@ def _build_semantic_model(
 
 
 def _build_topic(
-        name: str = "claims_topic", topic_id: str = "topic-1", factor_name: str = "claim_id"
+        name: str = "claims_topic", topic_id: str = "topic-1", factor_name: str = "claim_id",
+        topic_type: TopicType = TopicType.DISTINCT
 ) -> Topic:
     return Topic(
         topicId=topic_id,
         name=name,
+        type=topic_type,
         factors=[Factor(factorId=f"factor-{factor_name}", name=factor_name, label=factor_name.replace("_", " ").title())]
     )
 
@@ -378,6 +406,80 @@ class MetricLineageFlowTest(unittest.TestCase):
         self.assertIn("metric-ref-female_insured_claims_count", node_ids)
         self.assertIn("metric-ref-total_claim_cases", node_ids)
         self.assertNotIn("semantic-total_claim_cases", node_ids)
+
+    def test_multihop_upstream_routes_produce_raw_root_summary(self):
+        metric = _build_metric()
+        semantic_model = _build_semantic_model()
+        measure = semantic_model.measures[0]
+        serving_topic = _build_topic(name="serving_claim_topic", topic_id="topic-serving", factor_name="claim_id")
+        serving_factor = serving_topic.factors[0]
+        transform_pipeline = _build_pipeline(name="claim_enrichment_pipeline", topic_id="topic-curated")
+        curated_topic = _build_topic(name="curated_claim_topic", topic_id="topic-curated", factor_name="claim_id")
+        curated_factor = curated_topic.factors[0]
+        raw_pipeline = _build_pipeline(name="raw_claim_standardize", topic_id="topic-raw")
+        raw_topic = _build_topic(
+            name="raw_claim_topic",
+            topic_id="topic-raw",
+            factor_name="claim_id",
+            topic_type=TopicType.RAW
+        )
+        raw_factor = raw_topic.factors[0]
+
+        service = MetricLineageService(
+            _FakePrincipal(),
+            resolver=_FakeResolver(
+                metric,
+                semantic_model=semantic_model,
+                measure=measure,
+                topic=serving_topic,
+                factor=serving_factor,
+                upstream_routes={
+                    "serving_claim_topic": [
+                        _FakeUpstreamTraceRoute(
+                            id_suffix="claim-route",
+                            title="Pipeline[claim_enrichment_pipeline] -> Raw topic[root]",
+                            steps=[
+                                _FakeUpstreamTraceStep(kind="pipeline", pipeline=transform_pipeline),
+                                _FakeUpstreamTraceStep(kind="topic", topic=curated_topic),
+                                _FakeUpstreamTraceStep(kind="topic_factor", topic=curated_topic, factor=curated_factor),
+                                _FakeUpstreamTraceStep(kind="pipeline", pipeline=raw_pipeline),
+                                _FakeUpstreamTraceStep(kind="topic", topic=raw_topic),
+                                _FakeUpstreamTraceStep(kind="topic_factor", topic=raw_topic, factor=raw_factor)
+                            ],
+                            diagnostics=[]
+                        )
+                    ]
+                }
+            )
+        )
+
+        result = service.get_metric_lineage("total_claim_cases", "t-test")
+
+        self.assertEqual("partial", result.status)
+        self.assertEqual(1, result.summary.rawTopicCount)
+        self.assertEqual(1, result.summary.routeCount)
+        self.assertGreaterEqual(result.summary.maxHopDepth, 8)
+        self.assertIsNotNone(result.routes)
+        self.assertTrue(result.routes[0].reachesRawTopic)
+        self.assertFalse(result.routes[0].reachesSource)
+        self.assertIsNotNone(result.roots)
+        self.assertIn("topic-raw_claim_topic", [root.nodeId for root in result.roots])
+        self.assertEqual(
+            [
+                "metric-total_claim_cases",
+                "semantic-claims_semantic_model",
+                "semantic-measure-claims_semantic_model-count_claim_cases",
+                "topic-serving_claim_topic",
+                "topic-factor-serving_claim_topic-claim_id",
+                "pipeline-claim_enrichment_pipeline",
+                "topic-curated_claim_topic",
+                "topic-factor-curated_claim_topic-claim_id",
+                "pipeline-raw_claim_standardize",
+                "topic-raw_claim_topic",
+                "topic-factor-raw_claim_topic-claim_id"
+            ],
+            result.paths[0].nodeIds
+        )
 
 
 if __name__ == "__main__":

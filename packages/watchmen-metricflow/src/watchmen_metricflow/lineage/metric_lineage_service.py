@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from typing import List, Optional, TYPE_CHECKING
 
 from watchmen_auth import PrincipalService
@@ -10,7 +11,7 @@ from .metric_lineage_models import LineageEdgeKind, LineageNodeType, LineageStag
     MetricLineageViewData
 
 if TYPE_CHECKING:
-    from .metric_lineage_resolver import MetricLineageResolver
+    from .metric_lineage_resolver import MetricLineageResolver, UpstreamTraceRoute, UpstreamTraceStep
 
 
 class MetricLineageService:
@@ -141,7 +142,12 @@ class MetricLineageService:
             node_type=LineageNodeType.TOPIC,
             name=topic.name,
             label=topic.name,
-            description=topic.description
+            description=topic.description,
+            metadata={
+                'topicId': topic.topicId,
+                'topicType': getattr(topic.type, 'value', topic.type),
+                'kind': getattr(topic.kind, 'value', topic.kind)
+            }
         )
         assembler.add_node(topic_node)
         assembler.add_edge(MetricLineageAssembler.edge(
@@ -167,75 +173,29 @@ class MetricLineageService:
         elif include_diagnostics:
             assembler.add_diagnostic(f'Topic factor could not be matched for measure[{measure_name}].')
 
-        pipelines = self.resolver.resolve_pipelines(topic, tenant_id)
-        matched_pipelines, pipeline_diagnostics = self.resolver.resolve_pipeline_factor_dependencies(pipelines, topic, factor)
-        if include_diagnostics:
-            assembler.add_diagnostics(pipeline_diagnostics)
-        if len(matched_pipelines) == 0:
+        trace_routes = self._trace_upstream_routes(topic, factor, semantic_model, measure, tenant_id)
+        if len(trace_routes) == 0:
             if include_diagnostics:
-                assembler.add_diagnostic(f'No related pipeline was found for topic[{topic.name}].')
+                assembler.add_diagnostic(f'No upstream route was found for topic[{topic.name}].')
             assembler.add_path(MetricLineageAssembler.path(path_id, branch.title, path_node_ids, is_primary))
             return
 
-        primary_pipeline = matched_pipelines[0]
-        for pipeline in matched_pipelines:
-            pipeline_node = MetricLineageAssembler.node(
-                node_id=self.pipeline_node_id(pipeline.name or pipeline.pipelineId),
-                stage=LineageStage.PIPELINE,
-                node_type=LineageNodeType.PIPELINE,
-                name=pipeline.name or pipeline.pipelineId,
-                label=pipeline.name or pipeline.pipelineId,
-                metadata={'topicId': pipeline.topicId, 'enabled': pipeline.enabled, 'validated': pipeline.validated}
-            )
-            assembler.add_node(pipeline_node)
-            assembler.add_edge(MetricLineageAssembler.edge(
-                from_id=previous_node_id if pipeline == primary_pipeline else topic_node.id,
-                to_id=pipeline_node.id,
-                kind=LineageEdgeKind.READS_FROM,
-                path_id=path_id
-            ))
-        primary_pipeline_node_id = self.pipeline_node_id(primary_pipeline.name or primary_pipeline.pipelineId)
-        previous_node_id = primary_pipeline_node_id
-        path_node_ids.append(primary_pipeline_node_id)
-
-        source_table_name, source_field_name = self.resolver.resolve_source(semantic_model, measure)
-        if source_table_name is None:
+        for index, trace_route in enumerate(trace_routes):
+            route_path_id = path_id if index == 0 else f'{path_id}-{trace_route.id_suffix}'
+            route_title = branch.title if index == 0 else f'{branch.title} / {trace_route.title}'
+            route_node_ids = list(path_node_ids)
+            route_previous_node_id = previous_node_id
             if include_diagnostics:
-                assembler.add_diagnostic('Source table lineage unavailable.')
-            assembler.add_path(MetricLineageAssembler.path(path_id, branch.title, path_node_ids, is_primary))
-            return
-
-        source_table_node = MetricLineageAssembler.node(
-            node_id=self.source_table_node_id(source_table_name),
-            stage=LineageStage.SOURCE,
-            node_type=LineageNodeType.SOURCE_TABLE,
-            name=source_table_name,
-            label=source_table_name
-        )
-        assembler.add_node(source_table_node)
-        assembler.add_edge(MetricLineageAssembler.edge(
-            from_id=previous_node_id, to_id=source_table_node.id, kind=LineageEdgeKind.PRODUCES, path_id=path_id))
-        previous_node_id = source_table_node.id
-        path_node_ids.append(source_table_node.id)
-
-        if source_field_name is not None:
-            source_field_node = MetricLineageAssembler.node(
-                node_id=self.source_field_node_id(source_table_name, source_field_name),
-                stage=LineageStage.SOURCE,
-                node_type=LineageNodeType.SOURCE_FIELD,
-                name=source_field_name,
-                label=source_field_name,
-                metadata={'expr': measure_expr}
+                assembler.add_diagnostics(trace_route.diagnostics)
+            route_previous_node_id = self._append_trace_route(
+                assembler=assembler,
+                path_id=route_path_id,
+                previous_node_id=route_previous_node_id,
+                path_node_ids=route_node_ids,
+                trace_route=trace_route,
+                measure_expr=measure_expr
             )
-            assembler.add_node(source_field_node)
-            assembler.add_edge(MetricLineageAssembler.edge(
-                from_id=source_table_node.id, to_id=source_field_node.id, kind=LineageEdgeKind.MAPS_TO, path_id=path_id))
-            previous_node_id = source_field_node.id
-            path_node_ids.append(source_field_node.id)
-        elif include_diagnostics:
-            assembler.add_diagnostic('Source field resolved from semantic measure expression only.')
-
-        assembler.add_path(MetricLineageAssembler.path(path_id, branch.title, path_node_ids, is_primary))
+            assembler.add_path(MetricLineageAssembler.path(route_path_id, route_title, route_node_ids, is_primary and index == 0))
 
     @staticmethod
     def build_metric_metadata(metric: MetricWithCategory) -> dict:
@@ -257,6 +217,165 @@ class MetricLineageService:
         if expr is not None:
             metadata['expr'] = expr
         return metadata
+
+    def _trace_upstream_routes(
+            self, topic: Topic, factor: Optional[Factor], semantic_model: SemanticModel, measure: Measure, tenant_id: str
+    ):
+        trace = getattr(self.resolver, 'trace_upstream_routes', None)
+        if callable(trace):
+            routes = trace(topic, factor, semantic_model, measure, tenant_id) or []
+            if len(routes) != 0:
+                return routes
+        return self._build_legacy_trace_routes(topic, factor, semantic_model, measure, tenant_id)
+
+    def _build_legacy_trace_routes(
+            self, topic: Topic, factor: Optional[Factor], semantic_model: SemanticModel, measure: Measure, tenant_id: str
+    ):
+        pipelines = self.resolver.resolve_pipelines(topic, tenant_id)
+        matched_pipelines, pipeline_diagnostics = self.resolver.resolve_pipeline_factor_dependencies(pipelines, topic, factor)
+        if len(matched_pipelines) == 0:
+            source_table_name, source_field_name = self.resolver.resolve_source(semantic_model, measure)
+            if source_table_name is None:
+                return []
+            diagnostics = list(pipeline_diagnostics)
+            diagnostics.append(f'No related pipeline was found for topic[{topic.name}], used semantic source fallback.')
+            steps = [SimpleNamespace(kind='source_table', source_table_name=source_table_name, source_field_name=None)]
+            if source_field_name is not None:
+                steps.append(SimpleNamespace(
+                    kind='source_field', source_table_name=source_table_name, source_field_name=source_field_name
+                ))
+            return [SimpleNamespace(
+                id_suffix='legacy-source',
+                title='Legacy source fallback',
+                steps=steps,
+                diagnostics=diagnostics
+            )]
+
+        routes = []
+        for index, pipeline in enumerate(matched_pipelines):
+            steps = [SimpleNamespace(kind='pipeline', pipeline=pipeline)]
+            source_table_name, source_field_name = self.resolver.resolve_source(semantic_model, measure)
+            if source_table_name is not None:
+                steps.append(SimpleNamespace(kind='source_table', source_table_name=source_table_name, source_field_name=None))
+                if source_field_name is not None:
+                    steps.append(SimpleNamespace(
+                        kind='source_field', source_table_name=source_table_name, source_field_name=source_field_name
+                    ))
+            routes.append(SimpleNamespace(
+                id_suffix=f'legacy-{index + 1}',
+                title=f'Legacy route {index + 1}',
+                steps=steps,
+                diagnostics=list(pipeline_diagnostics)
+            ))
+        return routes
+
+    def _append_trace_route(
+            self, assembler: MetricLineageAssembler, path_id: str, previous_node_id: str, path_node_ids: List[str], trace_route,
+            measure_expr: Optional[str]
+    ) -> str:
+        for step in trace_route.steps:
+            previous_node_id = self._append_trace_step(
+                assembler=assembler,
+                path_id=path_id,
+                previous_node_id=previous_node_id,
+                path_node_ids=path_node_ids,
+                step=step,
+                measure_expr=measure_expr
+            )
+        return previous_node_id
+
+    def _append_trace_step(
+            self, assembler: MetricLineageAssembler, path_id: str, previous_node_id: str, path_node_ids: List[str], step,
+            measure_expr: Optional[str]
+    ) -> str:
+        if step.kind == 'pipeline' and step.pipeline is not None:
+            pipeline = step.pipeline
+            pipeline_node = MetricLineageAssembler.node(
+                node_id=self.pipeline_node_id(pipeline.name or pipeline.pipelineId),
+                stage=LineageStage.PIPELINE,
+                node_type=LineageNodeType.PIPELINE,
+                name=pipeline.name or pipeline.pipelineId,
+                label=pipeline.name or pipeline.pipelineId,
+                metadata={'topicId': pipeline.topicId, 'enabled': pipeline.enabled, 'validated': pipeline.validated}
+            )
+            assembler.add_node(pipeline_node)
+            assembler.add_edge(MetricLineageAssembler.edge(
+                from_id=previous_node_id, to_id=pipeline_node.id, kind=LineageEdgeKind.READS_FROM, path_id=path_id
+            ))
+            path_node_ids.append(pipeline_node.id)
+            return pipeline_node.id
+
+        if step.kind == 'topic' and step.topic is not None:
+            topic = step.topic
+            topic_node = MetricLineageAssembler.node(
+                node_id=self.topic_node_id(topic.name),
+                stage=LineageStage.TOPIC,
+                node_type=LineageNodeType.TOPIC,
+                name=topic.name,
+                label=topic.name,
+                description=topic.description,
+                badge='raw' if self._read_attr(topic, 'type') == 'raw' or getattr(topic.type, 'value', topic.type) == 'raw' else None,
+                metadata={
+                    'topicId': topic.topicId,
+                    'topicType': getattr(topic.type, 'value', topic.type),
+                    'kind': getattr(topic.kind, 'value', topic.kind)
+                }
+            )
+            assembler.add_node(topic_node)
+            assembler.add_edge(MetricLineageAssembler.edge(
+                from_id=previous_node_id, to_id=topic_node.id, kind=LineageEdgeKind.READS_FROM, path_id=path_id
+            ))
+            path_node_ids.append(topic_node.id)
+            return topic_node.id
+
+        if step.kind == 'topic_factor' and step.topic is not None and step.factor is not None:
+            factor_node = MetricLineageAssembler.node(
+                node_id=self.topic_factor_node_id(step.topic.name, step.factor.name),
+                stage=LineageStage.TOPIC,
+                node_type=LineageNodeType.TOPIC_FACTOR,
+                name=step.factor.name,
+                label=step.factor.label or step.factor.name,
+                description=step.factor.description
+            )
+            assembler.add_node(factor_node)
+            assembler.add_edge(MetricLineageAssembler.edge(
+                from_id=previous_node_id, to_id=factor_node.id, kind=LineageEdgeKind.MAPS_TO, path_id=path_id
+            ))
+            path_node_ids.append(factor_node.id)
+            return factor_node.id
+
+        if step.kind == 'source_table' and step.source_table_name is not None:
+            source_table_node = MetricLineageAssembler.node(
+                node_id=self.source_table_node_id(step.source_table_name),
+                stage=LineageStage.SOURCE,
+                node_type=LineageNodeType.SOURCE_TABLE,
+                name=step.source_table_name,
+                label=step.source_table_name
+            )
+            assembler.add_node(source_table_node)
+            assembler.add_edge(MetricLineageAssembler.edge(
+                from_id=previous_node_id, to_id=source_table_node.id, kind=LineageEdgeKind.PRODUCES, path_id=path_id
+            ))
+            path_node_ids.append(source_table_node.id)
+            return source_table_node.id
+
+        if step.kind == 'source_field' and step.source_table_name is not None and step.source_field_name is not None:
+            source_field_node = MetricLineageAssembler.node(
+                node_id=self.source_field_node_id(step.source_table_name, step.source_field_name),
+                stage=LineageStage.SOURCE,
+                node_type=LineageNodeType.SOURCE_FIELD,
+                name=step.source_field_name,
+                label=step.source_field_name,
+                metadata={'expr': measure_expr}
+            )
+            assembler.add_node(source_field_node)
+            assembler.add_edge(MetricLineageAssembler.edge(
+                from_id=previous_node_id, to_id=source_field_node.id, kind=LineageEdgeKind.MAPS_TO, path_id=path_id
+            ))
+            path_node_ids.append(source_field_node.id)
+            return source_field_node.id
+
+        return previous_node_id
 
     @staticmethod
     def _read_attr(instance, name: str):

@@ -81,6 +81,8 @@ const SemanticModelManagement: React.FC = () => {
     )
   );
 
+
+
   useEffect(() => {
     loadData();
   }, []);

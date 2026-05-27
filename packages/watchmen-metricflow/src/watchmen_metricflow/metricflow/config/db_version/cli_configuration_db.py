@@ -93,6 +93,7 @@ class CLIConfigurationDB(CLIConfiguration):
 
             project_root = str(dbt_project_path) if dbt_project_path else str(Path.cwd())
             project_path = Path(project_root).resolve()
+            print(self.profile)
 
             ## todo only one profile
             profile = load_profile(self.profile)

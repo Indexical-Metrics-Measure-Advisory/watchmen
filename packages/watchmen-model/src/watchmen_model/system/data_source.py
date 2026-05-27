@@ -18,6 +18,7 @@ class DataSourceType(str, Enum):
 	POSTGRESQL = 'postgresql',
 	SNOWFLAKE = 'snowflake',
 	OSS = 'oss',
+	DYNAMODB = 'dynamodb',
 	S3 = 's3',
 	ADLS = 'adls'  # Azure Data Lake Storage
 

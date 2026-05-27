@@ -1,4 +1,5 @@
 import {Store} from '../state/store';
+import {renderObservePage} from './pages/observe-page';
 import {renderPerceivePage} from './pages/perceive-page';
 import {renderIngestPage} from './pages/ingest-page';
 import {renderModelPage} from './pages/model-page';
@@ -9,6 +10,9 @@ import {renderSettingsPage} from './pages/settings-page';
 
 export const renderMainContent = (store: Store) => {
 	const {state} = store;
+	if (state.main === 'observe') {
+		return renderObservePage(store);
+	}
 	if (state.main === 'perceive') {
 		return renderPerceivePage(store);
 	}
@@ -22,10 +26,10 @@ export const renderMainContent = (store: Store) => {
 		return renderTransformPage(store);
 	}
 	if (state.main === 'govern') {
-		return renderGovernPage();
+		return renderGovernPage(store);
 	}
 	if (state.main === 'feedback') {
-		return renderFeedbackPage();
+		return renderFeedbackPage(store);
 	}
 	const label = store.data.mainNav.find(item => item.key === state.main)?.label || state.main;
 	return renderSettingsPage(label);

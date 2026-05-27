@@ -1,8 +1,20 @@
-import {createInitialState} from '../data';
-import {AppState, ChatMessage, MainNavKey, PerceiveChangeStatus, AgentLog, EventFilter} from '../types';
+import { createInitialState } from "../data";
+import {
+	AppState,
+	ChatMessage,
+	MainNavKey,
+	PerceiveChangeStatus,
+	AgentLog,
+	EventFilter,
+	ObservabilityDirection,
+	ObservabilityView,
+	ObservabilityCatalogFilter,
+	ObservabilityGraphZoom,
+	ObservabilityEventFilter,
+} from "../types";
 
 export type RuntimeData = {
-	mainNav: Array<{key: MainNavKey; label: string; icon: string}>;
+	mainNav: Array<{ key: MainNavKey; label: string; icon: string }>;
 };
 
 export type Store = {
@@ -14,6 +26,14 @@ export type Store = {
 	setPerceiveScenarioStatus: (scenarioId: string, status: PerceiveChangeStatus) => void;
 	setEventFilter: (filter: EventFilter) => void;
 	addAgentLog: (log: AgentLog) => void;
+	setObservabilityView: (view: ObservabilityView) => void;
+	setObservabilityDirection: (direction: ObservabilityDirection) => void;
+	setObservabilityFocusNode: (nodeId: string) => void;
+	setObservabilitySelectedNode: (nodeId: string) => void;
+	setObserveCatalogFilter: (patch: Partial<ObservabilityCatalogFilter>) => void;
+	setObserveGraphZoom: (zoom: ObservabilityGraphZoom, domain?: string) => void;
+	setObserveEventFilter: (patch: Partial<ObservabilityEventFilter>) => void;
+	setObserveGlobalSearch: (search: string) => void;
 };
 
 export const createStore = (initialData: RuntimeData): Store => {
@@ -31,7 +51,7 @@ export const createStore = (initialData: RuntimeData): Store => {
 			state.selectedScenarioId = id;
 		},
 		setPerceiveScenarioStatus: (scenarioId: string, status: PerceiveChangeStatus) => {
-			const scenario = state.perceiveScenarios.find(s => s.id === scenarioId);
+			const scenario = state.perceiveScenarios.find((s) => s.id === scenarioId);
 			if (scenario) {
 				scenario.status = status;
 			}
@@ -41,6 +61,32 @@ export const createStore = (initialData: RuntimeData): Store => {
 		},
 		addAgentLog: (log: AgentLog) => {
 			state.agentLogs.push(log);
-		}
+		},
+		setObservabilityView: (view: ObservabilityView) => {
+			state.observabilityView = view;
+		},
+		setObservabilityDirection: (direction: ObservabilityDirection) => {
+			state.observabilityDirection = direction;
+		},
+		setObservabilityFocusNode: (nodeId: string) => {
+			state.observabilityFocusNodeId = nodeId;
+			state.observabilitySelectedNodeId = nodeId;
+		},
+		setObservabilitySelectedNode: (nodeId: string) => {
+			state.observabilitySelectedNodeId = nodeId;
+		},
+		setObserveCatalogFilter: (patch: Partial<ObservabilityCatalogFilter>) => {
+			Object.assign(state.observabilityCatalogFilter, patch);
+		},
+		setObserveGraphZoom: (zoom: ObservabilityGraphZoom, domain?: string) => {
+			state.observabilityGraphZoom = zoom;
+			state.observabilityGraphDomain = domain || "";
+		},
+		setObserveEventFilter: (patch: Partial<ObservabilityEventFilter>) => {
+			Object.assign(state.observabilityEventFilter, patch);
+		},
+		setObserveGlobalSearch: (search: string) => {
+			state.observabilityGlobalSearch = search;
+		},
 	};
 };

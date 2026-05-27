@@ -70,12 +70,50 @@ class LineagePath(BaseModel):
     isPrimary: Optional[bool] = None
 
 
+class LineageRoute(BaseModel):
+    model_config = ConfigDict(use_enum_values=True)
+
+    id: str
+    title: str
+    nodeIds: List[str]
+    hopDepth: int = 0
+    reachesSource: bool = False
+    reachesRawTopic: bool = False
+    isPrimary: Optional[bool] = None
+
+
+class LineageGroup(BaseModel):
+    model_config = ConfigDict(use_enum_values=True)
+
+    id: str
+    stage: LineageStage
+    title: str
+    totalNodes: int = 0
+    activeNodes: int = 0
+    collapsedNodeCount: int = 0
+    previewNodeIds: List[str] = Field(default_factory=list)
+
+
+class LineageRoot(BaseModel):
+    model_config = ConfigDict(use_enum_values=True)
+
+    nodeId: str
+    label: str
+    nodeType: LineageNodeType
+    routeIds: List[str] = Field(default_factory=list)
+    hopDepth: int = 0
+
+
 class MetricLineageSummary(BaseModel):
     metricType: str = 'unknown'
     semanticModelCount: int = 0
     topicCount: int = 0
     pipelineCount: int = 0
     sourceFieldCount: int = 0
+    sourceTableCount: int = 0
+    routeCount: int = 0
+    maxHopDepth: int = 0
+    rawTopicCount: int = 0
 
 
 class MetricLineageViewData(BaseModel):
@@ -87,6 +125,9 @@ class MetricLineageViewData(BaseModel):
     nodes: List[LineageNode]
     edges: List[LineageEdge]
     paths: List[LineagePath]
+    routes: Optional[List[LineageRoute]] = None
+    groups: Optional[List[LineageGroup]] = None
+    roots: Optional[List[LineageRoot]] = None
     diagnostics: Optional[List[str]] = None
 
 

@@ -9,6 +9,84 @@ const cloneMetricLineageViewData = (data: MetricLineageViewData): MetricLineageV
   JSON.parse(JSON.stringify(data)) as MetricLineageViewData
 );
 
+const normalizeMetricLineageViewData = (data: MetricLineageViewData): MetricLineageViewData => {
+  const nodes = data.nodes || [];
+  const paths = data.paths || [];
+  const nodeMap = new Map(nodes.map(node => [node.id, node]));
+  const routes = data.routes || paths.map(path => {
+    const pathNodes = path.nodeIds.map(nodeId => nodeMap.get(nodeId)).filter(Boolean);
+    return {
+      id: path.id,
+      title: path.title,
+      nodeIds: path.nodeIds,
+      hopDepth: Math.max(path.nodeIds.length - 1, 0),
+      reachesSource: pathNodes.some(node => node?.stage === 'source'),
+      reachesRawTopic: pathNodes.some(node => node?.type === 'topic' && (
+        node.badge === 'raw'
+        || node.metadata?.topicType === 'raw'
+        || node.metadata?.type === 'raw'
+      )),
+      isPrimary: path.isPrimary,
+    };
+  });
+
+  const groups = data.groups || (['metric', 'semantic', 'topic', 'pipeline', 'source'] as const)
+    .map(stage => {
+      const stageNodes = nodes.filter(node => node.stage === stage);
+      if (stageNodes.length === 0) {
+        return null;
+      }
+      const activeNodeIds = new Set(paths.flatMap(path => path.nodeIds).filter(nodeId => nodeMap.get(nodeId)?.stage === stage));
+      const previewNodeIds = stageNodes.slice(0, 3).map(node => node.id);
+      return {
+        id: `group-${stage}`,
+        stage,
+        title: `${stage.charAt(0).toUpperCase()}${stage.slice(1)} Group`,
+        totalNodes: stageNodes.length,
+        activeNodes: activeNodeIds.size,
+        collapsedNodeCount: Math.max(stageNodes.length - previewNodeIds.length, 0),
+        previewNodeIds,
+      };
+    })
+    .filter(Boolean);
+
+  const roots = data.roots || nodes
+    .filter((node): node is typeof node & { type: 'topic' | 'source_table' | 'source_field' } => (
+      node.type === 'source_table'
+      || node.type === 'source_field'
+      || (node.type === 'topic' && (
+        node.badge === 'raw'
+        || node.metadata?.topicType === 'raw'
+        || node.metadata?.type === 'raw'
+      ))
+    ))
+    .map(node => ({
+      nodeId: node.id,
+      label: node.label || node.name,
+      nodeType: node.type,
+      routeIds: paths.filter(path => path.nodeIds.includes(node.id)).map(path => path.id),
+      hopDepth: Math.max(...paths.filter(path => path.nodeIds.includes(node.id)).map(path => path.nodeIds.indexOf(node.id)), 0),
+    }));
+
+  return {
+    ...data,
+    summary: {
+      ...data.summary,
+      sourceTableCount: data.summary.sourceTableCount ?? nodes.filter(node => node.type === 'source_table').length,
+      routeCount: data.summary.routeCount ?? routes.length,
+      maxHopDepth: data.summary.maxHopDepth ?? Math.max(...routes.map(route => route.hopDepth), 0),
+      rawTopicCount: data.summary.rawTopicCount ?? nodes.filter(node => node.type === 'topic' && (
+        node.badge === 'raw'
+        || node.metadata?.topicType === 'raw'
+        || node.metadata?.type === 'raw'
+      )).length,
+    },
+    routes,
+    groups,
+    roots,
+  };
+};
+
 const mockLineageMap: Record<string, MetricLineageViewData> = {
   total_claim_cases: {
     metricName: 'total_claim_cases',
@@ -536,6 +614,10 @@ const mockLineageMap: Record<string, MetricLineageViewData> = {
 
 const getMetricLineageMockSuggestions = (): string[] => Object.keys(mockLineageMap);
 
+const isMetricLineageMockMetricName = (metricName: string): boolean => (
+  Object.prototype.hasOwnProperty.call(mockLineageMap, metricName.trim().toLowerCase())
+);
+
 const getMetricLineageSuggestionsFromApi = async (): Promise<string[]> => {
   const response = await fetch(METRICS_BASE_URL, {
     method: 'GET',
@@ -559,9 +641,9 @@ const getMetricLineageMock = async (metricName: string): Promise<MetricLineageVi
   await delay(450);
   const normalized = metricName.trim().toLowerCase();
   const match = mockLineageMap[normalized];
-  if (match) return cloneMetricLineageViewData(match);
+  if (match) return normalizeMetricLineageViewData(cloneMetricLineageViewData(match));
 
-  return {
+  return normalizeMetricLineageViewData({
     metricName: metricName.trim(),
     status: 'unresolved',
     summary: {
@@ -578,7 +660,7 @@ const getMetricLineageMock = async (metricName: string): Promise<MetricLineageVi
       `No lineage mock was found for "${metricName.trim()}".`,
       'Try one of the suggested metric names to preview the designed experience.',
     ],
-  };
+  });
 };
 
 const getMetricLineageFromApi = async (metricName: string): Promise<MetricLineageViewData> => {
@@ -588,7 +670,7 @@ const getMetricLineageFromApi = async (metricName: string): Promise<MetricLineag
   });
 
   const data = await checkResponse(response);
-  return data as MetricLineageViewData;
+  return normalizeMetricLineageViewData(data as MetricLineageViewData);
 };
 
 type MetricLineageDataSource = 'api' | 'mock';
@@ -599,12 +681,7 @@ class MetricLineageService {
   async getLineage(metricName: string): Promise<MetricLineageViewData> {
     switch (this.dataSource) {
       case 'api':
-        try {
-          return await getMetricLineageFromApi(metricName);
-        } catch (error) {
-          console.warn('Failed to fetch metric lineage from API, fallback to mock data.', error);
-          return getMetricLineageMock(metricName);
-        }
+        return await getMetricLineageFromApi(metricName);
       case 'mock':
       default:
         return getMetricLineageMock(metricName);
@@ -615,11 +692,10 @@ class MetricLineageService {
     switch (this.dataSource) {
       case 'api':
         try {
-          const suggestions = await getMetricLineageSuggestionsFromApi();
-          return suggestions.length > 0 ? suggestions : getMetricLineageMockSuggestions();
+          return await getMetricLineageSuggestionsFromApi();
         } catch (error) {
-          console.warn('Failed to fetch metric lineage suggestions from API, fallback to mock data.', error);
-          return getMetricLineageMockSuggestions();
+          console.warn('Failed to fetch metric lineage suggestions from API.', error);
+          return [];
         }
       case 'mock':
       default:
@@ -635,3 +711,10 @@ export const getMetricLineage = async (metricName: string): Promise<MetricLineag
 );
 
 export const getMetricLineageSuggestions = async (): Promise<string[]> => metricLineageService.getSuggestions();
+
+export const isMetricLineageMockMetric = (metricName: string): boolean => isMetricLineageMockMetricName(metricName);
+
+export const isMetricLineageMockData = (data: MetricLineageViewData): boolean => (
+  (data.diagnostics || []).some(item => /mock data|lineage mock/i.test(item))
+  || isMetricLineageMockMetricName(data.metricName || '')
+);

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { DateRange } from 'react-day-picker';
-import { addDays, format } from 'date-fns';
+import { addDays } from 'date-fns';
 import type { BIChartCard, BICardSize, GlobalAlertRule } from '@/model/biAnalysis';
 import type { AlertStatus } from '@/model/AlertConfig';
 import { saveAnalysis, listAnalyses, getAnalysis, deleteAnalysis, updateAnalysis, updateAnalysisTemplate } from '@/services/biAnalysisService';
@@ -17,6 +17,15 @@ interface UseAnalysisStateOptions {
   clearCardDataMap: () => void;
   setAlertStatusMap: React.Dispatch<React.SetStateAction<Record<string, AlertStatus>>>;
 }
+
+const LAST_ANALYSIS_STORAGE_KEY = 'watchmen_bi_last_analysis_id';
+
+const getLastAnalysisStorageKey = (tenantId?: string | null): string =>
+  tenantId ? `${LAST_ANALYSIS_STORAGE_KEY}:${tenantId}` : LAST_ANALYSIS_STORAGE_KEY;
+
+const clearLegacyLastAnalysisStorageKey = (): void => {
+  localStorage.removeItem(LAST_ANALYSIS_STORAGE_KEY);
+};
 
 export const useAnalysisState = (options: UseAnalysisStateOptions) => {
   const { clearCardDataMap, setAlertStatusMap } = options;
@@ -57,7 +66,7 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
   // ── Refs ──
   const cardsRef = useRef(cards);
   cardsRef.current = cards;
-  const initialLoadDone = useRef(false);
+  const initializedTenantIdRef = useRef<string | null>(null);
 
   // ── Scroll to dashboard when switching section ──
   useEffect(() => {
@@ -134,9 +143,10 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
     setCurrentAnalysisId(null);
     setSaveName('');
     setSaveDesc('');
-    localStorage.removeItem('watchmen_bi_last_analysis_id');
+    localStorage.removeItem(getLastAnalysisStorageKey(user?.tenantId));
+    clearLegacyLastAnalysisStorageKey();
     toast({ title: 'Board Reset', description: 'Started a new analysis' });
-  }, [clearCardDataMap, toast]);
+  }, [clearCardDataMap, toast, user?.tenantId]);
 
   const handleSave = useCallback(async () => {
     if (!saveName.trim()) {
@@ -156,6 +166,8 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
     } else {
       const record = await saveAnalysis({ id: "", name: saveName.trim(), description: saveDesc.trim(), cards: currentCards, userId: user.userId });
       setCurrentAnalysisId(record.id);
+      localStorage.setItem(getLastAnalysisStorageKey(user.tenantId), record.id);
+      clearLegacyLastAnalysisStorageKey();
       toast({ title: 'Saved', description: 'Analysis board has been saved' });
     }
 
@@ -176,47 +188,70 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
     const currentCards = cardsRef.current;
     const record = await saveAnalysis({ id: "", name: saveName.trim(), description: saveDesc.trim(), cards: currentCards, userId: user.userId });
     setCurrentAnalysisId(record.id);
+    localStorage.setItem(getLastAnalysisStorageKey(user.tenantId), record.id);
+    clearLegacyLastAnalysisStorageKey();
     setSaveOpen(false);
     refreshTemplates();
     toast({ title: 'Saved', description: 'Analysis saved as new copy' });
   }, [saveName, saveDesc, user?.userId, toast, refreshTemplates]);
 
-  const loadTemplate = useCallback(async (id: string) => {
-    const tpl = await getAnalysis(id);
-    if (!tpl) return;
-    clearCardDataMap();
-    setCards(tpl.cards);
-    if (tpl.isTemplate) {
-      setCurrentAnalysisId(null);
-      localStorage.removeItem('watchmen_bi_last_analysis_id');
-      toast({ title: 'Template loaded', description: `Loaded "${tpl.name}" as a new board` });
-    } else {
-      setCurrentAnalysisId(tpl.id);
-      localStorage.setItem('watchmen_bi_last_analysis_id', tpl.id);
-      toast({ title: 'Analysis loaded', description: `Board switched to "${tpl.name}"` });
+  const loadTemplate = useCallback(async (id: string, fromStorage = false) => {
+    try {
+      const tpl = await getAnalysis(id);
+      if (!tpl) return;
+      clearCardDataMap();
+      setCards(tpl.cards);
+      if (tpl.isTemplate) {
+        setCurrentAnalysisId(null);
+        localStorage.removeItem(getLastAnalysisStorageKey(user?.tenantId));
+        clearLegacyLastAnalysisStorageKey();
+        toast({ title: 'Template loaded', description: `Loaded "${tpl.name}" as a new board` });
+      } else {
+        setCurrentAnalysisId(tpl.id);
+        localStorage.setItem(getLastAnalysisStorageKey(user?.tenantId), tpl.id);
+        clearLegacyLastAnalysisStorageKey();
+        toast({ title: 'Analysis loaded', description: `Board switched to "${tpl.name}"` });
+      }
+      setSaveName(tpl.name);
+      setSaveDesc(tpl.description || '');
+      setActiveSection('dashboard');
+      setPendingScrollToDashboard(true);
+    } catch (error) {
+      if (fromStorage) {
+        localStorage.removeItem(getLastAnalysisStorageKey(user?.tenantId));
+        clearLegacyLastAnalysisStorageKey();
+      }
+      throw error;
     }
-    setSaveName(tpl.name);
-    setSaveDesc(tpl.description || '');
-    setActiveSection('dashboard');
-    setPendingScrollToDashboard(true);
-  }, [clearCardDataMap, toast]);
+  }, [clearCardDataMap, toast, user?.tenantId]);
 
   // ── Load last visited analysis on mount ──
   useEffect(() => {
-    if (initialLoadDone.current) return;
-    initialLoadDone.current = true;
+    const tenantId = user?.tenantId;
+    if (!tenantId) return;
+    if (initializedTenantIdRef.current === tenantId) return;
+    initializedTenantIdRef.current = tenantId;
 
-    const lastId = localStorage.getItem('watchmen_bi_last_analysis_id');
+    clearLegacyLastAnalysisStorageKey();
+
+    const lastId = localStorage.getItem(getLastAnalysisStorageKey(tenantId));
     if (lastId) {
-      void loadTemplate(lastId);
+      void loadTemplate(lastId, true).catch(error => {
+        console.error('Failed to restore last analysis', error);
+      });
     }
-  }, [loadTemplate]);
+  }, [loadTemplate, user?.tenantId]);
 
   const deleteTemplate = useCallback(async (id: string) => {
     await deleteAnalysis(id);
+    if (currentAnalysisId === id) {
+      localStorage.removeItem(getLastAnalysisStorageKey(user?.tenantId));
+      clearLegacyLastAnalysisStorageKey();
+      setCurrentAnalysisId(null);
+    }
     refreshTemplates();
     toast({ title: 'Deleted', description: 'Analysis deleted' });
-  }, [toast, refreshTemplates]);
+  }, [currentAnalysisId, toast, refreshTemplates, user?.tenantId]);
 
   const toggleTemplate = useCallback(async (template: typeof templates[0]) => {
     const newStatus = !template.isTemplate;
@@ -355,7 +390,6 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
     setSubscriptionOpen,
     templates,
     cardsRef,
-    initialLoadDone,
     ackAlertId,
     setAckAlertId,
 
