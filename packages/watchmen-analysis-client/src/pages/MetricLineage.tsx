@@ -2,6 +2,7 @@ import React from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
+import { useAuth } from '@/contexts/AuthContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -42,6 +43,12 @@ import {
 } from 'lucide-react';
 
 const RECENT_METRICS_KEY = 'watchmen_metric_lineage_recent_metrics';
+const getRecentMetricsStorageKey = (tenantId?: string | null): string =>
+  tenantId ? `${RECENT_METRICS_KEY}:${tenantId}` : RECENT_METRICS_KEY;
+
+const clearLegacyRecentMetricsStorageKey = (): void => {
+  localStorage.removeItem(RECENT_METRICS_KEY);
+};
 const STAGE_ORDER: LineageStage[] = ['metric', 'semantic', 'topic', 'pipeline', 'source'];
 
 const STAGE_META: Record<LineageStage, { title: string; description: string; icon: React.ReactNode; className: string; accentClass: string }> = {
@@ -122,9 +129,9 @@ const getNodeIcon = (node: LineageNode) => {
   }
 };
 
-const readRecentMetrics = (): string[] => {
+const readRecentMetrics = (tenantId?: string | null): string[] => {
   try {
-    const raw = localStorage.getItem(RECENT_METRICS_KEY);
+    const raw = localStorage.getItem(getRecentMetricsStorageKey(tenantId));
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed)
@@ -135,9 +142,10 @@ const readRecentMetrics = (): string[] => {
   }
 };
 
-const writeRecentMetrics = (metricName: string): string[] => {
-  const next = [metricName, ...readRecentMetrics().filter(item => item !== metricName)].slice(0, 6);
-  localStorage.setItem(RECENT_METRICS_KEY, JSON.stringify(next));
+const writeRecentMetrics = (metricName: string, tenantId?: string | null): string[] => {
+  const next = [metricName, ...readRecentMetrics(tenantId).filter(item => item !== metricName)].slice(0, 6);
+  localStorage.setItem(getRecentMetricsStorageKey(tenantId), JSON.stringify(next));
+  clearLegacyRecentMetricsStorageKey();
   return next;
 };
 
@@ -271,6 +279,7 @@ const getMetricDependencyDiagnostics = (diagnostics?: string[], referencedMetric
 
 const MetricLineagePage: React.FC = () => {
   const { collapsed } = useSidebar();
+  const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -298,7 +307,7 @@ const MetricLineagePage: React.FC = () => {
       setSelectedPathId(primaryPath?.id || null);
       setSelectedNodeId(nextSelectedNodeId);
       setSearchParams({ metric: trimmed });
-      setRecentMetrics(isMetricLineageMockData(result) ? readRecentMetrics() : writeRecentMetrics(trimmed));
+      setRecentMetrics(isMetricLineageMockData(result) ? readRecentMetrics(user?.tenantId) : writeRecentMetrics(trimmed, user?.tenantId));
     } catch (error) {
       console.error('Failed to load metric lineage:', error);
       toast({
@@ -309,11 +318,13 @@ const MetricLineagePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [setSearchParams, toast]);
+  }, [setSearchParams, toast, user?.tenantId]);
 
   React.useEffect(() => {
-    setRecentMetrics(readRecentMetrics());
-  }, []);
+    if (!user?.tenantId) return;
+    clearLegacyRecentMetricsStorageKey();
+    setRecentMetrics(readRecentMetrics(user.tenantId));
+  }, [user?.tenantId]);
 
   React.useEffect(() => {
     let active = true;

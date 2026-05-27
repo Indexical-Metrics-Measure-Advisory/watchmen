@@ -47,7 +47,25 @@ When creating new resources locally, use **fake IDs** with `f-` prefix or leave 
 - Core fields and types: `topicId:str`, `name:str`, `description:str|None`, `type:str`, `kind:str`, `dataSourceId:str`, `factors:list[Factor]`.
 - Factor core fields and types: `factorId:str`, `name:str`, `type:str`, `label:str`, `enumId:str|None`.
 - Topic type candidates: `raw`, `distinct`, `aggregate`, `ratio`, `time`.
-- Factor type candidates: `sequence`, `number`, `unsigned`, `text`, `address`, `continent`, `region`, `country`, `province`, `city`, `district`, `road`, `community`, `floor`, `residence_type`, `residential_area`, `email`, `phone`, `mobile`, `fax`, `gender`, `occupation`, `date_of_birth`, `age`, `id_no`, `relation`, `name`, `description`, `zip_code`, `full_name`, `first_name`, `middle_name`, `last_name`, `unit_number`, `display_name`, `abbreviation`, `nick_name`, `resource_url`, `image`, `attachment`, `institute`, `department_head`, `team`, `business_unit`, `loyalty`, `currency`, `percentage`, `permillage`, `code`, `json`, `xml`, `yaml`, `datetime`, `full_datetime`, `date`, `time`, `year`, `half_year`, `quarter`, `month`, `half_month`, `ten_days`, `week_of_year`, `week_of_month`, `half_week`, `day_of_month`, `day_of_week`, `day_kind`, `hour`, `minute`, `second`, `millisecond`, `am_pm`, `enum`.
+- **Factor type source of truth**: align with `watchmen-web-client/src/services/data/tuples/factor-types.ts`. Use the exact serialized enum values in YAML.
+- Factor type candidates:
+  - Numeric: `sequence`, `number`, `unsigned`
+  - Text and generic: `text`, `boolean`, `enum`, `object`, `array`
+  - Address: `address`, `continent`, `region`, `country`, `province`, `city`, `district`, `road`, `community`, `floor`, `residence-type`, `residential-area`
+  - Contact: `email`, `phone`, `mobile`, `fax`
+  - Datetime: `datetime`, `full-datetime`, `date`, `time`, `year`, `half-year`, `quarter`, `month`, `half-month`, `ten-days`, `week-of-year`, `week-of-month`, `half-week`, `day-of-month`, `day-of-week`, `day-kind`, `hour`, `hour-kind`, `minute`, `second`, `millisecond`, `am-pm`
+  - Individual: `gender`, `occupation`, `date-of-birth`, `age`, `id-no`, `religion`, `nationality`
+  - Organization: `biz-trade`, `biz-scale`
+- Factor type recommendations:
+  - Use `sequence` for generated technical identifiers or row sequence fields.
+  - Use `unsigned` for non-negative counts and amounts; use `number` when negative or decimal values are possible.
+  - Use `text` as the default for free-form strings; switch to a semantic subtype only when downstream logic depends on it.
+  - Use `enum` together with `enumId` for coded business values instead of plain `text`.
+  - Use `date`, `datetime`, or `full-datetime` for real timestamps instead of storing them as `text`.
+  - Use `boolean` for flags; avoid modeling `Y/N` or `0/1` flags as `text` unless source compatibility requires it.
+  - Use `object` and `array` only for raw payload retention; prefer flattened business factors for downstream pipelines and metrics.
+  - For numeric factors used in comparison or calculation, prefer `number`, `unsigned`, `age`, `residential-area`, or `biz-scale`.
+- Naming note: use hyphenated serialized values such as `residence-type`, `date-of-birth`, `full-datetime`, `half-year`, `week-of-year`, and `am-pm`. Do not use underscore variants in YAML.
 - **System Topics**: Topics with `kind: system` (e.g., monitor logs, DQC results) **cannot be pulled or pushed** via CLI. These are managed internally by the platform.
 - Prefer `kind: business` for newly created topics.
 - Ensure each factor has a business-friendly `label`.
