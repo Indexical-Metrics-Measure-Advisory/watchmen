@@ -11,7 +11,7 @@ import {
 	ObservabilityCatalogFilter,
 	ObservabilityGraphZoom,
 	ObservabilityEventFilter,
-} from "../types";
+} from "../models";
 
 export type RuntimeData = {
 	mainNav: Array<{ key: MainNavKey; label: string; icon: string }>;

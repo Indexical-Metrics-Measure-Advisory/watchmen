@@ -1,5 +1,5 @@
 import {Store} from '../state/store';
-import {AgentLogAction} from '../types';
+import {AgentLogAction} from '../models';
 
 const actionDotClass = (action: AgentLogAction) => {
 	switch (action) {

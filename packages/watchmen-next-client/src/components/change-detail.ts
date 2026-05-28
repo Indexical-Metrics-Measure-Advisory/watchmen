@@ -1,5 +1,5 @@
 import {Store} from '../state/store';
-import {PerceiveScenario, PerceiveChangeItem} from '../types';
+import {PerceiveScenario, PerceiveChangeItem} from '../models';
 
 const severityLabel = (s: string) => {
 	switch (s) {

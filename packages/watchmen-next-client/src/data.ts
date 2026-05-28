@@ -14,7 +14,7 @@ import {
 	ObservabilityStageHealth,
 	GovernRule,
 	MaskingPolicy,
-} from "./types";
+} from "./models";
 
 export const mainNav: Array<{ key: MainNavKey; label: string; icon: string }> = [
 	{ key: "observe", label: "Observe", icon: "◌" },

@@ -1,0 +1,1 @@
+export type MainNavKey = "observe" | "perceive" | "ingest" | "transform" | "model" | "govern" | "feedback" | "settings";

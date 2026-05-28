@@ -1,5 +1,5 @@
 import { Store } from "../../state/store";
-import { ObservabilityNode } from "../../types";
+import { ObservabilityNode } from "../../models";
 
 const STAGE_LABELS: Record<string, string> = {
 	ingest: "Ingest",

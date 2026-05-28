@@ -1,5 +1,5 @@
 import {Store} from '../state/store';
-import {EventFilter} from '../types';
+import {EventFilter} from '../models';
 
 const severityIcon = (s: string) => {
 	switch (s) {

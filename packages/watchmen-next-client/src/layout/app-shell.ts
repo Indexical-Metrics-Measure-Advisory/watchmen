@@ -1,7 +1,7 @@
 import { renderAgentPanel } from "../components/chat-panel";
 import { renderMainContent } from "../routes/main-content";
 import { Store } from "../state/store";
-import { MainNavKey, ObservabilityGraphZoom } from "../types";
+import { MainNavKey, ObservabilityGraphZoom } from "../models";
 import { style } from "../styles";
 
 export const renderAppShell = (container: HTMLElement, store: Store) => {
