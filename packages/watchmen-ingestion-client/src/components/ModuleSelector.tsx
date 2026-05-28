@@ -7,6 +7,7 @@ import { Building, Shield, DollarSign, FileText, Users, TrendingUp, Sparkles, Lo
 import { moduleService } from '@/services';
 import { Module } from '@/models';
 import { toast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 interface ModuleSelectorProps {
   selectedModule: string;
@@ -19,6 +20,7 @@ const ModuleSelector: React.FC<ModuleSelectorProps> = ({
   onModuleSelect,
   aiEnabled
 }) => {
+  const { t } = useTranslation('selectors');
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,10 +50,10 @@ const ModuleSelector: React.FC<ModuleSelectorProps> = ({
         setModules(moduleData);
       } catch (err: any) {
         console.error('Error loading modules:', err);
-        setError(err.message || 'Failed to load modules');
+        setError(err.message || t('module.loadErrorDescription'));
         toast({
-          title: "Error Loading Modules",
-          description: err.message || "Failed to load modules from server",
+          title: t('module.loadErrorTitle'),
+          description: err.message || t('module.loadErrorDescription'),
           variant: "destructive"
         });
       } finally {
@@ -66,7 +68,7 @@ const ModuleSelector: React.FC<ModuleSelectorProps> = ({
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-6 w-6 animate-spin mr-2" />
-        <span className="text-gray-600">Loading modules...</span>
+        <span className="text-gray-600">{t('module.loading')}</span>
       </div>
     );
   }
@@ -74,13 +76,13 @@ const ModuleSelector: React.FC<ModuleSelectorProps> = ({
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-600 mb-4">Error: {error}</p>
+        <p className="text-red-600 mb-4">{t('modules:errorTitle', { ns: 'modules' })}: {error}</p>
         <Button 
           variant="outline" 
           onClick={() => window.location.reload()}
           className="gap-2"
         >
-          Retry
+          {t('common:refresh', { ns: 'common' })}
         </Button>
       </div>
     );
@@ -89,7 +91,7 @@ const ModuleSelector: React.FC<ModuleSelectorProps> = ({
   if (modules.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">No modules available</p>
+        <p className="text-gray-600">{t('module.noModules')}</p>
       </div>
     );
   }
@@ -116,7 +118,7 @@ const ModuleSelector: React.FC<ModuleSelectorProps> = ({
               <div>
                 <h4 className="font-semibold text-gray-900">{module.moduleName}</h4>
                 <p className="text-sm text-gray-600 mt-1">
-                  Version: {module.version} | Priority: {module.priority}
+                  {t('common.versionPriority', { version: module.version, priority: module.priority })}
                 </p>
               </div>
             </div>
@@ -125,13 +127,13 @@ const ModuleSelector: React.FC<ModuleSelectorProps> = ({
           <div className="flex gap-2 flex-wrap">
             {module.priority <= 2 && (
               <Badge variant="secondary" className="text-xs">
-                High Priority
+                {t('common.highPriority')}
               </Badge>
             )}
             {aiEnabled && module.priority === 1 && (
               <Badge variant="outline" className="text-xs bg-purple-50 border-purple-200 text-purple-700">
                 <Sparkles className="h-3 w-3 mr-1" />
-                AI Suggested
+                {t('common.aiSuggested')}
               </Badge>
             )}
           </div>

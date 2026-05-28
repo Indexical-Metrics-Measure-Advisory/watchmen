@@ -12,19 +12,21 @@ import { useAuth } from '@/context/AuthContext';
 
 import { toast } from '@/hooks/use-toast';
 import { LoginCredentials, SSOTypes } from '@/services/authService';
+import { useTranslation } from 'react-i18next';
 
-const loginSchema = z.object({
-  username: z.string().min(1, 'Username is required'),
-  password: z.string().min(1, 'Password is required'),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+type LoginFormData = LoginCredentials;
 
 const Login: React.FC = () => {
   const { login, loginConfig, loadLoginConfiguration, handleSSOLogin, isLoading: authLoading, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation(['auth']);
+
+  const loginSchema = z.object({
+    username: z.string().min(1, t('auth:validation.usernameRequired')),
+    password: z.string().min(1, t('auth:validation.passwordRequired')),
+  });
 
   const {
     register,
@@ -54,8 +56,8 @@ const Login: React.FC = () => {
     try {
       await login(data as LoginCredentials);
       toast({
-        title: "Login successful",
-        description: "Welcome back!",
+        title: t('auth:loginSuccessfulTitle'),
+        description: t('auth:loginSuccessfulDescription'),
       });
       // Redirect to the page the user originally wanted to visit, or the homepage
       const from = (location.state as any)?.from?.pathname || '/';
@@ -63,8 +65,8 @@ const Login: React.FC = () => {
     } catch (error: any) {
       console.error('Login failed:', error);
       toast({
-        title: "Login failed",
-        description: error.message || "An error occurred during login",
+        title: t('auth:loginFailedTitle'),
+        description: error.message || t('auth:loginFailedDescription'),
         variant: "destructive"
       });
     } finally {
@@ -78,8 +80,8 @@ const Login: React.FC = () => {
         await handleSSOLogin(loginConfig.url);
       } catch (error: any) {
         toast({
-          title: "SSO Login failed",
-          description: error.message || "An error occurred during SSO login",
+          title: t('auth:ssoLoginFailedTitle'),
+          description: error.message || t('auth:ssoLoginFailedDescription'),
           variant: "destructive"
         });
       }
@@ -92,7 +94,7 @@ const Login: React.FC = () => {
         <div className="flex items-center justify-center p-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-2 text-sm text-gray-600">Loading login configuration...</p>
+            <p className="mt-2 text-sm text-gray-600">{t('auth:loadingConfiguration')}</p>
           </div>
         </div>
       );
@@ -103,14 +105,14 @@ const Login: React.FC = () => {
         return (
           <div className="space-y-4">
             <p className="text-sm text-gray-600 text-center">
-              This application uses SAML2 authentication
+              {t('auth:saml2Description')}
             </p>
             <Button 
               onClick={handleSSOClick}
               className="w-full"
               disabled={!loginConfig.url}
             >
-              Sign in with SAML2
+              {t('auth:signInWithSaml2')}
             </Button>
           </div>
         );
@@ -119,14 +121,14 @@ const Login: React.FC = () => {
         return (
           <div className="space-y-4">
             <p className="text-sm text-gray-600 text-center">
-              This application uses OpenID Connect authentication
+              {t('auth:oidcDescription')}
             </p>
             <Button 
               onClick={handleSSOClick}
               className="w-full"
               disabled={!loginConfig.url}
             >
-              Sign in with OIDC
+              {t('auth:signInWithOidc')}
             </Button>
           </div>
         );
@@ -136,11 +138,11 @@ const Login: React.FC = () => {
         return (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">{t('auth:username')}</Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="Enter your username"
+                placeholder={t('auth:usernamePlaceholder')}
                 {...register('username')}
                 disabled={isLoading}
               />
@@ -150,11 +152,11 @@ const Login: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('auth:password')}</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder={t('auth:passwordPlaceholder')}
                 {...register('password')}
                 disabled={isLoading}
               />
@@ -168,7 +170,7 @@ const Login: React.FC = () => {
               className="w-full" 
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? t('auth:signingIn') : t('auth:signIn')}
             </Button>
           </form>
         );
@@ -179,11 +181,11 @@ const Login: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Sign In</CardTitle>
+          <CardTitle>{t('auth:title')}</CardTitle>
           <CardDescription>
             {loginConfig?.method === SSOTypes.DOLL 
-              ? "Enter your credentials to access your account"
-              : "Use your organization's authentication system"
+              ? t('auth:descriptionCredentials')
+              : t('auth:descriptionSso')
             }
           </CardDescription>
         </CardHeader>

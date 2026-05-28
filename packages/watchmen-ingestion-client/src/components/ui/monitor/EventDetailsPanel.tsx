@@ -5,6 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import Skeleton from './Skeleton';
 import { EventTriggerItem, EventResultRecord } from '@/models/monitor.models';
+import { useTranslation } from 'react-i18next';
+import { formatPercent } from '@/i18n/utils/format';
 
 interface EventDetailsPanelProps {
   selectedEvent: EventTriggerItem | null;
@@ -12,20 +14,23 @@ interface EventDetailsPanelProps {
   loadingRecords: boolean;
 }
 
-const STATUS_MAP: Record<number, { label: string; className: string }> = {
-  1: { label: 'Running', className: 'bg-blue-100 text-blue-800 hover:bg-blue-100' },
-  2: { label: 'Success', className: 'bg-green-100 text-green-800 hover:bg-green-100' },
-  3: { label: 'Failed', className: 'bg-red-100 text-red-800 hover:bg-red-100' },
-};
-
 const EventDetailsPanel: React.FC<EventDetailsPanelProps> = ({ selectedEvent, records, loadingRecords }) => {
+  const { t, i18n } = useTranslation('monitor');
+  const locale = i18n.resolvedLanguage ?? 'en';
+  const statusMap: Record<number, { label: string; className: string }> = {
+    1: { label: t('details.recordStatus.running'), className: 'bg-blue-100 text-blue-800 hover:bg-blue-100' },
+    2: { label: t('details.recordStatus.success'), className: 'bg-green-100 text-green-800 hover:bg-green-100' },
+    3: { label: t('details.recordStatus.failed'), className: 'bg-red-100 text-red-800 hover:bg-red-100' },
+  };
   const visible = !!selectedEvent && !loadingRecords;
   return (
     <Card className="transition-all">
       <CardHeader>
-        <CardTitle>Event Details</CardTitle>
+        <CardTitle>{t('details.title')}</CardTitle>
         <CardDescription>
-          {selectedEvent ? `Event #${selectedEvent.eventTriggerId} · ${selectedEvent.tableName}` : 'Select an event to view details'}
+          {selectedEvent
+            ? t('details.selectedDescription', { id: selectedEvent.eventTriggerId, tableName: selectedEvent.tableName })
+            : t('details.emptyDescription')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -41,16 +46,16 @@ const EventDetailsPanel: React.FC<EventDetailsPanelProps> = ({ selectedEvent, re
               <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Module</TableHead>
-                  <TableHead>Model</TableHead>
-                  <TableHead>Table</TableHead>
-                  <TableHead>Start</TableHead>
-                  <TableHead>Data Count</TableHead>
-                  <TableHead>JSON Count</TableHead>
-                  <TableHead>JSON Finished</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Percent</TableHead>
-                  <TableHead>Errors</TableHead>
+                  <TableHead>{t('details.module')}</TableHead>
+                  <TableHead>{t('details.model')}</TableHead>
+                  <TableHead>{t('details.table')}</TableHead>
+                  <TableHead>{t('details.start')}</TableHead>
+                  <TableHead>{t('details.dataCount')}</TableHead>
+                  <TableHead>{t('details.jsonCount')}</TableHead>
+                  <TableHead>{t('details.jsonFinishedCount')}</TableHead>
+                  <TableHead>{t('details.status')}</TableHead>
+                  <TableHead>{t('details.percent')}</TableHead>
+                  <TableHead>{t('details.errors')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -64,15 +69,15 @@ const EventDetailsPanel: React.FC<EventDetailsPanelProps> = ({ selectedEvent, re
                     <TableCell>{r.jsonCount ?? 0}</TableCell>
                     <TableCell>{r.jsonFinishedCount ?? 0}</TableCell>
                     <TableCell>
-                      {STATUS_MAP[r.status ?? 0] ? (
-                        <Badge className={STATUS_MAP[r.status ?? 0].className}>
-                          {STATUS_MAP[r.status ?? 0].label}
+                      {statusMap[r.status ?? 0] ? (
+                        <Badge className={statusMap[r.status ?? 0].className}>
+                          {statusMap[r.status ?? 0].label}
                         </Badge>
                       ) : (
                         <span className="text-gray-500">#{r.status ?? 0}</span>
                       )}
                     </TableCell>
-                    <TableCell>{typeof r.percent === 'number' ? `${Math.round(r.percent * 100) }%` : '-'}</TableCell>
+                    <TableCell>{typeof r.percent === 'number' ? formatPercent(r.percent, locale) : '-'}</TableCell>
                     <TableCell>{r.errors ?? 0}</TableCell>
                   </TableRow>
                 ))}
@@ -80,10 +85,10 @@ const EventDetailsPanel: React.FC<EventDetailsPanelProps> = ({ selectedEvent, re
               </Table>
             </div>
           ) : (
-            <div className="text-sm text-gray-600">No records found for this event.</div>
+            <div className="text-sm text-gray-600">{t('details.noRecords')}</div>
           )
         ) : (
-          <div className="text-sm text-gray-600">Choose an event from the left to view details.</div>
+          <div className="text-sm text-gray-600">{t('details.chooseEvent')}</div>
         )}
       </CardContent>
     </Card>

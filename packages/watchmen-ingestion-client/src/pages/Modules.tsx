@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Layers, GitBranch, Loader2, X, BookOpen, HelpCircle, Search, RefreshCw, Download } from 'lucide-react';
+import { Plus, Edit, Layers, GitBranch, Loader2, X, Search, RefreshCw, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -9,18 +9,21 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
-import { Module, CreateModuleRequest, UpdateModuleRequest } from '../models/module';
+import { Module, CreateModuleRequest } from '../models/module';
 import { moduleService } from '../services/moduleService';
 import { systemService } from '@/services/systemService';
 import { toast } from '@/hooks/use-toast';
 import { ExecutionFlowDiagram } from '../components/flow/ExecutionFlowDiagram';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from 'react-i18next';
+import { formatDate } from '@/i18n/utils/format';
 
 
 
 const Modules: React.FC = () => {
   // Auth context
   const { user } = useAuth();
+  const { t, i18n } = useTranslation('modules');
   
   // State management
   const [modules, setModules] = useState<Module[]>([]);
@@ -55,10 +58,10 @@ const Modules: React.FC = () => {
       setError(null);
       const data = await moduleService.getAllModules();
       setModules(data);
-      setSuccessMessage('Modules loaded successfully');
+      setSuccessMessage(t('loadedSuccess'));
     } catch (err) {
       console.error('Failed to fetch modules:', err);
-      setError('Failed to load modules. Please try again.');
+      setError(t('loadFailed'));
       // Fallback to empty array on error
       setModules([]);
     } finally {
@@ -118,9 +121,9 @@ const Modules: React.FC = () => {
     const errors: {[key: string]: string} = {};
 
     if (!formData.moduleName?.trim()) {
-      errors.moduleName = 'Module name cannot be empty';
+      errors.moduleName = t('validation.nameRequired');
     } else if (formData.moduleName.length < 2) {
-      errors.moduleName = 'Module name must be at least 2 characters';
+      errors.moduleName = t('validation.nameMin');
     }
 
     // Module ID validation removed since it's auto-generated
@@ -157,7 +160,6 @@ const Modules: React.FC = () => {
         return;
       }
 
-      const now = new Date().toISOString();
       const createRequest: CreateModuleRequest = {
         moduleName: createFormData.moduleName!,
         priority: createFormData.priority!,
@@ -170,20 +172,20 @@ const Modules: React.FC = () => {
       setModules(prev => [...prev, newModule]);
       setCreateDialogOpen(false);
       resetCreateForm();
-      setSuccessMessage(`Module "${createFormData.moduleName}" created successfully!`);
+      setSuccessMessage(t('messages.created', { name: createFormData.moduleName }));
       
       toast({
-        title: "Module Created",
-        description: "New module has been created successfully."
+        title: t('toast.createdTitle'),
+        description: t('toast.createdDescription')
       });
 
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-      setError('Failed to create module. Please try again.');
+      setError(t('messages.createFailed'));
       console.error('Failed to create module:', err);
       toast({
-        title: "Error",
-        description: "Failed to create module. Please try again.",
+        title: t('toast.failedTitle'),
+        description: t('messages.createFailed'),
         variant: "destructive"
       });
     } finally {
@@ -217,20 +219,20 @@ const Modules: React.FC = () => {
       setSelectedModule(null);
       setEditFormData({});
       setFormErrors({});
-      setSuccessMessage(`Module "${editFormData.moduleName}" updated successfully!`);
+      setSuccessMessage(t('messages.updated', { name: editFormData.moduleName }));
       
       toast({
-        title: "Module Updated",
-        description: "Module has been updated successfully."
+        title: t('toast.updatedTitle'),
+        description: t('toast.updatedDescription')
       });
 
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-      setError('Failed to update module. Please try again.');
+      setError(t('messages.updateFailed'));
       console.error('Failed to update module:', err);
       toast({
-        title: "Error",
-        description: "Failed to update module. Please try again.",
+        title: t('toast.failedTitle'),
+        description: t('messages.updateFailed'),
         variant: "destructive"
       });
     } finally {
@@ -246,7 +248,7 @@ const Modules: React.FC = () => {
     return (
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading modules...</div>
+          <div className="text-lg">{t('loading')}</div>
         </div>
       </div>
     );
@@ -257,22 +259,22 @@ const Modules: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Modules</h1>
-          <p className="text-gray-500 mt-2">Manage your system modules and execution flows.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
+          <p className="text-gray-500 mt-2">{t('subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" className="gap-2 shadow-sm">
                 <GitBranch className="h-4 w-4" />
-                Execution Flow 
+                {t('executionFlow')}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-none max-h-none w-screen h-screen p-0 m-0 border-0">
               <DialogHeader className="p-6 pb-2">
-                <DialogTitle>Flow Diagram</DialogTitle>
+                <DialogTitle>{t('flowDiagram')}</DialogTitle>
                 <DialogDescription>
-                  Explore the execution flow. Hover edges for details and click nodes to inspect.
+                  {t('flowDescription')}
                 </DialogDescription>
               </DialogHeader>
               <div className="flex-1 h-[calc(100vh-80px)] p-6 pt-2">
@@ -283,7 +285,10 @@ const Modules: React.FC = () => {
                   onNodeClick={(node) => {
                     toast({
                       title: `${node.data.type} `,
-                      description: `name: ${node.data.label}${node.data.priority ? ` | priority : ${node.data.priority}` : ''}`,
+                      description: t('flowNodeDescription', {
+                        label: node.data.label,
+                        priority: node.data.priority ? ` | priority: ${node.data.priority}` : '',
+                      }),
                     });
                   }}
                 />
@@ -292,7 +297,7 @@ const Modules: React.FC = () => {
           </Dialog>
           <Button onClick={handleCreate} className="gap-2 shadow-sm" disabled={isRuntimeEnv}>
             <Plus className="h-4 w-4" />
-            Create Module
+            {t('createButton')}
           </Button>
         </div>
       </div>
@@ -303,7 +308,7 @@ const Modules: React.FC = () => {
           <div className="relative w-full md:w-72">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
             <Input 
-              placeholder="Search modules..." 
+              placeholder={t('searchPlaceholder')} 
               value={searchTerm} 
               onChange={(e) => setSearchTerm(e.target.value)} 
               className="pl-9 bg-gray-50/50"
@@ -313,11 +318,11 @@ const Modules: React.FC = () => {
         <div className="flex gap-2 w-full sm:w-auto justify-end">
           <Button variant="outline" size="sm" className="gap-2 text-gray-600">
             <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden sm:inline">{t('export')}</span>
           </Button>
           <Button variant="outline" size="sm" className="gap-2 text-gray-600" onClick={() => window.location.reload()}>
             <RefreshCw className="h-4 w-4" />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="hidden sm:inline">{t('common:refresh', { ns: 'common' })}</span>
           </Button>
         </div>
       </div>
@@ -327,7 +332,7 @@ const Modules: React.FC = () => {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
           <X className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h3 className="font-medium text-red-800">Error</h3>
+            <h3 className="font-medium text-red-800">{t('errorTitle')}</h3>
             <p className="text-sm text-red-700 mt-1">{error}</p>
           </div>
           <Button 
@@ -350,7 +355,7 @@ const Modules: React.FC = () => {
             </svg>
           </div>
           <div className="flex-1">
-            <h3 className="font-medium text-green-800">Success</h3>
+            <h3 className="font-medium text-green-800">{t('successTitle')}</h3>
             <p className="text-sm text-green-700 mt-1">{successMessage}</p>
           </div>
           <Button 
@@ -370,11 +375,11 @@ const Modules: React.FC = () => {
             <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <Layers className="h-8 w-8 text-blue-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Modules Found</h3>
-            <p className="text-gray-500 mb-6 max-w-sm mx-auto">Get started by creating your first module to organize your system.</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('noModulesTitle')}</h3>
+            <p className="text-gray-500 mb-6 max-w-sm mx-auto">{t('noModulesDescription')}</p>
             <Button onClick={handleCreate} className="gap-2" disabled={isRuntimeEnv}>
               <Plus className="h-4 w-4" />
-              Create First Module
+              {t('createFirst')}
             </Button>
           </div>
         </Card>
@@ -387,12 +392,12 @@ const Modules: React.FC = () => {
             <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="h-8 w-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Matches Found</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('noMatchesTitle')}</h3>
             <p className="text-gray-500 max-w-sm mx-auto">
-              We couldn't find any modules matching your current search.
+              {t('noMatchesDescription')}
             </p>
             <Button variant="link" onClick={() => setSearchTerm('')} className="mt-4 text-blue-600">
-              Clear search
+              {t('clearSearch')}
             </Button>
           </div>
         </Card>
@@ -428,13 +433,13 @@ const Modules: React.FC = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="space-y-1">
-                      <p className="text-xs text-gray-500 font-medium uppercase">Priority</p>
+                      <p className="text-xs text-gray-500 font-medium uppercase">{t('priority')}</p>
                       <Badge variant="outline" className="font-normal">
-                        Level {module.priority}
+                        {t('level', { value: module.priority })}
                       </Badge>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs text-gray-500 font-medium uppercase">Version</p>
+                      <p className="text-xs text-gray-500 font-medium uppercase">{t('version')}</p>
                       <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-100 font-normal">
                         v{module.version}
                       </Badge>
@@ -444,8 +449,8 @@ const Modules: React.FC = () => {
                   <Separator className="bg-gray-100" />
 
                   <div className="pt-2 flex items-center justify-between text-xs text-gray-500">
-                    <span>Last modified</span>
-                    <span>{new Date(module.lastModifiedAt).toLocaleDateString()}</span>
+                    <span>{t('lastModified')}</span>
+                    <span>{formatDate(module.lastModifiedAt, i18n.resolvedLanguage ?? 'en')}</span>
                   </div>
                 </div>
               </CardContent>
@@ -463,29 +468,29 @@ const Modules: React.FC = () => {
       }}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Create New Module</DialogTitle>
+            <DialogTitle>{t('createDialogTitle')}</DialogTitle>
             <DialogDescription>
-              Provide module details. The Module ID is auto-generated and cannot be edited.
+              {t('createDialogDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="create-moduleId">Module ID (Auto-generated)</Label>
+              <Label htmlFor="create-moduleId">{t('fields.moduleIdAuto')}</Label>
               <Input
                 id="create-moduleId"
                 value={createFormData.moduleId}
                 readOnly
                 className="bg-gray-50 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-500">Module ID is automatically generated with 'f-' prefix</p>
+              <p className="text-xs text-gray-500">{t('fields.moduleIdGeneratedHint')}</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="create-moduleName">Module Name *</Label>
+              <Label htmlFor="create-moduleName">{t('fields.moduleName')}</Label>
               <Input
                 id="create-moduleName"
                 value={createFormData.moduleName}
                 onChange={(e) => setCreateFormData(prev => ({ ...prev, moduleName: e.target.value }))}
-                placeholder="e.g., User Management"
+                placeholder={t('fields.moduleNamePlaceholder')}
                 className={formErrors.moduleName ? "border-red-500" : ""}
               />
               {formErrors.moduleName && (
@@ -493,7 +498,7 @@ const Modules: React.FC = () => {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="create-priority">Priority</Label>
+              <Label htmlFor="create-priority">{t('fields.priority')}</Label>
               <Input
                 id="create-priority"
                 type="number"
@@ -508,11 +513,11 @@ const Modules: React.FC = () => {
               setCreateDialogOpen(false);
               resetCreateForm();
             }}>
-              Cancel
+              {t('actions.cancel')}
             </Button>
             <Button onClick={handleCreateModule} disabled={createLoading || isRuntimeEnv}>
               {createLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Module
+              {t('createButton')}
             </Button>
           </div>
         </DialogContent>
@@ -529,24 +534,24 @@ const Modules: React.FC = () => {
       }}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Edit Module</DialogTitle>
+            <DialogTitle>{t('editDialogTitle')}</DialogTitle>
             <DialogDescription>
-              Update module details. The Module ID is fixed and cannot be changed.
+              {t('editDialogDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-moduleId">Module ID</Label>
+              <Label htmlFor="edit-moduleId">{t('fields.moduleId')}</Label>
               <Input
                 id="edit-moduleId"
                 value={editFormData.moduleId}
                 disabled
                 className="bg-gray-50"
               />
-              <p className="text-xs text-gray-500">Module ID cannot be changed</p>
+              <p className="text-xs text-gray-500">{t('fields.moduleIdFixedHint')}</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-moduleName">Module Name *</Label>
+              <Label htmlFor="edit-moduleName">{t('fields.moduleName')}</Label>
               <Input
                 id="edit-moduleName"
                 value={editFormData.moduleName}
@@ -558,7 +563,7 @@ const Modules: React.FC = () => {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-priority">Priority</Label>
+              <Label htmlFor="edit-priority">{t('fields.priority')}</Label>
               <Input
                 id="edit-priority"
                 type="number"
@@ -575,11 +580,11 @@ const Modules: React.FC = () => {
               setEditFormData({});
               setFormErrors({});
             }}>
-              Cancel
+              {t('actions.cancel')}
             </Button>
             <Button onClick={handleSaveEdit} disabled={editLoading || isRuntimeEnv}>
               {editLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Changes
+              {t('actions.saveChanges')}
             </Button>
           </div>
         </DialogContent>

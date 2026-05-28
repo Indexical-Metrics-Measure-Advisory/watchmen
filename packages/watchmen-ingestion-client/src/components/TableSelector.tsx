@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Table, Sparkles, CheckCircle, Database } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface TableSelectorProps {
   selectedModule: string;
@@ -28,6 +29,7 @@ const TableSelector: React.FC<TableSelectorProps> = ({
   defaultSelectAll = false,
   isSingleSelection = false
 }) => {
+  const { t } = useTranslation('selectors');
   // Available tables state (normalized shape)
   const [availableTables, setAvailableTables] = React.useState<Array<{ id: string; name: string; description?: string; required?: boolean; aiSuggested?: boolean }>>([]);
 
@@ -143,7 +145,7 @@ const TableSelector: React.FC<TableSelectorProps> = ({
     return (
       <Card className="p-8 text-center bg-gray-50 border-dashed">
         <Table className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-        <p className="text-gray-600">Please select a module and model first to see available tables</p>
+        <p className="text-gray-600">{t('table.selectModuleModelFirst')}</p>
       </Card>
     );
   }
@@ -152,7 +154,7 @@ const TableSelector: React.FC<TableSelectorProps> = ({
     return (
       <Card className="p-6 text-center bg-yellow-50 border-yellow-200">
         <Database className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
-        <p className="text-yellow-800">No tables available for the selected model</p>
+        <p className="text-yellow-800">{t('table.noTables')}</p>
       </Card>
     );
   }
@@ -162,17 +164,17 @@ const TableSelector: React.FC<TableSelectorProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <p className="text-sm text-gray-600">
           {isSingleSelection 
-            ? "Select the base table for CDC change tracking" 
-            : "Select base tables for CDC change tracking. Multiple selection supported"}
+            ? t('table.singleHint')
+            : t('table.multiHint')}
         </p>
         {!isSingleSelection && (
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={selectAll}>Select All</Button>
-            <Button variant="outline" size="sm" onClick={clearSelection}>Clear Selection</Button>
+            <Button variant="outline" size="sm" onClick={selectAll}>{t('table.selectAll')}</Button>
+            <Button variant="outline" size="sm" onClick={clearSelection}>{t('table.clearSelection')}</Button>
             {aiEnabled && (
               <Button variant="outline" size="sm" onClick={selectRecommended} className="gap-2">
                 <Sparkles className="h-4 w-4" />
-                Select AI Recommended
+                {t('table.selectRecommended')}
               </Button>
             )}
           </div>
@@ -206,13 +208,13 @@ const TableSelector: React.FC<TableSelectorProps> = ({
                   <div className="flex gap-1">
                     {table.required && (
                       <Badge variant="destructive" className="text-xs">
-                        Required
+                        {t('table.required')}
                       </Badge>
                     )}
                     {aiEnabled && table.aiSuggested && (
                       <Badge variant="outline" className="text-xs bg-purple-50 border-purple-200 text-purple-700">
                         <Sparkles className="h-3 w-3 mr-1" />
-                        Recommended
+                        {t('table.recommended')}
                       </Badge>
                     )}
                   </div>
@@ -232,7 +234,7 @@ const TableSelector: React.FC<TableSelectorProps> = ({
           <div className="flex items-center gap-2 text-green-700">
             <CheckCircle className="h-4 w-4" />
             <span className="text-sm font-medium">
-              {selectedTables.length} table{selectedTables.length > 1 ? 's' : ''} selected
+              {t('table.selectedCount', { count: selectedTables.length })}
             </span>
           </div>
         </Card>

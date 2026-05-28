@@ -12,39 +12,11 @@ import ModelSelector from '@/components/ModelSelector';
 import { moduleService, modelService, tableService, collectorService } from '@/services';
 import TableSelector from '@/components/TableSelector';
 import type { TriggerMode } from '@/services/collectorService';
-
-// Trigger mode definitions for Step 0
-const TRIGGER_MODES: {
-  value: TriggerMode;
-  label: string;
-  description: string;
-  icon: React.ElementType;
-  details: string;
-}[] = [
-  {
-    value: 'default',
-    label: 'Full Sync',
-    description: 'Sync all configured tables across the entire system',
-    icon: Zap,
-    details: 'Payload: { startTime, endTime }',
-  },
-  {
-    value: 'by_table',
-    label: 'By Table',
-    description: 'Sync data for a specific table with time range',
-    icon: Table2,
-    details: 'Payload: { startTime, endTime, tableName }',
-  },
-  {
-    value: 'by_record',
-    label: 'By Record',
-    description: 'Sync specific records identified by primary key values',
-    icon: FileText,
-    details: 'Payload: { tableName, records }',
-  },
-];
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const ConfigurationForm = () => {
+  const { t } = useTranslation('config');
   const [selectedModule, setSelectedModule] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [selectedModelName, setSelectedModelName] = useState('');
@@ -64,6 +36,29 @@ const ConfigurationForm = () => {
   // By Record mode: JSON editor state
   const [recordsJson, setRecordsJson] = useState<string>('[\n  {\n    "": ""\n  }\n]');
   const [recordsError, setRecordsError] = useState<string | null>(null);
+  const triggerModes = [
+    {
+      value: 'default' as TriggerMode,
+      label: t('mode.fullSync'),
+      description: t('mode.fullSyncDescription'),
+      icon: Zap,
+      details: t('mode.fullSyncDetails'),
+    },
+    {
+      value: 'by_table' as TriggerMode,
+      label: t('mode.byTable'),
+      description: t('mode.byTableDescription'),
+      icon: Table2,
+      details: t('mode.byTableDetails'),
+    },
+    {
+      value: 'by_record' as TriggerMode,
+      label: t('mode.byRecord'),
+      description: t('mode.byRecordDescription'),
+      icon: FileText,
+      details: t('mode.byRecordDetails'),
+    },
+  ];
 
   // Helpers for friendlier time inputs
   const toLocalInputValue = (input: Date | string) => {
@@ -97,7 +92,7 @@ const ConfigurationForm = () => {
 
   const validateTimeRange = (start: string, end: string) => {
     if (start && end && new Date(end) <= new Date(start)) {
-      setTimeError('End time must be after the start time.');
+      setTimeError(t('time.endAfterStart'));
     } else {
       setTimeError(null);
     }
@@ -157,24 +152,24 @@ const ConfigurationForm = () => {
     try {
       const parsed = JSON.parse(json);
       if (!Array.isArray(parsed) || parsed.length === 0) {
-        setRecordsError('Records must be a non-empty JSON array of objects.');
+        setRecordsError(t('records.invalidArray'));
         return false;
       }
       for (const item of parsed) {
         if (typeof item !== 'object' || item === null || Array.isArray(item)) {
-          setRecordsError('Each record must be a JSON object.');
+          setRecordsError(t('records.invalidObject'));
           return false;
         }
         const keys = Object.keys(item);
         if (keys.length === 0) {
-          setRecordsError('Each record must have at least one key-value pair.');
+          setRecordsError(t('records.emptyObject'));
           return false;
         }
       }
       setRecordsError(null);
       return true;
     } catch {
-      setRecordsError('Invalid JSON format.');
+      setRecordsError(t('records.invalidJson'));
       return false;
     }
   };
@@ -206,10 +201,10 @@ const ConfigurationForm = () => {
   // Step count depends on trigger mode
   const totalSteps = triggerMode === 'default' ? 1 : (triggerMode === 'by_table' ? 4 : 4);
   const stepLabels = triggerMode === 'default'
-    ? ['Mode']
+    ? [t('steps.mode')]
     : triggerMode === 'by_table'
-      ? ['Mode', 'Module', 'Model', 'Table']
-      : ['Mode', 'Module', 'Model', 'Table'];
+      ? [t('steps.mode'), t('steps.module'), t('steps.model'), t('steps.table')]
+      : [t('steps.mode'), t('steps.module'), t('steps.model'), t('steps.table')];
 
   // Validation helpers
   const needsTable = triggerMode === 'by_table' || triggerMode === 'by_record';
@@ -240,24 +235,24 @@ const ConfigurationForm = () => {
     // Validate time range for modes that need it
     if (needsTimeRange && (!startTime || !endTime)) {
       toast({
-        title: 'Missing Time Range',
-        description: 'Please select start and end time.',
+        title: t('toast.missingTimeTitle'),
+        description: t('toast.missingTimeDescription'),
         variant: 'destructive',
       });
       return;
     }
     if (needsTimeRange && new Date(endTime) <= new Date(startTime)) {
       toast({
-        title: 'Invalid Time Range',
-        description: 'End time must be after the start time.',
+        title: t('toast.invalidTimeTitle'),
+        description: t('toast.invalidTimeDescription'),
         variant: 'destructive',
       });
       return;
     }
     if (needsTable && !selectedTableName) {
       toast({
-        title: 'Missing Table',
-        description: 'Please select a table.',
+        title: t('toast.missingTableTitle'),
+        description: t('toast.missingTableDescription'),
         variant: 'destructive',
       });
       return;
@@ -265,8 +260,8 @@ const ConfigurationForm = () => {
     if (triggerMode === 'by_record') {
       if (!validateRecordsJson(recordsJson)) {
         toast({
-          title: 'Invalid Records',
-          description: recordsError || 'Please provide valid JSON records.',
+          title: t('toast.invalidRecordsTitle'),
+          description: recordsError || t('toast.invalidRecordsDescription'),
           variant: 'destructive',
         });
         return;
@@ -280,19 +275,19 @@ const ConfigurationForm = () => {
 
       switch (triggerMode) {
         case 'default': {
-          toast({ title: 'Run Started', description: 'Triggering full sync event...' });
+          toast({ title: t('toast.runStartedTitle'), description: t('toast.fullSyncStarted') });
           await collectorService.triggerEvent({
             startTime: fmt(startTime),
             endTime: fmt(endTime),
           });
           toast({
-            title: 'Run Completed',
-            description: 'Full sync event triggered successfully.',
+            title: t('toast.runCompletedTitle'),
+            description: t('toast.fullSyncCompleted'),
           });
           break;
         }
         case 'by_table': {
-          toast({ title: 'Run Started', description: `Triggering sync for table: ${selectedTableName}...` });
+          toast({ title: t('toast.runStartedTitle'), description: t('toast.byTableStarted', { table: selectedTableName }) });
           await collectorService.triggerEventByTable({
             startTime: fmt(startTime),
             endTime: fmt(endTime),
@@ -300,21 +295,21 @@ const ConfigurationForm = () => {
             tableName: selectedTableName,
           });
           toast({
-            title: 'Run Completed',
-            description: `Event triggered for table: ${selectedTableName}.`,
+            title: t('toast.runCompletedTitle'),
+            description: t('toast.byTableCompleted', { table: selectedTableName }),
           });
           break;
         }
         case 'by_record': {
-          toast({ title: 'Run Started', description: `Triggering record-level sync for table: ${selectedTableName}...` });
+          toast({ title: t('toast.runStartedTitle'), description: t('toast.byRecordStarted', { table: selectedTableName }) });
           const records = JSON.parse(recordsJson);
           await collectorService.triggerEventByRecord({
             tableName: selectedTableName,
             records,
           });
           toast({
-            title: 'Run Completed',
-            description: `Record-level event triggered for table: ${selectedTableName}.`,
+            title: t('toast.runCompletedTitle'),
+            description: t('toast.byRecordCompleted', { table: selectedTableName }),
           });
           break;
         }
@@ -322,8 +317,8 @@ const ConfigurationForm = () => {
       setSubmitSucceeded(true);
     } catch (error: any) {
       toast({
-        title: 'Run Failed',
-        description: error?.message || 'An error occurred while triggering the event.',
+        title: t('toast.runFailedTitle'),
+        description: error?.message || t('toast.runFailedDescription'),
         variant: 'destructive',
       });
       setSubmitSucceeded(false);
@@ -337,8 +332,8 @@ const ConfigurationForm = () => {
       {/* Header with AI Enhancement Toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h3 className="text-xl font-semibold text-gray-900">Run Ingestion</h3>
-          <p className="text-sm text-gray-600">Select a trigger mode and configure your data extraction</p>
+          <h3 className="text-xl font-semibold text-gray-900">{t('headerTitle')}</h3>
+          <p className="text-sm text-gray-600">{t('headerDescription')}</p>
         </div>
         {aiFeatureFlag && (
           <Button
@@ -348,7 +343,7 @@ const ConfigurationForm = () => {
             className='gap-2 self-start sm:self-auto'
           >
             <Sparkles className='h-4 w-4' />
-            AI Assistance {isAiEnabled ? 'On' : 'Off'}
+            {isAiEnabled ? t('aiAssistanceOn') : t('aiAssistanceOff')}
           </Button>
         )}
       </div>
@@ -391,10 +386,10 @@ const ConfigurationForm = () => {
             <div className='w-8 h-8 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center font-semibold'>
               1
             </div>
-            <Label className='text-lg font-semibold'>Select Trigger Mode</Label>
+            <Label className='text-lg font-semibold'>{t('mode.select')}</Label>
           </div>
           <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-            {TRIGGER_MODES.map((mode) => {
+            {triggerModes.map((mode) => {
               const Icon = mode.icon;
               const isSelected = triggerMode === mode.value;
               return (
@@ -438,7 +433,7 @@ const ConfigurationForm = () => {
                 onClick={handleNextStep}
                 className='gap-2'
               >
-                Next Step
+                {t('mode.nextStep')}
                 <ArrowRight className='h-4 w-4' />
               </Button>
             </div>
@@ -452,7 +447,7 @@ const ConfigurationForm = () => {
               <div className='w-8 h-8 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center font-semibold'>
                 2
               </div>
-              <Label className='text-lg font-semibold'>Select Module</Label>
+              <Label className='text-lg font-semibold'>{t('steps.selectModule')}</Label>
               {selectedModule && <CheckCircle className='h-5 w-5 text-green-600' />}
             </div>
             <Card className='border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300'>
@@ -469,14 +464,14 @@ const ConfigurationForm = () => {
                 variant='outline'
                 onClick={handlePrevStep}
               >
-                Back
+                {t('steps.back')}
               </Button>
               <Button
                 onClick={handleNextStep}
                 disabled={!selectedModule}
                 className='gap-2'
               >
-                Next Step
+                {t('steps.nextStep')}
                 <ArrowRight className='h-4 w-4' />
               </Button>
             </div>
@@ -490,7 +485,7 @@ const ConfigurationForm = () => {
               <div className='w-8 h-8 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center font-semibold'>
                 3
               </div>
-              <Label className='text-lg font-semibold'>Select Model</Label>
+              <Label className='text-lg font-semibold'>{t('steps.selectModel')}</Label>
               {selectedModel && <CheckCircle className='h-5 w-5 text-green-600' />}
             </div>
             <Card className='border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300'>
@@ -509,14 +504,14 @@ const ConfigurationForm = () => {
                 variant='outline'
                 onClick={handlePrevStep}
               >
-                Back
+                {t('steps.back')}
               </Button>
               <Button
                 onClick={handleNextStep}
                 disabled={!selectedModel}
                 className='gap-2'
               >
-                Next Step
+                {t('steps.nextStep')}
                 <ArrowRight className='h-4 w-4' />
               </Button>
             </div>
@@ -530,7 +525,7 @@ const ConfigurationForm = () => {
               <div className='w-8 h-8 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center font-semibold'>
                 4
               </div>
-              <Label className='text-lg font-semibold'>Select Table</Label>
+              <Label className='text-lg font-semibold'>{t('steps.selectTable')}</Label>
               {selectedTableName && <CheckCircle className='h-5 w-5 text-green-600' />}
             </div>
             <Card className='border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300'>
@@ -551,7 +546,7 @@ const ConfigurationForm = () => {
                 variant='outline'
                 onClick={handlePrevStep}
               >
-                Back
+                {t('steps.back')}
               </Button>
             </div>
           </div>
@@ -565,18 +560,18 @@ const ConfigurationForm = () => {
         <Card className='border border-gray-200 shadow-sm'>
           <CardContent className='p-6 space-y-4'>
             <div className='flex flex-wrap gap-2 items-center justify-between'>
-              <p className='text-xs text-gray-600'>Times use your local timezone. Quick presets:</p>
+              <p className='text-xs text-gray-600'>{t('time.title')}</p>
               <div className='flex flex-wrap gap-2'>
-                <Button variant='outline' size='sm' onClick={() => applyPreset('last1h')}>Last 1h</Button>
-                <Button variant='outline' size='sm' onClick={() => applyPreset('last24h')}>Last 24h</Button>
-                <Button variant='outline' size='sm' onClick={() => applyPreset('last7d')}>Last 7d</Button>
-                <Button variant='outline' size='sm' onClick={() => applyPreset('today')}>Today</Button>
-                <Button variant='outline' size='sm' onClick={() => applyPreset('yesterday')}>Yesterday</Button>
+                <Button variant='outline' size='sm' onClick={() => applyPreset('last1h')}>{t('time.last1h')}</Button>
+                <Button variant='outline' size='sm' onClick={() => applyPreset('last24h')}>{t('time.last24h')}</Button>
+                <Button variant='outline' size='sm' onClick={() => applyPreset('last7d')}>{t('time.last7d')}</Button>
+                <Button variant='outline' size='sm' onClick={() => applyPreset('today')}>{t('time.today')}</Button>
+                <Button variant='outline' size='sm' onClick={() => applyPreset('yesterday')}>{t('time.yesterday')}</Button>
               </div>
             </div>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <div>
-                <Label htmlFor='startTime' className='text-sm font-medium'>Start Time</Label>
+                <Label htmlFor='startTime' className='text-sm font-medium'>{t('time.start')}</Label>
                 <div className='mt-2 flex items-center gap-2'>
                   <Input
                     id='startTime'
@@ -589,11 +584,11 @@ const ConfigurationForm = () => {
                   />
                 </div>
                 {startTime && (
-                  <p className='text-xs text-gray-500 mt-1'>MySQL: {toMySQLDateTime(startTime)}</p>
+                  <p className='text-xs text-gray-500 mt-1'>{t('time.mysqlPrefix', { value: toMySQLDateTime(startTime) })}</p>
                 )}
               </div>
               <div>
-                <Label htmlFor='endTime' className='text-sm font-medium'>End Time</Label>
+                <Label htmlFor='endTime' className='text-sm font-medium'>{t('time.end')}</Label>
                 <div className='mt-2 flex items-center gap-2'>
                   <Input
                     id='endTime'
@@ -604,10 +599,10 @@ const ConfigurationForm = () => {
                     step={60}
                     max={toLocalInputValue(new Date())}
                   />
-                  <Button variant='ghost' size='sm' onClick={() => handleEndChange(toLocalInputValue(roundToMinute(new Date())))}>Now</Button>
+                  <Button variant='ghost' size='sm' onClick={() => handleEndChange(toLocalInputValue(roundToMinute(new Date())))}>{t('time.now')}</Button>
                 </div>
                 {endTime && (
-                  <p className='text-xs text-gray-500 mt-1'>MySQL: {toMySQLDateTime(endTime)}</p>
+                  <p className='text-xs text-gray-500 mt-1'>{t('time.mysqlPrefix', { value: toMySQLDateTime(endTime) })}</p>
                 )}
               </div>
             </div>
@@ -624,9 +619,9 @@ const ConfigurationForm = () => {
           <CardContent className='p-6 space-y-4'>
             <div className='flex items-center justify-between'>
               <div>
-                <Label className='text-sm font-medium'>Records (JSON)</Label>
+                <Label className='text-sm font-medium'>{t('records.title')}</Label>
                 <p className='text-xs text-gray-500 mt-1'>
-                  Provide a JSON array of record objects. Each object identifies a record by its primary key(s).
+                  {t('records.description')}
                 </p>
               </div>
               <Button
@@ -637,7 +632,7 @@ const ConfigurationForm = () => {
                   setRecordsError(null);
                 }}
               >
-                Reset
+                {t('records.reset')}
               </Button>
             </div>
             <textarea
@@ -659,7 +654,7 @@ const ConfigurationForm = () => {
               <p className='text-sm text-red-600'>{recordsError}</p>
             )}
             <p className='text-xs text-gray-400'>
-              Example: [{"{"}"policy_chg_id": "10042506"{"}"}] — identify records by their primary key column(s).
+              {t('records.example')}
             </p>
           </CardContent>
         </Card>
@@ -678,7 +673,7 @@ const ConfigurationForm = () => {
           ) : (
             <Play className='h-4 w-4' />
           )}
-          {isSubmitting ? 'Running...' : 'Run Ingestion'}
+          {isSubmitting ? t('submit.running') : t('submit.run')}
         </Button>
       </div>
 
@@ -688,7 +683,7 @@ const ConfigurationForm = () => {
           <div className='flex items-center gap-2'>
             <CheckCircle className='h-5 w-5 text-green-600' />
             <p className='text-sm text-green-800'>
-              Ingestion event triggered successfully. Check the <a href='/monitor' className='underline font-medium'>Monitor</a> page for progress.
+              {t('submit.success')} <Link to='/monitor' className='underline font-medium'>Monitor</Link>
             </p>
           </div>
         </Card>

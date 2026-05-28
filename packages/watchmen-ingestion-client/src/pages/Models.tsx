@@ -18,10 +18,13 @@ import { modelService } from '@/services/modelService';
 import { moduleService } from '@/services/moduleService';
 import dataSourceService from '@/services/dataSourceService';
 import { systemService } from '@/services/systemService';
+import { useTranslation } from 'react-i18next';
+import { formatDate } from '@/i18n/utils/format';
 
 const Models = () => {
   // Auth context
   const { user } = useAuth();
+  const { t, i18n } = useTranslation('models');
   
   const [models, setModels] = useState<Model[]>([]);
   const [availableModules, setAvailableModules] = useState<Module[]>([]);
@@ -72,7 +75,7 @@ const Models = () => {
         setAvailableModules(fetchedModules);
         setDataSources(fetchedDataSources);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+        setError(err instanceof Error ? err.message : t('messages.createFailed'));
         console.error('Error fetching data:', err);
       } finally {
         setLoading(false);
@@ -174,15 +177,15 @@ const Models = () => {
     const errors: {[key: string]: string} = {};
 
     if (!formData.modelName?.trim()) {
-      errors.modelName = 'Model name cannot be empty';
+      errors.modelName = t('validation.nameRequired');
     } else if (formData.modelName.length < 2) {
-      errors.modelName = 'Model name must be at least 2 characters';
+      errors.modelName = t('validation.nameMin');
     }
 
     // Model ID validation removed since it's auto-generated
 
     if (!formData.moduleId?.trim()) {
-      errors.moduleId = 'Module ID cannot be empty';
+      errors.moduleId = t('validation.moduleRequired');
     }
 
     setFormErrors(errors);
@@ -193,13 +196,13 @@ const Models = () => {
     const errors: {[key: string]: string} = {};
 
     if (!formData.modelName?.trim()) {
-      errors.modelName = 'Model name cannot be empty';
+      errors.modelName = t('validation.nameRequired');
     } else if (formData.modelName.length < 2) {
-      errors.modelName = 'Model name must be at least 2 characters';
+      errors.modelName = t('validation.nameMin');
     }
 
     if (!formData.moduleId?.trim()) {
-      errors.moduleId = 'Module ID cannot be empty';
+      errors.moduleId = t('validation.moduleRequired');
     }
 
     setFormErrors(errors);
@@ -212,19 +215,19 @@ const Models = () => {
       await modelService.syncRawTopicStructure(model.modelName);
       
       toast({
-        title: "Sync Successful",
-        description: `Raw topic structure for ${model.modelName} has been synced.`
+        title: t('toast.syncSuccessTitle'),
+        description: t('messages.syncSuccess', { name: model.modelName })
       });
-      setSuccessMessage(`Raw topic structure for ${model.modelName} has been synced.`);
+      setSuccessMessage(t('messages.syncSuccess', { name: model.modelName }));
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Failed to sync raw topic:', err);
       toast({
-        title: "Sync Failed",
-        description: `Failed to sync raw topic structure for ${model.modelName}.`,
+        title: t('toast.syncFailedTitle'),
+        description: t('messages.syncFailed', { name: model.modelName }),
         variant: "destructive"
       });
-      setError(`Failed to sync raw topic structure for ${model.modelName}.`);
+      setError(t('messages.syncFailed', { name: model.modelName }));
     } finally {
       setSyncingModelId(null);
     }
@@ -281,16 +284,16 @@ const Models = () => {
       setModels(prev => [createdModel, ...prev]);
       setCreateDialogOpen(false);
       resetCreateForm();
-      setSuccessMessage(`Model "${createdModel.modelName}" created successfully!`);
+      setSuccessMessage(t('messages.created', { name: createdModel.modelName }));
       
       toast({
-        title: "Model Created",
-        description: "New model has been created successfully."
+        title: t('toast.createdTitle'),
+        description: t('toast.createdDescription')
       });
 
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-      setError('Failed to create model. Please try again.');
+      setError(t('messages.createFailed'));
       console.error('Failed to create model:', err);
     } finally {
       setCreateLoading(false);
@@ -343,17 +346,17 @@ const Models = () => {
       setEditDialogOpen(false);
       setSelectedModel(null);
       setEditFormData({});
-      setSuccessMessage(`Model "${updatedModel.modelName}" updated successfully!`);
+      setSuccessMessage(t('messages.updated', { name: updatedModel.modelName }));
       
       toast({
-        title: "Model Updated",
-        description: "Model has been updated successfully."
+        title: t('toast.updatedTitle'),
+        description: t('toast.updatedDescription')
       });
 
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error in handleSaveEdit:', err);
-      setError('Failed to update model. Please try again.');
+      setError(t('messages.updateFailed'));
       console.error('Failed to update model:', err);
     } finally {
       setEditLoading(false);
@@ -363,8 +366,8 @@ const Models = () => {
   const handleViewRawTopic = async (model: Model) => {
     if (!model.rawTopicCode) {
       toast({
-        title: "No Raw Topic Code",
-        description: "This model does not have a raw topic code.",
+        title: t('toast.noRawTopicTitle'),
+        description: t('messages.noRawTopic'),
         variant: "destructive"
       });
       return;
@@ -381,8 +384,8 @@ const Models = () => {
     } catch (err) {
       console.error('Failed to fetch raw topic:', err);
       toast({
-        title: "Error",
-        description: "Failed to fetch raw topic data.",
+        title: t('toast.errorTitle'),
+        description: t('messages.fetchRawTopicFailed'),
         variant: "destructive"
       });
     } finally {
@@ -397,13 +400,13 @@ const Models = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Models</h1>
-          <p className="text-gray-500 mt-2">Manage your data models and definitions.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
+          <p className="text-gray-500 mt-2">{t('subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <Button onClick={handleCreate} className="gap-2 shadow-sm" disabled={isRuntimeEnv}>
             <Plus className="h-4 w-4" />
-            Create Model
+            {t('createButton')}
           </Button>
         </div>
       </div>
@@ -414,7 +417,7 @@ const Models = () => {
           <div className="relative w-full md:w-72">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
             <Input 
-              placeholder="Search models..." 
+              placeholder={t('searchPlaceholder')} 
               value={searchTerm} 
               onChange={(e) => setSearchTerm(e.target.value)} 
               className="pl-9 bg-gray-50/50"
@@ -428,11 +431,11 @@ const Models = () => {
               <SelectTrigger className="bg-gray-50/50">
                 <div className="flex items-center gap-2">
                   <Filter className="h-3.5 w-3.5 text-gray-500" />
-                  <SelectValue placeholder="Filter by module" />
+                  <SelectValue placeholder={t('filterByModule')} />
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Modules</SelectItem>
+                <SelectItem value="all">{t('allModules')}</SelectItem>
                 {availableModules.map((module) => (
                   <SelectItem key={module.moduleId} value={module.moduleId}>
                     {module.moduleName}
@@ -445,11 +448,11 @@ const Models = () => {
         <div className="flex gap-2 w-full sm:w-auto justify-end">
           <Button variant="outline" size="sm" className="gap-2 text-gray-600">
             <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden sm:inline">{t('export')}</span>
           </Button>
           <Button variant="outline" size="sm" className="gap-2 text-gray-600" onClick={() => window.location.reload()}>
             <RefreshCw className="h-4 w-4" />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="hidden sm:inline">{t('common:refresh', { ns: 'common' })}</span>
           </Button>
         </div>
       </div>
@@ -459,7 +462,7 @@ const Models = () => {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
           <X className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h3 className="font-medium text-red-800">Error</h3>
+            <h3 className="font-medium text-red-800">{t('toast.errorTitle')}</h3>
             <p className="text-sm text-red-700 mt-1">{error}</p>
           </div>
           <Button 
@@ -482,7 +485,7 @@ const Models = () => {
             </svg>
           </div>
           <div className="flex-1">
-            <h3 className="font-medium text-green-800">Success</h3>
+            <h3 className="font-medium text-green-800">{t('successTitle')}</h3>
             <p className="text-sm text-green-700 mt-1">{successMessage}</p>
           </div>
           <Button 
@@ -500,7 +503,7 @@ const Models = () => {
         <div className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            <p className="text-lg text-gray-600">Loading models...</p>
+            <p className="text-lg text-gray-600">{t('loading')}</p>
           </div>
         </div>
       )}
@@ -511,11 +514,11 @@ const Models = () => {
             <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <Database className="h-8 w-8 text-blue-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Models Found</h3>
-            <p className="text-gray-500 mb-6 max-w-sm mx-auto">Get started by creating your first model to define your data structure.</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('noModelsTitle')}</h3>
+            <p className="text-gray-500 mb-6 max-w-sm mx-auto">{t('noModelsDescription')}</p>
             <Button onClick={handleCreate} className="gap-2" disabled={isRuntimeEnv}>
               <Plus className="h-4 w-4" />
-              Create First Model
+              {t('createFirst')}
             </Button>
           </div>
         </Card>
@@ -528,12 +531,12 @@ const Models = () => {
             <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="h-8 w-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Matches Found</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('noMatchesTitle')}</h3>
             <p className="text-gray-500 max-w-sm mx-auto">
-              We couldn't find any models matching your current filters. Try adjusting your search or filters.
+              {t('noMatchesDescription')}
             </p>
             <Button variant="link" onClick={() => {setSearchTerm(''); setSelectedModuleId('all');}} className="mt-4 text-blue-600">
-              Clear all filters
+              {t('clearFilters')}
             </Button>
           </div>
         </Card>
@@ -552,7 +555,7 @@ const Models = () => {
                     </CardTitle>
                     {model.isParalleled && (
                       <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-100 text-[10px] px-1.5 py-0.5 h-5">
-                        Parallel
+                        {t('parallel')}
                       </Badge>
                     )}
                   </div>
@@ -567,7 +570,7 @@ const Models = () => {
                     className="h-8 w-8"
                     onClick={() => handleSyncRawTopic(model)}
                     disabled={syncingModelId === model.modelId}
-                    title="Sync Raw Topic Structure"
+                    title={t('syncRawTopic')}
                   >
                     <RefreshCw className={`h-4 w-4 text-gray-500 hover:text-green-600 ${syncingModelId === model.modelId ? 'animate-spin' : ''}`} />
                   </Button>
@@ -577,7 +580,7 @@ const Models = () => {
                     className="h-8 w-8"
                     onClick={() => handleViewRawTopic(model)}
                     disabled={viewTopicLoading && selectedModel?.modelId === model.modelId}
-                    title="View Raw Topic JSON"
+                    title={t('viewRawTopic')}
                   >
                     {viewTopicLoading && selectedModel?.modelId === model.modelId ? (
                       <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
@@ -591,7 +594,7 @@ const Models = () => {
                     className="h-8 w-8"
                     onClick={() => handleEdit(model)}
                     disabled={isRuntimeEnv}
-                    title="Edit Model"
+                    title={t('editModel')}
                   >
                     <Edit className="h-4 w-4 text-gray-500 hover:text-blue-600" />
                   </Button>
@@ -602,26 +605,26 @@ const Models = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-3 text-sm">
                   <div className="space-y-1">
-                    <p className="text-xs text-gray-500 font-medium uppercase">Priority</p>
+                    <p className="text-xs text-gray-500 font-medium uppercase">{t('priority')}</p>
                     <Badge variant="outline" className="font-normal">
                       Level {model.priority}
                     </Badge>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs text-gray-500 font-medium uppercase">Topic</p>
+                    <p className="text-xs text-gray-500 font-medium uppercase">{t('topic')}</p>
                     <p className="text-gray-700 truncate" title={model.rawTopicCode || '-'}>
                       {model.rawTopicCode || '-'}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs text-gray-500 font-medium uppercase">Send Type</p>
+                    <p className="text-xs text-gray-500 font-medium uppercase">{t('sendType')}</p>
                     <div className="flex flex-col gap-1">
                       <Badge variant="outline" className="font-normal bg-blue-50 text-blue-700 border-blue-100 w-fit">
                         {model.sendType || 'raw-topic'}
                       </Badge>
                       {model.sendType === 'cloud-file' && model.dataSourceId && (
                         <span className="text-xs text-gray-500 truncate max-w-[100px]" title={dataSources.find(ds => ds.dataSourceId === model.dataSourceId)?.name}>
-                          DS: {dataSources.find(ds => ds.dataSourceId === model.dataSourceId)?.name || model.dataSourceId}
+                          {t('dataSourceShort')}: {dataSources.find(ds => ds.dataSourceId === model.dataSourceId)?.name || model.dataSourceId}
                         </span>
                       )}
                     </div>
@@ -633,8 +636,8 @@ const Models = () => {
 
 
                 <div className="pt-2 flex items-center justify-between text-xs text-gray-500">
-                  <span>Last modified</span>
-                  <span>{new Date(model.lastModifiedAt).toLocaleDateString()}</span>
+                  <span>{t('lastModified')}</span>
+                  <span>{formatDate(model.lastModifiedAt, i18n.resolvedLanguage ?? 'en')}</span>
                 </div>
               </div>
             </CardContent>
@@ -649,10 +652,10 @@ const Models = () => {
           {/* Pagination Info */}
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <span>
-              Showing {Math.min(startIndex + 1, totalFilteredCount)} - {Math.min(endIndex, totalFilteredCount)} of {totalFilteredCount} items
+              {t('itemsRange', { start: Math.min(startIndex + 1, totalFilteredCount), end: Math.min(endIndex, totalFilteredCount), total: totalFilteredCount })}
             </span>
             <div className="flex items-center gap-2">
-              <span>Items per page:</span>
+              <span>{t('itemsPerPage')}</span>
               <Select value={pageSize.toString()} onValueChange={(value) => handlePageSizeChange(Number(value))}>
                 <SelectTrigger className="w-20 h-8">
                   <SelectValue />
@@ -742,42 +745,42 @@ const Models = () => {
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Model</DialogTitle>
+            <DialogTitle>{t('createDialogTitle')}</DialogTitle>
             <DialogDescription>
-              Fill in the information below to create a new model. Fields marked with * are required.
+              {t('createDialogDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="create-modelId">Model ID</Label>
+              <Label htmlFor="create-modelId">{t('fields.modelId')}</Label>
               <Input
                 id="create-modelId"
                 value={createFormData.modelId || ''}
                 readOnly
                 className="bg-gray-50 cursor-not-allowed"
-                placeholder="Auto-generated"
+                placeholder={t('fields.autoGenerated')}
               />
-              <p className="text-xs text-gray-500">Automatically generated with 'f-' prefix</p>
+              <p className="text-xs text-gray-500">{t('fields.autoGeneratedHint')}</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="create-modelName">Model Name *</Label>
+              <Label htmlFor="create-modelName">{t('fields.modelName')}</Label>
               <Input
                 id="create-modelName"
                 value={createFormData.modelName || ''}
                 onChange={(e) => setCreateFormData(prev => ({ ...prev, modelName: e.target.value }))}
-                placeholder="Enter model name"
+                placeholder={t('fields.modelNamePlaceholder')}
                 className={formErrors.modelName ? "border-red-500" : ""}
               />
               {formErrors.modelName && <p className="text-sm text-red-600 mt-1">{formErrors.modelName}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="create-moduleId">Module ID *</Label>
+              <Label htmlFor="create-moduleId">{t('fields.moduleId')}</Label>
               <Select
                 value={createFormData.moduleId || ''}
                 onValueChange={(value) => setCreateFormData(prev => ({ ...prev, moduleId: value }))}
               >
                 <SelectTrigger className={formErrors.moduleId ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Select a module" />
+                  <SelectValue placeholder={t('fields.selectModule')} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableModules.map((module) => (
@@ -791,16 +794,16 @@ const Models = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="create-rawTopicCode">Raw Topic Code</Label>
+              <Label htmlFor="create-rawTopicCode">{t('fields.rawTopicCode')}</Label>
               <Input
                 id="create-rawTopicCode"
                 value={createFormData.rawTopicCode || ''}
                 onChange={(e) => setCreateFormData(prev => ({ ...prev, rawTopicCode: e.target.value }))}
-                placeholder="Enter raw topic code"
+                placeholder={t('fields.rawTopicCodePlaceholder')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="create-priority">Priority</Label>
+              <Label htmlFor="create-priority">{t('fields.priority')}</Label>
               <Input
                 id="create-priority"
                 type="number"
@@ -809,30 +812,30 @@ const Models = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="create-sendType">Send Type</Label>
+              <Label htmlFor="create-sendType">{t('fields.sendType')}</Label>
               <Select
                 value={createFormData.sendType || 'raw-topic'}
                 onValueChange={(value) => setCreateFormData(prev => ({ ...prev, sendType: value, dataSourceId: value === 'raw-topic' ? undefined : prev.dataSourceId }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select send type" />
+                  <SelectValue placeholder={t('fields.selectSendType')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="raw-topic">Raw Topic</SelectItem>
-                  <SelectItem value="cloud-file">Cloud File</SelectItem>
+                  <SelectItem value="raw-topic">{t('fields.rawTopic')}</SelectItem>
+                  <SelectItem value="cloud-file">{t('fields.cloudFile')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {createFormData.sendType === 'cloud-file' && (
               <div className="space-y-2">
-                <Label htmlFor="create-dataSourceId">Data Source</Label>
+                <Label htmlFor="create-dataSourceId">{t('fields.dataSource')}</Label>
                 <Select
                   value={createFormData.dataSourceId || ''}
                   onValueChange={(value) => setCreateFormData(prev => ({ ...prev, dataSourceId: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select data source" />
+                    <SelectValue placeholder={t('fields.selectDataSource')} />
                   </SelectTrigger>
                   <SelectContent>
                     {cloudDataSources.map((ds) => (
@@ -851,15 +854,15 @@ const Models = () => {
                 checked={createFormData.isParalleled || false}
                 onCheckedChange={(checked) => setCreateFormData(prev => ({ ...prev, isParalleled: !!checked }))}
               />
-              <Label htmlFor="create-isParalleled">Is Paralleled</Label>
+              <Label htmlFor="create-isParalleled">{t('fields.isParalleled')}</Label>
             </div>
           </div>
           <div className="flex gap-3 mt-6">
             <Button onClick={handleCreateModel} disabled={createLoading || isRuntimeEnv}>
               {createLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              Create Model
+              {t('actions.create')}
             </Button>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('actions.cancel')}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -868,31 +871,31 @@ const Models = () => {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen} key={selectedModel?.modelId || 'edit-dialog'}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Model</DialogTitle>
+            <DialogTitle>{t('editDialogTitle')}</DialogTitle>
             <DialogDescription>
-              Update the model information below. Fields marked with * are required.
+              {t('editDialogDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-modelName">Model Name *</Label>
+              <Label htmlFor="edit-modelName">{t('fields.modelName')}</Label>
               <Input
                 id="edit-modelName"
                 value={editFormData.modelName || ''}
                 onChange={(e) => setEditFormData(prev => ({ ...prev, modelName: e.target.value }))}
-                placeholder="Enter model name"
+                placeholder={t('fields.modelNamePlaceholder')}
                 className={formErrors.modelName ? "border-red-500" : ""}
               />
               {formErrors.modelName && <p className="text-sm text-red-600 mt-1">{formErrors.modelName}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-moduleId">Module ID *</Label>
+              <Label htmlFor="edit-moduleId">{t('fields.moduleId')}</Label>
               <Select
                 value={editFormData.moduleId || ''}
                 onValueChange={(value) => setEditFormData(prev => ({ ...prev, moduleId: value }))}
               >
                 <SelectTrigger className={formErrors.moduleId ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Select a module" />
+                  <SelectValue placeholder={t('fields.selectModule')} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableModules.map((module) => (
@@ -906,16 +909,16 @@ const Models = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-rawTopicCode">Raw Topic Code</Label>
+              <Label htmlFor="edit-rawTopicCode">{t('fields.rawTopicCode')}</Label>
               <Input
                 id="edit-rawTopicCode"
                 value={editFormData.rawTopicCode || ''}
                 onChange={(e) => setEditFormData(prev => ({ ...prev, rawTopicCode: e.target.value }))}
-                placeholder="Enter raw topic code"
+                placeholder={t('fields.rawTopicCodePlaceholder')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-priority">Priority</Label>
+              <Label htmlFor="edit-priority">{t('fields.priority')}</Label>
               <Input
                 id="edit-priority"
                 type="number"
@@ -924,30 +927,30 @@ const Models = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-sendType">Send Type</Label>
+              <Label htmlFor="edit-sendType">{t('fields.sendType')}</Label>
               <Select
                 value={editFormData.sendType || 'raw-topic'}
                 onValueChange={(value) => setEditFormData(prev => ({ ...prev, sendType: value, dataSourceId: value === 'raw-topic' ? undefined : prev.dataSourceId }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select send type" />
+                  <SelectValue placeholder={t('fields.selectSendType')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="raw-topic">Raw Topic</SelectItem>
-                  <SelectItem value="cloud-file">Cloud File</SelectItem>
+                  <SelectItem value="raw-topic">{t('fields.rawTopic')}</SelectItem>
+                  <SelectItem value="cloud-file">{t('fields.cloudFile')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {editFormData.sendType === 'cloud-file' && (
               <div className="space-y-2">
-                <Label htmlFor="edit-dataSourceId">Data Source</Label>
+                <Label htmlFor="edit-dataSourceId">{t('fields.dataSource')}</Label>
                 <Select
                   value={editFormData.dataSourceId || ''}
                   onValueChange={(value) => setEditFormData(prev => ({ ...prev, dataSourceId: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select data source" />
+                    <SelectValue placeholder={t('fields.selectDataSource')} />
                   </SelectTrigger>
                   <SelectContent>
                     {cloudDataSources.map((ds) => (
@@ -966,15 +969,15 @@ const Models = () => {
                 checked={editFormData.isParalleled || false}
                 onCheckedChange={(checked) => setEditFormData(prev => ({ ...prev, isParalleled: !!checked }))}
               />
-              <Label htmlFor="edit-isParalleled">Is Paralleled</Label>
+              <Label htmlFor="edit-isParalleled">{t('fields.isParalleled')}</Label>
             </div>
           </div>
           <div className="flex gap-3 mt-6">
             <Button onClick={handleSaveEdit} disabled={editLoading || isRuntimeEnv}>
               {editLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              Save Changes
+              {t('actions.saveChanges')}
             </Button>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('actions.cancel')}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -983,9 +986,9 @@ const Models = () => {
       <Dialog open={viewTopicDialogOpen} onOpenChange={setViewTopicDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Raw Topic: {selectedModel?.rawTopicCode}</DialogTitle>
+            <DialogTitle>{t('rawTopicDialogTitle', { code: selectedModel?.rawTopicCode })}</DialogTitle>
             <DialogDescription>
-              View the raw JSON structure of the topic associated with model "{selectedModel?.modelName}".
+              {t('rawTopicDialogDescription', { name: selectedModel?.modelName })}
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">
@@ -1002,7 +1005,7 @@ const Models = () => {
             )}
           </div>
           <div className="flex justify-end mt-6">
-            <Button variant="outline" onClick={() => setViewTopicDialogOpen(false)}>Close</Button>
+            <Button variant="outline" onClick={() => setViewTopicDialogOpen(false)}>{t('close')}</Button>
           </div>
         </DialogContent>
       </Dialog>

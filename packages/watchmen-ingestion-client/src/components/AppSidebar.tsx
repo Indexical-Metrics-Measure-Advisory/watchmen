@@ -17,40 +17,41 @@ import { Badge } from "@/components/ui/badge";
 import { Database, Settings, Table, Layers, Home, Activity, Search, Sparkles } from 'lucide-react';
 import { FEATURE_FLAGS } from '@/App';
 import { systemService } from '@/services/systemService';
+import { useTranslation } from 'react-i18next';
 
 const menuItems = [
   {
-    title: "Dashboard",
+    id: 'dashboard',
     url: "/",
     icon: Home,
   },
   {
-    title: "Modules",
+    id: 'modules',
     url: "/modules",
     icon: Layers,
   },
   {
-    title: "Models",
+    id: 'models',
     url: "/models",
     icon: Database,
   },
   {
-    title: "Tables",
+    id: 'tables',
     url: "/tables",
     icon: Table,
   },
   {
-    title: "Discovery",
+    id: 'discovery',
     url: "/discovery",
     icon: Search,
   },
   {
-    title: "Run Ingestion",
+    id: 'runIngestion',
     url: "/config",
     icon: Settings,
   },
   {
-    title: "Monitor",
+    id: 'monitor',
     url: "/monitor",
     icon: Activity,
   },
@@ -59,6 +60,7 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const { t } = useTranslation(['nav']);
   const appTitle = import.meta.env.VITE_APP_TITLE ?? 'Watchmen Ingestion';
   const [envTag, setEnvTag] = React.useState<string>('');
 
@@ -79,33 +81,33 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-xl leading-none">{appTitle}</span>
-            <span className="text-xs font-medium text-muted-foreground">Ingestion Platform</span>
+            <span className="text-xs font-medium text-muted-foreground">{t('nav:ingestionPlatform')}</span>
             {envTag && <Badge variant="secondary" className="mt-1 w-fit bg-[#5b6b8c] hover:bg-[#4a5a7a] text-white text-[10px] px-1.5 py-0 h-4 rounded-sm uppercase">{envTag}</Badge>}
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('nav:navigation')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems
                 .filter(item => {
                   // Hide Discovery menu item if feature flag is disabled
-                  if (item.title === 'Discovery' && !FEATURE_FLAGS.showDiscovery) {
+                  if (item.id === 'discovery' && !FEATURE_FLAGS.showDiscovery) {
                     return false;
                   }
                   return true;
                 })
                 .map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton 
                     asChild 
                     isActive={location.pathname === item.url}
                   >
                     <Link to={item.url}>
                       <item.icon />
-                      <span>{item.title}</span>
+                      <span>{t(`nav:${item.id}`)}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -115,7 +117,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-4">
-        <p className="text-xs text-gray-500">Watchmen Ingestion Platform</p>
+        <p className="text-xs text-gray-500">{appTitle} {t('nav:ingestionPlatform')}</p>
       </SidebarFooter>
     </Sidebar>
   );

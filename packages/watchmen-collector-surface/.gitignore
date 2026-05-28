@@ -7,3 +7,5 @@
 *.LoG
 
 *.log.*
+/docs/*
+/docs

@@ -7,6 +7,7 @@ import { Brain, Cpu, Zap, Sparkles, Loader2 } from 'lucide-react';
 import { modelService } from '@/services';
 import { Model } from '@/models';
 import { toast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 interface ModelSelectorProps {
   selectedModule: string;
@@ -23,6 +24,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
   onModelSelectDetail,
   aiEnabled
 }) => {
+  const { t } = useTranslation('selectors');
   const [models, setModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,10 +57,10 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
         setModels(filteredModels);
       } catch (err: any) {
         console.error('Error loading models:', err);
-        setError(err.message || 'Failed to load models');
+        setError(err.message || t('model.loadErrorDescription'));
         toast({
-          title: "Error Loading Models",
-          description: err.message || "Failed to load models from server",
+          title: t('model.loadErrorTitle'),
+          description: err.message || t('model.loadErrorDescription'),
           variant: "destructive"
         });
       } finally {
@@ -77,7 +79,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
   if (!selectedModule) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">Please select a module first</p>
+        <p className="text-gray-600">{t('model.selectModuleFirst')}</p>
       </div>
     );
   }
@@ -86,7 +88,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-6 w-6 animate-spin mr-2" />
-        <span className="text-gray-600">Loading models...</span>
+        <span className="text-gray-600">{t('model.loading')}</span>
       </div>
     );
   }
@@ -94,13 +96,13 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-600 mb-4">Error: {error}</p>
+        <p className="text-red-600 mb-4">{t('models:errorTitle', { ns: 'models' })}: {error}</p>
         <Button 
           variant="outline" 
           onClick={() => window.location.reload()}
           className="gap-2"
         >
-          Retry
+          {t('common:refresh', { ns: 'common' })}
         </Button>
       </div>
     );
@@ -109,7 +111,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
   if (models.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">No models available for the selected module</p>
+        <p className="text-gray-600">{t('model.noModels')}</p>
       </div>
     );
   }
@@ -139,7 +141,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
               <div>
                 <h4 className="font-semibold text-gray-900">{model.modelName}</h4>
                 <p className="text-sm text-gray-600 mt-1">
-                  Version: {model.version} | Priority: {model.priority}
+                  {t('common.versionPriority', { version: model.version, priority: model.priority })}
                 </p>
               </div>
             </div>
@@ -148,13 +150,13 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
           <div className="flex gap-2 flex-wrap">
             {model.priority <= 2 && (
               <Badge variant="secondary" className="text-xs">
-                High Priority
+                {t('common.highPriority')}
               </Badge>
             )}
             {aiEnabled && model.priority === 1 && (
               <Badge variant="outline" className="text-xs bg-purple-50 border-purple-200 text-purple-700">
                 <Sparkles className="h-3 w-3 mr-1" />
-                AI Suggested
+                {t('common.aiSuggested')}
               </Badge>
             )}
           </div>

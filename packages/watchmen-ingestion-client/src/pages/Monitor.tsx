@@ -10,18 +10,11 @@ import { EventTriggerItem, PaginatedEventsResponse, EventResultRecord } from '@/
 import { toast } from '@/hooks/use-toast';
 import Skeleton from '@/components/ui/monitor/Skeleton';
 import EventsTable from '@/components/ui/monitor/EventsTable';
+import { useTranslation } from 'react-i18next';
 const EventDetailsPanel = React.lazy(() => import('@/components/ui/monitor/EventDetailsPanel'));
 
-// Trigger type display mapping
-const TRIGGER_TYPE_LABELS: Record<number, string> = {
-  1: 'DEFAULT',
-  2: 'BY_TABLE',
-  3: 'BY_RECORD',
-  4: 'BY_PIPELINE',
-  5: 'BY_SCHEDULE',
-};
-
 const Monitor = () => {
+  const { t } = useTranslation(['common', 'monitor']);
   // Pagination state for first-level events
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -48,6 +41,13 @@ const Monitor = () => {
   });
 
   const detailsSectionRef = useRef<HTMLDivElement>(null);
+  const triggerTypeLabels = useMemo<Record<number, string>>(() => ({
+    1: t('monitor:type.default'),
+    2: t('monitor:type.byTable'),
+    3: t('monitor:type.byRecord'),
+    4: t('monitor:type.byPipeline'),
+    5: t('monitor:type.bySchedule'),
+  }), [t]);
 
   // Scroll to details section when an event is selected
   useEffect(() => {
@@ -72,8 +72,8 @@ const Monitor = () => {
         startTransition(() => setEventsPage(data));
       } catch (error: any) {
         toast({
-          title: 'Error Fetching Events',
-          description: error?.message || 'Failed to fetch event triggers',
+        title: t('monitor:errors.fetchEventsTitle'),
+        description: error?.message || t('monitor:errors.fetchEventsDescription'),
           variant: 'destructive',
         });
         startTransition(() => setEventsPage({ pageNumber, pageSize, data: [] }));
@@ -109,8 +109,8 @@ const Monitor = () => {
       startTransition(() => setRecords(data || []));
     } catch (error: any) {
       toast({
-        title: 'Error Fetching Details',
-        description: error?.message || 'Failed to fetch event result records',
+        title: t('monitor:errors.fetchDetailsTitle'),
+        description: error?.message || t('monitor:errors.fetchDetailsDescription'),
         variant: 'destructive',
       });
       startTransition(() => setRecords([]));
@@ -146,14 +146,14 @@ const Monitor = () => {
       }
     } catch (error: any) {
       toast({
-        title: 'Refresh Failed',
-        description: error?.message || 'Failed to refresh data',
+        title: t('monitor:errors.refreshFailedTitle'),
+        description: error?.message || t('monitor:errors.refreshFailedDescription'),
         variant: 'destructive',
       });
     } finally {
       setRefreshing(false);
     }
-  }, [pageNumber, pageSize, selectedEvent]);
+  }, [pageNumber, pageSize, selectedEvent, t]);
 
   const eventsCount = useMemo(() => (eventsPage?.data?.length ?? 0), [eventsPage]);
   const filteredEventsPage = useMemo<PaginatedEventsResponse | null>(() => {
@@ -182,9 +182,9 @@ const Monitor = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-2">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Ingestion Monitor</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('monitor:title')}</h1>
           <p className="text-muted-foreground">
-            Real-time tracking of data ingestion events and status
+            {t('monitor:subtitle')}
           </p>
         </div>
         <Button 
@@ -198,7 +198,7 @@ const Monitor = () => {
           ) : (
             <RefreshCw className="h-4 w-4" />
           )}
-          {refreshing ? "Refreshing..." : "Refresh Data"}
+          {refreshing ? t('common:refreshing') : t('monitor:refreshData')}
         </Button>
       </div>
 
@@ -209,9 +209,9 @@ const Monitor = () => {
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-semibold">Event Triggers</CardTitle>
+                <CardTitle className="text-lg font-semibold">{t('monitor:eventTriggersTitle')}</CardTitle>
                 <CardDescription>
-                  Showing {eventsCount} events
+                  {t('monitor:showingEvents', { count: eventsCount })}
                 </CardDescription>
               </div>
             </div>
@@ -226,7 +226,7 @@ const Monitor = () => {
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search table or ID..."
+                    placeholder={t('monitor:searchPlaceholder')}
                     className="pl-9 bg-white"
                   />
                 </div>
@@ -238,22 +238,22 @@ const Monitor = () => {
                     <SelectTrigger className="bg-white">
                       <div className="flex items-center gap-2">
                         <Filter className="h-3.5 w-3.5 text-gray-500" />
-                        <SelectValue placeholder="Filter status" />
+                        <SelectValue placeholder={t('monitor:filterStatus')} />
                       </div>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="0">Status #0</SelectItem>
-                      <SelectItem value="1">Status #1</SelectItem>
-                      <SelectItem value="2">Status #2</SelectItem>
-                      <SelectItem value="3">Status #3</SelectItem>
+                      <SelectItem value="all">{t('common:status.all')}</SelectItem>
+                      <SelectItem value="0">{t('monitor:statusCode', { status: 0 })}</SelectItem>
+                      <SelectItem value="1">{t('monitor:statusCode', { status: 1 })}</SelectItem>
+                      <SelectItem value="2">{t('monitor:statusCode', { status: 2 })}</SelectItem>
+                      <SelectItem value="3">{t('monitor:statusCode', { status: 3 })}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500 whitespace-nowrap">Rows per page</span>
+                <span className="text-sm text-gray-500 whitespace-nowrap">{t('common:rowsPerPage')}</span>
                 <Select
                   value={String(pageSize)}
                   onValueChange={(val) => setPageSize(Number(val))}
@@ -283,14 +283,17 @@ const Monitor = () => {
                     eventsPage={filteredEventsPage}
                     selectedEvent={selectedEvent}
                     onSelectEvent={loadEventRecords}
-                    typeLabelMap={TRIGGER_TYPE_LABELS}
+                    typeLabelMap={triggerTypeLabels}
                   />
                 </div>
 
                 {/* Pagination controls */}
                 <div className="flex items-center justify-between mt-4">
                   <div className="text-sm text-gray-500">
-                    Showing page {eventsPage?.pageNumber ?? pageNumber} of {Math.ceil((eventsPage?.data?.length || 0) / pageSize) || 1}
+                    {t('monitor:pageSummary', {
+                      page: eventsPage?.pageNumber ?? pageNumber,
+                      total: eventsPage?.totalPages ?? Math.max(1, Math.ceil((eventsPage?.data?.length || 0) / pageSize)),
+                    })}
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -299,7 +302,7 @@ const Monitor = () => {
                       onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
                       disabled={pageNumber <= 1 || loadingEvents}
                     >
-                      Previous
+                      {t('common:previous')}
                     </Button>
                     <Button
                       variant="outline"
@@ -307,7 +310,7 @@ const Monitor = () => {
                       onClick={() => setPageNumber(pageNumber + 1)}
                       disabled={loadingEvents || (eventsPage && (eventsPage.data?.length ?? 0) < pageSize)}
                     >
-                      Next
+                      {t('common:next')}
                     </Button>
                   </div>
                 </div>

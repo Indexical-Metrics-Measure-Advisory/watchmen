@@ -19,6 +19,7 @@ import { tableService, TableServiceError } from '@/services/tableService';
 import dataSourceService from '@/services/dataSourceService';
 import { modelService } from '@/services/modelService';
 import { systemService } from '@/services/systemService';
+import { useTranslation } from 'react-i18next';
 
 // Helper components for complex data structures
 const ConditionEditor = ({ 
@@ -269,7 +270,8 @@ const TableForm = ({
   onSubmit,
   onCancel,
   loading,
-  disableSubmit = false
+  disableSubmit = false,
+  t
 }: {
   formData: Partial<CollectorTableConfig>;
   setFormData: (data: Partial<CollectorTableConfig>) => void;
@@ -284,45 +286,46 @@ const TableForm = ({
   onCancel: () => void;
   loading: boolean;
   disableSubmit?: boolean;
+  t: (key: string, options?: any) => string;
 }) => {
   return (
     <div className="space-y-6">
       {/* Basic Information */}
       <div>
-        <h3 className="text-lg font-medium mb-4">Basic Information</h3>
+        <h3 className="text-lg font-medium mb-4">{t('form.basicInformation')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="form-name">Name *</Label>
+            <Label htmlFor="form-name">{t('form.name')}</Label>
             <Input
               id="form-name"
               value={formData.name || ''}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Enter display name"
+              placeholder={t('form.namePlaceholder')}
               className={errors.name ? "border-red-500" : ""}
             />
             {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
           </div>
           
           <div>
-            <Label htmlFor="form-table-name">Table Name</Label>
+            <Label htmlFor="form-table-name">{t('form.tableName')}</Label>
             <Input
               id="form-table-name"
               value={formData.tableName || ''}
               onChange={(e) => setFormData({ ...formData, tableName: e.target.value })}
-              placeholder="Enter database table name"
+              placeholder={t('form.tableNamePlaceholder')}
               className={errors.tableName ? "border-red-500" : ""}
             />
             {errors.tableName && <p className="text-sm text-red-600 mt-1">{errors.tableName}</p>}
           </div>
 
           <div>
-            <Label htmlFor="form-model-name">Model Name *</Label>
+            <Label htmlFor="form-model-name">{t('form.modelName')}</Label>
             <Select
               value={formData.modelName || ''}
               onValueChange={(value) => setFormData({ ...formData, modelName: value })}
             >
               <SelectTrigger id="form-model-name" className={errors.modelName ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select model name" />
+                <SelectValue placeholder={t('form.selectModelName')} />
               </SelectTrigger>
               <SelectContent>
                 {modelNames.map((name) => (
@@ -334,16 +337,16 @@ const TableForm = ({
           </div>
 
           <div>
-            <Label htmlFor="form-parent-name">Parent Name</Label>
+            <Label htmlFor="form-parent-name">{t('form.parentName')}</Label>
             <Select
               value={formData.parentName || 'unselected'}
               onValueChange={(value) => setFormData({ ...formData, parentName: value === 'unselected' ? '' : value })}
             >
               <SelectTrigger id="form-parent-name">
-                <SelectValue placeholder="Select parent table" />
+                <SelectValue placeholder={t('form.selectParentTable')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="unselected">Please select</SelectItem>
+                <SelectItem value="unselected">{t('form.pleaseSelect')}</SelectItem>
                 {tables
                   .filter(t => t.modelName === formData.modelName && t.configId !== formData.configId)
                   .map((t) => (
@@ -357,12 +360,12 @@ const TableForm = ({
           </div>
 
           <div className="md:col-span-2">
-            <Label htmlFor="form-label">Label</Label>
+            <Label htmlFor="form-label">{t('form.label')}</Label>
             <Textarea
               id="form-label"
               value={formData.label || ''}
               onChange={(e) => setFormData({ ...formData, label: e.target.value })}
-              placeholder="Enter table description"
+              placeholder={t('form.labelPlaceholder')}
               rows={3}
             />
           </div>
@@ -373,10 +376,10 @@ const TableForm = ({
 
       {/* Key Configuration */}
       <div>
-        <h3 className="text-lg font-medium mb-4">Key Configuration</h3>
+        <h3 className="text-lg font-medium mb-4">{t('form.keyConfiguration')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="form-primary-key">Primary Key</Label>
+            <Label htmlFor="form-primary-key">{t('form.primaryKey')}</Label>
             <Input
               id="form-primary-key"
               value={formData.primaryKey?.join(', ') || ''}
@@ -384,43 +387,43 @@ const TableForm = ({
                 ...formData, 
                 primaryKey: e.target.value.split(',').map(k => k.trim()).filter(k => k) 
               })}
-              placeholder="Enter primary keys (comma separated)"
+              placeholder={t('form.primaryKeyPlaceholder')}
               className={errors.primaryKey ? "border-red-500" : ""}
             />
             {errors.primaryKey && <p className="text-sm text-red-600 mt-1">{errors.primaryKey}</p>}
           </div>
 
           <div>
-            <Label htmlFor="form-object-key">Object Key</Label>
+            <Label htmlFor="form-object-key">{t('form.objectKey')}</Label>
             <Input
               id="form-object-key"
               value={formData.objectKey || ''}
               onChange={(e) => setFormData({ ...formData, objectKey: e.target.value })}
-              placeholder="Enter object key"
+              placeholder={t('form.objectKeyPlaceholder')}
               className={errors.objectKey ? "border-red-500" : ""}
             />
             {errors.objectKey && <p className="text-sm text-red-600 mt-1">{errors.objectKey}</p>}
           </div>
 
           <div>
-            <Label htmlFor="form-sequence-key">Sequence Key</Label>
+            <Label htmlFor="form-sequence-key">{t('form.sequenceKey')}</Label>
             <Input
               id="form-sequence-key"
               value={formData.sequenceKey || ''}
               onChange={(e) => setFormData({ ...formData, sequenceKey: e.target.value })}
-              placeholder="Enter sequence key"
+              placeholder={t('form.sequenceKeyPlaceholder')}
               className={errors.sequenceKey ? "border-red-500" : ""}
             />
             {errors.sequenceKey && <p className="text-sm text-red-600 mt-1">{errors.sequenceKey}</p>}
           </div>
 
           <div>
-            <Label htmlFor="form-audit-column">Audit Column</Label>
+            <Label htmlFor="form-audit-column">{t('form.auditColumn')}</Label>
             <Input
               id="form-audit-column"
               value={formData.auditColumn || ''}
               onChange={(e) => setFormData({ ...formData, auditColumn: e.target.value })}
-              placeholder="Enter audit column"
+              placeholder={t('form.auditColumnPlaceholder')}
               className={errors.auditColumn ? "border-red-500" : ""}
             />
             {errors.auditColumn && <p className="text-sm text-red-600 mt-1">{errors.auditColumn}</p>}
@@ -432,15 +435,15 @@ const TableForm = ({
 
       {/* Complex Configuration */}
       <div>
-        <h3 className="text-lg font-medium mb-4">Complex Configuration</h3>
+        <h3 className="text-lg font-medium mb-4">{t('form.complexConfiguration')}</h3>
         
         {/* Join Keys */}
         <div className="mb-6">
-          <Label className="text-sm font-medium mb-2 block">Join Keys</Label>
+          <Label className="text-sm font-medium mb-2 block">{t('form.joinKeys')}</Label>
           <div className="border rounded-lg p-4 bg-gray-50">
-            <p className="text-sm text-gray-600 mb-2">Configure join conditions for this table</p>
+            <p className="text-sm text-gray-600 mb-2">{t('form.joinKeysDescription')}</p>
             <Textarea
-              placeholder="Enter join keys as JSON"
+              placeholder={t('form.joinKeysPlaceholder')}
               value={joinKeysJson}
               onChange={(e) => setJoinKeysJson(e.target.value)}
               className="min-h-[100px]"
@@ -450,7 +453,7 @@ const TableForm = ({
 
         {/* Dependencies */}
         <div className="mb-6">
-          <Label className="text-sm font-medium mb-2 block">Dependencies</Label>
+          <Label className="text-sm font-medium mb-2 block">{t('form.dependencies')}</Label>
           <DependenceEditor
             dependencies={formData.dependOn || []}
             onChange={(dependencies) => setFormData({ ...formData, dependOn: dependencies })}
@@ -459,7 +462,7 @@ const TableForm = ({
 
         {/* Conditions */}
         <div className="mb-6">
-          <Label className="text-sm font-medium mb-2 block">Conditions</Label>
+          <Label className="text-sm font-medium mb-2 block">{t('form.conditions')}</Label>
           <ConditionEditor
             conditions={formData.conditions || []}
             onChange={(conditions) => setFormData({ ...formData, conditions })}
@@ -468,7 +471,7 @@ const TableForm = ({
 
         {/* JSON Columns */}
         <div className="mb-6">
-          <Label className="text-sm font-medium mb-2 block">JSON Columns</Label>
+          <Label className="text-sm font-medium mb-2 block">{t('form.jsonColumns')}</Label>
           <JsonColumnEditor
             jsonColumns={formData.jsonColumns || []}
             onChange={(jsonColumns) => setFormData({ ...formData, jsonColumns })}
@@ -480,16 +483,16 @@ const TableForm = ({
 
       {/* Flags and Data Source */}
       <div>
-        <h3 className="text-lg font-medium mb-4">Flags and Data Source</h3>
+        <h3 className="text-lg font-medium mb-4">{t('form.flagsAndDataSource')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="form-data-source-id">Data Source</Label>
+            <Label htmlFor="form-data-source-id">{t('form.dataSource')}</Label>
             <Select
               value={formData.dataSourceId || ''}
               onValueChange={(value) => setFormData({ ...formData, dataSourceId: value })}
             >
               <SelectTrigger id="form-data-source-id" className={errors.dataSourceId ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select data source" />
+                <SelectValue placeholder={t('form.selectDataSource')} />
               </SelectTrigger>
               <SelectContent>
                 {dataSources.map((ds) => {
@@ -507,7 +510,7 @@ const TableForm = ({
           </div>
 
           <div>
-            <Label htmlFor="form-ignored-columns">Ignored Columns</Label>
+            <Label htmlFor="form-ignored-columns">{t('form.ignoredColumns')}</Label>
             <Input
               id="form-ignored-columns"
               value={formData.ignoredColumns?.join(', ') || ''}
@@ -515,7 +518,7 @@ const TableForm = ({
                 ...formData, 
                 ignoredColumns: e.target.value.split(',').map(c => c.trim()).filter(c => c) 
               })}
-              placeholder="Enter ignored columns (comma separated)"
+              placeholder={t('form.ignoredColumnsPlaceholder')}
               className={errors.ignoredColumns ? "border-red-500" : ""}
             />
             {errors.ignoredColumns && <p className="text-sm text-red-600 mt-1">{errors.ignoredColumns}</p>}
@@ -527,7 +530,7 @@ const TableForm = ({
               checked={formData.isList || false}
               onCheckedChange={(checked) => setFormData({ ...formData, isList: checked as boolean })}
             />
-            <Label htmlFor="form-is-list">Is List</Label>
+            <Label htmlFor="form-is-list">{t('form.isList')}</Label>
           </div>
 
           <div className="flex items-center space-x-2">
@@ -536,7 +539,7 @@ const TableForm = ({
               checked={formData.triggered || false}
               onCheckedChange={(checked) => setFormData({ ...formData, triggered: checked as boolean })}
             />
-            <Label htmlFor="form-triggered">Triggered</Label>
+            <Label htmlFor="form-triggered">{t('form.triggered')}</Label>
           </div>
         </div>
       </div>
@@ -548,7 +551,7 @@ const TableForm = ({
             onClick={onCancel}
             disabled={loading}
         >
-          Cancel
+          {t('form.cancel')}
         </Button>
         <Button 
             type="button"
@@ -558,12 +561,12 @@ const TableForm = ({
           {loading ? (
             <>
               <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              {isEdit ? 'Saving...' : 'Creating...'}
+              {isEdit ? t('form.saving') : t('form.creating')}
             </>
           ) : (
             <>
               {isEdit ? <Edit className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-              {isEdit ? 'Save Changes' : 'Create Table'}
+              {isEdit ? t('form.saveChanges') : t('form.createTable')}
             </>
           )}
         </Button>
@@ -573,6 +576,7 @@ const TableForm = ({
 };
 
 const Tables = () => {
+  const { t } = useTranslation('tables');
   const [tables, setTables] = useState<CollectorTableConfig[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -667,7 +671,7 @@ const Tables = () => {
       if (error instanceof TableServiceError) {
         setError(error.message);
       } else {
-        setError('Failed to fetch tables. Please try again.');
+        setError(t('messages.fetchFailed'));
       }
       // In case of error, use mock data as fallback
       const mockTables: CollectorTableConfig[] = [
@@ -745,7 +749,7 @@ const Tables = () => {
       setDataSources(list || []);
     } catch (error) {
       console.error('Error fetching data sources:', error);
-      setDataSourcesError('Failed to load data sources');
+      setDataSourcesError(t('messages.loadDataSourcesFailed'));
       setDataSources([]);
     } finally {
       setDataSourcesLoading(false);
@@ -880,6 +884,7 @@ const Tables = () => {
         parsedJoinKeys = editJoinKeysJson ? JSON.parse(editJoinKeysJson) : [];
       } catch (e) {
         setError('Invalid JSON in Join Keys');
+        setError(t('validation.invalidJoinKeys'));
         setLoading(false);
         return;
       }
@@ -906,7 +911,7 @@ const Tables = () => {
       setEditDialogOpen(false);
       setSelectedTable(null);
       setEditFormData({});
-      setSuccessMessage(`Table "${editFormData.name}" updated successfully!`);
+      setSuccessMessage(t('messages.updateSuccess', { name: editFormData.name }));
       
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -915,7 +920,7 @@ const Tables = () => {
       if (error instanceof TableServiceError) {
         setError(`Failed to update table: ${error.message}`);
       } else {
-        setError('Failed to update table. Please try again.');
+        setError(t('messages.updateFailed'));
       }
       
       // In case of error, still perform local update as fallback
@@ -1125,7 +1130,7 @@ const Tables = () => {
       try {
         parsedJoinKeys = createJoinKeysJson ? JSON.parse(createJoinKeysJson) : [];
       } catch (e) {
-        setError('Invalid JSON in Join Keys');
+        setError(t('validation.invalidJoinKeys'));
         setCreateLoading(false);
         return;
       }
@@ -1143,7 +1148,7 @@ const Tables = () => {
       // Close dialog and refresh data after successful creation
       setCreateDialogOpen(false);
       resetCreateForm();
-      setSuccessMessage(`Table "${createFormData.name}" created successfully!`);
+      setSuccessMessage(t('messages.createSuccess', { name: createFormData.name }));
       await fetchTables();
       
       // Clear success message after 3 seconds
@@ -1152,7 +1157,7 @@ const Tables = () => {
       if (err instanceof TableServiceError) {
         setError(`Failed to create table: ${err.message}`);
       } else {
-        setError('Unknown error occurred while creating table');
+        setError(t('messages.createUnknownFailed'));
       }
       console.error('Failed to create table:', err);
     } finally {
@@ -1167,8 +1172,8 @@ const Tables = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b pb-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Tables</h1>
-          <p className="text-muted-foreground">Manage and configure your data tables and sources</p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <Button 
@@ -1177,7 +1182,7 @@ const Tables = () => {
             disabled={isRuntimeEnv}
           >
             <Plus className="h-4 w-4" />
-            Add New Table
+            {t('addButton')}
           </Button>
         </div>
       </div>
@@ -1186,10 +1191,9 @@ const Tables = () => {
       <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 flex items-start gap-3">
         <Info className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
         <div>
-          <h3 className="font-medium text-indigo-800">Table Management</h3>
+          <h3 className="font-medium text-indigo-800">{t('infoTitle')}</h3>
           <p className="text-sm text-indigo-700 mt-1">
-            Tables represent your data sources that can be configured for extraction. 
-            Active tables are currently being used in configurations.
+            {t('infoDescription')}
           </p>
         </div>
       </div>
@@ -1199,7 +1203,7 @@ const Tables = () => {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
           <X className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h3 className="font-medium text-red-800">Error</h3>
+            <h3 className="font-medium text-red-800">{t('errorTitle')}</h3>
             <p className="text-sm text-red-700 mt-1">{error}</p>
           </div>
           <Button 
@@ -1222,7 +1226,7 @@ const Tables = () => {
             </svg>
           </div>
           <div className="flex-1">
-            <h3 className="font-medium text-green-800">Success</h3>
+            <h3 className="font-medium text-green-800">{t('successTitle')}</h3>
             <p className="text-sm text-green-700 mt-1">{successMessage}</p>
           </div>
           <Button 
@@ -1244,7 +1248,7 @@ const Tables = () => {
           <div className="relative w-full md:w-72">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
             <Input 
-              placeholder="Search tables..." 
+              placeholder={t('searchPlaceholder')} 
               value={searchTerm} 
               onChange={(e) => setSearchTerm(e.target.value)} 
               className="pl-9 bg-gray-50/50"
@@ -1255,11 +1259,11 @@ const Tables = () => {
               <SelectTrigger className="bg-gray-50/50">
                 <div className="flex items-center gap-2">
                   <Filter className="h-3.5 w-3.5 text-gray-500" />
-                  <SelectValue placeholder="Filter by model" />
+                  <SelectValue placeholder={t('filterByModel')} />
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Models</SelectItem>
+                <SelectItem value="all">{t('allModels')}</SelectItem>
                 {modelNames.map((name) => (
                   <SelectItem key={name} value={name}>{name}</SelectItem>
                 ))}
@@ -1272,7 +1276,7 @@ const Tables = () => {
           <div className="flex gap-2 w-full sm:w-auto justify-end">
             <Button variant="outline" size="sm" className="gap-2 text-gray-600" onClick={() => window.location.reload()}>
               <RefreshCw className="h-4 w-4" />
-              <span className="hidden sm:inline">Refresh</span>
+              <span className="hidden sm:inline">{t('refresh')}</span>
             </Button>
           </div>
         </div>
@@ -1305,7 +1309,7 @@ const Tables = () => {
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <CardTitle className="text-base font-semibold text-gray-900 truncate">{table.name}</CardTitle>
-                        {table.isList && <Badge variant="outline" className="text-xs font-normal bg-white">List</Badge>}
+                        {table.isList && <Badge variant="outline" className="text-xs font-normal bg-white">{t('list')}</Badge>}
                       </div>
                       {table.label && (
                         <CardDescription className="text-xs text-gray-500 line-clamp-1" title={table.label}>
@@ -1314,28 +1318,28 @@ const Tables = () => {
                       )}
                     </div>
                     <Badge variant={table.triggered ? "default" : "secondary"} className={table.triggered ? "bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-indigo-200 shadow-none" : "bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-200 shadow-none"}>
-                      {table.triggered ? 'Triggered' : 'Manual'}
+                      {table.triggered ? t('triggered') : t('manual')}
                     </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-4">
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-4 text-sm">
                     <div className="col-span-2 sm:col-span-1">
-                      <p className="text-xs text-gray-500 mb-1">Model</p>
+                      <p className="text-xs text-gray-500 mb-1">{t('model')}</p>
                       <div className="flex items-center gap-1.5 font-medium text-gray-700">
                         <Database className="h-3.5 w-3.5 text-gray-400" />
                         <span className="truncate">{table.modelName || '-'}</span>
                       </div>
                     </div>
                     <div className="col-span-2 sm:col-span-1">
-                      <p className="text-xs text-gray-500 mb-1">Table Name</p>
+                      <p className="text-xs text-gray-500 mb-1">{t('tableName')}</p>
                       <div className="flex items-center gap-1.5 font-medium text-gray-700">
                         <span className="truncate font-mono text-xs bg-gray-50 px-1.5 py-0.5 rounded text-gray-600 border border-gray-100">{table.tableName || '-'}</span>
                       </div>
                     </div>
                     {table.primaryKey && table.primaryKey.length > 0 && (
                       <div className="col-span-2">
-                        <p className="text-xs text-gray-500 mb-1">Primary Key</p>
+                        <p className="text-xs text-gray-500 mb-1">{t('primaryKey')}</p>
                         <div className="flex flex-wrap gap-1">
                           {table.primaryKey.map(k => (
                             <Badge key={k} variant="secondary" className="px-1.5 py-0 h-5 text-[10px] font-mono bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200">{k}</Badge>
@@ -1353,7 +1357,7 @@ const Tables = () => {
                       onClick={() => handleViewTable(table)}
                     >
                       <Eye className="h-3.5 w-3.5 mr-1.5" />
-                      View
+                      {t('view')}
                     </Button>
                     <Button 
                       variant="outline" 
@@ -1363,7 +1367,7 @@ const Tables = () => {
                       disabled={isRuntimeEnv}
                     >
                       <Edit className="h-3.5 w-3.5 mr-1.5" />
-                      Configure
+                      {t('configure')}
                     </Button>
                   </div>
                 </CardContent>
@@ -1374,10 +1378,10 @@ const Tables = () => {
               <div className="mx-auto w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                 <Database className="h-6 w-6 text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-1">No tables found</h3>
-              <p className="text-gray-500 mb-4">No tables match your current search criteria.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">{t('noTablesTitle')}</h3>
+              <p className="text-gray-500 mb-4">{t('noTablesDescription')}</p>
               <Button onClick={() => { setSearchTerm(''); }}>
-                Clear Filters
+                {t('clearFilters')}
               </Button>
             </div>
           )}
@@ -1390,10 +1394,10 @@ const Tables = () => {
           {/* Pagination Info */}
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <span>
-              Showing {Math.min(startIndex + 1, totalFilteredCount)} - {Math.min(endIndex, totalFilteredCount)} of {totalFilteredCount} items
+              {t('itemsRange', { start: Math.min(startIndex + 1, totalFilteredCount), end: Math.min(endIndex, totalFilteredCount), total: totalFilteredCount })}
             </span>
             <div className="flex items-center gap-2">
-              <span>Items per page:</span>
+              <span>{t('itemsPerPage')}</span>
               <Select value={pageSize.toString()} onValueChange={(value) => handlePageSizeChange(Number(value))}>
                 <SelectTrigger className="w-20 h-8">
                   <SelectValue />
@@ -1485,10 +1489,10 @@ const Tables = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Eye className="h-5 w-5" />
-              View Table Details - {selectedTable?.name}
+              {t('viewDialogTitle', { name: selectedTable?.name })}
             </DialogTitle>
             <DialogDescription>
-              Inspect the selected table’s configuration, keys, and related settings.
+              {t('viewDialogDescription')}
             </DialogDescription>
           </DialogHeader>
           {selectedTable && (
@@ -1650,10 +1654,10 @@ const Tables = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit className="h-5 w-5" />
-              Edit Table - {selectedTable?.name}
+              {t('editDialogTitle', { name: selectedTable?.name })}
             </DialogTitle>
             <DialogDescription>
-              Update table properties and configuration fields, then save changes.
+              {t('editDialogDescription')}
             </DialogDescription>
           </DialogHeader>
           {selectedTable && (
@@ -1671,6 +1675,7 @@ const Tables = () => {
               onCancel={() => setEditDialogOpen(false)}
               loading={loading}
               disableSubmit={isRuntimeEnv}
+              t={t}
             />
           )}
         </DialogContent>
@@ -1680,7 +1685,7 @@ const Tables = () => {
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            Showing {((currentPage - 1) * 10) + 1} to {Math.min(currentPage * 10, totalCount)} of {totalCount} tables
+            {t('paginationSummary', { start: ((currentPage - 1) * 10) + 1, end: Math.min(currentPage * 10, totalCount), total: totalCount })}
           </div>
           <div className="flex items-center gap-2">
             <Button 
@@ -1689,10 +1694,10 @@ const Tables = () => {
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1 || loading}
             >
-              Previous
+              {t('actions.previous')}
             </Button>
             <span className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages}
+              {t('pageOf', { page: currentPage, total: totalPages })}
             </span>
             <Button 
               variant="outline" 
@@ -1700,7 +1705,7 @@ const Tables = () => {
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages || loading}
             >
-              Next
+              {t('actions.next')}
             </Button>
           </div>
         </div>
@@ -1710,9 +1715,9 @@ const Tables = () => {
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Table</DialogTitle>
+            <DialogTitle>{t('createDialogTitle')}</DialogTitle>
             <DialogDescription>
-              Provide required information and settings to create a new table.
+              {t('createDialogDescription')}
             </DialogDescription>
           </DialogHeader>
           <TableForm
@@ -1732,15 +1737,16 @@ const Tables = () => {
             }}
             loading={createLoading}
             disableSubmit={isRuntimeEnv}
+            t={t}
           />
         </DialogContent>
       </Dialog>
 
       {/* Help section */}
       <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Need Help?</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('needHelp')}</h3>
         <p className="text-gray-600 mb-4">
-          Learn how to connect and configure tables for optimal data extraction.
+          {t('needHelpDescription')}
         </p>
         
       </div>
