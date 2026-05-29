@@ -18,15 +18,13 @@ import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import {
-  Plus, Edit, Trash2, BarChart3, GitBranch, Calculator, Search, Filter, Eye, Folder, FolderOpen, Tag, MoreHorizontal, LayoutGrid, List as ListIcon, Clock, Timer, RefreshCcw,
+  Plus, Edit, Trash2, BarChart3, GitBranch, Calculator, Search, Filter, Eye, Folder, FolderOpen, Tag, MoreHorizontal, LayoutGrid, List as ListIcon, Clock, RefreshCcw,
   CheckCircle2, XCircle, CircleDot, ShieldCheck, AlertTriangle
 } from 'lucide-react';
 import {
   MetricDefinition,
   MetricFilter,
   MetricTypeParams, Category,
-  CumulativeTypeParams,
-  ConversionTypeParams,
   MetricValidationStatus
 } from '@/model/metricsManagement';
 import {
@@ -45,26 +43,29 @@ import ConversionMetricParams from '@/components/metrics/ConversionMetricParams'
 import CategoryManagement from '@/components/metrics/CategoryManagement';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
+import { formatDate, formatDateTime } from '@/i18n/utils/format';
 
 /** Validation status badge — standalone sub-component */
 const ValidationBadge = ({ status, size = 'default' }: { status?: MetricValidationStatus; size?: 'sm' | 'default' }) => {
+  const { t } = useTranslation('metricsEnum');
   if (!status || status === 'pending') {
     return (
       <Badge variant="outline" className={cn("border-muted-foreground/30 text-muted-foreground", size === 'sm' && "text-[10px] px-1.5 py-0")}>
-        <CircleDot className="mr-1 h-3 w-3" /> Pending
+        <CircleDot className="mr-1 h-3 w-3" /> {t('validationStatus.pending')}
       </Badge>
     );
   }
   if (status === 'validated') {
     return (
       <Badge className={cn("bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100", size === 'sm' && "text-[10px] px-1.5 py-0")}>
-        <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Validated
+        <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> {t('validationStatus.validated')}
       </Badge>
     );
   }
   return (
     <Badge variant="destructive" className={cn(size === 'sm' && "text-[10px] px-1.5 py-0")}>
-      <XCircle className="mr-1 h-3.5 w-3.5" /> Failed
+      <XCircle className="mr-1 h-3.5 w-3.5" /> {t('validationStatus.failed')}
     </Badge>
   );
 };
@@ -72,14 +73,13 @@ const ValidationBadge = ({ status, size = 'default' }: { status?: MetricValidati
 const MetricsManagement: React.FC = () => {
   const { collapsed } = useSidebar();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(['common', 'metricsEnum', 'metricsManagement']);
   const [metrics, setMetrics] = useState<MetricDefinition[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [availableMeasures, setAvailableMeasures] = useState<{name: string, label: string, modelName: string}[]>([]);
 
   const [selectedMetric, setSelectedMetric] = useState<MetricDefinition | null>(null);
-  const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [metricToEdit, setMetricToEdit] = useState<MetricDefinition | null>(null);
@@ -96,6 +96,7 @@ const MetricsManagement: React.FC = () => {
   });
   const { toast } = useToast();
   const metricNamePattern = /^[a-z0-9_]+$/;
+  const locale = i18n.resolvedLanguage ?? 'en';
 
   // Separate state for dropdown selectors — always contains ALL metrics regardless of search filter
   const [allMetricsForSelect, setAllMetricsForSelect] = useState<MetricDefinition[]>([]);
@@ -108,6 +109,16 @@ const MetricsManagement: React.FC = () => {
       alias: measure?.alias ?? '',
       fill_nulls_with: measure?.fill_nulls_with ?? undefined
     };
+  };
+
+  const getTypeLabel = (type?: string) => {
+    if (!type) return '';
+    return t(`metricsEnum:types.${type}`, type);
+  };
+
+  const getFormatLabel = (format?: string) => {
+    if (!format) return t('metricsEnum:formats.number');
+    return t(`metricsEnum:formats.${format}`, format);
   };
 
   const loadData = useCallback(async () => {
@@ -131,13 +142,12 @@ const MetricsManagement: React.FC = () => {
       console.error('Error loading metrics:', error);
       setMetrics([]);
       toast({
-        title: "Error",
-        description: "Failed to load metrics data",
+        title: t('common:error'),
+        description: t('metricsManagement:loadFailed'),
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
-      setIsInitialLoading(false);
     }
   }, [filter, toast]);
 
@@ -193,14 +203,14 @@ const MetricsManagement: React.FC = () => {
     try {
       await deleteMetric(metricName);
       toast({
-        title: "Success",
-        description: "Metric deleted successfully"
+        title: t('common:success'),
+        description: t('metricsManagement:metricDeleted')
       });
       loadData();
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to delete metric",
+        title: t('common:error'),
+        description: t('metricsManagement:deleteFailed'),
         variant: "destructive"
       });
     }
@@ -225,65 +235,65 @@ const MetricsManagement: React.FC = () => {
     navigate(`/metrics/lineage?metric=${encodeURIComponent(metric.name)}`);
   };
 
-  const validateForm = (form: Partial<MetricDefinition>, isCreate: boolean = false): string[] => {
+  const validateForm = (form: Partial<MetricDefinition>): string[] => {
     const errors: string[] = [];
     
     if (!form.name?.trim()) {
-      errors.push('Metric name cannot be empty');
+      errors.push(t('metricsManagement:validation.metricNameRequired'));
     } else if (!metricNamePattern.test(form.name.trim())) {
-      errors.push('Metric name can contain only lowercase letters, numbers, and underscores');
+      errors.push(t('metricsManagement:validation.metricNamePattern'));
     }
     
     if (!form.label?.trim()) {
-      errors.push('Metric label cannot be empty');
+      errors.push(t('metricsManagement:validation.metricLabelRequired'));
     }
     
     if (!form.description?.trim()) {
-      errors.push('Metric description cannot be empty');
+      errors.push(t('metricsManagement:validation.metricDescriptionRequired'));
     }
     
     if (!form.type) {
-      errors.push('Please select a metric type');
+      errors.push(t('metricsManagement:validation.metricTypeRequired'));
     }
     
     // 验证type_params
     if (form.type === 'simple' && !form.type_params?.measure?.name?.trim()) {
-      errors.push('Simple metric requires a measure');
+      errors.push(t('metricsManagement:validation.simpleMeasureRequired'));
     }
     
     if (form.type === 'ratio') {
       if (!form.type_params?.numerator?.name?.trim()) {
-        errors.push('Ratio metric requires a numerator');
+        errors.push(t('metricsManagement:validation.ratioNumeratorRequired'));
       }
       if (!form.type_params?.denominator?.name?.trim()) {
-        errors.push('Ratio metric requires a denominator');
+        errors.push(t('metricsManagement:validation.ratioDenominatorRequired'));
       }
     }
     
     if (form.type === 'derived') {
       if (!form.type_params?.expr?.trim()) {
-        errors.push('Derived metric requires an expression');
+        errors.push(t('metricsManagement:validation.derivedExpressionRequired'));
       }
       if (!form.type_params?.metrics || form.type_params.metrics.length === 0) {
-        errors.push('Derived metric requires at least one metric reference');
+        errors.push(t('metricsManagement:validation.derivedMetricReferenceRequired'));
       }
     }
 
     if (form.type === 'cumulative') {
       if (!form.type_params?.cumulative_type_params?.metric?.name) {
-        errors.push('Cumulative metric requires a base metric');
+        errors.push(t('metricsManagement:validation.cumulativeBaseMetricRequired'));
       }
     }
 
     if (form.type === 'conversion') {
       if (!form.type_params?.conversion_type_params?.base_measure?.name && !form.type_params?.conversion_type_params?.base_metric?.name) {
-        errors.push('Conversion metric requires a base measure or metric');
+        errors.push(t('metricsManagement:validation.conversionBaseRequired'));
       }
       if (!form.type_params?.conversion_type_params?.conversion_measure?.name && !form.type_params?.conversion_type_params?.conversion_metric?.name) {
-        errors.push('Conversion metric requires a conversion measure or metric');
+        errors.push(t('metricsManagement:validation.conversionTargetRequired'));
       }
       if (!form.type_params?.conversion_type_params?.entity?.trim()) {
-        errors.push('Conversion metric requires an entity');
+        errors.push(t('metricsManagement:validation.conversionEntityRequired'));
       }
     }
     
@@ -413,7 +423,7 @@ const MetricsManagement: React.FC = () => {
     const errors = validateForm(editForm);
     if (errors.length > 0) {
       toast({
-        title: "Validation Error",
+        title: t('common:validationError'),
         description: errors.join('; '),
         variant: "destructive",
       });
@@ -430,8 +440,8 @@ const MetricsManagement: React.FC = () => {
       
       await updateMetric(metricToEdit.name, formDataToSubmit);
       toast({
-        title: "Success",
-        description: `Metric "${editForm.label || metricToEdit.label}" has been successfully updated.`,
+        title: t('common:success'),
+        description: t('metricsManagement:metricUpdated', { name: editForm.label || metricToEdit.label }),
       });
       setIsEditDialogOpen(false);
       setMetricToEdit(null);
@@ -441,17 +451,17 @@ const MetricsManagement: React.FC = () => {
       handleValidateMetric(formDataToSubmit as MetricDefinition);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update metric",
+        title: t('common:error'),
+        description: t('metricsManagement:updateFailed'),
         variant: "destructive",
       });
     }
   };
 
   const getCategoryName = (categoryId: string | undefined) => {
-    if (!categoryId) return 'Uncategorized';
+    if (!categoryId) return t('common:uncategorized');
     const category = categories.find(cat => cat.id === categoryId);
-    return category ? category.name : 'Uncategorized';
+    return category ? category.name : t('common:uncategorized');
   };
 
   // Helper function to get type color
@@ -522,17 +532,17 @@ const MetricsManagement: React.FC = () => {
       ));
 
       if (result.status === 'validated') {
-        toast({ title: "Validation Passed", description: `"${metricName}" is validated successfully.` });
+        toast({ title: t('common:success'), description: t('metricsManagement:validationPassed', { name: metricName }) });
       } else {
         toast({
-          title: "Validation Failed",
-          description: `"${metricName}" failed: ${result.error || 'Unknown error'}`,
+          title: t('metricsEnum:validationStatus.failed'),
+          description: t('metricsManagement:validationFailed', { name: metricName, reason: result.error || t('common:unknown') }),
           variant: "destructive"
         });
       }
     } catch (error) {
       console.error('Unexpected validation error:', error);
-      toast({ title: "Validation Error", description: "An unexpected error occurred during validation.", variant: "destructive" });
+      toast({ title: t('common:validationError'), description: t('metricsManagement:validationUnexpected'), variant: "destructive" });
     } finally {
       setValidatingSet(prev => {
         const next = new Set(prev);
@@ -555,10 +565,10 @@ const MetricsManagement: React.FC = () => {
   // Helper function to handle save create
   const handleSaveCreate = async () => {
     try {
-      const errors = validateForm(createForm, true);
+      const errors = validateForm(createForm);
       if (errors.length > 0) {
         toast({
-          title: "Validation Error",
+          title: t('common:validationError'),
           description: errors.join('; '),
           variant: "destructive",
         });
@@ -592,16 +602,16 @@ const MetricsManagement: React.FC = () => {
       });
       await loadData();
       toast({
-        title: "Success",
-        description: "Metric created successfully",
+        title: t('common:success'),
+        description: t('metricsManagement:metricCreated'),
       });
       // Auto-validate after create
       handleValidateMetric(formDataToSubmit as MetricDefinition);
     } catch (error) {
       console.error('Error creating metric:', error);
       toast({
-        title: "Error",
-        description: "Failed to create metric",
+        title: t('common:error'),
+        description: t('metricsManagement:createFailed'),
         variant: "destructive",
       });
     } finally {
@@ -628,9 +638,9 @@ const MetricsManagement: React.FC = () => {
                 <BarChart3 className="h-8 w-8 text-primary" />
               </div>
               <div className="space-y-1">
-                <h1 className="text-2xl font-bold tracking-tight">Metrics Library</h1>
+                <h1 className="text-2xl font-bold tracking-tight">{t('metricsManagement:title')}</h1>
                 <p className="text-sm text-muted-foreground">
-                  Define, manage, and track your key performance indicators across {categories?.length || 0} categories.
+                  {t('metricsManagement:subtitle', { count: categories?.length || 0 })}
                 </p>
               </div>
             </div>
@@ -641,11 +651,11 @@ const MetricsManagement: React.FC = () => {
                 className={showCategoryManagement ? "bg-accent text-accent-foreground border-accent" : ""}
               >
                 <FolderOpen className="mr-2 h-4 w-4" />
-                Categories
+                {t('metricsManagement:categories')}
               </Button>
               <Button onClick={handleCreateMetricDialog}>
                 <Plus className="mr-2 h-4 w-4" />
-                New Metric
+                {t('metricsManagement:newMetric')}
               </Button>
             </div>
           </div>
@@ -658,10 +668,10 @@ const MetricsManagement: React.FC = () => {
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-semibold flex items-center gap-2">
                             <Folder className="h-4 w-4 text-primary" />
-                            Category Structure
+                            {t('metricsManagement:categoryStructure')}
                         </h3>
                         <Button variant="ghost" size="sm" onClick={() => setShowCategoryManagement(false)}>
-                            Close
+                            {t('common:close')}
                         </Button>
                     </div>
                     <CategoryManagement 
@@ -682,7 +692,7 @@ const MetricsManagement: React.FC = () => {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search metrics..."
+                  placeholder={t('metricsManagement:searchPlaceholder')}
                   className="pl-9"
                   value={filter.searchTerm || ''}
                   onChange={(e) => setFilter({ ...filter, searchTerm: e.target.value })}
@@ -698,12 +708,12 @@ const MetricsManagement: React.FC = () => {
                     <SelectTrigger className="w-[180px]">
                       <div className="flex items-center gap-2 text-sm">
                         <Filter className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="truncate">{filter.categoryId === 'all' ? 'All Categories' : getCategoryName(filter.categoryId)}</span>
+                        <span className="truncate">{filter.categoryId === 'all' ? t('metricsManagement:allCategories') : getCategoryName(filter.categoryId)}</span>
                       </div>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      <SelectItem value="uncategorized">Uncategorized</SelectItem>
+                      <SelectItem value="all">{t('metricsManagement:allCategories')}</SelectItem>
+                      <SelectItem value="uncategorized">{t('common:uncategorized')}</SelectItem>
                       <DropdownMenuSeparator />
                       {categories?.map((cat) => (
                         <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
@@ -719,16 +729,16 @@ const MetricsManagement: React.FC = () => {
                     <SelectTrigger className="w-[150px]">
                        <div className="flex items-center gap-2 text-sm">
                         <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span>{filter.type === 'all' ? 'All Types' : filter.type?.charAt(0).toUpperCase() + filter.type?.slice(1)}</span>
+                        <span>{filter.type === 'all' ? t('metricsEnum:types.all') : getTypeLabel(filter.type)}</span>
                       </div>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="simple">Simple Metric</SelectItem>
-                      <SelectItem value="ratio">Ratio Metric</SelectItem>
-                      <SelectItem value="derived">Derived Metric</SelectItem>
-                      <SelectItem value="cumulative">Cumulative Metric</SelectItem>
-                      <SelectItem value="conversion">Conversion Metric</SelectItem>
+                      <SelectItem value="all">{t('metricsEnum:types.all')}</SelectItem>
+                      <SelectItem value="simple">{t('metricsEnum:types.simple')}</SelectItem>
+                      <SelectItem value="ratio">{t('metricsEnum:types.ratio')}</SelectItem>
+                      <SelectItem value="derived">{t('metricsEnum:types.derived')}</SelectItem>
+                      <SelectItem value="cumulative">{t('metricsEnum:types.cumulative')}</SelectItem>
+                      <SelectItem value="conversion">{t('metricsEnum:types.conversion')}</SelectItem>
                     </SelectContent>
                   </Select>
               </div>
@@ -743,7 +753,7 @@ const MetricsManagement: React.FC = () => {
                   onClick={() => setViewMode('list')}
                 >
                   <ListIcon className="h-4 w-4 mr-2" />
-                  List
+                  {t('metricsManagement:list')}
                 </Button>
                 <Button
                   variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
@@ -752,7 +762,7 @@ const MetricsManagement: React.FC = () => {
                   onClick={() => setViewMode('grid')}
                 >
                   <LayoutGrid className="h-4 w-4 mr-2" />
-                  Grid
+                  {t('metricsManagement:grid')}
                 </Button>
             </div>
           </div>
@@ -783,15 +793,15 @@ const MetricsManagement: React.FC = () => {
                 <div className="bg-background p-4 rounded-full shadow-sm mb-4">
                   <BarChart3 className="h-10 w-10 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-semibold">No metrics found</h3>
+                <h3 className="text-lg font-semibold">{t('metricsManagement:noMetricsTitle')}</h3>
                 <p className="text-muted-foreground max-w-sm mt-2 mb-6">
                   {filter.searchTerm || filter.categoryId !== 'all' || filter.type !== 'all' 
-                    ? "Try adjusting your filters or search query." 
-                    : "Get started by defining your first metric to track performance."}
+                    ? t('metricsManagement:noMetricsFiltered') 
+                    : t('metricsManagement:noMetricsEmpty')}
                 </p>
                 <Button onClick={handleCreateMetricDialog}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Create Metric
+                  {t('metricsManagement:createMetric')}
                 </Button>
              </div>
           ) : (
@@ -801,13 +811,13 @@ const MetricsManagement: React.FC = () => {
                   <Table>
                     <TableHeader className="bg-muted/40">
                       <TableRow>
-                        <TableHead className="w-[25%]">Metric Name</TableHead>
-                        <TableHead className="w-[12%]">Category</TableHead>
-                        <TableHead className="w-[12%]">Type</TableHead>
-                        <TableHead className="w-[12%]">Format</TableHead>
-                        <TableHead className="w-[13%]">Validation</TableHead>
-                        <TableHead className="w-[13%]">Last Updated</TableHead>
-                        <TableHead className="w-[13%] text-right">Actions</TableHead>
+                        <TableHead className="w-[25%]">{t('metricsManagement:table.metricName')}</TableHead>
+                        <TableHead className="w-[12%]">{t('metricsManagement:table.category')}</TableHead>
+                        <TableHead className="w-[12%]">{t('metricsManagement:table.type')}</TableHead>
+                        <TableHead className="w-[12%]">{t('metricsManagement:table.format')}</TableHead>
+                        <TableHead className="w-[13%]">{t('metricsManagement:table.validation')}</TableHead>
+                        <TableHead className="w-[13%]">{t('metricsManagement:table.lastUpdated')}</TableHead>
+                        <TableHead className="w-[13%] text-right">{t('common:actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -836,7 +846,7 @@ const MetricsManagement: React.FC = () => {
                               {metric.type === 'simple' && <BarChart3 className="mr-1 h-3 w-3" />}
                               {metric.type === 'ratio' && <Calculator className="mr-1 h-3 w-3" />}
                               {metric.type === 'derived' && <GitBranch className="mr-1 h-3 w-3" />}
-                              {metric.type.charAt(0).toUpperCase() + metric.type.slice(1)}
+                              {getTypeLabel(metric.type)}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-sm">
@@ -844,7 +854,7 @@ const MetricsManagement: React.FC = () => {
                                {metric.format === 'currency' && <span className="text-muted-foreground">$</span>}
                                {metric.format === 'percentage' && <span className="text-muted-foreground">%</span>}
                                {metric.format === 'number' && <span className="text-muted-foreground">#</span>}
-                               <span className="capitalize">{metric.format || 'Number'}</span>
+                               <span className="capitalize">{getFormatLabel(metric.format)}</span>
                             </div>
                             <span className="text-xs text-muted-foreground">{metric.unit || '-'}</span>
                           </TableCell>
@@ -852,7 +862,7 @@ const MetricsManagement: React.FC = () => {
                             {validatingSet.has(metric.name) ? (
                               <div className="flex items-center gap-1.5 text-muted-foreground">
                                 <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
-                                <span className="text-xs">Validating...</span>
+                                <span className="text-xs">{t('metricsEnum:validationStatus.validating')}</span>
                               </div>
                             ) : (
                               <ValidationBadge status={metric.validationStatus} />
@@ -862,40 +872,40 @@ const MetricsManagement: React.FC = () => {
                             <div className="flex flex-col text-xs text-muted-foreground">
                                 <div className="flex items-center gap-1">
                                     <Clock className="h-3 w-3" />
-                                    <span>{metric.updatedAt ? new Date(metric.updatedAt).toLocaleDateString() : 'Unknown'}</span>
+                                    <span>{metric.updatedAt ? formatDate(metric.updatedAt, locale) : t('common:unknown')}</span>
                                 </div>
-                                <span>{metric.updatedBy || 'System'}</span>
+                                <span>{metric.updatedBy || t('common:system')}</span>
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <span className="sr-only">Open menu</span>
+                                  <span className="sr-only">{t('common:actions')}</span>
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuLabel>{t('common:actions')}</DropdownMenuLabel>
                                 <DropdownMenuItem onClick={() => handleValidateMetric(metric)}>
-                                  <RefreshCcw className="mr-2 h-4 w-4" /> Re-validate
+                                  <RefreshCcw className="mr-2 h-4 w-4" /> {t('metricsManagement:revalidate')}
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => setSelectedMetric(metric)}>
-                                  <Eye className="mr-2 h-4 w-4" /> View Details
+                                  <Eye className="mr-2 h-4 w-4" /> {t('metricsManagement:viewDetails')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleViewLineage(metric)}>
-                                  <GitBranch className="mr-2 h-4 w-4" /> View Lineage
+                                  <GitBranch className="mr-2 h-4 w-4" /> {t('metricsManagement:viewLineage')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleEditMetric(metric)}>
-                                  <Edit className="mr-2 h-4 w-4" /> Edit
+                                  <Edit className="mr-2 h-4 w-4" /> {t('common:edit')}
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem 
                                     className="text-destructive focus:text-destructive"
                                     onClick={() => handleDeleteMetric(metric.name)}
                                 >
-                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                  <Trash2 className="mr-2 h-4 w-4" /> {t('common:delete')}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -914,7 +924,7 @@ const MetricsManagement: React.FC = () => {
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2">
                                         <Badge variant="secondary" className={`${getTypeColor(metric.type)} bg-opacity-10 text-[10px] px-1.5 py-0.5 h-5`}>
-                                            {metric.type}
+                                            {getTypeLabel(metric.type)}
                                         </Badge>
                                         <ValidationBadge status={metric.validationStatus} size="sm" />
                                         {metric.categoryId && (
@@ -934,42 +944,42 @@ const MetricsManagement: React.FC = () => {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => setSelectedMetric(metric)}>View Details</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleViewLineage(metric)}>View Lineage</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleEditMetric(metric)}>Edit</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setSelectedMetric(metric)}>{t('metricsManagement:viewDetails')}</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleViewLineage(metric)}>{t('metricsManagement:viewLineage')}</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleEditMetric(metric)}>{t('common:edit')}</DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteMetric(metric.name)}>Delete</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteMetric(metric.name)}>{t('common:delete')}</DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
                             
                             <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
-                                {metric.description || "No description provided."}
+                                {metric.description || t('metricsManagement:card.noDescription')}
                             </p>
                             
                             <Separator />
                             
                             <div className="grid grid-cols-2 gap-2 text-xs">
                                 <div>
-                                    <span className="text-muted-foreground block">Format</span>
-                                    <span className="font-medium capitalize">{metric.format || 'Number'}</span>
+                                    <span className="text-muted-foreground block">{t('metricsManagement:card.format')}</span>
+                                    <span className="font-medium capitalize">{getFormatLabel(metric.format)}</span>
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground block">Unit</span>
+                                    <span className="text-muted-foreground block">{t('metricsManagement:card.unit')}</span>
                                     <span className="font-medium">{metric.unit || '-'}</span>
                                 </div>
                             </div>
                             
                             <div className="pt-2 flex items-center justify-between">
                                 <span className="text-[10px] text-muted-foreground">
-                                    Updated {metric.updatedAt ? new Date(metric.updatedAt).toLocaleDateString() : 'Unknown'}
+                                    {t('metricsManagement:card.updated', { value: metric.updatedAt ? formatDate(metric.updatedAt, locale) : t('common:unknown') })}
                                 </span>
                                 <div className="flex gap-1">
                                     <Button 
                                       size="icon" variant="ghost" className="h-7 w-7" 
                                       onClick={() => handleValidateMetric(metric)}
                                       disabled={validatingSet.has(metric.name)}
-                                      title="Re-validate"
+                                      title={t('metricsManagement:revalidate')}
                                     >
                                       <RefreshCcw className={`h-3.5 w-3.5 ${validatingSet.has(metric.name) ? 'animate-spin' : ''}`} />
                                     </Button>
@@ -994,105 +1004,105 @@ const MetricsManagement: React.FC = () => {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>Edit Metric</DialogTitle>
+            <DialogTitle>{t('metricsManagement:dialogs.editTitle')}</DialogTitle>
             <DialogDescription>
-              Modify basic information and configuration parameters of the metric.
+              {t('metricsManagement:dialogs.editDescription')}
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[60vh] pr-4">
             <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Metric Name *</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.metricName')}</label>
                 <Input
                   value={editForm.name || ''}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  placeholder="e.g., daily_active_users"
+                  placeholder={t('metricsManagement:dialogs.metricNamePlaceholder')}
                   className={editForm.name && !metricNamePattern.test(editForm.name) ? 'border-destructive' : ''}
                 />
                 {editForm.name && !metricNamePattern.test(editForm.name) ? (
-                  <p className="text-xs text-destructive">Invalid: use only lowercase letters, numbers, and underscores</p>
+                  <p className="text-xs text-destructive">{t('metricsManagement:dialogs.metricNameInvalid')}</p>
                 ) : (
-                  <p className="text-xs text-muted-foreground">Only lowercase letters, numbers, and underscores. Used as unique identifier.</p>
+                  <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.metricNameHint')}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Display Label *</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.displayLabel')}</label>
                 <Input
                   value={editForm.label || ''}
                   onChange={(e) => setEditForm({ ...editForm, label: e.target.value })}
-                  placeholder="e.g., Daily Active Users"
+                  placeholder={t('metricsManagement:dialogs.displayLabelPlaceholder')}
                 />
-                <p className="text-xs text-muted-foreground">Human-readable name shown in dashboards.</p>
+                <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.displayLabelHint')}</p>
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Description</label>
+              <label className="text-sm font-medium">{t('metricsManagement:dialogs.description')}</label>
               <Textarea
                 value={editForm.description || ''}
                 onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                placeholder="Describe what this metric measures and how it should be used..."
+                placeholder={t('metricsManagement:dialogs.descriptionPlaceholder')}
                 rows={3}
               />
-              <p className="text-xs text-muted-foreground">Explain the metric's purpose and business context.</p>
+              <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.descriptionHint')}</p>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Metric Type</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.metricType')}</label>
                 <Select
                   value={editForm.type || ''}
                   onValueChange={(value) => setEditForm({ ...editForm, type: value as 'simple' | 'ratio' | 'derived' })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder={t('metricsManagement:dialogs.selectType')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="simple">Simple Metric</SelectItem>
-                    <SelectItem value="ratio">Ratio Metric</SelectItem>
-                    <SelectItem value="derived">Derived Metric</SelectItem>
-                    <SelectItem value="cumulative">Cumulative Metric</SelectItem>
-                    <SelectItem value="conversion">Conversion Metric</SelectItem>
+                    <SelectItem value="simple">{t('metricsEnum:types.simple')}</SelectItem>
+                    <SelectItem value="ratio">{t('metricsEnum:types.ratio')}</SelectItem>
+                    <SelectItem value="derived">{t('metricsEnum:types.derived')}</SelectItem>
+                    <SelectItem value="cumulative">{t('metricsEnum:types.cumulative')}</SelectItem>
+                    <SelectItem value="conversion">{t('metricsEnum:types.conversion')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Unit</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.unit')}</label>
                 <Input
                   value={editForm.unit || ''}
                   onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })}
-                  placeholder="Enter unit"
+                  placeholder={t('metricsManagement:dialogs.unitPlaceholder')}
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Format</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.format')}</label>
                 <Select
                   value={editForm.format || ''}
                   onValueChange={(value) => setEditForm({ ...editForm, format: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select format" />
+                    <SelectValue placeholder={t('metricsManagement:dialogs.selectFormat')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="number">Number</SelectItem>
-                    <SelectItem value="currency">Currency</SelectItem>
-                    <SelectItem value="percentage">Percentage</SelectItem>
+                    <SelectItem value="number">{t('metricsEnum:formats.number')}</SelectItem>
+                    <SelectItem value="currency">{t('metricsEnum:formats.currency')}</SelectItem>
+                    <SelectItem value="percentage">{t('metricsEnum:formats.percentage')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Category</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.category')}</label>
                 <Select
                   value={editForm.categoryId || 'none'}
                   onValueChange={(value) => setEditForm({ ...editForm, categoryId: value === 'none' ? undefined : value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={t('metricsManagement:dialogs.selectCategory')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No Category</SelectItem>
+                    <SelectItem value="none">{t('common:noCategory')}</SelectItem>
                     {categories && categories.length > 0 && categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
@@ -1104,12 +1114,12 @@ const MetricsManagement: React.FC = () => {
 
             </div>
             <Separator />
-            <p className="text-xs text-muted-foreground">Type-specific parameters vary by metric type.</p>
+            <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.typeSpecificHint')}</p>
             
             {/* Type-specific Parameters */}
             {editForm.type === 'derived' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Derived Metric Parameters</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.derivedParams')}</label>
                 <DerivedMetricParams
                   params={editForm.type_params || {}}
                   onChange={updateEditFormTypeParams}
@@ -1119,7 +1129,7 @@ const MetricsManagement: React.FC = () => {
 
             {editForm.type === 'cumulative' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Cumulative Metric Parameters</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.cumulativeParams')}</label>
                 <CumulativeMetricParams
                   params={editForm.type_params?.cumulative_type_params || {}}
                   onChange={(params) => updateEditFormTypeParams({ ...editForm.type_params, cumulative_type_params: params })}
@@ -1129,7 +1139,7 @@ const MetricsManagement: React.FC = () => {
 
             {editForm.type === 'conversion' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Conversion Metric Parameters</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.conversionParams')}</label>
                 <ConversionMetricParams
                   params={editForm.type_params?.conversion_type_params || {}}
                   onChange={(params) => updateEditFormTypeParams({ ...editForm.type_params, conversion_type_params: params })}
@@ -1140,7 +1150,7 @@ const MetricsManagement: React.FC = () => {
             {editForm.type === 'ratio' && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Numerator</label>
+                  <label className="text-sm font-medium">{t('metricsManagement:dialogs.numerator')}</label>
                   <Select
                     value={editForm.type_params?.numerator?.name || ''}
                     onValueChange={(value) =>
@@ -1160,7 +1170,7 @@ const MetricsManagement: React.FC = () => {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select numerator metric" />
+                      <SelectValue placeholder={t('metricsManagement:dialogs.selectNumerator')} />
                     </SelectTrigger>
                     <SelectContent>
                       {allMetricsForSelect.filter(m => m.type === 'simple').map((m) => (
@@ -1172,7 +1182,7 @@ const MetricsManagement: React.FC = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Denominator</label>
+                  <label className="text-sm font-medium">{t('metricsManagement:dialogs.denominator')}</label>
                   <Select
                     value={editForm.type_params?.denominator?.name || ''}
                     onValueChange={(value) =>
@@ -1192,7 +1202,7 @@ const MetricsManagement: React.FC = () => {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select denominator metric" />
+                      <SelectValue placeholder={t('metricsManagement:dialogs.selectDenominator')} />
                     </SelectTrigger>
                     <SelectContent>
                       {allMetricsForSelect.filter(m => m.type === 'simple').map((m) => (
@@ -1208,7 +1218,7 @@ const MetricsManagement: React.FC = () => {
             
             {editForm.type === 'simple' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Measure</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.measure')}</label>
                 <Select
                   value={editForm.type_params?.measure?.name || ''}
                   onValueChange={(value) => setEditForm({ 
@@ -1223,7 +1233,7 @@ const MetricsManagement: React.FC = () => {
                   })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select measure" />
+                    <SelectValue placeholder={t('metricsManagement:dialogs.selectMeasure')} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableMeasures.map((measure, index) => (
@@ -1235,7 +1245,7 @@ const MetricsManagement: React.FC = () => {
                 </Select>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center justify-between rounded-md border px-3 py-2">
-                    <span className="text-sm">Join to Timespine</span>
+                    <span className="text-sm">{t('metricsManagement:dialogs.joinToTimespine')}</span>
                     <Switch
                       checked={normalizeMeasure(editForm.type_params?.measure).join_to_timespine}
                       onCheckedChange={(checked) =>
@@ -1253,7 +1263,7 @@ const MetricsManagement: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Alias</label>
+                    <label className="text-sm font-medium">{t('metricsManagement:dialogs.alias')}</label>
                     <Input
                       value={normalizeMeasure(editForm.type_params?.measure).alias}
                       onChange={(e) =>
@@ -1268,13 +1278,13 @@ const MetricsManagement: React.FC = () => {
                           }
                         })
                       }
-                      placeholder="Optional alias"
+                      placeholder={t('metricsManagement:dialogs.aliasPlaceholder')}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Fill Nulls With</label>
+                    <label className="text-sm font-medium">{t('metricsManagement:dialogs.fillNullsWith')}</label>
                     <Input
                       type="number"
                       value={normalizeMeasure(editForm.type_params?.measure).fill_nulls_with ?? ''}
@@ -1291,11 +1301,11 @@ const MetricsManagement: React.FC = () => {
                           }
                         });
                       }}
-                      placeholder="Optional value"
+                      placeholder={t('metricsManagement:dialogs.fillNullsPlaceholder')}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Filter</label>
+                    <label className="text-sm font-medium">{t('metricsManagement:dialogs.filter')}</label>
                     <Textarea
                       value={normalizeMeasure(editForm.type_params?.measure).filter || ''}
                       onChange={(e) =>
@@ -1310,7 +1320,7 @@ const MetricsManagement: React.FC = () => {
                           }
                         })
                       }
-                      placeholder="Optional filter expression"
+                      placeholder={t('metricsManagement:dialogs.filterPlaceholder')}
                       rows={2}
                     />
                   </div>
@@ -1321,10 +1331,10 @@ const MetricsManagement: React.FC = () => {
           </ScrollArea>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleSaveEdit}>
-              Save Changes
+              {t('common:saveChanges')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1334,105 +1344,105 @@ const MetricsManagement: React.FC = () => {
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Metric</DialogTitle>
+            <DialogTitle>{t('metricsManagement:dialogs.createTitle')}</DialogTitle>
             <DialogDescription>
-              Define a new business metric with its configuration parameters.
+              {t('metricsManagement:dialogs.createDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Metric Name *</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.metricName')}</label>
                 <Input
                   value={createForm.name || ''}
                   onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-                  placeholder="e.g., daily_active_users"
+                  placeholder={t('metricsManagement:dialogs.metricNamePlaceholder')}
                   className={createForm.name && !metricNamePattern.test(createForm.name) ? 'border-destructive' : ''}
                 />
                 {createForm.name && !metricNamePattern.test(createForm.name) ? (
-                  <p className="text-xs text-destructive">Invalid: use only lowercase letters, numbers, and underscores</p>
+                  <p className="text-xs text-destructive">{t('metricsManagement:dialogs.metricNameInvalid')}</p>
                 ) : (
-                  <p className="text-xs text-muted-foreground">Only lowercase letters, numbers, and underscores. Used as unique identifier.</p>
+                  <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.metricNameHint')}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Display Label *</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.displayLabel')}</label>
                 <Input
                   value={createForm.label || ''}
                   onChange={(e) => setCreateForm({ ...createForm, label: e.target.value })}
-                  placeholder="e.g., Daily Active Users"
+                  placeholder={t('metricsManagement:dialogs.displayLabelPlaceholder')}
                 />
-                <p className="text-xs text-muted-foreground">Human-readable name shown in dashboards.</p>
+                <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.displayLabelHint')}</p>
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Description</label>
+              <label className="text-sm font-medium">{t('metricsManagement:dialogs.description')}</label>
               <Textarea
                 value={createForm.description || ''}
                 onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
-                placeholder="Describe what this metric measures and how it should be used..."
+                placeholder={t('metricsManagement:dialogs.descriptionPlaceholder')}
                 rows={3}
               />
-              <p className="text-xs text-muted-foreground">Explain the metric's purpose and business context.</p>
+              <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.descriptionHint')}</p>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Metric Type</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.metricType')}</label>
                 <Select
                   value={createForm.type || ''}
                   onValueChange={(value) => setCreateForm({ ...createForm, type: value as 'simple' | 'ratio' | 'derived' })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder={t('metricsManagement:dialogs.selectType')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="simple">Simple Metric</SelectItem>
-                    <SelectItem value="ratio">Ratio Metric</SelectItem>
-                    <SelectItem value="derived">Derived Metric</SelectItem>
-                    <SelectItem value="cumulative">Cumulative Metric</SelectItem>
-                    <SelectItem value="conversion">Conversion Metric</SelectItem>
+                    <SelectItem value="simple">{t('metricsEnum:types.simple')}</SelectItem>
+                    <SelectItem value="ratio">{t('metricsEnum:types.ratio')}</SelectItem>
+                    <SelectItem value="derived">{t('metricsEnum:types.derived')}</SelectItem>
+                    <SelectItem value="cumulative">{t('metricsEnum:types.cumulative')}</SelectItem>
+                    <SelectItem value="conversion">{t('metricsEnum:types.conversion')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Unit</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.unit')}</label>
                 <Input
                   value={createForm.unit || ''}
                   onChange={(e) => setCreateForm({ ...createForm, unit: e.target.value })}
-                  placeholder="Enter unit"
+                  placeholder={t('metricsManagement:dialogs.unitPlaceholder')}
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Format</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.format')}</label>
                 <Select
                   value={createForm.format || ''}
                   onValueChange={(value) => setCreateForm({ ...createForm, format: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select format" />
+                    <SelectValue placeholder={t('metricsManagement:dialogs.selectFormat')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="number">Number</SelectItem>
-                    <SelectItem value="currency">Currency</SelectItem>
-                    <SelectItem value="percentage">Percentage</SelectItem>
+                    <SelectItem value="number">{t('metricsEnum:formats.number')}</SelectItem>
+                    <SelectItem value="currency">{t('metricsEnum:formats.currency')}</SelectItem>
+                    <SelectItem value="percentage">{t('metricsEnum:formats.percentage')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Category</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.category')}</label>
                 <Select
                   value={createForm.categoryId || 'none'}
                   onValueChange={(value) => setCreateForm({ ...createForm, categoryId: value === 'none' ? undefined : value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={t('metricsManagement:dialogs.selectCategory')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No Category</SelectItem>
+                    <SelectItem value="none">{t('common:noCategory')}</SelectItem>
                     {categories && categories.length > 0 && categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
@@ -1444,12 +1454,12 @@ const MetricsManagement: React.FC = () => {
 
             </div>
             <Separator />
-            <p className="text-xs text-muted-foreground">Configure parameters based on the selected metric type.</p>
+            <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.createTypeHint')}</p>
             
             {/* Type-specific Parameters */}
             {createForm.type === 'derived' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Derived Metric Parameters</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.derivedParams')}</label>
                 <DerivedMetricParams
                   params={createForm.type_params || {
                     
@@ -1461,7 +1471,7 @@ const MetricsManagement: React.FC = () => {
 
             {createForm.type === 'cumulative' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Cumulative Metric Parameters</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.cumulativeParams')}</label>
                 <CumulativeMetricParams
                   params={createForm.type_params?.cumulative_type_params || {}}
                   onChange={(params) => updateCreateFormTypeParams({ ...createForm.type_params, cumulative_type_params: params })}
@@ -1471,7 +1481,7 @@ const MetricsManagement: React.FC = () => {
 
             {createForm.type === 'conversion' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Conversion Metric Parameters</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.conversionParams')}</label>
                 <ConversionMetricParams
                   params={createForm.type_params?.conversion_type_params || {}}
                   onChange={(params) => updateCreateFormTypeParams({ ...createForm.type_params, conversion_type_params: params })}
@@ -1482,7 +1492,7 @@ const MetricsManagement: React.FC = () => {
             {createForm.type === 'ratio' && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Numerator</label>
+                  <label className="text-sm font-medium">{t('metricsManagement:dialogs.numerator')}</label>
                   <Select
                     value={createForm.type_params?.numerator?.name || ''}
                     onValueChange={(value) =>
@@ -1502,7 +1512,7 @@ const MetricsManagement: React.FC = () => {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select numerator metric" />
+                      <SelectValue placeholder={t('metricsManagement:dialogs.selectNumerator')} />
                     </SelectTrigger>
                     <SelectContent>
                       {allMetricsForSelect.filter(m => m.type === 'simple').map((m) => (
@@ -1514,7 +1524,7 @@ const MetricsManagement: React.FC = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Denominator</label>
+                  <label className="text-sm font-medium">{t('metricsManagement:dialogs.denominator')}</label>
                   <Select
                     value={createForm.type_params?.denominator?.name || ''}
                     onValueChange={(value) =>
@@ -1534,7 +1544,7 @@ const MetricsManagement: React.FC = () => {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select denominator metric" />
+                      <SelectValue placeholder={t('metricsManagement:dialogs.selectDenominator')} />
                     </SelectTrigger>
                     <SelectContent>
                       {allMetricsForSelect.filter(m => m.type === 'simple').map((m) => (
@@ -1550,7 +1560,7 @@ const MetricsManagement: React.FC = () => {
             
             {createForm.type === 'simple' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Measure</label>
+                <label className="text-sm font-medium">{t('metricsManagement:dialogs.measure')}</label>
                 <Select
                   value={createForm.type_params?.measure?.name || ''}
                   onValueChange={(value) => setCreateForm({ 
@@ -1565,7 +1575,7 @@ const MetricsManagement: React.FC = () => {
                   })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select measure" />
+                    <SelectValue placeholder={t('metricsManagement:dialogs.selectMeasure')} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableMeasures.map((measure, index) => (
@@ -1577,7 +1587,7 @@ const MetricsManagement: React.FC = () => {
                 </Select>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center justify-between rounded-md border px-3 py-2">
-                    <span className="text-sm">Join to Timespine</span>
+                    <span className="text-sm">{t('metricsManagement:dialogs.joinToTimespine')}</span>
                     <Switch
                       checked={normalizeMeasure(createForm.type_params?.measure).join_to_timespine}
                       onCheckedChange={(checked) =>
@@ -1595,7 +1605,7 @@ const MetricsManagement: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Alias</label>
+                    <label className="text-sm font-medium">{t('metricsManagement:dialogs.alias')}</label>
                     <Input
                       value={normalizeMeasure(createForm.type_params?.measure).alias}
                       onChange={(e) =>
@@ -1610,13 +1620,13 @@ const MetricsManagement: React.FC = () => {
                           }
                         })
                       }
-                      placeholder="Optional alias"
+                      placeholder={t('metricsManagement:dialogs.aliasPlaceholder')}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Fill Nulls With</label>
+                    <label className="text-sm font-medium">{t('metricsManagement:dialogs.fillNullsWith')}</label>
                     <Input
                       type="number"
                       value={normalizeMeasure(createForm.type_params?.measure).fill_nulls_with ?? ''}
@@ -1633,11 +1643,11 @@ const MetricsManagement: React.FC = () => {
                           }
                         });
                       }}
-                      placeholder="Optional value"
+                      placeholder={t('metricsManagement:dialogs.fillNullsPlaceholder')}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Filter</label>
+                    <label className="text-sm font-medium">{t('metricsManagement:dialogs.filter')}</label>
                     <Textarea
                       value={normalizeMeasure(createForm.type_params?.measure).filter || ''}
                       onChange={(e) =>
@@ -1652,7 +1662,7 @@ const MetricsManagement: React.FC = () => {
                           }
                         })
                       }
-                      placeholder="Optional filter expression"
+                      placeholder={t('metricsManagement:dialogs.filterPlaceholder')}
                       rows={2}
                     />
                   </div>
@@ -1662,10 +1672,10 @@ const MetricsManagement: React.FC = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleSaveCreate}>
-              Create Metric
+              {t('metricsManagement:createMetric')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1692,14 +1702,14 @@ const MetricsManagement: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-semibold flex items-center gap-2">
                       <ShieldCheck className="h-4 w-4" />
-                      Validation Status
+                      {t('metricsManagement:details.validationStatus')}
                     </h4>
                     {selectedMetric.validationStatus && (
                       <ValidationBadge status={selectedMetric.validationStatus} />
                     )}
                     {!selectedMetric.validationStatus && (
                       <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground">
-                        <CircleDot className="mr-1 h-3 w-3" /> Pending
+                        <CircleDot className="mr-1 h-3 w-3" /> {t('metricsEnum:validationStatus.pending')}
                       </Badge>
                     )}
                   </div>
@@ -1707,18 +1717,18 @@ const MetricsManagement: React.FC = () => {
                   {validatingSet.has(selectedMetric.name) && (
                     <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
                       <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
-                      Validating metric...
+                      {t('metricsManagement:details.validatingMetric')}
                     </div>
                   )}
 
                   {selectedMetric.validationResult?.status === 'validated' && (
                     <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
                       <div>
-                        <span className="text-muted-foreground block">Dimensions Found</span>
+                        <span className="text-muted-foreground block">{t('metricsManagement:details.dimensionsFound')}</span>
                         <span className="font-semibold text-emerald-700">{selectedMetric.validationResult.dimensionCount ?? '-'}</span>
                       </div>
                       <div>
-                        <span className="text-muted-foreground block">Sample Value</span>
+                        <span className="text-muted-foreground block">{t('metricsManagement:details.sampleValue')}</span>
                         <span className="font-semibold">{selectedMetric.validationResult.sampleValue ?? '-'}</span>
                       </div>
                     </div>
@@ -1728,14 +1738,14 @@ const MetricsManagement: React.FC = () => {
                     <div className="mt-3 bg-red-100/60 rounded-md p-3">
                       <div className="flex items-start gap-2">
                         <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
-                        <span className="text-sm text-red-700">{selectedMetric.validationResult.error || 'Validation failed'}</span>
+                        <span className="text-sm text-red-700">{selectedMetric.validationResult.error || t('metricsManagement:details.validationFailed')}</span>
                       </div>
                     </div>
                   )}
 
                   {selectedMetric.validationResult?.lastValidatedAt && (
                     <p className="mt-2 text-[11px] text-muted-foreground">
-                      Last validated: {new Date(selectedMetric.validationResult.lastValidatedAt).toLocaleString()}
+                      {t('metricsManagement:details.lastValidated', { value: formatDateTime(selectedMetric.validationResult.lastValidatedAt, locale) })}
                     </p>
                   )}
 
@@ -1751,14 +1761,14 @@ const MetricsManagement: React.FC = () => {
                       className="h-7 text-xs"
                     >
                       <RefreshCcw className="mr-1.5 h-3 w-3" />
-                      Re-validate Now
+                      {t('metricsManagement:revalidateNow')}
                     </Button>
                   </div>
 
                   {/* Validation Log */}
                   {selectedMetric.validationResult?.logs && selectedMetric.validationResult.logs.length > 0 && (
                     <div className="mt-4 space-y-1.5">
-                      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Validation Log</p>
+                      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('metricsManagement:details.validationLog')}</p>
                       {selectedMetric.validationResult.logs.map((log, idx) => (
                         <div key={idx} className={`flex items-start gap-2 rounded px-2 py-1.5 text-xs ${
                           log.status === 'success' ? 'bg-emerald-50/80' : 'bg-red-50/80'
@@ -1781,23 +1791,23 @@ const MetricsManagement: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium">Metric Name</label>
+                    <label className="text-sm font-medium">{t('metricsManagement:details.metricName')}</label>
                     <div className="mt-1 p-2 bg-muted rounded font-mono text-sm">
                       {selectedMetric.name}
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Type</label>
+                    <label className="text-sm font-medium">{t('metricsManagement:details.type')}</label>
                     <div className="mt-1">
                       <Badge className={getTypeColor(selectedMetric.type)}>
-                        {selectedMetric.type}
+                        {getTypeLabel(selectedMetric.type)}
                       </Badge>
                     </div>
                   </div>
                 </div>
                 <Separator />
                 <div>
-                  <label className="text-sm font-medium">Type Parameters</label>
+                  <label className="text-sm font-medium">{t('metricsManagement:details.typeParameters')}</label>
                   <div className="mt-1 p-3 bg-muted rounded">
                     <pre className="text-sm overflow-x-auto">
                       {JSON.stringify(selectedMetric.type_params, null, 2)}
@@ -1806,7 +1816,7 @@ const MetricsManagement: React.FC = () => {
                 </div>
                 {selectedMetric.unit && (
                   <div>
-                    <label className="text-sm font-medium">Unit</label>
+                    <label className="text-sm font-medium">{t('metricsManagement:details.unit')}</label>
                     <div className="mt-1 p-2 bg-muted rounded text-sm">
                       {selectedMetric.unit}
                     </div>
@@ -1814,9 +1824,9 @@ const MetricsManagement: React.FC = () => {
                 )}
                 {selectedMetric.format && (
                   <div>
-                    <label className="text-sm font-medium">Format</label>
+                    <label className="text-sm font-medium">{t('metricsManagement:details.format')}</label>
                     <div className="mt-1 p-2 bg-muted rounded text-sm">
-                      {selectedMetric.format}
+                      {getFormatLabel(selectedMetric.format)}
                     </div>
                   </div>
                 )}

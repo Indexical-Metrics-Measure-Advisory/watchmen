@@ -9,6 +9,7 @@ import { Plus, Trash2, Mail, Save, Loader2, Play } from 'lucide-react';
 import { Subscription } from '@/model/biAnalysis';
 import { subscriptionService } from '@/services/subscriptionService';
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslation } from 'react-i18next';
 
 interface SubscriptionModalProps {
   open: boolean;
@@ -25,6 +26,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [runningId, setRunningId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useTranslation(['common', 'biAnalysis']);
 
   const fetchSubscriptions = async () => {
     if (!analysisId) return;
@@ -34,8 +36,8 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
       setSubscriptions(data);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to fetch subscriptions",
+        title: t('common:error'),
+        description: t('biAnalysis:subscription.fetchFailed'),
         variant: "destructive",
       });
     } finally {
@@ -67,9 +69,9 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     if (!sub.id.startsWith('temp-')) {
       try {
         await subscriptionService.deleteSubscription(sub.id);
-        toast({ title: "Success", description: "Subscription deleted" });
+        toast({ title: t('common:success'), description: t('biAnalysis:subscription.deleted') });
       } catch (error) {
-        toast({ title: "Error", description: "Failed to delete subscription", variant: "destructive" });
+        toast({ title: t('common:error'), description: t('biAnalysis:subscription.deleteFailed'), variant: "destructive" });
         return;
       }
     }
@@ -92,13 +94,13 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         const newSubs = [...subscriptions];
         newSubs[index] = created;
         setSubscriptions(newSubs);
-        toast({ title: "Success", description: "Subscription created" });
+        toast({ title: t('common:success'), description: t('biAnalysis:subscription.created') });
       } else {
         await subscriptionService.updateSubscription(sub.id, sub);
-        toast({ title: "Success", description: "Subscription updated" });
+        toast({ title: t('common:success'), description: t('biAnalysis:subscription.updated') });
       }
     } catch (error) {
-      toast({ title: "Error", description: "Failed to save subscription", variant: "destructive" });
+      toast({ title: t('common:error'), description: t('biAnalysis:subscription.saveFailed'), variant: "destructive" });
     }
   };
 
@@ -109,9 +111,9 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     setRunningId(sub.id);
     try {
       await subscriptionService.runSubscription(sub.id);
-      toast({ title: "Success", description: "Subscription triggered successfully" });
+      toast({ title: t('common:success'), description: t('biAnalysis:subscription.triggered') });
     } catch (error) {
-      toast({ title: "Error", description: "Failed to run subscription", variant: "destructive" });
+      toast({ title: t('common:error'), description: t('biAnalysis:subscription.runFailed'), variant: "destructive" });
     } finally {
       setRunningId(null);
     }
@@ -121,9 +123,9 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Scheduled Query Subscriptions</DialogTitle>
+          <DialogTitle>{t('biAnalysis:subscription.title')}</DialogTitle>
           <DialogDescription>
-            Configure automated report delivery schedules.
+            {t('biAnalysis:subscription.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -136,7 +138,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
             <>
               {subscriptions.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
-                  No subscriptions configured.
+                  {t('biAnalysis:subscription.empty')}
                 </div>
               )}
 
@@ -146,7 +148,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                     {/* Time and Date Row */}
                     <div className="flex gap-4 w-full">
                       <div className="space-y-2 flex-1">
-                        <Label>Time</Label>
+                        <Label>{t('biAnalysis:subscription.time')}</Label>
                         <Input
                           type="time"
                           value={sub.time || '09:00'}
@@ -157,7 +159,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                       {/* Conditional Render based on frequency */}
                       {sub.frequency === 'once' && (
                         <div className="space-y-2 flex-1">
-                          <Label>Date</Label>
+                          <Label>{t('biAnalysis:subscription.date')}</Label>
                           <Input
                             type="date"
                             value={sub.date || ''}
@@ -168,7 +170,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
                       {(sub.frequency === 'week' || sub.frequency === 'biweekly') && (
                         <div className="space-y-2 flex-1">
-                          <Label>Weekday</Label>
+                          <Label>{t('biAnalysis:subscription.weekday')}</Label>
                           <Select
                             value={sub.weekday || '1'}
                             onValueChange={(val) => handleUpdateSubscription(index, 'weekday', val)}
@@ -177,13 +179,13 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="1">Monday</SelectItem>
-                              <SelectItem value="2">Tuesday</SelectItem>
-                              <SelectItem value="3">Wednesday</SelectItem>
-                              <SelectItem value="4">Thursday</SelectItem>
-                              <SelectItem value="5">Friday</SelectItem>
-                              <SelectItem value="6">Saturday</SelectItem>
-                              <SelectItem value="0">Sunday</SelectItem>
+                              <SelectItem value="1">{t('biAnalysis:subscription.weekdays.1')}</SelectItem>
+                              <SelectItem value="2">{t('biAnalysis:subscription.weekdays.2')}</SelectItem>
+                              <SelectItem value="3">{t('biAnalysis:subscription.weekdays.3')}</SelectItem>
+                              <SelectItem value="4">{t('biAnalysis:subscription.weekdays.4')}</SelectItem>
+                              <SelectItem value="5">{t('biAnalysis:subscription.weekdays.5')}</SelectItem>
+                              <SelectItem value="6">{t('biAnalysis:subscription.weekdays.6')}</SelectItem>
+                              <SelectItem value="0">{t('biAnalysis:subscription.weekdays.0')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -191,7 +193,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
                       {sub.frequency === 'month' && (
                         <div className="space-y-2 flex-1">
-                          <Label>Day of Month</Label>
+                          <Label>{t('biAnalysis:subscription.dayOfMonth')}</Label>
                           <Select
                             value={String(sub.dayOfMonth || '1')}
                             onValueChange={(val) => handleUpdateSubscription(index, 'dayOfMonth', parseInt(val))}
@@ -210,7 +212,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
                       {sub.frequency === 'year' && (
                         <div className="space-y-2 flex-1">
-                          <Label>Month</Label>
+                          <Label>{t('biAnalysis:subscription.month')}</Label>
                           <Select
                             value={sub.month || '1'}
                             onValueChange={(val) => handleUpdateSubscription(index, 'month', val)}
@@ -219,18 +221,18 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="max-h-[200px]">
-                              <SelectItem value="1">January</SelectItem>
-                              <SelectItem value="2">February</SelectItem>
-                              <SelectItem value="3">March</SelectItem>
-                              <SelectItem value="4">April</SelectItem>
-                              <SelectItem value="5">May</SelectItem>
-                              <SelectItem value="6">June</SelectItem>
-                              <SelectItem value="7">July</SelectItem>
-                              <SelectItem value="8">August</SelectItem>
-                              <SelectItem value="9">September</SelectItem>
-                              <SelectItem value="10">October</SelectItem>
-                              <SelectItem value="11">November</SelectItem>
-                              <SelectItem value="12">December</SelectItem>
+                              <SelectItem value="1">{t('biAnalysis:subscription.months.1')}</SelectItem>
+                              <SelectItem value="2">{t('biAnalysis:subscription.months.2')}</SelectItem>
+                              <SelectItem value="3">{t('biAnalysis:subscription.months.3')}</SelectItem>
+                              <SelectItem value="4">{t('biAnalysis:subscription.months.4')}</SelectItem>
+                              <SelectItem value="5">{t('biAnalysis:subscription.months.5')}</SelectItem>
+                              <SelectItem value="6">{t('biAnalysis:subscription.months.6')}</SelectItem>
+                              <SelectItem value="7">{t('biAnalysis:subscription.months.7')}</SelectItem>
+                              <SelectItem value="8">{t('biAnalysis:subscription.months.8')}</SelectItem>
+                              <SelectItem value="9">{t('biAnalysis:subscription.months.9')}</SelectItem>
+                              <SelectItem value="10">{t('biAnalysis:subscription.months.10')}</SelectItem>
+                              <SelectItem value="11">{t('biAnalysis:subscription.months.11')}</SelectItem>
+                              <SelectItem value="12">{t('biAnalysis:subscription.months.12')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -240,7 +242,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                     {/* Frequency Row */}
                     <div className="flex gap-4 w-full items-end">
                       <div className="space-y-2 flex-1">
-                        <Label>Frequency</Label>
+                        <Label>{t('biAnalysis:subscription.frequency')}</Label>
                         <Select
                           value={sub.frequency}
                           onValueChange={(val: any) => handleUpdateSubscription(index, 'frequency', val)}
@@ -249,12 +251,12 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="once">Does not repeat</SelectItem>
-                            <SelectItem value="day">Daily</SelectItem>
-                            <SelectItem value="week">Weekly</SelectItem>
-                            <SelectItem value="biweekly">Bi-weekly</SelectItem>
-                            <SelectItem value="month">Monthly</SelectItem>
-                            <SelectItem value="year">Yearly</SelectItem>
+                            <SelectItem value="once">{t('biAnalysis:subscription.frequencyLabel.once')}</SelectItem>
+                            <SelectItem value="day">{t('biAnalysis:subscription.frequencyLabel.day')}</SelectItem>
+                            <SelectItem value="week">{t('biAnalysis:subscription.frequencyLabel.week')}</SelectItem>
+                            <SelectItem value="biweekly">{t('biAnalysis:subscription.frequencyLabel.biweekly')}</SelectItem>
+                            <SelectItem value="month">{t('biAnalysis:subscription.frequencyLabel.month')}</SelectItem>
+                            <SelectItem value="year">{t('biAnalysis:subscription.frequencyLabel.year')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -265,27 +267,27 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                              checked={sub.enabled}
                              onCheckedChange={(checked) => handleUpdateSubscription(index, 'enabled', checked)}
                            />
-                           <span className="text-sm text-muted-foreground whitespace-nowrap">{sub.enabled ? 'Active' : 'Paused'}</span>
+                           <span className="text-sm text-muted-foreground whitespace-nowrap">{sub.enabled ? t('biAnalysis:subscription.active') : t('biAnalysis:subscription.paused')}</span>
                         </div>
                         <div className="flex items-center space-x-2">
                            <Switch
                              checked={sub.onlyOnAlertTriggered ?? false}
                              onCheckedChange={(checked) => handleUpdateSubscription(index, 'onlyOnAlertTriggered', checked)}
                            />
-                           <span className="text-xs text-muted-foreground whitespace-nowrap">Only on alert</span>
+                           <span className="text-xs text-muted-foreground whitespace-nowrap">{t('biAnalysis:subscription.onlyOnAlert')}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Recipients (Comma separated emails)</Label>
+                    <Label>{t('biAnalysis:subscription.recipients')}</Label>
                     <div className="flex gap-2">
                       <Mail className="h-4 w-4 mt-3 text-muted-foreground" />
                       <Input
                         value={sub.recipients.join(', ')}
                         onChange={(e) => handleUpdateSubscription(index, 'recipients', e.target.value.split(',').map(s => s.trim()))}
-                        placeholder="email@example.com, team@example.com"
+                        placeholder={t('biAnalysis:subscription.recipientsPlaceholder')}
                       />
                     </div>
                   </div>
@@ -302,15 +304,15 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                       ) : (
                         <Play className="h-4 w-4 mr-2" />
                       )}
-                      Test Run
+                      {t('biAnalysis:subscription.testRun')}
                     </Button>
                     <Button variant="destructive" size="sm" onClick={() => handleDeleteSubscription(index)}>
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      {t('biAnalysis:subscription.delete')}
                     </Button>
                     <Button variant="default" size="sm" onClick={() => handleSave(index)}>
                       <Save className="h-4 w-4 mr-2" />
-                      Save
+                      {t('biAnalysis:subscription.save')}
                     </Button>
                   </div>
                 </div>
@@ -318,7 +320,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
               <Button onClick={handleAddSubscription} className="w-full" variant="outline">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Subscription
+                {t('biAnalysis:subscription.addSubscription')}
               </Button>
             </>
           )}

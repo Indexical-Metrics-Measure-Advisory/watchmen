@@ -10,6 +10,7 @@ import { getSemanticModels } from '@/services/semanticModelService';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Trash2, Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ConversionMetricParamsProps {
   params: ConversionTypeParams;
@@ -17,6 +18,7 @@ interface ConversionMetricParamsProps {
 }
 
 const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params, onChange }) => {
+  const { t } = useTranslation(['metricsParams', 'metricsEnum']);
   const [availableMetrics, setAvailableMetrics] = useState<MetricDefinition[]>([]);
   const [availableMeasures, setAvailableMeasures] = useState<{name: string, label: string, modelName: string}[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +64,7 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
     <div className="space-y-3 p-3 border rounded-md">
       <Label className="font-semibold">{label}</Label>
       <div className="space-y-2">
-        <Label className="text-xs">Measure Name</Label>
+        <Label className="text-xs">{t('metricsParams:conversion.measureName')}</Label>
         <Select
           value={measure?.name || ''}
           onValueChange={(value) => onChange({
@@ -74,7 +76,7 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
           })}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Select measure" />
+            <SelectValue placeholder={t('metricsParams:conversion.selectMeasure')} />
           </SelectTrigger>
           <SelectContent>
             {availableMeasures.map((m, idx) => (
@@ -88,7 +90,7 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
       
       <div className="grid grid-cols-2 gap-2">
         <div className="flex items-center justify-between border rounded px-2 py-1">
-            <Label className="text-xs cursor-pointer" htmlFor={`join-${label}`}>Join Timespine</Label>
+            <Label className="text-xs cursor-pointer" htmlFor={`join-${label}`}>{t('metricsParams:conversion.joinTimespine')}</Label>
             <Switch 
                 id={`join-${label}`}
                 checked={measure?.join_to_timespine || false}
@@ -97,7 +99,7 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
         </div>
         <div>
              <Input 
-                placeholder="Alias" 
+                placeholder={t('metricsParams:conversion.aliasPlaceholder')} 
                 value={measure?.alias || ''}
                 onChange={(e) => onChange({ ...measure!, alias: e.target.value })}
                 className="h-8 text-xs"
@@ -107,7 +109,7 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
       
       <div>
          <Input 
-            placeholder="Fill Nulls With (Number)" 
+            placeholder={t('metricsParams:conversion.fillNullsPlaceholder')} 
             type="number"
             value={measure?.fill_nulls_with || ''}
             onChange={(e) => onChange({ ...measure!, fill_nulls_with: parseFloat(e.target.value) || undefined })}
@@ -117,7 +119,7 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
 
       <div>
         <Textarea 
-            placeholder="Filter expression" 
+            placeholder={t('metricsParams:conversion.filterPlaceholder')} 
             value={measure?.filter || ''}
             onChange={(e) => onChange({ ...measure!, filter: e.target.value })}
             className="text-xs min-h-[60px]"
@@ -134,7 +136,7 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
     <div className="space-y-3 p-3 border rounded-md">
         <Label className="font-semibold">{label}</Label>
         <div className="space-y-2">
-            <Label className="text-xs">Metric</Label>
+            <Label className="text-xs">{t('metricsParams:conversion.metric')}</Label>
             <Select
                 value={metricRef?.name || ''}
                 onValueChange={(value) => {
@@ -147,7 +149,7 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
                 }}
             >
                 <SelectTrigger>
-                    <SelectValue placeholder="Select metric" />
+                    <SelectValue placeholder={t('metricsParams:conversion.selectMetric')} />
                 </SelectTrigger>
                 <SelectContent>
                     {availableMetrics.map(m => (
@@ -157,9 +159,9 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
             </Select>
         </div>
         <div>
-            <Label className="text-xs">Filter</Label>
+            <Label className="text-xs">{t('metricsParams:conversion.filter')}</Label>
             <Textarea 
-                placeholder="Filter expression"
+                placeholder={t('metricsParams:conversion.filterPlaceholder')}
                 value={metricRef?.filter || ''}
                 onChange={(e) => onChange({ ...metricRef!, filter: e.target.value })}
                 className="text-xs min-h-[60px]"
@@ -172,65 +174,65 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
     <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-                <Label>Calculation Type</Label>
+                <Label>{t('metricsParams:conversion.calculationType')}</Label>
                 <Select
                     value={params.calculation || ''}
                     onValueChange={(value) => updateParams({ calculation: value })}
                 >
                     <SelectTrigger>
-                        <SelectValue placeholder="Select calculation" />
+                        <SelectValue placeholder={t('metricsParams:conversion.selectCalculation')} />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="ratio">Ratio</SelectItem>
-                        <SelectItem value="difference">Difference</SelectItem>
-                        <SelectItem value="percentage_change">Percentage Change</SelectItem>
+                        <SelectItem value="ratio">{t('metricsEnum:calculation.ratio')}</SelectItem>
+                        <SelectItem value="difference">{t('metricsEnum:calculation.difference')}</SelectItem>
+                        <SelectItem value="percentage_change">{t('metricsEnum:calculation.percentage_change')}</SelectItem>
                     </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">How to calculate conversion rate.</p>
+                <p className="text-xs text-muted-foreground">{t('metricsParams:conversion.calculationHint')}</p>
             </div>
              <div className="space-y-2">
-                <Label>Entity *</Label>
+                <Label>{t('metricsParams:conversion.entity')}</Label>
                 <Input
                     value={params.entity || ''}
                     onChange={(e) => updateParams({ entity: e.target.value })}
-                    placeholder="e.g., user_id"
+                    placeholder={t('metricsParams:conversion.entityPlaceholder')}
                 />
-                <p className="text-xs text-muted-foreground">The entity being tracked for conversion (e.g., user, session).</p>
+                <p className="text-xs text-muted-foreground">{t('metricsParams:conversion.entityHint')}</p>
             </div>
         </div>
 
         <Separator />
-        <Label className="text-sm text-muted-foreground">Base Component</Label>
+        <Label className="text-sm text-muted-foreground">{t('metricsParams:conversion.baseComponent')}</Label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {renderInputMeasureForm('Base Measure', params.base_measure || { name: '', join_to_timespine: false }, (m) => updateParams({ base_measure: m }))}
-            {renderMetricRefForm('Base Metric', params.base_metric || { name: '', alias: '' }, (m) => updateParams({ base_metric: m }))}
+            {renderInputMeasureForm(t('metricsParams:conversion.baseMeasure'), params.base_measure || { name: '', join_to_timespine: false }, (m) => updateParams({ base_measure: m }))}
+            {renderMetricRefForm(t('metricsParams:conversion.baseMetric'), params.base_metric || { name: '', alias: '' }, (m) => updateParams({ base_metric: m }))}
         </div>
 
         <Separator />
-        <Label className="text-sm text-muted-foreground">Conversion Component</Label>
+        <Label className="text-sm text-muted-foreground">{t('metricsParams:conversion.conversionComponent')}</Label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             {renderInputMeasureForm('Conversion Measure', params.conversion_measure || { name: '', join_to_timespine: false }, (m) => updateParams({ conversion_measure: m }))}
-             {renderMetricRefForm('Conversion Metric', params.conversion_metric || { name: '', alias: '' }, (m) => updateParams({ conversion_metric: m }))}
+             {renderInputMeasureForm(t('metricsParams:conversion.conversionMeasure'), params.conversion_measure || { name: '', join_to_timespine: false }, (m) => updateParams({ conversion_measure: m }))}
+             {renderMetricRefForm(t('metricsParams:conversion.conversionMetric'), params.conversion_metric || { name: '', alias: '' }, (m) => updateParams({ conversion_metric: m }))}
         </div>
 
         <Separator />
          <div className="space-y-2">
-            <Label>Window Settings</Label>
-            <p className="text-xs text-muted-foreground">Optional time window for conversion tracking.</p>
+            <Label>{t('metricsParams:conversion.windowSettings')}</Label>
+            <p className="text-xs text-muted-foreground">{t('metricsParams:conversion.windowHint')}</p>
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <Label className="text-xs text-muted-foreground">Count</Label>
+                    <Label className="text-xs text-muted-foreground">{t('metricsParams:conversion.count')}</Label>
                     <Input
                         type="text"
                         value={params.window?.count || ''}
                         onChange={(e) => updateParams({
                             window: { ...params.window, count: parseInt(e.target.value) || undefined }
                         })}
-                        placeholder="e.g., 7"
+                        placeholder={t('metricsParams:conversion.countPlaceholder')}
                     />
                 </div>
                 <div>
-                    <Label className="text-xs text-muted-foreground">Granularity</Label>
+                    <Label className="text-xs text-muted-foreground">{t('metricsParams:conversion.granularity')}</Label>
                     <Select
                         value={params.window?.granularity || ''}
                         onValueChange={(value) => updateParams({
@@ -238,7 +240,7 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
                         })}
                     >
                         <SelectTrigger>
-                            <SelectValue placeholder="Select granularity" />
+                            <SelectValue placeholder={t('metricsParams:conversion.selectGranularity')} />
                         </SelectTrigger>
                         <SelectContent>
                             {Object.values(TimeGranularity).map((granularity) => (
@@ -254,13 +256,13 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
 
         <Separator />
         <div className="space-y-2">
-            <Label>Constant Properties</Label>
+            <Label>{t('metricsParams:conversion.constantProperties')}</Label>
             <div className="space-y-2">
                 {(params.constant_properties || []).map((cp, index) => (
                     <div key={index} className="grid grid-cols-2 gap-2 items-end">
                         <div className="space-y-1">
                             <Input
-                                placeholder="Property name"
+                                placeholder={t('metricsParams:conversion.propertyNamePlaceholder')}
                                 value={cp.property || ''}
                                 onChange={(e) => {
                                     const updated = [...(params.constant_properties || [])];
@@ -272,7 +274,7 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
                         </div>
                         <div className="space-y-1 flex gap-1">
                             <Input
-                                placeholder="Value"
+                                placeholder={t('metricsParams:conversion.valuePlaceholder')}
                                 value={cp.value || ''}
                                 onChange={(e) => {
                                     const updated = [...(params.constant_properties || [])];
@@ -307,7 +309,7 @@ const ConversionMetricParams: React.FC<ConversionMetricParamsProps> = ({ params,
                     className="text-xs"
                 >
                     <Plus className="h-3 w-3 mr-1" />
-                    Add Constant Property
+                    {t('metricsParams:conversion.addConstantProperty')}
                 </Button>
             </div>
         </div>

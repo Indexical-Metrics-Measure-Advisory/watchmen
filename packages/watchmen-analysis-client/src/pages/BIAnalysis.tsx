@@ -24,6 +24,7 @@ import {
   Network
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AnalysisBoard } from '@/components/bi/AnalysisBoard';
 import { MetricBuilderSheet } from '@/components/bi/MetricBuilderSheet';
 import { AcknowledgeAlertDialog } from '@/components/bi/AcknowledgeAlertDialog';
@@ -48,6 +49,7 @@ const BIAnalysisPage: React.FC = () => {
   const { user } = useAuth();
   const { token } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation(['common', 'biAnalysis']);
 
   // ── Hook: Card data loader ──
   const {
@@ -164,14 +166,14 @@ const BIAnalysisPage: React.FC = () => {
   // ── Refresh data button handler ──
   const onRefreshData = useCallback(async () => {
     setIsBoardRefreshing(true);
-    toast({ title: 'Refreshing', description: 'Refreshing all cards...' });
+    toast({ title: t('biAnalysis:toast.refreshingTitle'), description: t('biAnalysis:toast.refreshingDescription') });
     await refreshCardsWithContext(cardsRef.current, {
       globalTimeRange,
       globalCustomDateRange,
       globalFilterValues,
     });
     setIsBoardRefreshing(false);
-  }, [refreshCardsWithContext, globalTimeRange, globalCustomDateRange, globalFilterValues, cardsRef, toast, setIsBoardRefreshing]);
+  }, [refreshCardsWithContext, globalTimeRange, globalCustomDateRange, globalFilterValues, cardsRef, toast, setIsBoardRefreshing, t]);
 
   // ── Stable card IDs key for effects — order-independent so drag reorder doesn't trigger ──
   const cardIdsKey = useMemo(() => cards.map(c => c.id).sort().join(','), [cards]);
@@ -221,30 +223,30 @@ const BIAnalysisPage: React.FC = () => {
                 <LayoutDashboard className="h-8 w-8 text-primary" />
               </div>
               <div className="space-y-1">
-                <h1 className="text-2xl font-bold tracking-tight">Metrics Analysis</h1>
-                <p className="text-sm text-muted-foreground">Build multi-dimensional metrics, smart chart recommendations, and a card dashboard</p>
+                <h1 className="text-2xl font-bold tracking-tight">{t('biAnalysis:page.title')}</h1>
+                <p className="text-sm text-muted-foreground">{t('biAnalysis:page.subtitle')}</p>
               </div>
             </div>
             <div className="flex items-center flex-wrap gap-2">
               <Button variant="outline" onClick={() => navigate('/metrics/tree', { state: { cards } })} className="gap-2">
                 <Network className="h-4 w-4" />
-                Metric Tree
+                {t('biAnalysis:page.metricTree')}
               </Button>
               <Button variant="outline" onClick={() => setMetricBuilderOpen(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
-                Add Metric
+                {t('biAnalysis:page.addMetric')}
               </Button>
               <Button variant="ghost" onClick={resetBoard} className="gap-2">
                 <RotateCcw className="h-4 w-4" />
-                Reset
+                {t('biAnalysis:page.reset')}
               </Button>
               <Button variant="outline" onClick={() => setShareOpen(true)} className="gap-2" disabled={!currentAnalysisId}>
                 <Share2 className="h-4 w-4" />
-                Share
+                {t('biAnalysis:page.share')}
               </Button>
               <Button variant="default" onClick={() => setSaveOpen(true)} className="gap-2">
                 <Save className="h-4 w-4" />
-                Save Analysis
+                {t('biAnalysis:page.saveAnalysis')}
               </Button>
             </div>
           </div>
@@ -252,12 +254,12 @@ const BIAnalysisPage: React.FC = () => {
           <Tabs value={activeSection} onValueChange={(v) => setActiveSection(v as 'dashboard' | 'saved')} className="w-full">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <TabsList className="w-fit">
-                <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-                <TabsTrigger value="saved">Saved</TabsTrigger>
+                <TabsTrigger value="dashboard">{t('biAnalysis:page.dashboard')}</TabsTrigger>
+                <TabsTrigger value="saved">{t('biAnalysis:page.saved')}</TabsTrigger>
               </TabsList>
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-xs">{cards.length} cards</Badge>
-                <Badge variant="outline" className="text-xs">{commonFilterDimensions.length} global dims</Badge>
+                <Badge variant="secondary" className="text-xs">{t('biAnalysis:page.cardsCount', { count: cards.length })}</Badge>
+                <Badge variant="outline" className="text-xs">{t('biAnalysis:page.globalDimsCount', { count: commonFilterDimensions.length })}</Badge>
               </div>
             </div>
 
@@ -291,31 +293,31 @@ const BIAnalysisPage: React.FC = () => {
 
             <TabsContent value="saved" className="mt-4 space-y-4">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl font-semibold tracking-tight">Saved Analyses</h2>
+                <h2 className="text-xl font-semibold tracking-tight">{t('biAnalysis:saved.title')}</h2>
                 <Button variant="outline" onClick={() => setSaveOpen(true)} className="gap-2">
                   <Save className="h-4 w-4" />
-                  Save Current
+                  {t('biAnalysis:saved.saveCurrent')}
                 </Button>
               </div>
 
               {templates.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-32 text-muted-foreground border-2 border-dashed rounded-lg bg-muted/30">
-                  <p>No saved analyses yet</p>
-                  <p className="text-sm">Save your current board to see it here</p>
+                  <p>{t('biAnalysis:saved.emptyTitle')}</p>
+                  <p className="text-sm">{t('biAnalysis:saved.emptyDescription')}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {templates.map(t => {
-                    const isCurrentAnalysis = !t.isTemplate && currentAnalysisId === t.id;
+                  {templates.map(template => {
+                    const isCurrentAnalysis = !template.isTemplate && currentAnalysisId === template.id;
                     return (
-                    <Card key={t.id} className="group hover:shadow-md transition-all duration-200">
+                    <Card key={template.id} className="group hover:shadow-md transition-all duration-200">
                       <CardHeader className="pb-3">
                         <div className="flex justify-between items-start gap-2">
-                          <CardTitle className="text-base font-medium truncate" title={t.name}>{t.name}</CardTitle>
-                          {t.isTemplate && <Badge variant="secondary" className="text-[10px] h-5 px-1.5">Template</Badge>}
+                          <CardTitle className="text-base font-medium truncate" title={template.name}>{template.name}</CardTitle>
+                          {template.isTemplate && <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{t('biAnalysis:saved.template')}</Badge>}
                         </div>
                         <CardDescription className="text-xs line-clamp-2 min-h-[2.5em]">
-                          {t.description || 'No description provided'}
+                          {template.description || t('biAnalysis:saved.noDescription')}
                         </CardDescription>
                       </CardHeader>
 
@@ -324,22 +326,22 @@ const BIAnalysisPage: React.FC = () => {
                           variant="outline"
                           size="sm"
                           className="flex-1"
-                          onClick={() => loadTemplate(t.id)}
+                          onClick={() => loadTemplate(template.id)}
                           disabled={isCurrentAnalysis}
-                          title={isCurrentAnalysis ? 'This analysis is already open' : 'Load this analysis'}
+                          title={isCurrentAnalysis ? t('biAnalysis:saved.alreadyOpen') : t('biAnalysis:saved.loadAnalysis')}
                         >
-                          {isCurrentAnalysis ? 'Opened' : 'Load'}
+                          {isCurrentAnalysis ? t('biAnalysis:saved.opened') : t('biAnalysis:saved.load')}
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className={t.isTemplate ? "text-primary bg-primary/10 hover:bg-primary/20" : "text-muted-foreground hover:text-primary"}
-                          title={t.isTemplate ? "Unset as Template" : "Set as Template"}
-                          onClick={() => toggleTemplate(t)}
+                          className={template.isTemplate ? "text-primary bg-primary/10 hover:bg-primary/20" : "text-muted-foreground hover:text-primary"}
+                          title={template.isTemplate ? t('biAnalysis:saved.unsetTemplate') : t('biAnalysis:saved.setTemplate')}
+                          onClick={() => toggleTemplate(template)}
                         >
                           <LayoutTemplate className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => deleteTemplate(t.id)}>
+                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => deleteTemplate(template.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </CardFooter>
@@ -438,21 +440,22 @@ function AddAlertCardDialog({
   onAlertCustomDateRangeChange,
   onConfirm
 }: AddAlertCardDialogProps) {
+  const { t } = useTranslation(['common', 'biAnalysis']);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Alert Card</DialogTitle>
+          <DialogTitle>{t('biAnalysis:alertDialog.title')}</DialogTitle>
           <DialogDescription>
-            Select an alert rule to add to the dashboard.
+            {t('biAnalysis:alertDialog.description')}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>Alert Rule</Label>
+            <Label>{t('biAnalysis:alertDialog.rule')}</Label>
             <Select value={alertRuleId} onValueChange={onAlertRuleIdChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Select rule..." />
+                <SelectValue placeholder={t('biAnalysis:alertDialog.selectRule')} />
               </SelectTrigger>
               <SelectContent>
                 {dialogRules.map(r => (
@@ -465,17 +468,17 @@ function AddAlertCardDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Time Range</Label>
+            <Label>{t('biAnalysis:alertDialog.timeRange')}</Label>
             <Select value={alertTimeRange} onValueChange={onAlertTimeRangeChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Select time range" />
+                <SelectValue placeholder={t('biAnalysis:alertDialog.selectTimeRange')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Past 7 days">Past 7 days</SelectItem>
-                <SelectItem value="Past 30 days">Past 30 days</SelectItem>
-                <SelectItem value="Past 90 days">Past 90 days</SelectItem>
-                <SelectItem value="Past year">Past year</SelectItem>
-                <SelectItem value="Custom">Custom Range</SelectItem>
+                <SelectItem value="Past 7 days">{t('biAnalysis:timeRange.past7Days')}</SelectItem>
+                <SelectItem value="Past 30 days">{t('biAnalysis:timeRange.past30Days')}</SelectItem>
+                <SelectItem value="Past 90 days">{t('biAnalysis:timeRange.past90Days')}</SelectItem>
+                <SelectItem value="Past year">{t('biAnalysis:timeRange.pastYear')}</SelectItem>
+                <SelectItem value="Custom">{t('biAnalysis:timeRange.custom')}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -491,8 +494,8 @@ function AddAlertCardDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={onConfirm} disabled={!alertRuleId}>Add Alert</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t('common:cancel')}</Button>
+          <Button onClick={onConfirm} disabled={!alertRuleId}>{t('biAnalysis:alertDialog.addAlert')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -522,32 +525,33 @@ function SaveAnalysisDialog({
   onSave,
   onSaveAsNew
 }: SaveAnalysisDialogProps) {
+  const { t } = useTranslation(['common', 'biAnalysis']);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{currentAnalysisId ? 'Update Analysis' : 'Save New Analysis'}</DialogTitle>
+          <DialogTitle>{currentAnalysisId ? t('biAnalysis:saveDialog.updateTitle') : t('biAnalysis:saveDialog.createTitle')}</DialogTitle>
           <DialogDescription>
-            {currentAnalysisId ? 'Update the existing analysis or save as a new copy' : 'Save the current board as a reusable template'}
+            {currentAnalysisId ? t('biAnalysis:saveDialog.updateDescription') : t('biAnalysis:saveDialog.createDescription')}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div>
-            <label className="text-sm">Name</label>
-            <Input value={saveName} onChange={(e) => onSaveNameChange(e.target.value)} placeholder="Enter analysis name" />
+            <label className="text-sm">{t('biAnalysis:saveDialog.name')}</label>
+            <Input value={saveName} onChange={(e) => onSaveNameChange(e.target.value)} placeholder={t('biAnalysis:saveDialog.namePlaceholder')} />
           </div>
           <div>
-            <label className="text-sm">Description</label>
-            <Input value={saveDesc} onChange={(e) => onSaveDescChange(e.target.value)} placeholder="Optional: brief description of purpose" />
+            <label className="text-sm">{t('biAnalysis:saveDialog.description')}</label>
+            <Input value={saveDesc} onChange={(e) => onSaveDescChange(e.target.value)} placeholder={t('biAnalysis:saveDialog.descriptionPlaceholder')} />
           </div>
         </div>
         <DialogFooter>
           {currentAnalysisId && (
             <Button variant="outline" onClick={onSaveAsNew}>
-              Save as New
+              {t('biAnalysis:saveDialog.saveAsNew')}
             </Button>
           )}
-          <Button onClick={onSave}>{currentAnalysisId ? 'Update' : 'Save'}</Button>
+          <Button onClick={onSave}>{currentAnalysisId ? t('biAnalysis:saveDialog.update') : t('biAnalysis:saveDialog.save')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -569,6 +573,7 @@ function ShareAnalysisDialog({
   onCopyLink,
   token,
 }: ShareAnalysisDialogProps) {
+  const { t } = useTranslation('biAnalysis');
   const shareLink = useMemo(() => {
     if (!currentAnalysisId) return '';
     let url = `${window.location.origin}/share/analysis/${currentAnalysisId}`;
@@ -582,9 +587,9 @@ function ShareAnalysisDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Share Analysis</DialogTitle>
+          <DialogTitle>{t('shareDialog.title')}</DialogTitle>
           <DialogDescription>
-            Share this analysis with external users. {token ? 'The link includes your current authentication token.' : 'Please log in to generate a secure link.'}
+            {token ? t('shareDialog.descriptionWithToken') : t('shareDialog.descriptionWithoutToken')}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -596,7 +601,7 @@ function ShareAnalysisDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={() => window.open(shareLink, '_blank')} disabled={!shareLink}>Open Link</Button>
+          <Button onClick={() => window.open(shareLink, '_blank')} disabled={!shareLink}>{t('shareDialog.openLink')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

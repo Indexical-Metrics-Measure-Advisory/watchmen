@@ -2,13 +2,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, Bell, User, LogIn, LogOut, Settings, ChevronDown, UserCircle } from 'lucide-react';
+import { LogIn, LogOut, Settings, ChevronDown, UserCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
+import { useLocale } from '@/i18n/hooks/use-locale';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { t } = useTranslation(['common', 'layout']);
+  const { language, setLanguage } = useLocale();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -31,21 +35,27 @@ const Header: React.FC = () => {
   const getPageTitle = () => {
     switch (location.pathname) {
       case '/':
-        return 'Smart Console';
+        return t('layout:pageTitle.smartConsole');
       case '/hypotheses':
-        return 'Hypothesis';
-      case '/metrics':
-        return 'Metrics Hub';
+        return t('layout:pageTitle.hypothesis');
+      case '/metrics/management':
+        return t('layout:pageTitle.metricsManagement');
+      case '/metrics/lineage':
+        return t('layout:pageTitle.metricLineage');
+      case '/metrics/tree':
+        return t('layout:pageTitle.metricDependencyTree');
+      case '/metrics/semantic-models':
+        return t('layout:pageTitle.semanticModelManagement');
       case '/analysis':
-        return 'AI Analysis';
+        return t('layout:pageTitle.aiAnalysis');
       case '/chat':
-        return 'AI Chat Analyst';
+        return t('layout:pageTitle.aiChatAnalyst');
       case '/login':
-        return 'Sign In';
+        return t('layout:pageTitle.signIn');
       case '/settings':
-        return 'Settings';
+        return t('layout:pageTitle.settings');
       default:
-        return 'Data Analysis System';
+        return t('layout:pageTitle.dataAnalysisSystem');
     }
   };
 
@@ -54,6 +64,18 @@ const Header: React.FC = () => {
       <h1 className="text-xl font-medium">{getPageTitle()}</h1>
       
       <div className="flex items-center gap-4">
+        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>{t('common:language')}</span>
+          <select
+            value={language}
+            onChange={(event) => void setLanguage(event.target.value as 'en' | 'zh-CN')}
+            className="rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
+            aria-label={t('common:language')}
+          >
+            <option value="en">{t('common:english')}</option>
+            <option value="zh-CN">{t('common:simplifiedChinese')}</option>
+          </select>
+        </label>
         {/* <div className="relative w-64">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
             <Search className="h-4 w-4 text-muted-foreground" />
@@ -121,7 +143,7 @@ const Header: React.FC = () => {
                         </span>
                         {user?.isActive && (
                           <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                            Active
+                            {t('layout:active')}
                           </span>
                         )}
                       </div>
@@ -138,7 +160,7 @@ const Header: React.FC = () => {
                     className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
                   >
                     <UserCircle className="h-4 w-4" />
-                    Profile Settings
+                    {t('layout:profileSettings')}
                   </button>
                   <button
                     onClick={() => {
@@ -148,7 +170,7 @@ const Header: React.FC = () => {
                     className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
                   >
                     <Settings className="h-4 w-4" />
-                    Account Settings
+                    {t('layout:accountSettings')}
                   </button>
                 </div>
                 
@@ -161,7 +183,7 @@ const Header: React.FC = () => {
                     className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                   >
                     <LogOut className="h-4 w-4" />
-                    Sign Out
+                    {t('layout:signOut')}
                   </button>
                 </div>
               </div>
@@ -170,7 +192,7 @@ const Header: React.FC = () => {
         ) : (
           <Button variant="outline" size="sm" onClick={() => navigate('/login')}>
             <LogIn className="h-4 w-4 mr-2" />
-            Login
+            {t('layout:login')}
           </Button>
         )}
       </div>

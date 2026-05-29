@@ -8,6 +8,7 @@ import { SuggestedActionModal } from '@/components/suggested-action/SuggestedAct
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useTranslation } from 'react-i18next';
 
 interface SuggestedActionManagementProps {
   types: ActionType[];
@@ -15,6 +16,7 @@ interface SuggestedActionManagementProps {
 }
 
 export const SuggestedActionManagement: React.FC<SuggestedActionManagementProps> = ({ types, onTypesChange }) => {
+  const { t } = useTranslation(['common', 'alertConfig']);
   const [actions, setActions] = useState<SuggestedAction[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -97,8 +99,8 @@ export const SuggestedActionManagement: React.FC<SuggestedActionManagementProps>
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-xl font-bold tracking-tight">Suggested Action Configuration</h2>
-          <p className="text-muted-foreground">Configure and manage automated action suggestions for the decision engine.</p>
+          <h2 className="text-xl font-bold tracking-tight">{t('alertConfig:suggestedActions.title')}</h2>
+          <p className="text-muted-foreground">{t('alertConfig:suggestedActions.subtitle')}</p>
         </div>
       </div>
 
@@ -106,36 +108,36 @@ export const SuggestedActionManagement: React.FC<SuggestedActionManagementProps>
          <div className="flex-1 flex items-center gap-4">
             <div className="flex-1">
                 <Input
-                    placeholder="Search action name or description..."
+                    placeholder={t('alertConfig:suggestedActions.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="All Categories" />
+                    <SelectValue placeholder={t('alertConfig:suggestedActions.allCategories')} />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="all">{t('alertConfig:suggestedActions.allCategories')}</SelectItem>
                     {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
             </Select>
             <Select value={riskFilter} onValueChange={setRiskFilter}>
                 <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="All Risk Levels" />
+                    <SelectValue placeholder={t('alertConfig:suggestedActions.allRiskLevels')} />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="all">All Risk Levels</SelectItem>
-                    <SelectItem value="low">Low Risk</SelectItem>
-                    <SelectItem value="medium">Medium Risk</SelectItem>
-                    <SelectItem value="high">High Risk</SelectItem>
-                    <SelectItem value="critical">Critical Risk</SelectItem>
+                    <SelectItem value="all">{t('alertConfig:suggestedActions.allRiskLevels')}</SelectItem>
+                    <SelectItem value="low">{t('alertConfig:suggestedActions.lowRisk')}</SelectItem>
+                    <SelectItem value="medium">{t('alertConfig:suggestedActions.mediumRisk')}</SelectItem>
+                    <SelectItem value="high">{t('alertConfig:suggestedActions.highRisk')}</SelectItem>
+                    <SelectItem value="critical">{t('alertConfig:suggestedActions.criticalRisk')}</SelectItem>
                 </SelectContent>
             </Select>
          </div>
 
          <Button onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" /> New Action
+            <Plus className="mr-2 h-4 w-4" /> {t('alertConfig:suggestedActions.newAction')}
          </Button>
       </div>
 
@@ -158,14 +160,14 @@ export const SuggestedActionManagement: React.FC<SuggestedActionManagementProps>
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogTitle>{t('alertConfig:suggestedActions.deleteTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the suggested action.
+                {t('alertConfig:suggestedActions.deleteDescription')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+              <AlertDialogCancel>{t('common:cancel')}</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">{t('common:delete')}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

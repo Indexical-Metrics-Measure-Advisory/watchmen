@@ -17,11 +17,11 @@ import {
   GitBranch,
   AlertTriangle,
   TrendingUp,
-  FolderOpen,
   Sliders,
   Network
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 // Sidebar group visibility from environment variables (default to true)
 const SHOW_SMART_CONSOLE = (import.meta.env.VITE_SHOW_SMART_CONSOLE ?? 'true') === 'true';
@@ -122,6 +122,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const { collapsed, toggleSidebar, expandedGroups, toggleGroup } = useSidebar();
+  const { t } = useTranslation(['layout', 'nav']);
 
   return (
     <aside className={cn(
@@ -152,7 +153,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           {!collapsed && (
             <div className="flex flex-col">
               <span className="text-xl font-bold tracking-tight text-foreground leading-none">{import.meta.env.VITE_APP_TITLE || 'DataMO'}</span>
-              <span className="text-xs text-muted-foreground font-medium leading-tight mt-1">Analytics Platform</span>
+              <span className="text-xs text-muted-foreground font-medium leading-tight mt-1">{t('layout:analyticsPlatform')}</span>
             </div>
           )}
         </div>
@@ -169,42 +170,42 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       
       <nav className="flex-1 px-2 py-4 space-y-2">
         {SHOW_SMART_CONSOLE && (
-          <NavItem to="/" icon={<LayoutDashboard size={18} />} label="Smart Console" collapsed={collapsed} />
+          <NavItem to="/" icon={<LayoutDashboard size={18} />} label={t('nav:smartConsole')} collapsed={collapsed} />
         )}
         
         {SHOW_BUSINESS_CHALLENGE && (
         <NavGroup 
           icon={<Lightbulb size={18} />} 
-          label="Data Insights" 
+          label={t('nav:dataInsights')} 
           collapsed={collapsed}
           expanded={expandedGroups.dataInsights ?? true}
           onToggle={() => toggleGroup('dataInsights')}
         >
-          <NavItem to="/challenges" icon={<Target size={16} />} label="Challenges" collapsed={collapsed} isSubItem={true} />
-          <NavItem to="/problems" icon={<FileQuestion size={16} />} label="Problems" collapsed={collapsed} isSubItem={true} />
-          <NavItem to="/hypotheses" icon={<Lightbulb size={16} />} label="Hypothesis" collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/challenges" icon={<Target size={16} />} label={t('nav:challenges')} collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/problems" icon={<FileQuestion size={16} />} label={t('nav:problems')} collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/hypotheses" icon={<Lightbulb size={16} />} label={t('nav:hypothesis')} collapsed={collapsed} isSubItem={true} />
         </NavGroup>
         )}
         
         {SHOW_METRICS && (
         <NavGroup 
           icon={<BarChart3 size={18} />} 
-          label="Metrics" 
+          label={t('nav:metrics')} 
           collapsed={collapsed}
           expanded={expandedGroups.metrics ?? true}
           onToggle={() => toggleGroup('metrics')}
         >
           {/* <NavItem to="/metrics" icon={<BarChart3 size={16} />} label="Metrics Hub" collapsed={collapsed} isSubItem={true} /> */}
           {SHOW_METRIC_AI_AGENT && (
-            <NavItem to="/chat" icon={<MessageSquare size={16} />} label="Smart Metrics Chat" collapsed={collapsed} isSubItem={true} />
+            <NavItem to="/chat" icon={<MessageSquare size={16} />} label={t('nav:smartMetricsChat')} collapsed={collapsed} isSubItem={true} />
           )}
-          <NavItem to="/metrics/bi-analysis" icon={<BarChart3 size={16} />} label="Metrics Analysis" collapsed={collapsed} isSubItem={true} />
-          <NavItem to="/metrics/lineage" icon={<Network size={16} />} label="Metric Lineage" collapsed={collapsed} isSubItem={true} />
-          <NavItem to="/metrics/semantic-models" icon={<GitBranch size={16} />} label="Semantic Model Management" collapsed={collapsed} isSubItem={true} />
-          <NavItem to="/metrics/management" icon={<TrendingUp size={16} />} label="Metrics Management" collapsed={collapsed} isSubItem={true} />
-          <NavItem to="/metrics/alert-configuration" icon={<AlertTriangle size={16} />} label="Alert Configuration" collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/metrics/bi-analysis" icon={<BarChart3 size={16} />} label={t('nav:metricsAnalysis')} collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/metrics/lineage" icon={<Network size={16} />} label={t('nav:metricLineage')} collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/metrics/semantic-models" icon={<GitBranch size={16} />} label={t('nav:semanticModelManagement')} collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/metrics/management" icon={<TrendingUp size={16} />} label={t('nav:metricsManagement')} collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/metrics/alert-configuration" icon={<AlertTriangle size={16} />} label={t('nav:alertConfiguration')} collapsed={collapsed} isSubItem={true} />
           {SHOW_METRIC_AI_AGENT && (
-            <NavItem to="/metrics/assistant-config" icon={<Sliders size={16} />} label="Assistant Config" collapsed={collapsed} isSubItem={true} />
+            <NavItem to="/metrics/assistant-config" icon={<Sliders size={16} />} label={t('nav:assistantConfig')} collapsed={collapsed} isSubItem={true} />
           )}
           {/* <NavItem to="/data-profiles" icon={<Database size={16} />} label="Data Profile Management" collapsed={collapsed} isSubItem={true} /> */}
         </NavGroup>
@@ -213,13 +214,13 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         {SHOW_DATA_CATALOG && (
         <NavGroup 
           icon={<Database size={18} />} 
-          label="Data Catalog" 
+          label={t('nav:dataCatalog')} 
           collapsed={collapsed}
           expanded={expandedGroups.dataCatalog ?? true}
           onToggle={() => toggleGroup('dataCatalog')}
         >
           {/* <NavItem to="/data-catalog" icon={<FolderOpen size={16} />} label="Data Catalog" collapsed={collapsed} isSubItem={true} /> */}
-          <NavItem to="/data-catalog/domain-map" icon={<Network size={16} />} label="Business Ontology" collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/data-catalog/domain-map" icon={<Network size={16} />} label={t('nav:businessOntology')} collapsed={collapsed} isSubItem={true} />
           {/* <NavItem to="/data-profiles" icon={<Database size={16} />} label="Data Profile Management" collapsed={collapsed} isSubItem={true} /> */}
           
         </NavGroup>
@@ -228,22 +229,22 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         {SHOW_EVALUATION && (
         <NavGroup 
           icon={<ClipboardCheck size={18} />} 
-          label="Evaluation" 
+          label={t('nav:evaluation')} 
           collapsed={collapsed}
           expanded={expandedGroups.evaluation ?? true}
           onToggle={() => toggleGroup('evaluation')}
         >
-          <NavItem to="/evaluation/offline" icon={<Database size={16} />} label="Offline Evaluation" collapsed={collapsed} isSubItem={true} />
-          <NavItem to="/evaluation/datasets" icon={<Database size={16} />} label="Dataset Management" collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/evaluation/offline" icon={<Database size={16} />} label={t('nav:offlineEvaluation')} collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/evaluation/datasets" icon={<Database size={16} />} label={t('nav:datasetManagement')} collapsed={collapsed} isSubItem={true} />
           {/* <NavItem to="/evaluation/online" icon={<TestTube size={16} />} label="Online Evaluation" collapsed={collapsed} isSubItem={true} /> */}
-          <NavItem to="/evaluation/scenarios" icon={<TestTube size={16} />} label="Scenario Evaluation" collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/evaluation/scenarios" icon={<TestTube size={16} />} label={t('nav:scenarioEvaluation')} collapsed={collapsed} isSubItem={true} />
         </NavGroup>
         )}
       </nav>
       
       <div className="p-4 border-t border-border/50 space-y-1">
-        <NavItem to="/settings" icon={<Settings size={18} />} label="Settings" collapsed={collapsed} />
-        <NavItem to="/help" icon={<HelpCircle size={18} />} label="Help" collapsed={collapsed} />
+        <NavItem to="/settings" icon={<Settings size={18} />} label={t('nav:settings')} collapsed={collapsed} />
+        <NavItem to="/help" icon={<HelpCircle size={18} />} label={t('nav:help')} collapsed={collapsed} />
       </div>
     </aside>
   );

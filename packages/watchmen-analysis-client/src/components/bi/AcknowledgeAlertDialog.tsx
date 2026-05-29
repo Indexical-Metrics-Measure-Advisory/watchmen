@@ -3,16 +3,17 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTranslation } from 'react-i18next';
 
 export type AcknowledgeReason = 'processed' | 'ignored' | 'escalated' | 'false_alarm' | 'maintenance' | 'other';
 
-export const ACKNOWLEDGE_REASON_OPTIONS: { value: AcknowledgeReason; label: string }[] = [
-  { value: 'processed', label: 'Processed' },
-  { value: 'ignored', label: 'Ignored' },
-  { value: 'escalated', label: 'Escalated' },
-  { value: 'false_alarm', label: 'False Alarm' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'other', label: 'Other' },
+export const ACKNOWLEDGE_REASON_OPTIONS: AcknowledgeReason[] = [
+  'processed',
+  'ignored',
+  'escalated',
+  'false_alarm',
+  'maintenance',
+  'other',
 ];
 
 interface AcknowledgeAlertDialogProps {
@@ -28,6 +29,7 @@ export function AcknowledgeAlertDialog({
   onConfirm,
   isSubmitting = false
 }: AcknowledgeAlertDialogProps) {
+  const { t } = useTranslation(['common', 'biAnalysis']);
   const [reason, setReason] = useState<AcknowledgeReason | ''>('');
   const [intervalDays, setIntervalDays] = useState<number | ''>(1);
 
@@ -47,23 +49,23 @@ export function AcknowledgeAlertDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Acknowledge Alert</DialogTitle>
+          <DialogTitle>{t('biAnalysis:acknowledgeDialog.title')}</DialogTitle>
           <DialogDescription>
-            Confirm that you have reviewed and are handling this alert.
+            {t('biAnalysis:acknowledgeDialog.description')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="reason">Reason</Label>
+            <Label htmlFor="reason">{t('biAnalysis:acknowledgeDialog.reason')}</Label>
             <Select value={reason} onValueChange={(v) => setReason(v as AcknowledgeReason)}>
               <SelectTrigger id="reason">
-                <SelectValue placeholder="Select a reason..." />
+                <SelectValue placeholder={t('biAnalysis:acknowledgeDialog.selectReason')} />
               </SelectTrigger>
               <SelectContent>
                 {ACKNOWLEDGE_REASON_OPTIONS.map(opt => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                  <SelectItem key={opt} value={opt}>
+                    {t(`biAnalysis:acknowledgeDialog.reasons.${opt}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -71,32 +73,32 @@ export function AcknowledgeAlertDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="interval">Mute Interval (Days)</Label>
+            <Label htmlFor="interval">{t('biAnalysis:acknowledgeDialog.muteInterval')}</Label>
             <Select value={intervalDays === '' ? '' : String(intervalDays)} onValueChange={(v) => setIntervalDays(v === '' ? '' : Number(v))}>
               <SelectTrigger id="interval">
-                <SelectValue placeholder="Select days..." />
+                <SelectValue placeholder={t('biAnalysis:acknowledgeDialog.selectDays')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">1 day</SelectItem>
-                <SelectItem value="3">3 days</SelectItem>
-                <SelectItem value="7">7 days</SelectItem>
-                <SelectItem value="14">14 days</SelectItem>
-                <SelectItem value="30">30 days</SelectItem>
-                <SelectItem value="90">90 days</SelectItem>
+                <SelectItem value="1">{t('biAnalysis:acknowledgeDialog.day', { count: 1 })}</SelectItem>
+                <SelectItem value="3">{t('biAnalysis:acknowledgeDialog.day', { count: 3 })}</SelectItem>
+                <SelectItem value="7">{t('biAnalysis:acknowledgeDialog.day', { count: 7 })}</SelectItem>
+                <SelectItem value="14">{t('biAnalysis:acknowledgeDialog.day', { count: 14 })}</SelectItem>
+                <SelectItem value="30">{t('biAnalysis:acknowledgeDialog.day', { count: 30 })}</SelectItem>
+                <SelectItem value="90">{t('biAnalysis:acknowledgeDialog.day', { count: 90 })}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              How long before this alert can trigger again if the condition persists.
+              {t('biAnalysis:acknowledgeDialog.muteIntervalHint')}
             </p>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-            Cancel
+            {t('common:cancel')}
           </Button>
           <Button onClick={handleConfirm} disabled={isSubmitting}>
-            {isSubmitting ? 'Acknowledging...' : 'Acknowledge'}
+            {isSubmitting ? t('biAnalysis:acknowledgeDialog.acknowledging') : t('biAnalysis:acknowledgeDialog.acknowledge')}
           </Button>
         </DialogFooter>
       </DialogContent>

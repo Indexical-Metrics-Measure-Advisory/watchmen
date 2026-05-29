@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Edit, Trash2, Plus, Bell, Mail, FileText, Activity } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ActionTypeManagementProps {
   types: ActionType[];
@@ -21,6 +22,7 @@ export const ActionTypeManagement: React.FC<ActionTypeManagementProps> = ({
   onDelete,
   onToggle
 }) => {
+  const { t } = useTranslation(['common', 'alertConfig']);
   // Group by Category
   const groupedTypes = types.reduce((acc, type) => {
     if (!acc[type.category]) acc[type.category] = [];
@@ -39,11 +41,11 @@ export const ActionTypeManagement: React.FC<ActionTypeManagementProps> = ({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-semibold">Action Type Management</h2>
-            <Badge variant="secondary" className="text-sm px-2 py-0.5">{types.length} Types</Badge>
+            <h2 className="text-xl font-semibold">{t('alertConfig:actionTypes.managementTitle')}</h2>
+            <Badge variant="secondary" className="text-sm px-2 py-0.5">{t('alertConfig:actionTypes.typesCount', { count: types.length })}</Badge>
          </div>
          <Button onClick={onAdd}>
-            <Plus className="h-4 w-4 mr-2" /> Add Type
+            <Plus className="h-4 w-4 mr-2" /> {t('alertConfig:actionTypes.addType')}
          </Button>
       </div>
 
@@ -66,7 +68,7 @@ export const ActionTypeManagement: React.FC<ActionTypeManagementProps> = ({
                                         </Badge>
                                         {type.requiresApproval && (
                                             <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200">
-                                                Requires Approval
+                                                {t('alertConfig:actionTypes.requiresApproval')}
                                             </Badge>
                                         )}
                                     </div>

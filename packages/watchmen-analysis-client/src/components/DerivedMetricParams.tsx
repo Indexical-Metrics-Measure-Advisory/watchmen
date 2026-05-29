@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2 } from 'lucide-react';
 import { MetricTypeParams, MetricReference, InputMeasure, OffsetWindow, MetricDefinition } from '@/model/metricsManagement';
 import { getMetrics } from '@/services/metricsManagementService';
+import { useTranslation } from 'react-i18next';
 
 interface DerivedMetricParamsProps {
   params: MetricTypeParams;
@@ -15,6 +15,7 @@ interface DerivedMetricParamsProps {
 }
 
 const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onChange }) => {
+  const { t } = useTranslation('metricsParams');
   const [availableMetrics, setAvailableMetrics] = useState<MetricDefinition[]>([]);
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(false);
 
@@ -111,14 +112,14 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
     <div className="space-y-6">
       {/* Expression */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Expression *</label>
+        <label className="text-sm font-medium">{t('derived.expression')}</label>
         <Textarea
           value={params.expr || ''}
           onChange={(e) => updateParams({ expr: e.target.value })}
-          placeholder="e.g., (metric_a - metric_b) / metric_b * 100"
+          placeholder={t('derived.expressionPlaceholder')}
           rows={3}
         />
-        <p className="text-xs text-muted-foreground">Mathematical expression using referenced metric names. Example: (revenue - cost) / cost</p>
+        <p className="text-xs text-muted-foreground">{t('derived.expressionHint')}</p>
       </div>
 
       {/* Metric References */}
@@ -128,7 +129,7 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
             <CardTitle className="text-lg">Metric References</CardTitle>
             <Button size="sm" onClick={addMetricReference}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Metric
+              {t('derived.addMetric')}
             </Button>
           </div>
         </CardHeader>
@@ -136,7 +137,7 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
           {params.metrics?.map((metric, index) => (
             <div key={index} className="border rounded-lg p-4 space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="font-medium">Metric Reference {index + 1}</h4>
+                <h4 className="font-medium">{t('derived.metricReference', { index: index + 1 })}</h4>
                 <Button
                   size="sm"
                   variant="outline"
@@ -148,7 +149,7 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Metric Name</label>
+                  <label className="text-sm font-medium">{t('derived.metricName')}</label>
                   <Select
                     value={metric.name}
                     onValueChange={(value) => {
@@ -180,11 +181,11 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={isLoadingMetrics ? "Loading metrics..." : "Select metric name"} />
+                      <SelectValue placeholder={isLoadingMetrics ? t('derived.loadingMetrics') : t('derived.selectMetric')} />
                     </SelectTrigger>
                     <SelectContent>
                       {isLoadingMetrics ? (
-                        <SelectItem value="loading" disabled>Loading metrics...</SelectItem>
+                        <SelectItem value="loading" disabled>{t('derived.loadingMetrics')}</SelectItem>
                       ) : availableMetrics.length > 0 ? (
                         availableMetrics.map((availableMetric) => (
                           <SelectItem key={availableMetric.name} value={availableMetric.name}>
@@ -195,42 +196,42 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="no_metrics" disabled>No metrics available</SelectItem>
+                        <SelectItem value="no_metrics" disabled>{t('derived.noMetricsAvailable')}</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Alias</label>
+                  <label className="text-sm font-medium">{t('derived.alias')}</label>
                   <Input
                     value={metric.alias}
                     onChange={(e) => updateMetricReference(index, { alias: e.target.value })}
-                    placeholder="Enter alias"
+                    placeholder={t('derived.aliasPlaceholder')}
                   />
                 </div>
               </div>
 
               {/* Offset Window */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Offset Window (Optional)</label>
+                <label className="text-sm font-medium">{t('derived.offsetWindow')}</label>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground">Count</label>
+                    <label className="text-xs text-muted-foreground">{t('derived.count')}</label>
                     <Input
                       type="number"
                       value={metric.offset_window?.count || ''}
                       onChange={(e) => updateOffsetWindow(index, { count: parseInt(e.target.value) || 0 })}
-                      placeholder="Enter count"
+                      placeholder={t('derived.countPlaceholder')}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground">Granularity</label>
+                    <label className="text-xs text-muted-foreground">{t('derived.granularity')}</label>
                     <Select
                       value={metric.offset_window?.granularity || ''}
                       onValueChange={(value) => updateOffsetWindow(index, { granularity: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select granularity" />
+                        <SelectValue placeholder={t('derived.selectGranularity')} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="day">Day</SelectItem>
@@ -248,7 +249,7 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
           
           {(!params.metrics || params.metrics.length === 0) && (
             <div className="text-center py-8 text-muted-foreground">
-              No metric references defined. Click "Add Metric" to get started.
+              {t('derived.noMetricReferences')}
             </div>
           )}
         </CardContent>
@@ -261,7 +262,7 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
             <CardTitle className="text-lg">Input Measures</CardTitle>
             <Button size="sm" onClick={addInputMeasure}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Measure
+              {t('derived.addMeasure')}
             </Button>
           </div>
         </CardHeader>
@@ -269,7 +270,7 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
           {params.input_measures?.map((measure, index) => (
             <div key={index} className="border rounded-lg p-4 space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="font-medium">Input Measure {index + 1}</h4>
+                <h4 className="font-medium">{t('derived.inputMeasure', { index: index + 1 })}</h4>
                 <Button
                   size="sm"
                   variant="outline"
@@ -281,19 +282,19 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Measure Name</label>
+                  <label className="text-sm font-medium">{t('derived.measureName')}</label>
                   <Input
                     value={measure.name}
                     onChange={(e) => updateInputMeasure(index, { name: e.target.value })}
-                    placeholder="Enter measure name"
+                    placeholder={t('derived.measureNamePlaceholder')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Alias (Optional)</label>
+                  <label className="text-sm font-medium">{t('derived.aliasOptional')}</label>
                   <Input
                     value={measure.alias || ''}
                     onChange={(e) => updateInputMeasure(index, { alias: e.target.value || null })}
-                    placeholder="Enter alias"
+                    placeholder={t('derived.aliasPlaceholder')}
                   />
                 </div>
               </div>
@@ -307,7 +308,7 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
                   className="rounded"
                 />
                 <label htmlFor={`join-timespine-${index}`} className="text-sm font-medium">
-                  Join to Timespine
+                  {t('derived.joinToTimespine')}
                 </label>
               </div>
             </div>
@@ -315,7 +316,7 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
           
           {(!params.input_measures || params.input_measures.length === 0) && (
             <div className="text-center py-8 text-muted-foreground">
-              No input measures defined. Click "Add Measure" to get started.
+              {t('derived.noInputMeasures')}
             </div>
           )}
         </CardContent>

@@ -15,6 +15,7 @@ import type { DateRange } from 'react-day-picker';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { cn } from '@/lib/utils';
 import { RechartsProvider } from './charts/RechartsContext';
+import { useTranslation } from 'react-i18next';
 
 type ChartDataPoint = ChartDatum;
 const INITIAL_VISIBLE_CARDS = 12;
@@ -91,6 +92,7 @@ const BoardCardItem = React.memo(({
   onRemove,
   onAcknowledge
 }: BoardCardItemProps) => {
+  const { t } = useTranslation('biAnalysis');
   const [isVisible, setIsVisible] = React.useState(true);
   const ref = React.useRef<HTMLDivElement>(null);
 
@@ -130,8 +132,8 @@ const BoardCardItem = React.memo(({
         <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-muted-foreground border border-border/50 rounded-xl bg-card/30 p-8 text-center shadow-sm gap-3">
           <AlertCircle className="w-8 h-8 text-muted-foreground/30" />
           <div className="space-y-1">
-            <p className="font-medium text-foreground/80">Missing Configuration</p>
-            <p className="text-sm">Select dimensions and metrics to generate visualization</p>
+            <p className="font-medium text-foreground/80">{t('board.missingConfigurationTitle')}</p>
+            <p className="text-sm">{t('board.missingConfigurationDescription')}</p>
           </div>
         </div>
       </div>
@@ -202,6 +204,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
   onRefresh,
   isRefreshing,
 }) => {
+  const { t } = useTranslation(['common', 'biAnalysis']);
   const [filtersHidden, setFiltersHidden] = React.useState(true);
   const [visibleCardCount, setVisibleCardCount] = React.useState(() => Math.min(cards.length, INITIAL_VISIBLE_CARDS));
 
@@ -279,37 +282,37 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
             <LayoutDashboard className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold tracking-tight">Analysis Dashboard</h2>
-            <p className="text-sm text-muted-foreground">Visualize insights and patterns</p>
+            <h2 className="text-xl font-semibold tracking-tight">{t('biAnalysis:board.title')}</h2>
+            <p className="text-sm text-muted-foreground">{t('biAnalysis:board.subtitle')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {onRefresh && (
             <Button variant="outline" size="sm" onClick={onRefresh} disabled={isRefreshing} className="gap-2 h-8">
               <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-              {isRefreshing ? 'Refreshing...' : 'Refresh'}
+              {isRefreshing ? t('biAnalysis:board.refreshing') : t('biAnalysis:board.refresh')}
             </Button>
           )}
           {hasGlobalFilters && (
             <Button variant="outline" size="sm" onClick={handleToggleFilters} className="gap-2 h-8">
               <SlidersHorizontal className="w-4 h-4" />
-              Filters
+              {t('biAnalysis:board.filters')}
             </Button>
           )}
           {!readOnly && onAddAlert && (
             <Button variant="outline" size="sm" onClick={onAddAlert} className="gap-2 h-8">
               <BellPlus className="w-4 h-4" />
-              Add Alert
+              {t('biAnalysis:board.addAlert')}
             </Button>
           )}
           {!readOnly && onSubscription && (
             <Button variant="outline" size="sm" onClick={onSubscription} className="gap-2 h-8">
               <Clock className="w-4 h-4" />
-              Subscriptions
+              {t('biAnalysis:board.subscriptions')}
             </Button>
           )}
           <div className="text-xs text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full">
-            {cards.length} {cards.length === 1 ? 'Visualization' : 'Visualizations'}
+            {t('biAnalysis:board.visualization', { count: cards.length })}
           </div>
         </div>
       </div>
@@ -323,9 +326,9 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
                 <PlusCircle className="w-8 h-8 text-primary/40" />
               </div>
               <div className="text-center space-y-1">
-                <p className="font-medium text-lg text-foreground/80">Your dashboard is empty</p>
+                <p className="font-medium text-lg text-foreground/80">{t('biAnalysis:board.emptyTitle')}</p>
                 <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                  Start by adding a new visualization card from the configuration panel above to analyze your data.
+                  {t('biAnalysis:board.emptyDescription')}
                 </p>
               </div>
             </div>
@@ -353,7 +356,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
               })}
               {visibleCardCount < cards.length && (
                 <div className="col-span-12 text-center text-sm text-muted-foreground py-4">
-                  Rendering {visibleCardCount}/{cards.length} visualizations...
+                  {t('biAnalysis:board.rendering', { visible: visibleCardCount, total: cards.length })}
                 </div>
               )}
             </div>
@@ -364,7 +367,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
           <Card className="w-[320px] shrink-0">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between gap-2">
-                <CardTitle className="text-sm">Global Filters</CardTitle>
+                <CardTitle className="text-sm">{t('biAnalysis:board.globalFilters')}</CardTitle>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleHideFilters}>
                   <X className="w-4 h-4" />
                 </Button>
@@ -372,18 +375,18 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1">
-                <Label className="text-xs">Time Range</Label>
+                <Label className="text-xs">{t('biAnalysis:board.timeRange')}</Label>
                 <Select value={timeRangeValue} onValueChange={v => onGlobalTimeRangeChange?.(v)}>
                   <SelectTrigger className="h-8">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__card__">Per card</SelectItem>
-                    <SelectItem value="Past 7 days">Past 7 days</SelectItem>
-                    <SelectItem value="Past 30 days">Past 30 days</SelectItem>
-                    <SelectItem value="Past 90 days">Past 90 days</SelectItem>
-                    <SelectItem value="Past year">Past year</SelectItem>
-                    <SelectItem value="Custom">Custom Range</SelectItem>
+                    <SelectItem value="__card__">{t('biAnalysis:board.perCard')}</SelectItem>
+                    <SelectItem value="Past 7 days">{t('biAnalysis:timeRange.past7Days')}</SelectItem>
+                    <SelectItem value="Past 30 days">{t('biAnalysis:timeRange.past30Days')}</SelectItem>
+                    <SelectItem value="Past 90 days">{t('biAnalysis:timeRange.past90Days')}</SelectItem>
+                    <SelectItem value="Past year">{t('biAnalysis:timeRange.pastYear')}</SelectItem>
+                    <SelectItem value="Custom">{t('biAnalysis:timeRange.custom')}</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -409,7 +412,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
                     <Input
                       value={value}
                       onChange={e => onGlobalFilterChange?.(key, e.target.value)}
-                      placeholder="Filter value"
+                      placeholder={t('biAnalysis:board.filterValue')}
                       className="h-8"
                     />
                   </div>
@@ -418,7 +421,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
 
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" className="flex-1" onClick={() => onClearGlobalFilters?.()}>
-                  Clear
+                  {t('biAnalysis:board.clear')}
                 </Button>
               </div>
             </CardContent>
@@ -432,7 +435,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
               size="sm"
               className="h-10 w-8 p-0"
               onClick={handleShowFilters}
-              title="Show filters"
+              title={t('biAnalysis:board.showFilters')}
             >
               <ChevronRight className="w-4 h-4" />
             </Button>

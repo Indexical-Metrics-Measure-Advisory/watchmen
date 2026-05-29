@@ -20,6 +20,7 @@ import { SemanticModel, SemanticModelSummary, SemanticModelEntity, SemanticModel
 import { getSemanticModels, deleteSemanticModel, createSemanticModel, updateSemanticModel } from '@/services/semanticModelService';
 import { topicService, Topic } from '@/services/topicService';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 const HelpTooltip = ({ content }: { content: string }) => (
   <Tooltip>
@@ -34,6 +35,7 @@ const HelpTooltip = ({ content }: { content: string }) => (
 
 const SemanticModelManagement: React.FC = () => {
   const { collapsed } = useSidebar();
+  const { t, i18n } = useTranslation(['common', 'semanticModel']);
   const [models, setModels] = useState<SemanticModel[]>([]);
   const [summary, setSummary] = useState<SemanticModelSummary | null>(null);
   const [selectedModel, setSelectedModel] = useState<SemanticModel | null>(null);
@@ -49,6 +51,7 @@ const SemanticModelManagement: React.FC = () => {
   const dimensionsEndRef = useRef<HTMLDivElement>(null);
   const measuresEndRef = useRef<HTMLDivElement>(null);
   const modelNamePattern = /^[A-Za-z0-9_]+$/;
+  const locale = i18n.resolvedLanguage ?? 'en';
 
   // Form state for create/edit
   const [formData, setFormData] = useState<SemanticModel>({
@@ -118,8 +121,8 @@ const SemanticModelManagement: React.FC = () => {
       setSummary(calculatedSummary);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to load semantic models or topics",
+        title: t('common:error'),
+        description: t('semanticModel:toast.loadFailed'),
         variant: "destructive"
       });
     } finally {
@@ -133,14 +136,14 @@ const SemanticModelManagement: React.FC = () => {
     try {
       await deleteSemanticModel(modelName);
       toast({
-        title: "Success",
-        description: "Semantic model deleted successfully"
+        title: t('common:success'),
+        description: t('semanticModel:toast.deleted')
       });
       loadData();
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to delete semantic model",
+        title: t('common:error'),
+        description: t('semanticModel:toast.deleteFailed'),
         variant: "destructive"
       });
     }
@@ -175,48 +178,48 @@ const SemanticModelManagement: React.FC = () => {
     const name = rawName.trim();
     if (!name) {
       toast({
-        title: "Validation Error",
-        description: "Model name cannot be empty",
+        title: t('common:validationError'),
+        description: t('semanticModel:validation.nameRequired'),
         variant: "destructive"
       });
       return;
     }
     if (rawName !== name) {
       toast({
-        title: "Validation Error",
-        description: "Model name cannot start or end with spaces",
+        title: t('common:validationError'),
+        description: t('semanticModel:validation.nameTrim'),
         variant: "destructive"
       });
       return;
     }
     if (!modelNamePattern.test(name)) {
       toast({
-        title: "Validation Error",
-        description: "Model name can contain only letters, numbers, and underscores",
+        title: t('common:validationError'),
+        description: t('semanticModel:validation.namePattern'),
         variant: "destructive"
       });
       return;
     }
     if (!formData.defaults?.agg_time_dimension?.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Default time dimension is required",
+        title: t('common:validationError'),
+        description: t('semanticModel:validation.defaultTimeDimensionRequired'),
         variant: "destructive"
       });
       return;
     }
     if (!timeDimensionOptions.includes(formData.defaults.agg_time_dimension.trim())) {
       toast({
-        title: "Validation Error",
-        description: "Default time dimension must be selected from time dimensions",
+        title: t('common:validationError'),
+        description: t('semanticModel:validation.defaultTimeDimensionInvalid'),
         variant: "destructive"
       });
       return;
     }
     if (formData.entities.length === 0) {
       toast({
-        title: "Validation Error",
-        description: "At least one entity is required",
+        title: t('common:validationError'),
+        description: t('semanticModel:validation.entityRequired'),
         variant: "destructive"
       });
       return;
@@ -225,16 +228,16 @@ const SemanticModelManagement: React.FC = () => {
       setIsLoading(true);
       await createSemanticModel(formData);
       toast({
-        title: "Success",
-        description: "Semantic model created successfully"
+        title: t('common:success'),
+        description: t('semanticModel:toast.created')
       });
       setIsCreateDialogOpen(false);
       resetForm();
       loadData();
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create semantic model",
+        title: t('common:error'),
+        description: error instanceof Error ? error.message : t('semanticModel:toast.createFailed'),
         variant: "destructive"
       });
     } finally {
@@ -248,48 +251,48 @@ const SemanticModelManagement: React.FC = () => {
     const name = rawName.trim();
     if (!name) {
       toast({
-        title: "Validation Error",
-        description: "Model name cannot be empty",
+        title: t('common:validationError'),
+        description: t('semanticModel:validation.nameRequired'),
         variant: "destructive"
       });
       return;
     }
     if (rawName !== name) {
       toast({
-        title: "Validation Error",
-        description: "Model name cannot start or end with spaces",
+        title: t('common:validationError'),
+        description: t('semanticModel:validation.nameTrim'),
         variant: "destructive"
       });
       return;
     }
     if (!modelNamePattern.test(name)) {
       toast({
-        title: "Validation Error",
-        description: "Model name can contain only letters, numbers, and underscores",
+        title: t('common:validationError'),
+        description: t('semanticModel:validation.namePattern'),
         variant: "destructive"
       });
       return;
     }
     if (!formData.defaults?.agg_time_dimension?.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Default time dimension is required",
+        title: t('common:validationError'),
+        description: t('semanticModel:validation.defaultTimeDimensionRequired'),
         variant: "destructive"
       });
       return;
     }
     if (!timeDimensionOptions.includes(formData.defaults.agg_time_dimension.trim())) {
       toast({
-        title: "Validation Error",
-        description: "Default time dimension must be selected from time dimensions",
+        title: t('common:validationError'),
+        description: t('semanticModel:validation.defaultTimeDimensionInvalid'),
         variant: "destructive"
       });
       return;
     }
     if (formData.entities.length === 0) {
       toast({
-        title: "Validation Error",
-        description: "At least one entity is required",
+        title: t('common:validationError'),
+        description: t('semanticModel:validation.entityRequired'),
         variant: "destructive"
       });
       return;
@@ -298,8 +301,8 @@ const SemanticModelManagement: React.FC = () => {
       setIsLoading(true);
       await updateSemanticModel(editingModel.name, formData);
       toast({
-        title: "Success",
-        description: "Semantic model updated successfully"
+        title: t('common:success'),
+        description: t('semanticModel:toast.updated')
       });
       setIsEditDialogOpen(false);
       setEditingModel(null);
@@ -307,8 +310,8 @@ const SemanticModelManagement: React.FC = () => {
       loadData();
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update semantic model",
+        title: t('common:error'),
+        description: t('semanticModel:toast.updateFailed'),
         variant: "destructive"
       });
     } finally {
@@ -356,8 +359,8 @@ const SemanticModelManagement: React.FC = () => {
   const autoGenerateMeasures = () => {
     if (!formData.topicId) {
       toast({
-        title: "Warning",
-        description: "Please select a topic first",
+        title: t('common:error'),
+        description: t('semanticModel:toast.topicRequired'),
         variant: "destructive"
       });
       return;
@@ -366,8 +369,8 @@ const SemanticModelManagement: React.FC = () => {
     const topic = topics.find(t => t.id === formData.topicId);
     if (!topic || !topic.factors) {
       toast({
-         title: "Warning",
-         description: "Topic not found or has no factors",
+         title: t('common:error'),
+         description: t('semanticModel:toast.topicInvalid'),
          variant: "destructive"
       });
       return;
@@ -411,8 +414,8 @@ const SemanticModelManagement: React.FC = () => {
 
     if (newMeasures.length === 0) {
       toast({
-        title: "Info",
-        description: "No measures could be auto-generated from this topic",
+        title: t('common:loading'),
+        description: t('semanticModel:toast.noMeasuresGenerated'),
       });
       return;
     }
@@ -423,8 +426,8 @@ const SemanticModelManagement: React.FC = () => {
     }));
     
     toast({
-      title: "Success",
-      description: `Auto-generated ${newMeasures.length} measures`,
+      title: t('common:success'),
+      description: t('semanticModel:toast.measuresGenerated', { count: newMeasures.length }),
     });
     
     setTimeout(() => {
@@ -472,8 +475,8 @@ const SemanticModelManagement: React.FC = () => {
   const autoGenerateDimensions = () => {
     if (!formData.topicId) {
       toast({
-        title: "Warning",
-        description: "Please select a topic first",
+        title: t('common:error'),
+        description: t('semanticModel:toast.topicRequired'),
         variant: "destructive"
       });
       return;
@@ -482,8 +485,8 @@ const SemanticModelManagement: React.FC = () => {
     const topic = topics.find(t => t.id === formData.topicId);
     if (!topic || !topic.factors) {
       toast({
-         title: "Warning",
-         description: "Topic not found or has no factors",
+         title: t('common:error'),
+         description: t('semanticModel:toast.topicInvalid'),
          variant: "destructive"
       });
       return;
@@ -532,8 +535,8 @@ const SemanticModelManagement: React.FC = () => {
 
     if (newDimensions.length === 0) {
       toast({
-        title: "Info",
-        description: "No dimensions could be auto-generated from this topic",
+        title: t('common:loading'),
+        description: t('semanticModel:toast.noDimensionsGenerated'),
       });
       return;
     }
@@ -544,8 +547,8 @@ const SemanticModelManagement: React.FC = () => {
     }));
     
     toast({
-      title: "Success",
-      description: `Auto-generated ${newDimensions.length} dimensions`,
+      title: t('common:success'),
+      description: t('semanticModel:toast.dimensionsGenerated', { count: newDimensions.length }),
     });
     
     setTimeout(() => {
@@ -624,15 +627,15 @@ const SemanticModelManagement: React.FC = () => {
             <Database className="h-8 w-8 text-primary" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight">Semantic Model Management</h1>
-            <p className="text-sm text-muted-foreground">Manage and configure semantic model definitions</p>
+            <h1 className="text-2xl font-bold tracking-tight">{t('semanticModel:page.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('semanticModel:page.subtitle')}</p>
           </div>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2" onClick={() => resetForm()}>
               <Plus size={16} />
-              Create Model
+              {t('semanticModel:page.createModel')}
             </Button>
           </DialogTrigger>
         </Dialog>
@@ -657,7 +660,7 @@ const SemanticModelManagement: React.FC = () => {
           <>
             <Card className="border-l-4 border-l-blue-500 shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Models</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t('semanticModel:page.totalModels')}</CardTitle>
                 <div className="p-2 bg-blue-100 rounded-full">
                   <Database className="h-4 w-4 text-blue-600" />
                 </div>
@@ -668,7 +671,7 @@ const SemanticModelManagement: React.FC = () => {
             </Card>
             <Card className="border-l-4 border-l-green-500 shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Entities</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t('semanticModel:page.totalEntities')}</CardTitle>
                 <div className="p-2 bg-green-100 rounded-full">
                   <Users className="h-4 w-4 text-green-600" />
                 </div>
@@ -679,7 +682,7 @@ const SemanticModelManagement: React.FC = () => {
             </Card>
             <Card className="border-l-4 border-l-purple-500 shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Measures</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t('semanticModel:page.totalMeasures')}</CardTitle>
                 <div className="p-2 bg-purple-100 rounded-full">
                   <BarChart3 className="h-4 w-4 text-purple-600" />
                 </div>
@@ -690,14 +693,14 @@ const SemanticModelManagement: React.FC = () => {
             </Card>
             <Card className="border-l-4 border-l-orange-500 shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Last Updated</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t('semanticModel:page.lastUpdated')}</CardTitle>
                 <div className="p-2 bg-orange-100 rounded-full">
                   <Calendar className="h-4 w-4 text-orange-600" />
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="text-sm font-medium">
-                  {new Date(summary.lastUpdated).toLocaleDateString()}
+                  {new Intl.DateTimeFormat(locale).format(new Date(summary.lastUpdated))}
                 </div>
               </CardContent>
             </Card>
@@ -708,7 +711,7 @@ const SemanticModelManagement: React.FC = () => {
       {/* Search */}
       <div className="flex gap-4">
         <Input
-          placeholder="Search models..."
+          placeholder={t('semanticModel:page.searchPlaceholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
@@ -777,7 +780,7 @@ const SemanticModelManagement: React.FC = () => {
                         size="sm"
                         onClick={() => setSelectedModel(model)}
                       >
-                        View
+                        {t('semanticModel:page.view')}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl max-h-[80vh]">
@@ -787,18 +790,18 @@ const SemanticModelManagement: React.FC = () => {
                       </DialogHeader>
                       <Tabs defaultValue="entities" className="w-full">
                         <TabsList className="grid w-full grid-cols-3">
-                          <TabsTrigger value="entities">Entities</TabsTrigger>
-                          <TabsTrigger value="measures">Measures</TabsTrigger>
-                          <TabsTrigger value="dimensions">Dimensions</TabsTrigger>
+                          <TabsTrigger value="entities">{t('semanticModel:page.entities')}</TabsTrigger>
+                          <TabsTrigger value="measures">{t('semanticModel:page.measures')}</TabsTrigger>
+                          <TabsTrigger value="dimensions">{t('semanticModel:page.dimensions')}</TabsTrigger>
                         </TabsList>
                         <TabsContent value="entities" className="space-y-4">
                           <ScrollArea className="h-[400px]">
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead>Name</TableHead>
-                                  <TableHead>Type</TableHead>
-                                  <TableHead>Expression</TableHead>
+                                  <TableHead>{t('semanticModel:page.table.name')}</TableHead>
+                                  <TableHead>{t('semanticModel:page.table.type')}</TableHead>
+                                  <TableHead>{t('semanticModel:page.table.expression')}</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -822,10 +825,10 @@ const SemanticModelManagement: React.FC = () => {
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead>Name</TableHead>
-                                  <TableHead>Aggregation</TableHead>
-                                  <TableHead>Description</TableHead>
-                                  <TableHead>Expression</TableHead>
+                                  <TableHead>{t('semanticModel:page.table.name')}</TableHead>
+                                  <TableHead>{t('semanticModel:page.table.aggregation')}</TableHead>
+                                  <TableHead>{t('semanticModel:page.table.description')}</TableHead>
+                                  <TableHead>{t('semanticModel:page.table.expression')}</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -852,10 +855,10 @@ const SemanticModelManagement: React.FC = () => {
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead>Name</TableHead>
-                                  <TableHead>Type</TableHead>
-                                  <TableHead>Time Granularity</TableHead>
-                                  <TableHead>Expression</TableHead>
+                                  <TableHead>{t('semanticModel:page.table.name')}</TableHead>
+                                  <TableHead>{t('semanticModel:page.table.type')}</TableHead>
+                                  <TableHead>{t('semanticModel:page.table.timeGranularity')}</TableHead>
+                                  <TableHead>{t('semanticModel:page.table.expression')}</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -868,7 +871,7 @@ const SemanticModelManagement: React.FC = () => {
                                       </Badge>
                                     </TableCell>
                                     <TableCell>
-                                      {dimension.type_params?.time_granularity || 'N/A'}
+                                      {dimension.type_params?.time_granularity || t('semanticModel:page.na')}
                                     </TableCell>
                                     <TableCell className="font-mono text-sm max-w-xs truncate">
                                       {dimension.expr}
@@ -902,15 +905,15 @@ const SemanticModelManagement: React.FC = () => {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Entities:</span>
+                  <span className="text-muted-foreground">{t('semanticModel:page.entities')}:</span>
                   <span className="font-medium">{model.entities.length}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Measures:</span>
+                  <span className="text-muted-foreground">{t('semanticModel:page.measures')}:</span>
                   <span className="font-medium">{model.measures.length}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Time Dimension:</span>
+                  <span className="text-muted-foreground">{t('semanticModel:page.timeDimension')}:</span>
                   <span className="font-mono text-xs">{model.defaults.agg_time_dimension}</span>
                 </div>
               </div>
@@ -924,14 +927,14 @@ const SemanticModelManagement: React.FC = () => {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Database className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No semantic models found</h3>
+            <h3 className="text-lg font-medium mb-2">{t('semanticModel:page.noModelsTitle')}</h3>
             <p className="text-muted-foreground text-center mb-4">
-              {searchTerm ? 'No models match your search criteria.' : 'Get started by creating your first semantic model.'}
+              {searchTerm ? t('semanticModel:page.noModelsFiltered') : t('semanticModel:page.noModelsEmpty')}
             </p>
             {!searchTerm && (
               <Button>
                 <Plus size={16} className="mr-2" />
-                Create Your First Model
+                {t('semanticModel:page.createFirstModel')}
               </Button>
             )}
           </CardContent>
@@ -944,38 +947,38 @@ const SemanticModelManagement: React.FC = () => {
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Semantic Model</DialogTitle>
+          <DialogTitle>{t('semanticModel:dialog.createTitle')}</DialogTitle>
             <DialogDescription>
-              Configure new semantic model definition
+              {t('semanticModel:dialog.createDescription')}
             </DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="basic" className="w-full">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="datasource">Data Source</TabsTrigger>
-            <TabsTrigger value="entities">Entities</TabsTrigger>
-            <TabsTrigger value="measures">Measures</TabsTrigger>
-            <TabsTrigger value="dimensions">Dimensions</TabsTrigger>
+            <TabsTrigger value="basic">{t('semanticModel:page.tabs.basic')}</TabsTrigger>
+            <TabsTrigger value="datasource">{t('semanticModel:page.tabs.datasource')}</TabsTrigger>
+            <TabsTrigger value="entities">{t('semanticModel:page.tabs.entities')}</TabsTrigger>
+            <TabsTrigger value="measures">{t('semanticModel:page.tabs.measures')}</TabsTrigger>
+            <TabsTrigger value="dimensions">{t('semanticModel:page.tabs.dimensions')}</TabsTrigger>
           </TabsList>
           
           <TabsContent value="basic" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Model Name</Label>
+                <Label htmlFor="name">{t('semanticModel:form.modelName')}</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter model name"
+                    placeholder={t('semanticModel:form.modelNamePlaceholder')}
                   />
               </div>
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t('semanticModel:form.description')}</Label>
                   <Input
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Enter model description"
+                    placeholder={t('semanticModel:form.descriptionPlaceholder')}
                   />
               </div>
             </div>
@@ -989,33 +992,33 @@ const SemanticModelManagement: React.FC = () => {
           <TabsContent value="datasource" className="space-y-4">
             <div className="space-y-6">
               <div>
-                <h4 className="text-sm font-medium mb-4">Source Configuration</h4>
+                <h4 className="text-sm font-medium mb-4">{t('semanticModel:form.sourceConfiguration')}</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="datasource-sourceType">Source Type</Label>
+                    <Label htmlFor="datasource-sourceType">{t('semanticModel:form.sourceType')}</Label>
                     <Select 
                       value={formData.sourceType || 'topic'} 
                       onValueChange={(value) => setFormData(prev => ({ ...prev, sourceType: value as 'topic' | 'db_source' }))}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select source type" />
+                        <SelectValue placeholder={t('semanticModel:form.selectSourceType')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="topic">Topic</SelectItem>
-                        <SelectItem value="db_source">Direct DB Source</SelectItem>
+                        <SelectItem value="topic">{t('semanticModel:form.topic')}</SelectItem>
+                        <SelectItem value="db_source">{t('semanticModel:form.directDbSource')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   {(formData.sourceType || 'topic') === 'topic' && (
                   <div>
-                    <Label htmlFor="datasource-topicId">Topic ID</Label>
+                    <Label htmlFor="datasource-topicId">{t('semanticModel:form.topicId')}</Label>
                     <Select
                       value={formData.topicId || ''}
                       onValueChange={(value) => setFormData(prev => ({ ...prev, topicId: value }))}
                       disabled={isTopicsLoading}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={isTopicsLoading ? "Loading topics..." : "Select a topic"}>
+                        <SelectValue placeholder={isTopicsLoading ? t('semanticModel:form.loadingTopics') : t('semanticModel:form.selectTopic')}>
                           {formData.topicId && topics.length > 0 ? (
                             <div className="flex items-center gap-2">
                               <span className="truncate">
@@ -1033,16 +1036,16 @@ const SemanticModelManagement: React.FC = () => {
                           <div className="p-4 space-y-3">
                             <div className="flex items-center gap-2">
                               <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                              <span className="text-sm text-muted-foreground">Loading topics...</span>
+                              <span className="text-sm text-muted-foreground">{t('semanticModel:form.loadingTopics')}</span>
                             </div>
                           </div>
                         ) : topics.length === 0 ? (
                           <div className="p-4 text-center">
                             <div className="text-sm text-muted-foreground">
-                              No topics available
+                              {t('semanticModel:form.noTopicsAvailable')}
                             </div>
                             <div className="text-xs text-muted-foreground mt-1">
-                              Please check your data source configuration
+                              {t('semanticModel:form.checkDataSourceConfig')}
                             </div>
                           </div>
                         ) : (
@@ -1088,7 +1091,7 @@ const SemanticModelManagement: React.FC = () => {
                                 <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border/50 pt-2">
                                   <span className="flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
-                                    Kind: {topic.kind}
+                                    {t('semanticModel:form.kind')}: {topic.kind}
                                   </span>
                                 </div>
                               </div>
@@ -1104,11 +1107,11 @@ const SemanticModelManagement: React.FC = () => {
               
               {formData.sourceType === 'db_source' && (
                 <div>
-                  <h4 className="text-sm font-medium mb-4">Database Connection</h4>
+                  <h4 className="text-sm font-medium mb-4">{t('semanticModel:form.databaseConnection')}</h4>
                   
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="col-span-2">
-                      <Label htmlFor="datasource-type">Database Type</Label>
+                      <Label htmlFor="datasource-type">{t('semanticModel:form.databaseType')}</Label>
                       <Select 
                         value={formData.node_relation.databaseType || 'pgsql'} 
                         onValueChange={(value) => setFormData(prev => ({ 
@@ -1117,7 +1120,7 @@ const SemanticModelManagement: React.FC = () => {
                         }))}
                       >
                         <SelectTrigger id="datasource-type">
-                          <SelectValue placeholder="Select database type" />
+                          <SelectValue placeholder={t('semanticModel:form.selectDatabaseType')} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="pgsql">PostgreSQL</SelectItem>
@@ -1131,12 +1134,12 @@ const SemanticModelManagement: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 mb-4 p-4 border rounded-md bg-muted/20">
-                    <h5 className="col-span-2 text-xs font-semibold uppercase text-muted-foreground mb-2">Connection Details</h5>
+                    <h5 className="col-span-2 text-xs font-semibold uppercase text-muted-foreground mb-2">{t('semanticModel:form.connectionDetails')}</h5>
                     
                     {formData.node_relation.databaseType === 'snowflake' && (
                       <>
                         <div>
-                          <Label htmlFor="datasource-account">Account</Label>
+                          <Label htmlFor="datasource-account">{t('semanticModel:form.account')}</Label>
                           <Input
                             id="datasource-account"
                             value={formData.node_relation.account || ''}
@@ -1148,7 +1151,7 @@ const SemanticModelManagement: React.FC = () => {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="datasource-warehouse">Warehouse</Label>
+                          <Label htmlFor="datasource-warehouse">{t('semanticModel:form.warehouse')}</Label>
                           <Input
                             id="datasource-warehouse"
                             value={formData.node_relation.warehouse || ''}
@@ -1156,11 +1159,11 @@ const SemanticModelManagement: React.FC = () => {
                               ...prev, 
                               node_relation: { ...prev.node_relation, warehouse: e.target.value }
                             }))}
-                            placeholder="Enter warehouse name"
+                            placeholder={t('semanticModel:form.warehousePlaceholder')}
                           />
                         </div>
                         <div className="col-span-2">
-                          <Label htmlFor="datasource-role">Role</Label>
+                          <Label htmlFor="datasource-role">{t('semanticModel:form.role')}</Label>
                           <Input
                             id="datasource-role"
                             value={formData.node_relation.role || ''}
@@ -1168,7 +1171,7 @@ const SemanticModelManagement: React.FC = () => {
                               ...prev, 
                               node_relation: { ...prev.node_relation, role: e.target.value }
                             }))}
-                            placeholder="Enter role name"
+                            placeholder={t('semanticModel:form.rolePlaceholder')}
                           />
                         </div>
                       </>
@@ -1177,7 +1180,7 @@ const SemanticModelManagement: React.FC = () => {
                     {formData.node_relation.databaseType !== 'snowflake' && (
                       <>
                         <div>
-                          <Label htmlFor="datasource-host">Host</Label>
+                          <Label htmlFor="datasource-host">{t('semanticModel:form.host')}</Label>
                           <Input
                             id="datasource-host"
                             value={formData.node_relation.host || ''}
@@ -1185,11 +1188,11 @@ const SemanticModelManagement: React.FC = () => {
                               ...prev, 
                               node_relation: { ...prev.node_relation, host: e.target.value }
                             }))}
-                            placeholder="Enter host"
+                            placeholder={t('semanticModel:form.hostPlaceholder')}
                           />
                         </div>
                         <div>
-                          <Label htmlFor="datasource-port">Port</Label>
+                          <Label htmlFor="datasource-port">{t('semanticModel:form.port')}</Label>
                           <Input
                             id="datasource-port"
                             type="number"
@@ -1198,14 +1201,14 @@ const SemanticModelManagement: React.FC = () => {
                               ...prev, 
                               node_relation: { ...prev.node_relation, port: parseInt(e.target.value) || undefined }
                             }))}
-                            placeholder="Enter port"
+                            placeholder={t('semanticModel:form.portPlaceholder')}
                           />
                         </div>
                       </>
                     )}
                     
                     <div>
-                      <Label htmlFor="datasource-username">Username</Label>
+                      <Label htmlFor="datasource-username">{t('semanticModel:form.username')}</Label>
                       <Input
                         id="datasource-username"
                         value={formData.node_relation.username || ''}
@@ -1213,11 +1216,11 @@ const SemanticModelManagement: React.FC = () => {
                           ...prev, 
                           node_relation: { ...prev.node_relation, username: e.target.value }
                         }))}
-                        placeholder="Enter username"
+                        placeholder={t('semanticModel:form.usernamePlaceholder')}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="datasource-password">Password</Label>
+                      <Label htmlFor="datasource-password">{t('semanticModel:form.password')}</Label>
                       <Input
                         id="datasource-password"
                         type="password"
@@ -1226,15 +1229,15 @@ const SemanticModelManagement: React.FC = () => {
                           ...prev, 
                           node_relation: { ...prev.node_relation, password: e.target.value }
                         }))}
-                        placeholder="Enter password"
+                        placeholder={t('semanticModel:form.passwordPlaceholder')}
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <h5 className="col-span-2 text-xs font-semibold uppercase text-muted-foreground mb-2">Object Identification</h5>
+                    <h5 className="col-span-2 text-xs font-semibold uppercase text-muted-foreground mb-2">{t('semanticModel:form.objectIdentification')}</h5>
                     <div>
-                      <Label htmlFor="datasource-database">Database Name</Label>
+                      <Label htmlFor="datasource-database">{t('semanticModel:form.databaseName')}</Label>
                       <Input
                         id="datasource-database"
                         value={formData.node_relation.database}
@@ -1242,11 +1245,11 @@ const SemanticModelManagement: React.FC = () => {
                           ...prev, 
                           node_relation: { ...prev.node_relation, database: e.target.value }
                         }))}
-                        placeholder="Enter database name"
+                        placeholder={t('semanticModel:form.databaseNamePlaceholder')}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="datasource-schema">Schema Name</Label>
+                      <Label htmlFor="datasource-schema">{t('semanticModel:form.schemaName')}</Label>
                       <Input
                         id="datasource-schema"
                         value={formData.node_relation.schema_name}
@@ -1254,11 +1257,11 @@ const SemanticModelManagement: React.FC = () => {
                           ...prev, 
                           node_relation: { ...prev.node_relation, schema_name: e.target.value }
                         }))}
-                        placeholder="Enter schema name"
+                        placeholder={t('semanticModel:form.schemaNamePlaceholder')}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="datasource-alias">Table Alias</Label>
+                      <Label htmlFor="datasource-alias">{t('semanticModel:form.tableAlias')}</Label>
                       <Input
                         id="datasource-alias"
                         value={formData.node_relation.alias}
@@ -1266,11 +1269,11 @@ const SemanticModelManagement: React.FC = () => {
                           ...prev, 
                           node_relation: { ...prev.node_relation, alias: e.target.value }
                         }))}
-                        placeholder="Enter table alias"
+                        placeholder={t('semanticModel:form.tableAliasPlaceholder')}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="datasource-relation">Relation (Table) Name</Label>
+                      <Label htmlFor="datasource-relation">{t('semanticModel:form.relationName')}</Label>
                       <Input
                         id="datasource-relation"
                         value={formData.node_relation.relation_name}
@@ -1278,7 +1281,7 @@ const SemanticModelManagement: React.FC = () => {
                           ...prev, 
                           node_relation: { ...prev.node_relation, relation_name: e.target.value }
                         }))}
-                        placeholder="Enter full relation name"
+                        placeholder={t('semanticModel:form.relationNamePlaceholder')}
                       />
                     </div>
                   </div>
@@ -1293,10 +1296,10 @@ const SemanticModelManagement: React.FC = () => {
 
                 return (
                   <div>
-                    <h4 className="text-sm font-medium mb-4">Default Settings</h4>
+                    <h4 className="text-sm font-medium mb-4">{t('semanticModel:form.defaultSettings')}</h4>
                     <div className="grid grid-cols-1 gap-4">
                       <div>
-                        <Label htmlFor="agg_time_dimension">Default Time Dimension</Label>
+                        <Label htmlFor="agg_time_dimension">{t('semanticModel:form.defaultTimeDimension')}</Label>
                         <Select
                           value={formData.defaults.agg_time_dimension || undefined}
                           onValueChange={(value) => setFormData(prev => ({
@@ -1306,7 +1309,7 @@ const SemanticModelManagement: React.FC = () => {
                           disabled={!hasSelectedDataSource || timeDimensionOptions.length === 0}
                         >
                           <SelectTrigger id="agg_time_dimension">
-                            <SelectValue placeholder={hasSelectedDataSource ? 'Select default time dimension' : 'Please select data source first'} />
+                            <SelectValue placeholder={hasSelectedDataSource ? t('semanticModel:form.selectDefaultTimeDimension') : t('semanticModel:form.selectDataSourceFirst')} />
                           </SelectTrigger>
                           <SelectContent>
                             {timeDimensionOptions.map(dimensionName => (
@@ -1315,10 +1318,10 @@ const SemanticModelManagement: React.FC = () => {
                           </SelectContent>
                         </Select>
                         {!hasSelectedDataSource
-                          ? <p className="text-xs text-muted-foreground mt-1">Please complete data source selection before setting the default time dimension.</p>
+                          ? <p className="text-xs text-muted-foreground mt-1">{t('semanticModel:form.completeDataSourceFirst')}</p>
                           : null}
                         {hasSelectedDataSource && timeDimensionOptions.length === 0
-                          ? <p className="text-xs text-destructive mt-1">Please create at least one time dimension first.</p>
+                          ? <p className="text-xs text-destructive mt-1">{t('semanticModel:form.createTimeDimensionFirst')}</p>
                           : null}
                       </div>
                     </div>
@@ -1330,10 +1333,10 @@ const SemanticModelManagement: React.FC = () => {
           
           <TabsContent value="entities" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h4 className="text-sm font-medium">Entity Configuration</h4>
+              <h4 className="text-sm font-medium">{t('semanticModel:form.entityConfig')}</h4>
               <Button onClick={addEntity} size="sm">
                 <Plus size={16} className="mr-2" />
-                Add Entity
+                {t('semanticModel:form.addEntity')}
               </Button>
             </div>
             <ScrollArea className="h-[400px] pr-4">
@@ -1343,9 +1346,9 @@ const SemanticModelManagement: React.FC = () => {
                     <AccordionTrigger className="hover:no-underline">
                       <div className="flex items-center justify-between w-full pr-4">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{entity.name || `Entity ${index + 1}`}</span>
-                          {entity.type === 'primary' && <Badge variant="default" className="text-xs">Primary</Badge>}
-                          {entity.type === 'foreign' && <Badge variant="outline" className="text-xs">Foreign</Badge>}
+                          <span className="font-medium">{entity.name || `${t('semanticModel:page.entities')} ${index + 1}`}</span>
+                          {entity.type === 'primary' && <Badge variant="default" className="text-xs">{t('semanticModel:form.primary')}</Badge>}
+                          {entity.type === 'foreign' && <Badge variant="outline" className="text-xs">{t('semanticModel:form.foreign')}</Badge>}
                         </div>
                         <span className="text-xs text-muted-foreground font-mono">{entity.expr}</span>
                       </div>
@@ -1362,24 +1365,24 @@ const SemanticModelManagement: React.FC = () => {
                               }}
                               className="text-destructive hover:text-destructive"
                             >
-                              <Trash2 size={14} className="mr-1" /> Remove Entity
+                              <Trash2 size={14} className="mr-1" /> {t('semanticModel:form.removeEntity')}
                             </Button>
                         </div>
                         <div>
                           <Label className="flex items-center gap-1 mb-1">
-                            Name
-                            <HelpTooltip content="The name of the entity." />
+                            {t('semanticModel:form.fieldName')}
+                            <HelpTooltip content={t('semanticModel:form.help.entityName')} />
                           </Label>
                           <Input
                             value={entity.name}
                             onChange={(e) => updateEntity(index, 'name', e.target.value)}
-                            placeholder="e.g. customer, transaction"
+                            placeholder={t('semanticModel:form.entityNamePlaceholder')}
                           />
                         </div>
                         <div>
                           <Label className="flex items-center gap-1 mb-1">
-                            Type
-                            <HelpTooltip content="Primary entity of this model or foreign entity used to join with other models." />
+                            {t('semanticModel:form.type')}
+                            <HelpTooltip content={t('semanticModel:form.help.entityType')} />
                           </Label>
                           <Select 
                             value={entity.type} 
@@ -1389,20 +1392,20 @@ const SemanticModelManagement: React.FC = () => {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="primary">Primary</SelectItem>
-                              <SelectItem value="foreign">Foreign</SelectItem>
+                              <SelectItem value="primary">{t('semanticModel:form.primary')}</SelectItem>
+                              <SelectItem value="foreign">{t('semanticModel:form.foreign')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="col-span-2">
                           <Label className="flex items-center gap-1 mb-1">
-                            Expression
-                            <HelpTooltip content="The column or expression used as the join key." />
+                            {t('semanticModel:form.expression')}
+                            <HelpTooltip content={t('semanticModel:form.help.entityExpression')} />
                           </Label>
                           <Input
                             value={entity.expr}
                             onChange={(e) => updateEntity(index, 'expr', e.target.value)}
-                            placeholder="e.g. customer_id"
+                            placeholder={t('semanticModel:form.entityExpressionPlaceholder')}
                           />
                         </div>
                       </div>
@@ -1413,8 +1416,8 @@ const SemanticModelManagement: React.FC = () => {
               {formData.entities.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>No entities configured</p>
-                  <Button variant="link" onClick={addEntity}>Add your first entity</Button>
+                  <p>{t('semanticModel:form.noEntities')}</p>
+                  <Button variant="link" onClick={addEntity}>{t('semanticModel:form.addFirstEntity')}</Button>
                 </div>
               )}
             </ScrollArea>
@@ -1422,10 +1425,10 @@ const SemanticModelManagement: React.FC = () => {
           
           <TabsContent value="measures" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h4 className="text-sm font-medium">Measure Configuration</h4>
+              <h4 className="text-sm font-medium">{t('semanticModel:form.measureConfig')}</h4>
               <Button onClick={addMeasure} size="sm">
                 <Plus size={16} className="mr-2" />
-                Add Measure
+                {t('semanticModel:form.addMeasure')}
               </Button>
             </div>
             <ScrollArea className="h-[400px] pr-4">
@@ -1435,7 +1438,7 @@ const SemanticModelManagement: React.FC = () => {
                     <AccordionTrigger className="hover:no-underline">
                       <div className="flex items-center justify-between w-full pr-4">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{measure.name || `Measure ${index + 1}`}</span>
+                          <span className="font-medium">{measure.name || `${t('semanticModel:page.measures')} ${index + 1}`}</span>
                           <Badge variant="secondary" className="text-xs uppercase">{measure.agg}</Badge>
                         </div>
                         <span className="text-xs text-muted-foreground font-mono">{measure.expr}</span>
@@ -1453,24 +1456,24 @@ const SemanticModelManagement: React.FC = () => {
                               }}
                               className="text-destructive hover:text-destructive"
                             >
-                              <Trash2 size={14} className="mr-1" /> Remove Measure
+                              <Trash2 size={14} className="mr-1" /> {t('semanticModel:form.removeMeasure')}
                             </Button>
                         </div>
                         <div>
                           <Label className="flex items-center gap-1 mb-1">
-                            Name
-                            <HelpTooltip content="The name of the measure." />
+                            {t('semanticModel:form.fieldName')}
+                            <HelpTooltip content={t('semanticModel:form.help.measureName')} />
                           </Label>
                           <Input
                             value={measure.name}
                             onChange={(e) => updateMeasure(index, 'name', e.target.value)}
-                            placeholder="e.g. transaction_total"
+                            placeholder={t('semanticModel:form.measureNamePlaceholder')}
                           />
                         </div>
                         <div>
                           <Label className="flex items-center gap-1 mb-1">
-                            Aggregation Type
-                            <HelpTooltip content="Aggregations applied to columns in your data model." />
+                            {t('semanticModel:form.aggregationType')}
+                            <HelpTooltip content={t('semanticModel:form.help.aggregationType')} />
                           </Label>
                           <Select 
                             value={measure.agg} 
@@ -1480,33 +1483,33 @@ const SemanticModelManagement: React.FC = () => {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="count">Count</SelectItem>
-                              <SelectItem value="sum">Sum</SelectItem>
-                              <SelectItem value="average">Average</SelectItem>
-                              <SelectItem value="count_distinct">Count Distinct</SelectItem>
+                              <SelectItem value="count">{t('semanticModel:form.count')}</SelectItem>
+                              <SelectItem value="sum">{t('semanticModel:form.sum')}</SelectItem>
+                              <SelectItem value="average">{t('semanticModel:form.average')}</SelectItem>
+                              <SelectItem value="count_distinct">{t('semanticModel:form.countDistinct')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
                           <Label className="flex items-center gap-1 mb-1">
-                            Description
-                            <HelpTooltip content="The description of the measure." />
+                            {t('semanticModel:form.description')}
+                            <HelpTooltip content={t('semanticModel:form.help.measureDescription')} />
                           </Label>
                           <Input
                             value={measure.description || ''}
                             onChange={(e) => updateMeasure(index, 'description', e.target.value)}
-                            placeholder="e.g. The total value of the transaction."
+                            placeholder={t('semanticModel:form.measureDescriptionPlaceholder')}
                           />
                         </div>
                         <div>
                           <Label className="flex items-center gap-1 mb-1">
-                            Expression
-                            <HelpTooltip content="The column or expression to aggregate." />
+                            {t('semanticModel:form.expression')}
+                            <HelpTooltip content={t('semanticModel:form.help.measureExpression')} />
                           </Label>
                           <Input
                             value={measure.expr}
                             onChange={(e) => updateMeasure(index, 'expr', e.target.value)}
-                            placeholder="e.g. transaction_total"
+                            placeholder={t('semanticModel:form.measureExpressionPlaceholder')}
                           />
                         </div>
                       </div>
@@ -1517,8 +1520,8 @@ const SemanticModelManagement: React.FC = () => {
               {formData.measures.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>No measures configured</p>
-                  <Button variant="link" onClick={autoGenerateMeasures}>Auto generate measure</Button>
+                  <p>{t('semanticModel:form.noMeasures')}</p>
+                  <Button variant="link" onClick={autoGenerateMeasures}>{t('semanticModel:form.autoGenerateMeasure')}</Button>
                 </div>
               )}
             </ScrollArea>
@@ -1526,10 +1529,10 @@ const SemanticModelManagement: React.FC = () => {
           
           <TabsContent value="dimensions" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h4 className="text-sm font-medium">Dimension Configuration</h4>
+              <h4 className="text-sm font-medium">{t('semanticModel:form.dimensionConfig')}</h4>
               <Button onClick={addDimension} size="sm">
                 <Plus size={16} className="mr-2" />
-                Add Dimension
+                {t('semanticModel:form.addDimension')}
               </Button>
             </div>
             <ScrollArea className="h-[400px] pr-4">
@@ -1539,7 +1542,7 @@ const SemanticModelManagement: React.FC = () => {
                     <AccordionTrigger className="hover:no-underline">
                       <div className="flex items-center justify-between w-full pr-4">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{dimension.name || `Dimension ${index + 1}`}</span>
+                          <span className="font-medium">{dimension.name || `${t('semanticModel:page.dimensions')} ${index + 1}`}</span>
                           <Badge variant="outline" className="text-xs capitalize">{dimension.type}</Badge>
                         </div>
                         <span className="text-xs text-muted-foreground font-mono">{dimension.expr}</span>
@@ -1557,24 +1560,24 @@ const SemanticModelManagement: React.FC = () => {
                               }}
                               className="text-destructive hover:text-destructive"
                             >
-                              <Trash2 size={14} className="mr-1" /> Remove Dimension
+                              <Trash2 size={14} className="mr-1" /> {t('semanticModel:form.removeDimension')}
                             </Button>
                         </div>
                         <div>
                           <Label className="flex items-center gap-1 mb-1">
-                            Name
-                            <HelpTooltip content="The name of the dimension." />
+                            {t('semanticModel:form.fieldName')}
+                            <HelpTooltip content={t('semanticModel:form.help.dimensionName')} />
                           </Label>
                           <Input
                             value={dimension.name}
                             onChange={(e) => updateDimension(index, 'name', e.target.value)}
-                            placeholder="e.g. transaction_date"
+                            placeholder={t('semanticModel:form.dimensionNamePlaceholder')}
                           />
                         </div>
                         <div>
                           <Label className="flex items-center gap-1 mb-1">
-                            Type
-                            <HelpTooltip content="Time or categorical dimension." />
+                            {t('semanticModel:form.type')}
+                            <HelpTooltip content={t('semanticModel:form.help.dimensionType')} />
                           </Label>
                           <Select 
                             value={dimension.type} 
@@ -1584,27 +1587,27 @@ const SemanticModelManagement: React.FC = () => {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="time">Time</SelectItem>
-                              <SelectItem value="categorical">Categorical</SelectItem>
+                              <SelectItem value="time">{t('semanticModel:form.time')}</SelectItem>
+                              <SelectItem value="categorical">{t('semanticModel:form.categorical')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
                           <Label className="flex items-center gap-1 mb-1">
-                            Expression
-                            <HelpTooltip content="The column or expression to use." />
+                            {t('semanticModel:form.expression')}
+                            <HelpTooltip content={t('semanticModel:form.help.dimensionExpression')} />
                           </Label>
                           <Input
                             value={dimension.expr}
                             onChange={(e) => updateDimension(index, 'expr', e.target.value)}
-                            placeholder="e.g. created_at"
+                            placeholder={t('semanticModel:form.dimensionExpressionPlaceholder')}
                           />
                         </div>
                         {dimension.type === 'time' && (
                           <div>
                             <Label className="flex items-center gap-1 mb-1">
-                              Time Granularity
-                              <HelpTooltip content="The granularity of the time dimension." />
+                              {t('semanticModel:form.timeGranularity')}
+                              <HelpTooltip content={t('semanticModel:form.help.dimensionGranularity')} />
                             </Label>
                             <Select 
                               value={dimension.type_params?.time_granularity || 'day'} 
@@ -1617,11 +1620,11 @@ const SemanticModelManagement: React.FC = () => {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="day">Day</SelectItem>
-                                <SelectItem value="week">Week</SelectItem>
-                                <SelectItem value="month">Month</SelectItem>
-                                <SelectItem value="quarter">Quarter</SelectItem>
-                                <SelectItem value="year">Year</SelectItem>
+                                <SelectItem value="day">{t('semanticModel:form.day')}</SelectItem>
+                                <SelectItem value="week">{t('semanticModel:form.week')}</SelectItem>
+                                <SelectItem value="month">{t('semanticModel:form.month')}</SelectItem>
+                                <SelectItem value="quarter">{t('semanticModel:form.quarter')}</SelectItem>
+                                <SelectItem value="year">{t('semanticModel:form.year')}</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -1634,8 +1637,8 @@ const SemanticModelManagement: React.FC = () => {
               {formData.dimensions.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <Tags className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>No dimensions configured</p>
-                  <Button variant="link" onClick={autoGenerateDimensions}>Auto generate dimension</Button>
+                  <p>{t('semanticModel:form.noDimensions')}</p>
+                  <Button variant="link" onClick={autoGenerateDimensions}>{t('semanticModel:form.autoGenerateDimension')}</Button>
                 </div>
               )}
             </ScrollArea>
@@ -1650,10 +1653,10 @@ const SemanticModelManagement: React.FC = () => {
                 resetForm();
               }}
             >
-              Cancel
+              {t('semanticModel:dialog.cancel')}
             </Button>
             <Button onClick={handleCreateModel} disabled={isLoading}>
-              {isLoading ? 'Creating...' : 'Create Model'}
+              {isLoading ? t('semanticModel:dialog.creating') : t('semanticModel:dialog.create')}
             </Button>
         </div>
         </DialogContent>
@@ -1663,18 +1666,18 @@ const SemanticModelManagement: React.FC = () => {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Semantic Model</DialogTitle>
+            <DialogTitle>{t('semanticModel:dialog.editTitle')}</DialogTitle>
             <DialogDescription>
-              Modify semantic model definition
+              {t('semanticModel:dialog.editDescription')}
             </DialogDescription>
           </DialogHeader>
           <Tabs defaultValue="basic" className="w-full">
             <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="basic">Basic Info</TabsTrigger>
-              <TabsTrigger value="datasource">Data Source</TabsTrigger>
-              <TabsTrigger value="entities">Entities</TabsTrigger>
-              <TabsTrigger value="measures">Measures</TabsTrigger>
-              <TabsTrigger value="dimensions">Dimensions</TabsTrigger>
+              <TabsTrigger value="basic">{t('semanticModel:page.tabs.basic')}</TabsTrigger>
+              <TabsTrigger value="datasource">{t('semanticModel:page.tabs.datasource')}</TabsTrigger>
+              <TabsTrigger value="entities">{t('semanticModel:page.tabs.entities')}</TabsTrigger>
+              <TabsTrigger value="measures">{t('semanticModel:page.tabs.measures')}</TabsTrigger>
+              <TabsTrigger value="dimensions">{t('semanticModel:page.tabs.dimensions')}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="basic" className="space-y-4">
@@ -2548,10 +2551,10 @@ const SemanticModelManagement: React.FC = () => {
                 resetForm();
               }}
             >
-              Cancel
+              {t('semanticModel:dialog.cancel')}
             </Button>
             <Button onClick={handleEditModel} disabled={isLoading}>
-              {isLoading ? 'Updating...' : 'Update Model'}
+              {isLoading ? t('semanticModel:dialog.updating') : t('semanticModel:dialog.update')}
             </Button>
           </div>
         </DialogContent>

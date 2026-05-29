@@ -7,8 +7,10 @@ import { GlobalAlertConfigurationModal } from '@/components/bi/GlobalAlertConfig
 import { Badge } from "@/components/ui/badge";
 import { globalAlertService } from '@/services/globalAlertService';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { useTranslation } from 'react-i18next';
 
 export const GlobalAlertRuleList: React.FC = () => {
+  const { t } = useTranslation(['common', 'alertConfig']);
   const [rules, setRules] = useState<GlobalAlertRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -41,7 +43,7 @@ export const GlobalAlertRuleList: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this rule?')) {
+    if (confirm(t('alertConfig:globalRules.deleteConfirm'))) {
       await globalAlertService.deleteGlobalAlertRule(id);
       fetchRules();
     }
@@ -61,11 +63,11 @@ export const GlobalAlertRuleList: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold tracking-tight">Global Alert Rules</h2>
-          <p className="text-muted-foreground">Manage global alert rules and notifications.</p>
+          <h2 className="text-xl font-bold tracking-tight">{t('alertConfig:globalRules.title')}</h2>
+          <p className="text-muted-foreground">{t('alertConfig:globalRules.subtitle')}</p>
         </div>
         <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" /> New Alert Rule
+          <Plus className="mr-2 h-4 w-4" /> {t('alertConfig:globalRules.newRule')}
         </Button>
       </div>
 
@@ -74,9 +76,9 @@ export const GlobalAlertRuleList: React.FC = () => {
           <Card key={rule.id} className="hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-base font-medium truncate pr-2" title={rule.name}>
-                {rule.name || 'Untitled Rule'}
+                {rule.name || t('alertConfig:globalRules.untitledRule')}
               </CardTitle>
-              <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${rule.enabled ? 'bg-green-500' : 'bg-gray-300'}`} title={rule.enabled ? 'Active' : 'Disabled'} />
+              <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${rule.enabled ? 'bg-green-500' : 'bg-gray-300'}`} title={rule.enabled ? t('alertConfig:globalRules.active') : t('alertConfig:globalRules.disabled')} />
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -85,7 +87,7 @@ export const GlobalAlertRuleList: React.FC = () => {
                     {rule.priority || 'medium'}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
-                    {rule.enabled ? 'Active' : 'Disabled'}
+                    {rule.enabled ? t('alertConfig:globalRules.active') : t('alertConfig:globalRules.disabled')}
                   </span>
                 </div>
                 {rule.description && (
@@ -95,10 +97,10 @@ export const GlobalAlertRuleList: React.FC = () => {
             </CardContent>
             <CardFooter className="flex justify-end gap-2 pt-0">
               <Button variant="outline" size="sm" onClick={() => handleEdit(rule)} className="h-8">
-                <Edit className="h-3.5 w-3.5 mr-1.5" /> Edit
+                <Edit className="h-3.5 w-3.5 mr-1.5" /> {t('common:edit')}
               </Button>
               <Button variant="outline" size="sm" onClick={() => handleDelete(rule.id)} className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10">
-                <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
+                <Trash2 className="h-3.5 w-3.5 mr-1.5" /> {t('common:delete')}
               </Button>
             </CardFooter>
           </Card>
@@ -106,8 +108,8 @@ export const GlobalAlertRuleList: React.FC = () => {
         {rules.length === 0 && !loading && (
           <div className="col-span-full flex flex-col items-center justify-center py-12 text-muted-foreground border-2 border-dashed rounded-lg bg-muted/30">
             <Bell className="h-12 w-12 mb-4 opacity-20" />
-            <p className="text-lg font-medium">No alert rules found</p>
-            <p className="text-sm mt-1">Create a new rule to get started</p>
+            <p className="text-lg font-medium">{t('alertConfig:globalRules.noRulesTitle')}</p>
+            <p className="text-sm mt-1">{t('alertConfig:globalRules.noRulesDescription')}</p>
           </div>
         )}
       </div>

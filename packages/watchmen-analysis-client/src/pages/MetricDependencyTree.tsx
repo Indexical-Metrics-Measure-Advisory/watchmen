@@ -23,12 +23,12 @@ import { getAllMetrics } from '@/services/metricsManagementService';
 import { metricsService } from '@/services/metricsService';
 import { DrillDownPanel } from '@/components/analysis/DrillDownPanel';
 import { Button } from '@/components/ui/button';
-import { MetricDefinition } from '@/model/metricsManagement';
 import { BIChartCard } from '@/model/biAnalysis';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 // A simple deterministic layout algorithm for trees/DAGs
-const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
+const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
   const nodeWidth = 280;
   const nodeHeight = 160;
   const rankSep = 100;
@@ -101,11 +101,13 @@ interface MetricNodeData {
   id: string;
   label: string;
   type: string;
+  typeLabel: string;
   value: number | string;
   changePercent?: number;
   yoyPercent?: number;
   trend?: 'up' | 'down' | 'stable';
   onBreakdown?: (id: string, label: string) => void;
+  t: (key: string) => string;
 }
 
 const MetricNode = ({ data }: { data: MetricNodeData }) => {
@@ -122,7 +124,7 @@ const MetricNode = ({ data }: { data: MetricNodeData }) => {
               <CardTitle className="text-sm font-medium truncate" title={data.label}>
                 {data.label}
               </CardTitle>
-              <span className="text-[10px] text-muted-foreground uppercase">{data.type}</span>
+              <span className="text-[10px] text-muted-foreground uppercase">{data.typeLabel}</span>
             </div>
             <div className="flex items-center gap-1 shrink-0">
               <Button 
@@ -133,30 +135,30 @@ const MetricNode = ({ data }: { data: MetricNodeData }) => {
                   e.stopPropagation();
                   data.onBreakdown?.(data.id, data.label);
                 }}
-                title="Breakdown Analysis"
+                title={data.t('metricTree:breakdownAnalysis')}
               >
                 <BarChart3 className="h-4 w-4 text-primary" />
               </Button>
               <Badge variant="secondary" className="text-[10px] h-5 hidden sm:flex">
-                {data.type}
+                {data.typeLabel}
               </Badge>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-4 pt-0">
           <div className="flex flex-col gap-2">
-            <div className="text-2xl font-bold">{data.value || 'N/A'}</div>
+            <div className="text-2xl font-bold">{data.value === '' || data.value === null || data.value === undefined ? data.t('metricTree:na') : data.value}</div>
             
             <div className="flex items-center gap-4 text-xs">
               <div className="flex items-center gap-1">
-                <span className="text-muted-foreground">MoM</span>
+                <span className="text-muted-foreground">{data.t('metricTree:mom')}</span>
                 <span className={`flex items-center ${isPositive ? 'text-emerald-500' : isNeutral ? 'text-muted-foreground' : 'text-rose-500'}`}>
                   {isPositive ? <TrendingUp className="w-3 h-3 mr-1" /> : isNeutral ? <Minus className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
                   {data.changePercent || '0'}%
                 </span>
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-muted-foreground">YoY</span>
+                <span className="text-muted-foreground">{data.t('metricTree:yoy')}</span>
                 <span className="flex items-center text-emerald-500">
                   <TrendingUp className="w-3 h-3 mr-1" />
                   {data.yoyPercent || '0'}%
@@ -177,7 +179,12 @@ const nodeTypes = {
 
 const MetricDependencyTree: React.FC = () => {
   const { collapsed } = useSidebar();
+  const { t } = useTranslation(['metricTree', 'metricsEnum']);
   const location = useLocation();
+  const getTypeLabel = useCallback((type?: string) => {
+    if (!type) return '';
+    return t(`metricsEnum:types.${type}`, type);
+  }, [t]);
   const targetMetricIds = useMemo(() => {
     const cards = location.state?.cards || [];
     return Array.from(new Set(cards.map((c: BIChartCard) => c.metricId).filter(Boolean))) as string[];
@@ -214,11 +221,13 @@ const MetricDependencyTree: React.FC = () => {
               id: metric.name,
               label: metric.label || metric.name,
               type: metric.type,
-              value: 'Loading...',
+              typeLabel: getTypeLabel(metric.type),
+              value: t('metricTree:loadingValue'),
               changePercent: 0,
               yoyPercent: 0,
               trend: 'stable',
               onBreakdown: handleBreakdown,
+              t,
             },
             position: { x: 0, y: 0 },
           });
@@ -243,10 +252,10 @@ const MetricDependencyTree: React.FC = () => {
 
           if (metric.type === 'ratio') {
             if (metric.type_params?.numerator?.name) {
-              addEdge(metric.type_params.numerator.name, metric.name, 'Numerator');
+              addEdge(metric.type_params.numerator.name, metric.name, t('metricTree:edgeLabels.numerator'));
             }
             if (metric.type_params?.denominator?.name) {
-              addEdge(metric.type_params.denominator.name, metric.name, 'Denominator');
+              addEdge(metric.type_params.denominator.name, metric.name, t('metricTree:edgeLabels.denominator'));
             }
           } else if (metric.type === 'derived') {
             metric.type_params?.metrics?.forEach((m) => {
@@ -258,10 +267,10 @@ const MetricDependencyTree: React.FC = () => {
             }
           } else if (metric.type === 'conversion') {
             if (metric.type_params?.conversion_type_params?.base_metric?.name) {
-              addEdge(metric.type_params.conversion_type_params.base_metric.name, metric.name, 'Base');
+              addEdge(metric.type_params.conversion_type_params.base_metric.name, metric.name, t('metricTree:edgeLabels.base'));
             }
             if (metric.type_params?.conversion_type_params?.conversion_metric?.name) {
-              addEdge(metric.type_params.conversion_type_params.conversion_metric.name, metric.name, 'Conversion');
+              addEdge(metric.type_params.conversion_type_params.conversion_metric.name, metric.name, t('metricTree:edgeLabels.conversion'));
             }
           }
         });
@@ -311,7 +320,7 @@ const MetricDependencyTree: React.FC = () => {
           layoutedNodes.map(async (node) => {
             try {
               const res = await metricsService.getMetricValue({ metric: node.id });
-              let val: number | string = 'N/A';
+              let val: number | string = t('na');
               if (res && res.data && res.data.length > 0 && res.data[0].length > 0) {
                 const fetchedVal = res.data[0][0];
                 if (typeof fetchedVal === 'number') {
@@ -334,7 +343,7 @@ const MetricDependencyTree: React.FC = () => {
                 ...node,
                 data: {
                   ...node.data,
-                  value: 'Error',
+                  value: t('na'),
                 }
               };
             }
@@ -351,7 +360,7 @@ const MetricDependencyTree: React.FC = () => {
     };
 
     fetchAndBuildGraph();
-  }, [setNodes, setEdges, targetMetricIds, handleBreakdown]);
+  }, [setNodes, setEdges, targetMetricIds, handleBreakdown, getTypeLabel, t]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -365,11 +374,11 @@ const MetricDependencyTree: React.FC = () => {
               <LayoutDashboard className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Metric Dependency Tree</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
               <p className="text-sm text-muted-foreground">
                 {targetMetricIds.length > 0 
-                  ? 'Showing dependencies for metrics in the current Analysis Dashboard' 
-                  : 'Visualize relationships and data flow between all your metrics'}
+                  ? t('subtitleDashboard') 
+                  : t('subtitleAll')}
               </p>
             </div>
           </div>
@@ -377,7 +386,10 @@ const MetricDependencyTree: React.FC = () => {
           <div className="flex-1 w-full h-full border rounded-xl overflow-hidden bg-muted/10 relative min-h-[500px]">
             {isLoading ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <span>{t('loading')}</span>
+                </div>
               </div>
             ) : (
               <div className="absolute inset-0" style={{ width: '100%', height: '100%' }}>
@@ -393,7 +405,7 @@ const MetricDependencyTree: React.FC = () => {
                   <Background color="#ccc" gap={16} />
                   <Controls />
                   <MiniMap 
-                    nodeColor={(n) => {
+                    nodeColor={() => {
                       return '#e2e8f0';
                     }}
                     maskColor="rgba(0, 0, 0, 0.1)"

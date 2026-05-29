@@ -8,9 +8,11 @@ import { SuggestedActionManagement } from '@/components/suggested-action/Suggest
 import { ActionTypeConfiguration } from '@/components/suggested-action/ActionTypeConfiguration';
 import { ActionType } from '@/model/suggestedAction';
 import { actionTypeService } from '@/services/actionTypeService';
+import { useTranslation } from 'react-i18next';
 
 export const AlertConfigurationPage: React.FC = () => {
   const { collapsed } = useSidebar();
+  const { t } = useTranslation('alertConfig');
   const [activeTab, setActiveTab] = useState("alert-rules");
   const [types, setTypes] = useState<ActionType[]>([]);
 
@@ -27,16 +29,16 @@ export const AlertConfigurationPage: React.FC = () => {
         <main className="container py-8 space-y-6">
           <div className="flex justify-between items-start mb-2">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Configuration</h1>
-              <p className="text-muted-foreground">Manage alert rules and suggested actions.</p>
+              <h1 className="text-2xl font-bold tracking-tight">{t('page.title')}</h1>
+              <p className="text-muted-foreground">{t('page.subtitle')}</p>
             </div>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full max-w-2xl grid-cols-3">
-              <TabsTrigger value="alert-rules">Alert Rules</TabsTrigger>
-              <TabsTrigger value="suggested-actions">Suggested Actions</TabsTrigger>
-              <TabsTrigger value="action-types">Action Types</TabsTrigger>
+              <TabsTrigger value="alert-rules">{t('page.tabs.alertRules')}</TabsTrigger>
+              <TabsTrigger value="suggested-actions">{t('page.tabs.suggestedActions')}</TabsTrigger>
+              <TabsTrigger value="action-types">{t('page.tabs.actionTypes')}</TabsTrigger>
 
             </TabsList>
 

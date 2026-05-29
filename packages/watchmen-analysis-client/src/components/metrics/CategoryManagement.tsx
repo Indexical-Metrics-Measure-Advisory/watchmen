@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import * as categoryService from '@/services/metricsManagementService';
+import { useTranslation } from 'react-i18next';
 
 import { Category } from '@/model/metricsManagement';
 
@@ -25,6 +26,7 @@ interface CategoryManagementProps {
 const CategoryManagement: React.FC<CategoryManagementProps> = ({
   onCategoriesChanged
 }) => {
+  const { t } = useTranslation(['common', 'metricsCategory']);
   // 状态管理
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,8 +59,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     } catch (error) {
       console.error('Failed to load categories:', error);
       toast({
-        title: "Error",
-        description: "Failed to load categories",
+        title: t('common:error'),
+        description: t('metricsCategory:toast.loadFailed'),
         variant: "destructive"
       });
     } finally {
@@ -70,8 +72,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   const handleCreateCategory = async () => {
     if (!createForm.name?.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Category name cannot be empty",
+        title: t('common:validationError'),
+        description: t('metricsCategory:validation.nameRequired'),
         variant: "destructive"
       });
       return;
@@ -83,8 +85,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
         setCategories(prev => [...prev, result.data!]);
         
         toast({
-          title: "Success",
-          description: `Category "${createForm.name}" created successfully`
+          title: t('common:success'),
+          description: t('metricsCategory:toast.createSuccess', { name: createForm.name })
         });
         
         setIsCreateDialogOpen(false);
@@ -102,8 +104,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create category",
+        title: t('common:error'),
+        description: error instanceof Error ? error.message : t('metricsCategory:toast.createFailed'),
         variant: "destructive"
       });
     }
@@ -125,8 +127,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   const handleSaveEdit = async () => {
     if (!selectedCategory || !editForm.name?.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Category name cannot be empty",
+        title: t('common:validationError'),
+        description: t('metricsCategory:validation.nameRequired'),
         variant: "destructive"
       });
       return;
@@ -141,8 +143,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
         ));
         
         toast({
-          title: "Success",
-          description: `Category "${editForm.name}" updated successfully`
+          title: t('common:success'),
+          description: t('metricsCategory:toast.updateSuccess', { name: editForm.name })
         });
         
         setIsEditDialogOpen(false);
@@ -155,8 +157,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update category",
+        title: t('common:error'),
+        description: error instanceof Error ? error.message : t('metricsCategory:toast.updateFailed'),
         variant: "destructive"
       });
     }
@@ -177,8 +179,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
         setCategories(prev => prev.filter(cat => cat.id !== categoryToDelete.id));
         
         toast({
-          title: "Success",
-          description: `Category "${categoryToDelete.name}" deleted successfully`
+          title: t('common:success'),
+          description: t('metricsCategory:toast.deleteSuccess', { name: categoryToDelete.name })
         });
         
         onCategoriesChanged?.();
@@ -187,8 +189,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete category",
+        title: t('common:error'),
+        description: error instanceof Error ? error.message : t('metricsCategory:toast.deleteFailed'),
         variant: "destructive"
       });
     } finally {
@@ -222,8 +224,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
       return (
         <div className="text-center py-8 text-muted-foreground">
           <Folder className="mx-auto h-12 w-12 mb-4 opacity-50" />
-          <p>No categories</p>
-          <p className="text-sm">Create your first category to get started</p>
+          <p>{t('metricsCategory:noCategories')}</p>
+          <p className="text-sm">{t('metricsCategory:noCategoriesHint')}</p>
         </div>
       );
     }
@@ -246,7 +248,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{category.name}</span>
                     <Badge variant="outline" className="text-xs">
-                      {category.description?.trim() || 'No Description'}
+                      {category.description?.trim() || t('metricsCategory:noDescription')}
                     </Badge>
                   </div>
                   {category.description && (
@@ -293,15 +295,15 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
             <div>
               <CardTitle className="flex items-center gap-2">
                 <FolderPlus className="h-5 w-5" />
-                Category Management
+                {t('metricsCategory:title')}
               </CardTitle>
               <CardDescription>
-                Manage metric categories to organize and classify metrics
+                {t('metricsCategory:description')}
               </CardDescription>
             </div>
             <Button onClick={() => setIsCreateDialogOpen(true)} size="sm">
               <Plus className="h-4 w-4 mr-2" />
-              New Category
+              {t('metricsCategory:newCategory')}
             </Button>
           </div>
         </CardHeader>
@@ -314,34 +316,34 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Create New Category</DialogTitle>
+            <DialogTitle>{t('metricsCategory:createTitle')}</DialogTitle>
             <DialogDescription>
-              Create a new category to organize your metrics
+              {t('metricsCategory:createDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="category-name">Category Name</Label>
+              <Label htmlFor="category-name">{t('metricsCategory:fields.name')}</Label>
               <Input
                 id="category-name"
                 value={createForm.name}
                 onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-                placeholder="Enter category name"
+                placeholder={t('metricsCategory:fields.namePlaceholder')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="category-description">Description</Label>
+              <Label htmlFor="category-description">{t('metricsCategory:fields.description')}</Label>
               <Textarea
                 id="category-description"
                 value={createForm.description}
                 onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
-                placeholder="Enter category description"
+                placeholder={t('metricsCategory:fields.descriptionPlaceholder')}
                 rows={3}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="category-color">Color</Label>
+                <Label htmlFor="category-color">{t('metricsCategory:fields.color')}</Label>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
@@ -358,13 +360,13 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category-icon">Icon</Label>
+                <Label htmlFor="category-icon">{t('metricsCategory:fields.icon')}</Label>
                 <Select
                   value={createForm.icon}
                   onValueChange={(value) => setCreateForm({ ...createForm, icon: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select icon" />
+                    <SelectValue placeholder={t('metricsCategory:fields.selectIcon')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Folder">📁 Folder</SelectItem>
@@ -382,10 +384,10 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleCreateCategory}>
-              Create Category
+              {t('metricsCategory:actions.createCategory')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -395,34 +397,34 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
+            <DialogTitle>{t('metricsCategory:editTitle')}</DialogTitle>
             <DialogDescription>
-              Update category information
+              {t('metricsCategory:editDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-category-name">Category Name</Label>
+              <Label htmlFor="edit-category-name">{t('metricsCategory:fields.name')}</Label>
               <Input
                 id="edit-category-name"
                 value={editForm.name || ''}
                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                placeholder="Enter category name"
+                placeholder={t('metricsCategory:fields.namePlaceholder')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-category-description">Description</Label>
+              <Label htmlFor="edit-category-description">{t('metricsCategory:fields.description')}</Label>
               <Textarea
                 id="edit-category-description"
                 value={editForm.description || ''}
                 onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                placeholder="Enter category description"
+                placeholder={t('metricsCategory:fields.descriptionPlaceholder')}
                 rows={3}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-category-color">Color</Label>
+                <Label htmlFor="edit-category-color">{t('metricsCategory:fields.color')}</Label>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
@@ -439,13 +441,13 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-category-icon">Icon</Label>
+                <Label htmlFor="edit-category-icon">{t('metricsCategory:fields.icon')}</Label>
                 <Select
                   value={editForm.icon || 'Folder'}
                   onValueChange={(value) => setEditForm({ ...editForm, icon: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select icon" />
+                    <SelectValue placeholder={t('metricsCategory:fields.selectIcon')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Folder">📁 Folder</SelectItem>
@@ -463,10 +465,10 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleSaveEdit}>
-              Save Changes
+              {t('common:saveChanges')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -476,9 +478,9 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete Category</DialogTitle>
+            <DialogTitle>{t('metricsCategory:deleteTitle')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this category? This action cannot be undone.
+              {t('metricsCategory:deleteDescription')}
             </DialogDescription>
           </DialogHeader>
           {categoryToDelete && (
@@ -501,10 +503,10 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button variant="destructive" onClick={confirmDeleteCategory}>
-              Delete Category
+              {t('metricsCategory:actions.deleteCategory')}
             </Button>
           </DialogFooter>
         </DialogContent>

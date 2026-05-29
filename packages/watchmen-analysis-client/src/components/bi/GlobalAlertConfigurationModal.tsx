@@ -17,6 +17,7 @@ import { suggestedActionService } from '@/services/suggestedActionService';
 import { MetricType } from '@/model/Metric';
 import { ActionType, ActionTypeParameter, SuggestedAction } from '@/model/suggestedAction';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface GlobalAlertConfigurationModalProps {
   open: boolean;
@@ -32,6 +33,7 @@ interface MetricSelectorProps {
 }
 
 const MetricSelector: React.FC<MetricSelectorProps> = ({ value, onChange, metrics }) => {
+  const { t } = useTranslation('alertConfig');
   const [open, setOpen] = useState(false);
   // Match by name since AlertCondition.metricId stores metric name (not database ID)
   const selectedMetric = metrics.find(m => m.name === value || m.id === value);
@@ -45,13 +47,13 @@ const MetricSelector: React.FC<MetricSelectorProps> = ({ value, onChange, metric
           aria-expanded={open}
           className="w-full justify-between font-normal"
         >
-          {selectedMetric ? selectedMetric.name : "Select Metric..."}
+          {selectedMetric ? selectedMetric.name : t('globalRules.selectMetric')}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0" align="start">
         <Command>
-          <CommandInput placeholder="Search metric..." />
+          <CommandInput placeholder={t('common:search')} />
           <CommandList>
             <CommandEmpty>No metric found.</CommandEmpty>
             <CommandGroup>
@@ -87,6 +89,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
   rule,
   onSave
 }) => {
+  const { t } = useTranslation(['common', 'alertConfig']);
   const [activeTab, setActiveTab] = useState("config");
   const [metrics, setMetrics] = useState<MetricType[]>([]);
   const [actionTypes, setActionTypes] = useState<ActionType[]>([]);
@@ -288,9 +291,9 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{rule ? 'Edit Alert Rule' : 'Create Alert Rule'}</DialogTitle>
+          <DialogTitle>{rule ? t('alertConfig:globalRules.editTitle') : t('alertConfig:globalRules.createTitle')}</DialogTitle>
           <DialogDescription>
-            Configure the alert rule settings, including trigger conditions and actions.
+            {t('alertConfig:globalRules.subtitle')}
           </DialogDescription>
         </DialogHeader>
 
@@ -298,22 +301,22 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="config">
               <Activity className="w-4 h-4 mr-2" />
-              Rule Configuration
+              {t('alertConfig:globalRules.configTab')}
             </TabsTrigger>
             <TabsTrigger value="test">
               <Beaker className="w-4 h-4 mr-2" />
-              Test Rule
+              {t('alertConfig:globalRules.testTab')}
             </TabsTrigger>
             <TabsTrigger value="action">
               <Zap className="w-4 h-4 mr-2" />
-              Action & Delivery
+              {t('alertConfig:globalRules.actionTab')}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="config" className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Rule Name</Label>
+                <Label>{t('alertConfig:globalRules.ruleName')}</Label>
                 <Input 
                   value={config.name} 
                   onChange={(e) => setConfig({...config, name: e.target.value})}
@@ -321,7 +324,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                 />
               </div>
               <div className="space-y-2">
-                <Label>Priority</Label>
+                <Label>{t('alertConfig:globalRules.priority')}</Label>
                 <Select 
                   value={config.priority} 
                   onValueChange={(val: any) => setConfig({...config, priority: val})}
@@ -330,17 +333,17 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="critical">Critical</SelectItem>
+                    <SelectItem value="low">{t('alertConfig:suggestedActions.lowRisk')}</SelectItem>
+                    <SelectItem value="medium">{t('alertConfig:suggestedActions.mediumRisk')}</SelectItem>
+                    <SelectItem value="high">{t('alertConfig:suggestedActions.highRisk')}</SelectItem>
+                    <SelectItem value="critical">{t('alertConfig:suggestedActions.criticalRisk')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Description</Label>
+              <Label>{t('alertConfig:globalRules.descriptionLabel')}</Label>
               <Textarea 
                 value={config.description} 
                 onChange={(e) => setConfig({...config, description: e.target.value})}
@@ -620,10 +623,10 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
         </Tabs>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t('common:cancel')}</Button>
           <Button onClick={handleSave}>
             <Save className="w-4 h-4 mr-2" />
-            Save Rule
+            {t('alertConfig:globalRules.saveRule')}
           </Button>
         </DialogFooter>
       </DialogContent>

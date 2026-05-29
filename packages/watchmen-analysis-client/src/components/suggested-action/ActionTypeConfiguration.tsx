@@ -4,6 +4,7 @@ import { actionTypeService } from '@/services/actionTypeService';
 import { ActionTypeManagement } from '@/components/suggested-action/ActionTypeManagement';
 import { ActionTypeModal } from '@/components/suggested-action/ActionTypeModal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useTranslation } from 'react-i18next';
 
 interface ActionTypeConfigurationProps {
   types: ActionType[];
@@ -11,6 +12,7 @@ interface ActionTypeConfigurationProps {
 }
 
 export const ActionTypeConfiguration: React.FC<ActionTypeConfigurationProps> = ({ types, onTypesChange }) => {
+  const { t } = useTranslation(['common', 'alertConfig']);
   const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
   const [editingType, setEditingType] = useState<ActionType | null>(null);
 
@@ -55,8 +57,8 @@ export const ActionTypeConfiguration: React.FC<ActionTypeConfigurationProps> = (
   return (
     <div className="space-y-6">
         <div>
-          <h2 className="text-xl font-bold tracking-tight">Action Type Configuration</h2>
-          <p className="text-muted-foreground">Define and manage the types of actions available for suggestions.</p>
+          <h2 className="text-xl font-bold tracking-tight">{t('alertConfig:actionTypes.title')}</h2>
+          <p className="text-muted-foreground">{t('alertConfig:actionTypes.subtitle')}</p>
         </div>
 
         <ActionTypeManagement
@@ -77,14 +79,14 @@ export const ActionTypeConfiguration: React.FC<ActionTypeConfigurationProps> = (
         <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogTitle>{t('alertConfig:actionTypes.deleteTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the action type.
+                {t('alertConfig:actionTypes.deleteDescription')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+              <AlertDialogCancel>{t('common:cancel')}</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">{t('common:delete')}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
