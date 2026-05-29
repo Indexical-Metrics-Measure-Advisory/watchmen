@@ -187,7 +187,7 @@ const ConfigurationForm = () => {
     setStartTime('');
     setEndTime('');
     setSelectedTableName('');
-    setActiveStep(triggerMode === 'default' ? 0 : 1);
+    setActiveStep(0);
   }, [triggerMode]);
 
   // Reset test success state when configuration changes
