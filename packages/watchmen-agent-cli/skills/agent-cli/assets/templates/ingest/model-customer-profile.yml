@@ -1,6 +1,6 @@
-modelId: f-model_customer_profile_001
+modelId: null
 modelName: CustomerProfile
-moduleId: f-module_customer_001
+moduleId: null
 dependOn: []
 priority: 1
 rawTopicCode: raw_customer_profile

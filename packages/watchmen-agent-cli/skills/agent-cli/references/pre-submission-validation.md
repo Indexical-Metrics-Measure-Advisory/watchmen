@@ -4,38 +4,95 @@ Before pushing any YAML to remote, always validate locally to avoid errors and u
 
 ---
 
+## Pre-Creation Checks: Check Local + Remote First (CRITICAL)
+
+Before creating **any** new entity, ALWAYS check both local filesystem and remote to see if it already exists. If a matching entity is found, **update** it instead of creating a duplicate.
+
+### Step 1: Check Local Filesystem First
+
+Search the vault directory for existing YAML files matching the entity name:
+
+```bash
+# Check for existing local files by name pattern
+ls vault/transformation/topics/<name>*    # Topic
+ls vault/transformation/pipelines/<name>*  # Pipeline
+ls vault/transformation/enums/<name>*      # Enum
+ls vault/metrics/semantics/<name>*         # Semantic Model
+ls vault/metrics/metric/<name>*            # Metric
+ls vault/ingest/tables/<name>*             # Ingestion Table
+ls vault/ingest/models/<name>*             # Ingestion Model
+ls vault/ingest/modules/<name>*            # Ingestion Module
+```
+
+If a local file already exists, **read it directly** — no need to pull from remote.
+
+### Step 2: Check Remote
+
+| Entity               | Check Command                                         | Action if Exists                                 |
+| -------------------- | ----------------------------------------------------- | ------------------------------------------------ |
+| **Topic**            | `agent-cli topic list-remote --vault <vault>`         | Set `topicId` to existing ID, update in place    |
+| **Pipeline**         | `agent-cli pipeline list-remote --vault <vault>`      | Set `pipelineId` to existing ID, update in place |
+| **Enum**             | `agent-cli enum list-remote --vault <vault>`          | Set `enumId` to existing ID, update in place     |
+| **Semantic Model**   | `agent-cli semantic list-remote --vault <vault>`      | Set `modelId` to existing ID, update in place    |
+| **Metric**           | `agent-cli metric list-remote --vault <vault>`        | Set `metricId` to existing ID, update in place   |
+| **Ingestion Table**  | `agent-cli ingest table list-remote --vault <vault>`  | Set `configId` to existing ID, update in place   |
+| **Ingestion Model**  | `agent-cli ingest model list-remote --vault <vault>`  | Set `configId` to existing ID, update in place   |
+| **Ingestion Module** | `agent-cli ingest module list-remote --vault <vault>` | Set `configId` to existing ID, update in place   |
+| **DataSource**       | `agent-cli datasource list-remote --vault <vault>`    | Use existing datasource, do not create duplicate |
+
+### Standard Workflow for Any Entity
+
+1. **Check local filesystem** — look for existing YAML files in the vault directory
+2. If **found locally** → read the file, modify it, push with the real ID (update)
+3. If **not found locally** → run `list-remote` to check remote
+4. If **exists in remote** → pull the existing YAML, modify it, push with the real ID (update)
+5. If **does not exist anywhere** → create new YAML with `null` ID, push (create)
+
 ## Topic Validation
 
 ### Name and Field Uniqueness
+
 - **No duplicate topic names** in the same vault
 - **No duplicate factor names** within the same topic
 - **No duplicate factor labels** within the same topic
 - **factorId must be unique** across the topic
 
+### Factor ID Validation
+
+- **factorId MUST be a UUID** (hex string, e.g. `9a1b2c3d4e5f678901234567890123ab`)
+- **NEVER use factor names** as factorId (e.g. `total_claim_amount`, `customer_name` — these are `name` values, not `factorId` values)
+- Factor IDs are server-assigned Snowflake UUIDs; pull the topic after push to obtain real factorIds
+
 ### Data Source Validation
+
 - **dataSourceId must exist** and be valid in the system
 - If unknown, run `agent-cli datasource list-remote --vault <vault>` to find available data sources
 
 ### Index Validation
-- Unique indexes (u-*) should be used for business keys used in `by` conditions
-- Regular indexes (i-*) should be used for foreign keys and frequently queried fields
+
+- Unique indexes (u-\*) should be used for business keys used in `by` conditions
+- Regular indexes (i-\*) should be used for foreign keys and frequently queried fields
 
 ---
 
 ## Pipeline Validation
 
 ### Name and Structure
+
 - **No duplicate pipeline names** in the same vault
 - **pipelineId must match** the existing remote ID when updating (NOT null)
 - All nested IDs (stageId, unitId, actionId) must be null for new entities
 
 ### Factor Reference Validation
+
+- **All factor IDs must be UUIDs** (NOT factor names). E.g. `9a1b2c3d4e5f678901234567890123ab`, not `total_claim_amount`
 - **All factor IDs must reference** existing factors in source/target topics
 - mapping sources and targets must have valid factorId references
 - Check that source topicId and factorId exist in the source topic
 - Check that target topicId and factorId exist in the target topic
 
 ### BY Condition Validation
+
 - `by` filters must reference valid factor IDs on both sides
 - jointType must be "and" or "or"
 
@@ -44,12 +101,14 @@ Before pushing any YAML to remote, always validate locally to avoid errors and u
 ## Pre-Push Checklist
 
 ### Topic Creation
+
 - [ ] Run `agent-cli topic list-remote --vault <vault>` to check for name conflicts
 - [ ] Verify no duplicate factor names or labels in the topic
 - [ ] Confirm dataSourceId is valid
 - [ ] Design appropriate indexes for query optimization
 
 ### Pipeline Creation/Update
+
 - [ ] Run `agent-cli pipeline list-remote --vault <vault>` to check if pipeline exists
 - [ ] If pipeline exists, set `pipelineId` to existing ID (NOT null)
 - [ ] Verify all factorId references in mapping are correct
@@ -57,10 +116,12 @@ Before pushing any YAML to remote, always validate locally to avoid errors and u
 - [ ] Check that source `topicId` matches the actual source topic
 
 ### Common Mistakes
-1. **Creating duplicate pipelines**: Forgot to check `list-remote` and used `pipelineId: null`
+
+1. **Creating duplicate entities**: Forgot to run `list-remote` and created a duplicate Topic/Pipeline/Enum/etc. instead of updating the existing one
 2. **Invalid factorId references**: Factor doesn't exist in the target topic
 3. **Wrong topicId in pipeline**: Mismatch between pipeline's topicId and actual source
 4. **Missing dataSourceId**: Topic created without required dataSourceId
+5. **Using factor name instead of UUID**: Used `total_claim_amount` (name) instead of `9a1b2c3d...` (UUID) as `factorId`
 
 ---
 
@@ -85,4 +146,4 @@ agent-cli pipeline pull <pipeline_id> --vault <vault>
 
 ---
 
-*Last Updated: 2026-05-18*
+_Last Updated: 2026-05-18_

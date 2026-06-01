@@ -31,25 +31,27 @@ If pipeline with the same name exists, you MUST update it instead of creating a 
 
 ### Step 2: Determine Create vs Update
 
-| Scenario | Action | pipelineId Value |
-|----------|--------|------------------|
-| Pipeline does not exist in remote | Create new | `pipelineId: null` |
-| Pipeline exists in remote | Update existing | `pipelineId: '<existing_id>'` |
+| Scenario                          | Action          | pipelineId Value              |
+| --------------------------------- | --------------- | ----------------------------- |
+| Pipeline does not exist in remote | Create new      | `pipelineId: null`            |
+| Pipeline exists in remote         | Update existing | `pipelineId: '<existing_id>'` |
 
 ### Step 3: Prepare YAML
 
 **For new pipeline:**
+
 ```yaml
 pipelineId: null
-topicId: '<source_topic_id>'
+topicId: "<source_topic_id>"
 name: pl_example
 ...
 ```
 
 **For updating existing pipeline:**
+
 ```yaml
-pipelineId: '1504912804757792768'  # Must use existing pipeline ID
-topicId: '<source_topic_id>'
+pipelineId: "1504912804757792768" # Must use existing pipeline ID
+topicId: "<source_topic_id>"
 name: pl_example
 ...
 ```
@@ -67,6 +69,35 @@ agent-cli pipeline push-file <file_path> --vault <vault>
 
 Using `pipelineId: null` when updating an existing pipeline creates a NEW pipeline instead of updating. Always verify the pipeline exists in remote and use the correct ID.
 
+### Using Factor Names Instead of UUIDs (CRITICAL)
+
+**Symptom**: Pipeline push fails or produces incorrect results.
+
+**Cause**: `factorId` fields contain human-readable factor names (e.g. `total_claim_amount`, `customer_name`) instead of UUIDs.
+
+**Rule**: `factorId` MUST be a UUID like `9a1b2c3d4e5f678901234567890123ab`, NOT a factor name.
+
+| Wrong                          | Correct                                        |
+| ------------------------------ | ---------------------------------------------- |
+| `factorId: total_claim_amount` | `factorId: '1504225603996594177'`              |
+| `factorId: customer_name`      | `factorId: '9a1b2c3d4e5f678901234567890123ab'` |
+
+**How to get real factorId values**:
+
+1. Pull the topic: `agent-cli topic pull <topic_id> --vault <vault>`
+2. Open the pulled YAML file
+3. Find the target factor's `factorId` field — that's the UUID you need
+
+### Order of Operations for New Factors
+
+When building a pipeline that maps to factors in a newly created topic:
+
+1. **Create** the target topic YAML with `factorId: null` for all factors
+2. **Push** the topic: `agent-cli topic push-file <file> --vault <vault>`
+3. **Pull** the topic to get server-assigned factor UUIDs: `agent-cli topic pull <new_topic_id> --vault <vault>`
+4. **Read** the pulled topic YAML to find the real `factorId` values
+5. **Use those UUIDs** when writing the pipeline's `mapping[].factorId` and `source.factorId`
+
 ### File Naming
 
 Local files MUST use format: `{pipeline_name}__{pipeline_id}.yml`
@@ -79,6 +110,7 @@ Example: `pl_raw_crm_customer_to_customer__1504912583785080832.yml`
 - [ ] If exists, set `pipelineId` to existing ID (NOT null)
 - [ ] If not exists, use `pipelineId: null`
 - [ ] Use correct filename format with pipeline ID
+- [ ] All `factorId` values are UUIDs (NOT factor names like `total_claim_amount`)
 - [ ] After push, verify `replaced: true` for updates
 
 ---
@@ -94,48 +126,48 @@ A pipeline payload is composed of:
 
 ### Top-Level Pipeline Fields
 
-| Field | Type | Required | Notes |
-|------|------|----------|------|
-| `pipelineId` | `string` or `null` | Yes | Use `null` for a new pipeline. |
-| `topicId` | `string` | Yes | Source topic ID that triggers the pipeline. |
-| `name` | `string` | Yes | Unique pipeline name. |
-| `type` | `string` | Yes | `insert`, `merge`, `insert-or-merge`, `delete`. |
-| `enabled` | `boolean` | Yes | Keep `false` while drafting. |
-| `validated` | `boolean` | Recommended | Usually `false` while drafting. |
-| `conditional` | `boolean` | Recommended | Whether this payload uses conditions. |
-| `on` | `object` | Optional | Top-level condition payload. |
-| `stages` | `array` | Yes | Ordered pipeline stages. |
-| `tenantId` | `string` | Usually yes | Tenant scope. |
-| `version` | `number` | Optional | Often present in pulled payloads. |
-| `createdAt` | `string` | Optional | Usually server-managed. |
-| `createdBy` | `string` | Optional | Usually server-managed. |
-| `lastModifiedAt` | `string` | Optional | Usually server-managed. |
-| `lastModifiedBy` | `string` | Optional | Usually server-managed. |
+| Field            | Type               | Required    | Notes                                           |
+| ---------------- | ------------------ | ----------- | ----------------------------------------------- |
+| `pipelineId`     | `string` or `null` | Yes         | Use `null` for a new pipeline.                  |
+| `topicId`        | `string`           | Yes         | Source topic ID that triggers the pipeline.     |
+| `name`           | `string`           | Yes         | Unique pipeline name.                           |
+| `type`           | `string`           | Yes         | `insert`, `merge`, `insert-or-merge`, `delete`. |
+| `enabled`        | `boolean`          | Yes         | Keep `false` while drafting.                    |
+| `validated`      | `boolean`          | Recommended | Usually `false` while drafting.                 |
+| `conditional`    | `boolean`          | Recommended | Whether this payload uses conditions.           |
+| `on`             | `object`           | Optional    | Top-level condition payload.                    |
+| `stages`         | `array`            | Yes         | Ordered pipeline stages.                        |
+| `tenantId`       | `string`           | Usually yes | Tenant scope.                                   |
+| `version`        | `number`           | Optional    | Often present in pulled payloads.               |
+| `createdAt`      | `string`           | Optional    | Usually server-managed.                         |
+| `createdBy`      | `string`           | Optional    | Usually server-managed.                         |
+| `lastModifiedAt` | `string`           | Optional    | Usually server-managed.                         |
+| `lastModifiedBy` | `string`           | Optional    | Usually server-managed.                         |
 
 ### Stage Fields
 
 Each item in `stages[]` uses this shape:
 
-| Field | Type | Required | Notes |
-|------|------|----------|------|
-| `stageId` | `string` or `null` | Yes | Use `null` for a new stage. |
-| `name` | `string` | Yes | Stage name. |
-| `conditional` | `boolean` | Recommended | Whether this stage has a condition. |
-| `on` | `object` | Optional | Stage condition. |
-| `units` | `array` | Yes | Units inside this stage. |
+| Field         | Type               | Required    | Notes                               |
+| ------------- | ------------------ | ----------- | ----------------------------------- |
+| `stageId`     | `string` or `null` | Yes         | Use `null` for a new stage.         |
+| `name`        | `string`           | Yes         | Stage name.                         |
+| `conditional` | `boolean`          | Recommended | Whether this stage has a condition. |
+| `on`          | `object`           | Optional    | Stage condition.                    |
+| `units`       | `array`            | Yes         | Units inside this stage.            |
 
 ### Unit Fields
 
 Each item in `units[]` uses this shape:
 
-| Field | Type | Required | Notes |
-|------|------|----------|------|
-| `unitId` | `string` or `null` | Yes | Use `null` for a new unit. |
-| `name` | `string` | Yes | Unit name. |
-| `conditional` | `boolean` | Recommended | Whether this unit has a condition. |
-| `on` | `object` | Optional | Unit condition. |
-| `loopVariableName` | `string` | Optional | Loop through an array variable when needed. |
-| `do` | `array` | Yes | Ordered action list. |
+| Field              | Type               | Required    | Notes                                       |
+| ------------------ | ------------------ | ----------- | ------------------------------------------- |
+| `unitId`           | `string` or `null` | Yes         | Use `null` for a new unit.                  |
+| `name`             | `string`           | Yes         | Unit name.                                  |
+| `conditional`      | `boolean`          | Recommended | Whether this unit has a condition.          |
+| `on`               | `object`           | Optional    | Unit condition.                             |
+| `loopVariableName` | `string`           | Optional    | Loop through an array variable when needed. |
+| `do`               | `array`            | Yes         | Ordered action list.                        |
 
 ### Loop Unit Pattern
 
@@ -151,11 +183,11 @@ Example mapping for one CRM contact field:
 
 ```yaml
 mapping:
-  - arithmetic: none
-    source:
-      kind: constant
-      value: '{lv_contact.email}'
-    factorId: '<contact_email_factor_id>'
+    - arithmetic: none
+      source:
+          kind: constant
+          value: "{lv_contact.email}"
+      factorId: "<contact_email_factor_id>"
 ```
 
 In this example:
@@ -175,10 +207,10 @@ Common use cases:
 
 Every item in `do[]` starts with:
 
-| Field | Type | Required | Notes |
-|------|------|----------|------|
-| `actionId` | `string` or `null` | Yes | Use `null` for a new action. |
-| `type` | `string` | Yes | Action type. |
+| Field      | Type               | Required | Notes                        |
+| ---------- | ------------------ | -------- | ---------------------------- |
+| `actionId` | `string` or `null` | Yes      | Use `null` for a new action. |
+| `type`     | `string`           | Yes      | Action type.                 |
 
 Depending on the action type, additional fields are required, such as:
 
@@ -242,8 +274,8 @@ Use this when a value comes from a topic factor:
 
 ```yaml
 kind: topic
-topicId: '<topic_id>'
-factorId: '<factor_id>'
+topicId: "<topic_id>"
+factorId: "<factor_id>"
 ```
 
 ### Constant Parameter
@@ -252,7 +284,7 @@ Use this when a value is fixed:
 
 ```yaml
 kind: constant
-value: 'ACTIVE'
+value: "ACTIVE"
 ```
 
 ### Computed Parameter
@@ -263,9 +295,9 @@ Use this when a value is derived from another value:
 kind: computed
 type: year-of
 parameters:
-  - kind: topic
-    topicId: '<topic_id>'
-    factorId: '<datetime_factor_id>'
+    - kind: topic
+      topicId: "<topic_id>"
+      factorId: "<datetime_factor_id>"
 ```
 
 Common computed values include:
@@ -301,14 +333,14 @@ A typical condition payload looks like this:
 ```yaml
 jointType: and
 filters:
-  - left:
-      kind: topic
-      topicId: '<source_topic_id>'
-      factorId: '<source_factor_id>'
-    operator: equals
-    right:
-      kind: constant
-      value: 'ACTIVE'
+    - left:
+          kind: topic
+          topicId: "<source_topic_id>"
+          factorId: "<source_factor_id>"
+      operator: equals
+      right:
+          kind: constant
+          value: "ACTIVE"
 ```
 
 Common `jointType` values:
@@ -337,12 +369,12 @@ For write-row style actions, the canonical mapping payload is:
 
 ```yaml
 mapping:
-  - arithmetic: none
-    source:
-      kind: topic
-      topicId: '<source_topic_id>'
-      factorId: '<source_factor_id>'
-    factorId: '<target_factor_id>'
+    - arithmetic: none
+      source:
+          kind: topic
+          topicId: "<source_topic_id>"
+          factorId: "<source_factor_id>"
+      factorId: "<target_factor_id>"
 ```
 
 Important rules:
@@ -376,13 +408,13 @@ Use one of:
 
 ```yaml
 pipelineId: null
-topicId: '<source_topic_id>'
+topicId: "<source_topic_id>"
 name: pl_crm_lead_sync
 type: insert-or-merge
 enabled: false
 validated: false
 conditional: false
-tenantId: '<tenant_id>'
+tenantId: "<tenant_id>"
 stages: []
 ```
 
@@ -390,14 +422,14 @@ stages: []
 
 ```yaml
 stages:
-  - stageId: null
-    name: enrich_customer
-    conditional: false
-    units:
-      - unitId: null
-        name: merge_customer_row
-        conditional: false
-        do: []
+    - stageId: null
+      name: enrich_customer
+      conditional: false
+      units:
+          - unitId: null
+            name: merge_customer_row
+            conditional: false
+            do: []
 ```
 
 ### Loop And Flatten Example
@@ -405,153 +437,153 @@ stages:
 This pattern is useful when a raw topic contains an array field and each array item needs to become one target row.
 
 ```yaml
-pipelineId: '1452617339510260737'
+pipelineId: "1452617339510260737"
 name: Flatten to [t_add_invest_cx]
-topicId: '<raw_life_pa_batch_topic_id>'
+topicId: "<raw_life_pa_batch_topic_id>"
 type: insert-or-merge
 conditional: false
 enabled: true
-createdAt: '2024-07-04T11:20:57'
-lastModifiedAt: '2026-03-10T20:53:32'
+createdAt: "2024-07-04T11:20:57"
+lastModifiedAt: "2026-03-10T20:53:32"
 stages:
-  - stageId: null
-    name: Copy data stage
-    conditional: false
-    units:
-      - unitId: null
-        name: Prepare loop variable
-        conditional: false
-        do:
-          - actionId: null
-            type: copy-to-memory
-            variableName: lv_t_add_invest_cx
-            source:
-              kind: topic
-              topicId: '<raw_life_pa_batch_topic_id>'
-              factorId: '<t_add_invest_cx_factor_id>'
+    - stageId: null
+      name: Copy data stage
+      conditional: false
+      units:
+          - unitId: null
+            name: Prepare loop variable
+            conditional: false
+            do:
+                - actionId: null
+                  type: copy-to-memory
+                  variableName: lv_t_add_invest_cx
+                  source:
+                      kind: topic
+                      topicId: "<raw_life_pa_batch_topic_id>"
+                      factorId: "<t_add_invest_cx_factor_id>"
 
-      - unitId: null
-        name: Copy data unit
-        loopVariableName: lv_t_add_invest_cx
-        conditional: false
-        do:
-          - actionId: null
-            type: insert-or-merge-row
-            topicId: '<t_add_invest_cx_topic_id>'
-            accumulateMode: standard
-            by:
-              jointType: and
-              filters:
-                - left:
-                    kind: topic
-                    topicId: '<t_add_invest_cx_topic_id>'
-                    factorId: '<policy_chg_id_factor_id>'
-                  operator: equals
-                  right:
-                    kind: constant
-                    value: '{lv_t_add_invest_cx.policy_chg_id}'
-                - left:
-                    kind: topic
-                    topicId: '<t_add_invest_cx_topic_id>'
-                    factorId: '<add_prem_id_factor_id>'
-                  operator: equals
-                  right:
-                    kind: constant
-                    value: '{lv_t_add_invest_cx.add_prem_id}'
-            mapping:
-              - arithmetic: none
-                source:
-                  kind: constant
-                  value: '{lv_t_add_invest_cx.add_prem_id}'
-                factorId: '<add_prem_id_factor_id>'
-              - arithmetic: none
-                source:
-                  kind: constant
-                  value: '{lv_t_add_invest_cx.add_prem_type}'
-                factorId: '<add_prem_type_factor_id>'
-              - arithmetic: none
-                source:
-                  kind: constant
-                  value: '{lv_t_add_invest_cx.change_id}'
-                factorId: '<change_id_factor_id>'
-              - arithmetic: none
-                source:
-                  kind: constant
-                  value: '{lv_t_add_invest_cx.change_seq}'
-                factorId: '<change_seq_factor_id>'
-              - arithmetic: none
-                source:
-                  kind: constant
-                  value: '{lv_t_add_invest_cx.item_id}'
-                factorId: '<item_id_factor_id>'
-              - arithmetic: none
-                source:
-                  kind: constant
-                  value: '{lv_t_add_invest_cx.log_id}'
-                factorId: '<log_id_factor_id>'
-              - arithmetic: none
-                source:
-                  kind: constant
-                  value: '{lv_t_add_invest_cx.log_type}'
-                factorId: '<log_type_factor_id>'
-              - arithmetic: none
-                source:
-                  kind: constant
-                  value: '{lv_t_add_invest_cx.oper_type}'
-                factorId: '<oper_type_factor_id>'
-              - arithmetic: none
-                source:
-                  kind: constant
-                  value: '{lv_t_add_invest_cx.policy_chg_id}'
-                factorId: '<policy_chg_id_factor_id>'
-              - arithmetic: none
-                source:
-                  kind: constant
-                  value: '{lv_t_add_invest_cx.policy_id}'
-                factorId: '<policy_id_factor_id>'
-              - arithmetic: none
-                source:
-                  kind: constant
-                  value: '{lv_t_add_invest_cx.pre_log_id}'
-                factorId: '<pre_log_id_factor_id>'
+          - unitId: null
+            name: Copy data unit
+            loopVariableName: lv_t_add_invest_cx
+            conditional: false
+            do:
+                - actionId: null
+                  type: insert-or-merge-row
+                  topicId: "<t_add_invest_cx_topic_id>"
+                  accumulateMode: standard
+                  by:
+                      jointType: and
+                      filters:
+                          - left:
+                                kind: topic
+                                topicId: "<t_add_invest_cx_topic_id>"
+                                factorId: "<policy_chg_id_factor_id>"
+                            operator: equals
+                            right:
+                                kind: constant
+                                value: "{lv_t_add_invest_cx.policy_chg_id}"
+                          - left:
+                                kind: topic
+                                topicId: "<t_add_invest_cx_topic_id>"
+                                factorId: "<add_prem_id_factor_id>"
+                            operator: equals
+                            right:
+                                kind: constant
+                                value: "{lv_t_add_invest_cx.add_prem_id}"
+                  mapping:
+                      - arithmetic: none
+                        source:
+                            kind: constant
+                            value: "{lv_t_add_invest_cx.add_prem_id}"
+                        factorId: "<add_prem_id_factor_id>"
+                      - arithmetic: none
+                        source:
+                            kind: constant
+                            value: "{lv_t_add_invest_cx.add_prem_type}"
+                        factorId: "<add_prem_type_factor_id>"
+                      - arithmetic: none
+                        source:
+                            kind: constant
+                            value: "{lv_t_add_invest_cx.change_id}"
+                        factorId: "<change_id_factor_id>"
+                      - arithmetic: none
+                        source:
+                            kind: constant
+                            value: "{lv_t_add_invest_cx.change_seq}"
+                        factorId: "<change_seq_factor_id>"
+                      - arithmetic: none
+                        source:
+                            kind: constant
+                            value: "{lv_t_add_invest_cx.item_id}"
+                        factorId: "<item_id_factor_id>"
+                      - arithmetic: none
+                        source:
+                            kind: constant
+                            value: "{lv_t_add_invest_cx.log_id}"
+                        factorId: "<log_id_factor_id>"
+                      - arithmetic: none
+                        source:
+                            kind: constant
+                            value: "{lv_t_add_invest_cx.log_type}"
+                        factorId: "<log_type_factor_id>"
+                      - arithmetic: none
+                        source:
+                            kind: constant
+                            value: "{lv_t_add_invest_cx.oper_type}"
+                        factorId: "<oper_type_factor_id>"
+                      - arithmetic: none
+                        source:
+                            kind: constant
+                            value: "{lv_t_add_invest_cx.policy_chg_id}"
+                        factorId: "<policy_chg_id_factor_id>"
+                      - arithmetic: none
+                        source:
+                            kind: constant
+                            value: "{lv_t_add_invest_cx.policy_id}"
+                        factorId: "<policy_id_factor_id>"
+                      - arithmetic: none
+                        source:
+                            kind: constant
+                            value: "{lv_t_add_invest_cx.pre_log_id}"
+                        factorId: "<pre_log_id_factor_id>"
 
-      - unitId: null
-        name: delete data
-        loopVariableName: lv_t_add_invest_cx
-        conditional: true
-        on:
-          jointType: and
-          filters:
-            - left:
-                kind: constant
-                value: '{lv_t_add_invest_cx.oper_type}'
-              operator: equals
-              right:
-                kind: constant
-                value: '3'
-        do:
-          - actionId: null
-            type: delete-rows
-            topicId: '<t_add_invest_cx_topic_id>'
-            by:
-              jointType: and
-              filters:
-                - left:
-                    kind: topic
-                    topicId: '<t_add_invest_cx_topic_id>'
-                    factorId: '<policy_chg_id_factor_id>'
-                  operator: equals
-                  right:
-                    kind: constant
-                    value: '{lv_t_add_invest_cx.policy_chg_id}'
-                - left:
-                    kind: topic
-                    topicId: '<t_add_invest_cx_topic_id>'
-                    factorId: '<add_prem_id_factor_id>'
-                  operator: equals
-                  right:
-                    kind: constant
-                    value: '{lv_t_add_invest_cx.add_prem_id}'
+          - unitId: null
+            name: delete data
+            loopVariableName: lv_t_add_invest_cx
+            conditional: true
+            on:
+                jointType: and
+                filters:
+                    - left:
+                          kind: constant
+                          value: "{lv_t_add_invest_cx.oper_type}"
+                      operator: equals
+                      right:
+                          kind: constant
+                          value: "3"
+            do:
+                - actionId: null
+                  type: delete-rows
+                  topicId: "<t_add_invest_cx_topic_id>"
+                  by:
+                      jointType: and
+                      filters:
+                          - left:
+                                kind: topic
+                                topicId: "<t_add_invest_cx_topic_id>"
+                                factorId: "<policy_chg_id_factor_id>"
+                            operator: equals
+                            right:
+                                kind: constant
+                                value: "{lv_t_add_invest_cx.policy_chg_id}"
+                          - left:
+                                kind: topic
+                                topicId: "<t_add_invest_cx_topic_id>"
+                                factorId: "<add_prem_id_factor_id>"
+                            operator: equals
+                            right:
+                                kind: constant
+                                value: "{lv_t_add_invest_cx.add_prem_id}"
 ```
 
 Loop scenario notes:
@@ -566,15 +598,15 @@ Loop scenario notes:
 ```yaml
 - actionId: null
   type: insert-row
-  topicId: '<target_topic_id>'
+  topicId: "<target_topic_id>"
   accumulateMode: standard
   mapping:
-    - arithmetic: none
-      source:
-        kind: topic
-        topicId: '<source_topic_id>'
-        factorId: '<source_name_factor_id>'
-      factorId: '<target_name_factor_id>'
+      - arithmetic: none
+        source:
+            kind: topic
+            topicId: "<source_topic_id>"
+            factorId: "<source_name_factor_id>"
+        factorId: "<target_name_factor_id>"
 ```
 
 ### Insert-Or-Merge Row Action
@@ -582,27 +614,27 @@ Loop scenario notes:
 ```yaml
 - actionId: null
   type: insert-or-merge-row
-  topicId: '<target_topic_id>'
+  topicId: "<target_topic_id>"
   accumulateMode: standard
   by:
-    jointType: and
-    filters:
-      - left:
-          kind: topic
-          topicId: '<source_topic_id>'
-          factorId: '<source_business_key_factor_id>'
-        operator: equals
-        right:
-          kind: topic
-          topicId: '<target_topic_id>'
-          factorId: '<target_business_key_factor_id>'
+      jointType: and
+      filters:
+          - left:
+                kind: topic
+                topicId: "<source_topic_id>"
+                factorId: "<source_business_key_factor_id>"
+            operator: equals
+            right:
+                kind: topic
+                topicId: "<target_topic_id>"
+                factorId: "<target_business_key_factor_id>"
   mapping:
-    - arithmetic: none
-      source:
-        kind: topic
-        topicId: '<source_topic_id>'
-        factorId: '<source_name_factor_id>'
-      factorId: '<target_name_factor_id>'
+      - arithmetic: none
+        source:
+            kind: topic
+            topicId: "<source_topic_id>"
+            factorId: "<source_name_factor_id>"
+        factorId: "<target_name_factor_id>"
 ```
 
 ### Write Factor Action
@@ -610,25 +642,25 @@ Loop scenario notes:
 ```yaml
 - actionId: null
   type: write-factor
-  topicId: '<target_topic_id>'
-  factorId: '<target_factor_id>'
+  topicId: "<target_topic_id>"
+  factorId: "<target_factor_id>"
   arithmetic: none
   by:
-    jointType: and
-    filters:
-      - left:
-          kind: topic
-          topicId: '<source_topic_id>'
-          factorId: '<source_business_key_factor_id>'
-        operator: equals
-        right:
-          kind: topic
-          topicId: '<target_topic_id>'
-          factorId: '<target_business_key_factor_id>'
+      jointType: and
+      filters:
+          - left:
+                kind: topic
+                topicId: "<source_topic_id>"
+                factorId: "<source_business_key_factor_id>"
+            operator: equals
+            right:
+                kind: topic
+                topicId: "<target_topic_id>"
+                factorId: "<target_business_key_factor_id>"
   source:
-    kind: topic
-    topicId: '<source_topic_id>'
-    factorId: '<source_value_factor_id>'
+      kind: topic
+      topicId: "<source_topic_id>"
+      factorId: "<source_value_factor_id>"
 ```
 
 ### Read Factor Action
@@ -636,22 +668,22 @@ Loop scenario notes:
 ```yaml
 - actionId: null
   type: read-factor
-  topicId: '<lookup_topic_id>'
-  factorId: '<lookup_value_factor_id>'
+  topicId: "<lookup_topic_id>"
+  factorId: "<lookup_value_factor_id>"
   variableName: industry_name
   arithmetic: none
   by:
-    jointType: and
-    filters:
-      - left:
-          kind: topic
-          topicId: '<source_topic_id>'
-          factorId: '<source_code_factor_id>'
-        operator: equals
-        right:
-          kind: topic
-          topicId: '<lookup_topic_id>'
-          factorId: '<lookup_code_factor_id>'
+      jointType: and
+      filters:
+          - left:
+                kind: topic
+                topicId: "<source_topic_id>"
+                factorId: "<source_code_factor_id>"
+            operator: equals
+            right:
+                kind: topic
+                topicId: "<lookup_topic_id>"
+                factorId: "<lookup_code_factor_id>"
 ```
 
 ### Copy To Memory Action
@@ -661,9 +693,9 @@ Loop scenario notes:
   type: copy-to-memory
   variableName: customer_name
   source:
-    kind: topic
-    topicId: '<source_topic_id>'
-    factorId: '<source_name_factor_id>'
+      kind: topic
+      topicId: "<source_topic_id>"
+      factorId: "<source_name_factor_id>"
 ```
 
 ### Delete Row Action
@@ -671,19 +703,19 @@ Loop scenario notes:
 ```yaml
 - actionId: null
   type: delete-row
-  topicId: '<target_topic_id>'
+  topicId: "<target_topic_id>"
   by:
-    jointType: and
-    filters:
-      - left:
-          kind: topic
-          topicId: '<source_topic_id>'
-          factorId: '<source_business_key_factor_id>'
-        operator: equals
-        right:
-          kind: topic
-          topicId: '<target_topic_id>'
-          factorId: '<target_business_key_factor_id>'
+      jointType: and
+      filters:
+          - left:
+                kind: topic
+                topicId: "<source_topic_id>"
+                factorId: "<source_business_key_factor_id>"
+            operator: equals
+            right:
+                kind: topic
+                topicId: "<target_topic_id>"
+                factorId: "<target_business_key_factor_id>"
 ```
 
 ---
@@ -694,41 +726,41 @@ The same payload can also be represented in JSON:
 
 ```json
 {
-  "pipelineId": null,
-  "topicId": "<source_topic_id>",
-  "name": "pl_crm_lead_sync",
-  "type": "insert-or-merge",
-  "enabled": false,
-  "validated": false,
-  "conditional": false,
-  "tenantId": "<tenant_id>",
-  "stages": [
-    {
-      "stageId": null,
-      "name": "sync_customer",
-      "conditional": false,
-      "units": [
-        {
-          "unitId": null,
-          "name": "merge_customer",
-          "conditional": false,
-          "do": [
-            {
-              "actionId": null,
-              "type": "insert-or-merge-row",
-              "topicId": "<target_topic_id>",
-              "accumulateMode": "standard",
-              "by": {
-                "jointType": "and",
-                "filters": []
-              },
-              "mapping": []
-            }
-          ]
-        }
-      ]
-    }
-  ]
+	"pipelineId": null,
+	"topicId": "<source_topic_id>",
+	"name": "pl_crm_lead_sync",
+	"type": "insert-or-merge",
+	"enabled": false,
+	"validated": false,
+	"conditional": false,
+	"tenantId": "<tenant_id>",
+	"stages": [
+		{
+			"stageId": null,
+			"name": "sync_customer",
+			"conditional": false,
+			"units": [
+				{
+					"unitId": null,
+					"name": "merge_customer",
+					"conditional": false,
+					"do": [
+						{
+							"actionId": null,
+							"type": "insert-or-merge-row",
+							"topicId": "<target_topic_id>",
+							"accumulateMode": "standard",
+							"by": {
+								"jointType": "and",
+								"filters": []
+							},
+							"mapping": []
+						}
+					]
+				}
+			]
+		}
+	]
 }
 ```
 
@@ -825,19 +857,19 @@ Correct:
 
 ```yaml
 mapping:
-  - arithmetic: none
-    source: <Parameter>
-    factorId: '<target_factor_id>'
+    - arithmetic: none
+      source: <Parameter>
+      factorId: "<target_factor_id>"
 ```
 
 Incorrect:
 
 ```yaml
 mapping:
-  - source: ...
-    target:
-      topicId: ...
-      factorId: ...
+    - source: ...
+      target:
+          topicId: ...
+          factorId: ...
 ```
 
 ### Forgetting `by` On Merge-Style Actions
@@ -881,13 +913,13 @@ Before pushing a pipeline YAML or JSON payload:
 
 ```yaml
 pipelineId: null
-topicId: '<source_topic_id>'
-name: '<pipeline_name>'
+topicId: "<source_topic_id>"
+name: "<pipeline_name>"
 type: insert-or-merge
 enabled: false
 validated: false
 conditional: false
-tenantId: '<tenant_id>'
+tenantId: "<tenant_id>"
 stages: []
 ```
 
@@ -895,7 +927,7 @@ stages: []
 
 ```yaml
 - stageId: null
-  name: '<stage_name>'
+  name: "<stage_name>"
   conditional: false
   units: []
 ```
@@ -904,7 +936,7 @@ stages: []
 
 ```yaml
 - unitId: null
-  name: '<unit_name>'
+  name: "<unit_name>"
   conditional: false
   do: []
 ```
@@ -913,5 +945,5 @@ stages: []
 
 ```yaml
 - actionId: null
-  type: '<action_type>'
+  type: "<action_type>"
 ```
