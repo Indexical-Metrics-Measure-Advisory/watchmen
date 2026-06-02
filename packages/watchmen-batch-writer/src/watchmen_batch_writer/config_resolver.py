@@ -13,6 +13,7 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import (
 	FactorIndexGroup, InsertOrMergeRowAction, InsertRowAction, MergeRowAction, Pipeline,
 	Topic, TopicType, WriteTopicActionType)
+from watchmen_model.admin.pipeline_action_write import MappingFactor
 from watchmen_model.common import FactorId, TenantId
 from watchmen_model.system import DataSource
 from watchmen_pipeline_kernel import TopicDataColumnNames
@@ -200,36 +201,96 @@ class ConfigResolver:
 	def _resolve_ods_mapping(
 			self, raw_topic: Topic, tenant_id: str
 	) -> Tuple[Optional[Topic], Optional[TopicSchema], Dict[str, str]]:
+		"""
+		Resolve the target ODS topic and the merged field map.
+
+		Walk every pipeline attached to the raw topic, and every stage/unit/action
+		within each pipeline. A raw topic can fan out to multiple ODS topics;
+		conversely, several pipelines (or several actions in one pipeline) can
+		write to the same ODS topic with different MappingFactor subsets.
+
+		Strategy:
+		  1. Group write actions by `action.topicId` (the ODS target).
+		  2. For each group, merge all MappingFactors from all actions into a
+		     single list (a target ODS column may be supplied by more than one
+		     action, and a raw column may be mapped in different actions).
+		  3. Pick the target with the largest merged mapping as the batch-writer
+		     destination. If there is a tie, pick the first one encountered so
+		     behaviour stays deterministic across reloads.
+		"""
 		pipelines = self._pipeline_service().find_by_topic_id(raw_topic.topicId)
-		write_actions = []
+		mappings_by_target, _seen_order = self._collect_mappings_by_target(pipelines)
+		if not mappings_by_target:
+			return None, None, {}
+
+		best_target_id = self._pick_best_target(mappings_by_target, _seen_order)
+		ods_schema = self._topic_service().find_schema_by_id(best_target_id, tenant_id)
+		if ods_schema is None:
+			logger.warning(f'ODS TopicSchema not found for id={best_target_id}, tenant={tenant_id}')
+			return None, None, {}
+
+		ods_topic = ods_schema.get_topic()
+		merged_mappings = mappings_by_target[best_target_id]
+		if len(mappings_by_target) > 1:
+			logger.info(
+				f'Raw topic={raw_topic.name} fans out to {len(mappings_by_target)} ODS topics; '
+				f'batch-writer selected {ods_topic.name} '
+				f'(merged {len(merged_mappings)} MappingFactors)')
+		field_map = self._build_field_map(raw_topic, ods_topic, merged_mappings)
+		return ods_topic, ods_schema, field_map
+
+	@staticmethod
+	def _collect_mappings_by_target(pipelines) -> Tuple[Dict[str, List], Dict[str, int]]:
+		"""
+		Walk every pipeline -> stage -> unit -> write-action and group all
+		MappingFactors by the ODS target topic id.
+
+		Returns:
+		  - {ods_topic_id: [MappingFactor, ...]}  (merged list per target)
+		  - {ods_topic_id: first-seen-index}      (for deterministic tie-break)
+
+		Skips:
+		  - pipelines with `enabled = False`
+		  - actions whose `topicId` is blank
+		  - actions whose `mapping` is empty
+		"""
+		mappings_by_target: Dict[str, List] = {}
+		seen_order: Dict[str, int] = {}
+		order = 0
 		for pipeline in pipelines:
 			if pipeline.enabled is False:
 				continue
 			for stage in (pipeline.stages or []):
 				for unit in (stage.units or []):
 					for action in (unit.do or []):
-						if isinstance(action, (InsertRowAction, InsertOrMergeRowAction, MergeRowAction)):
-							write_actions.append(action)
+						if not isinstance(action, (InsertRowAction, InsertOrMergeRowAction, MergeRowAction)):
+							continue
+						ods_topic_id = action.topicId
+						if is_blank(ods_topic_id):
+							continue
+						if not action.mapping:
+							continue
+						bucket = mappings_by_target.setdefault(ods_topic_id, [])
+						if ods_topic_id not in seen_order:
+							seen_order[ods_topic_id] = order
+							order += 1
+						bucket.extend(action.mapping)
+		return mappings_by_target, seen_order
 
-		if not write_actions:
-			return None, None, {}
-
-		action = write_actions[0]
-		ods_topic_id = action.topicId
-		if is_blank(ods_topic_id):
-			return None, None, {}
-
-		ods_schema = self._topic_service().find_schema_by_id(ods_topic_id, tenant_id)
-		if ods_schema is None:
-			return None, None, {}
-
-		ods_topic = ods_schema.get_topic()
-		field_map = self._build_field_map(raw_topic, ods_topic, action.mapping or [])
-		return ods_topic, ods_schema, field_map
+	@staticmethod
+	def _pick_best_target(mappings_by_target: Dict[str, List], seen_order: Dict[str, int]) -> str:
+		"""
+		Pick the target ODS topic with the largest merged mapping. On a tie,
+		keep the first one seen.
+		"""
+		best_target_id, _ = max(
+			mappings_by_target.items(),
+			key=lambda kv: (len(kv[1]), -seen_order.get(kv[0], 0))
+		)
+		return best_target_id
 
 	@staticmethod
 	def _build_field_map(raw_topic: Topic, ods_topic: Topic, mapping_factors) -> Dict[str, str]:
-		from watchmen_model.admin.pipeline_action_write import MappingFactor
 		raw_factor_name = {f.factorId: f.name for f in (raw_topic.factors or [])}
 		ods_factor_name = {f.factorId: f.name for f in (ods_topic.factors or [])}
 		field_map: Dict[str, str] = {}
