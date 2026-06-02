@@ -41,7 +41,10 @@ class ResolvedConfig:
 			data_service: TopicDataService,
 			entity_helper: TopicDataEntityHelper,
 			pk_columns: List[str],
-			principal_service: PrincipalService
+			principal_service: PrincipalService,
+			ods_storage: Optional[TopicDataStorageSPI] = None,
+			ods_entity_helper: Optional[TopicDataEntityHelper] = None,
+			ods_pk_columns: Optional[List[str]] = None,
 	):
 		self.table_name = table_name
 		self.tenant_id = tenant_id
@@ -56,6 +59,11 @@ class ResolvedConfig:
 		self.entity_helper = entity_helper
 		self.pk_columns = pk_columns
 		self.principal_service = principal_service
+		# ODS-side configuration: target of batch writes. None in the
+		# partial (no-ODS) path.
+		self.ods_storage = ods_storage
+		self.ods_entity_helper = ods_entity_helper
+		self.ods_pk_columns = ods_pk_columns
 
 	@property
 	def is_complete(self) -> bool:
@@ -66,6 +74,7 @@ class ConfigResolver:
 	def __init__(self, principal_service: PrincipalService):
 		self.principal_service = principal_service
 		self._cache: Dict[str, Optional[ResolvedConfig]] = {}
+		self._compiled_pipelines: Dict[str, 'RuntimeCompiledPipeline'] = {}
 
 	def _topic_service(self) -> TopicService:
 		return TopicService(self.principal_service)
@@ -99,6 +108,49 @@ class ConfigResolver:
 
 	def invalidate(self, table_name: str, tenant_id: TenantId) -> None:
 		self._cache.pop(f'{table_name}:{tenant_id}', None)
+		# Also invalidate any compiled pipeline whose key starts with table_name
+		keys_to_drop = [k for k in self._compiled_pipelines if k.startswith(f'{table_name}:')]
+		for k in keys_to_drop:
+			self._compiled_pipelines.pop(k, None)
+
+	def get_compiled_pipeline(
+			self, raw_topic: Topic, ods_topic_id: str
+	) -> Optional['RuntimeCompiledPipeline']:
+		"""
+		Get a compiled pipeline for the given raw topic that targets the
+		specified ODS topic. Returns the FIRST pipeline that matches
+		(disabled pipelines are skipped). Caches per (raw_topic, ods_topic_id).
+
+		Used by the BatchPipelineRunner when the
+		`usePipelineRunner` feature flag is enabled. For most setups
+		there is exactly one such pipeline per (raw, ods) pair; if there
+		are multiple, the runner takes the first non-disabled one and
+		logs a warning.
+		"""
+		from watchmen_pipeline_kernel.pipeline_schema import RuntimeCompiledPipeline
+		cache_key = f'{raw_topic.topicId}:{ods_topic_id}'
+		cached = self._compiled_pipelines.get(cache_key)
+		if cached is not None:
+			return cached
+		pipelines = self._pipeline_service().find_by_topic_id(raw_topic.topicId)
+		for pipeline in pipelines:
+			if pipeline.enabled is False:
+				continue
+			for stage in (pipeline.stages or []):
+				for unit in (stage.units or []):
+					for action in (unit.do or []):
+						# We only need to know that this pipeline targets ods_topic_id
+						if getattr(action, 'topicId', None) == ods_topic_id:
+							logger.info(
+								f'Compiling pipeline {pipeline.pipelineId} for '
+								f'raw_topic={raw_topic.name} ods_topic_id={ods_topic_id}')
+							compiled = RuntimeCompiledPipeline(pipeline, self.principal_service)
+							self._compiled_pipelines[cache_key] = compiled
+							return compiled
+		logger.warning(
+			f'No enabled pipeline found for raw_topic={raw_topic.name} '
+			f'ods_topic_id={ods_topic_id}')
+		return None
 
 	def _do_resolve(self, table_name: str, tenant_id: TenantId) -> Optional[ResolvedConfig]:
 		table_config_service = self._collector_table_config_service()
@@ -159,6 +211,13 @@ class ConfigResolver:
 				table_name, tenant_id, raw_topic, raw_schema, data_source, storage, data_service,
 				raw_entity_helper, raw_pk_columns)
 
+		# Build ODS-side storage / entity helper / PK columns. These are the
+		# the destination for batch writes when ODS topic is configured.
+		ods_storage = ask_topic_storage(ods_schema, self.principal_service)
+		ods_storage.register_topic(ods_topic, data_source)
+		ods_entity_helper = ask_topic_data_entity_helper(ods_schema)
+		ods_pk_columns = self._find_pk_columns(ods_topic, ods_schema)
+
 		return ResolvedConfig(
 			table_name=table_name,
 			tenant_id=tenant_id,
@@ -172,6 +231,9 @@ class ConfigResolver:
 			data_service=data_service,
 			entity_helper=raw_entity_helper,
 			pk_columns=raw_pk_columns,
+			ods_storage=ods_storage,
+			ods_entity_helper=ods_entity_helper,
+			ods_pk_columns=ods_pk_columns,
 			principal_service=self.principal_service
 		)
 

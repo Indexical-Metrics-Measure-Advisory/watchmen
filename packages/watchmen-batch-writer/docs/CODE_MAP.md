@@ -12,24 +12,27 @@
 packages/watchmen-batch-writer/
 ├── pyproject.toml
 └── src/watchmen_batch_writer/
-    ├── __init__.py            # 公开 API（懒加载入口）
-    ├── __main__.py            # `python -m watchmen_batch_writer` 入口
-    ├── app.py                 # 启动入口（settings 初始化 + 装配 + 优雅关闭）
-    ├── settings.py            # 配置模型（环境变量驱动）
-    ├── cdc_model.py           # Canal CDC 消息模型 + 行列展开
-    ├── config_resolver.py     # 配置查找链：table → model → raw topic → ODS + field map
-    ├── consumer.py            # Kafka 消费循环 + offset 提交 + 重连
-    ├── accumulator.py         # 批量缓冲（按 table/op 分组 + 双阈值 + 失败回填）
-    ├── writer.py              # 批量写入（field_map 转换 + 操作路由 + adapter 选择）
+    ├── __init__.py                       # 公开 API（懒加载入口）
+    ├── __main__.py                       # `python -m watchmen_batch_writer` 入口
+    ├── app.py                            # 启动入口（settings 初始化 + 装配 + 优雅关闭）
+    ├── settings.py                       # 配置模型（环境变量驱动）
+    ├── cdc_model.py                      # Canal CDC 消息模型 + 行列展开
+    ├── config_resolver.py                # 配置查找链：table → model → raw topic → ODS + field map + 编译 pipeline
+    ├── consumer.py                       # Kafka 消费循环 + offset 提交 + 重连
+    ├── accumulator.py                    # 批量缓冲（按 table/op 分组 + 双阈值 + 失败回填）
+    ├── writer.py                         # 批量写入（field_map 转换 + 操作路由 + adapter 选择 + 路径分发）
+    ├── write_buffering_data_service.py   # NEW: 写入代理，拦截单行 insert/update 攒批
+    ├── batch_pipeline_storages.py        # NEW: 扩展 RuntimeTopicStorages + 持有 buffer 生命周期
+    ├── batch_pipeline_runner.py          # NEW: 跑 compiled_pipeline + 攒批 + flush
     ├── adapters/
-    │   ├── __init__.py        # 公共导出
-    │   ├── base.py            # BaseAdapter + get_adapter 工厂
-    │   ├── postgres.py        # PG: COPY + 临时表 ON CONFLICT
-    │   ├── mysql.py           # MySQL: 多行 INSERT ... ON DUPLICATE KEY
-    │   └── generic.py         # 降级: insert_all / 逐行 upsert
-    ├── monitor.py             # Prometheus 指标
-    ├── health.py              # /health + / 端点（HTTP）
-    └── retry.py               # 通用 retry_async 工具
+    │   ├── __init__.py                   # 公共导出
+    │   ├── base.py                       # BaseAdapter + get_adapter 工厂
+    │   ├── postgres.py                   # PG: COPY + 临时表 ON CONFLICT
+    │   ├── mysql.py                      # MySQL: 多行 INSERT ... ON DUPLICATE KEY
+    │   └── generic.py                    # 降级: insert_all / 逐行 upsert
+    ├── monitor.py                        # Prometheus 指标
+    ├── health.py                         # /health + / 端点（HTTP）
+    └── retry.py                          # 通用 retry_async 工具
 ```
 
 ### 1.1 外部依赖（项目内）
@@ -259,30 +262,94 @@ if requeue_on_fail:
 
 | 方法 | 行为 |
 |---|---|
-| `write_batch(group)` | 入口；过滤 `_` 前缀字段；调用 `schema.prepare_data`；按 op 路由 |
+| `write_batch(group)` | 入口；按 feature flag 分发到 legacy 或 pipeline-runner 路径 |
+| `_write_via_pipeline_runner(group, config, ...)` | 路径 2（feature-flag enabled）：用 `BatchPipelineRunner` 跑 compiled pipeline |
+| `_write_legacy(group, config, ...)` | 路径 1（默认）：`adapter.batch_insert` / `batch_upsert` |
 | `_prepare_rows(raw_rows, config)` | 逐行 `transform_canal_row → schema.prepare_data → try_to_wrap_to_topic_data → assign_fix_columns_on_create` |
 | `_get_db_helper(config)` | 直接返回 `config.entity_helper`（**注意**：见 3.3.1 的已知问题） |
 | `_resolve_pk_columns_for_write(config)` | 从 `config.pk_columns` 取，缺省 `id_` |
 | `_mark_soft_delete(rows, settings)` | 把每行的 `softDeleteFlagColumn` 设为 `softDeleteFlagValue` |
 
-**op 路由**：
+**op 路由**（legacy 路径）：
 - `INSERT` → `adapter.batch_insert(storage, helper, rows)` → PG: COPY / MySQL: 多行 INSERT
 - `UPDATE` / `DELETE` → `adapter.batch_upsert(storage, helper, rows, pk_columns)`
   - DELETE 时先调用 `_mark_soft_delete` 设置标记列
   - **P0-5 关键**：依赖 adapter 的 `ON CONFLICT (pk) DO UPDATE SET <non-pk> = EXCLUDED.<non-pk>` 语义，**不覆盖非 PK 列**
 
+**路径分发**（`write_batch` 决策树）：
+1. `op == DELETE` → 走 legacy 软删除路径（pipeline 的 `CompiledDeleteRowAction` 是物理删除，**不适用**）
+2. `settings.usePipelineRunner == True` 且有 `config_resolver` → 走 pipeline-runner 路径
+3. 否则 → 走 legacy 路径
+4. 任何异常 → 回退到 legacy 路径（带 warning 日志）
+
 **指标**：
-- `ROWS_WRITTEN.labels(table, op).inc(count)`
+- `ROWS_WRITTEN.labels(table, op).inc(count)` — `op` 在 pipeline-runner 路径下为 `'pipeline'`
 - `WRITE_ERRORS.labels(table).inc()`
 - `BATCH_FLUSH_DURATION.labels(table).time()` — 自动 observe_duration
 
 ---
 
-### 3.6 `consumer.py`
+### 3.6 `write_buffering_data_service.py` — Pipeline 拦截写入代理
+
+**职责**：拦截 compiled pipeline 的单行写调用，把数据攒在内存 buffer；`flush()` 走 `storage.batch_insert` / `batch_upsert`。是设计文档 §3.3.1 的本地实现版本。
+
+> **设计偏离**：文档原方案是放在 `watchmen-data-kernel` 并继承 `TopicDataService`。本实现**不继承** `TopicDataService` —— 改为**独立包装类**，直接持有 helper + storage + snowflake + principal。理由：避免在 `TopicDataService` 基类增加分割点（`_prepare_insert_data` / `_do_insert`），跨包改动成本高；本地类更易演化和测试。
+
+| 方法 | 行为 |
+|---|---|
+| `__init__(schema, helper, storage, sf, principal)` | 持有 ODS 上下文 + 三个 buffer list |
+| `insert(data)` | 复刻 `TopicDataService.insert` (data_service.py:357) 的 helper 赋值 → buffer，**不调** `storage.insert_one` |
+| `update_by_id_and_version(data, criteria)` | 复刻 `TopicDataService.update_by_id_and_version` (data_service.py:376) 的 helper 赋值 → buffer |
+| `flush(pk_columns)` | `storage.batch_insert(buffer)` + `storage.batch_upsert(buffer, pk)`；清空 buffer |
+| `reset()` | 清空 buffer（异常恢复用） |
+| `_build_id_version_criteria(data)` | 复刻 `TopicStructureService.build_id_version_criteria` (data_service.py:72) |
+
+**关键不变量**：
+- helper 赋值逻辑必须与 `TopicDataService.insert/update` 保持同步 —— 上游改动时必须同步修改本类
+- 不实现读方法（`find` / `exists`）—— `CompiledInsertOrMergeRowAction` 调 `find` 时会得到 `AttributeError`，触发该 action 的 insert 分支（这是预期行为，见设计文档 §5.1）
+
+---
+
+### 3.7 `batch_pipeline_storages.py` — 扩展 RuntimeTopicStorages
+
+**职责**：在标准 `RuntimeTopicStorages` 之上加 buffer 生命周期管理。是设计文档 §3.3.2 的本地实现版本。
+
+> **设计偏离**：原方案是给 `TopicStorages` 接口加 `ask_topic_data_service()` 方法。本实现**不修改**该接口 —— 改为 `BatchPipelineRunner.write_batch()` 在执行期间 monkey-patch 全局 `service_helper.ask_topic_data_service` 函数。这样既保持向后兼容，又实现了拦截。代价是 monkey-patch 在并发场景下不安全（batch-writer 串行处理 batch，目前安全）。
+
+| 属性/方法 | 行为 |
+|---|---|
+| `__init__(principal, target_ods_topic_id)` | 继承 `RuntimeTopicStorages` 的 storage 缓存 |
+| `get_or_create_buffer(ods_schema, ods_storage)` | 懒构造 `WriteBufferingTopicDataService`，单例 |
+| `flush_buffer(pk_columns)` | 调 `buffer.flush(pk_columns)` |
+| `reset_buffer()` | 调 `buffer.reset()` |
+| `target_ods_topic_id` | getter |
+| `buffer_size` | getter（`buffer.total_buffer_size`） |
+
+---
+
+### 3.8 `batch_pipeline_runner.py` — 主流程
+
+**职责**：跑 compiled pipeline + 攒批 + flush。是设计文档 §3.3.3 的本地实现。
+
+| 方法 | 行为 |
+|---|---|
+| `__init__(compiled_pipeline, principal, ods_schema, ods_storage, pk_columns)` | 构造 buffer + 注入 ods_storage 到 storages 缓存 |
+| `write_batch(group)` | 入口；per-row try/except；最后 flush |
+| `_run_one(cdc_row, group)` | 单条 CDC row 跑 pipeline.run()；丢弃返回的 cascaded context |
+| `_patch_ask_topic_data_service()` | `@contextmanager`：临时替换全局 `service_helper.ask_topic_data_service`，目标 ODS topic 返回 buffer；其他 topic 走原 factory |
+
+**关键设计**：
+- 拦截机制：monkey-patch `service_helper.ask_topic_data_service` —— 见 §3.7
+- 级联抑制：pipeline.run() 内部创建的 `QueuedPipelineContexts`（compiled_pipeline.py:121）通过返回值传出；runner **直接丢弃**这些 context
+- DELETE 不走 pipeline-runner —— writer.py 在 `op == DELETE` 时强制走 legacy 软删除路径
+
+---
+
+### 3.9 `consumer.py`
 
 **职责**：Kafka 消费循环 + 错误重连 + 写入成功后才提交 offset。
 
-#### 3.6.1 关键类
+#### 3.9.1 关键类
 
 ```python
 class KafkaConsumer:
@@ -293,7 +360,7 @@ class KafkaConsumer:
     _pending_commits: Dict[TopicPartition, int]   # 待提交的 max offset
 ```
 
-#### 3.6.2 主流程
+#### 3.9.2 主流程
 
 ```
 start():
@@ -350,7 +417,7 @@ _commit_pending():
 
 ---
 
-### 3.7 `adapters/`
+### 3.10 `adapters/`
 
 **接口**（`adapters/base.py`）：
 
@@ -367,7 +434,7 @@ def get_adapter(data_source_type: DataSourceType) -> BaseAdapter
 - `MYSQL` → `MySQLAdapter`
 - 其他（含 `None`） → `GenericAdapter`
 
-#### 3.7.1 `PostgresAdapter`
+#### 3.10.1 `PostgresAdapter`
 
 | 方法 | 关键 SQL |
 |---|---|
@@ -382,14 +449,14 @@ def get_adapter(data_source_type: DataSourceType) -> BaseAdapter
 - `bytes → '\\x<hex>'`
 - 其他 → `str(val)`
 
-#### 3.7.2 `MySQLAdapter`
+#### 3.10.2 `MySQLAdapter`
 
 - `MAX_BATCH = 1000`：每批最多 1000 行（MySQL `max_allowed_packet` 限制）
 - `batch_insert`：分块执行多行 `INSERT INTO ... VALUES (...), (...), ...`
 - `batch_upsert`：分块执行 `INSERT ... ON DUPLICATE KEY UPDATE col=VALUES(col)`
 - **P0-6 关键**：所有 chunk 共享一个连接，循环结束统一 `commit()`，异常 `rollback()`，`finally` 中 `close()`
 
-#### 3.7.3 `GenericAdapter`（降级）
+#### 3.10.3 `GenericAdapter`（降级）
 
 - `batch_insert`：调 `storage.insert_all`
 - `batch_upsert`：逐行 `update_one`（按主键），0 行时 `insert_one` 兜底
@@ -397,7 +464,7 @@ def get_adapter(data_source_type: DataSourceType) -> BaseAdapter
 
 ---
 
-### 3.8 `monitor.py` — Prometheus 指标
+### 3.11 `monitor.py` — Prometheus 指标
 
 | 指标 | 类型 | 标签 | 位置 |
 |---|---|---|---|
@@ -414,7 +481,7 @@ def get_adapter(data_source_type: DataSourceType) -> BaseAdapter
 
 ---
 
-### 3.9 `health.py` — 健康检查
+### 3.12 `health.py` — 健康检查
 
 ```python
 class HealthState:
@@ -438,7 +505,7 @@ def start_health_server(state, port) -> ThreadingHTTPServer
 
 ---
 
-### 3.10 `retry.py`
+### 3.13 `retry.py`
 
 ```python
 async def retry_async(operation, max_retries, delay_seconds, op_name) -> T:
@@ -453,7 +520,7 @@ async def retry_async(operation, max_retries, delay_seconds, op_name) -> T:
 
 ---
 
-### 3.11 `app.py` — 启动入口
+### 3.14 `app.py` — 启动入口
 
 ```
 run():
@@ -537,35 +604,33 @@ run():
 
 | # | 位置 | 问题 | 影响 |
 |---|---|---|---|
-| 1 | `config_resolver.py:_resolve_ods_mapping` 之后 | storage/data_service/entity_helper 用 **raw topic** 注册，writer 的 `helper.get_column_names()` 返回 raw 列名 | 写库时列名错位；**必须修复** |
+| 1 | ~~`config_resolver.py:_resolve_ods_mapping` 之后~~ | ✅ **已修复**：`_do_resolve` 现在同时构造 `ods_storage` / `ods_entity_helper` / `ods_pk_columns` 三个 ODS 上下文字段；writer 改为可用 `config.ods_storage` 写 ODS 表 | — |
 | 2 | `monitor.py:CONSUMER_LAG` | 标签只有 `topic`，没有 `partition` | 多 partition 时 lag 不可见 |
 | 3 | `health.py:HealthState.snapshot` | 直接读 `Accumulator._groups`，未加锁 | 与 `add_many` 竞争可能数据不一致（低风险） |
-| 4 | `config_resolver.py` 多 ODS 选择 | 只选 mapping 数最多的 target，其余 ODS 不写 | fan-out 场景丢数据 |
+| 4 | `config_resolver.py` 多 ODS 选择（legacy 路径） | 只选 mapping 数最多的 target，其余 ODS 不写 | legacy 路径 fan-out 场景丢数据；**pipeline-runner 路径天然支持 fan-out**（per-topic buffer） |
 | 5 | `consumer.py:_run_with_reconnect` | 重连退避不持久化 | 重启后从 0 退避重试（无影响） |
 | 6 | `writer.py:_mark_soft_delete` | 直接修改 serialized row；依赖 adapter 的 EXCLUDED/VALUES 语义 | 若换成纯 `INSERT ... ON CONFLICT DO UPDATE SET a=?, b=?` 形式会覆盖非 PK 列 |
 | 7 | `adapters/generic.py` | 逐行 upsert 无重试 | 降级路径性能差但功能正常 |
-
-修复 #1 的大致方案：
-```python
-# 在 _resolve_ods_mapping 拿到 ods_schema 之后：
-storage = ask_topic_storage(ods_schema, principal_service)
-storage.register_topic(ods_topic, data_source)
-data_service = ask_topic_data_service(ods_schema, storage, principal_service)
-entity_helper = ask_topic_data_entity_helper(ods_schema)
-# ResolvedConfig 使用这些新对象
-```
+| 8 | `batch_pipeline_runner.py:_patch_ask_topic_data_service` | 用 monkey-patch 拦截全局工厂函数 | 并发场景下不安全（当前 batch-writer 串行处理 batch，安全）；上游有 `TopicStorages.ask_topic_data_service` 扩展后应改为接口 override（见设计文档 §3.3.2） |
+| 9 | `batch_pipeline_runner.py` | 编译 pipeline 不复用 `CacheService.compiled_pipeline()` | 每次冷启动或新表时编译一次；如需跨实例共享，需 pipeline-kernel 暴露 `ask_compiled_pipeline` 工厂 |
+| 10 | `batch_pipeline_runner.py:_run_one` | 调 `pipeline.run()` 同步；阻塞 event loop | 单批 CDC row 过多时延迟其他 batch；当前 `batchSize=5000` 仍在同步等待范围内；如需更平滑可改 `asyncio.to_thread` |
+| 11 | `write_buffering_data_service.py` | helper 赋值逻辑复制自 `TopicDataService.insert` | 上游改动时需同步；建议上游把 helper 赋值提取为 `_prepare_insert_data` 公开方法 |
 
 ---
 
 ## 6. 关键测试
 
-完整测试在 `/tmp/test_batch_writer_isolated.py`（不依赖 MySQL / Kafka，可直接跑）：
+完整测试在两个隔离测试文件中（不依赖 MySQL / Kafka，可直接跑）：
 
 ```bash
+# 已有测试（18 个）
 poetry run python /tmp/test_batch_writer_isolated.py
+
+# 新增 pipeline-runner 测试（13 个）
+poetry run python /tmp/test_pipeline_runner.py
 ```
 
-覆盖：
+**`test_batch_writer_isolated.py`**（18 个测试）覆盖：
 - CDC 解析（5 个）
 - BatchGroup offset 聚合 + 二级排序
 - retry_async 成功/失败
@@ -577,6 +642,20 @@ poetry run python /tmp/test_batch_writer_isolated.py
 - **`_collect_mappings_by_target` 跳过 disabled / 空 mapping**
 - **`_pick_best_target` 平局确定性**
 - **`_build_field_map` 过滤非常量 kind**
+
+**`test_pipeline_runner.py`**（13 个测试）覆盖：
+- `usePipelineRunner` feature flag 默认 False
+- `WriteBufferingTopicDataService.insert` 触发 helper 赋值 + buffer 增长
+- `WriteBufferingTopicDataService.flush` 调 `storage.batch_insert` + buffer 清空
+- `WriteBufferingTopicDataService.update_by_id_and_version` 触发 version 递增 + buffer 增长
+- `WriteBufferingTopicDataService.reset` 清空两个 buffer
+- `BatchPipelineTopicStorages` 懒构造 buffer + 单例
+- `BatchPipelineTopicStorages.reset_buffer` 清空
+- `BatchPipelineRunner._patch_ask_topic_data_service` 把目标 ODS topic 路由到 buffer，其他 topic 走原 factory
+- `BatchWriter.write_batch` 在 flag 开启时调 `BatchPipelineRunner.write_batch`
+- `BatchWriter.write_batch` 在 flag 关闭时走 legacy 路径
+- `BatchWriter.write_batch` 在 DELETE 时**强制**走 legacy 路径
+- `BatchWriter.write_batch` 在 pipeline-runner 异常时回退到 legacy
 
 集成测试需要真实 Kafka + MySQL/PG，未在仓库内提供。
 
@@ -620,6 +699,10 @@ poetry run python /tmp/test_batch_writer_isolated.py
 | 一条消息一行的 offset 追踪 | 整个 group 取 max offset per partition | 减少 commit 次数 |
 | 重试默认 3 次 | 同 | 来自 `MAX_RETRIES` 环境变量 |
 | `enableAutoCommit` | 强制 False | 实现里不读这个开关（见 6.1 的修复点） |
+| **`WriteBufferingTopicDataService` 在 `watchmen-data-kernel` 并继承 `TopicDataService`** | **本地独立包装类（不继承）** | 见 §3.6 设计偏离 |
+| **`BatchPipelineTopicStorages` 扩展 `TopicStorages` 接口的 `ask_topic_data_service`** | **monkey-patch 全局 `service_helper.ask_topic_data_service`** | 见 §3.7 设计偏离 |
+| **`BatchPipelineRunner` 接受 `soft_delete_flag` 参数** | **不接收** | DELETE 强制走 legacy 软删除路径（pipeline 的 `CompiledDeleteRowAction` 是物理删除） |
+| **`RuntimeCompiledPipeline.run(new_pipeline=noop_queue)`** | **不传 `new_pipeline` 参数** | `CreateQueuePipeline` 是 `Callable` 不是 class，且 `run()` 签名不接受；级联通过丢弃 `run()` 返回的 `QueuedPipelineContexts` 实现 |
 
 ---
 

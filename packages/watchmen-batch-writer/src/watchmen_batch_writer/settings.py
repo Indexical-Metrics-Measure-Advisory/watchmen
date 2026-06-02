@@ -30,6 +30,13 @@ class BatchWriterSettings(SettingsModel):
 
 	preloadTableNames: List[str] = []
 
+	# === Pipeline-runner feature flag ===
+	# When True, writer uses BatchPipelineRunner (interceptor pattern) instead
+	# of the legacy manual mapping path. Requires upstream changes in
+	# watchmen-pipeline-kernel and watchmen-data-kernel; see
+	# docs/BATCH_TOPIC_DATA_SERVICE_DESIGN.md §3.3.2.
+	usePipelineRunner: bool = False
+
 
 settings = BatchWriterSettings()
 

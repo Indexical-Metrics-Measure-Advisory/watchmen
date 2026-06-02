@@ -14,6 +14,28 @@ logger = getLogger(__name__)
 
 
 class BatchWriter:
+	"""
+	Writes a batch group to the ODS database.
+
+	Two execution paths:
+	  1. Legacy (default): manually apply field_map + helper assignment and
+	     route through the per-DB adapter.
+	  2. Pipeline-runner (opt-in via settings.usePipelineRunner): invoke
+	     the compiled pipeline for each CDC row with a buffering data
+	     service, then flush the buffer via storage.batch_insert / batch_upsert.
+	     See docs/BATCH_TOPIC_DATA_SERVICE_DESIGN.md §3.3 for details.
+
+	DELETE always uses the legacy path (soft-delete + batch_upsert) because
+	the pipeline's CompiledDeleteRowAction does physical delete, which is
+	not what batch-writer wants.
+	"""
+
+	def __init__(self, config_resolver=None):
+		# config_resolver is needed only for the pipeline-runner path; the
+		# legacy path works without it.
+		self._config_resolver = config_resolver
+		self._runner_cache: Dict[str, 'BatchPipelineRunner'] = {}
+
 	async def write_batch(self, group: BatchGroup) -> None:
 		settings = ask_batch_writer_settings()
 		config = group.config
@@ -31,8 +53,62 @@ class BatchWriter:
 				f'pk_columns={config.pk_columns})')
 			return
 
-		prepared_rows = self._prepare_rows(rows, config)
+		# DELETE: always use the legacy soft-delete path.
+		if op == OP_DELETE:
+			await self._write_legacy(group, config, settings, table_name, rows, op=op)
+			return
 
+		# INSERT / UPDATE: choose between pipeline-runner and legacy.
+		if settings.usePipelineRunner and self._config_resolver is not None:
+			try:
+				await self._write_via_pipeline_runner(group, config, table_name, rows, op)
+				return
+			except Exception as e:
+				logger.error(
+					f'Pipeline-runner path failed for table={table_name}, '
+					f'falling back to legacy path: {e}', exc_info=True)
+				# Fall through to legacy path
+
+		await self._write_legacy(group, config, settings, table_name, rows, op=op)
+
+	async def _write_via_pipeline_runner(
+			self, group: BatchGroup, config: ResolvedConfig,
+			table_name: str, rows: List[Dict[str, Any]], op: str,
+	) -> None:
+		from .batch_pipeline_runner import BatchPipelineRunner
+		# The runner is keyed on (table, ods_topic_id) so the same compiled
+		# pipeline + buffering service is reused for every batch on the
+		# same target.
+		ods_topic_id = config.ods_topic.topicId if config.ods_topic else ''
+		runner_key = f'{table_name}:{ods_topic_id}:{config.tenant_id}'
+		runner = self._runner_cache.get(runner_key)
+		if runner is None:
+			compiled = self._config_resolver.get_compiled_pipeline(
+				raw_topic=config.raw_topic,
+				ods_topic_id=ods_topic_id,
+			)
+			if compiled is None:
+				raise RuntimeError(
+					f'No compiled pipeline available for table={table_name} '
+					f'ods_topic_id={ods_topic_id}; cannot use pipeline-runner path')
+			runner = BatchPipelineRunner(
+				compiled_pipeline=compiled,
+				principal=config.principal_service,
+				ods_schema=config.ods_schema,
+				ods_storage=config.ods_storage,
+				pk_columns=list(config.ods_pk_columns or config.pk_columns),
+			)
+			self._runner_cache[runner_key] = runner
+		# The runner expects BatchGroup.sorted_rows() — make sure op is set
+		group.op = op  # in case caller had it set differently
+		await runner.write_batch(group)
+
+	async def _write_legacy(
+			self, group: BatchGroup, config: ResolvedConfig,
+			settings, table_name: str, rows: List[Dict[str, Any]],
+			op: str,
+	) -> None:
+		prepared_rows = self._prepare_rows(rows, config)
 		if not prepared_rows:
 			return
 

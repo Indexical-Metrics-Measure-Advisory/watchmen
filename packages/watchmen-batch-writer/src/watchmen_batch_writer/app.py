@@ -33,6 +33,7 @@ _ENV_BINDINGS = {
 	'BATCH_WRITER_PRELOAD_TABLES': ('preloadTableNames', 'csv'),
 	'BATCH_WRITER_SOFT_DELETE_COLUMN': ('softDeleteFlagColumn', str),
 	'BATCH_WRITER_SOFT_DELETE_VALUE': ('softDeleteFlagValue', str),
+	'BATCH_WRITER_USE_PIPELINE_RUNNER': ('usePipelineRunner', bool),
 }
 
 
@@ -108,7 +109,7 @@ async def run() -> None:
 	config_resolver = ConfigResolver(principal_service)
 	_preload_configs(config_resolver)
 
-	writer = BatchWriter()
+	writer = BatchWriter(config_resolver=config_resolver)
 	consumer = KafkaConsumer(config_resolver, writer)
 	health_state = HealthState(consumer=consumer)
 	start_health_server(health_state, settings.healthPort)
