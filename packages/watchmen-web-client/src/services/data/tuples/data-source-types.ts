@@ -1,18 +1,19 @@
-import {TenantId} from './tenant-types';
-import {OptimisticLock, Tuple} from './tuple-types';
+import { TenantId } from "./tenant-types";
+import { OptimisticLock, Tuple } from "./tuple-types";
 
 export enum DataSourceType {
-	MYSQL = 'mysql',
-	ORACLE = 'oracle',
-	MONGODB = 'mongodb',
-	MSSQL = 'mssql',
-	POSTGRESQL = 'postgresql',
-	AWS_S3 = 's3',
-	ALI_OSS = 'oss',
-	AZURE_BLOB_STORAGE = 'azure_blob_storage',
-	SNOWFLAKE = 'snowflake',
-	REDSHIFT = 'redshift',
-	DYNAMODB = 'dynamodb',
+	MYSQL = "mysql",
+	ORACLE = "oracle",
+	MONGODB = "mongodb",
+	MSSQL = "mssql",
+	POSTGRESQL = "postgresql",
+	DSQL = "dsql",
+	AWS_S3 = "s3",
+	ALI_OSS = "oss",
+	AZURE_BLOB_STORAGE = "azure_blob_storage",
+	SNOWFLAKE = "snowflake",
+	REDSHIFT = "redshift",
+	DYNAMODB = "dynamodb",
 }
 
 export interface DataSourceParam {

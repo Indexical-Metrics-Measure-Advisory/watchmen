@@ -16,6 +16,7 @@ class DataSourceType(str, Enum):
 	MONGODB = 'mongodb',
 	MSSQL = 'mssql',
 	POSTGRESQL = 'postgresql',
+	DSQL = 'dsql',
 	DYNAMO = 'dynamodb',
 	SNOWFLAKE = 'snowflake',
 	OSS = 'oss',

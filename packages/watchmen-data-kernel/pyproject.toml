@@ -4,9 +4,7 @@ version = "18.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
-packages = [
-    { include = "watchmen_data_kernel", from = "src" }
-]
+packages = [{ include = "watchmen_data_kernel", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "~3.12"
@@ -18,6 +16,7 @@ watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true,
 watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
 watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
 watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
+watchmen-storage-dsql = { path = "../watchmen-storage-dsql", develop = true, optional = true }
 watchmen-storage-dynamo = { path = "../watchmen-storage-dynamo", develop = true, optional = true }
 watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true, optional = true }
 watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true, optional = true }
@@ -30,6 +29,7 @@ oracle = ["watchmen-storage-oracle"]
 mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
 postgresql = ["watchmen-storage-postgresql"]
+dsql = ["watchmen-storage-dsql"]
 dynamo = ["watchmen-storage-dynamo"]
 oss = ["watchmen-storage-oss"]
 s3 = ["watchmen-storage-s3"]

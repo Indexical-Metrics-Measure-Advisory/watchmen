@@ -9,7 +9,7 @@ from watchmen_model.common import Pageable, TenantId
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, EntityColumnName, EntityCriteria, EntityCriteriaExpression, \
 	EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityIdHelper, EntityPager, EntitySort, \
-	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdate, EntityUpdater, SnowflakeGenerator, \
+	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdate, EntityUpdater, \
 	EntityLimitedFinder, EntityLimitedStraightValuesFinder
 from .shaper import TopicShaper
 
@@ -154,7 +154,7 @@ class TopicDataEntityHelper:
 		)
 
 	# noinspection PyMethodMayBeStatic
-	def find_data_id(self, data: Dict[str, Any]) -> Tuple[bool, Optional[int]]:
+	def find_data_id(self, data: Dict[str, Any]) -> Tuple[bool, Optional[Any]]:
 		"""
 		find data if from given data dictionary.
 		"""
@@ -172,7 +172,7 @@ class TopicDataEntityHelper:
 			return EntityCriteriaExpression(left=ColumnNameLiteral(columnName=TopicDataColumnNames.ID.value), right=id_)
 
 	# noinspection PyMethodMayBeStatic
-	def assign_id_column(self, data: Dict[str, Any], id_value: int) -> None:
+	def assign_id_column(self, data: Dict[str, Any], id_value: Any) -> None:
 		data[TopicDataColumnNames.ID.value] = id_value
 
 	@abstractmethod
@@ -219,10 +219,10 @@ class TopicDataEntityHelper:
 
 	def assign_fix_columns_on_create(
 			self, data: Dict[str, Any],
-			snowflake_generator: SnowflakeGenerator, principal_service: PrincipalService,
+			id_value: Any, principal_service: PrincipalService,
 			now: datetime
 	) -> None:
-		self.assign_id_column(data, snowflake_generator.next_id())
+		self.assign_id_column(data, id_value)
 		self.assign_tenant_id(data, principal_service.get_tenant_id())
 		self.assign_insert_time(data, now)
 		self.assign_update_time(data, now)

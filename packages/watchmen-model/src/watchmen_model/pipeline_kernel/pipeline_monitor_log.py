@@ -201,7 +201,7 @@ class PipelineMonitorLog(ConditionalMonitorLog):
 	traceId: Optional[PipelineTriggerTraceId] = None
 	pipelineId: Optional[PipelineId] = None
 	topicId: Optional[TopicId] = None
-	dataId: Optional[int] = None
+	dataId: Optional[Union[int, str]] = None
 	oldValue: Any = None
 	newValue: Any = None
 	stages: Optional[List[MonitorLogStage]] = None

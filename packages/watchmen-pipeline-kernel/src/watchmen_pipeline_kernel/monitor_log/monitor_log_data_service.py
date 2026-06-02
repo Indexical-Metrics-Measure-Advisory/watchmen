@@ -39,7 +39,7 @@ class PipelineMonitorLogDataService:
 	def ask_storages(self):
 		return RuntimeTopicStorages(self.principalService)
 
-	def find_last(self, data_id: int, topic_id: TopicId, tenant_id: TenantId) -> Optional[PipelineMonitorLog]:
+	def find_last(self, data_id: Any, topic_id: TopicId, tenant_id: TenantId) -> Optional[PipelineMonitorLog]:
 		schema = self.get_topic_schema()
 		storage = self.ask_storages().ask_topic_storage(schema)
 		data_service = ask_topic_data_service(schema, storage, self.principalService)

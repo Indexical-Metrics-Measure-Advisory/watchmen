@@ -1,15 +1,19 @@
 from abc import abstractmethod
 from datetime import datetime
 from logging import getLogger
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
+from uuid import uuid4
 
 from watchmen_auth import PrincipalService
+from watchmen_data_kernel.cache import CacheService
 from watchmen_data_kernel.common import DataKernelException
+from watchmen_data_kernel.meta import DataSourceService
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import PipelineTriggerType, Topic
 from watchmen_model.common import DataModel, DataPage, Pageable
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
+from watchmen_model.system import DataSourceType
 from watchmen_storage import EntityColumnName, EntityCriteria, EntityPager, EntityStraightColumn, SnowflakeGenerator, \
 	TopicDataStorageSPI, EntityId, EntitySort
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
@@ -22,7 +26,7 @@ class TopicTrigger(DataModel):
 	previous: Optional[Dict[str, Any]] = None
 	current: Optional[Dict[str, Any]] = None
 	triggerType: PipelineTriggerType = PipelineTriggerType.INSERT
-	internalDataId: int = -1
+	internalDataId: Any = -1
 
 
 class TopicStructureService:
@@ -99,6 +103,25 @@ class TopicDataService(TopicStructureService):
 	def get_principal_service(self) -> PrincipalService:
 		return self.principalService
 
+	def _ask_data_source_type(self) -> Optional[DataSourceType]:
+		topic = self.get_topic()
+		data_source_id = topic.dataSourceId
+		if data_source_id is None:
+			return None
+		data_source = CacheService.data_source().get(data_source_id)
+		if data_source is not None:
+			return data_source.dataSourceType
+		data_source = DataSourceService(self.principalService).find_by_id(data_source_id)
+		if data_source is not None:
+			return data_source.dataSourceType
+		return None
+
+	def _generate_id(self) -> Any:
+		data_source_type = self._ask_data_source_type()
+		if data_source_type == DataSourceType.DSQL:
+			return str(uuid4()).replace('-', '')
+		return self.snowflakeGenerator.next_id()
+
 	# noinspection PyMethodMayBeStatic
 	def delete_reversed_columns(self, data: Dict[str, Any]):
 		if TopicDataColumnNames.ID.value in data:
@@ -138,7 +161,7 @@ class TopicDataService(TopicStructureService):
 			topic_data = self.try_to_wrap_to_topic_data(data)
 			data_entity_helper.assign_fix_columns_on_create(
 				data=topic_data,
-				snowflake_generator=self.get_snowflake_generator(), principal_service=self.get_principal_service(),
+				id_value=self._generate_id(), principal_service=self.get_principal_service(),
 				now=self.now()
 			)
 			storage.connect()
@@ -178,7 +201,7 @@ class TopicDataService(TopicStructureService):
 			storage.close()
 
 	def find_previous_data_by_id(
-			self, id_: int, raise_on_not_found: bool = False, close_storage: bool = False
+			self, id_: Any, raise_on_not_found: bool = False, close_storage: bool = False
 	) -> Optional[Dict[str, Any]]:
 		"""
 		return previous topic data
@@ -298,7 +321,7 @@ class TopicDataService(TopicStructureService):
 			storage.close()
 
 
-	def find_and_lock_by_id(self, data_id: int) -> Optional[Dict[str, Any]]:
+	def find_and_lock_by_id(self, data_id: Any) -> Optional[Dict[str, Any]]:
 		"""
 		no storage connect and close, it must be done outside
 		will find id criteria from given data
@@ -359,7 +382,7 @@ class TopicDataService(TopicStructureService):
 		assign id and version, audit columns
 		"""
 		data_entity_helper = self.get_data_entity_helper()
-		data_entity_helper.assign_id_column(data, self.get_snowflake_generator().next_id())
+		data_entity_helper.assign_id_column(data, self._generate_id())
 		data_entity_helper.assign_version(data, 1)
 		now = get_current_time_in_seconds()
 		data_entity_helper.assign_tenant_id(data, self.get_principal_service().get_tenant_id())

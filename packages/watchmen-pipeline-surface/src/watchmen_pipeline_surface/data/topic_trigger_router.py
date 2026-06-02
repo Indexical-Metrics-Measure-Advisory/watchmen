@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, Union
 
 from fastapi import APIRouter, Depends
 
@@ -62,7 +62,7 @@ def fake_to_tenant(principal_service: PrincipalService, tenant_id: TenantId) -> 
 
 
 async def start_pipeline(
-		schema: TopicSchema, trace_id: PipelineTriggerTraceId, data_id: int,
+		schema: TopicSchema, trace_id: PipelineTriggerTraceId, data_id: Any,
 		trigger_data: Dict[str, Any], previous_data: Optional[Dict[str, Any]],
 		pipeline_id: Optional[PipelineId],
 		principal_service: PrincipalService
@@ -103,7 +103,7 @@ def has_summary(pipeline: Pipeline) -> bool:
 @router.get('/topic/data/rerun', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=PipelineTriggerResult)
 async def rerun_by_topic_data(
 		topic_name: Optional[str] = None, topic_id: Optional[str] = None,
-		data_id: Optional[int] = None, pipeline_id: Optional[PipelineId] = None,
+		data_id: Optional[Union[int, str]] = None, pipeline_id: Optional[PipelineId] = None,
 		tenant_id: Optional[TenantId] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> PipelineTriggerResult:

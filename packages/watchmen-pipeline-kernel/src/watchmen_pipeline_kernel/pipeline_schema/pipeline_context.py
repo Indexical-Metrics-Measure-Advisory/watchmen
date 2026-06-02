@@ -15,7 +15,7 @@ class RuntimePipelineContext(PipelineContext):
 			pipeline: Pipeline,
 			trigger_topic_schema: TopicSchema,
 			previous_data: Optional[Dict[str, Any]], current_data: Optional[Dict[str, Any]],
-			principal_service: PrincipalService, trace_id: PipelineTriggerTraceId, data_id: int
+			principal_service: PrincipalService, trace_id: PipelineTriggerTraceId, data_id: Any
 	):
 		self.pipeline = pipeline
 		self.triggerTopicSchema = trigger_topic_schema

@@ -29,6 +29,7 @@ export const DataSourceTypeInput = (props: { dataSource: DataSource }) => {
 		{value: DataSourceType.AZURE_BLOB_STORAGE, label: 'Azure Blob Storage'},
 		{value: DataSourceType.SNOWFLAKE, label: 'Snowflake'},
 		{value: DataSourceType.REDSHIFT, label: 'Redshift'},
+		{value: DataSourceType.DSQL, label: 'AWS DSQL'},
 		{value: DataSourceType.DYNAMODB, label: 'AWS DynamoDB'},
 
 	];
