@@ -2,6 +2,7 @@ import {DataSourceType} from '@/services/data/tuples/data-source-types';
 import {Factor} from '@/services/data/tuples/factor-types';
 import {QueryEnumForHolder} from '@/services/data/tuples/query-enum-types';
 import {Topic} from '@/services/data/tuples/topic-types';
+import {isKeyTypeSupported} from '@/services/data/tuples/topic-utils';
 import {FactorButtons} from './factor-buttons';
 import {FactorDefaultValueCell} from './factor-default-value-cell';
 import {FactorDescriptionCell} from './factor-description-cell';
@@ -24,7 +25,7 @@ export const FactorRow = (props: {
 	dataSourceType?: DataSourceType;
 }) => {
 	const {topic, factor, enums, dataSourceType} = props;
-	const isDynamoDB = dataSourceType === DataSourceType.DYNAMODB;
+	const showKeyType = isKeyTypeSupported(dataSourceType);
 
 	return <FactorRowContainer>
 		{/*<FactorSerialCell topic={topic} factor={factor}/>*/}
@@ -39,7 +40,7 @@ export const FactorRow = (props: {
 		<FactorEnumCell factor={factor} enums={enums}/>
 		<FactorPropLabel>Index Group</FactorPropLabel>
 		<FactorIndexGroupCell factor={factor}/>
-		{isDynamoDB ? <>
+		{showKeyType ? <>
 			<FactorPropLabel>Key Type</FactorPropLabel>
 			<FactorKeyTypeCell factor={factor}/>
 			<FactorPropLabel>Key Order</FactorPropLabel>

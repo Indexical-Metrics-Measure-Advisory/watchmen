@@ -17,6 +17,7 @@ watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = tru
 watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
 watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
 watchmen-storage-dsql = { path = "../watchmen-storage-dsql", develop = true, optional = true }
+watchmen-storage-aurora-limitless = { path = "../watchmen-storage-aurora-limitless", develop = true, optional = true }
 watchmen-storage-dynamo = { path = "../watchmen-storage-dynamo", develop = true, optional = true }
 watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true, optional = true }
 watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true, optional = true }
@@ -30,6 +31,7 @@ mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
 postgresql = ["watchmen-storage-postgresql"]
 dsql = ["watchmen-storage-dsql"]
+aurora-limitless = ["watchmen-storage-aurora-limitless"]
 dynamo = ["watchmen-storage-dynamo"]
 oss = ["watchmen-storage-oss"]
 s3 = ["watchmen-storage-s3"]

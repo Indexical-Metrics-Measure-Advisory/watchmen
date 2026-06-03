@@ -17,6 +17,7 @@ class DataSourceType(str, Enum):
 	MSSQL = 'mssql',
 	POSTGRESQL = 'postgresql',
 	DSQL = 'dsql',
+	AURORA_LIMITLESS = 'aurora-limitless',
 	DYNAMO = 'dynamodb',
 	SNOWFLAKE = 'snowflake',
 	OSS = 'oss',

@@ -220,3 +220,6 @@ def script_builder_factory(data_source_type: DataSourceType) -> ScriptBuilder:
 	if data_source_type == DataSourceType.POSTGRESQL:
 		from watchmen_storage_postgresql import ScriptBuilderPostgreSQL
 		return ScriptBuilderPostgreSQL()
+	if data_source_type == DataSourceType.AURORA_LIMITLESS:
+		from watchmen_storage_aurora_limitless import ScriptBuilderAuroraLimitless
+		return ScriptBuilderAuroraLimitless()
