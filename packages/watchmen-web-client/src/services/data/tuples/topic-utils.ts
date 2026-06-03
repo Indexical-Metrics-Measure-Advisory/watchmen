@@ -24,9 +24,10 @@ export const isRDSStorage = (type: DataSourceType) =>
 		DataSourceType.ORACLE,
 		DataSourceType.POSTGRESQL,
 		DataSourceType.AURORA_LIMITLESS,
+		DataSourceType.DSQL,
 	].includes(type);
 export const isKeyTypeSupported = (type?: DataSourceType) =>
-	type != null && [DataSourceType.DYNAMODB, DataSourceType.AURORA_LIMITLESS].includes(type);
+	type != null && [DataSourceType.DYNAMODB, DataSourceType.AURORA_LIMITLESS, DataSourceType.DSQL].includes(type);
 
 export const isTopicProfileAvailable = (topic?: Topic | QueryTopic | null): boolean => {
 	return (

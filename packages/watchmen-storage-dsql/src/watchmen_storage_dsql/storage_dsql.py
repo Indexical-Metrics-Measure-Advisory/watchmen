@@ -8,7 +8,7 @@ from watchmen_model.admin import FactorType, Topic, Factor
 from watchmen_storage import as_table_name, EntityCriteria, EntitySort, Literal
 from watchmen_storage_rds import build_sort_for_statement, SQLAlchemyStatement, \
 	StorageRDS, TopicDataStorageRDS
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, is_blank
 from watchmen_storage_postgresql.where_build import build_criteria_for_statement, build_literal
 from .table_creator import build_columns_script, build_indexes_script, \
 	build_unique_indexes_script, build_table_script
@@ -53,7 +53,9 @@ class TopicDataStorageDSQL(StorageDSQL, TopicDataStorageRDS):
 		try:
 			self.connect()
 			entity_name = as_table_name(topic)
-			self.connection.execute(text(f"CALL DROP_INDEXES_ON_TOPIC_CHANGED('{entity_name}')"))
+			# Aurora DSQL does not support stored procedures / PL/pgSQL,
+			# so DROP_INDEXES_ON_TOPIC_CHANGED is replaced with explicit DDL.
+			self._drop_non_primary_indexes(entity_name)
 			for column_script in build_columns_script(topic, original_topic):
 				try:
 					self.connection.execute(text(column_script))
@@ -88,6 +90,29 @@ class TopicDataStorageDSQL(StorageDSQL, TopicDataStorageRDS):
 			logger.error(e, exc_info=True, stack_info=True)
 		finally:
 			self.close()
+
+	def _drop_non_primary_indexes(self, entity_name: str) -> None:
+		"""
+		Drop all non-primary indexes of the given table. Equivalent to the
+		``DROP_INDEXES_ON_TOPIC_CHANGED`` procedure used by other PostgreSQL-compatible
+		storages, but implemented with DSQL-compatible DDL only (no stored procs,
+		no PL/pgSQL anonymous blocks). Primary key constraint is preserved.
+		"""
+		try:
+			rows = self.connection.execute(text(
+				"SELECT indexname FROM pg_indexes "
+				"WHERE schemaname = current_schema() AND tablename = :t"
+			), {"t": entity_name}).fetchall()
+			for row in rows:
+				index_name = row[0]
+				if is_blank(index_name):
+					continue
+				try:
+					self.connection.execute(text(f'DROP INDEX IF EXISTS "{index_name}"'))
+				except Exception as e:
+					logger.error(e, exc_info=True, stack_info=True)
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
 
 	def ask_synonym_columns_sql(self, table_name: str) -> str:
 		return \

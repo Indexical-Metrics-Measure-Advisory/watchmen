@@ -223,3 +223,6 @@ def script_builder_factory(data_source_type: DataSourceType) -> ScriptBuilder:
 	if data_source_type == DataSourceType.AURORA_LIMITLESS:
 		from watchmen_storage_aurora_limitless import ScriptBuilderAuroraLimitless
 		return ScriptBuilderAuroraLimitless()
+	if data_source_type == DataSourceType.DSQL:
+		from watchmen_storage_dsql import ScriptBuilderDSQL
+		return ScriptBuilderDSQL()

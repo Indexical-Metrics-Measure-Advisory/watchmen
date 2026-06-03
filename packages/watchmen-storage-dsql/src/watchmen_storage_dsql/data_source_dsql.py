@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Callable, List, Optional
 import urllib.parse
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
@@ -20,9 +20,26 @@ def redress_url_by_psycopg2(url: str) -> str:
 		return url
 
 
+def append_query_param(search: str, key: str, value: str) -> str:
+	encoded = f'{key}={urllib.parse.quote(value, safe="")}'
+	if is_blank(search):
+		return encoded
+	if search.startswith('?'):
+		return f'{search}&{encoded}'
+	return f'?{encoded}'
+
+
 class DSQLDataSourceParams(DataModel):
 	echo: bool = False
-	poolRecycle: int = 3600
+	# Aurora DSQL caps the session lifetime at 1 hour, and rotating IAM
+	# tokens expire in ~15 minutes, so recycle the pool aggressively.
+	poolRecycle: int = 600
+	# Aurora DSQL rejects non-SSL connections.
+	sslMode: str = 'require'
+	# Optional callback returning a fresh IAM auth token. When provided,
+	# the static password is ignored and a new token is fetched per connect.
+	# Signature: (host: str, port: str, username: str) -> str
+	authTokenProvider: Optional[Callable[[str, str, str], str]] = None
 
 
 class DSQLDataSourceHelper(DataSourceHelper):
@@ -89,8 +106,15 @@ class DSQLDataSourceHelper(DataSourceHelper):
 		search = DSQLDataSourceHelper.build_url_search(url_params)
 		if is_not_blank(search):
 			search = f'?{search}'
-		encoded_password = urllib.parse.quote_plus(password)
-		url = f'postgresql+psycopg2://{username}:{encoded_password}@{host}:{port}/{name}{search}'
+		# IAM token takes precedence over the static password.
+		token = params.authTokenProvider(host, port, username) if params.authTokenProvider is not None else password
+		encoded_token = urllib.parse.quote_plus(token or '')
+		url = f'postgresql+psycopg2://{username}:{encoded_token}@{host}:{port}/{name}{search}'
+		# if is_not_blank(params.sslMode):
+		# 	url = append_query_param(url, 'sslmode', params.sslMode)
+
+
+		print(url)
 		return DSQLDataSourceHelper.acquire_engine_by_url(url, params)
 
 	@staticmethod

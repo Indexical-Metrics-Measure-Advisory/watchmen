@@ -172,12 +172,17 @@ def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
 
 	def build_column_script(factor: Tuple[Factor, Optional[Factor]]) -> str:
 		current_factor, original_factor = factor
+		column_name = ask_column_name(factor[0])
+		column_type = ask_column_type(factor[0])
+		# Use single-column ALTER ... syntax instead of the multi-column
+		# `ADD (...)` / `ALTER COLUMN (...)` parenthesized form, which is
+		# a PostgreSQL extension that Aurora DSQL does not support.
 		if original_factor is None:
-			return f'ALTER TABLE {entity_name} ADD ({ask_column_name(factor[0])} {ask_column_type(factor[0])})'
+			return f'ALTER TABLE {entity_name} ADD COLUMN {column_name} {column_type}'
 		elif current_factor.flatten and not original_factor.flatten:
-			return f'ALTER TABLE {entity_name} ADD ({ask_column_name(factor[0])} {ask_column_type(factor[0])})'
+			return f'ALTER TABLE {entity_name} ADD COLUMN {column_name} {column_type}'
 		else:
-			return f'ALTER TABLE {entity_name} ALTER COLUMN ({ask_column_name(factor[0])} TYPE {ask_column_type(factor[0])})'
+			return f'ALTER TABLE {entity_name} ALTER COLUMN {column_name} TYPE {column_type}'
 
 	if is_raw_topic(topic):
 		factors = ArrayHelper(topic.factors) \

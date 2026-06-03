@@ -12,7 +12,7 @@ def build_mysql_storage(data_source: DataSource) -> Callable[[], TopicDataStorag
 
 
 def build_oracle_storage(data_source: DataSource) -> Callable[[], TopicDataStorageSPI]:
-	from j import StorageOracleConfiguration, OracleDataSourceParams
+	from watchmen_storage_oracle import StorageOracleConfiguration, OracleDataSourceParams
 	configuration = StorageOracleConfiguration(data_source, OracleDataSourceParams(echo=ask_storage_echo_enabled()))
 	return lambda: configuration.create_topic_data_storage()
 

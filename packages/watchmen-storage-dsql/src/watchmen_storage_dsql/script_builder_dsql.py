@@ -24,11 +24,16 @@ VALUES ({insert_into_statement_build_values(values)});\n
 
 	def sql_update(self, table_name: str, primary_key: str, data: dict) -> str:
 		sets = []
+		id_ = None
 		for key, value in data.items():
 			if key == primary_key:
 				id_ = escape_value(value)
-			set_script = f'{key} = {escape_value(value)}'
-			sets.append(set_script)
+				continue
+			sets.append(f'{key} = {escape_value(value)}')
+		if id_ is None:
+			raise ValueError(f'Primary key[{primary_key}] not found in data for update on table[{table_name}].')
+		if not sets:
+			raise ValueError(f'No columns to update for table[{table_name}].')
 		script = f'''
 UPDATE {table_name} SET {", ".join(sets)} WHERE {primary_key} = {id_};\n'''
 		return script
@@ -50,26 +55,28 @@ def insert_into_statement_build_values(values: List) -> str:
 	return ", ".join(ArrayHelper(values).map(escape_value).to_list())
 
 
+def escape_string(value: str) -> str:
+	return "'" + value.replace("'", "''") + "'"
+
+
 def escape_value(value) -> str:
-	if value:
-		if isinstance(value, str):
-			return f"'{value}'"
-		elif isinstance(value, int):
-			return f"{str(value)}"
-		elif isinstance(value, dict):
-			return f"'{dumps(value)}'"
-		elif isinstance(value, list):
-			return f"'{dumps(value)}'"
-		elif isinstance(value, datetime):
-			return f"""
-'{value.strftime("%Y-%m-%d %H:%M:%S")}'
-"""
-		elif isinstance(value, date):
-			return f"""
-'{value.strftime("%Y-%m-%d")}'
-"""
-	else:
-		return f"null"
+	if value is None:
+		return "null"
+	if isinstance(value, bool):
+		return "true" if value else "false"
+	if isinstance(value, str):
+		return escape_string(value)
+	if isinstance(value, (int, float)):
+		return str(value)
+	if isinstance(value, dict):
+		return escape_string(dumps(value))
+	if isinstance(value, list):
+		return escape_string(dumps(value))
+	if isinstance(value, datetime):
+		return escape_string(value.strftime("%Y-%m-%d %H:%M:%S"))
+	if isinstance(value, date):
+		return escape_string(value.strftime("%Y-%m-%d"))
+	return escape_string(str(value))
 
 
 def create_index_for_table(entity_name: str) -> str:

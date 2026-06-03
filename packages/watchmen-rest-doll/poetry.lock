@@ -4436,6 +4436,9 @@ pycryptodome = "^3.20.0"
 watchmen-meta = {path = "../watchmen-meta", develop = true}
 
 [package.extras]
+aurora-limitless = ["watchmen-storage-aurora-limitless @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-aurora-limitless"]
+dsql = ["watchmen-storage-dsql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-dsql"]
+dynamo = ["watchmen-storage-dynamo @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-dynamo"]
 mongodb = ["watchmen-storage-mongodb @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mssql"]
 mysql = ["watchmen-storage-mysql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mysql"]
@@ -4463,6 +4466,7 @@ watchmen-data-kernel = {path = "../watchmen-data-kernel", develop = true}
 watchmen-rest = {path = "../watchmen-rest", develop = true}
 
 [package.extras]
+dynamo = ["watchmen-storage-dynamo @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-dynamo"]
 mongodb = ["watchmen-storage-mongodb @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mssql"]
 mysql = ["watchmen-storage-mysql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mysql"]
@@ -4791,6 +4795,26 @@ watchmen-storage = {path = "../watchmen-storage", develop = true}
 [package.source]
 type = "directory"
 url = "../watchmen-storage-adls"
+
+[[package]]
+name = "watchmen-storage-dynamo"
+version = "18.0.0"
+description = ""
+optional = true
+python-versions = "~3.12"
+groups = ["main"]
+markers = "extra == \"dynamo\""
+files = []
+develop = true
+
+[package.dependencies]
+boto3 = "^1.34.131"
+watchmen-model = {path = "../watchmen-model", develop = true}
+watchmen-storage = {path = "../watchmen-storage", develop = true}
+
+[package.source]
+type = "directory"
+url = "../watchmen-storage-dynamo"
 
 [[package]]
 name = "watchmen-storage-mongodb"
@@ -5285,6 +5309,7 @@ reference = "foo"
 [extras]
 adls = ["watchmen-storage-adls"]
 boto3 = []
+dynamo = ["watchmen-storage-dynamo"]
 es-ext-writer = []
 kafka = ["aiokafka", "kafka-python"]
 mongodb = ["watchmen-storage-mongodb"]
@@ -5303,4 +5328,4 @@ trino = ["watchmen-inquiry-trino"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.12"
-content-hash = "02198a8671c0be56ba70df94d8e0691c948711f305aab5a16c094b349a3e258b"
+content-hash = "2d15344be3b8377dfc20faaa2412115e45a5c43c61561bad5e18bc3306d420cf"

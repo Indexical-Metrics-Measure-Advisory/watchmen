@@ -2,13 +2,23 @@ from typing import List, Optional  # noqa
 
 from sqlalchemy import Column, Date, DateTime, DECIMAL, Integer, String, Table, Time
 
-from watchmen_model.system import DataSource
+from watchmen_model.system import DataSource, DataSourceType
 from watchmen_model.admin import Factor, FactorType, Topic, TopicKind
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import as_table_name, UnexpectedStorageException, DataSourceHelper
 from watchmen_utilities import ArrayHelper, is_blank
 from .table_defs_helper import create_bool, create_datetime, create_int, create_json, create_pk, \
 	create_tuple_id_column, meta_data
+
+
+def is_dsql_data_source(datasource: Optional[DataSource]) -> bool:
+	return datasource is not None and datasource.dataSourceType == DataSourceType.DSQL
+
+
+def create_topic_id_pk(datasource: Optional[DataSource]) -> Column:
+	if is_dsql_data_source(datasource):
+		return create_pk(TopicDataColumnNames.ID.value, String(64))
+	return create_pk(TopicDataColumnNames.ID.value, Integer)
 
 
 def create_column(factor: Factor) -> Column:
@@ -136,7 +146,7 @@ def build_by_raw(topic: Topic, datasource: DataSource) -> Table:
 		columns = create_columns(ArrayHelper(topic.factors).filter(lambda x: '.' not in x.name).to_list())
 	else:
 		columns = [
-			create_pk(TopicDataColumnNames.ID.value, Integer),
+			create_topic_id_pk(datasource),
 			*create_columns(ArrayHelper(topic.factors).filter(lambda x: x.flatten).to_list()),
 			create_json(TopicDataColumnNames.RAW_TOPIC_DATA.value),
 			create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
@@ -157,7 +167,7 @@ def build_by_aggregation(topic: Topic, datasource: DataSource) -> Table:
 		columns = create_columns(topic.factors)
 	else:
 		columns = [
-			create_pk(TopicDataColumnNames.ID.value, Integer),
+			create_topic_id_pk(datasource),
 			*create_columns(topic.factors),
 			create_json(TopicDataColumnNames.AGGREGATE_ASSIST.value),
 			create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
@@ -179,7 +189,7 @@ def build_by_regular(topic: Topic, datasource: DataSource) -> Table:
 		columns = create_columns(topic.factors)
 	else:
 		columns = [
-			create_pk(TopicDataColumnNames.ID.value, Integer),
+			create_topic_id_pk(datasource),
 			*create_columns(topic.factors),
 			create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
 			create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
