@@ -1,6 +1,6 @@
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
-from watchmen_model.admin import Factor, FactorType, is_aggregation_topic, is_raw_topic, Topic
+from watchmen_model.admin import Factor, FactorKeyType, FactorType, is_aggregation_topic, is_raw_topic, Topic
 from watchmen_storage import as_table_name
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
@@ -149,6 +149,22 @@ def build_version_column(topic: Topic) -> str:
 	return f'\tversion_ INTEGER,' if is_aggregation_topic(topic) else ''
 
 
+def find_partition_key_factor(topic: Topic) -> Optional[Factor]:
+	if topic.factors is None:
+		return None
+	partition_factors = ArrayHelper(topic.factors) \
+		.filter(lambda x: x.keyType == FactorKeyType.PARTITION) \
+		.to_list()
+	if len(partition_factors) == 0:
+		return None
+	if len(partition_factors) > 1:
+		raise ValueError(
+			f'Only one factor can be marked as keyType=PARTITION in topic[name={topic.name}]; '
+			f'found {len(partition_factors)}.'
+		)
+	return partition_factors[0]
+
+
 def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
 	entity_name = as_table_name(topic)
 	original_factors: Dict[str, Factor] = ArrayHelper(original_topic.factors) \
@@ -215,6 +231,15 @@ def build_indexes_script(topic: Topic) -> List[str]:
 
 def build_table_script(topic: Topic) -> str:
 	entity_name = as_table_name(topic)
+	if is_raw_topic(topic):
+		primary_key_column = 'id_'
+	elif (partition_key := find_partition_key_factor(topic)) is not None:
+		primary_key_column = ask_column_name(partition_key)
+	else:
+		raise ValueError(
+			f'Non-raw topic[name={topic.name}] must have exactly one factor marked as keyType=PARTITION '
+			f'to serve as the primary key / DSQL distribution key.'
+		)
 	return f'''
 CREATE TABLE {entity_name} (
 \tid_ VARCHAR(64),
@@ -224,5 +249,5 @@ CREATE TABLE {entity_name} (
 \ttenant_id_ VARCHAR(50),
 \tinsert_time_ TIMESTAMP,
 \tupdate_time_ TIMESTAMP,
-\tCONSTRAINT pk_{entity_name} PRIMARY KEY (id_)
+\tCONSTRAINT pk_{entity_name} PRIMARY KEY ({primary_key_column})
 )'''

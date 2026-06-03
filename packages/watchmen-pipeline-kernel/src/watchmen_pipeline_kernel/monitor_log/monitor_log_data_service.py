@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_datetime_formats

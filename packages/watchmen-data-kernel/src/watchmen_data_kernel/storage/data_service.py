@@ -5,9 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.cache import CacheService
 from watchmen_data_kernel.common import DataKernelException
-from watchmen_data_kernel.meta import DataSourceService
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import PipelineTriggerType, Topic
@@ -104,6 +102,8 @@ class TopicDataService(TopicStructureService):
 		return self.principalService
 
 	def _ask_data_source_type(self) -> Optional[DataSourceType]:
+		from watchmen_data_kernel.cache import CacheService
+		from watchmen_data_kernel.meta import DataSourceService
 		topic = self.get_topic()
 		data_source_id = topic.dataSourceId
 		if data_source_id is None:
