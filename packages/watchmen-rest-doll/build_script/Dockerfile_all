@@ -8,7 +8,7 @@ RUN        apt-get update && apt-get install -y curl && apt-get install -y gnupg
            && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR    /opt/oracle
-RUN        apt-get update && apt-get install -y wget unzip build-essential libaio1 \
+RUN        apt-get update && apt-get install -y wget unzip build-essential libaio1t64 \
             && wget https://download.oracle.com/otn_software/linux/instantclient/2326000/instantclient-basiclite-linux.x64-23.26.0.0.0.zip \
             && unzip instantclient-basiclite-linux.x64-23.26.0.0.0.zip \
             && rm -f instantclient-basiclite-linux.x64-23.26.0.0.0.zip \
