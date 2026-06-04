@@ -10,6 +10,7 @@ from watchmen_storage import DataSourceHelper
 from watchmen_storage_rds import ask_sql_alchemy_pool_size, ask_sql_alchemy_pool_max_overflow, \
 	ask_sql_alchemy_use_null_pool
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, serialize_to_json
+from .schema_helper import get_schema_from_datasource
 from .storage_dsql import StorageDSQL, TopicDataStorageDSQL
 
 
@@ -139,4 +140,5 @@ class DSQLDataSourceHelper(DataSourceHelper):
 		return StorageDSQL(self.engine)
 
 	def acquire_topic_data_storage(self) -> TopicDataStorageDSQL:
-		return TopicDataStorageDSQL(self.engine)
+		schema = get_schema_from_datasource(self.dataSource)
+		return TopicDataStorageDSQL(self.engine, schema)

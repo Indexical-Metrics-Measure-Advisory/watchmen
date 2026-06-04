@@ -2,14 +2,15 @@ from functools import cache
 from logging import getLogger
 from typing import Any, Callable, List, Optional, Tuple
 
-from sqlalchemy import Table, text
+from sqlalchemy import Table, text, Engine
 
 from watchmen_model.admin import FactorType, Topic, Factor
 from watchmen_storage import as_table_name, EntityCriteria, EntitySort, Literal
 from watchmen_storage_rds import build_sort_for_statement, SQLAlchemyStatement, \
 	StorageRDS, TopicDataStorageRDS
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 from watchmen_storage_postgresql.where_build import build_criteria_for_statement, build_literal
+from .schema_helper import ask_table_identifier
 from .table_creator import build_columns_script, build_indexes_script, \
 	build_unique_indexes_script, build_table_script
 
@@ -28,22 +29,29 @@ class StorageDSQL(StorageRDS):
 
 
 class TopicDataStorageDSQL(StorageDSQL, TopicDataStorageRDS):
+	def __init__(self, engine: Engine, schema: Optional[str] = None):
+		super().__init__(engine)
+		self.schema = schema
+
 	def create_topic_entity(self, topic: Topic) -> None:
 		try:
 			self.connect()
 			entity_name = as_table_name(topic)
-			script = build_table_script(topic)
+			qualified_entity = ask_table_identifier(entity_name, self.schema)
+			if is_not_blank(self.schema):
+				self.connection.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{self.schema}"'))
+			script = build_table_script(topic, self.schema)
 			self.connection.execute(text(script))
-			for unique_index_script in build_unique_indexes_script(topic):
+			for unique_index_script in build_unique_indexes_script(topic, self.schema):
 				self.connection.execute(text(unique_index_script))
-			for index_script in build_indexes_script(topic):
+			for index_script in build_indexes_script(topic, self.schema):
 				self.connection.execute(text(index_script))
 			self.connection.execute(
-				text(f'CREATE INDEX i_{entity_name}_tenant_id_ ON {entity_name} (tenant_id_)'))
+				text(f'CREATE INDEX i_{entity_name}_tenant_id_ ON {qualified_entity} (tenant_id_)'))
 			self.connection.execute(
-				text(f'CREATE INDEX i_{entity_name}_insert_time_ ON {entity_name} (insert_time_)'))
+				text(f'CREATE INDEX i_{entity_name}_insert_time_ ON {qualified_entity} (insert_time_)'))
 			self.connection.execute(
-				text(f'CREATE INDEX i_{entity_name}_update_time_ ON {entity_name} (update_time_)'))
+				text(f'CREATE INDEX i_{entity_name}_update_time_ ON {qualified_entity} (update_time_)'))
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
 		finally:
@@ -53,37 +61,38 @@ class TopicDataStorageDSQL(StorageDSQL, TopicDataStorageRDS):
 		try:
 			self.connect()
 			entity_name = as_table_name(topic)
+			qualified_entity = ask_table_identifier(entity_name, self.schema)
 			# Aurora DSQL does not support stored procedures / PL/pgSQL,
 			# so DROP_INDEXES_ON_TOPIC_CHANGED is replaced with explicit DDL.
 			self._drop_non_primary_indexes(entity_name)
-			for column_script in build_columns_script(topic, original_topic):
+			for column_script in build_columns_script(topic, original_topic, self.schema):
 				try:
 					self.connection.execute(text(column_script))
 				except Exception as e:
 					logger.error(e, exc_info=True, stack_info=True)
-			for unique_index_script in build_unique_indexes_script(topic):
+			for unique_index_script in build_unique_indexes_script(topic, self.schema):
 				try:
 					self.connection.execute(text(unique_index_script))
 				except Exception as e:
 					logger.error(e, exc_info=True, stack_info=True)
-			for index_script in build_indexes_script(topic):
+			for index_script in build_indexes_script(topic, self.schema):
 				try:
 					self.connection.execute(text(index_script))
 				except Exception as e:
 					logger.error(e, exc_info=True, stack_info=True)
 			try:
 				self.connection.execute(
-					text(f'CREATE INDEX i_{entity_name}_tenant_id_ ON {entity_name} (tenant_id_)'))
+					text(f'CREATE INDEX i_{entity_name}_tenant_id_ ON {qualified_entity} (tenant_id_)'))
 			except Exception as e:
 				logger.error(e, exc_info=True, stack_info=True)
 			try:
 				self.connection.execute(
-					text(f'CREATE INDEX i_{entity_name}_insert_time_ ON {entity_name} (insert_time_)'))
+					text(f'CREATE INDEX i_{entity_name}_insert_time_ ON {qualified_entity} (insert_time_)'))
 			except Exception as e:
 				logger.error(e, exc_info=True, stack_info=True)
 			try:
 				self.connection.execute(
-					text(f'CREATE INDEX i_{entity_name}_update_time_ ON {entity_name} (update_time_)'))
+					text(f'CREATE INDEX i_{entity_name}_update_time_ ON {qualified_entity} (update_time_)'))
 			except Exception as e:
 				logger.error(e, exc_info=True, stack_info=True)
 		except Exception as e:
@@ -99,10 +108,16 @@ class TopicDataStorageDSQL(StorageDSQL, TopicDataStorageRDS):
 		no PL/pgSQL anonymous blocks). Primary key constraint is preserved.
 		"""
 		try:
-			rows = self.connection.execute(text(
-				"SELECT indexname FROM pg_indexes "
-				"WHERE schemaname = current_schema() AND tablename = :t"
-			), {"t": entity_name}).fetchall()
+			if is_blank(self.schema):
+				rows = self.connection.execute(text(
+					"SELECT indexname FROM pg_indexes "
+					"WHERE schemaname = current_schema() AND tablename = :t"
+				), {"t": entity_name}).fetchall()
+			else:
+				rows = self.connection.execute(text(
+					"SELECT indexname FROM pg_indexes "
+					"WHERE schemaname = :s AND tablename = :t"
+				), {"s": self.schema, "t": entity_name}).fetchall()
 			for row in rows:
 				index_name = row[0]
 				if is_blank(index_name):

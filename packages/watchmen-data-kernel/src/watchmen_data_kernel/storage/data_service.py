@@ -2,8 +2,6 @@ from abc import abstractmethod
 from datetime import datetime
 from logging import getLogger
 from typing import Any, Dict, List, Optional, Tuple, Union
-from uuid import uuid4
-
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import DataKernelException
 from watchmen_data_kernel.topic_schema import TopicSchema
@@ -14,7 +12,7 @@ from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_model.system import DataSourceType
 from watchmen_storage import EntityColumnName, EntityCriteria, EntityPager, EntityStraightColumn, SnowflakeGenerator, \
 	TopicDataStorageSPI, EntityId, EntitySort
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, uuid7_str
 from .data_entity_helper import TopicDataEntityHelper
 
 logger = getLogger(__name__)
@@ -119,7 +117,7 @@ class TopicDataService(TopicStructureService):
 	def _generate_id(self) -> Any:
 		data_source_type = self._ask_data_source_type()
 		if data_source_type == DataSourceType.DSQL:
-			return str(uuid4()).replace('-', '')
+			return uuid7_str()
 		return self.snowflakeGenerator.next_id()
 
 	# noinspection PyMethodMayBeStatic

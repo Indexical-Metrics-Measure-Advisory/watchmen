@@ -1,6 +1,6 @@
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
-from watchmen_model.admin import Factor, FactorKeyType, FactorType, is_aggregation_topic, is_raw_topic, Topic
+from watchmen_model.admin import Factor, FactorType, is_aggregation_topic, is_raw_topic, Topic
 from watchmen_storage import as_table_name
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
@@ -149,24 +149,9 @@ def build_version_column(topic: Topic) -> str:
 	return f'\tversion_ INTEGER,' if is_aggregation_topic(topic) else ''
 
 
-def find_partition_key_factor(topic: Topic) -> Optional[Factor]:
-	if topic.factors is None:
-		return None
-	partition_factors = ArrayHelper(topic.factors) \
-		.filter(lambda x: x.keyType == FactorKeyType.PARTITION) \
-		.to_list()
-	if len(partition_factors) == 0:
-		return None
-	if len(partition_factors) > 1:
-		raise ValueError(
-			f'Only one factor can be marked as keyType=PARTITION in topic[name={topic.name}]; '
-			f'found {len(partition_factors)}.'
-		)
-	return partition_factors[0]
-
-
-def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
+def build_columns_script(topic: Topic, original_topic: Topic, schema: Optional[str] = None) -> List[str]:
 	entity_name = as_table_name(topic)
+	qualified_entity = f'"{schema}"."{entity_name}"' if is_not_blank(schema) else entity_name
 	original_factors: Dict[str, Factor] = ArrayHelper(original_topic.factors) \
 		.to_map(lambda x: x.name.strip().lower(), lambda x: x)
 
@@ -178,11 +163,11 @@ def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
 		# `ADD (...)` / `ALTER COLUMN (...)` parenthesized form, which is
 		# a PostgreSQL extension that Aurora DSQL does not support.
 		if original_factor is None:
-			return f'ALTER TABLE {entity_name} ADD COLUMN {column_name} {column_type}'
+			return f'ALTER TABLE {qualified_entity} ADD COLUMN {column_name} {column_type}'
 		elif current_factor.flatten and not original_factor.flatten:
-			return f'ALTER TABLE {entity_name} ADD COLUMN {column_name} {column_type}'
+			return f'ALTER TABLE {qualified_entity} ADD COLUMN {column_name} {column_type}'
 		else:
-			return f'ALTER TABLE {entity_name} ALTER COLUMN {column_name} TYPE {column_type}'
+			return f'ALTER TABLE {qualified_entity} ALTER COLUMN {column_name} TYPE {column_type}'
 
 	if is_raw_topic(topic):
 		factors = ArrayHelper(topic.factors) \
@@ -197,56 +182,50 @@ def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
 		.to_list()
 
 	if is_raw_topic(topic) and not is_raw_topic(original_topic):
-		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN data_ JSON')
+		columns.append(f'ALTER TABLE {qualified_entity} ADD COLUMN data_ JSON')
 
 	if is_aggregation_topic(topic) and not is_aggregation_topic(original_topic):
-		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN aggregate_assist_ JSON')
-		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN version_ INTEGER')
+		columns.append(f'ALTER TABLE {qualified_entity} ADD COLUMN aggregate_assist_ JSON')
+		columns.append(f'ALTER TABLE {qualified_entity} ADD COLUMN version_ INTEGER')
 
 	return columns
 
 
-def build_unique_indexes_script(topic: Topic) -> List[str]:
+def build_unique_indexes_script(topic: Topic, schema: Optional[str] = None) -> List[str]:
 	index_groups: Dict[str, List[Factor]] = ArrayHelper(topic.factors) \
 		.filter(lambda x: is_not_blank(x.indexGroup) and x.indexGroup.startswith('u-')) \
 		.group_by(lambda x: x.indexGroup)
+	qualified_entity = f'"{schema}"."{as_table_name(topic)}"' if is_not_blank(schema) else as_table_name(topic)
 
 	def build_unique_index(factors: List[Factor], index: int) -> str:
 		return \
-			f'CREATE UNIQUE INDEX u_{as_table_name(topic)}_{index + 1} ON {as_table_name(topic)} ' \
+			f'CREATE UNIQUE INDEX ASYNC u_{as_table_name(topic)}_{index + 1} ON {qualified_entity} ' \
 			f'({ArrayHelper(factors).map(lambda x: ask_column_name(x)).join(",")})'
 
 	return ArrayHelper(list(index_groups.values())) \
 		.map_with_index(lambda x, index: build_unique_index(x, index)).to_list()
 
 
-def build_indexes_script(topic: Topic) -> List[str]:
+def build_indexes_script(topic: Topic, schema: Optional[str] = None) -> List[str]:
 	index_groups: Dict[str, List[Factor]] = ArrayHelper(topic.factors) \
 		.filter(lambda x: is_not_blank(x.indexGroup) and x.indexGroup.startswith('i-')) \
 		.group_by(lambda x: x.indexGroup)
+	qualified_entity = f'"{schema}"."{as_table_name(topic)}"' if is_not_blank(schema) else as_table_name(topic)
 
 	def build_index(factors: List[Factor], index: int) -> str:
 		return \
-			f'CREATE INDEX i_{as_table_name(topic)}_{index + 1} ON {as_table_name(topic)} ' \
+			f'CREATE INDEX ASYNC i_{as_table_name(topic)}_{index + 1} ON {qualified_entity} ' \
 			f'({ArrayHelper(factors).map(lambda x: ask_column_name(x)).join(",")})'
 
 	return ArrayHelper(list(index_groups.values())) \
 		.map_with_index(lambda x, index: build_index(x, index)).to_list()
 
 
-def build_table_script(topic: Topic) -> str:
+def build_table_script(topic: Topic, schema: Optional[str] = None) -> str:
 	entity_name = as_table_name(topic)
-	if is_raw_topic(topic):
-		primary_key_column = 'id_'
-	elif (partition_key := find_partition_key_factor(topic)) is not None:
-		primary_key_column = ask_column_name(partition_key)
-	else:
-		raise ValueError(
-			f'Non-raw topic[name={topic.name}] must have exactly one factor marked as keyType=PARTITION '
-			f'to serve as the primary key / DSQL distribution key.'
-		)
+	qualified_entity = f'"{schema}"."{entity_name}"' if is_not_blank(schema) else entity_name
 	return f'''
-CREATE TABLE {entity_name} (
+CREATE TABLE {qualified_entity} (
 \tid_ VARCHAR(64),
 {build_columns(topic)}
 {build_aggregate_assist_column(topic)}
@@ -254,5 +233,5 @@ CREATE TABLE {entity_name} (
 \ttenant_id_ VARCHAR(50),
 \tinsert_time_ TIMESTAMP,
 \tupdate_time_ TIMESTAMP,
-\tCONSTRAINT pk_{entity_name} PRIMARY KEY ({primary_key_column})
+\tCONSTRAINT pk_{entity_name} PRIMARY KEY (id_)
 )'''
