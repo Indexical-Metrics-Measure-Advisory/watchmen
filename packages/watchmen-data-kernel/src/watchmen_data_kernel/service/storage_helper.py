@@ -1,4 +1,3 @@
-from logging import getLogger
 from typing import Union
 
 from watchmen_auth import PrincipalService
@@ -10,8 +9,6 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Topic
 from watchmen_storage import TopicDataStorageSPI
 from watchmen_utilities import is_blank
-
-logger = getLogger(__name__)
 
 
 def get_data_source_service(principal_service: PrincipalService) -> DataSourceService:
@@ -28,27 +25,13 @@ def ask_topic_storage(
 
 	build = CacheService.data_source().get_builder(data_source_id)
 	if build is not None:
-		cached_ds = CacheService.data_source().get(data_source_id)
-		cached_type = cached_ds.dataSourceType if cached_ds is not None else None
-		logger.debug(
-			f'[STORAGE-DBG] HIT-CACHE topic[name={topic.name}, id={topic.topicId}] '
-			f'dataSourceId={data_source_id} cached_type={cached_type} '
-			f'builder={build} (this builder was created earlier and is being reused)')
 		return build()
-
-	logger.debug(
-		f'[STORAGE-DBG] MISS-CACHE topic[name={topic.name}, id={topic.topicId}] '
-		f'dataSourceId={data_source_id} -> loading from meta and building...')
 
 	data_source = get_data_source_service(principal_service).find_by_id(data_source_id)
 	if data_source is None:
 		raise DataKernelException(
 			f'Data source not declared for topic'
 			f'[id={topic.topicId}, name={topic.name}, dataSourceId={data_source_id}]')
-
-	logger.debug(
-		f'[STORAGE-DBG] LOADED topic[name={topic.name}] dataSourceId={data_source_id} '
-		f'actual_type={data_source.dataSourceType} dataSourceName={data_source.name}')
 
 	build = build_topic_data_storage(data_source)
 	CacheService.data_source().put_builder(data_source_id, build)

@@ -1,237 +1,70 @@
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import List, Optional
 
-from watchmen_model.admin import Factor, FactorType, is_aggregation_topic, is_raw_topic, Topic
-from watchmen_storage import as_table_name
-from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
+from watchmen_model.admin import FactorType, Topic
+from watchmen_storage_rds.postgres_table_creator_base import PostgreSQLTableCreatorBase
 
-
-def ask_column_name(factor: Factor) -> str:
-	return factor.name.strip().lower().replace('.', '_').replace('-', '_').replace(' ', '_')
+from .schema_helper import ask_table_identifier
 
 
-def varchar_column(precision: str) -> str:
-	return f'VARCHAR({precision})'
+class DSQLTableCreator(PostgreSQLTableCreatorBase):
+	"""Aurora DSQL flavour.
+
+	* ``id_`` is VARCHAR(64) -- DSQL primary keys are strings.
+	* Indexes are created with ``CREATE INDEX ASYNC`` so the DDL returns
+	  immediately and the index is built in the background.
+	* Table identifiers are schema-qualified (``"schema"."table"``) when
+	  the caller provides a schema.
+	* ALTER uses the single-column form because DSQL does not support the
+	  PostgreSQL ``ADD (col, col)`` / ``ALTER COLUMN (...)`` multi-column
+	  syntax.
+	"""
+
+	id_column_type: str = 'VARCHAR(64)'
+	index_async: bool = True
+
+	def qualified_table_identifier(self, table_name: str, schema: Optional[str]) -> str:
+		return ask_table_identifier(table_name, schema)
+
+	def alter_add_column(self, qualified_entity: str, column_name: str, column_type: str) -> str:
+		return f'ALTER TABLE {qualified_entity} ADD COLUMN {column_name} {column_type}'
+
+	def alter_modify_column(self, qualified_entity: str, column_name: str, column_type: str) -> str:
+		return f'ALTER TABLE {qualified_entity} ALTER COLUMN {column_name} TYPE {column_type}'
+
+	# DSQL has no native auto-increment BIGINT; keep SEQUENCE columns as
+	# pre-allocated strings, consistent with the id_ PK type.
+	FactorTypeMap = {
+		**PostgreSQLTableCreatorBase.FactorTypeMap,
+		FactorType.SEQUENCE: 'VARCHAR(64)',
+	}
 
 
-def varchar_10(precision: Optional[str] = '10') -> str:
-	return varchar_column('10' if is_blank(precision) else precision)
-
-
-def varchar_20(precision: Optional[str] = '20') -> str:
-	return varchar_column('20' if is_blank(precision) else precision)
-
-
-def varchar_50(precision: Optional[str] = '50') -> str:
-	return varchar_column('50' if is_blank(precision) else precision)
-
-
-def varchar_100(precision: Optional[str] = '100') -> str:
-	return varchar_column('100' if is_blank(precision) else precision)
-
-
-def varchar_255(precision: Optional[str] = '255') -> str:
-	return varchar_column('255' if is_blank(precision) else precision)
-
-
-def decimal_column(precision: str) -> str:
-	return f'DECIMAL({precision})'
-
-
-def decimal_10_2(precision: Optional[str] = '10,2') -> str:
-	return decimal_column('10,2' if is_blank(precision) else precision)
-
-
-def decimal_32_6(precision: Optional[str] = '32,6') -> str:
-	return decimal_column('32,6' if is_blank(precision) else precision)
-
-
-FactorTypeMap: Dict[FactorType, Union[str, Callable[[Optional[str]], str]]] = {
-	FactorType.SEQUENCE: 'VARCHAR(64)',
-
-	FactorType.NUMBER: decimal_32_6,
-	FactorType.UNSIGNED: decimal_32_6,
-
-	FactorType.TEXT: varchar_255,
-
-	FactorType.ADDRESS: 'VARCHAR(1024)',
-	FactorType.CONTINENT: varchar_10,
-	FactorType.REGION: varchar_10,
-	FactorType.COUNTRY: varchar_10,
-	FactorType.PROVINCE: varchar_10,
-	FactorType.CITY: varchar_10,
-	FactorType.DISTRICT: varchar_255,
-	FactorType.ROAD: varchar_255,
-	FactorType.COMMUNITY: varchar_100,
-	FactorType.FLOOR: 'SMALLINT',
-	FactorType.RESIDENCE_TYPE: varchar_10,
-	FactorType.RESIDENTIAL_AREA: decimal_10_2,
-
-	FactorType.EMAIL: varchar_100,
-	FactorType.PHONE: varchar_50,
-	FactorType.MOBILE: varchar_50,
-	FactorType.FAX: varchar_50,
-
-	FactorType.DATETIME: 'TIMESTAMP',
-	FactorType.FULL_DATETIME: 'TIMESTAMP',
-	FactorType.DATE: 'DATE',
-	FactorType.TIME: 'TIME',
-	FactorType.YEAR: 'SMALLINT',
-	FactorType.HALF_YEAR: 'SMALLINT',
-	FactorType.QUARTER: 'SMALLINT',
-	FactorType.MONTH: 'SMALLINT',
-	FactorType.HALF_MONTH: 'SMALLINT',
-	FactorType.TEN_DAYS: 'SMALLINT',
-	FactorType.WEEK_OF_YEAR: 'SMALLINT',
-	FactorType.WEEK_OF_MONTH: 'SMALLINT',
-	FactorType.HALF_WEEK: 'SMALLINT',
-	FactorType.DAY_OF_MONTH: 'SMALLINT',
-	FactorType.DAY_OF_WEEK: 'SMALLINT',
-	FactorType.DAY_KIND: 'SMALLINT',
-	FactorType.HOUR: 'SMALLINT',
-	FactorType.HOUR_KIND: 'SMALLINT',
-	FactorType.MINUTE: 'SMALLINT',
-	FactorType.SECOND: 'SMALLINT',
-	FactorType.MILLISECOND: 'SMALLINT',
-	FactorType.AM_PM: 'SMALLINT',
-
-	FactorType.GENDER: varchar_10,
-	FactorType.OCCUPATION: varchar_10,
-	FactorType.DATE_OF_BIRTH: 'DATE',
-	FactorType.AGE: 'SMALLINT',
-	FactorType.ID_NO: varchar_50,
-	FactorType.RELIGION: varchar_10,
-	FactorType.NATIONALITY: varchar_10,
-
-	FactorType.BIZ_TRADE: varchar_10,
-	FactorType.BIZ_SCALE: 'DECIMAL(9)',
-
-	FactorType.BOOLEAN: 'SMALLINT',
-
-	FactorType.ENUM: varchar_20,
-
-	FactorType.OBJECT: 'JSON',
-	FactorType.ARRAY: 'JSON'
-}
-
-
-def ask_column_type(factor: Factor) -> str:
-	column_type = FactorTypeMap.get(factor.type)
-	if isinstance(column_type, str):
-		return column_type
-	elif is_blank(factor.precision):
-		return column_type()
-	else:
-		return column_type(factor.precision.strip())
+_creator = DSQLTableCreator()
 
 
 def build_columns(topic: Topic) -> str:
-	if is_raw_topic(topic):
-		flatten_factors = ArrayHelper(topic.factors) \
-			.filter(lambda x: x.flatten) \
-			.map(lambda x: f'\t{ask_column_name(x)} {ask_column_type(x)},') \
-			.to_list()
-		if len(flatten_factors) == 0:
-			return '\tdata_ JSON,'
-		else:
-			return '\n'.join(flatten_factors) + '\n\tdata_ JSON,'
-	else:
-		return ArrayHelper(topic.factors) \
-			.filter(lambda x: '.' not in x.name) \
-			.map(lambda x: f'\t{ask_column_name(x)} {ask_column_type(x)},') \
-			.join('\n')
+	return _creator.build_columns(topic)
 
 
 def build_aggregate_assist_column(topic: Topic) -> str:
-	return f'\taggregate_assist_ JSON,' if is_aggregation_topic(topic) else ''
+	return PostgreSQLTableCreatorBase.build_aggregate_assist_column(topic)
 
 
 def build_version_column(topic: Topic) -> str:
-	return f'\tversion_ INTEGER,' if is_aggregation_topic(topic) else ''
+	return PostgreSQLTableCreatorBase.build_version_column(topic)
 
 
 def build_columns_script(topic: Topic, original_topic: Topic, schema: Optional[str] = None) -> List[str]:
-	entity_name = as_table_name(topic)
-	qualified_entity = f'"{schema}"."{entity_name}"' if is_not_blank(schema) else entity_name
-	original_factors: Dict[str, Factor] = ArrayHelper(original_topic.factors) \
-		.to_map(lambda x: x.name.strip().lower(), lambda x: x)
-
-	def build_column_script(factor: Tuple[Factor, Optional[Factor]]) -> str:
-		current_factor, original_factor = factor
-		column_name = ask_column_name(factor[0])
-		column_type = ask_column_type(factor[0])
-		# Use single-column ALTER ... syntax instead of the multi-column
-		# `ADD (...)` / `ALTER COLUMN (...)` parenthesized form, which is
-		# a PostgreSQL extension that Aurora DSQL does not support.
-		if original_factor is None:
-			return f'ALTER TABLE {qualified_entity} ADD COLUMN {column_name} {column_type}'
-		elif current_factor.flatten and not original_factor.flatten:
-			return f'ALTER TABLE {qualified_entity} ADD COLUMN {column_name} {column_type}'
-		else:
-			return f'ALTER TABLE {qualified_entity} ALTER COLUMN {column_name} TYPE {column_type}'
-
-	if is_raw_topic(topic):
-		factors = ArrayHelper(topic.factors) \
-			.filter(lambda x: x.flatten) \
-			.to_list()
-	else:
-		factors = topic.factors
-
-	columns = ArrayHelper(factors) \
-		.map(lambda x: (x, original_factors.get(x.name.strip().lower()))) \
-		.map(build_column_script) \
-		.to_list()
-
-	if is_raw_topic(topic) and not is_raw_topic(original_topic):
-		columns.append(f'ALTER TABLE {qualified_entity} ADD COLUMN data_ JSON')
-
-	if is_aggregation_topic(topic) and not is_aggregation_topic(original_topic):
-		columns.append(f'ALTER TABLE {qualified_entity} ADD COLUMN aggregate_assist_ JSON')
-		columns.append(f'ALTER TABLE {qualified_entity} ADD COLUMN version_ INTEGER')
-
-	return columns
+	return _creator.build_columns_script(topic, original_topic, schema)
 
 
 def build_unique_indexes_script(topic: Topic, schema: Optional[str] = None) -> List[str]:
-	index_groups: Dict[str, List[Factor]] = ArrayHelper(topic.factors) \
-		.filter(lambda x: is_not_blank(x.indexGroup) and x.indexGroup.startswith('u-')) \
-		.group_by(lambda x: x.indexGroup)
-	qualified_entity = f'"{schema}"."{as_table_name(topic)}"' if is_not_blank(schema) else as_table_name(topic)
-
-	def build_unique_index(factors: List[Factor], index: int) -> str:
-		return \
-			f'CREATE UNIQUE INDEX ASYNC u_{as_table_name(topic)}_{index + 1} ON {qualified_entity} ' \
-			f'({ArrayHelper(factors).map(lambda x: ask_column_name(x)).join(",")})'
-
-	return ArrayHelper(list(index_groups.values())) \
-		.map_with_index(lambda x, index: build_unique_index(x, index)).to_list()
+	return _creator.build_unique_indexes_script(topic, schema)
 
 
 def build_indexes_script(topic: Topic, schema: Optional[str] = None) -> List[str]:
-	index_groups: Dict[str, List[Factor]] = ArrayHelper(topic.factors) \
-		.filter(lambda x: is_not_blank(x.indexGroup) and x.indexGroup.startswith('i-')) \
-		.group_by(lambda x: x.indexGroup)
-	qualified_entity = f'"{schema}"."{as_table_name(topic)}"' if is_not_blank(schema) else as_table_name(topic)
-
-	def build_index(factors: List[Factor], index: int) -> str:
-		return \
-			f'CREATE INDEX ASYNC i_{as_table_name(topic)}_{index + 1} ON {qualified_entity} ' \
-			f'({ArrayHelper(factors).map(lambda x: ask_column_name(x)).join(",")})'
-
-	return ArrayHelper(list(index_groups.values())) \
-		.map_with_index(lambda x, index: build_index(x, index)).to_list()
+	return _creator.build_indexes_script(topic, schema)
 
 
 def build_table_script(topic: Topic, schema: Optional[str] = None) -> str:
-	entity_name = as_table_name(topic)
-	qualified_entity = f'"{schema}"."{entity_name}"' if is_not_blank(schema) else entity_name
-	return f'''
-CREATE TABLE {qualified_entity} (
-\tid_ VARCHAR(64),
-{build_columns(topic)}
-{build_aggregate_assist_column(topic)}
-{build_version_column(topic)}
-\ttenant_id_ VARCHAR(50),
-\tinsert_time_ TIMESTAMP,
-\tupdate_time_ TIMESTAMP,
-\tCONSTRAINT pk_{entity_name} PRIMARY KEY (id_)
-)'''
+	return _creator.build_table_script(topic, schema)
