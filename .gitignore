@@ -156,3 +156,5 @@ packages/watchmen-analysis-client/.workbuddy/memory/MEMORY.md
 /packages/watchmen-analysis-client/.workbuddy
 /packages/watchmen-storage/docs
 /packages/watchmen-storage-dynamo/.idea
+/packages/watchmen-storage-dsql/.idea
+/packages/watchmen-storage-aurora-limitless/docs
