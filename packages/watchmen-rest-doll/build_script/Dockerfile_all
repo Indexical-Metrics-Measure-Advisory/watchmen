@@ -15,7 +15,6 @@ RUN        apt-get update && apt-get install -y wget unzip build-essential libai
             && cd /opt/oracle/instantclient* \
             && rm -f *jdbc* *occi* *mysql* *README *jar uidrvci genezi adrci \
             && ln -sf /usr/lib/x86_64-linux-gnu/libaio.so.1t64 /usr/lib/x86_64-linux-gnu/libaio.so.1 \
-            && ln -sf /usr/lib/x86_64-linux-gnu/libaio.so.1t64 /opt/oracle/instantclient_23_26/libaio.so.1 \
             && echo /opt/oracle/instantclient* > /etc/ld.so.conf.d/oracle-instantclient.conf \
             && ldconfig
 
