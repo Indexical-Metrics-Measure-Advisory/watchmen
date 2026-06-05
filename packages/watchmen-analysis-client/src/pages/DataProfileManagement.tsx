@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Database, TestTube, Download, Upload, Eye, EyeOff, Save } from 'lucide-react';
+import { TestTube, Eye, EyeOff, Save } from 'lucide-react';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { cn } from '@/lib/utils';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import { DataProfile, DatabaseType } from '@/model/dataProfile';
 import {
-  getAllDataProfiles,
   createDataProfile,
   updateDataProfile,
   testDatabaseConnection,
@@ -76,7 +75,7 @@ const DataProfileManagement: React.FC = () => {
     }
   };
 
-  const updateOutput = (field: string, value: any) => {
+  const updateOutput = (field: string, value: string | number) => {
     setFormData(DataService.updateFormOutput(formData, field, value));
   };
 
@@ -91,23 +90,6 @@ const DataProfileManagement: React.FC = () => {
       setConnectionResult(DataService.formatConnectionResult(false, 'Connection test failed'));
     } finally {
       setTestingConnection(false);
-    }
-  };
-
-  const exportProfile = () => {
-    if (!currentProfile) return;
-    DataService.downloadProfile(currentProfile);
-  };
-
-  const importProfile = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      try {
-        const importedFormData = await DataService.importProfileFromFile(file);
-        setFormData(importedFormData);
-      } catch (error) {
-        alert((error as Error).message);
-      }
     }
   };
 

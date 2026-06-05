@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, Grid, List, Eye, Calendar, User, ExternalLink, Database, Activity, TrendingUp, Star, Edit, Save, X, Plus } from 'lucide-react';
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { Search, Filter, Grid, List, Eye, Calendar, User, ExternalLink, Database, Activity, TrendingUp, Star, Edit, Save, X, Plus, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,8 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,12 +19,30 @@ import {
   DataProductVisibility,
   DataCatalogQuery,
   DataCatalogStats,
-  DataQualityLevel,
   DataProductArchetype
 } from '@/model/DataCatalog';
 import { useSidebar } from '@/contexts/SidebarContext';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
+
+interface ProductFormData {
+  name: string;
+  description: string;
+  version: string;
+  status: DataProductStatus;
+  type: DataProductType;
+  visibility: DataProductVisibility;
+  archetype: DataProductArchetype;
+  owner: string;
+  domain: string;
+  tags: string;
+  dataHolderName: string;
+  dataHolderEmail: string;
+  dataHolderRole: string;
+  documentationLink: string;
+  repositoryLink: string;
+  supportLink: string;
+}
 
 const DataCatalog: React.FC = () => {
   const { collapsed } = useSidebar();
@@ -35,9 +52,9 @@ const DataCatalog: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<DataProduct | null>(null);
   const [editingProduct, setEditingProduct] = useState<DataProduct | null>(null);
-  const [editFormData, setEditFormData] = useState<any>({});
+  const [editFormData, setEditFormData] = useState<Partial<ProductFormData>>({});
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [createFormData, setCreateFormData] = useState<any>({});
+  const [createFormData, setCreateFormData] = useState<Partial<ProductFormData>>({});
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'relevance' | 'name' | 'createdAt'>('relevance');
@@ -54,32 +71,7 @@ const DataCatalog: React.FC = () => {
     loadData();
   }, []);
 
-  // Debounced search apply
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (searchQuery.trim().length === 0) return;
-      applyFilters();
-    }, 400);
-    return () => clearTimeout(t);
-  }, [searchQuery]);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [productsResponse, statsResponse] = await Promise.all([
-        dataCatalogService.getDataProducts(),
-        dataCatalogService.getDataCatalogStats()
-      ]);
-      setProducts(productsResponse.products);
-      setStats(statsResponse);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const applyFilters = async () => {
+  const applyFilters = useCallback(async () => {
     try {
       setLoading(true);
       const query: DataCatalogQuery = {
@@ -97,6 +89,31 @@ const DataCatalog: React.FC = () => {
       setProducts(response.products);
     } catch (error) {
       console.error('Failed to apply filters:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [filters, searchQuery]);
+
+  // Debounced search apply
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (searchQuery.trim().length === 0) return;
+      applyFilters();
+    }, 400);
+    return () => clearTimeout(t);
+  }, [searchQuery, applyFilters]);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [productsResponse, statsResponse] = await Promise.all([
+        dataCatalogService.getDataProducts(),
+        dataCatalogService.getDataCatalogStats()
+      ]);
+      setProducts(productsResponse.products);
+      setStats(statsResponse);
+    } catch (error) {
+      console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
     }
@@ -209,7 +226,7 @@ const DataCatalog: React.FC = () => {
 
       setIsEditDialogOpen(false);
       setEditingProduct(null);
-      setEditFormData({});
+      setEditFormData({} as Partial<ProductFormData>);
     } catch (error) {
       console.error('Failed to update product:', error);
     }
@@ -218,12 +235,12 @@ const DataCatalog: React.FC = () => {
   const handleCancelEdit = () => {
     setIsEditDialogOpen(false);
     setEditingProduct(null);
-    setEditFormData({});
+    setEditFormData({} as Partial<ProductFormData>);
   };
 
   const handleCancelCreate = () => {
     setIsCreateDialogOpen(false);
-    setCreateFormData({});
+    setCreateFormData({} as ProductFormData);
   };
 
   const createProductId = (name: string) => {
@@ -279,7 +296,7 @@ const DataCatalog: React.FC = () => {
       setProducts(prevProducts => [createdProduct, ...prevProducts]);
       setStats(await dataCatalogService.getDataCatalogStats());
       setIsCreateDialogOpen(false);
-      setCreateFormData({});
+      setCreateFormData({} as ProductFormData);
     } catch (error) {
       console.error('Failed to create product:', error);
     }
@@ -295,16 +312,7 @@ const DataCatalog: React.FC = () => {
     }
   };
 
-  const getQualityColor = (quality: DataQualityLevel) => {
-    switch (quality) {
-      case DataQualityLevel.GOLD: return 'bg-yellow-100 text-yellow-800';
-      case DataQualityLevel.SILVER: return 'bg-gray-100 text-gray-800';
-      case DataQualityLevel.BRONZE: return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const StatsCard = ({ title, value, icon: Icon, trend }: { title: string; value: number; icon: any; trend?: string }) => (
+  const StatsCard = ({ title, value, icon: Icon, trend }: { title: string; value: number; icon: LucideIcon; trend?: string }) => (
     <Card className="transition-all hover:shadow-sm">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
@@ -596,8 +604,8 @@ const DataCatalog: React.FC = () => {
     formData,
     setFormData
   }: {
-    formData: any;
-    setFormData: React.Dispatch<React.SetStateAction<any>>;
+    formData: Partial<ProductFormData>;
+    setFormData: React.Dispatch<React.SetStateAction<Partial<ProductFormData>>>;
   }) => (
     <Tabs defaultValue="basic" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
@@ -613,7 +621,7 @@ const DataCatalog: React.FC = () => {
             <Input
               id="name"
               value={formData.name || ''}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, name: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
               placeholder="Enter product name"
             />
           </div>
@@ -622,7 +630,7 @@ const DataCatalog: React.FC = () => {
             <Input
               id="version"
               value={formData.version || ''}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, version: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, version: e.target.value }))}
               placeholder="e.g., 1.0.0"
             />
           </div>
@@ -633,7 +641,7 @@ const DataCatalog: React.FC = () => {
           <Textarea
             id="description"
             value={formData.description || ''}
-            onChange={(e) => setFormData((prev: any) => ({ ...prev, description: e.target.value }))}
+            onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
             placeholder="Enter product description"
             rows={3}
           />
@@ -642,7 +650,7 @@ const DataCatalog: React.FC = () => {
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData((prev: any) => ({ ...prev, status: value }))}>
+            <Select value={formData.status} onValueChange={(value) => { const v = value as DataProductStatus; setFormData((prev) => ({ ...prev, status: v })); }}>
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
@@ -657,7 +665,7 @@ const DataCatalog: React.FC = () => {
           
           <div className="space-y-2">
             <Label htmlFor="type">Type</Label>
-            <Select value={formData.type} onValueChange={(value) => setFormData((prev: any) => ({ ...prev, type: value }))}>
+            <Select value={formData.type} onValueChange={(value) => { const v = value as DataProductType; setFormData((prev) => ({ ...prev, type: v })); }}>
               <SelectTrigger>
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
@@ -672,7 +680,7 @@ const DataCatalog: React.FC = () => {
           
           <div className="space-y-2">
             <Label htmlFor="visibility">Visibility</Label>
-            <Select value={formData.visibility} onValueChange={(value) => setFormData((prev: any) => ({ ...prev, visibility: value }))}>
+            <Select value={formData.visibility} onValueChange={(value) => { const v = value as DataProductVisibility; setFormData((prev) => ({ ...prev, visibility: v })); }}>
               <SelectTrigger>
                 <SelectValue placeholder="Select visibility" />
               </SelectTrigger>
@@ -691,7 +699,7 @@ const DataCatalog: React.FC = () => {
             <Input
               id="owner"
               value={formData.owner || ''}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, owner: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, owner: e.target.value }))}
               placeholder="Enter owner name"
             />
           </div>
@@ -700,7 +708,7 @@ const DataCatalog: React.FC = () => {
             <Input
               id="domain"
               value={formData.domain || ''}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, domain: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, domain: e.target.value }))}
               placeholder="Enter business domain"
             />
           </div>
@@ -711,7 +719,7 @@ const DataCatalog: React.FC = () => {
           <Input
             id="tags"
             value={formData.tags || ''}
-            onChange={(e) => setFormData((prev: any) => ({ ...prev, tags: e.target.value }))}
+            onChange={(e) => setFormData((prev) => ({ ...prev, tags: e.target.value }))}
             placeholder="Separate multiple tags with commas"
           />
         </div>
@@ -724,7 +732,7 @@ const DataCatalog: React.FC = () => {
             <Input
               id="dataHolderName"
               value={formData.dataHolderName || ''}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, dataHolderName: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, dataHolderName: e.target.value }))}
               placeholder="Enter name"
             />
           </div>
@@ -734,7 +742,7 @@ const DataCatalog: React.FC = () => {
               id="dataHolderEmail"
               type="email"
               value={formData.dataHolderEmail || ''}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, dataHolderEmail: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, dataHolderEmail: e.target.value }))}
               placeholder="Enter email address"
             />
           </div>
@@ -745,7 +753,7 @@ const DataCatalog: React.FC = () => {
           <Input
             id="dataHolderRole"
             value={formData.dataHolderRole || ''}
-            onChange={(e) => setFormData((prev: any) => ({ ...prev, dataHolderRole: e.target.value }))}
+            onChange={(e) => setFormData((prev) => ({ ...prev, dataHolderRole: e.target.value }))}
             placeholder="Enter role"
           />
         </div>
@@ -758,7 +766,7 @@ const DataCatalog: React.FC = () => {
             <Input
               id="documentationLink"
               value={formData.documentationLink || ''}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, documentationLink: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, documentationLink: e.target.value }))}
               placeholder="https://docs.example.com"
             />
           </div>
@@ -768,7 +776,7 @@ const DataCatalog: React.FC = () => {
             <Input
               id="repositoryLink"
               value={formData.repositoryLink || ''}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, repositoryLink: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, repositoryLink: e.target.value }))}
               placeholder="https://github.com/example/repo"
             />
           </div>
@@ -778,7 +786,7 @@ const DataCatalog: React.FC = () => {
             <Input
               id="supportLink"
               value={formData.supportLink || ''}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, supportLink: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, supportLink: e.target.value }))}
               placeholder="https://support.example.com"
             />
           </div>
@@ -863,7 +871,7 @@ const DataCatalog: React.FC = () => {
                 <Plus className="h-4 w-4 mr-2" />
                 Create
               </Button>
-              <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as 'relevance' | 'name' | 'createdAt')}>
                 <SelectTrigger className="w-[160px]"><SelectValue placeholder="Sort by" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="relevance">Relevance</SelectItem>
