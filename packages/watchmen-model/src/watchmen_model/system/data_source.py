@@ -20,7 +20,8 @@ class DataSourceType(str, Enum):
 	OSS = 'oss',
 	DYNAMODB = 'dynamodb',
 	S3 = 's3',
-	ADLS = 'adls'  # Azure Data Lake Storage
+	ADLS = 'adls'
+	DSQL = "dsql"# Azure Data Lake Storage
 
 
 def construct_param(param: Optional[Union[dict, DataSourceParam]]) -> Optional[DataSourceParam]:
