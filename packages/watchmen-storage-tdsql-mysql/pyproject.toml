@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "watchmen-storage-tdsql-mysql"
+version = "18.0.0"
+description = "Tencent Cloud TDSQL MySQL storage for watchmen"
+authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
+license = "MIT"
+packages = [{ include = "watchmen_storage_tdsql_mysql", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "~3.12"
+PyMySQL = "^1.1.1"
+cryptography = "^42.0.8"
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true }
+watchmen-storage-rds = { path = "../watchmen-storage-rds", develop = true }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

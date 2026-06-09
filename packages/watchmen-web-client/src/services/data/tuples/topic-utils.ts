@@ -1,5 +1,6 @@
 import { isDataQualityCenterEnabled, isSynonymDQCEnabled } from "@/feature-switch";
 import { DataSourceType } from "./data-source-types";
+import { FactorType } from "./factor-types";
 import { QueryTopic } from "./query-topic-types";
 import { Topic, TopicKind, TopicType } from "./topic-types";
 
@@ -25,8 +26,19 @@ export const isRDSStorage = (type: DataSourceType) =>
 		DataSourceType.POSTGRESQL,
 		DataSourceType.AURORA_LIMITLESS,
 		DataSourceType.DSQL,
+		DataSourceType.TDSQL,
 	].includes(type);
-export const isKeyTypeSupported = (type?: DataSourceType) => type != null && [DataSourceType.DYNAMODB].includes(type);
+export const isKeyTypeSupported = (type?: DataSourceType) =>
+	type != null && [DataSourceType.DYNAMODB, DataSourceType.TDSQL].includes(type);
+export const isTdsql = (type?: DataSourceType) => type === DataSourceType.TDSQL;
+export const isTdsqlShardkeySupported = (type?: FactorType) => {
+	// TDSQL shardkey 字段支持: INT/BIGINT/CHAR/VARCHAR
+	// 不支持: TEXT/JSON/OBJECT/ARRAY/DATE/TIME/DATETIME
+	if (type == null) {
+		return true;
+	}
+	return [FactorType.SEQUENCE, FactorType.NUMBER, FactorType.UNSIGNED].includes(type);
+};
 
 export const isTopicProfileAvailable = (topic?: Topic | QueryTopic | null): boolean => {
 	return (

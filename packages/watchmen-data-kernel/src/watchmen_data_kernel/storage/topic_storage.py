@@ -93,6 +93,8 @@ def build_topic_data_storage(data_source: DataSource) -> Callable[[], TopicDataS
 		return build_dsql_storage(data_source)
 	if data_source.dataSourceType == DataSourceType.AURORA_LIMITLESS:
 		return build_aurora_limitless_storage(data_source)
+	if data_source.dataSourceType == DataSourceType.TDSQL:
+		return build_tdsql_storage(data_source)
 	if data_source.dataSourceType == DataSourceType.DYNAMO:
 		return build_dynamo_storage(data_source)
 	if data_source.dataSourceType == DataSourceType.OSS:

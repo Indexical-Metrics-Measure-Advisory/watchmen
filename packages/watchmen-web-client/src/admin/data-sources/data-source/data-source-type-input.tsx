@@ -31,6 +31,7 @@ export const DataSourceTypeInput = (props: { dataSource: DataSource }) => {
 		{value: DataSourceType.REDSHIFT, label: 'Redshift'},
 		{value: DataSourceType.DSQL, label: 'AWS DSQL'},
 		{value: DataSourceType.AURORA_LIMITLESS, label: 'AWS Aurora PostgreSQL Limitless'},
+		{value: DataSourceType.TDSQL, label: 'TDSQL MySQL'},
 		{value: DataSourceType.DYNAMODB, label: 'AWS DynamoDB'},
 
 	];

@@ -2,7 +2,7 @@ import {DataSourceType} from '@/services/data/tuples/data-source-types';
 import {Factor} from '@/services/data/tuples/factor-types';
 import {QueryEnumForHolder} from '@/services/data/tuples/query-enum-types';
 import {Topic} from '@/services/data/tuples/topic-types';
-import {isKeyTypeSupported} from '@/services/data/tuples/topic-utils';
+import {isKeyTypeSupported, isTdsql} from '@/services/data/tuples/topic-utils';
 import {FactorButtons} from './factor-buttons';
 import {FactorDefaultValueCell} from './factor-default-value-cell';
 import {FactorDescriptionCell} from './factor-description-cell';
@@ -26,6 +26,9 @@ export const FactorRow = (props: {
 }) => {
 	const {topic, factor, enums, dataSourceType} = props;
 	const showKeyType = isKeyTypeSupported(dataSourceType);
+	const isTdsqlDb = isTdsql(dataSourceType);
+	const keyTypeLabel = isTdsqlDb ? 'Sharding Key' : 'Key Type';
+	const keyIndexLabel = isTdsqlDb ? 'Sharding Key Index' : 'Key Order';
 
 	return <FactorRowContainer>
 		{/*<FactorSerialCell topic={topic} factor={factor}/>*/}
@@ -41,9 +44,9 @@ export const FactorRow = (props: {
 		<FactorPropLabel>Index Group</FactorPropLabel>
 		<FactorIndexGroupCell factor={factor}/>
 		{showKeyType ? <>
-			<FactorPropLabel>Key Type</FactorPropLabel>
-			<FactorKeyTypeCell factor={factor}/>
-			<FactorPropLabel>Key Order</FactorPropLabel>
+			<FactorPropLabel>{keyTypeLabel}</FactorPropLabel>
+			<FactorKeyTypeCell factor={factor} dataSourceType={dataSourceType}/>
+			<FactorPropLabel>{keyIndexLabel}</FactorPropLabel>
 			<FactorKeyIndexCell factor={factor}/>
 		</> : null}
 		<FactorEncryptCell topic={topic} factor={factor}/>

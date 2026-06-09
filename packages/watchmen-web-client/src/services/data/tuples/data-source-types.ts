@@ -9,6 +9,7 @@ export enum DataSourceType {
 	POSTGRESQL = "postgresql",
 	DSQL = "dsql",
 	AURORA_LIMITLESS = "aurora-limitless",
+	TDSQL = "tdsql", // TDSQL MySQL 版 (DCDB)
 	AWS_S3 = "s3",
 	ALI_OSS = "oss",
 	AZURE_BLOB_STORAGE = "azure_blob_storage",
