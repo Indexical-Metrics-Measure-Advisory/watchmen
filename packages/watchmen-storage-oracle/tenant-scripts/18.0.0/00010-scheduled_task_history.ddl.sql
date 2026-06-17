@@ -21,7 +21,7 @@ CREATE TABLE scheduled_task_history
     created_by          VARCHAR2(50)    NOT NULL,
     last_modified_at    DATE            NOT NULL,
     last_modified_by    VARCHAR2(50)    NOT NULL,
-    CONSTRAINT pk_scheduled_task PRIMARY KEY (task_id)
+    CONSTRAINT pk_scheduled_task_history PRIMARY KEY (task_id)
 );
 CREATE UNIQUE INDEX u_scheduled_history_task_1 ON scheduled_task_history (resource_id);
 CREATE INDEX i_scheduled_task_history_1 ON scheduled_task_history (tenant_id);

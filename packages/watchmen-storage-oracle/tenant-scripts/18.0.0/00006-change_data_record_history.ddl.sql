@@ -18,7 +18,7 @@ CREATE TABLE change_data_record_history
     created_by              VARCHAR2(50)    NOT NULL,
     last_modified_at        DATE            NOT NULL,
     last_modified_by        VARCHAR2(50)    NOT NULL,
-    CONSTRAINT pk_change_data_record PRIMARY KEY (change_record_id)
+    CONSTRAINT pk_change_data_record_history PRIMARY KEY (change_record_id)
 );
 CREATE INDEX i_change_data_record_history_1 ON change_data_record_history (tenant_id);
 CREATE INDEX i_change_data_record_history_2 ON change_data_record_history (created_at);

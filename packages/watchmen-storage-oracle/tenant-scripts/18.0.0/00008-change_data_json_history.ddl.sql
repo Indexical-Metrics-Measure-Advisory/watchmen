@@ -22,7 +22,7 @@ CREATE TABLE change_data_json_history
     created_by          VARCHAR2(50)    NOT NULL,
     last_modified_at    DATE            NOT NULL,
     last_modified_by    VARCHAR2(50)    NOT NULL,
-    CONSTRAINT pk_change_data_json PRIMARY KEY (change_json_id)
+    CONSTRAINT pk_change_data_json_history PRIMARY KEY (change_json_id)
 );
 CREATE UNIQUE INDEX u_change_data_json_history_1 ON change_data_json_history (resource_id);
 CREATE INDEX i_change_data_json_history_1 ON change_data_json_history (tenant_id);
