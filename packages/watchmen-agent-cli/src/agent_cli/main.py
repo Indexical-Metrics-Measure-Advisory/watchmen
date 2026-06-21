@@ -147,7 +147,7 @@ def handle_pull(args: argparse.Namespace) -> None:
 
 
 def handle_push(args: argparse.Namespace) -> None:
-    run_with_sync_service(args, lambda svc: svc.push(args.target))
+    run_with_sync_service(args, lambda svc: svc.push(args.target, dry_run=args.dry_run))
 
 
 def handle_topic_pull(args: argparse.Namespace) -> None:
@@ -159,7 +159,7 @@ def handle_topic_pull_name(args: argparse.Namespace) -> None:
 
 
 def handle_topic_push_file(args: argparse.Namespace) -> None:
-    run_with_sync_service(args, lambda svc: svc.push_topic_yaml_file(Path(args.file_path)))
+    run_with_sync_service(args, lambda svc: svc.push_topic_yaml_file(Path(args.file_path), dry_run=args.dry_run))
 
 
 def handle_pipeline_pull(args: argparse.Namespace) -> None:
@@ -171,7 +171,7 @@ def handle_pipeline_pull_name(args: argparse.Namespace) -> None:
 
 
 def handle_pipeline_push_file(args: argparse.Namespace) -> None:
-    run_with_sync_service(args, lambda svc: svc.push_pipeline_yaml_file(Path(args.file_path)))
+    run_with_sync_service(args, lambda svc: svc.push_pipeline_yaml_file(Path(args.file_path), dry_run=args.dry_run))
 
 
 def handle_topic_list(args: argparse.Namespace) -> None:
@@ -438,6 +438,7 @@ def register_pipeline_commands(subparsers: argparse._SubParsersAction) -> None:
     pipeline_push_file = create_subparser(pipeline_sub, "push-file", "Push a local YAML pipeline file to server")
     pipeline_push_file.add_argument("file_path", help="Path to the local .yml or .yaml file")
     add_vault_arg(pipeline_push_file)
+    pipeline_push_file.add_argument("--dry-run", action="store_true", default=False, help="Validate only, do not persist")
     pipeline_push_file.set_defaults(handler=handle_pipeline_push_file)
 
     pipeline_list = create_subparser(pipeline_sub, "list", "List local pipeline files")

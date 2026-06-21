@@ -30,8 +30,8 @@ If a local file already exists, **read it directly** — no need to pull from re
 
 | Entity               | Check Command                                         | Action if Exists                                 |
 | -------------------- | ----------------------------------------------------- | ------------------------------------------------ |
-| **Topic**            | `agent-cli topic list-remote --vault <vault>`         | Set `topicId` to existing ID, update in place    |
-| **Pipeline**         | `agent-cli pipeline list-remote --vault <vault>`      | Set `pipelineId` to existing ID, update in place |
+| **Topic**            | `agent-cli topic list-remote --vault <vault>`         | Use same `name`; server upserts by topic name    |
+| **Pipeline**         | `agent-cli pipeline list-remote --vault <vault>`      | Use same `name`; server upserts by pipeline name |
 | **Enum**             | `agent-cli enum list-remote --vault <vault>`          | Set `enumId` to existing ID, update in place     |
 | **Semantic Model**   | `agent-cli semantic list-remote --vault <vault>`      | Set `modelId` to existing ID, update in place    |
 | **Metric**           | `agent-cli metric list-remote --vault <vault>`        | Set `metricId` to existing ID, update in place   |
@@ -43,10 +43,12 @@ If a local file already exists, **read it directly** — no need to pull from re
 ### Standard Workflow for Any Entity
 
 1. **Check local filesystem** — look for existing YAML files in the vault directory
-2. If **found locally** → read the file, modify it, push with the real ID (update)
+2. If **found locally** → read the file, modify it, push it back
 3. If **not found locally** → run `list-remote` to check remote
-4. If **exists in remote** → pull the existing YAML, modify it, push with the real ID (update)
-5. If **does not exist anywhere** → create new YAML with `null` ID, push (create)
+4. If **exists in remote** → pull the existing YAML, modify it, push it back
+5. If **does not exist anywhere** → create new YAML and push
+
+For Topic/Pipeline, do not manage IDs manually; server upserts by `name`. For legacy entities, continue using `null` for new IDs and real IDs for updates.
 
 ## Topic Validation
 
@@ -55,17 +57,16 @@ If a local file already exists, **read it directly** — no need to pull from re
 - **No duplicate topic names** in the same vault
 - **No duplicate factor names** within the same topic
 - **No duplicate factor labels** within the same topic
-- **factorId must be unique** across the topic
+- Factor names must be stable because pipeline references use `factorName`
 
-### Factor ID Validation
+### Factor Reference Validation
 
-- **factorId MUST be a UUID** (hex string, e.g. `9a1b2c3d4e5f678901234567890123ab`)
-- **NEVER use factor names** as factorId (e.g. `total_claim_amount`, `customer_name` — these are `name` values, not `factorId` values)
-- Factor IDs are server-assigned Snowflake UUIDs; pull the topic after push to obtain real factorIds
+- Topic agent YAML must NOT include `factorId`; use `name` for factors.
+- Never invent internal factor IDs. The server resolves factor IDs by name during agent-upsert.
 
 ### Data Source Validation
 
-- **dataSourceId must exist** and be valid in the system
+- **dataSourceCode must exist** and be valid in the system
 - If unknown, run `agent-cli datasource list-remote --vault <vault>` to find available data sources
 
 ### Index Validation
@@ -80,20 +81,18 @@ If a local file already exists, **read it directly** — no need to pull from re
 ### Name and Structure
 
 - **No duplicate pipeline names** in the same vault
-- **pipelineId must match** the existing remote ID when updating (NOT null)
-- All nested IDs (stageId, unitId, actionId) must be null for new entities
+- Pipeline YAML must NOT include `pipelineId`, `stageId`, `unitId`, `actionId`, `topicId`, or `factorId`
+- `sourceTopicName` must exist and must point to the source topic
 
 ### Factor Reference Validation
 
-- **All factor IDs must be UUIDs** (NOT factor names). E.g. `9a1b2c3d4e5f678901234567890123ab`, not `total_claim_amount`
-- **All factor IDs must reference** existing factors in source/target topics
-- mapping sources and targets must have valid factorId references
-- Check that source topicId and factorId exist in the source topic
-- Check that target topicId and factorId exist in the target topic
+- Use `topicName` and `factorName` for action/parameter references.
+- `mapping[].factorName` must exist in the target `topicName`.
+- `source.topicName` / `source.factorName` and `by` conditions must reference existing topics/factors by name.
 
 ### BY Condition Validation
 
-- `by` filters must reference valid factor IDs on both sides
+- `by` filters must reference valid `topicName` / `factorName` values on both sides
 - jointType must be "and" or "or"
 
 ---
@@ -104,24 +103,24 @@ If a local file already exists, **read it directly** — no need to pull from re
 
 - [ ] Run `agent-cli topic list-remote --vault <vault>` to check for name conflicts
 - [ ] Verify no duplicate factor names or labels in the topic
-- [ ] Confirm dataSourceId is valid
+- [ ] Confirm dataSourceCode is valid
 - [ ] Design appropriate indexes for query optimization
 
 ### Pipeline Creation/Update
 
 - [ ] Run `agent-cli pipeline list-remote --vault <vault>` to check if pipeline exists
-- [ ] If pipeline exists, set `pipelineId` to existing ID (NOT null)
-- [ ] Verify all factorId references in mapping are correct
-- [ ] Verify all factorId references in `by` conditions are correct
-- [ ] Check that source `topicId` matches the actual source topic
+- [ ] If pipeline exists, keep the same `name`; do not set `pipelineId`
+- [ ] Verify all `topicName` / `factorName` references in mapping are correct
+- [ ] Verify all `topicName` / `factorName` references in `by` conditions are correct
+- [ ] Check that root `sourceTopicName` matches the actual source topic
 
 ### Common Mistakes
 
 1. **Creating duplicate entities**: Forgot to run `list-remote` and created a duplicate Topic/Pipeline/Enum/etc. instead of updating the existing one
-2. **Invalid factorId references**: Factor doesn't exist in the target topic
-3. **Wrong topicId in pipeline**: Mismatch between pipeline's topicId and actual source
-4. **Missing dataSourceId**: Topic created without required dataSourceId
-5. **Using factor name instead of UUID**: Used `total_claim_amount` (name) instead of `9a1b2c3d...` (UUID) as `factorId`
+2. **Invalid factorName references**: Factor doesn't exist in the referenced topic
+3. **Wrong sourceTopicName in pipeline**: Mismatch between pipeline's source topic name and actual source
+4. **Missing dataSourceCode**: Topic created without required dataSourceCode
+5. **Including internal IDs**: Topic/Pipeline agent YAML should not contain `topicId`, `factorId`, `pipelineId`, etc.
 
 ---
 

@@ -4,18 +4,19 @@
 
 For detailed ID management rules, templates, and workflows for all entity types, see `references/id-management-guide.md`.
 
-| Scenario            | ID value                      | Example                           |
-| ------------------- | ----------------------------- | --------------------------------- |
-| Create (local file) | `null`                        | `topicId: null`, `factorId: null` |
-| Update (local file) | real Snowflake ID from server | `1491090766418725888`             |
+| Entity                         | Current local YAML strategy                                                                                                                   |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Topic                          | No-id agent view. Omit `topicId`, `factorId`, `tenantId`, `version`; use `name` as upsert key.                                                |
+| Pipeline                       | No-id agent view. Omit `pipelineId`, `stageId`, `unitId`, `actionId`, `topicId`, `factorId`, `tenantId`, `version`; use `name` as upsert key. |
+| Enum/Semantic/Metric/Ingestion | Legacy id strategy. New IDs use `null`; existing resources may contain real server IDs.                                                       |
 
-- **All new entity IDs MUST use `null`** — the server assigns real Snowflake IDs on push.
-- Using fake/placeholder IDs (e.g., `f-xxx`) will cause a `500` error from the server.
-- When the CLI pulls from server, real Snowflake IDs are stored — subsequent pushes update the existing resource.
+- **Topic/Pipeline**: never invent or fill internal IDs. Use business names (`name`, `sourceTopicName`, `topicName`, `factorName`).
+- **Legacy entities**: new entity IDs still use `null`; fake/placeholder IDs (e.g., `f-xxx`) can cause server errors.
 
 ## Local File Naming Conventions
 
-- **General Pattern**: `{name}__{id}.yml`
+- **Topic/Pipeline Pattern**: `{name}.yml` (no ID suffix).
+- **Legacy Entity Pattern**: `{name}__{id}.yml`.
 - **Directory Structure**:
     ```
     vault/
@@ -34,8 +35,8 @@ For detailed ID management rules, templates, and workflows for all entity types,
         ├── semantics/
         └── metric/
     ```
-- **Topic**: `transformation/topics/{topic_name}__{topic_id}.yml`
-- **Pipeline**: `transformation/pipelines/{pipeline_name}__{pipeline_id}.yml`
+- **Topic**: `transformation/topics/{topic_name}.yml`
+- **Pipeline**: `transformation/pipelines/{pipeline_name}.yml`
 - **Enum**: `transformation/enums/{enum_name}__{enum_id}.yml`
 - **Semantic Model**: `metrics/semantics/{model_name}__{model_id}.yml`
 - **Metric**: `metrics/metric/{metric_name}__{metric_id}.yml`
@@ -46,8 +47,9 @@ For detailed ID management rules, templates, and workflows for all entity types,
 
 ## Topic
 
-- Core fields and types: `topicId:str`, `name:str`, `description:str|None`, `type:str`, `kind:str`, `dataSourceId:str`, `factors:list[Factor]`.
-- Factor core fields and types: `factorId:str`, `name:str`, `type:str`, `label:str`, `enumId:str|None`.
+- Agent YAML core fields: `name:str`, `description:str|None`, `type:str`, `kind:str`, `dataSourceCode:str`, `factors:list[Factor]`.
+- Agent YAML must NOT include `topicId`, `factorId`, `tenantId`, or `version`.
+- Factor core fields: `name:str`, `type:str`, `label:str|None`, `enumId:str|None`, `description:str|None`, `defaultValue:str|None`, `flatten:bool|None`, `indexGroup:str|None`, `encrypt:str|None`, `precision:str|None`.
 - Topic type candidates: `raw`, `distinct`, `aggregate`, `ratio`, `time`.
 - **Factor type source of truth**: align with `watchmen-web-client/src/services/data/tuples/factor-types.ts`. Use the exact serialized enum values in YAML.
 - Factor type candidates:
@@ -75,9 +77,10 @@ For detailed ID management rules, templates, and workflows for all entity types,
 
 ## Pipeline
 
-- Core fields and types: `pipelineId:str`, `name:str`, `topicId:str`, `type:str`, `enabled:bool`, `stages:list[PipelineStage]`.
-- **IMPORTANT**: `topicId` MUST be at the **root level** of the YAML (same level as `name`, `type`, `tenantId`), not inside `stages`. This is the source topic ID.
-- **Pipeline Update Rule**: When modifying an existing pipeline, **DO NOT create a new pipeline**. Pull the existing pipeline YAML, modify it, and push it back using the **same `pipelineId`** to update in place.
+- Agent YAML core fields: `name:str`, `sourceTopicName:str`, `type:str`, `enabled:bool`, `validated:bool|None`, `conditional:bool|None`, `on:dict|None`, `stages:list[PipelineStage]`.
+- Agent YAML must NOT include `pipelineId`, `topicId`, `factorId`, `stageId`, `unitId`, `actionId`, `tenantId`, or `version`.
+- **IMPORTANT**: `sourceTopicName` MUST be at the root level. This is the source topic name that triggers the pipeline.
+- **Pipeline Update Rule**: update is resolved by `pipeline.name` on the server. Do not manually set `pipelineId`.
 - **Pipeline Type Selection Rule**:
     - **`insert-or-merge` (DEFAULT)**: Use for most business data pipelines (Bronze→Silver, Silver→Gold, Gold→Datamart). This handles both insert new records and merge/update existing records.
     - **`insert`**: Only use for append-only data such as **logs, history, audit trails, or monitoring data** where records are never updated.
@@ -85,10 +88,11 @@ For detailed ID management rules, templates, and workflows for all entity types,
     - **`delete`**: Use for soft-delete or CDC delete operations.
 - Trigger types: `insert`, `merge`, `insert-or-merge`, `delete`.
 - Structure and types: `stages:list[PipelineStage] -> units:list[PipelineUnit] -> do:list[PipelineAction]`.
-- PipelineStage: `stageId:str`, `name:str|None`, `conditional:bool|None`, `on:dict|None`, `units:list[PipelineUnit]`.
-- PipelineUnit: `unitId:str`, `name:str|None`, `conditional:bool|None`, `on:dict|None`, `do:list[PipelineAction]`.
-- PipelineAction common fields: `actionId:str`, `type:str`, optional `topicId:str`, `mapping:list[dict]`, `condition:dict`, `into:dict`.
-- Current CLI pipeline sync uses YAML endpoints (with fallback to JSON for legacy `pipeline/import`).
+- PipelineStage: `name:str|None`, `conditional:bool|None`, `on:dict|None`, `units:list[PipelineUnit]`.
+- PipelineUnit: `name:str|None`, `conditional:bool|None`, `on:dict|None`, `do:list[PipelineAction]`.
+- PipelineAction common fields: `type:str`, optional `topicName:str`, optional `factorName:str`, `mapping:list[dict]`, `by:dict|None`, `source:dict|None`.
+- In parameter expressions, use `kind: topic`, `topicName`, and `factorName` instead of `topicId`/`factorId`.
+- Current CLI pipeline sync uses `/pipeline/*/agent-view` and `/pipeline/yaml/agent-upsert`.
 
 ## Ingestion
 

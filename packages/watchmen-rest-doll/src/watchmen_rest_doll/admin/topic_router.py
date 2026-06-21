@@ -11,8 +11,10 @@ from watchmen_data_kernel.service import sync_topic_structure_storage
 from watchmen_meta.admin import FactorService, PipelineService, TopicService, TopicSnapshotSchedulerService
 from watchmen_meta.analysis import TopicIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_model.admin import Pipeline, Topic, TopicSnapshotScheduler, TopicType, UserRole, TopicKind
-from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
+from watchmen_meta.system import DataSourceService
+from watchmen_model.admin import Factor, FactorEncryptMethod, FactorIndexGroup, FactorType, \
+	Pipeline, Topic, TopicSnapshotScheduler, TopicType, UserRole, TopicKind
+from watchmen_model.common import DataPage, DataSourceId, Pageable, TenantId, TopicId
 from watchmen_pipeline_kernel.topic_snapshot import as_snapshot_task_topic_name, create_snapshot_pipeline, \
 	create_snapshot_target_topic, create_snapshot_task_topic, rebuild_snapshot_pipeline, \
 	rebuild_snapshot_target_topic, rebuild_snapshot_task_topic
@@ -20,7 +22,7 @@ from watchmen_rest import get_admin_principal, get_console_principal, get_any_ad
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail
-from watchmen_utilities import ArrayHelper, is_blank, is_date, is_not_blank, ExtendedBaseModel
+from watchmen_utilities import ArrayHelper, ExtendedBaseModel, is_blank, is_date, is_not_blank
 from .pipeline_router import ask_save_pipeline_action
 
 router = APIRouter()
@@ -476,3 +478,315 @@ async def rebuild_topics_index(principal_service: PrincipalService = Depends(get
 				index_service.build_index(topic)
 	
 	trans(topic_service, action)
+
+
+# ====================================================================================
+# AI Agent 友好的 YAML Upsert 端点（按业务名操作，无需任何内部 id）
+# ====================================================================================
+
+class AgentFactorYaml(ExtendedBaseModel):
+	"""AI Agent 的 factor 定义（入参和出参共用），只需业务字段，无需 factorId"""
+	name: str
+	type: FactorType
+	label: Optional[str] = None
+	enumId: Optional[str] = None
+	description: Optional[str] = None
+	defaultValue: Optional[str] = None
+	flatten: Optional[bool] = False
+	indexGroup: Optional[FactorIndexGroup] = None
+	encrypt: Optional[FactorEncryptMethod] = None
+	precision: Optional[str] = None
+
+
+class AgentTopicYaml(ExtendedBaseModel):
+	"""AI Agent 的 topic 定义（入参和出参共用），无需 topicId / factorId / tenantId / version"""
+	name: str
+	type: TopicType = TopicType.DISTINCT
+	kind: TopicKind = TopicKind.BUSINESS
+	description: Optional[str] = None
+	dataSourceCode: Optional[str] = None
+	factors: List[AgentFactorYaml] = []
+
+
+class AgentUpsertResult(ExtendedBaseModel):
+	"""Upsert 结果，返回完整 Topic（含 id）+ factorId 映射表"""
+	action: str
+	dryRun: bool
+	topic: Optional[dict] = None
+	factorIdMapping: dict = {}
+
+
+def get_data_source_service(principal_service: PrincipalService) -> DataSourceService:
+	return DataSourceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def resolve_data_source_by_code(
+		data_source_code: str, tenant_id: TenantId,
+		data_source_service: DataSourceService) -> Optional[DataSourceId]:
+	"""按 dataSourceCode 在租户内查找数据源 id"""
+	data_sources = data_source_service.find_all(tenant_id)
+	for ds in data_sources:
+		if ds.dataSourceCode == data_source_code:
+			return ds.dataSourceId
+	return None
+
+
+def build_factor_from_agent(agent_factor: AgentFactorYaml, existing_factor_id: Optional[str]) -> Factor:
+	"""从 Agent 输入构建 Factor，复用已存在的 factorId（按 name 匹配）"""
+	return Factor(
+		factorId=existing_factor_id,
+		name=agent_factor.name,
+		type=agent_factor.type,
+		label=agent_factor.label,
+		enumId=agent_factor.enumId,
+		description=agent_factor.description,
+		defaultValue=agent_factor.defaultValue,
+		flatten=agent_factor.flatten,
+		indexGroup=agent_factor.indexGroup,
+		encrypt=agent_factor.encrypt,
+		precision=agent_factor.precision
+	)
+
+
+def prepare_agent_topic_upsert(
+		agent_input: AgentTopicYaml, principal_service: PrincipalService,
+		topic_service: TopicService) -> Tuple[str, Topic, dict]:
+	"""
+	按 name 做 upsert 准备，返回 (action_type, topic, existing_factor_map)。
+	action_type: 'create' 或 'update'。
+	"""
+	tenant_id: TenantId = principal_service.get_tenant_id()
+
+	# 1. dataSourceCode → dataSourceId
+	data_source_service = get_data_source_service(principal_service)
+	data_source_id = resolve_data_source_by_code(agent_input.dataSourceCode, tenant_id, data_source_service)
+	if data_source_id is None:
+		raise_400(f'Data source [{agent_input.dataSourceCode}] not found in tenant [{tenant_id}].')
+
+	# 2. topic.name → 查找现有 topic
+	existing: Optional[Topic] = topic_service.find_by_name_and_tenant(agent_input.name, tenant_id)
+
+	if existing is None:
+		# ===== CREATE =====
+		new_factors = [build_factor_from_agent(f, None) for f in agent_input.factors]
+		topic = Topic(
+			topicId=None,
+			tenantId=tenant_id,
+			name=agent_input.name,
+			type=agent_input.type,
+			kind=agent_input.kind,
+			description=agent_input.description,
+			dataSourceId=data_source_id,
+			factors=new_factors
+		)
+		return 'create', topic, {}
+	else:
+		# ===== UPDATE =====
+		# 按 factor.name 复用 factorId，未匹配的（新 factor）factorId 留空由 redress 生成
+		existing_factor_map = {f.name: f.factorId for f in (existing.factors or [])}
+		new_factors = [build_factor_from_agent(f, existing_factor_map.get(f.name)) for f in agent_input.factors]
+		existing.type = agent_input.type
+		existing.kind = agent_input.kind
+		existing.description = agent_input.description
+		existing.dataSourceId = data_source_id
+		existing.factors = new_factors
+		# version 从 existing 继承，避免乐观锁冲突
+		return 'update', existing, existing_factor_map
+
+
+@router.post('/topic/yaml/agent-upsert', tags=[UserRole.ADMIN], response_class=Response)
+async def upsert_topic_yaml_for_agent(
+		request: Request, dry_run: bool = False,
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Response:
+	"""
+	AI Agent 专用的 Topic YAML upsert 端点。
+	按 topic.name 做 upsert，按 factor.name 复用 factorId。
+	入参只需业务字段（name / dataSourceCode / factors），无需任何内部 id。
+
+	参数:
+	  - dry_run: true 时只校验不落库，返回 would_create / would_update
+	"""
+	ensure_design_environment_for_yaml_update()
+	yaml_bytes = await request.body()
+	yaml_str = yaml_bytes.decode('utf-8')
+	try:
+		agent_dict = yaml.safe_load(yaml_str)
+		agent_input = AgentTopicYaml(**agent_dict)
+	except Exception as e:
+		raise_400(f'Invalid YAML: {str(e)}')
+
+	# 校验 dataSourceCode 非空（upsert 入参必填）
+	if is_blank(agent_input.dataSourceCode):
+		raise_400('dataSourceCode is required.')
+
+	# 校验 factor.name 不重复
+	factor_names = [f.name for f in agent_input.factors]
+	if len(factor_names) != len(set(factor_names)):
+		raise_400('Duplicate factor names are not allowed.')
+
+	# 禁止操作系统 topic
+	if agent_input.kind == TopicKind.SYSTEM:
+		raise_400('System topics cannot be saved via agent-upsert.')
+
+	topic_service = get_topic_service(principal_service)
+
+	if dry_run:
+		# dry-run：只读事务，只做查询和校验
+		def do_prepare():
+			return prepare_agent_topic_upsert(agent_input, principal_service, topic_service)
+
+		action_type, topic, existing_factor_map = trans_readonly(topic_service, do_prepare)
+		display_action = 'would_create' if action_type == 'create' else 'would_update'
+		# dry-run 下 factorIdMapping 反映匹配结果（update 时有值，create 时为空）
+		matched_mapping = {
+			f.name: existing_factor_map[f.name]
+			for f in agent_input.factors
+			if f.name in existing_factor_map
+		}
+		result = AgentUpsertResult(
+			action=display_action, dryRun=True,
+			topic=topic.model_dump(mode='json', by_alias=True, exclude_none=True),
+			factorIdMapping=matched_mapping
+		)
+	else:
+		# 落库：读写事务，带 tail（同步存储结构）
+		def do_save():
+			action_type, topic, _ = prepare_agent_topic_upsert(
+				agent_input, principal_service, topic_service)
+			save_action = ask_save_topic_action(topic_service, principal_service, True)
+			saved_topic, tail = save_action(topic)
+			return (action_type, saved_topic), tail
+
+		(action_type, saved_topic), _ = trans_with_tail(topic_service, do_save)
+		# 落库后 factorIdMapping 来自 saved_topic（所有 factor 都有 id）
+		saved_mapping = {f.name: f.factorId for f in (saved_topic.factors or [])}
+		result = AgentUpsertResult(
+			action=action_type, dryRun=False,
+			topic=saved_topic.model_dump(mode='json', by_alias=True, exclude_none=True),
+			factorIdMapping=saved_mapping
+		)
+
+	result_yaml = yaml.dump(result.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+	return Response(content=result_yaml, media_type="application/x-yaml")
+
+
+# ====================================================================================
+# AI Agent 友好的 YAML 下载端点（返回无 id 结构，复用 AgentTopicYaml）
+# ====================================================================================
+
+def build_data_source_id_to_code_map(
+		tenant_id: TenantId, data_source_service: DataSourceService) -> dict:
+	"""构建租户内 dataSourceId → dataSourceCode 映射"""
+	data_sources = data_source_service.find_all(tenant_id)
+	return {ds.dataSourceId: ds.dataSourceCode for ds in data_sources}
+
+
+def to_agent_topic_view(topic: Topic, ds_id_to_code: dict) -> AgentTopicYaml:
+	"""将完整 Topic 转换为 Agent 视图（剥离所有内部 id）"""
+	agent_factors = [
+		AgentFactorYaml(
+			name=f.name,
+			type=f.type,
+			label=f.label,
+			enumId=f.enumId,
+			description=f.description,
+			defaultValue=f.defaultValue,
+			flatten=f.flatten,
+			indexGroup=f.indexGroup,
+			encrypt=f.encrypt,
+			precision=f.precision
+		)
+		for f in (topic.factors or [])
+	]
+	return AgentTopicYaml(
+		name=topic.name,
+		type=topic.type,
+		kind=topic.kind,
+		description=topic.description,
+		dataSourceCode=ds_id_to_code.get(topic.dataSourceId),
+		factors=agent_factors
+	)
+
+
+def dump_agent_topic_view_yaml(view: AgentTopicYaml) -> str:
+	"""序列化单个 Agent 视图为 YAML"""
+	return yaml.dump(view.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+
+
+@router.get('/topic/yaml/agent-view', tags=[UserRole.ADMIN, UserRole.CONSOLE], response_class=Response)
+async def load_topic_yaml_agent_view_by_id(
+		topic_id: Optional[TopicId] = None,
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> Response:
+	"""按 topic_id 下载精简 YAML（无 topicId / factorId / tenantId / dataSourceId）"""
+	if is_blank(topic_id):
+		raise_400('Topic id is required.')
+	topic_service = get_topic_service(principal_service)
+
+	def action() -> Tuple[Topic, dict]:
+		# noinspection PyTypeChecker
+		topic: Topic = topic_service.find_by_id(topic_id)
+		if topic is None:
+			raise_404()
+		if topic.tenantId != principal_service.get_tenant_id():
+			raise_404()
+		if is_system_topic(topic):
+			raise_404()
+		data_source_service = get_data_source_service(principal_service)
+		ds_map = build_data_source_id_to_code_map(principal_service.get_tenant_id(), data_source_service)
+		return topic, ds_map
+
+	topic, ds_map = trans_readonly(topic_service, action)
+	view = to_agent_topic_view(topic, ds_map)
+	return Response(content=dump_agent_topic_view_yaml(view), media_type="application/x-yaml")
+
+
+@router.get('/topic/name/yaml/agent-view', tags=[UserRole.ADMIN, UserRole.CONSOLE], response_class=Response)
+async def find_topic_yaml_agent_view_by_name(
+		query_name: Optional[str],
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> Response:
+	"""按 name 下载精简 YAML（无 topicId / factorId / tenantId / dataSourceId）"""
+	if is_blank(query_name):
+		raise_400('Topic name is required.')
+	topic_service = get_topic_service(principal_service)
+
+	def action() -> Tuple[Topic, dict]:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		topic: Optional[Topic] = topic_service.find_by_name_and_tenant(query_name, tenant_id)
+		if topic is None:
+			raise_404()
+		if is_system_topic(topic):
+			raise_404()
+		data_source_service = get_data_source_service(principal_service)
+		ds_map = build_data_source_id_to_code_map(tenant_id, data_source_service)
+		return topic, ds_map
+
+	topic, ds_map = trans_readonly(topic_service, action)
+	view = to_agent_topic_view(topic, ds_map)
+	return Response(content=dump_agent_topic_view_yaml(view), media_type="application/x-yaml")
+
+
+@router.get('/topic/all/yaml/agent-view', tags=[UserRole.ADMIN], response_class=Response)
+async def find_all_topics_yaml_agent_view(
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Response:
+	"""下载全部 Topic 的精简 YAML 数组（无 topicId / factorId / tenantId / dataSourceId）"""
+	topic_service = get_topic_service(principal_service)
+
+	def action() -> Tuple[List[Topic], dict]:
+		tenant_id = principal_service.get_tenant_id()
+		topics = topic_service.find_all(tenant_id)
+		topics = ArrayHelper(topics).filter(lambda x: not is_system_topic(x)).to_list()
+		data_source_service = get_data_source_service(principal_service)
+		ds_map = build_data_source_id_to_code_map(tenant_id, data_source_service)
+		return topics, ds_map
+
+	topics, ds_map = trans_readonly(topic_service, action)
+	views = [to_agent_topic_view(t, ds_map) for t in topics]
+	yaml_str = yaml.dump(
+		[v.model_dump(mode='json', by_alias=True, exclude_none=True) for v in views],
+		sort_keys=False
+	)
+	return Response(content=yaml_str, media_type="application/x-yaml")

@@ -141,6 +141,27 @@ def write_yaml_entity(
     (entity_dir / file_name).write_text(entity_yaml_str, encoding="utf-8")
 
 
+def write_yaml_entity_by_name(
+    vault_path: Path,
+    entity_dir_name: str,
+    entity_yaml_str: str,
+    name_key: str = "name",
+) -> None:
+    """按 name 落盘, 不依赖任何内部 id (用于 agent-view 拉取的 YAML)。"""
+    ensure_vault(vault_path)
+    entity_dir = vault_path / entity_dir_name
+    entity_dir.mkdir(parents=True, exist_ok=True)
+
+    entity = yaml.safe_load(entity_yaml_str)
+    if not isinstance(entity, dict):
+        return
+    name = entity.get(name_key)
+    if not name:
+        return
+    file_name = f"{sanitize_file_name(str(name))}.yml"
+    (entity_dir / file_name).write_text(entity_yaml_str, encoding="utf-8")
+
+
 def read_yaml_entities(vault_path: Path, entity_dir_name: str) -> List[str]:
     entity_dir = vault_path / entity_dir_name
     if not entity_dir.exists():

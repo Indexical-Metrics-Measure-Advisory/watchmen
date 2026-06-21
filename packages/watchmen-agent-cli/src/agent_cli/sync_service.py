@@ -7,7 +7,7 @@ import yaml
 
 from agent_cli.exceptions import AgentCliException
 from agent_cli.http_client import RestClient
-from agent_cli.vault import DATASOURCE_DIR, ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CONFIG_DIR, INGEST_TABLE_CONFIG_DIR, METRICFLOW_METRIC_DIR, METRICFLOW_SEMANTIC_DIR, PIPELINE_DIR, TOPIC_DIR, read_entities, write_entities, write_yaml_entity, read_yaml_entities
+from agent_cli.vault import DATASOURCE_DIR, ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CONFIG_DIR, INGEST_TABLE_CONFIG_DIR, METRICFLOW_METRIC_DIR, METRICFLOW_SEMANTIC_DIR, PIPELINE_DIR, TOPIC_DIR, write_entities, write_yaml_entity, write_yaml_entity_by_name, read_yaml_entities
 
 SyncTarget = Literal[
     "topic", "pipeline", "enum", "semantic", "metric",
@@ -21,12 +21,14 @@ class SyncService:
         self.vault_path = vault_path
 
     def _load_all_topics_from_yaml_endpoint(self) -> List[Dict[str, Any]]:
-        topics_yaml = self.client.get_text("/topic/all/yaml")
+        # agent-view: 返回无 id 结构的 topic 列表
+        topics_yaml = self.client.get_text("/topic/all/yaml/agent-view")
         topics = yaml.safe_load(topics_yaml) if topics_yaml.strip() else []
         return topics if isinstance(topics, list) else []
 
     def _load_all_pipelines_from_yaml_endpoint(self) -> List[Dict[str, Any]]:
-        pipelines_yaml = self.client.get_text("/pipeline/all/yaml")
+        # agent-view: 返回无 id 结构的 pipeline 列表
+        pipelines_yaml = self.client.get_text("/pipeline/all/yaml/agent-view")
         pipelines = yaml.safe_load(pipelines_yaml) if pipelines_yaml.strip() else []
         return pipelines if isinstance(pipelines, list) else []
 
@@ -36,13 +38,15 @@ class SyncService:
             topics = self._load_all_topics_from_yaml_endpoint()
             for topic in topics:
                 yaml_str = yaml.dump(topic, sort_keys=False)
-                write_yaml_entity(self.vault_path, TOPIC_DIR, yaml_str, "topicId", name_key="name")
+                # agent-view YAML 无 topicId, 按 name 落盘
+                write_yaml_entity_by_name(self.vault_path, TOPIC_DIR, yaml_str)
             result["topics"] = len(topics)
         if target in ("pipeline", "all"):
             pipelines = self._load_all_pipelines_from_yaml_endpoint()
             for pipeline in pipelines:
                 yaml_str = yaml.dump(pipeline, sort_keys=False)
-                write_yaml_entity(self.vault_path, PIPELINE_DIR, yaml_str, "pipelineId", name_key="name")
+                # agent-view YAML 无 pipelineId, 按 name 落盘
+                write_yaml_entity_by_name(self.vault_path, PIPELINE_DIR, yaml_str)
             result["pipelines"] = len(pipelines)
         if target in ("enum", "all"):
             enums = self.client.get_json("/enum/all")
@@ -82,134 +86,191 @@ class SyncService:
             result["ingest_modules"] = len(modules)
         return result
 
-    def push_topic_yaml(self, topic_yaml: str, skip_name_check: bool = False) -> str:
+    def push_topic_yaml(self, topic_yaml: str, skip_name_check: bool = False, dry_run: bool = False) -> str:
         if not skip_name_check:
             self._validate_local_topic_name_uniqueness(topic_yaml)
         self._validate_topic_yaml_labels(topic_yaml)
-        return self.client.post_text("/topic/yaml", topic_yaml)
+        # agent-upsert: 入参/出参都不要求 topicId / factorId
+        path = "/topic/yaml/agent-upsert"
+        if dry_run:
+            path += "?dry_run=true"
+        return self.client.post_text(path, topic_yaml)
 
-    def push_topic_yaml_file(self, file_path: Path, skip_name_check: bool = False) -> Dict[str, Any]:
+    def push_topic_yaml_file(self, file_path: Path, skip_name_check: bool = False, dry_run: bool = False) -> Dict[str, Any]:
         if not file_path.exists():
             raise AgentCliException(f"File not found: {file_path}")
         source_yaml = file_path.read_text(encoding="utf-8")
         source_topic = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
         source_topic_id = str((source_topic or {}).get("topicId") or "").strip()
-        pushed_yaml = self.push_topic_yaml(source_yaml, skip_name_check=skip_name_check)
-        pushed_topic = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
-        pushed_topic_id = str((pushed_topic or {}).get("topicId") or "").strip()
-        replaced = bool(source_topic_id and pushed_topic_id and source_topic_id == pushed_topic_id)
+        source_topic_name = str((source_topic or {}).get("name") or "").strip()
 
-        if file_path.resolve().is_relative_to((self.vault_path / TOPIC_DIR).resolve()):
-            write_yaml_entity(self.vault_path, TOPIC_DIR, pushed_yaml, "topicId", name_key="name")
-            if source_topic_id and pushed_topic_id and source_topic_id != pushed_topic_id and file_path.exists():
+        # agent-upsert 响应: {action, dryRun, topic, factorIdMapping}
+        pushed_yaml = self.push_topic_yaml(source_yaml, skip_name_check=skip_name_check, dry_run=dry_run)
+        pushed_response = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
+        pushed_topic = (pushed_response or {}).get("topic") or {}
+        pushed_topic_id = str(pushed_topic.get("topicId") or "").strip()
+        pushed_topic_name = str(pushed_topic.get("name") or "").strip()
+        pushed_topic_yaml = yaml.dump(pushed_topic, sort_keys=False) if pushed_topic else pushed_yaml
+        action = (pushed_response or {}).get("action") or ""
+        factor_id_mapping = (pushed_response or {}).get("factorIdMapping") or {}
+
+        if dry_run:
+            return {
+                "status": "dry_run",
+                "file": str(file_path),
+                "action": action,
+                "factorIdMapping": factor_id_mapping,
+            }
+
+        # 写回本地: 索引改为 name (无 id 后缀)
+        in_vault = file_path.resolve().is_relative_to((self.vault_path / TOPIC_DIR).resolve())
+        if in_vault:
+            write_yaml_entity_by_name(self.vault_path, TOPIC_DIR, pushed_topic_yaml)
+            # 如果原文件名不是按新规则 (name), 删掉旧文件
+            if (
+                source_topic_name
+                and pushed_topic_name
+                and source_topic_name != pushed_topic_name
+                and file_path.exists()
+            ):
                 file_path.unlink()
         else:
-            file_path.write_text(pushed_yaml, encoding="utf-8")
+            file_path.write_text(pushed_topic_yaml, encoding="utf-8")
+
+        replaced = bool(
+            source_topic_id
+            and pushed_topic_id
+            and source_topic_id == pushed_topic_id
+        )
 
         return {
             "status": "pushed",
             "file": str(file_path),
+            "action": action,
             "sourceTopicId": source_topic_id or None,
             "topicId": pushed_topic_id or None,
-            "replaced": replaced
+            "replaced": replaced,
+            "factorIdMapping": factor_id_mapping,
         }
 
-    def push(self, target: SyncTarget) -> Dict[str, int]:
+    def push(self, target: SyncTarget, dry_run: bool = False) -> Dict[str, int]:
         result = {"topics": 0, "pipelines": 0}
         if target in ("topic",):
             self._validate_local_topic_name_uniqueness()
             topic_dir = self.vault_path / TOPIC_DIR
             topic_yaml_files = sorted(topic_dir.glob("*.yml")) + sorted(topic_dir.glob("*.yaml"))
             for topic_file in topic_yaml_files:
-                self.push_topic_yaml_file(topic_file, skip_name_check=True)
+                self.push_topic_yaml_file(topic_file, skip_name_check=True, dry_run=dry_run)
                 result["topics"] += 1
-            topics = read_entities(self.vault_path, TOPIC_DIR)
-            if topics:
-                self.client.post_json("/topic/import", topics)
-                result["topics"] += len(topics)
         if target in ("pipeline",):
             pipeline_dir = self.vault_path / PIPELINE_DIR
             pipeline_yaml_files = sorted(pipeline_dir.glob("*.yml")) + sorted(pipeline_dir.glob("*.yaml"))
             for pipeline_file in pipeline_yaml_files:
-                self.push_pipeline_yaml_file(pipeline_file)
+                self.push_pipeline_yaml_file(pipeline_file, dry_run=dry_run)
                 result["pipelines"] += 1
-            pipelines = read_entities(self.vault_path, PIPELINE_DIR)
-            if pipelines:
-                self.client.post_json("/pipeline/import", pipelines)
-                result["pipelines"] += len(pipelines)
         return result
 
     def pull_one_topic(self, topic_id: str) -> Dict[str, Any]:
-        topic_yaml = self.client.get_text("/topic/yaml", {"topic_id": topic_id})
-        write_yaml_entity(self.vault_path, TOPIC_DIR, topic_yaml, "topicId", name_key="name")
+        topic_yaml = self.client.get_text("/topic/yaml/agent-view", {"topic_id": topic_id})
+        write_yaml_entity_by_name(self.vault_path, TOPIC_DIR, topic_yaml)
         return {"topicId": topic_id, "status": "pulled"}
 
     def pull_topics_by_name(self, topic_name: str) -> Dict[str, Any]:
-        topic_yaml = self.client.get_text("/topic/name/yaml", {"query_name": topic_name})
-        write_yaml_entity(self.vault_path, TOPIC_DIR, topic_yaml, "topicId", name_key="name")
+        topic_yaml = self.client.get_text("/topic/name/yaml/agent-view", {"query_name": topic_name})
+        write_yaml_entity_by_name(self.vault_path, TOPIC_DIR, topic_yaml)
         return {"topicName": topic_name, "status": "pulled"}
 
     def pull_one_pipeline(self, pipeline_id: str) -> Dict[str, Any]:
-        pipeline_yaml = self.client.get_text("/pipeline/yaml", {"pipeline_id": pipeline_id})
-        write_yaml_entity(self.vault_path, PIPELINE_DIR, pipeline_yaml, "pipelineId", name_key="name")
+        pipeline_yaml = self.client.get_text("/pipeline/yaml/agent-view", {"pipeline_id": pipeline_id})
+        # agent-view YAML 无 pipelineId, 按 name 落盘
+        write_yaml_entity_by_name(self.vault_path, PIPELINE_DIR, pipeline_yaml)
         return {"pipelineId": pipeline_id, "status": "pulled"}
 
     def pull_pipelines_by_name(self, pipeline_name: str) -> Dict[str, Any]:
-        pipeline_yaml = self.client.get_text("/pipeline/name/yaml", {"query_name": pipeline_name})
-        write_yaml_entity(self.vault_path, PIPELINE_DIR, pipeline_yaml, "pipelineId", name_key="name")
+        pipeline_yaml = self.client.get_text("/pipeline/name/yaml/agent-view", {"query_name": pipeline_name})
+        write_yaml_entity_by_name(self.vault_path, PIPELINE_DIR, pipeline_yaml)
         return {"pipelineName": pipeline_name, "status": "pulled"}
 
-    def push_pipeline_yaml(self, pipeline_yaml: str) -> str:
-        return self.client.post_text("/pipeline/yaml", pipeline_yaml)
+    def push_pipeline_yaml(self, pipeline_yaml: str, dry_run: bool = False) -> str:
+        # agent-upsert: 入参/出参都不要求 pipelineId / topicId / factorId
+        path = "/pipeline/yaml/agent-upsert"
+        if dry_run:
+            path += "?dry_run=true"
+        return self.client.post_text(path, pipeline_yaml)
 
-    def push_pipeline_yaml_file(self, file_path: Path) -> Dict[str, Any]:
+    def push_pipeline_yaml_file(self, file_path: Path, dry_run: bool = False) -> Dict[str, Any]:
         if not file_path.exists():
             raise AgentCliException(f"File not found: {file_path}")
         source_yaml = file_path.read_text(encoding="utf-8")
         source_pipeline = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
-        source_pipeline_id = str((source_pipeline or {}).get("pipelineId") or "").strip()
-        pushed_yaml = self.push_pipeline_yaml(source_yaml)
-        pushed_pipeline = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
-        pushed_pipeline_id = str((pushed_pipeline or {}).get("pipelineId") or "").strip()
-        replaced = bool(source_pipeline_id and pushed_pipeline_id and source_pipeline_id == pushed_pipeline_id)
+        source_pipeline_name = str((source_pipeline or {}).get("name") or "").strip()
 
-        if file_path.resolve().is_relative_to((self.vault_path / PIPELINE_DIR).resolve()):
-            write_yaml_entity(self.vault_path, PIPELINE_DIR, pushed_yaml, "pipelineId", name_key="name")
-            if source_pipeline_id and pushed_pipeline_id and source_pipeline_id != pushed_pipeline_id and file_path.exists():
+        # agent-upsert 响应: {action, dryRun, pipeline, topicIdMapping, factorIdMapping}
+        pushed_yaml = self.push_pipeline_yaml(source_yaml, dry_run=dry_run)
+        pushed_response = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
+        pushed_pipeline = (pushed_response or {}).get("pipeline") or {}
+        pushed_pipeline_name = str(pushed_pipeline.get("name") or "").strip()
+        action = (pushed_response or {}).get("action") or ""
+        topic_id_mapping = (pushed_response or {}).get("topicIdMapping") or {}
+        factor_id_mapping = (pushed_response or {}).get("factorIdMapping") or {}
+
+        if dry_run:
+            return {
+                "status": "dry_run",
+                "file": str(file_path),
+                "action": action,
+                "topicIdMapping": topic_id_mapping,
+                "factorIdMapping": factor_id_mapping,
+            }
+
+        # agent-upsert 返回的 pipeline 是完整结构（含 id），落盘改用 agent-view 视图（无 id）
+        # 这里直接按 name 写回 source_yaml, 避免把服务端 id 持久化到本地
+        pushed_pipeline_yaml = source_yaml
+
+        # 写回本地: 索引改为 name (无 id 后缀)
+        in_vault = file_path.resolve().is_relative_to((self.vault_path / PIPELINE_DIR).resolve())
+        if in_vault:
+            write_yaml_entity_by_name(self.vault_path, PIPELINE_DIR, pushed_pipeline_yaml)
+            # 如果 name 变了, 删掉旧文件
+            if (
+                source_pipeline_name
+                and pushed_pipeline_name
+                and source_pipeline_name != pushed_pipeline_name
+                and file_path.exists()
+            ):
                 file_path.unlink()
         else:
-            file_path.write_text(pushed_yaml, encoding="utf-8")
+            file_path.write_text(pushed_pipeline_yaml, encoding="utf-8")
 
         return {
             "status": "pushed",
             "file": str(file_path),
-            "sourcePipelineId": source_pipeline_id or None,
-            "pipelineId": pushed_pipeline_id or None,
-            "replaced": replaced
+            "action": action,
+            "topicIdMapping": topic_id_mapping,
+            "factorIdMapping": factor_id_mapping,
         }
 
     def list_topics_from_server(self) -> Dict[str, Any]:
         topics = self._load_all_topics_from_yaml_endpoint()
-        # Just return basic metadata to the user
+        # agent-view: 无 topicId, 改用 name 作为唯一标识
         topic_summaries = []
         for t in topics:
             topic_summaries.append({
-                "topicId": t.get("topicId"),
                 "name": t.get("name"),
                 "type": t.get("type"),
-                "kind": t.get("kind")
+                "kind": t.get("kind"),
+                "dataSourceCode": t.get("dataSourceCode"),
             })
         return {"count": len(topic_summaries), "topics": topic_summaries}
 
     def list_pipelines_from_server(self) -> Dict[str, Any]:
         pipelines = self._load_all_pipelines_from_yaml_endpoint()
-        # Just return basic metadata to the user
+        # agent-view: 无 pipelineId/topicId, 改用 name / sourceTopicName 作为标识
         pipeline_summaries = []
         for p in pipelines:
             pipeline_summaries.append({
-                "pipelineId": p.get("pipelineId"),
                 "name": p.get("name"),
-                "topicId": p.get("topicId"),
+                "sourceTopicName": p.get("sourceTopicName"),
                 "type": p.get("type"),
                 "enabled": p.get("enabled")
             })
@@ -557,11 +618,15 @@ class SyncService:
         }
 
     def _tenant_ids_from_topics(self) -> List[str]:
+        # agent-view YAML 不暴露 tenantId, 这里仅作为降级路径:
+        # 若某天回到完整 schema 的端点, 仍能取到租户集合。
         topics = self._load_all_topics_from_yaml_endpoint()
         tenant_ids = {topic.get("tenantId") for topic in topics if topic.get("tenantId")}
         return sorted(tenant_ids)
 
     def _tenant_ids_from_pipelines(self) -> List[str]:
+        # agent-view YAML 不暴露 tenantId, 这里仅作为降级路径:
+        # 若某天回到完整 schema 的端点, 仍能取到租户集合。
         try:
             pipelines = self._load_all_pipelines_from_yaml_endpoint()
         except Exception:

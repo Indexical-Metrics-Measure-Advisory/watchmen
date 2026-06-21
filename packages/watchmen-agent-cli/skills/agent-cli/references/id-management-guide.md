@@ -9,6 +9,7 @@ ApiException: POST /<entity>/yaml failed with 500: {"detail":"Unpredicted except
 ```
 
 Or validation errors:
+
 ```
 ApiException: POST /pipeline/yaml failed with 400: validation error
 ```
@@ -17,115 +18,97 @@ ApiException: POST /pipeline/yaml failed with 400: validation error
 
 Watchmen server **cannot accept pre-assigned IDs** for new entities. All new entity IDs must be assigned by the server only.
 
-## Solution: Use `null` for All IDs
+## Solution: Use Agent No-ID YAML for Topic/Pipeline
 
 ### Rule of Thumb
 
+```text
+Topic/Pipeline local YAML → omit internal IDs entirely; server upserts by name.
+Legacy entities → new IDs use null, existing IDs use real server IDs.
 ```
-┌─────────────────────────────────────────────────────────┐
-│  NEW entities (to be created on server) → use null     │
-│  EXISTING entities (already on server) → use real IDs  │
-└─────────────────────────────────────────────────────────┘
-```
+
+Topic/Pipeline are special now: do not write `topicId`, `factorId`, `pipelineId`, `stageId`, `unitId`, `actionId`, `tenantId`, or `version` in local YAML.
 
 ---
 
 ## Supported Entities & ID Types
 
-| Entity Type | Top-Level ID | Child IDs | Notes |
-|------------|--------------|-----------|-------|
-| **Topic** | `topicId` | `factorId` | factors array |
-| **Pipeline** | `pipelineId` | `stageId`, `unitId`, `actionId` | stages > units > do |
-| **Enum** | `enumId` | `itemId` | items array |
-| **Semantic Model** | `modelId` | `metricId`, `dimensionId` | metricFlow semantic |
-| **Metric** | `metricId` | - | MetricFlow metric |
-| **Ingestion Table** | `configId` | - | ingest table config |
-| **Ingestion Model** | `configId` | `tableConfigId` | contains tables array |
-| **Ingestion Module** | `configId` | `modelConfigId` | contains models array |
-| **DataSource** | `datasourceId` | - | system datasource |
+| Entity Type          | Top-Level ID          | Child IDs                 | Notes                                         |
+| -------------------- | --------------------- | ------------------------- | --------------------------------------------- |
+| **Topic**            | omitted in agent YAML | omitted in agent YAML     | server resolves by topic/factor name          |
+| **Pipeline**         | omitted in agent YAML | omitted in agent YAML     | server resolves by pipeline/topic/factor name |
+| **Enum**             | `enumId`              | `itemId`                  | items array                                   |
+| **Semantic Model**   | `modelId`             | `metricId`, `dimensionId` | metricFlow semantic                           |
+| **Metric**           | `metricId`            | -                         | MetricFlow metric                             |
+| **Ingestion Table**  | `configId`            | -                         | ingest table config                           |
+| **Ingestion Model**  | `configId`            | `tableConfigId`           | contains tables array                         |
+| **Ingestion Module** | `configId`            | `modelConfigId`           | contains models array                         |
+| **DataSource**       | `datasourceId`        | -                         | system datasource                             |
 
 ---
 
-## Topic YAML Template
+## Topic YAML Template (Agent No-ID)
 
 ```yaml
-version: 1
-createdAt: '2026-05-13T00:00:00'
-createdBy: '1071081977535114240'
-lastModifiedAt: '2026-05-13T00:00:00'
-lastModifiedBy: '1071081977535114240'
-tenantId: '1071081264281136128'
-topicId: null                           # <-- MUST be null
 name: my_new_topic
 type: distinct
 kind: business
+dataSourceCode: default
+description: My topic
 factors:
-- factorId: null                       # <-- MUST be null
-  type: text
-  name: field1
-  label: Field 1
-  description: My first field
-  flatten: false
-- factorId: null                       # <-- MUST be null
-  type: number
-  name: field2
-  # ... more fields
+    - name: field1
+      type: text
+      label: Field 1
+      description: My first field
+      flatten: false
+    - name: field2
+      type: number
+      label: Field 2
 ```
+
+Do not include `topicId`, `factorId`, `tenantId`, or `version`.
 
 ---
 
-## Pipeline YAML Template
+## Pipeline YAML Template (Agent No-ID)
 
 ```yaml
-version: 1
-createdAt: '2026-05-13T00:00:00'
-createdBy: '1071081977535114240'
-lastModifiedAt: '2026-05-13T00:00:00'
-lastModifiedBy: '1071081977535114240'
-tenantId: '1071081264281136128'
-conditional: false
-pipelineId: null                        # <-- MUST be null
-topicId: '1083070031199647744'          # Source topic (real ID required)
 name: pl_source_to_target
+sourceTopicName: raw_source_topic
 type: insert-or-merge
-stages:
-- conditional: false
-  stageId: null                         # <-- MUST be null
-  name: my_stage
-  units:
-  - conditional: false
-    unitId: null                        # <-- MUST be null
-    name: my_unit
-    do:
-    - actionId: null                    # <-- MUST be null
-      type: insert-or-merge-row
-      by:
-        jointType: and
-        filters:
-        - left:
-            kind: topic
-            conditional: false
-            topicId: '1083070031199647744'   # Source (real ID)
-            factorId: '1083070031199647745'  # Source factor (real ID)
-          operator: equals
-          right:
-            kind: topic
-            conditional: false
-            topicId: null               # <-- Fill after topic push
-            factorId: null              # <-- Fill after topic pull
-      mapping:
-      - arithmetic: none
-        source:
-          kind: topic
-          conditional: false
-          topicId: '1083070031199647744'
-          factorId: '1083070031199647745'
-        factorId: null                  # <-- Fill after topic pull
-      topicId: null                     # <-- Fill after topic push
-      accumulateMode: standard
 enabled: true
 validated: false
+stages:
+    - name: my_stage
+      conditional: false
+      units:
+          - name: my_unit
+            conditional: false
+            do:
+                - type: insert-or-merge-row
+                  topicName: target_topic
+                  by:
+                      jointType: and
+                      filters:
+                          - left:
+                                kind: topic
+                                topicName: target_topic
+                                factorName: business_key
+                            operator: equals
+                            right:
+                                kind: topic
+                                topicName: raw_source_topic
+                                factorName: business_key
+                  mapping:
+                      - factorName: business_key
+                        source:
+                            kind: topic
+                            topicName: raw_source_topic
+                            factorName: business_key
+                  accumulateMode: standard
 ```
+
+Do not include `pipelineId`, `topicId`, `factorId`, `stageId`, `unitId`, `actionId`, `tenantId`, or `version`.
 
 ---
 
@@ -133,21 +116,21 @@ validated: false
 
 ```yaml
 version: 1
-createdAt: '2026-05-13T00:00:00'
-createdBy: '1071081977535114240'
-lastModifiedAt: '2026-05-13T00:00:00'
-lastModifiedBy: '1071081977535114240'
-tenantId: '1071081264281136128'
-enumId: null                            # <-- MUST be null
+createdAt: "2026-05-13T00:00:00"
+createdBy: "1071081977535114240"
+lastModifiedAt: "2026-05-13T00:00:00"
+lastModifiedBy: "1071081977535114240"
+tenantId: "1071081264281136128"
+enumId: null # <-- MUST be null
 name: MyEnum
 description: My enumeration
 items:
-- itemId: null                          # <-- MUST be null
-  code: CODE_1
-  label: Code 1
-- itemId: null                          # <-- MUST be null
-  code: CODE_2
-  label: Code 2
+    - itemId: null # <-- MUST be null
+      code: CODE_1
+      label: Code 1
+    - itemId: null # <-- MUST be null
+      code: CODE_2
+      label: Code 2
 ```
 
 ---
@@ -156,12 +139,12 @@ items:
 
 ```yaml
 version: 1
-createdAt: '2026-05-13T00:00:00'
-createdBy: '1071081977535114240'
-lastModifiedAt: '2026-05-13T00:00:00'
-lastModifiedBy: '1071081977535114240'
-tenantId: '1071081264281136128'
-configId: null                          # <-- MUST be null
+createdAt: "2026-05-13T00:00:00"
+createdBy: "1071081977535114240"
+lastModifiedAt: "2026-05-13T00:00:00"
+lastModifiedBy: "1071081977535114240"
+tenantId: "1071081264281136128"
+configId: null # <-- MUST be null
 name: my_table
 type: table
 # ... table config fields
@@ -173,23 +156,23 @@ type: table
 
 ```yaml
 version: 1
-createdAt: '2026-05-13T00:00:00'
-createdBy: '1071081977535114240'
-lastModifiedAt: '2026-05-13T00:00:00'
-lastModifiedBy: '1071081977535114240'
-tenantId: '1071081264281136128'
-configId: null                          # <-- MUST be null
+createdAt: "2026-05-13T00:00:00"
+createdBy: "1071081977535114240"
+lastModifiedAt: "2026-05-13T00:00:00"
+lastModifiedBy: "1071081977535114240"
+tenantId: "1071081264281136128"
+configId: null # <-- MUST be null
 name: my_model
 type: model
 tables:
-- configId: null                        # <-- MUST be null
-  name: RootTable
-  parentName: null                      # Root table has no parent
-  # ... table fields
-- configId: null                        # <-- MUST be null
-  name: ChildTable
-  parentName: RootTable                  # References parent table
-  # ... table fields
+    - configId: null # <-- MUST be null
+      name: RootTable
+      parentName: null # Root table has no parent
+      # ... table fields
+    - configId: null # <-- MUST be null
+      name: ChildTable
+      parentName: RootTable # References parent table
+      # ... table fields
 ```
 
 ---
@@ -198,18 +181,18 @@ tables:
 
 ```yaml
 version: 1
-createdAt: '2026-05-13T00:00:00'
-createdBy: '1071081977535114240'
-lastModifiedAt: '2026-05-13T00:00:00'
-lastModifiedBy: '1071081977535114240'
-tenantId: '1071081264281136128'
-configId: null                          # <-- MUST be null
+createdAt: "2026-05-13T00:00:00"
+createdBy: "1071081977535114240"
+lastModifiedAt: "2026-05-13T00:00:00"
+lastModifiedBy: "1071081977535114240"
+tenantId: "1071081264281136128"
+configId: null # <-- MUST be null
 name: my_module
 type: module
 models:
-- configId: null                        # <-- MUST be null
-  name: model1
-  # ... model config
+    - configId: null # <-- MUST be null
+      name: model1
+      # ... model config
 ```
 
 ---
@@ -218,12 +201,12 @@ models:
 
 ```yaml
 version: 1
-createdAt: '2026-05-13T00:00:00'
-createdBy: '1071081977535114240'
-lastModifiedAt: '2026-05-13T00:00:00'
-lastModifiedBy: '1071081977535114240'
-tenantId: '1071081264281136128'
-modelId: null                           # <-- MUST be null
+createdAt: "2026-05-13T00:00:00"
+createdBy: "1071081977535114240"
+lastModifiedAt: "2026-05-13T00:00:00"
+lastModifiedBy: "1071081977535114240"
+tenantId: "1071081264281136128"
+modelId: null # <-- MUST be null
 name: my_semantic_model
 # ... semantic model fields
 ```
@@ -234,12 +217,12 @@ name: my_semantic_model
 
 ```yaml
 version: 1
-createdAt: '2026-05-13T00:00:00'
-createdBy: '1071081977535114240'
-lastModifiedAt: '2026-05-13T00:00:00'
-lastModifiedBy: '1071081977535114240'
-tenantId: '1071081264281136128'
-metricId: null                           # <-- MUST be null
+createdAt: "2026-05-13T00:00:00"
+createdBy: "1071081977535114240"
+lastModifiedAt: "2026-05-13T00:00:00"
+lastModifiedBy: "1071081977535114240"
+tenantId: "1071081264281136128"
+metricId: null # <-- MUST be null
 name: my_metric
 # ... metric fields
 ```
@@ -250,12 +233,12 @@ name: my_metric
 
 ```yaml
 version: 1
-createdAt: '2026-05-13T00:00:00'
-createdBy: '1071081977535114240'
-lastModifiedAt: '2026-05-13T00:00:00'
-lastModifiedBy: '1071081977535114240'
-tenantId: '1071081264281136128'
-datasourceId: null                      # <-- MUST be null
+createdAt: "2026-05-13T00:00:00"
+createdBy: "1071081977535114240"
+lastModifiedAt: "2026-05-13T00:00:00"
+lastModifiedBy: "1071081977535114240"
+tenantId: "1071081264281136128"
+datasourceId: null # <-- MUST be null
 name: my_datasource
 type: MYSQL
 # ... datasource config
@@ -265,200 +248,164 @@ type: MYSQL
 
 ## Workflow: Creating New Topic + Pipeline
 
-### Step 1: Create Topic YAML with `null` IDs
+### Step 1: Create Topic YAML without IDs
 
 ```yaml
-# transformation/topics/my_topic__new.yml
-topicId: null
+# transformation/topics/my_topic.yml
 name: my_topic
 type: distinct
 kind: business
+dataSourceCode: default
 factors:
-- factorId: null
-  type: text
-  name: field1
-  # ...
+    - name: field1
+      type: text
+      label: Field 1
 ```
 
-### Step 2: Push Topic to Server
+### Step 2: Push Topic
 
 ```bash
-agent-cli topic push-file transformation/topics/my_topic__new.yml --vault <vault>
+agent-cli topic push-file transformation/topics/my_topic.yml --vault <vault> --dry-run
+agent-cli topic push-file transformation/topics/my_topic.yml --vault <vault>
 ```
 
-**Response:**
-```json
-{
-  "status": "pushed",
-  "topicId": "1504225603996594176",
-  "replaced": false
-}
-```
-
-### Step 3: Pull Topic to Get Server-Assigned Factor IDs
-
-```bash
-agent-cli topic pull 1504225603996594176 --vault <vault>
-```
-
-### Step 4: Read Pulled Topic to Get Real Factor IDs
-
-```bash
-cat transformation/topics/my_topic__1504225603996594176.yml
-```
+### Step 3: Create Pipeline Using Names
 
 ```yaml
-topicId: '1504225603996594176'
-factors:
-- factorId: '1504225603996594177'      # Server-assigned!
-  name: field1
-- factorId: '1504225603996594178'      # Server-assigned!
-  name: field2
+# transformation/pipelines/pl_my_topic_to_target.yml
+name: pl_my_topic_to_target
+sourceTopicName: my_topic
+type: insert-or-merge
+enabled: false
+validated: false
+stages:
+    - name: merge_target
+      units:
+          - name: merge_row
+            do:
+                - type: insert-or-merge-row
+                  topicName: target_topic
+                  mapping:
+                      - factorName: field1
+                        source:
+                            kind: topic
+                            topicName: my_topic
+                            factorName: field1
 ```
 
-### Step 5: Create Pipeline Using Real Factor IDs
-
-```yaml
-pipelineId: null
-topicId: '1083070031199647744'          # Source (real ID)
-target:
-  topicId: '1504225603996594176'         # From Step 3
-  factorId: '1504225603996594177'        # From Step 4
-```
-
-### Step 6: Push Pipeline
+### Step 4: Push Pipeline
 
 ```bash
-agent-cli pipeline push-file transformation/pipelines/pl_xxx__new.yml --vault <vault>
+agent-cli pipeline push-file transformation/pipelines/pl_my_topic_to_target.yml --vault <vault> --dry-run
+agent-cli pipeline push-file transformation/pipelines/pl_my_topic_to_target.yml --vault <vault>
 ```
 
 ---
 
 ## Workflow: Creating New Enum
 
-### Step 1: Create Enum YAML
+Legacy entities still use `null` for new IDs.
 
 ```yaml
 enumId: null
 name: MyEnum
 items:
-- itemId: null
-  code: A
-  label: Option A
+    - itemId: null
+      code: A
+      label: Option A
 ```
-
-### Step 2: Push Enum
 
 ```bash
 agent-cli enum push-file transformation/enums/my_enum__new.yml --vault <vault>
-```
-
-### Step 3: Pull Enum to Get Server-Assigned IDs
-
-```bash
-agent-cli enum pull <returned_enum_id> --vault <vault>
 ```
 
 ---
 
 ## Workflow: Creating Ingestion Model
 
-### Step 1: Create Model YAML (all IDs null)
+Legacy ingestion configs still use `null` for new IDs.
 
 ```yaml
 configId: null
 name: my_model
 tables:
-- configId: null
-  name: root_table
-  parentName: null
-- configId: null
-  name: child_table
-  parentName: root_table
+    - configId: null
+      name: root_table
+      parentName: null
 ```
-
-### Step 2: Push Model
 
 ```bash
 agent-cli ingest model push-file transformation/ingest/models/my_model__new.yml --vault <vault>
-```
-
-### Step 3: Pull Model to Get Server-Assigned IDs
-
-```bash
-agent-cli ingest model pull my_model --vault <vault>
-```
-
-### Step 4: If Needed, Create Raw Topic from Model
-
-```bash
-agent-cli ingest model create-raw-topic my_model --vault <vault>
 ```
 
 ---
 
 ## Quick Reference Table
 
-| Entity | ID Field | Child IDs | Command |
-|--------|----------|-----------|---------|
-| Topic | `topicId: null` | `factorId: null` | `topic push-file` |
-| Pipeline | `pipelineId: null` | `stageId/unitId/actionId: null` | `pipeline push-file` |
-| Enum | `enumId: null` | `itemId: null` | `enum push-file` |
-| Semantic | `modelId: null` | - | `semantic push-file` |
-| Metric | `metricId: null` | - | `metric push-file` |
-| Ingest Table | `configId: null` | - | `ingest table push-file` |
-| Ingest Model | `configId: null` | `tableConfigId: null` | `ingest model push-file` |
-| Ingest Module | `configId: null` | `modelConfigId: null` | `ingest module push-file` |
-| DataSource | `datasourceId: null` | - | `datasource push-file` |
+| Entity     | ID Strategy                                     | Command                          |
+| ---------- | ----------------------------------------------- | -------------------------------- |
+| Topic      | Omit `topicId` and `factorId`; upsert by `name` | `topic push-file [--dry-run]`    |
+| Pipeline   | Omit all internal IDs; upsert by `name`         | `pipeline push-file [--dry-run]` |
+| Enum       | New IDs use `null`                              | `enum push-file`                 |
+| Semantic   | New IDs use `null`                              | `semantic push-file`             |
+| Metric     | New IDs use `null`                              | `metric push-file`               |
+| Ingestion  | New IDs use `null`                              | `ingest ... push-file`           |
+| DataSource | New IDs use `null`                              | `datasource push-file`           |
 
 ---
 
 ## Common Mistakes
 
-### ❌ Wrong: Fake IDs
+### Wrong: Internal IDs in Topic/Pipeline agent YAML
 
 ```yaml
-topicId: 'f-123456'
-factorId: 'f-123456-1'
-pipelineId: '1490000000000000101'
+topicId: "f-123456"
+factorId: "f-123456-1"
+pipelineId: "1490000000000000101"
 ```
 
-### ❌ Wrong: Placeholder IDs
+### Correct: Topic/Pipeline no-id YAML
 
 ```yaml
-topicId: '1490000000000000001'
-factorId: '1490000000000000002'
+name: my_topic
+factors:
+    - name: field1
+      type: text
 ```
 
-### ✅ Correct: All Null
+```yaml
+name: pl_example
+sourceTopicName: my_topic
+stages: []
+```
+
+### Correct: Legacy Entity New IDs
 
 ```yaml
-topicId: null
-factorId: null
-pipelineId: null
+enumId: null
+items:
+    - itemId: null
 ```
 
 ---
 
 ## File Naming Convention
 
-After server push, rename files using real IDs:
-
-```
-Before: my_entity__new.yml              # placeholder
-After:  my_entity__1504225603996594176.yml  # real ID
+```text
+Topic:    transformation/topics/{topic_name}.yml
+Pipeline: transformation/pipelines/{pipeline_name}.yml
+Legacy:   {name}__{id}.yml
 ```
 
 ---
 
 ## Key Takeaways
 
-1. **NEW entity** → `id: null`
-2. **PUSH** → Server returns real ID
-3. **PULL** → Get server-assigned child IDs
-4. **UPDATE related files** → Use real IDs from server
-5. **Never use fake/placeholder IDs** → Always use `null`
+1. Topic/Pipeline: omit IDs entirely; use names.
+2. Topic/Pipeline: files are indexed by `name` only.
+3. Pipeline references use `sourceTopicName`, `topicName`, and `factorName`.
+4. Legacy entities: new IDs use `null`; fake IDs are still invalid.
 
 ---
 
-*Last Updated: 2026-05-13*
+_Last Updated: 2026-06-21_

@@ -24,9 +24,10 @@ Thin orchestration layer for `agent-cli`. Keep this file concise; load detailed 
 ## Critical Rules
 
 - **Check Before Create**: Before creating any entity (Topic, Pipeline, Enum, Semantic Model, Metric, Ingestion), first check the local filesystem for existing YAML files, then run `list-remote` to check remote. If it exists, UPDATE instead of creating a duplicate. → `references/pre-submission-validation.md`
-- **Topic**: `dataSourceId` is REQUIRED. If unknown, ASK the user. → `references/source-of-truth.md`
-- **IDs**: All new entity IDs MUST be `null` (not `f-xxx` or any placeholder). → `references/id-management-guide.md`
-- **Factor ID vs Factor Name**: `factorId` MUST be a UUID (e.g. `9a1b2c3d4e5f678901234567890123ab`), NEVER a human-readable factor name (e.g. `total_claim_amount`). → `references/pipeline-development.md`
+- **Topic/Pipeline Agent YAML**: Topic and Pipeline YAML are now no-id agent views. Do NOT include `topicId`, `factorId`, `pipelineId`, `stageId`, `unitId`, `actionId`, `tenantId`, or `version`. Use `name` as the local file index. → `references/source-of-truth.md`
+- **Topic datasource**: use `dataSourceCode` (not `dataSourceId`) in topic YAML. If unknown, run `datasource list-remote` or ASK the user. → `references/source-of-truth.md`
+- **Pipeline references**: use `sourceTopicName`, `topicName`, and `factorName` instead of `topicId` / `factorId`. → `references/pipeline-development.md`
+- **IDs**: For Topic/Pipeline, omit IDs entirely. For legacy entities (Enum/Semantic/Metric/Ingestion), new IDs still use `null`. → `references/id-management-guide.md`
 - **Validation**: Run all pre-submission checks before pushing any YAML. → `references/pre-submission-validation.md`
 - **Data Layers**: Four-layer architecture (Bronze→Silver→Gold→Datamart). → `references/data-layer-architecture.md`
 
@@ -39,7 +40,8 @@ Thin orchestration layer for `agent-cli`. Keep this file concise; load detailed 
 
 ## File Naming Conventions
 
-- Local files: `{name}__{id}.yml` (double underscores between name and ID).
+- Topic/Pipeline local files: `{name}.yml` (no ID suffix).
+- Other legacy entities still use `{name}__{id}.yml` unless their reference says otherwise.
 - Directory layout → `references/source-of-truth.md`
 
 ## Token Optimization Rules

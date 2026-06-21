@@ -141,8 +141,9 @@ def push_command(
     ctx: typer.Context,
     target: str = typer.Option("all", "--target", help="topic | pipeline | all"),
     vault: Optional[str] = typer.Option(None, "--vault"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Validate only, do not persist"),
 ) -> None:
-    _run_with_guard(ctx, lambda: handle_push(_namespace(target=target, vault=vault)))
+    _run_with_guard(ctx, lambda: handle_push(_namespace(target=target, vault=vault, dry_run=dry_run)))
 
 
 @app.command("tenant")
@@ -189,8 +190,9 @@ def topic_push_file_command(
     ctx: typer.Context,
     file_path: str,
     vault: Optional[str] = typer.Option(None, "--vault"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Validate only, do not persist"),
 ) -> None:
-    _run_with_guard(ctx, lambda: handle_topic_push_file(_namespace(file_path=file_path, vault=vault)))
+    _run_with_guard(ctx, lambda: handle_topic_push_file(_namespace(file_path=file_path, vault=vault, dry_run=dry_run)))
 
 
 @topic_app.command("list")
@@ -232,8 +234,9 @@ def pipeline_push_file_command(
     ctx: typer.Context,
     file_path: str,
     vault: Optional[str] = typer.Option(None, "--vault"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Validate only, do not persist"),
 ) -> None:
-    _run_with_guard(ctx, lambda: handle_pipeline_push_file(_namespace(file_path=file_path, vault=vault)))
+    _run_with_guard(ctx, lambda: handle_pipeline_push_file(_namespace(file_path=file_path, vault=vault, dry_run=dry_run)))
 
 
 @pipeline_app.command("list")
