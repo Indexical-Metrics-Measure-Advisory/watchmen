@@ -58,6 +58,10 @@ def get_pipeline_service(topic_service: TopicService) -> PipelineService:
 	return PipelineService(topic_service.storage, topic_service.snowflakeGenerator, topic_service.principalService)
 
 
+def get_data_source_service(topic_service: TopicService) -> DataSourceService:
+	return DataSourceService(topic_service.storage, topic_service.snowflakeGenerator, topic_service.principalService)
+
+
 @router.get('/topic', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def load_topic_by_id(
 		topic_id: Optional[TopicId] = None, principal_service: PrincipalService = Depends(get_console_principal)
@@ -516,8 +520,7 @@ class AgentUpsertResult(ExtendedBaseModel):
 	factorIdMapping: dict = {}
 
 
-def get_data_source_service(principal_service: PrincipalService) -> DataSourceService:
-	return DataSourceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
 
 
 def resolve_data_source_by_code(
@@ -558,7 +561,7 @@ def prepare_agent_topic_upsert(
 	tenant_id: TenantId = principal_service.get_tenant_id()
 
 	# 1. dataSourceCode → dataSourceId
-	data_source_service = get_data_source_service(principal_service)
+	data_source_service = get_data_source_service(topic_service)
 	data_source_id = resolve_data_source_by_code(agent_input.dataSourceCode, tenant_id, data_source_service)
 	if data_source_id is None:
 		raise_400(f'Data source [{agent_input.dataSourceCode}] not found in tenant [{tenant_id}].')
@@ -636,34 +639,39 @@ async def upsert_topic_yaml_for_agent(
 		def do_prepare():
 			return prepare_agent_topic_upsert(agent_input, principal_service, topic_service)
 
-		action_type, topic, existing_factor_map = trans_readonly(topic_service, do_prepare)
+		action_type, full_topic, existing_factor_map = trans_readonly(topic_service, do_prepare)
 		display_action = 'would_create' if action_type == 'create' else 'would_update'
-		# dry-run 下 factorIdMapping 反映匹配结果（update 时有值，create 时为空）
-		matched_mapping = {
-			f.name: existing_factor_map[f.name]
-			for f in agent_input.factors
-			if f.name in existing_factor_map
-		}
+		# 转换为无 id 视图后返回
+		ds_map = build_data_source_id_to_code_map(principal_service.get_tenant_id(), get_data_source_service(principal_service))
+		view = to_agent_topic_view(full_topic, ds_map)
+		# factorIdMapping 改为 name→name，仅指示 update 时被复用的 factor
+		matched_names = [f.name for f in agent_input.factors if f.name in existing_factor_map]
+		matched_mapping = {name: name for name in matched_names}
 		result = AgentUpsertResult(
 			action=display_action, dryRun=True,
-			topic=topic.model_dump(mode='json', by_alias=True, exclude_none=True),
+			topic=view.model_dump(mode='json', by_alias=True, exclude_none=True),
 			factorIdMapping=matched_mapping
 		)
 	else:
 		# 落库：读写事务，带 tail（同步存储结构）
 		def do_save():
-			action_type, topic, _ = prepare_agent_topic_upsert(
+			action_type, full_topic, _ = prepare_agent_topic_upsert(
 				agent_input, principal_service, topic_service)
+			# 在事务内构建 ds_map，使 data_source_service 复用 topic_service 的 storage
+			data_source_service = get_data_source_service(topic_service)
+			data_source_service.storage = topic_service.storage
+			ds_map = build_data_source_id_to_code_map(principal_service.get_tenant_id(), data_source_service)
 			save_action = ask_save_topic_action(topic_service, principal_service, True)
-			saved_topic, tail = save_action(topic)
-			return (action_type, saved_topic), tail
+			saved_topic, tail = save_action(full_topic)
+			view = to_agent_topic_view(saved_topic, ds_map)
+			return (action_type, view), tail
 
-		(action_type, saved_topic), _ = trans_with_tail(topic_service, do_save)
-		# 落库后 factorIdMapping 来自 saved_topic（所有 factor 都有 id）
-		saved_mapping = {f.name: f.factorId for f in (saved_topic.factors or [])}
+		action_type, view = trans_with_tail(topic_service, do_save)
+		# factorIdMapping 改为 name→name，落库后所有 factor name 都在
+		saved_mapping = {f.name: f.name for f in view.factors}
 		result = AgentUpsertResult(
 			action=action_type, dryRun=False,
-			topic=saved_topic.model_dump(mode='json', by_alias=True, exclude_none=True),
+			topic=view.model_dump(mode='json', by_alias=True, exclude_none=True),
 			factorIdMapping=saved_mapping
 		)
 
@@ -733,7 +741,8 @@ async def load_topic_yaml_agent_view_by_id(
 			raise_404()
 		if is_system_topic(topic):
 			raise_404()
-		data_source_service = get_data_source_service(principal_service)
+		data_source_service = get_data_source_service(topic_service)
+		# data_source_service.storage = topic_service.storage
 		ds_map = build_data_source_id_to_code_map(principal_service.get_tenant_id(), data_source_service)
 		return topic, ds_map
 
@@ -759,7 +768,8 @@ async def find_topic_yaml_agent_view_by_name(
 			raise_404()
 		if is_system_topic(topic):
 			raise_404()
-		data_source_service = get_data_source_service(principal_service)
+		data_source_service = get_data_source_service(topic_service)
+		data_source_service.storage = topic_service.storage
 		ds_map = build_data_source_id_to_code_map(tenant_id, data_source_service)
 		return topic, ds_map
 
@@ -774,12 +784,13 @@ async def find_all_topics_yaml_agent_view(
 ) -> Response:
 	"""下载全部 Topic 的精简 YAML 数组（无 topicId / factorId / tenantId / dataSourceId）"""
 	topic_service = get_topic_service(principal_service)
+	data_source_service = get_data_source_service(topic_service)
+	data_source_service.storage = topic_service.storage
 
 	def action() -> Tuple[List[Topic], dict]:
 		tenant_id = principal_service.get_tenant_id()
 		topics = topic_service.find_all(tenant_id)
 		topics = ArrayHelper(topics).filter(lambda x: not is_system_topic(x)).to_list()
-		data_source_service = get_data_source_service(principal_service)
 		ds_map = build_data_source_id_to_code_map(tenant_id, data_source_service)
 		return topics, ds_map
 

@@ -15,10 +15,15 @@ warnings.filterwarnings('ignore', category=UserWarning)
 class ExtendedBaseModel(BaseModel):
 	model_config = ConfigDict(arbitrary_types_allowed=True,
 	                          use_enum_values=True)
-	
+
 	def __init__(self, **data: Any):
 		super().__init__(**data)
+		declared = set(type(self).model_fields.keys())
+		uses_default_setattr = type(self).__setattr__ is ExtendedBaseModel.__setattr__
 		for key, value in data.items():
+			if key in declared and uses_default_setattr:
+				# 已声明字段由 pydantic 验证/转换；无自定义 __setattr__ 时不要用 raw 值覆盖。
+				continue
 			self.__setattr__(key, value)
 
 	def __setattr__(self, name, value):

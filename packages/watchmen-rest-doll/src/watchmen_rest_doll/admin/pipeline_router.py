@@ -708,6 +708,40 @@ def _stage_from_agent_view(stage, resolver, topic_id_mapping, factor_id_mapping)
 	return stage
 
 
+def _reuse_inner_ids(agent_stages: list, existing_stages: list) -> None:
+	"""
+	update 路径下，按 name 复用 existing 的 stageId / unitId / actionId，
+	避免落库时把内部 id 写成 None。
+	agent 视图不暴露这些 id，需要从 existing 拷贝。
+	action 无 name，按 (type, topicId, factorId) 复合 key 匹配。
+	"""
+	existing_stage_by_name = {s.name: s for s in (existing_stages or []) if getattr(s, 'name', None)}
+	for agent_stage in agent_stages or []:
+		stage_name = agent_stage.get('name')
+		existing_stage = existing_stage_by_name.get(stage_name)
+		if existing_stage is None:
+			continue
+		agent_stage['stageId'] = existing_stage.stageId
+		existing_unit_by_name = {u.name: u for u in (existing_stage.units or []) if getattr(u, 'name', None)}
+		for agent_unit in agent_stage.get('units') or []:
+			unit_name = agent_unit.get('name')
+			existing_unit = existing_unit_by_name.get(unit_name)
+			if existing_unit is None:
+				continue
+			agent_unit['unitId'] = existing_unit.unitId
+			existing_action_by_key = {
+				(a.type, a.topicId, a.factorId): a
+				for a in (existing_unit.do or [])
+				if a is not None
+			}
+			for agent_action in agent_unit.get('do') or []:
+				key = (agent_action.get('type'), agent_action.get('topicId'), agent_action.get('factorId'))
+				existing_action = existing_action_by_key.get(key)
+				if existing_action is None:
+					continue
+				agent_action['actionId'] = existing_action.actionId
+
+
 def build_pipeline_from_agent(
 		agent_input: AgentPipelineYaml, principal_service: PrincipalService,
 		pipeline_service: PipelineService, topic_service: TopicService
@@ -760,6 +794,8 @@ def build_pipeline_from_agent(
 		pipeline_dict['tenantId'] = existing.tenantId
 		if existing.version is not None:
 			pipeline_dict['version'] = existing.version
+		# 复用 existing 的 stageId / unitId / actionId（agent 视图不暴露这些 id）
+		_reuse_inner_ids(pipeline_dict.get('stages') or [], existing.stages)
 
 	pipeline = Pipeline.model_validate(pipeline_dict)
 	return action_type, pipeline, resolver, topic_id_mapping, factor_id_mapping
@@ -870,6 +906,7 @@ async def upsert_pipeline_yaml_for_agent(
 
 	if dry_run:
 		def do_prepare():
+			topic_service.storage = pipeline_service.storage
 			return build_pipeline_from_agent(agent_input, principal_service, pipeline_service, topic_service)
 
 		action_type, pipeline, resolver, topic_id_mapping, factor_id_mapping = trans_readonly(
@@ -884,6 +921,7 @@ async def upsert_pipeline_yaml_for_agent(
 		)
 	else:
 		def do_save():
+			topic_service.storage = pipeline_service.storage
 			action_type, pipeline, resolver, topic_id_mapping, factor_id_mapping = build_pipeline_from_agent(
 				agent_input, principal_service, pipeline_service, topic_service)
 			save_action = ask_save_pipeline_action(pipeline_service, principal_service)
