@@ -485,11 +485,11 @@ async def rebuild_topics_index(principal_service: PrincipalService = Depends(get
 
 
 # ====================================================================================
-# AI Agent 友好的 YAML Upsert 端点（按业务名操作，无需任何内部 id）
+# AI Agent-friendly YAML Upsert endpoint (operate by business name, no internal ids)
 # ====================================================================================
 
 class AgentFactorYaml(ExtendedBaseModel):
-	"""AI Agent 的 factor 定义（入参和出参共用），只需业务字段，无需 factorId"""
+	"""AI Agent factor definition (shared input/output), only business fields, no factorId"""
 	name: str
 	type: FactorType
 	label: Optional[str] = None
@@ -503,7 +503,7 @@ class AgentFactorYaml(ExtendedBaseModel):
 
 
 class AgentTopicYaml(ExtendedBaseModel):
-	"""AI Agent 的 topic 定义（入参和出参共用），无需 topicId / factorId / tenantId / version"""
+	"""AI Agent topic definition (shared input/output), no topicId / factorId / tenantId / version"""
 	name: str
 	type: TopicType = TopicType.DISTINCT
 	kind: TopicKind = TopicKind.BUSINESS
@@ -526,7 +526,7 @@ class AgentTopicYaml(ExtendedBaseModel):
 
 
 class AgentUpsertResult(ExtendedBaseModel):
-	"""Upsert 结果，返回无 id 视图 Topic + factor name 映射表（name→name）"""
+	"""Upsert result: returns id-free Topic view + factor name mapping (name→name)"""
 	action: str
 	dryRun: bool
 	topic: Optional[dict] = None
@@ -539,7 +539,7 @@ class AgentUpsertResult(ExtendedBaseModel):
 def resolve_data_source_by_code(
 		data_source_code: str, tenant_id: TenantId,
 		data_source_service: DataSourceService) -> Optional[DataSourceId]:
-	"""按 dataSourceCode 在租户内查找数据源 id"""
+	"""Lookup datasource id by dataSourceCode within tenant"""
 	data_sources = data_source_service.find_all(tenant_id)
 	for ds in data_sources:
 		if ds.dataSourceCode == data_source_code:
@@ -548,7 +548,7 @@ def resolve_data_source_by_code(
 
 
 def build_factor_from_agent(agent_factor: AgentFactorYaml, existing_factor_id: Optional[str]) -> Factor:
-	"""从 Agent 输入构建 Factor，复用已存在的 factorId（按 name 匹配）"""
+	"""Build Factor from Agent input, reuse existing factorId when name matches"""
 	return Factor(
 		factorId=existing_factor_id,
 		name=agent_factor.name,
@@ -568,20 +568,20 @@ def prepare_agent_topic_upsert(
 		agent_input: AgentTopicYaml, principal_service: PrincipalService,
 		topic_service: TopicService) -> Tuple[str, Topic, dict]:
 	"""
-	按 name 做 upsert 准备，返回 (action_type, topic, existing_factor_map)。
-	action_type: 'create' 或 'update'。
+	Prepare upsert by name, return (action_type, topic, existing_factor_map).
+	action_type: 'create' or 'update'.
 	"""
 	tenant_id: TenantId = principal_service.get_tenant_id()
 
 	# 1. dataSourceCode → dataSourceId
 	data_source_service = get_data_source_service(topic_service)
-	# data_source_service 是独立 service，需复用 topic_service 已在事务中的 storage
+	# data_source_service is a separate service, reuse topic_service's in-transaction storage
 	data_source_service.storage = topic_service.storage
 	data_source_id = resolve_data_source_by_code(agent_input.dataSourceCode, tenant_id, data_source_service)
 	if data_source_id is None:
 		raise_400(f'Data source [{agent_input.dataSourceCode}] not found in tenant [{tenant_id}].')
 
-	# 2. topic.name → 查找现有 topic
+	# 2. topic.name → find existing topic
 	existing: Optional[Topic] = topic_service.find_by_name_and_tenant(agent_input.name, tenant_id)
 
 	if existing is None:
@@ -600,7 +600,7 @@ def prepare_agent_topic_upsert(
 		return 'create', topic, {}
 	else:
 		# ===== UPDATE =====
-		# 按 factor.name 复用 factorId，未匹配的（新 factor）factorId 留空由 redress 生成
+		# Reuse factorId by factor.name; unmatched (new) factors leave factorId blank for redress
 		existing_factor_map = {f.name: f.factorId for f in (existing.factors or [])}
 		new_factors = [build_factor_from_agent(f, existing_factor_map.get(f.name)) for f in agent_input.factors]
 		existing.type = agent_input.type
@@ -608,7 +608,7 @@ def prepare_agent_topic_upsert(
 		existing.description = agent_input.description
 		existing.dataSourceId = data_source_id
 		existing.factors = new_factors
-		# version 从 existing 继承，避免乐观锁冲突
+		# inherit version from existing to avoid optimistic lock conflict
 		return 'update', existing, existing_factor_map
 
 
@@ -618,12 +618,12 @@ async def upsert_topic_yaml_for_agent(
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Response:
 	"""
-	AI Agent 专用的 Topic YAML upsert 端点。
-	按 topic.name 做 upsert，按 factor.name 复用 factorId。
-	入参只需业务字段（name / dataSourceCode / factors），无需任何内部 id。
+	AI Agent-specific Topic YAML upsert endpoint.
+	Upsert by topic.name, reuse factorId by factor.name.
+	Only business fields (name / dataSourceCode / factors) required, no internal ids.
 
-	参数:
-	  - dry_run: true 时只校验不落库，返回 would_create / would_update
+	Args:
+	  - dry_run: when true, only validate without persisting; returns would_create / would_update
 	"""
 	ensure_design_environment_for_yaml_update()
 	yaml_bytes = await request.body()
@@ -634,27 +634,27 @@ async def upsert_topic_yaml_for_agent(
 	except Exception as e:
 		raise_400(f'Invalid YAML: {str(e)}')
 
-	# 校验 dataSourceCode 非空（upsert 入参必填）
+	# Validate dataSourceCode is not blank (required for upsert)
 	if is_blank(agent_input.dataSourceCode):
 		raise_400('dataSourceCode is required.')
 
-	# 校验 factor.name 不重复
+	# Validate no duplicate factor names
 	factor_names = [f.name for f in agent_input.factors]
 	if len(factor_names) != len(set(factor_names)):
 		raise_400('Duplicate factor names are not allowed.')
 
-	# 禁止操作系统 topic
+	# Forbid modifying system topics
 	if agent_input.kind == TopicKind.SYSTEM:
 		raise_400('System topics cannot be saved via agent-upsert.')
 
 	topic_service = get_topic_service(principal_service)
 
 	if dry_run:
-		# dry-run：只读事务，只做查询和校验
+		# dry-run: read-only transaction, only query and validate
 		def do_prepare():
 			action_type, full_topic, existing_factor_map = prepare_agent_topic_upsert(
 				agent_input, principal_service, topic_service)
-			# 在事务内构建 ds_map，使 data_source_service 复用 topic_service 的 storage
+			# Build ds_map inside transaction so data_source_service reuses topic_service's storage
 			data_source_service = get_data_source_service(topic_service)
 			data_source_service.storage = topic_service.storage
 			ds_map = build_data_source_id_to_code_map(principal_service.get_tenant_id(), data_source_service)
@@ -663,7 +663,7 @@ async def upsert_topic_yaml_for_agent(
 		action_type, full_topic, existing_factor_map, ds_map = trans_readonly(topic_service, do_prepare)
 		display_action = 'would_create' if action_type == 'create' else 'would_update'
 		view = to_agent_topic_view(full_topic, ds_map)
-		# factorIdMapping 改为 name→name，仅指示 update 时被复用的 factor
+		# factorIdMapping: name→name, only indicates factors reused during update
 		matched_names = [f.name for f in agent_input.factors if f.name in existing_factor_map]
 		matched_mapping = {name: name for name in matched_names}
 		result = AgentUpsertResult(
@@ -672,11 +672,11 @@ async def upsert_topic_yaml_for_agent(
 			factorIdMapping=matched_mapping
 		)
 	else:
-		# 落库：读写事务，带 tail（同步存储结构）
+		# Persist: read-write transaction with tail (sync storage structure)
 		def do_save():
 			action_type, full_topic, _ = prepare_agent_topic_upsert(
 				agent_input, principal_service, topic_service)
-			# 在事务内构建 ds_map，使 data_source_service 复用 topic_service 的 storage
+			# Build ds_map inside transaction so data_source_service reuses topic_service's storage
 			data_source_service = get_data_source_service(topic_service)
 			data_source_service.storage = topic_service.storage
 			ds_map = build_data_source_id_to_code_map(principal_service.get_tenant_id(), data_source_service)
@@ -686,7 +686,7 @@ async def upsert_topic_yaml_for_agent(
 			return (action_type, view), tail
 
 		action_type, view = trans_with_tail(topic_service, do_save)
-		# factorIdMapping 改为 name→name，落库后所有 factor name 都在
+		# factorIdMapping: name→name, all factor names are present after persist
 		saved_mapping = {f.name: f.name for f in view.factors}
 		result = AgentUpsertResult(
 			action=action_type, dryRun=False,
@@ -699,18 +699,18 @@ async def upsert_topic_yaml_for_agent(
 
 
 # ====================================================================================
-# AI Agent 友好的 YAML 下载端点（返回无 id 结构，复用 AgentTopicYaml）
+# AI Agent-friendly YAML download endpoints (return id-free structure, reuse AgentTopicYaml)
 # ====================================================================================
 
 def build_data_source_id_to_code_map(
 		tenant_id: TenantId, data_source_service: DataSourceService) -> dict:
-	"""构建租户内 dataSourceId → dataSourceCode 映射"""
+	"""Build tenant's dataSourceId → dataSourceCode mapping"""
 	data_sources = data_source_service.find_all(tenant_id)
 	return {ds.dataSourceId: ds.dataSourceCode for ds in data_sources}
 
 
 def to_agent_topic_view(topic: Topic, ds_id_to_code: dict) -> AgentTopicYaml:
-	"""将完整 Topic 转换为 Agent 视图（剥离所有内部 id）"""
+	"""Convert a full Topic to Agent view (strip all internal ids)"""
 	agent_factors = [
 		AgentFactorYaml(
 			name=f.name,
@@ -737,7 +737,7 @@ def to_agent_topic_view(topic: Topic, ds_id_to_code: dict) -> AgentTopicYaml:
 
 
 def dump_agent_topic_view_yaml(view: AgentTopicYaml) -> str:
-	"""序列化单个 Agent 视图为 YAML"""
+	"""Serialize a single Agent view to YAML"""
 	return yaml.dump(view.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
 
 
@@ -746,7 +746,7 @@ async def load_topic_yaml_agent_view_by_id(
 		topic_id: Optional[TopicId] = None,
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Response:
-	"""按 topic_id 下载精简 YAML（无 topicId / factorId / tenantId / dataSourceId）"""
+	"""Download simplified YAML by topic_id (no topicId / factorId / tenantId / dataSourceId)"""
 	if is_blank(topic_id):
 		raise_400('Topic id is required.')
 	topic_service = get_topic_service(principal_service)
