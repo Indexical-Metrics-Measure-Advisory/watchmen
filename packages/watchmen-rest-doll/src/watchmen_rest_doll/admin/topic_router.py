@@ -511,9 +511,22 @@ class AgentTopicYaml(ExtendedBaseModel):
 	dataSourceCode: Optional[str] = None
 	factors: List[AgentFactorYaml] = []
 
+	def __setattr__(self, name, value):
+		if name == 'factors':
+			if value is None:
+				super().__setattr__(name, [])
+				return
+			converted = [
+				f if isinstance(f, AgentFactorYaml) else AgentFactorYaml(**f)
+				for f in value
+			]
+			super().__setattr__(name, converted)
+		else:
+			super().__setattr__(name, value)
+
 
 class AgentUpsertResult(ExtendedBaseModel):
-	"""Upsert 结果，返回完整 Topic（含 id）+ factorId 映射表"""
+	"""Upsert 结果，返回无 id 视图 Topic + factor name 映射表（name→name）"""
 	action: str
 	dryRun: bool
 	topic: Optional[dict] = None

@@ -12,7 +12,8 @@ from watchmen_meta.admin import PipelineService, TopicService
 from watchmen_meta.analysis import PipelineIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, TupleService
 from watchmen_model.admin import Pipeline, PipelineAction, PipelineStage, PipelineUnit, Topic, TopicKind, UserRole
-from watchmen_model.common import PipelineId, TenantId, TopicId
+from watchmen_model.common import PipelineId, TenantId, TopicId, construct_parameter_joint
+from watchmen_model.admin.pipeline import construct_stages
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
@@ -433,7 +434,15 @@ class AgentPipelineYaml(ExtendedBaseModel):
 	validated: Optional[bool] = False
 	conditional: Optional[bool] = False
 	on: Optional[dict] = None
-	stages: Optional[List[dict]] = []
+	stages: Optional[List[PipelineStage]] = []
+
+	def __setattr__(self, name, value):
+		if name == 'stages':
+			super().__setattr__(name, construct_stages(value) if value else [])
+		elif name == 'on':
+			super().__setattr__(name, construct_parameter_joint(value))
+		else:
+			super().__setattr__(name, value)
 
 
 class AgentPipelineUpsertResult(ExtendedBaseModel):
