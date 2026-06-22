@@ -375,11 +375,11 @@ async def delete_pipeline_by_id_by_super_admin(
 
 
 # ====================================================================================
-# AI Agent 友好的 Pipeline YAML 端点（无 id 结构，按 name 索引）
+# AI Agent-friendly Pipeline YAML endpoints (id-free structure, indexed by name)
 # ====================================================================================
 
 class AgentPipelineTopicResolver:
-	"""缓存租户内所有 topic 及 factor 索引，供 pipeline agent YAML 转换使用。"""
+	"""Cache all topic and factor indexes within a tenant for pipeline agent YAML conversion."""
 
 	def __init__(self, topics: List[Topic]) -> None:
 		self.topic_by_id: dict = {}                      # str(topicId) -> Topic
@@ -426,7 +426,7 @@ def build_pipeline_topic_resolver(principal_service: PrincipalService) -> AgentP
 
 
 class AgentPipelineYaml(ExtendedBaseModel):
-	"""AI Agent 的 pipeline 定义（入参和出参共用），无需 pipelineId / tenantId / version / topicId / factorId / stageId / unitId / actionId。"""
+	"""AI Agent pipeline definition (shared input/output), no pipelineId / tenantId / version / topicId / factorId / stageId / unitId / actionId."""
 	name: str
 	sourceTopicName: str
 	type: Optional[str] = None
@@ -446,7 +446,7 @@ class AgentPipelineYaml(ExtendedBaseModel):
 
 
 class AgentPipelineUpsertResult(ExtendedBaseModel):
-	"""Pipeline upsert 结果"""
+	"""Pipeline upsert result"""
 	action: str
 	dryRun: bool
 	pipeline: Optional[dict] = None
@@ -454,7 +454,7 @@ class AgentPipelineUpsertResult(ExtendedBaseModel):
 	factorIdMapping: dict = {}  # topicName.factorName -> factorId
 
 
-# ---------- full → agent 转换 ----------
+# ---------- full → agent conversion ----------
 
 def _joint_to_agent_view(joint, resolver: AgentPipelineTopicResolver):
 	if not isinstance(joint, dict):
@@ -503,7 +503,7 @@ def _action_to_agent_view(action: dict, resolver: AgentPipelineTopicResolver) ->
 	if not isinstance(action, dict):
 		return action
 	action.pop('actionId', None)
-	# action 级 topicId / factorId (FromTopic / FromFactor / ToTopic / ToFactor)
+	# action-level topicId / factorId (FromTopic / FromFactor / ToTopic / ToFactor)
 	if 'topicId' in action and action.get('topicId') is not None:
 		topic_name = resolver.topic_id_to_name(action.get('topicId'))
 		action.pop('topicId', None)
@@ -565,9 +565,9 @@ def _stage_to_agent_view(stage: dict, resolver: AgentPipelineTopicResolver) -> d
 
 
 def to_agent_pipeline_view(pipeline: Pipeline, resolver: AgentPipelineTopicResolver) -> AgentPipelineYaml:
-	"""将完整 Pipeline 转换为 Agent 视图（剥离所有内部 id，topicId → sourceTopicName 等）"""
+	"""Convert a full Pipeline to Agent view (strip all internal ids, topicId → sourceTopicName, etc.)"""
 	data = pipeline.model_dump(mode='json', by_alias=True, exclude_none=True)
-	# 剥离内部 id / tenant / version
+	# Strip internal ids / tenant / version
 	data.pop('pipelineId', None)
 	data.pop('tenantId', None)
 	data.pop('version', None)
@@ -590,7 +590,7 @@ def dump_agent_pipeline_view_yaml(view: AgentPipelineYaml) -> str:
 	return yaml.dump(view.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
 
 
-# ---------- agent → full 转换 ----------
+# ---------- agent → full conversion ----------
 
 def _joint_from_agent_view(joint, resolver: AgentPipelineTopicResolver, topic_id_mapping: dict, factor_id_mapping: dict):
 	if not isinstance(joint, dict):
@@ -657,7 +657,7 @@ def _action_from_agent_view(action, resolver, topic_id_mapping, factor_id_mappin
 		action['topicId'] = topic.topicId
 		topic_id_mapping[topic_name] = topic.topicId
 	if factor_name:
-		# factorName 在 action 级属于 action 的 topic（read/write 目标）
+		# factorName at action level belongs to the action's topic (read/write target)
 		if not topic_name:
 			raise_400('factorName provided without topicName in action.')
 		factor_map = resolver.factor_name_by_topic_name.get(topic_name, {})
@@ -670,7 +670,7 @@ def _action_from_agent_view(action, resolver, topic_id_mapping, factor_id_mappin
 		action['by'] = _joint_from_agent_view(action['by'], resolver, topic_id_mapping, factor_id_mapping)
 	if 'source' in action:
 		action['source'] = _param_from_agent_view(action['source'], resolver, topic_id_mapping, factor_id_mapping)
-	# mapping[].factorName 属于目标 topic（= action 的 topicName），mapping[].source 是源参数
+	# mapping[].factorName belongs to target topic (= action's topicName), mapping[].source is the source parameter
 	if 'mapping' in action and isinstance(action.get('mapping'), list):
 		for m in action['mapping']:
 			if not isinstance(m, dict):
@@ -719,10 +719,10 @@ def _stage_from_agent_view(stage, resolver, topic_id_mapping, factor_id_mapping)
 
 def _reuse_inner_ids(agent_stages: list, existing_stages: list) -> None:
 	"""
-	update 路径下，按 name 复用 existing 的 stageId / unitId / actionId，
-	避免落库时把内部 id 写成 None。
-	agent 视图不暴露这些 id，需要从 existing 拷贝。
-	action 无 name，按 (type, topicId, factorId) 复合 key 匹配。
+	On the update path, reuse existing stageId / unitId / actionId by name,
+	so that internal ids are not written as None during persist.
+	Agent view does not expose these ids; they need to be copied from existing.
+	Actions have no name; matched by composite key (type, topicId, factorId).
 	"""
 	existing_stage_by_name = {s.name: s for s in (existing_stages or []) if getattr(s, 'name', None)}
 	for agent_stage in agent_stages or []:
@@ -756,13 +756,13 @@ def build_pipeline_from_agent(
 		pipeline_service: PipelineService, topic_service: TopicService
 ) -> Tuple[str, Pipeline, AgentPipelineTopicResolver, dict, dict]:
 	"""
-	按 pipeline.name 做 upsert 准备。
-	返回 (action_type, pipeline, resolver, topic_id_mapping, factor_id_mapping)。
-	action_type: 'create' 或 'update'。
+	Prepare upsert by pipeline.name.
+	Returns (action_type, pipeline, resolver, topic_id_mapping, factor_id_mapping).
+	action_type: 'create' or 'update'.
 	"""
 	tenant_id: TenantId = principal_service.get_tenant_id()
 
-	# build resolver（在外层事务中查询）
+	# build resolver (query within outer transaction)
 	topics = topic_service.find_all(tenant_id)
 	resolver = AgentPipelineTopicResolver(topics)
 
@@ -803,21 +803,21 @@ def build_pipeline_from_agent(
 		pipeline_dict['tenantId'] = existing.tenantId
 		if existing.version is not None:
 			pipeline_dict['version'] = existing.version
-		# 复用 existing 的 stageId / unitId / actionId（agent 视图不暴露这些 id）
+		# Reuse existing stageId / unitId / actionId (agent view does not expose these ids)
 		_reuse_inner_ids(pipeline_dict.get('stages') or [], existing.stages)
 
 	pipeline = Pipeline.model_validate(pipeline_dict)
 	return action_type, pipeline, resolver, topic_id_mapping, factor_id_mapping
 
 
-# ---------- 端点 ----------
+# ---------- endpoints ----------
 
 @router.get('/pipeline/yaml/agent-view', tags=[UserRole.ADMIN, UserRole.CONSOLE], response_class=Response)
 async def load_pipeline_yaml_agent_view_by_id(
 		pipeline_id: Optional[PipelineId] = None,
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Response:
-	"""按 pipeline_id 下载精简 YAML（无 pipelineId / topicId / factorId / stageId / unitId / actionId / tenantId / version）"""
+	"""Download simplified YAML by pipeline_id (no pipelineId / topicId / factorId / stageId / unitId / actionId / tenantId / version)"""
 	if is_blank(pipeline_id):
 		raise_400('Pipeline id is required.')
 	pipeline_service = get_pipeline_service(principal_service)
@@ -844,7 +844,7 @@ async def find_pipeline_yaml_agent_view_by_name(
 		query_name: Optional[str],
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Response:
-	"""按 name 下载精简 YAML（无 pipelineId / topicId / factorId / stageId / unitId / actionId / tenantId / version）"""
+	"""Download simplified YAML by name (no pipelineId / topicId / factorId / stageId / unitId / actionId / tenantId / version)"""
 	if is_blank(query_name):
 		raise_400('Pipeline name is required.')
 	pipeline_service = get_pipeline_service(principal_service)
@@ -868,7 +868,7 @@ async def find_pipeline_yaml_agent_view_by_name(
 async def find_all_pipelines_yaml_agent_view(
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Response:
-	"""下载全部 Pipeline 的精简 YAML 数组"""
+	"""Download all Pipelines as a simplified YAML array"""
 	pipeline_service = get_pipeline_service(principal_service)
 
 	def action() -> List[Pipeline]:
