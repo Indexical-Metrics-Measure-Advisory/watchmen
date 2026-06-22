@@ -575,6 +575,8 @@ def prepare_agent_topic_upsert(
 
 	# 1. dataSourceCode → dataSourceId
 	data_source_service = get_data_source_service(topic_service)
+	# data_source_service 是独立 service，需复用 topic_service 已在事务中的 storage
+	data_source_service.storage = topic_service.storage
 	data_source_id = resolve_data_source_by_code(agent_input.dataSourceCode, tenant_id, data_source_service)
 	if data_source_id is None:
 		raise_400(f'Data source [{agent_input.dataSourceCode}] not found in tenant [{tenant_id}].')
@@ -650,12 +652,16 @@ async def upsert_topic_yaml_for_agent(
 	if dry_run:
 		# dry-run：只读事务，只做查询和校验
 		def do_prepare():
-			return prepare_agent_topic_upsert(agent_input, principal_service, topic_service)
+			action_type, full_topic, existing_factor_map = prepare_agent_topic_upsert(
+				agent_input, principal_service, topic_service)
+			# 在事务内构建 ds_map，使 data_source_service 复用 topic_service 的 storage
+			data_source_service = get_data_source_service(topic_service)
+			data_source_service.storage = topic_service.storage
+			ds_map = build_data_source_id_to_code_map(principal_service.get_tenant_id(), data_source_service)
+			return action_type, full_topic, existing_factor_map, ds_map
 
-		action_type, full_topic, existing_factor_map = trans_readonly(topic_service, do_prepare)
+		action_type, full_topic, existing_factor_map, ds_map = trans_readonly(topic_service, do_prepare)
 		display_action = 'would_create' if action_type == 'create' else 'would_update'
-		# 转换为无 id 视图后返回
-		ds_map = build_data_source_id_to_code_map(principal_service.get_tenant_id(), get_data_source_service(principal_service))
 		view = to_agent_topic_view(full_topic, ds_map)
 		# factorIdMapping 改为 name→name，仅指示 update 时被复用的 factor
 		matched_names = [f.name for f in agent_input.factors if f.name in existing_factor_map]
