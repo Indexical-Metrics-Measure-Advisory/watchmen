@@ -20,7 +20,7 @@ from watchmen_rest import get_any_admin_principal, get_console_principal
 from watchmen_rest.util import validate_tenant_id, raise_403, raise_400, raise_404
 from watchmen_rest_doll.admin import ask_save_topic_action
 from watchmen_rest_doll.util import trans_readonly, trans_with_tail
-from watchmen_utilities import is_blank
+from watchmen_utilities import is_blank, is_not_blank
 
 router = APIRouter()
 
@@ -54,6 +54,7 @@ async def load_table_config_by_id(
     return action()
 
 
+@router.get('/ingest/table/config/yaml/agent-view', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
 @router.get('/ingest/table/config/yaml', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
 async def load_table_config_yaml_by_id(
         table_config_id: Optional[str] = None, principal_service: PrincipalService = Depends(get_any_admin_principal)
@@ -96,6 +97,32 @@ class QueryTableConfigDataPage(DataPage):
     data: List[CollectorTableConfig]
 
 
+@router.get('/ingest/table/config/all/yaml/agent-view', tags=[UserRole.ADMIN], response_class=Response)
+@router.get('/ingest/config/table/all/yaml/agent-view', tags=[UserRole.ADMIN], response_class=Response)
+async def load_table_config_list_yaml_agent_view(
+        principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> Response:
+    configs = await load_table_config_list(principal_service)
+    yaml_str = yaml.dump([c.model_dump(mode='json', by_alias=True, exclude_none=True) for c in configs], sort_keys=False)
+    return Response(content=yaml_str, media_type='application/x-yaml')
+
+
+@router.get('/ingest/table/config/name/yaml/agent-view', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
+async def load_table_config_yaml_by_name(
+        query_name: Optional[str], principal_service: PrincipalService = Depends(get_console_principal)
+) -> Response:
+    if is_blank(query_name):
+        raise_400('collector table config name is required.')
+    collector_table_config_service = get_collector_table_config_service(ask_meta_storage(),
+                                                                        ask_snowflake_generator(),
+                                                                        principal_service)
+    table_config = collector_table_config_service.find_by_name(query_name, principal_service.get_tenant_id())
+    if table_config is None:
+        raise_404()
+    yaml_str = yaml.dump(table_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=yaml_str, media_type='application/x-yaml')
+
+
 @router.post('/ingest/table/config/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_tables_page_by_name(
         query_name: Optional[str], pageable: Pageable = Body(...),
@@ -132,6 +159,7 @@ async def save_table_config(
     return result
 
 
+@router.post('/ingest/table/config/yaml/agent-upsert', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
 @router.post('/ingest/table/config/yaml', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
 async def save_table_config_yaml(
         request: Request, principal_service: PrincipalService = Depends(get_any_admin_principal)
@@ -149,6 +177,11 @@ async def save_table_config_yaml(
     collector_table_config_service = get_collector_table_config_service(ask_meta_storage(),
                                                                         ask_snowflake_generator(),
                                                                         principal_service)
+    if is_blank(config.configId) and is_not_blank(config.name):
+        existing_config = collector_table_config_service.find_by_name(config.name, principal_service.get_tenant_id())
+        if existing_config is not None:
+            config.configId = existing_config.configId
+            config.version = existing_config.version
     action = ask_save_table_config_action(collector_table_config_service, principal_service)
     saved_config = action(config)
     saved_yaml_str = yaml.dump(saved_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
@@ -192,6 +225,7 @@ async def save_model_config(config: CollectorModelConfig,
     return action(config)
 
 
+@router.get('/ingest/model/config/yaml/agent-view', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
 @router.get('/ingest/model/config/yaml', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
 async def load_model_config_yaml_by_id(
         model_id: Optional[str] = None, principal_service: PrincipalService = Depends(get_console_principal)
@@ -212,6 +246,7 @@ async def load_model_config_yaml_by_id(
     return Response(content=yaml_str, media_type='application/x-yaml')
 
 
+@router.post('/ingest/model/config/yaml/agent-upsert', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
 @router.post('/ingest/model/config/yaml', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
 async def save_model_config_yaml(
         request: Request, principal_service: PrincipalService = Depends(get_any_admin_principal)
@@ -229,6 +264,11 @@ async def save_model_config_yaml(
     model_config_service = get_collector_model_config_service(ask_meta_storage(),
                                                               ask_snowflake_generator(),
                                                               principal_service)
+    if is_blank(config.modelId) and is_not_blank(config.modelName):
+        existing_config = model_config_service.find_by_name(config.modelName, principal_service.get_tenant_id())
+        if existing_config is not None:
+            config.modelId = existing_config.modelId
+            config.version = existing_config.version
     action = ask_save_model_config_action(model_config_service, principal_service)
     saved_config = action(config)
     saved_yaml_str = yaml.dump(saved_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
@@ -273,6 +313,7 @@ async def save_module_config(config: CollectorModuleConfig,
     return action(config)
 
 
+@router.get('/ingest/module/config/yaml/agent-view', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
 @router.get('/ingest/module/config/yaml', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
 async def load_module_config_yaml_by_id(
         module_id: Optional[str] = None, principal_service: PrincipalService = Depends(get_console_principal)
@@ -293,6 +334,7 @@ async def load_module_config_yaml_by_id(
     return Response(content=yaml_str, media_type='application/x-yaml')
 
 
+@router.post('/ingest/module/config/yaml/agent-upsert', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
 @router.post('/ingest/module/config/yaml', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
 async def save_module_config_yaml(
         request: Request, principal_service: PrincipalService = Depends(get_any_admin_principal)
@@ -310,6 +352,13 @@ async def save_module_config_yaml(
     module_config_service = get_collector_module_config_service(ask_meta_storage(),
                                                                 ask_snowflake_generator(),
                                                                 principal_service)
+    if is_blank(config.moduleId) and is_not_blank(config.moduleName):
+        existing_configs = trans_readonly(
+            module_config_service, lambda: module_config_service.find_all(principal_service.get_tenant_id()))
+        existing_config = next((c for c in existing_configs if c.moduleName == config.moduleName), None)
+        if existing_config is not None:
+            config.moduleId = existing_config.moduleId
+            config.version = existing_config.version
     action = ask_save_module_config_action(module_config_service, principal_service)
     saved_config = action(config)
     saved_yaml_str = yaml.dump(saved_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
@@ -432,6 +481,22 @@ async def find_models_page_by_name(
     return action()
 
 
+@router.get('/ingest/model/config/name/yaml/agent-view', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
+async def load_model_config_yaml_by_name(
+        query_name: Optional[str], principal_service: PrincipalService = Depends(get_console_principal)
+) -> Response:
+    if is_blank(query_name):
+        raise_400('collector model config name is required.')
+    collector_model_config_service = get_collector_model_config_service(ask_meta_storage(),
+                                                                        ask_snowflake_generator(),
+                                                                        principal_service)
+    model_config = collector_model_config_service.find_by_name(query_name, principal_service.get_tenant_id())
+    if model_config is None:
+        raise_404()
+    yaml_str = yaml.dump(model_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=yaml_str, media_type='application/x-yaml')
+
+
 @router.post('/ingest/model/config/search', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def find_models_page_with_filters(
         filters: Dict = Body(...), pageable: Pageable = Body(...),
@@ -498,6 +563,16 @@ async def load_model_config_list(
     return trans_readonly(collector_model_config_service,action)
 
 
+@router.get('/ingest/model/config/all/yaml/agent-view', tags=[UserRole.ADMIN], response_class=Response)
+@router.get('/ingest/config/model/all/yaml/agent-view', tags=[UserRole.ADMIN], response_class=Response)
+async def load_model_config_list_yaml_agent_view(
+        principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> Response:
+    configs = await load_model_config_list(principal_service)
+    yaml_str = yaml.dump([c.model_dump(mode='json', by_alias=True, exclude_none=True) for c in configs], sort_keys=False)
+    return Response(content=yaml_str, media_type='application/x-yaml')
+
+
 @router.get('/ingest/model/config/stats', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def get_model_config_statistics(
         principal_service: PrincipalService = Depends(get_console_principal)
@@ -556,6 +631,25 @@ async def load_module_config_by_id(
 
 class QueryModuleConfigDataPage(DataPage):
     data: List[CollectorModuleConfig]
+
+
+@router.get('/ingest/module/config/name/yaml/agent-view', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
+async def load_module_config_yaml_by_name(
+        query_name: Optional[str], principal_service: PrincipalService = Depends(get_console_principal)
+) -> Response:
+    if is_blank(query_name):
+        raise_400('collector module config name is required.')
+    collector_module_config_service = get_collector_module_config_service(ask_meta_storage(),
+                                                                          ask_snowflake_generator(),
+                                                                          principal_service)
+    module_configs = trans_readonly(
+        collector_module_config_service,
+        lambda: collector_module_config_service.find_all(principal_service.get_tenant_id()))
+    module_config = next((c for c in module_configs if c.moduleName == query_name), None)
+    if module_config is None:
+        raise_404()
+    yaml_str = yaml.dump(module_config.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=yaml_str, media_type='application/x-yaml')
 
 
 @router.post('/ingest/module/config/search', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
@@ -621,6 +715,16 @@ async def load_module_config_list(
         return module_config_list
 
     return trans_readonly(collector_module_config_service,action)
+
+@router.get('/ingest/module/config/all/yaml/agent-view', tags=[UserRole.ADMIN], response_class=Response)
+@router.get('/ingest/config/module/all/yaml/agent-view', tags=[UserRole.ADMIN], response_class=Response)
+async def load_module_config_list_yaml_agent_view(
+        principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> Response:
+    configs = await load_module_config_list(principal_service)
+    yaml_str = yaml.dump([c.model_dump(mode='json', by_alias=True, exclude_none=True) for c in configs], sort_keys=False)
+    return Response(content=yaml_str, media_type='application/x-yaml')
+
 
 @router.get('/ingest/module/config/hierarchy', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def load_module_config_hierarchy(

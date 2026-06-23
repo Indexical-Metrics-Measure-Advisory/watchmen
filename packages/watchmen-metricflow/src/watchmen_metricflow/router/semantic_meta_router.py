@@ -108,6 +108,7 @@ async def get_semantic_model_by_name(
     return trans_readonly(semantic_model_service, action)
 
 
+@router.get('/metricflow/semantic-model/name/yaml/agent-view', tags=['CONSOLE', 'ADMIN'], response_class=Response)
 @router.get('/metricflow/semantic-model/name/yaml', tags=['CONSOLE', 'ADMIN'], response_class=Response)
 async def get_semantic_model_yaml_by_name(
         model_name: Optional[str],
@@ -130,6 +131,7 @@ async def get_semantic_model_yaml_by_name(
     return Response(content=yaml_str, media_type='application/x-yaml')
 
 
+@router.post('/metricflow/semantic-model/yaml/agent-upsert', tags=['ADMIN'], response_class=Response)
 @router.post('/metricflow/semantic-model/yaml', tags=['ADMIN'], response_class=Response)
 async def save_semantic_model_yaml(
         request: Request,
@@ -313,6 +315,25 @@ async def get_all_semantic_models(
             return find_semantic_models_by_topic_ids(principal_service, topic_ids, tenant_id)
 
     return trans_readonly(semantic_model_service, action)
+
+
+@router.get('/metricflow/semantic-model/all/yaml/agent-view', tags=['ADMIN'], response_class=Response)
+@router.get('/metricflow/semantic-models/all/yaml/agent-view', tags=['ADMIN'], response_class=Response)
+async def get_all_semantic_models_yaml_agent_view(
+        principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Response:
+    semantic_model_service = get_semantic_model_service(principal_service)
+
+    def action() -> List[SemanticModel]:
+        tenant_id: TenantId = principal_service.get_tenant_id()
+        return semantic_model_service.find_all(tenant_id)
+
+    semantic_models = trans_readonly(semantic_model_service, action)
+    yaml_str = yaml.dump(
+        [m.model_dump(mode='json', by_alias=True, exclude_none=True) for m in semantic_models],
+        sort_keys=False
+    )
+    return Response(content=yaml_str, media_type='application/x-yaml')
 
 
 @router.post('/metricflow/semantic-models/name', tags=['CONSOLE', 'ADMIN'], response_model=None)

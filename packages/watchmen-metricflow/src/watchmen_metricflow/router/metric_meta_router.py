@@ -50,6 +50,7 @@ async def get_metric_by_name(
     return trans_readonly(metric_service, action)
 
 
+@router.get('/metricflow/metric/name/yaml/agent-view', tags=['CONSOLE', 'ADMIN'], response_class=Response)
 @router.get('/metricflow/metric/name/yaml', tags=['CONSOLE', 'ADMIN'], response_class=Response)
 async def get_metric_yaml_by_name(
         metric_name: Optional[str],
@@ -72,6 +73,7 @@ async def get_metric_yaml_by_name(
     return Response(content=yaml_str, media_type='application/x-yaml')
 
 
+@router.post('/metricflow/metric/yaml/agent-upsert', tags=['ADMIN'], response_class=Response)
 @router.post('/metricflow/metric/yaml', tags=['ADMIN'], response_class=Response)
 async def save_metric_yaml(
         request: Request,
@@ -244,6 +246,22 @@ async def get_all_metrics(
             return find_metrics_by_topic_ids(principal_service, topic_ids, tenant_id)
 
     return trans_readonly(metric_service, action)
+
+
+@router.get('/metricflow/metric/all/yaml/agent-view', tags=['ADMIN'], response_class=Response)
+@router.get('/metricflow/metrics/all/yaml/agent-view', tags=['ADMIN'], response_class=Response)
+async def get_all_metrics_yaml_agent_view(
+        principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Response:
+    metric_service = get_metric_service(principal_service)
+
+    def action() -> List[MetricWithCategory]:
+        tenant_id: TenantId = principal_service.get_tenant_id()
+        return metric_service.find_all(tenant_id)
+
+    metrics = trans_readonly(metric_service, action)
+    yaml_str = yaml.dump([m.model_dump(mode='json', by_alias=True, exclude_none=True) for m in metrics], sort_keys=False)
+    return Response(content=yaml_str, media_type='application/x-yaml')
 
 
 @router.post('/metricflow/metrics/name', tags=['CONSOLE', 'ADMIN'], response_model=None)

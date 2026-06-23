@@ -55,31 +55,41 @@ class SyncService:
                 write_yaml_entity(self.vault_path, ENUM_DIR, yaml_str, "enumId", name_key="name")
             result["enums"] = len(enums)
         if target in ("semantic", "all"):
-            semantic_models = self.client.get_json("/metricflow/semantic/all")
+            semantic_yaml = self.client.get_text("/metricflow/semantic-model/all/yaml/agent-view")
+            semantic_models = yaml.safe_load(semantic_yaml) if semantic_yaml.strip() else []
+            semantic_models = semantic_models if isinstance(semantic_models, list) else []
             for model in semantic_models:
                 yaml_str = yaml.dump(model, sort_keys=False)
-                write_yaml_entity(self.vault_path, METRICFLOW_SEMANTIC_DIR, yaml_str, "modelId", name_key="name")
+                write_yaml_entity(self.vault_path, METRICFLOW_SEMANTIC_DIR, yaml_str, "id", name_key="name")
             result["semantic_models"] = len(semantic_models)
         if target in ("metric", "all"):
-            metrics = self.client.get_json("/metricflow/metric/all")
+            metrics_yaml = self.client.get_text("/metricflow/metric/all/yaml/agent-view")
+            metrics = yaml.safe_load(metrics_yaml) if metrics_yaml.strip() else []
+            metrics = metrics if isinstance(metrics, list) else []
             for metric in metrics:
                 yaml_str = yaml.dump(metric, sort_keys=False)
-                write_yaml_entity(self.vault_path, METRICFLOW_METRIC_DIR, yaml_str, "metricId", name_key="name")
+                write_yaml_entity(self.vault_path, METRICFLOW_METRIC_DIR, yaml_str, "id", name_key="name")
             result["metrics"] = len(metrics)
         if target in ("ingest_table", "all"):
-            tables = self.client.get_json("/collector/table/all")
+            tables_yaml = self.client.get_text("/ingest/table/config/all/yaml/agent-view")
+            tables = yaml.safe_load(tables_yaml) if tables_yaml.strip() else []
+            tables = tables if isinstance(tables, list) else []
             for table in tables:
                 yaml_str = yaml.dump(table, sort_keys=False)
-                write_yaml_entity(self.vault_path, INGEST_TABLE_CONFIG_DIR, yaml_str, "tableId", name_key="tableName")
+                write_yaml_entity(self.vault_path, INGEST_TABLE_CONFIG_DIR, yaml_str, "configId", name_key="name")
             result["ingest_tables"] = len(tables)
         if target in ("ingest_model", "all"):
-            models = self.client.get_json("/collector/model/all")
+            models_yaml = self.client.get_text("/ingest/model/config/all/yaml/agent-view")
+            models = yaml.safe_load(models_yaml) if models_yaml.strip() else []
+            models = models if isinstance(models, list) else []
             for model in models:
                 yaml_str = yaml.dump(model, sort_keys=False)
                 write_yaml_entity(self.vault_path, INGEST_MODEL_CONFIG_DIR, yaml_str, "modelId", name_key="modelName")
             result["ingest_models"] = len(models)
         if target in ("ingest_module", "all"):
-            modules = self.client.get_json("/collector/module/all")
+            modules_yaml = self.client.get_text("/ingest/module/config/all/yaml/agent-view")
+            modules = yaml.safe_load(modules_yaml) if modules_yaml.strip() else []
+            modules = modules if isinstance(modules, list) else []
             for module in modules:
                 yaml_str = yaml.dump(module, sort_keys=False)
                 write_yaml_entity(self.vault_path, INGEST_MODULE_CONFIG_DIR, yaml_str, "moduleId", name_key="moduleName")
@@ -277,7 +287,7 @@ class SyncService:
         return {"count": len(pipeline_summaries), "pipelines": pipeline_summaries}
 
     def pull_one_semantic_model_by_name(self, model_name: str) -> Dict[str, Any]:
-        model_yaml = self.client.get_text("/metricflow/semantic-model/name/yaml", {"model_name": model_name})
+        model_yaml = self.client.get_text("/metricflow/semantic-model/name/yaml/agent-view", {"model_name": model_name})
         write_yaml_entity(self.vault_path, METRICFLOW_SEMANTIC_DIR, model_yaml, "id", name_key="name")
         return {"semanticModelName": model_name, "status": "pulled"}
 
@@ -287,7 +297,7 @@ class SyncService:
         source_yaml = file_path.read_text(encoding="utf-8")
         source_model = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
         source_id = str((source_model or {}).get("id") or "").strip()
-        pushed_yaml = self.client.post_text("/metricflow/semantic-model/yaml", source_yaml)
+        pushed_yaml = self.client.post_text("/metricflow/semantic-model/yaml/agent-upsert", source_yaml)
         pushed_model = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
         pushed_id = str((pushed_model or {}).get("id") or "").strip()
         replaced = bool(source_id and pushed_id and source_id == pushed_id)
@@ -320,7 +330,7 @@ class SyncService:
         return {"count": len(summaries), "semanticModels": summaries}
 
     def pull_one_metric_by_name(self, metric_name: str) -> Dict[str, Any]:
-        metric_yaml = self.client.get_text("/metricflow/metric/name/yaml", {"metric_name": metric_name})
+        metric_yaml = self.client.get_text("/metricflow/metric/name/yaml/agent-view", {"metric_name": metric_name})
         write_yaml_entity(self.vault_path, METRICFLOW_METRIC_DIR, metric_yaml, "id", name_key="name")
         return {"metricName": metric_name, "status": "pulled"}
 
@@ -330,7 +340,7 @@ class SyncService:
         source_yaml = file_path.read_text(encoding="utf-8")
         source_metric = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
         source_id = str((source_metric or {}).get("id") or "").strip()
-        pushed_yaml = self.client.post_text("/metricflow/metric/yaml", source_yaml)
+        pushed_yaml = self.client.post_text("/metricflow/metric/yaml/agent-upsert", source_yaml)
         pushed_metric = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
         pushed_id = str((pushed_metric or {}).get("id") or "").strip()
         replaced = bool(source_id and pushed_id and source_id == pushed_id)
@@ -425,17 +435,17 @@ class SyncService:
         }
 
     def pull_one_ingest_table_config(self, table_config_id: str) -> Dict[str, Any]:
-        table_yaml = self.client.get_text("/ingest/table/config/yaml", {"table_config_id": table_config_id})
+        table_yaml = self.client.get_text("/ingest/table/config/yaml/agent-view", {"table_config_id": table_config_id})
         write_yaml_entity(self.vault_path, INGEST_TABLE_CONFIG_DIR, table_yaml, "configId", name_key="name")
         return {"tableConfigId": table_config_id, "status": "pulled"}
 
     def pull_one_ingest_model_config(self, model_id: str) -> Dict[str, Any]:
-        model_yaml = self.client.get_text("/ingest/model/config/yaml", {"model_id": model_id})
+        model_yaml = self.client.get_text("/ingest/model/config/yaml/agent-view", {"model_id": model_id})
         write_yaml_entity(self.vault_path, INGEST_MODEL_CONFIG_DIR, model_yaml, "modelId", name_key="modelName")
         return {"modelId": model_id, "status": "pulled"}
 
     def pull_one_ingest_module_config(self, module_id: str) -> Dict[str, Any]:
-        module_yaml = self.client.get_text("/ingest/module/config/yaml", {"module_id": module_id})
+        module_yaml = self.client.get_text("/ingest/module/config/yaml/agent-view", {"module_id": module_id})
         write_yaml_entity(self.vault_path, INGEST_MODULE_CONFIG_DIR, module_yaml, "moduleId", name_key="moduleName")
         return {"moduleId": module_id, "status": "pulled"}
 
@@ -467,7 +477,7 @@ class SyncService:
         return self.pull_one_ingest_module_config(str(matched[0].get("moduleId")))
 
     def pull_ingest_model_with_children(self, model_id: str) -> Dict[str, Any]:
-        model_yaml = self.client.get_text("/ingest/model/config/yaml", {"model_id": model_id})
+        model_yaml = self.client.get_text("/ingest/model/config/yaml/agent-view", {"model_id": model_id})
         model = yaml.safe_load(model_yaml) if model_yaml.strip() else {}
         write_yaml_entity(self.vault_path, INGEST_MODEL_CONFIG_DIR, model_yaml, "modelId", name_key="modelName")
 
@@ -475,7 +485,7 @@ class SyncService:
         module_id = str((model or {}).get("moduleId") or "")
         pulled_module = None
         if module_id:
-            module_yaml = self.client.get_text("/ingest/module/config/yaml", {"module_id": module_id})
+            module_yaml = self.client.get_text("/ingest/module/config/yaml/agent-view", {"module_id": module_id})
             write_yaml_entity(self.vault_path, INGEST_MODULE_CONFIG_DIR, module_yaml, "moduleId", name_key="moduleName")
             module = yaml.safe_load(module_yaml) if module_yaml.strip() else {}
             pulled_module = {"moduleId": module_id, "moduleName": (module or {}).get("moduleName")}
@@ -504,7 +514,7 @@ class SyncService:
         return self.pull_ingest_model_with_children(str(matched[0].get("modelId")))
 
     def pull_ingest_module_with_children(self, module_id: str) -> Dict[str, Any]:
-        module_yaml = self.client.get_text("/ingest/module/config/yaml", {"module_id": module_id})
+        module_yaml = self.client.get_text("/ingest/module/config/yaml/agent-view", {"module_id": module_id})
         module = yaml.safe_load(module_yaml) if module_yaml.strip() else {}
         write_yaml_entity(self.vault_path, INGEST_MODULE_CONFIG_DIR, module_yaml, "moduleId", name_key="moduleName")
 
@@ -545,7 +555,7 @@ class SyncService:
         if not file_path.exists():
             raise AgentCliException(f"File not found: {file_path}")
         source_yaml = file_path.read_text(encoding="utf-8")
-        pushed_yaml = self.client.post_text("/ingest/table/config/yaml", source_yaml)
+        pushed_yaml = self.client.post_text("/ingest/table/config/yaml/agent-upsert", source_yaml)
         write_yaml_entity(self.vault_path, INGEST_TABLE_CONFIG_DIR, pushed_yaml, "configId", name_key="name")
         file_path.write_text(pushed_yaml, encoding="utf-8")
         pushed = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
@@ -555,7 +565,7 @@ class SyncService:
         if not file_path.exists():
             raise AgentCliException(f"File not found: {file_path}")
         source_yaml = file_path.read_text(encoding="utf-8")
-        pushed_yaml = self.client.post_text("/ingest/model/config/yaml", source_yaml)
+        pushed_yaml = self.client.post_text("/ingest/model/config/yaml/agent-upsert", source_yaml)
         write_yaml_entity(self.vault_path, INGEST_MODEL_CONFIG_DIR, pushed_yaml, "modelId", name_key="modelName")
         file_path.write_text(pushed_yaml, encoding="utf-8")
         pushed = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
@@ -565,7 +575,7 @@ class SyncService:
         if not file_path.exists():
             raise AgentCliException(f"File not found: {file_path}")
         source_yaml = file_path.read_text(encoding="utf-8")
-        pushed_yaml = self.client.post_text("/ingest/module/config/yaml", source_yaml)
+        pushed_yaml = self.client.post_text("/ingest/module/config/yaml/agent-upsert", source_yaml)
         write_yaml_entity(self.vault_path, INGEST_MODULE_CONFIG_DIR, pushed_yaml, "moduleId", name_key="moduleName")
         file_path.write_text(pushed_yaml, encoding="utf-8")
         pushed = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
