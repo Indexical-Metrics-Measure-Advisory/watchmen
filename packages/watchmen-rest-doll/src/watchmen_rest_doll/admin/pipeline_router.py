@@ -12,8 +12,7 @@ from watchmen_meta.admin import PipelineService, TopicService
 from watchmen_meta.analysis import PipelineIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, TupleService
 from watchmen_model.admin import Pipeline, PipelineAction, PipelineStage, PipelineUnit, Topic, TopicKind, UserRole
-from watchmen_model.common import PipelineId, TenantId, TopicId, construct_parameter_joint
-from watchmen_model.admin.pipeline import construct_stages
+from watchmen_model.common import PipelineId, TenantId, TopicId
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
@@ -434,15 +433,7 @@ class AgentPipelineYaml(ExtendedBaseModel):
 	validated: Optional[bool] = False
 	conditional: Optional[bool] = False
 	on: Optional[dict] = None
-	stages: Optional[List[PipelineStage]] = []
-
-	def __setattr__(self, name, value):
-		if name == 'stages':
-			super().__setattr__(name, construct_stages(value) if value else [])
-		elif name == 'on':
-			super().__setattr__(name, construct_parameter_joint(value))
-		else:
-			super().__setattr__(name, value)
+	stages: Optional[List[dict]] = []
 
 
 class AgentPipelineUpsertResult(ExtendedBaseModel):
@@ -656,6 +647,8 @@ def _action_from_agent_view(action, resolver, topic_id_mapping, factor_id_mappin
 			raise_400(f'Topic [{topic_name}] not found.')
 		action['topicId'] = topic.topicId
 		topic_id_mapping[topic_name] = topic.topicId
+	elif action.get('topicId') is not None:
+		topic_name = resolver.topic_id_to_name(action.get('topicId'))
 	if factor_name:
 		# factorName at action level belongs to the action's topic (read/write target)
 		if not topic_name:
@@ -715,6 +708,120 @@ def _stage_from_agent_view(stage, resolver, topic_id_mapping, factor_id_mapping)
 			for u in stage['units']
 		]
 	return stage
+
+
+def _resolve_topic_name_by_id(topic_id, resolver: AgentPipelineTopicResolver, context: str) -> str:
+	topic_name = resolver.topic_id_to_name(topic_id)
+	if topic_name is None:
+		raise_400(f'{context}: topicId [{topic_id}] not found.')
+	return topic_name
+
+
+def _validate_factor_belongs_to_topic(factor_id, topic_name: str, resolver: AgentPipelineTopicResolver, context: str) -> None:
+	factor_topic_name = resolver.factor_id_to_topic_name_safe(factor_id)
+	if factor_topic_name is None:
+		raise_400(f'{context}: factorId [{factor_id}] not found.')
+	if factor_topic_name != topic_name:
+		raise_400(f'{context}: factorId [{factor_id}] does not belong to topic [{topic_name}].')
+
+
+def _raise_out_of_scope(context: str, topic_name: str, allowed_topic_names: set) -> None:
+	allowed = ', '.join(sorted(allowed_topic_names))
+	raise_400(
+		f'{context}: topic [{topic_name}] is out of scope. Allowed topic(s): [{allowed}]. '
+		'Use a previous read action to copy cross-topic value to memory, then reference it as a constant '
+		'like {memory_variable.factor_name}.'
+	)
+
+
+def _validate_param_scope(param, resolver: AgentPipelineTopicResolver, allowed_topic_names: set, context: str) -> None:
+	if not isinstance(param, dict):
+		return
+	if param.get('kind') == 'topic':
+		topic_id = param.get('topicId')
+		factor_id = param.get('factorId')
+		if topic_id is None:
+			raise_400(f'{context}: topic parameter is missing topicId.')
+		topic_name = _resolve_topic_name_by_id(topic_id, resolver, context)
+		if topic_name not in allowed_topic_names:
+			_raise_out_of_scope(context, topic_name, allowed_topic_names)
+		if factor_id is not None:
+			_validate_factor_belongs_to_topic(factor_id, topic_name, resolver, context)
+	if 'parameters' in param and isinstance(param.get('parameters'), list):
+		for index, nested in enumerate(param['parameters']):
+			_validate_param_scope(nested, resolver, allowed_topic_names, f'{context}.parameters[{index}]')
+	if 'on' in param:
+		_validate_joint_scope(param['on'], resolver, allowed_topic_names, f'{context}.on')
+
+
+def _validate_joint_scope(joint, resolver: AgentPipelineTopicResolver, allowed_topic_names: set, context: str) -> None:
+	if not isinstance(joint, dict):
+		return
+	for index, cond in enumerate(joint.get('filters') or []):
+		_validate_cond_scope(cond, resolver, allowed_topic_names, f'{context}.filters[{index}]')
+
+
+def _validate_cond_scope(cond, resolver: AgentPipelineTopicResolver, allowed_topic_names: set, context: str) -> None:
+	if not isinstance(cond, dict):
+		return
+	if 'jointType' in cond:
+		_validate_joint_scope(cond, resolver, allowed_topic_names, context)
+		return
+	if 'left' in cond:
+		_validate_param_scope(cond['left'], resolver, allowed_topic_names, f'{context}.left')
+	if 'right' in cond:
+		_validate_param_scope(cond['right'], resolver, allowed_topic_names, f'{context}.right')
+
+
+def _validate_action_scope(action, resolver: AgentPipelineTopicResolver, source_topic_name: str, context: str) -> None:
+	if not isinstance(action, dict):
+		return
+	target_topic_name = None
+	if action.get('topicId') is not None:
+		target_topic_name = _resolve_topic_name_by_id(action.get('topicId'), resolver, f'{context}.target')
+	if action.get('factorId') is not None:
+		if target_topic_name is None:
+			raise_400(f'{context}: factorId is provided without topicId.')
+		_validate_factor_belongs_to_topic(action.get('factorId'), target_topic_name, resolver, f'{context}.target')
+	if 'source' in action:
+		_validate_param_scope(action['source'], resolver, {source_topic_name}, f'{context}.source')
+	if 'mapping' in action and isinstance(action.get('mapping'), list):
+		if target_topic_name is None:
+			raise_400(f'{context}: mapping is provided without target topicId.')
+		for index, mapping in enumerate(action['mapping']):
+			if not isinstance(mapping, dict):
+				continue
+			if mapping.get('factorId') is not None:
+				_validate_factor_belongs_to_topic(
+					mapping.get('factorId'), target_topic_name, resolver, f'{context}.mapping[{index}]')
+			if 'source' in mapping:
+				_validate_param_scope(mapping['source'], resolver, {source_topic_name}, f'{context}.mapping[{index}].source')
+	if 'by' in action:
+		allowed = {source_topic_name}
+		if target_topic_name is not None:
+			allowed.add(target_topic_name)
+		_validate_joint_scope(action['by'], resolver, allowed, f'{context}.by')
+	if 'on' in action:
+		_validate_joint_scope(action['on'], resolver, {source_topic_name}, f'{context}.on')
+
+
+def _validate_pipeline_agent_scopes(pipeline_dict: dict, resolver: AgentPipelineTopicResolver, source_topic_name: str) -> None:
+	if 'on' in pipeline_dict:
+		_validate_joint_scope(pipeline_dict['on'], resolver, {source_topic_name}, 'pipeline.on')
+	for stage_index, stage in enumerate(pipeline_dict.get('stages') or []):
+		if not isinstance(stage, dict):
+			continue
+		if 'on' in stage:
+			_validate_joint_scope(stage['on'], resolver, {source_topic_name}, f'stages[{stage_index}].on')
+		for unit_index, unit in enumerate(stage.get('units') or []):
+			if not isinstance(unit, dict):
+				continue
+			if 'on' in unit:
+				_validate_joint_scope(unit['on'], resolver, {source_topic_name}, f'stages[{stage_index}].units[{unit_index}].on')
+			for action_index, action in enumerate(unit.get('do') or []):
+				_validate_action_scope(
+					action, resolver, source_topic_name,
+					f'stages[{stage_index}].units[{unit_index}].do[{action_index}]')
 
 
 def _reuse_inner_ids(agent_stages: list, existing_stages: list) -> None:
@@ -792,6 +899,8 @@ def build_pipeline_from_agent(
 			_stage_from_agent_view(s, resolver, topic_id_mapping, factor_id_mapping)
 			for s in pipeline_dict['stages']
 		]
+
+	_validate_pipeline_agent_scopes(pipeline_dict, resolver, agent_input.sourceTopicName)
 
 	if existing is None:
 		action_type = 'create'
