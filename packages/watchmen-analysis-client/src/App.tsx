@@ -72,7 +72,7 @@ const App = () => (
                 <Route path="/metrics/lineage" element={<MetricLineagePage />} />
                 <Route path="/metrics/alert-configuration" element={<AlertConfigurationPage />} />
                 <Route path="/metrics/data-profiles" element={<DataProfileManagement />} />
-                <Route path="/data-catalog" element={<DataCatalog />} />
+                {/* <Route path="/data-catalog" element={<DataCatalog />} /> */}
                 <Route path="/data-catalog/domain-map" element={<BusinessDomainMap />} />
                 <Route path="/data-catalog/business-glossary" element={<BusinessGlossary />} />
                 {/* <Route path="/metric-detail" element={<MetricDetail />} /> */}
