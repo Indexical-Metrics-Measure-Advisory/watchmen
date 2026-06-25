@@ -1,0 +1,20 @@
+CREATE TABLE virtual_ontologies (
+    ontology_id       VARCHAR(50)  NOT NULL,
+    name              VARCHAR(255) NOT NULL,
+    description       TEXT,
+    owner             VARCHAR(100),
+    technical_owner   VARCHAR(100),
+    tags              JSON,
+    sensitivity       VARCHAR(20)  NOT NULL DEFAULT 'internal',
+    virtual_objects   JSON,
+    virtual_links     JSON,
+    tenant_id         VARCHAR(50)  NOT NULL,
+    created_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by        VARCHAR(50),
+    last_modified_at  DATETIME,
+    last_modified_by  VARCHAR(50),
+    version           INT          NOT NULL DEFAULT 0,
+    PRIMARY KEY (ontology_id),
+    UNIQUE INDEX u_virtual_ontologies_1 (name, tenant_id),
+    INDEX (tenant_id)
+);

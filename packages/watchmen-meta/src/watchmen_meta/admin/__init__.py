@@ -1,4 +1,5 @@
 from .enumeration_service import EnumItemService, EnumService
+from .ontology_service import OntologyService
 from .pipeline_graphic_service import PipelineGraphicService
 from .pipeline_service import PipelineService
 from .space_service import SpaceService

@@ -60,3 +60,5 @@ EventTriggerId = TypeVar('EventTriggerId', bound=int)
 ModelTriggerId = TypeVar('ModelTriggerId', bound=int)
 TableTriggerId = TypeVar('TableTriggerId', bound=int)
 OnlineTriggerId = TypeVar('OnlineTriggerId', bound=int)
+
+OntologyId = TypeVar('OntologyId', bound=str)

@@ -687,6 +687,20 @@ table_metric_categories = Table(
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 
+table_virtual_ontologies = Table(
+	'virtual_ontologies', meta_data,
+	create_pk('ontology_id'),
+	create_str('name', 128, False),
+	create_str('description', 1024),
+	create_str('owner', 128),
+	create_str('technical_owner', 128),
+	create_json('tags'),
+	create_str('sensitivity', 32),
+	create_json('virtual_objects'),
+	create_json('virtual_links'),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+
 table_bi_analysis = Table(
 	'bi_analysis', meta_data,
 	create_pk('id'),
@@ -748,6 +762,7 @@ table_alert_instances = Table(
 	create_int('interval_minutes'),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(), create_user_id()
 )
+
 
 # noinspection DuplicatedCode
 tables: Dict[str, Table] = {
@@ -837,6 +852,7 @@ tables: Dict[str, Table] = {
 	'alert_instances': table_alert_instances,
 	'action_types': table_action_types,
 	'suggested_actions': table_suggested_actions,
+	'virtual_ontologies': table_virtual_ontologies,
 }
 
 
