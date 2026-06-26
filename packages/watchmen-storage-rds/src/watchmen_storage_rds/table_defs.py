@@ -701,6 +701,20 @@ table_virtual_ontologies = Table(
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 
+table_business_glossary = Table(
+	'business_glossary', meta_data,
+	create_pk('standard_id'),
+	create_str('abbreviation', 64, False),
+	create_str('name', 255, False),
+	create_str('description', 1024),
+	create_str('version', 64),
+	create_str('status', 32),
+	create_str('source_url', 512),
+	create_json('tags'),
+	create_json('entries'),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+
 table_bi_analysis = Table(
 	'bi_analysis', meta_data,
 	create_pk('id'),
@@ -853,6 +867,7 @@ tables: Dict[str, Table] = {
 	'action_types': table_action_types,
 	'suggested_actions': table_suggested_actions,
 	'virtual_ontologies': table_virtual_ontologies,
+	'business_glossary': table_business_glossary,
 }
 
 

@@ -5,6 +5,7 @@ import {
 	type SectionId,
 	type Standard,
 	type StandardBundle,
+	type StandardStatus,
 	type TableEntry,
 	type FieldCodeEntry,
 	type CodeValueEntry,
@@ -177,6 +178,143 @@ export class BusinessGlossaryService {
 
 	setMockStore(bundles: StandardBundle[]): void {
 		this.mockBundles = bundles;
+	}
+
+	// ---- Agent YAML operations (CLI / AI Agent) ----
+
+	/** Pull all standards in agent-view YAML format */
+	async pullAllYaml(): Promise<string> {
+		if (isMockMode) {
+			await delay(300);
+			// Return a simple YAML representation of all bundles
+			return this.mockBundles
+				.map((b) => {
+					return [
+						`name: ${b.standard.name}`,
+						`abbreviation: ${b.standard.abbreviation}`,
+						`description: ${b.standard.description || ""}`,
+						`version: ${b.standard.version || ""}`,
+						`status: ${b.standard.status}`,
+						`sourceUrl: ${b.standard.sourceUrl || ""}`,
+						"tags:",
+						...(b.standard.tags || []).map((t) => `  - ${t}`),
+						"entries:",
+						`  overview: ${JSON.stringify(b.entries?.overview || [])}`,
+						`  tables: ${JSON.stringify(b.entries?.tables || [])}`,
+						`  fields: ${JSON.stringify(b.entries?.fields || [])}`,
+						`  codes: ${JSON.stringify(b.entries?.codes || [])}`,
+						`  terms: ${JSON.stringify(b.entries?.terms || [])}`,
+						`  naming: ${JSON.stringify(b.entries?.naming || [])}`,
+						`  dependencies: ${JSON.stringify(b.entries?.dependencies || [])}`,
+					].join("\n");
+				})
+				.join("\n---\n");
+		}
+		const response = await fetch(`${ENDPOINT}/all/yaml/agent-view`, {
+			headers: { ...getDefaultHeaders(), Accept: "application/x-yaml" },
+		});
+		if (!response.ok) {
+			throw new Error(`Failed to pull all YAML: ${response.statusText}`);
+		}
+		return response.text();
+	}
+
+	/** Pull a single standard by name in agent-view YAML format */
+	async pullYamlByName(name: string): Promise<string> {
+		if (isMockMode) {
+			await delay(200);
+			const bundle = this.mockBundles.find((b) => b.standard.name === name);
+			if (!bundle) {
+				throw new Error(`Standard not found: ${name}`);
+			}
+			return [
+				`name: ${bundle.standard.name}`,
+				`abbreviation: ${bundle.standard.abbreviation}`,
+				`description: ${bundle.standard.description || ""}`,
+				`version: ${bundle.standard.version || ""}`,
+				`status: ${bundle.standard.status}`,
+				`sourceUrl: ${bundle.standard.sourceUrl || ""}`,
+				"tags:",
+				...(bundle.standard.tags || []).map((t) => `  - ${t}`),
+				"entries:",
+				`  overview: ${JSON.stringify(bundle.entries?.overview || [])}`,
+				`  tables: ${JSON.stringify(bundle.entries?.tables || [])}`,
+				`  fields: ${JSON.stringify(bundle.entries?.fields || [])}`,
+				`  codes: ${JSON.stringify(bundle.entries?.codes || [])}`,
+				`  terms: ${JSON.stringify(bundle.entries?.terms || [])}`,
+				`  naming: ${JSON.stringify(bundle.entries?.naming || [])}`,
+				`  dependencies: ${JSON.stringify(bundle.entries?.dependencies || [])}`,
+			].join("\n");
+		}
+		const response = await fetch(`${ENDPOINT}/name/yaml/agent-view?name=${encodeURIComponent(name)}`, {
+			headers: { ...getDefaultHeaders(), Accept: "application/x-yaml" },
+		});
+		if (!response.ok) {
+			throw new Error(`Failed to pull YAML for ${name}: ${response.statusText}`);
+		}
+		return response.text();
+	}
+
+	/** Push (upsert) a standard in agent-view YAML format */
+	async pushYaml(yamlContent: string): Promise<void> {
+		if (isMockMode) {
+			await delay(300);
+			// Parse simple YAML and upsert to mock store
+			const lines = yamlContent.split("\n");
+			const data: Record<string, string> = {};
+			for (const line of lines) {
+				const match = line.match(/^(\w+):\s*(.*)$/);
+				if (match && !line.startsWith(" ")) {
+					data[match[1]] = match[2];
+				}
+			}
+			const name = data.name;
+			if (!name) {
+				throw new Error('YAML must contain "name" field');
+			}
+			const existing = this.mockBundles.find((b) => b.standard.name === name);
+			if (existing) {
+				// Update existing
+				existing.standard.abbreviation = data.abbreviation || existing.standard.abbreviation;
+				existing.standard.description = data.description || existing.standard.description;
+				existing.standard.version = data.version || existing.standard.version;
+				existing.standard.status = (data.status as StandardStatus) || existing.standard.status;
+				existing.standard.sourceUrl = data.sourceUrl || existing.standard.sourceUrl;
+			} else {
+				// Create new
+				const newBundle: StandardBundle = {
+					standard: {
+						id: `mock-${Date.now()}`,
+						name,
+						abbreviation: data.abbreviation || "",
+						description: data.description || "",
+						version: data.version || "",
+						status: (data.status as StandardStatus) || "draft",
+						sourceUrl: data.sourceUrl || "",
+						tags: [],
+					},
+					entries: {
+						overview: [],
+						tables: [],
+						fields: [],
+						codes: [],
+						terms: [],
+						naming: [],
+						dependencies: [],
+					},
+				};
+				this.mockBundles.push(newBundle);
+			}
+			return;
+		}
+		const response = await fetch(`${ENDPOINT}/yaml/agent-upsert`, {
+			method: "POST",
+			headers: { ...getDefaultHeaders(), "Content-Type": "application/x-yaml" },
+			body: yamlContent,
+		});
+		if (!response.ok) {
+			throw new Error(`Failed to push YAML: ${response.statusText}`);
+		}
 	}
 }
 

@@ -144,6 +144,22 @@ class StandardService(TupleService):
 			return None
 		return BUNDLE_SHAPER.deserialize(row)
 
+	def find_bundle_by_name(self, name: str) -> Optional[StandardBundle]:
+		"""Find a bundle by its standard name within the current tenant."""
+		if is_blank(name):
+			return None
+		tenant_id: TenantId = self.principalService.get_tenant_id()
+		criteria = [
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='name'), right=name)
+		]
+		if is_not_blank(tenant_id):
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		rows: List[EntityRow] = self.storage.find(self.get_entity_finder(criteria))
+		if not rows:
+			return None
+		return BUNDLE_SHAPER.deserialize(rows[0])
+
 	def create_bundle(self, bundle: StandardBundle) -> StandardBundle:
 		# assign id from snowflake
 		bundle.standard.id = str(self.snowflakeGenerator.next_id())
@@ -176,6 +192,17 @@ class StandardService(TupleService):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker
 		self.storage.delete(self.get_entity_deleter(criteria=criteria))
+
+	def replace_bundle(self, bundle: StandardBundle) -> StandardBundle:
+		"""Replace the entire bundle (standard + all entries) in storage."""
+		row = self._find_row(bundle.standard.id)
+		if row is None:
+			raise ValueError(f'Standard not found: {bundle.standard.id}')
+		# Serialize the full bundle and update all fields
+		serialized = BUNDLE_SHAPER.serialize(bundle)
+		row.update(serialized)
+		self.storage.update_one(self.get_entity_updater(row['standard_id'], row))
+		return bundle
 
 	# ---- Entries ----
 
