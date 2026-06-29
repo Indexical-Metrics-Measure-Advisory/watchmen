@@ -9,16 +9,28 @@
 export type OntologySensitivity = "public" | "internal" | "confidential" | "restricted";
 
 /** A physical table / topic mapped into a virtual object. */
+export interface JoinCondition {
+	sourceField: string;
+	targetField: string;
+}
+
 export interface PhysicalTableMapping {
 	topicId: string;
 	topicName: string;
 	/** Optional alias used inside this virtual object, e.g. "cust" for dm_party_customer */
 	alias?: string;
-	/** Role of this physical table within the virtual object */
-	role: "primary" | "secondary" | "lookup";
+	/** Business role of this physical table within the virtual object */
+	kind: PhysicalTableKind;
+	/** JOIN behaviour when joining to primary: undefined = derive from kind */
+	joinType?: PhysicalTableJoinType;
 	/** Factor names selected from this physical table that the virtual object exposes */
 	fields: string[];
+	/** Join from primary table to this table; sourceField is primary field, targetField is current table field. */
+	joinConditions?: JoinCondition[];
 }
+
+export type PhysicalTableKind = "primary" | "detail" | "profile" | "metric" | "tag" | "lookup";
+export type PhysicalTableJoinType = "inner" | "left" | "right" | "full";
 
 /** A link between two virtual objects, resolved via physical table JOIN rules. */
 export interface VirtualLink {
@@ -31,7 +43,7 @@ export interface VirtualLink {
 	/** JOIN type used to resolve the link */
 	joinType: "inner" | "left" | "right" | "full";
 	/** Join conditions: source physical field → target physical field */
-	joinConditions: { sourceField: string; targetField: string }[];
+	joinConditions: JoinCondition[];
 	/** Optional human-readable description of this link */
 	description?: string;
 }
@@ -56,6 +68,8 @@ export interface VirtualObject {
 	id: string;
 	name: string;
 	description: string;
+	/** Data source (DataProfile) this virtual object is bound to. */
+	datasourceId?: string;
 	/** Physical tables projected into this virtual object */
 	physicalTables: PhysicalTableMapping[];
 	/** Business attributes (field name → source physical table.field) */
@@ -97,13 +111,23 @@ export const sensitivityConfig: Record<OntologySensitivity, { label: string; cla
 	restricted: { label: "Restricted", className: "bg-red-100 text-red-700", icon: "🚨" },
 };
 
-export const physicalTableRoleConfig: Record<
-	PhysicalTableMapping["role"],
-	{ label: string; className: string; icon: string }
+export const physicalTableKindConfig: Record<
+	PhysicalTableKind,
+	{ label: string; className: string; icon: string; defaultJoinType: PhysicalTableJoinType }
 > = {
-	primary: { label: "Primary", className: "bg-indigo-100 text-indigo-700", icon: "⭐" },
-	secondary: { label: "Secondary", className: "bg-slate-100 text-slate-700", icon: "📎" },
-	lookup: { label: "Lookup", className: "bg-amber-100 text-amber-700", icon: "🔍" },
+	primary: { label: "Primary", className: "bg-indigo-100 text-indigo-700", icon: "⭐", defaultJoinType: "inner" },
+	detail: { label: "Detail", className: "bg-slate-100 text-slate-700", icon: "📎", defaultJoinType: "left" },
+	profile: { label: "Profile", className: "bg-blue-100 text-blue-700", icon: "◇", defaultJoinType: "left" },
+	metric: { label: "Metric", className: "bg-emerald-100 text-emerald-700", icon: "Σ", defaultJoinType: "left" },
+	tag: { label: "Tag", className: "bg-fuchsia-100 text-fuchsia-700", icon: "#", defaultJoinType: "left" },
+	lookup: { label: "Lookup", className: "bg-amber-100 text-amber-700", icon: "🔍", defaultJoinType: "inner" },
+};
+
+export const physicalTableJoinTypeConfig: Record<PhysicalTableJoinType, { label: string; className: string }> = {
+	inner: { label: "INNER", className: "bg-blue-100 text-blue-700" },
+	left: { label: "LEFT", className: "bg-emerald-100 text-emerald-700" },
+	right: { label: "RIGHT", className: "bg-amber-100 text-amber-700" },
+	full: { label: "FULL", className: "bg-purple-100 text-purple-700" },
 };
 
 export const joinTypeConfig: Record<VirtualLink["joinType"], { label: string; className: string }> = {

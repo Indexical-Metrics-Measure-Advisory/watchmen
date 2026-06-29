@@ -188,7 +188,7 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 
 const BusinessObjectNode: React.FC<{ node: GraphNode; onClick: () => void }> = ({ node, onClick }) => {
 	const vo = node.object;
-	const primaryTable = vo.physicalTables.find(t => t.role === 'primary') || vo.physicalTables[0];
+	const primaryTable = vo.physicalTables.find(t => t.kind === 'primary') || vo.physicalTables[0];
 	const fieldCount = vo.physicalTables.reduce((sum, table) => sum + table.fields.length, 0);
 
 	return (

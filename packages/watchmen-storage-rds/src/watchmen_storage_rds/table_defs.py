@@ -696,6 +696,7 @@ table_virtual_ontologies = Table(
 	create_str('technical_owner', 128),
 	create_json('tags'),
 	create_str('sensitivity', 32),
+	# datasourceId 已下放到 VirtualObject.datasourceId，写入 virtual_objects JSON。
 	create_json('virtual_objects'),
 	create_json('virtual_links'),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
@@ -707,7 +708,7 @@ table_business_glossary = Table(
 	create_str('abbreviation', 64, False),
 	create_str('name', 255, False),
 	create_str('description', 1024),
-	create_str('version', 64),
+	# create_str('version', 64),
 	create_str('status', 32),
 	create_str('source_url', 512),
 	create_json('tags'),

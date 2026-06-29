@@ -35,28 +35,30 @@ export const INITIAL_VIRTUAL_ONTOLOGIES: VirtualOntology[] = [
 					{
 						topicId: "t-dm-party-customer",
 						topicName: "dm_party_customer",
-						role: "primary",
+						kind: "primary",
 						alias: "cust",
 						fields: ["one_id", "customer_name", "customer_type"],
 					},
 					{
 						topicId: "t-dm-party-person",
 						topicName: "dm_party_person",
-						role: "secondary",
+						kind: "profile",
+						joinType: "left",
 						alias: "person",
 						fields: ["gender", "birth_date"],
 					},
 					{
 						topicId: "t-dm-party-contact",
 						topicName: "dm_party_contact",
-						role: "secondary",
+						kind: "profile",
+						joinType: "left",
 						alias: "contact",
 						fields: ["phone", "email"],
 					},
 					{
 						topicId: "t-dm-party-address",
 						topicName: "dm_party_address",
-						role: "lookup",
+						kind: "lookup",
 						alias: "addr",
 						fields: ["city", "district"],
 					},
@@ -88,7 +90,7 @@ export const INITIAL_VIRTUAL_ONTOLOGIES: VirtualOntology[] = [
 					{
 						topicId: "t-dm-pa-policy",
 						topicName: "dm_pa_policy_his",
-						role: "primary",
+						kind: "primary",
 						alias: "pol",
 						fields: ["policy_id", "policy_no", "status"],
 					},
@@ -172,6 +174,25 @@ export const resolvePhysicalTableLabel = (mapping: PhysicalTableMapping): string
 	return mapping.alias ? `${mapping.alias} (${mapping.topicName})` : mapping.topicName;
 };
 
+/** Migrate legacy `role` value to new `kind` value. */
+export const migrateRoleToKind = (role: string): PhysicalTableMapping["kind"] => {
+	switch ((role || "").toLowerCase()) {
+		case "primary":
+			return "primary";
+		case "lookup":
+			return "lookup";
+		case "metric":
+			return "metric";
+		case "tag":
+			return "tag";
+		case "dimension":
+			return "profile";
+		case "secondary":
+		default:
+			return "detail";
+	}
+};
+
 /** Build a quick lookup from topicId → Topic for field selection. */
 export const buildTopicMap = (topics: Topic[]): Map<string, Topic> => {
 	const map = new Map<string, Topic>();
@@ -238,6 +259,17 @@ const normalizeOntology = (
 	raw: Partial<VirtualOntology> & { ontologyId?: string; lastModifiedAt?: string },
 ): VirtualOntology => {
 	const id = raw.id ?? raw.ontologyId ?? "";
+	const rawObjects = raw.virtualObjects ?? [];
+	// 兼容旧数据：把 legacy `role` 迁移到 `kind`，并保证 `kind` 始终有合法值。
+	const virtualObjects: VirtualObject[] = rawObjects.map((vo) => {
+		const legacy = vo as unknown as { physicalTables?: Array<Record<string, unknown>> };
+		const physicalTables: PhysicalTableMapping[] = (vo.physicalTables ?? []).map((pt, idx) => {
+			const legacyPt = (legacy.physicalTables ?? [])[idx] ?? {};
+			const kind = pt.kind ?? (legacyPt.role ? migrateRoleToKind(String(legacyPt.role)) : "detail");
+			return { ...pt, kind };
+		});
+		return { ...vo, physicalTables };
+	});
 	return {
 		id,
 		ontologyId: raw.ontologyId ?? raw.id ?? id,
@@ -247,7 +279,7 @@ const normalizeOntology = (
 		technicalOwner: raw.technicalOwner ?? "",
 		tags: raw.tags ?? [],
 		sensitivity: (raw.sensitivity as VirtualOntology["sensitivity"]) ?? "internal",
-		virtualObjects: raw.virtualObjects ?? [],
+		virtualObjects,
 		virtualLinks: raw.virtualLinks ?? [],
 		createdAt: raw.createdAt ?? "",
 		updatedAt: raw.updatedAt ?? raw.lastModifiedAt ?? "",
@@ -284,6 +316,16 @@ export const ontologyService = {
 		const payload: VirtualOntology = {
 			...ontology,
 			ontologyId: ontology.ontologyId ?? ontology.id,
+			virtualObjects: (ontology.virtualObjects ?? []).map((vo) => ({
+				...vo,
+				physicalTables: (vo.physicalTables ?? []).map((pt) => ({
+					...pt,
+					joinConditions: (pt.joinConditions ?? []).map((jc) => ({
+						sourceField: jc.sourceField ?? "",
+						targetField: jc.targetField ?? "",
+					})),
+				})),
+			})),
 		};
 		const saved = await postJson<VirtualOntology & { ontologyId?: string }>("/save", payload);
 		return normalizeOntology(saved);
@@ -373,15 +415,24 @@ const dumpAgentYaml = (ontology: VirtualOntology): string => {
 	(ontology.virtualObjects ?? []).forEach((vo) => {
 		lines.push(`  - name: ${vo.name ?? ""}`);
 		lines.push(`    description: ${vo.description ?? ""}`);
+		if (vo.datasourceId) lines.push(`    datasourceId: ${vo.datasourceId}`);
 		if (vo.icon) lines.push(`    icon: "${vo.icon}"`);
 		if (vo.color) lines.push(`    color: ${vo.color}`);
 		lines.push("    physicalTables:");
 		(vo.physicalTables ?? []).forEach((pt) => {
 			lines.push(`      - topicName: ${pt.topicName}`);
-			lines.push(`        role: ${pt.role}`);
+			lines.push(`        kind: ${pt.kind}`);
+			if (pt.joinType) lines.push(`        joinType: ${pt.joinType}`);
 			if (pt.alias) lines.push(`        alias: ${pt.alias}`);
 			lines.push("        fields:");
 			(pt.fields ?? []).forEach((f) => lines.push(`          - ${f}`));
+			if ((pt.joinConditions ?? []).length > 0) {
+				lines.push("        joinConditions:");
+				(pt.joinConditions ?? []).forEach((jc) => {
+					lines.push(`          - sourceField: ${jc.sourceField ?? ""}`);
+					lines.push(`            targetField: ${jc.targetField ?? ""}`);
+				});
+			}
 		});
 		lines.push("    attributes:");
 		(vo.attributes ?? []).forEach((a) => {
@@ -428,14 +479,24 @@ const mergeAgentYamlIntoOntology = (raw: Record<string, unknown>, existing: Virt
 			id: existing_vo?.id ?? `vo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
 			name: vo_name,
 			description: String(vo_raw.description ?? ""),
+			datasourceId: vo_raw.datasourceId ? String(vo_raw.datasourceId) : existing_vo?.datasourceId,
 			icon: vo_raw.icon ? String(vo_raw.icon) : existing_vo?.icon,
 			color: vo_raw.color ? String(vo_raw.color) : existing_vo?.color,
 			physicalTables: ((vo_raw.physicalTables as Record<string, unknown>[]) ?? []).map((pt) => ({
 				topicId: "",
 				topicName: String(pt.topicName ?? ""),
 				alias: pt.alias ? String(pt.alias) : undefined,
-				role: String(pt.role ?? "primary") as PhysicalTableMapping["role"],
+				kind: (pt.kind
+					? String(pt.kind)
+					: pt.role
+						? migrateRoleToKind(String(pt.role))
+						: "detail") as PhysicalTableMapping["kind"],
+				joinType: pt.joinType ? (String(pt.joinType) as PhysicalTableMapping["joinType"]) : undefined,
 				fields: ((pt.fields as string[]) ?? []).map((f) => String(f)),
+				joinConditions: ((pt.joinConditions as Record<string, unknown>[]) ?? []).map((jc) => ({
+					sourceField: String(jc.sourceField ?? ""),
+					targetField: String(jc.targetField ?? ""),
+				})),
 			})),
 			attributes: ((vo_raw.attributes as Record<string, unknown>[]) ?? []).map((a) => ({
 				name: String(a.name ?? ""),

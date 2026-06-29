@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
 	Boxes, Link2, Table2, Sigma, ArrowRight, Pencil,
 	Database, ChevronDown, ChevronRight
@@ -15,11 +15,13 @@ import {
 	VirtualLink,
 	DerivedAttribute,
 	sensitivityConfig,
-	physicalTableRoleConfig,
+	physicalTableKindConfig,
+	physicalTableJoinTypeConfig,
 	joinTypeConfig,
 	aggregateConfig,
 } from '@/model/ontology';
 import { resolvePhysicalTableLabel } from '@/services/ontologyService';
+import { getAllDataSources, DataSource } from '@/services/dataSourceService';
 
 interface Props {
 	ontology: VirtualOntology | null;
@@ -30,6 +32,19 @@ interface Props {
 
 export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, onOpenChange, onEdit }) => {
 	const [expandedObjects, setExpandedObjects] = useState<Set<string>>(new Set());
+	const [dataSources, setDataSources] = useState<DataSource[]>([]);
+
+	useEffect(() => {
+		if (open) {
+			getAllDataSources().then(setDataSources).catch(() => setDataSources([]));
+		}
+	}, [open]);
+
+	const datasourceName = (id?: string) => {
+		if (!id) return null;
+		const ds = dataSources.find(d => d.dataSourceId === id);
+		return ds?.name ?? id;
+	};
 
 	if (!ontology) return null;
 
@@ -122,6 +137,12 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 												{expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
 												<span className="text-lg">{vo.icon || '📦'}</span>
 												<CardTitle className="text-base flex-1">{vo.name}</CardTitle>
+												{datasourceName(vo.datasourceId) && (
+													<Badge variant="secondary" className="text-[10px]" title={`Data source: ${datasourceName(vo.datasourceId)}`}>
+														<Database className="w-3 h-3 mr-1" />
+														{datasourceName(vo.datasourceId)}
+													</Badge>
+												)}
 												<Badge variant="outline" className="text-[10px]">
 													{vo.physicalTables.length} tables
 												</Badge>
@@ -144,14 +165,20 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 												<div className="space-y-2">
 													<div className="text-xs font-semibold uppercase text-muted-foreground">Physical Tables</div>
 													{vo.physicalTables.map((pt, idx) => {
-														const roleCfg = physicalTableRoleConfig[pt.role];
-														return (
-															<div key={idx} className="flex items-center gap-2 p-2 rounded-md bg-muted/20 text-sm">
-																<Database className="w-3.5 h-3.5 text-muted-foreground" />
-																<span className="font-medium">{resolvePhysicalTableLabel(pt)}</span>
-																<Badge variant="outline" className={cn('text-[10px]', roleCfg.className)}>
-																	{roleCfg.icon} {roleCfg.label}
+													const kindCfg = physicalTableKindConfig[pt.kind] ?? physicalTableKindConfig.detail;
+													const joinCfg = pt.kind === 'primary' ? null : physicalTableJoinTypeConfig[pt.joinType ?? kindCfg.defaultJoinType];
+													return (
+														<div key={idx} className="flex items-center gap-2 p-2 rounded-md bg-muted/20 text-sm">
+															<Database className="w-3.5 h-3.5 text-muted-foreground" />
+															<span className="font-medium">{resolvePhysicalTableLabel(pt)}</span>
+															<Badge variant="outline" className={cn('text-[10px]', kindCfg.className)}>
+																{kindCfg.icon} {kindCfg.label}
+															</Badge>
+															{joinCfg && (
+																<Badge variant="outline" className={cn('text-[10px]', joinCfg.className)}>
+																	{joinCfg.label}
 																</Badge>
+															)}
 																{pt.fields.length > 0 && (
 																	<div className="flex flex-wrap gap-1 ml-2">
 																		{pt.fields.slice(0, 5).map(f => (
