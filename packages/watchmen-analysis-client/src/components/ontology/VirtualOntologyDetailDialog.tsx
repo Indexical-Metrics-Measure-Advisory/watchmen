@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { cn } from '@/lib/utils';
 import {
 	VirtualOntology,
@@ -19,6 +19,7 @@ import {
 	physicalTableJoinTypeConfig,
 	joinTypeConfig,
 	aggregateConfig,
+	filterOperatorConfig,
 } from '@/model/ontology';
 import { resolvePhysicalTableLabel } from '@/services/ontologyService';
 import { getAllDataSources, DataSource } from '@/services/dataSourceService';
@@ -61,8 +62,8 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-4xl max-h-[85vh]">
-				<DialogHeader>
+			<DialogContent className="max-w-4xl max-h-[90vh] !flex !flex-col overflow-hidden">
+				<DialogHeader className="shrink-0">
 					<div className="flex items-start justify-between gap-3">
 						<div>
 							<DialogTitle className="text-xl">{ontology.name}</DialogTitle>
@@ -74,7 +75,7 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 					</div>
 				</DialogHeader>
 
-				<ScrollArea className="max-h-[70vh] pr-4">
+				<div className="flex-1 min-h-0 overflow-y-auto pr-2">
 					<div className="space-y-5">
 						{/* Meta */}
 						<div className="grid grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg border">
@@ -189,6 +190,27 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 																		)}
 																	</div>
 																)}
+																{(pt.filters ?? []).length > 0 && (
+																	<div className="flex flex-wrap gap-1 ml-2 items-center">
+																		<span className="text-[10px] text-muted-foreground uppercase">filter:</span>
+																		{(pt.filters ?? []).map((flt, fIdx) => {
+																			const opCfg = filterOperatorConfig[flt.operator] ?? filterOperatorConfig.eq;
+																			const valStr = Array.isArray(flt.value)
+																				? `[${flt.value.join(', ')}]`
+																				: (flt.value === undefined || flt.value === null || flt.value === '')
+																					? ''
+																					: String(flt.value);
+																			const text = opCfg.needsValue === 'none'
+																				? `${flt.field} ${opCfg.label}`
+																				: `${flt.field} ${opCfg.label} ${valStr}`;
+																			return (
+																				<Badge key={fIdx} variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200">
+																					{text}
+																				</Badge>
+																			);
+																		})}
+																	</div>
+																)}
 															</div>
 														);
 													})}
@@ -266,9 +288,9 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 							</div>
 						)}
 					</div>
-				</ScrollArea>
+				</div>
 
-				<div className="flex justify-end gap-2 pt-3 border-t">
+				<div className="flex justify-end gap-2 pt-3 border-t shrink-0">
 					<Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
 					<Button onClick={() => onEdit(ontology)} className="gap-2">
 						<Pencil className="w-4 h-4" />

@@ -8,12 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { cn } from '@/lib/utils';
 import { topicService, Topic } from '@/services/topicService';
 import { getAllDataSources, DataSource } from '@/services/dataSourceService';
 import {
 	VirtualOntology, VirtualObject, VirtualLink, DerivedAttribute, PhysicalTableMapping,
+	FilterCondition, FilterOperator, filterOperatorConfig, filterValueAsString, filterValueAsList,
 	physicalTableKindConfig, physicalTableJoinTypeConfig, joinTypeConfig, aggregateConfig,
 	sensitivityConfig, OntologySensitivity,
 } from '@/model/ontology';
@@ -187,6 +188,57 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 		});
 	};
 
+	// ---- Physical table filters ----
+	const addPhysicalTableFilter = (voId: string, tableIdx: number) => {
+		const vo = draft.virtualObjects.find(v => v.id === voId);
+		const table = vo?.physicalTables[tableIdx];
+		if (!table) return;
+		const next: FilterCondition = { field: '', operator: 'eq', value: '' };
+		updatePhysicalTable(voId, tableIdx, {
+			filters: [...(table.filters ?? []), next],
+		});
+	};
+
+	const updatePhysicalTableFilter = (
+		voId: string,
+		tableIdx: number,
+		filterIdx: number,
+		patch: Partial<FilterCondition>,
+	) => {
+		const vo = draft.virtualObjects.find(v => v.id === voId);
+		const table = vo?.physicalTables[tableIdx];
+		if (!table) return;
+		const filters = [...(table.filters ?? [])];
+		const current = filters[filterIdx];
+		if (!current) return;
+		const merged: FilterCondition = { ...current, ...patch };
+
+		// When operator changes, coerce value into the shape required by the new operator.
+		if (patch.operator) {
+			const needsValue = filterOperatorConfig[merged.operator].needsValue;
+			if (needsValue === 'list') {
+				const existing = filterValueAsList(current.value);
+				merged.value = existing;
+			} else if (needsValue === 'single') {
+				merged.value = filterValueAsString(current.value);
+			} else {
+				merged.value = '';
+			}
+		}
+
+		filters[filterIdx] = merged;
+		updatePhysicalTable(voId, tableIdx, { filters });
+	};
+
+	const removePhysicalTableFilter = (voId: string, tableIdx: number, filterIdx: number) => {
+		const vo = draft.virtualObjects.find(v => v.id === voId);
+		const table = vo?.physicalTables[tableIdx];
+		if (!table) return;
+		updatePhysicalTable(voId, tableIdx, {
+			filters: (table.filters ?? []).filter((_, i) => i !== filterIdx),
+		});
+	};
+
 	// ---- Attribute operations ----
 	const addAttribute = (voId: string) => {
 		setDraft(prev => ({
@@ -275,19 +327,19 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-5xl max-h-[90vh]">
-				<DialogHeader>
+			<DialogContent className="max-w-5xl max-h-[90vh] !flex !flex-col overflow-hidden">
+				<DialogHeader className="shrink-0">
 					<DialogTitle>{mode === 'create' ? 'Create Virtual Ontology' : `Edit: ${draft.name}`}</DialogTitle>
 				</DialogHeader>
 
 				{/* Tabs */}
-				<div className="flex gap-1 border-b pb-2">
+				<div className="flex gap-1 border-b pb-2 shrink-0">
 					<TabButton active={activeTab === 'objects'} onClick={() => setActiveTab('objects')} icon={<Boxes className="w-4 h-4" />} label="Virtual Objects" />
 					<TabButton active={activeTab === 'links'} onClick={() => setActiveTab('links')} icon={<Link2 className="w-4 h-4" />} label="Virtual Links" />
 					<TabButton active={activeTab === 'meta'} onClick={() => setActiveTab('meta')} icon={<Database className="w-4 h-4" />} label="Meta" />
 				</div>
 
-				<ScrollArea className="max-h-[70vh] pr-4">
+				<div className="flex-1 min-h-0 overflow-y-auto pr-2">
 					{activeTab === 'meta' && (
 						<div className="space-y-4 p-1">
 							<Field label="Ontology Name">
@@ -513,6 +565,65 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 																)}
 															</div>
 														)}
+														{/* Filters: row-level key-in constants, e.g. policy_status_code eq "issued" */}
+														<div className="ml-5 space-y-2 border-l pl-3">
+															<div className="flex items-center justify-between">
+																<span className="text-[10px] font-semibold uppercase text-muted-foreground">Filters (key-in constants)</span>
+																<Button variant="outline" size="sm" className="h-6 text-[10px] px-2" onClick={() => addPhysicalTableFilter(vo.id, ptIdx)}>
+																	<Plus className="w-2.5 h-2.5 mr-1" /> Filter
+																</Button>
+															</div>
+															{(pt.filters ?? []).map((flt, fltIdx) => {
+																const opCfg = filterOperatorConfig[flt.operator] ?? filterOperatorConfig.eq;
+																const needsValue = opCfg.needsValue;
+																const tableFields = pt.fields.length > 0 ? pt.fields : (topicMap.get(pt.topicId)?.factors?.map(f => f.name) ?? []);
+																return (
+																	<div key={fltIdx} className="flex items-center gap-2 flex-wrap">
+																		<Select value={flt.field} onValueChange={v => updatePhysicalTableFilter(vo.id, ptIdx, fltIdx, { field: v })}>
+																			<SelectTrigger className="flex-1 min-w-[120px] h-7 text-xs"><SelectValue placeholder="field" /></SelectTrigger>
+																			<SelectContent>
+																				{tableFields.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+																			</SelectContent>
+																		</Select>
+																		<Select value={flt.operator} onValueChange={v => updatePhysicalTableFilter(vo.id, ptIdx, fltIdx, { operator: v as FilterOperator })}>
+																			<SelectTrigger className="w-28 h-7 text-xs"><SelectValue /></SelectTrigger>
+																			<SelectContent>
+																				{Object.entries(filterOperatorConfig).map(([key, cfg]) => (
+																					<SelectItem key={key} value={key}>{cfg.label}</SelectItem>
+																				))}
+																			</SelectContent>
+																		</Select>
+																		{needsValue === 'single' && (
+																			<Input
+																				value={filterValueAsString(flt.value)}
+																				onChange={e => updatePhysicalTableFilter(vo.id, ptIdx, fltIdx, { value: e.target.value })}
+																				placeholder="constant"
+																				className="flex-1 min-w-[120px] h-7 text-xs"
+																			/>
+																		)}
+																		{needsValue === 'list' && (
+																			<Input
+																				value={filterValueAsList(flt.value).join(',')}
+																				onChange={e => updatePhysicalTableFilter(vo.id, ptIdx, fltIdx, {
+																					value: e.target.value.split(',').map(s => s.trim()).filter(Boolean),
+																				})}
+																				placeholder="v1,v2,v3"
+																				className="flex-1 min-w-[160px] h-7 text-xs"
+																			/>
+																		)}
+																		{needsValue === 'none' && (
+																			<span className="text-[10px] text-muted-foreground italic">no value</span>
+																		)}
+																		<Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removePhysicalTableFilter(vo.id, ptIdx, fltIdx)}>
+																			<Trash2 className="w-3 h-3 text-red-500" />
+																		</Button>
+																	</div>
+																);
+															})}
+															{(pt.filters ?? []).length === 0 && (
+																<div className="text-[10px] text-muted-foreground">Optional: restrict rows, e.g. policy_status_code in "issued,active".</div>
+															)}
+														</div>
 													</div>
 												);
 											})}
@@ -781,9 +892,9 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 							</Button>
 						</div>
 					)}
-				</ScrollArea>
+				</div>
 
-				<div className="flex justify-end gap-2 pt-3 border-t">
+				<div className="flex justify-end gap-2 pt-3 border-t shrink-0">
 					<Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
 					<Button onClick={handleSave} disabled={!draft.name.trim()}>Save</Button>
 				</div>

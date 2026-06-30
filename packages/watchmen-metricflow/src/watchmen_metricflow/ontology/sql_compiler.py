@@ -5,7 +5,9 @@ from typing import Any, Dict, List, Optional, Tuple
 from sqlalchemy import Column, DateTime, MetaData, Numeric, String, Table, and_, func, select
 from sqlalchemy.sql import Select
 
-from watchmen_model.admin import DerivedAttribute, PhysicalTableMapping, VirtualObject, VirtualObjectAttribute, VirtualOntology
+from watchmen_model.admin import (
+	DerivedAttribute, FilterCondition, PhysicalTableMapping, VirtualObject, VirtualObjectAttribute, VirtualOntology,
+)
 
 from .schema import OntologyQueryRequest
 
@@ -81,8 +83,15 @@ class OntologySqlCompiler:
 					all_group_keys.append(col)
 			statement = statement.select_from(from_clause).group_by(*all_group_keys)
 		where = self._compile_filters(virtual_object, request.filters, tables_by_alias)
+		# 应用每张物理表上声明的 key-in 常量 filters（含 primary 与 join 表）。
+		table_filter_clauses = self._compile_table_filters(virtual_object, tables_by_alias)
+		all_where_clauses: List[Any] = []
+		if table_filter_clauses:
+			all_where_clauses.extend(table_filter_clauses)
 		if where is not None:
-			statement = statement.where(where)
+			all_where_clauses.append(where)
+		if all_where_clauses:
+			statement = statement.where(and_(*all_where_clauses))
 		statement = statement.limit(request.limit).offset(request.offset)
 		return CompiledOntologyQuery(statement=statement, labels=labels, virtual_object=virtual_object)
 
@@ -231,6 +240,94 @@ class OntologySqlCompiler:
 				raise OntologySqlCompileError(f'Filter field [{field}] is not defined in virtual object [{virtual_object.name}].')
 			criteria.append(self._resolve_attribute_column(attr, tables_by_alias) == value)
 		return and_(*criteria) if criteria else None
+
+	def _compile_table_filters(
+			self, virtual_object: VirtualObject, tables_by_alias: Dict[str, Table]
+	) -> List[Any]:
+		"""编译每张物理表上声明的 key-in 常量 filters，返回 SQLAlchemy 条件列表。
+
+		filters 在物理表级别声明（PhysicalTableMapping.filters），用于把行级常量约束
+		下推到查询，例如 dm_policy_role.policy_role_type_code eq "policy_holder"。
+		语义上这些条件与运行时 filters 一样进入 WHERE，作用列是物理表自身字段。
+		"""
+		clauses: List[Any] = []
+		for mapping in virtual_object.physicalTables or []:
+			if not mapping.filters:
+				continue
+			table = self._find_table_for_mapping(mapping, tables_by_alias)
+			if table is None:
+				raise OntologySqlCompileError(
+					f'Cannot resolve table for filters on [{mapping.topicName}] alias [{mapping.alias}].'
+				)
+			for flt in mapping.filters:
+				clause = self._compile_single_table_filter(flt, table, mapping)
+				if clause is not None:
+					clauses.append(clause)
+		return clauses
+
+	def _find_table_for_mapping(
+			self, mapping: PhysicalTableMapping, tables_by_alias: Dict[str, Table]
+	) -> Optional[Table]:
+		# 与 _build_table_lookup 的 key 保持一致：alias / topicName / physical_name
+		physical_name = self._physical_table_name(mapping.topicName or '')
+		for key in (mapping.alias, mapping.topicName, physical_name):
+			if key and key in tables_by_alias:
+				return tables_by_alias[key]
+		return None
+
+	def _compile_single_filter_value(self, flt: FilterCondition):
+		"""把 FilterCondition.value 归一化成 Python 标量或列表，供 SQLAlchemy 使用。"""
+		value = flt.value
+		if value is None:
+			return None
+		if isinstance(value, list):
+			return [v for v in value]
+		return value
+
+	def _compile_single_table_filter(
+			self, flt: FilterCondition, table: Table, mapping: PhysicalTableMapping
+	) -> Optional[Any]:
+		"""把单条 FilterCondition 编译为 SQLAlchemy 条件。"""
+		if not flt.field:
+			raise OntologySqlCompileError(
+				f'Filter on table [{mapping.topicName}] alias [{mapping.alias}] is missing [field].')
+		column = table.c.get(flt.field)
+		if column is None:
+			available_fields = ', '.join(sorted(table.c.keys())) or '<none>'
+			raise OntologySqlCompileError(
+				f'Filter field [{flt.field}] not found on table [{mapping.topicName}] alias [{mapping.alias}]. '
+				f'Available fields: [{available_fields}].')
+		operator = (flt.operator or 'eq').lower()
+		value = self._compile_single_filter_value(flt)
+
+		if operator == 'eq':
+			return column == value
+		if operator == 'ne':
+			return column != value
+		if operator == 'in':
+			if not isinstance(value, list) or len(value) == 0:
+				raise OntologySqlCompileError(
+					f'Filter [in] on [{mapping.topicName}.{flt.field}] requires a non-empty list value.')
+			return column.in_(value)
+		if operator == 'not_in':
+			if not isinstance(value, list) or len(value) == 0:
+				raise OntologySqlCompileError(
+					f'Filter [not_in] on [{mapping.topicName}.{flt.field}] requires a non-empty list value.')
+			return ~column.in_(value)
+		if operator == 'gt':
+			return column > value
+		if operator == 'gte':
+			return column >= value
+		if operator == 'lt':
+			return column < value
+		if operator == 'lte':
+			return column <= value
+		if operator == 'is_null':
+			return column.is_(None)
+		if operator == 'is_not_null':
+			return column.isnot(None)
+		raise OntologySqlCompileError(
+			f'Unsupported filter operator [{flt.operator}] on [{mapping.topicName}.{flt.field}].')
 
 	def _compile_derived_attributes(
 			self, virtual_object: VirtualObject, requested: List[str], ontology: VirtualOntology, primary_table: Table

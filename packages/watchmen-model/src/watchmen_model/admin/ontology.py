@@ -18,6 +18,15 @@ class JoinCondition(ExtendedBaseModel):
 	targetField: Optional[str] = None
 
 
+class FilterCondition(ExtendedBaseModel):
+	# 物理字段名，例如 policy_status_code
+	field: Optional[str] = None
+	# 比较操作符：eq / ne / in / not_in / gt / gte / lt / lte / is_null / is_not_null
+	operator: Optional[str] = 'eq'
+	# 常量值；单值操作符为标量，列表操作符为列表，空操作符(is_null/is_not_null)忽略
+	value: Optional[Union[str, int, float, bool, List[Any]]] = None
+
+
 class PhysicalTableMapping(ExtendedBaseModel):
 	topicId: Optional[TopicId] = None
 	topicName: Optional[str] = None
@@ -28,10 +37,14 @@ class PhysicalTableMapping(ExtendedBaseModel):
 	joinType: Optional[str] = None
 	fields: Optional[List[str]] = []
 	joinConditions: Optional[List[JoinCondition]] = []
+	# 行级过滤（key-in 常量），例如 policy_status_code eq "issued"
+	filters: Optional[List[FilterCondition]] = []
 
 	def __setattr__(self, name, value):
 		if name == 'joinConditions':
 			super().__setattr__(name, PhysicalTableMapping._construct_join_conditions(value))
+		elif name == 'filters':
+			super().__setattr__(name, PhysicalTableMapping._construct_filters(value))
 		else:
 			super().__setattr__(name, value)
 
@@ -41,6 +54,14 @@ class PhysicalTableMapping(ExtendedBaseModel):
 			return []
 		return ArrayHelper(values).map(
 			lambda x: x if isinstance(x, JoinCondition) else JoinCondition(**x)
+		).to_list()
+
+	@staticmethod
+	def _construct_filters(values):
+		if values is None:
+			return []
+		return ArrayHelper(values).map(
+			lambda x: x if isinstance(x, FilterCondition) else FilterCondition(**x)
 		).to_list()
 
 

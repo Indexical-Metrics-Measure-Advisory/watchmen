@@ -14,6 +14,18 @@ export interface JoinCondition {
 	targetField: string;
 }
 
+/** Filter condition applied to a physical table to restrict rows. Supports key-in constants. */
+export interface FilterCondition {
+	/** Physical field name on this table, e.g. "policy_status_code" */
+	field: string;
+	/** Comparison operator */
+	operator: FilterOperator;
+	/** Constant value(s); type depends on operator (single value vs. list) */
+	value: string | number | boolean | (string | number)[];
+}
+
+export type FilterOperator = "eq" | "ne" | "in" | "not_in" | "gt" | "gte" | "lt" | "lte" | "is_null" | "is_not_null";
+
 export interface PhysicalTableMapping {
 	topicId: string;
 	topicName: string;
@@ -27,6 +39,8 @@ export interface PhysicalTableMapping {
 	fields: string[];
 	/** Join from primary table to this table; sourceField is primary field, targetField is current table field. */
 	joinConditions?: JoinCondition[];
+	/** Row-level filters applied to this physical table (key-in constants supported), e.g. policy_status_code eq "issued". */
+	filters?: FilterCondition[];
 }
 
 export type PhysicalTableKind = "primary" | "detail" | "profile" | "metric" | "tag" | "lookup";
@@ -144,6 +158,40 @@ export const aggregateConfig: Record<DerivedAttribute["aggregate"], { label: str
 	min: { label: "MIN", icon: "↓" },
 	max: { label: "MAX", icon: "↑" },
 	none: { label: "VALUE", icon: "•" },
+};
+
+/** Operators that compare against a single value. */
+export const FILTER_SINGLE_VALUE_OPERATORS: FilterOperator[] = ["eq", "ne", "gt", "gte", "lt", "lte"];
+/** Operators that compare against a list of values. */
+export const FILTER_LIST_VALUE_OPERATORS: FilterOperator[] = ["in", "not_in"];
+/** Operators that do not take a value. */
+export const FILTER_NO_VALUE_OPERATORS: FilterOperator[] = ["is_null", "is_not_null"];
+
+export const filterOperatorConfig: Record<FilterOperator, { label: string; needsValue: "none" | "single" | "list" }> = {
+	eq: { label: "= (eq)", needsValue: "single" },
+	ne: { label: "≠ (ne)", needsValue: "single" },
+	in: { label: "in", needsValue: "list" },
+	not_in: { label: "not in", needsValue: "list" },
+	gt: { label: "> (gt)", needsValue: "single" },
+	gte: { label: "≥ (gte)", needsValue: "single" },
+	lt: { label: "< (lt)", needsValue: "single" },
+	lte: { label: "≤ (lte)", needsValue: "single" },
+	is_null: { label: "is null", needsValue: "none" },
+	is_not_null: { label: "is not null", needsValue: "none" },
+};
+
+/** Normalize a raw filter value into a list of strings for multi-value editors. */
+export const filterValueAsList = (v: FilterCondition["value"]): string[] => {
+	if (Array.isArray(v)) return v.map((x) => String(x));
+	if (v === undefined || v === null || v === "") return [];
+	return [String(v)];
+};
+
+/** Normalize a raw filter value into a single string for single-value editors. */
+export const filterValueAsString = (v: FilterCondition["value"]): string => {
+	if (Array.isArray(v)) return v[0] !== undefined ? String(v[0]) : "";
+	if (v === undefined || v === null) return "";
+	return String(v);
 };
 
 export const virtualObjectColors = [
