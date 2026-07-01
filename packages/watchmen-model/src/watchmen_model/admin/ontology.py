@@ -2,7 +2,7 @@ from enum import Enum
 from typing import List, Optional, Union, Dict, Any
 
 from watchmen_utilities import ArrayHelper, ExtendedBaseModel
-from watchmen_model.common import TenantBasedTuple, OptimisticLock, TopicId
+from watchmen_model.common import TenantBasedTuple, OptimisticLock, TopicId, DataSourceId
 from ..common.tuple_ids import OntologyId
 
 
@@ -13,12 +13,56 @@ class OntologySensitivity(str, Enum):
 	RESTRICTED = 'restricted'
 
 
+class JoinCondition(ExtendedBaseModel):
+	sourceField: Optional[str] = None
+	targetField: Optional[str] = None
+
+
+class FilterCondition(ExtendedBaseModel):
+	# 物理字段名，例如 policy_status_code
+	field: Optional[str] = None
+	# 比较操作符：eq / ne / in / not_in / gt / gte / lt / lte / is_null / is_not_null
+	operator: Optional[str] = 'eq'
+	# 常量值；单值操作符为标量，列表操作符为列表，空操作符(is_null/is_not_null)忽略
+	value: Optional[Union[str, int, float, bool, List[Any]]] = None
+
+
 class PhysicalTableMapping(ExtendedBaseModel):
 	topicId: Optional[TopicId] = None
 	topicName: Optional[str] = None
 	alias: Optional[str] = None
-	role: Optional[str] = 'primary'
+	# 业务职能：primary / detail / profile / metric / tag / lookup
+	kind: Optional[str] = 'detail'
+	# JOIN 行为：inner / left / right / full；空则按 kind 推导默认值
+	joinType: Optional[str] = None
 	fields: Optional[List[str]] = []
+	joinConditions: Optional[List[JoinCondition]] = []
+	# 行级过滤（key-in 常量），例如 policy_status_code eq "issued"
+	filters: Optional[List[FilterCondition]] = []
+
+	def __setattr__(self, name, value):
+		if name == 'joinConditions':
+			super().__setattr__(name, PhysicalTableMapping._construct_join_conditions(value))
+		elif name == 'filters':
+			super().__setattr__(name, PhysicalTableMapping._construct_filters(value))
+		else:
+			super().__setattr__(name, value)
+
+	@staticmethod
+	def _construct_join_conditions(values):
+		if values is None:
+			return []
+		return ArrayHelper(values).map(
+			lambda x: x if isinstance(x, JoinCondition) else JoinCondition(**x)
+		).to_list()
+
+	@staticmethod
+	def _construct_filters(values):
+		if values is None:
+			return []
+		return ArrayHelper(values).map(
+			lambda x: x if isinstance(x, FilterCondition) else FilterCondition(**x)
+		).to_list()
 
 
 class VirtualObjectAttribute(ExtendedBaseModel):
@@ -41,6 +85,9 @@ class VirtualObject(ExtendedBaseModel):
 	id: Optional[str] = None
 	name: Optional[str] = None
 	description: Optional[str] = None
+	# 指向业务数据源（watchmen_model.system.DataSource）。
+	# 为空时查询将返回空数据（仅 compile-preview 可用）。
+	datasourceId: Optional[DataSourceId] = None
 	physicalTables: Optional[List[PhysicalTableMapping]] = []
 	attributes: Optional[List[VirtualObjectAttribute]] = []
 	derivedAttributes: Optional[List[DerivedAttribute]] = []
@@ -82,11 +129,6 @@ class VirtualObject(ExtendedBaseModel):
 		).to_list()
 
 
-class JoinCondition(ExtendedBaseModel):
-	sourceField: Optional[str] = None
-	targetField: Optional[str] = None
-
-
 class VirtualLink(ExtendedBaseModel):
 	id: Optional[str] = None
 	name: Optional[str] = None
@@ -119,6 +161,7 @@ class VirtualOntology(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	technicalOwner: Optional[str] = None
 	tags: Optional[List[str]] = []
 	sensitivity: Optional[OntologySensitivity] = OntologySensitivity.INTERNAL
+	# dataSourceId 已下放到 VirtualObject.datasourceId。
 	virtualObjects: Optional[List[VirtualObject]] = []
 	virtualLinks: Optional[List[VirtualLink]] = []
 

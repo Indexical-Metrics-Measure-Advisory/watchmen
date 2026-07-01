@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { VirtualOntology, VirtualObject, joinTypeConfig } from '@/model/ontology';
 import { cn } from '@/lib/utils';
 
@@ -29,16 +29,83 @@ interface GraphLink {
 	conditionCount: number;
 }
 
+interface DragState {
+	nodeId: string | null;
+	ontologyId: string | null;
+	offsetX: number;
+	offsetY: number;
+}
+
+interface ViewBox {
+	x: number;
+	y: number;
+	w: number;
+	h: number;
+}
+
 const NODE_WIDTH = 230;
 const NODE_HEIGHT = 138;
 const COLUMN_GAP = 260;
 const ROW_GAP = 96;
 const ONTOLOGY_GAP = 120;
+const STORAGE_KEY = 'ontology-graph-positions';
+const FULLSCREEN_PADDING = 80;
+const MIN_ZOOM_SCALE = 0.2;
+const MAX_ZOOM_SCALE = 4;
+const clampView = (vb: ViewBox, cw: number, ch: number, pad: number): ViewBox => {
+	const minW = cw / MAX_ZOOM_SCALE;
+	const minH = ch / MAX_ZOOM_SCALE;
+	const w = Math.max(minW, Math.min(cw / MIN_ZOOM_SCALE, vb.w));
+	const h = Math.max(minH, Math.min(ch / MIN_ZOOM_SCALE, vb.h));
+	const minX = pad - w * 0.5;
+	const maxX = cw + pad - w * 0.5;
+	const minY = pad - h * 0.5;
+	const maxY = ch + pad - h * 0.5;
+	return {
+		x: Math.max(minX, Math.min(maxX, vb.x)),
+		y: Math.max(minY, Math.min(maxY, vb.y)),
+		w,
+		h,
+	};
+};
 
 export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOntology }) => {
-	const { nodes, links, groups, width, height } = useMemo(() => {
-		const nodes: GraphNode[] = [];
-		const links: GraphLink[] = [];
+	const svgRef = useRef<SVGSVGElement>(null);
+	const containerRef = useRef<HTMLDivElement>(null);
+	const dragRef = useRef<DragState | null>(null);
+	const hasMovedRef = useRef(false);
+	const panRef = useRef<{ startX: number; startY: number; vbX: number; vbY: number } | null>(null);
+	const [positionOverrides, setPositionOverrides] = useState<Record<string, { x: number; y: number }>>({});
+	const [fullscreenOntologyId, setFullscreenOntologyId] = useState<string | null>(null);
+	const [viewBox, setViewBox] = useState<ViewBox | null>(null);
+	const viewBoxRef = useRef(viewBox);
+	viewBoxRef.current = viewBox;
+	const positionOverridesRef = useRef(positionOverrides);
+	positionOverridesRef.current = positionOverrides;
+
+	const isFullscreen = fullscreenOntologyId !== null;
+
+	// Load saved positions from localStorage
+	useEffect(() => {
+		try {
+			const saved = localStorage.getItem(STORAGE_KEY);
+			if (saved) setPositionOverrides(JSON.parse(saved));
+		} catch { /* ignore corrupt data */ }
+	}, []);
+
+	// Escape key to exit fullscreen
+	useEffect(() => {
+		if (!isFullscreen) return;
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') setFullscreenOntologyId(null);
+		};
+		document.addEventListener('keydown', handleKeyDown);
+		return () => document.removeEventListener('keydown', handleKeyDown);
+	}, [isFullscreen]);
+
+	// Compute base layout (topology-driven)
+	const { baseNodes, groups, yOffset } = useMemo(() => {
+		const baseNodes: GraphNode[] = [];
 		const groups: { id: string; name: string; x: number; y: number; width: number; height: number; ontology: VirtualOntology }[] = [];
 
 		let yOffset = 36;
@@ -60,7 +127,7 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 				const startY = groupY + 76 + Math.max(0, (groupHeight - 116 - columnHeight) / 2);
 
 				list.forEach((vo, rowIndex) => {
-					nodes.push({
+					baseNodes.push({
 						id: vo.id,
 						object: vo,
 						ontology,
@@ -75,10 +142,24 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 			yOffset += groupHeight + ONTOLOGY_GAP;
 		});
 
+		return { baseNodes, groups, yOffset };
+	}, [ontologies]);
+
+	// Apply user overrides to get display positions
+	const displayNodes = useMemo(() =>
+		baseNodes.map(n => {
+			const key = `${n.ontology.id}:${n.id}`;
+			const override = positionOverrides[key];
+			return override ? { ...n, x: override.x, y: override.y } : n;
+		}), [baseNodes, positionOverrides]);
+
+	// Recompute links from overridden positions
+	const displayLinks = useMemo(() => {
+		const links: GraphLink[] = [];
 		ontologies.forEach(ontology => {
 			ontology.virtualLinks.forEach(link => {
-				const source = nodes.find(n => n.id === link.sourceObjectId && n.ontology.id === ontology.id);
-				const target = nodes.find(n => n.id === link.targetObjectId && n.ontology.id === ontology.id);
+				const source = displayNodes.find(n => n.id === link.sourceObjectId && n.ontology.id === ontology.id);
+				const target = displayNodes.find(n => n.id === link.targetObjectId && n.ontology.id === ontology.id);
 				if (source && target) {
 					const sourceIsLeft = source.x <= target.x;
 					links.push({
@@ -95,19 +176,244 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 				}
 			});
 		});
+		return links;
+	}, [displayNodes, ontologies]);
 
-		const width = Math.max(900, ...groups.map(g => g.x + g.width + 32));
-		const height = Math.max(520, yOffset);
-		return { nodes, links, groups, width, height };
-	}, [ontologies]);
+	// --- Fullscreen: filter to focused ontology ---
+	const visibleGroups = useMemo(() =>
+		isFullscreen ? groups.filter(g => g.id === fullscreenOntologyId) : groups,
+		[groups, isFullscreen, fullscreenOntologyId]);
+
+	const visibleNodes = useMemo(() =>
+		isFullscreen ? displayNodes.filter(n => n.ontology.id === fullscreenOntologyId) : displayNodes,
+		[displayNodes, isFullscreen, fullscreenOntologyId]);
+
+	const visibleLinks = useMemo(() => {
+		if (!isFullscreen) return displayLinks;
+		const ontology = ontologies.find(o => o.id === fullscreenOntologyId);
+		if (!ontology) return [];
+		const links: GraphLink[] = [];
+		ontology.virtualLinks.forEach(link => {
+			const source = displayNodes.find(n => n.id === link.sourceObjectId && n.ontology.id === fullscreenOntologyId);
+			const target = displayNodes.find(n => n.id === link.targetObjectId && n.ontology.id === fullscreenOntologyId);
+			if (source && target) {
+				const sourceIsLeft = source.x <= target.x;
+				links.push({
+					id: link.id,
+					x1: sourceIsLeft ? source.x + source.width : source.x,
+					y1: source.y + source.height / 2,
+					x2: sourceIsLeft ? target.x : target.x + target.width,
+					y2: target.y + target.height / 2,
+					name: link.name,
+					label: joinTypeConfig[link.joinType].label,
+					joinType: link.joinType,
+					conditionCount: link.joinConditions.length,
+				});
+			}
+		});
+		return links;
+	}, [isFullscreen, fullscreenOntologyId, displayNodes, displayLinks, ontologies]);
+
+	// SVG content dimensions (used for clamping the pan/zoom view)
+	const svgWidth = useMemo(() => {
+		const base = Math.max(900, ...groups.map(g => g.x + g.width + 32));
+		const maxRight = displayNodes.length > 0 ? Math.max(...displayNodes.map(n => n.x + n.width)) : 0;
+		return Math.max(base, maxRight + 64);
+	}, [groups, displayNodes]);
+
+	const svgHeight = useMemo(() => {
+		const base = Math.max(520, yOffset);
+		const maxBottom = displayNodes.length > 0 ? Math.max(...displayNodes.map(n => n.y + n.height)) : 0;
+		return Math.max(base, maxBottom + 64);
+	}, [yOffset, displayNodes]);
+
+	// Compute the "fit-all" viewBox for the currently visible content
+	const fitViewBox = useCallback((): ViewBox | null => {
+		const nodes = visibleNodes;
+		if (nodes.length === 0) return null;
+		const minX = Math.min(...nodes.map(n => n.x));
+		const minY = Math.min(...nodes.map(n => n.y));
+		const maxX = Math.max(...nodes.map(n => n.x + n.width));
+		const maxY = Math.max(...nodes.map(n => n.y + n.height));
+		return {
+			x: minX - FULLSCREEN_PADDING,
+			y: minY - FULLSCREEN_PADDING,
+			w: maxX - minX + FULLSCREEN_PADDING * 2,
+			h: maxY - minY + FULLSCREEN_PADDING * 2,
+		};
+	}, [visibleNodes]);
+
+	// Reset view to fit whenever the visible content set changes
+	// (ontologies load, or entering/exiting fullscreen)
+	useEffect(() => {
+		setViewBox(fitViewBox());
+	}, [fitViewBox]);
+
+	// Wheel zoom centered on cursor
+	useEffect(() => {
+		const svg = svgRef.current;
+		const container = containerRef.current;
+		if (!svg || !container) return;
+		const onWheel = (e: WheelEvent) => {
+			e.preventDefault();
+			const vb = viewBoxRef.current;
+			if (!vb) return;
+			const rect = svg.getBoundingClientRect();
+			const px = (e.clientX - rect.left) / rect.width;
+			const py = (e.clientY - rect.top) / rect.height;
+			const factor = Math.exp(-e.deltaY * 0.0012);
+			const newW = vb.w * factor;
+			const newH = vb.h * factor;
+			const newX = vb.x + (vb.w - newW) * px;
+			const newY = vb.y + (vb.h - newH) * py;
+			setViewBox(clampView({ x: newX, y: newY, w: newW, h: newH }, svgWidth, svgHeight, FULLSCREEN_PADDING));
+		};
+		container.addEventListener('wheel', onWheel, { passive: false });
+		return () => container.removeEventListener('wheel', onWheel);
+	}, [svgWidth, svgHeight]);
+
+	const zoomBy = useCallback((factor: number) => {
+		setViewBox(prev => {
+			if (!prev) return prev;
+			const newW = prev.w * factor;
+			const newH = prev.h * factor;
+			const newX = prev.x + (prev.w - newW) / 2;
+			const newY = prev.y + (prev.h - newH) / 2;
+			return clampView({ x: newX, y: newY, w: newW, h: newH }, svgWidth, svgHeight, FULLSCREEN_PADDING);
+		});
+	}, [svgWidth, svgHeight]);
+
+	const resetView = useCallback(() => setViewBox(fitViewBox()), [fitViewBox]);
+
+	// Convert screen coordinates to SVG coordinate space
+	const getSvgCoords = useCallback((clientX: number, clientY: number) => {
+		const svg = svgRef.current;
+		if (!svg) return { x: clientX, y: clientY };
+		const point = svg.createSVGPoint();
+		point.x = clientX;
+		point.y = clientY;
+		const ctm = svg.getScreenCTM();
+		if (!ctm) return { x: clientX, y: clientY };
+		const transformed = point.matrixTransform(ctm.inverse());
+		return { x: transformed.x, y: transformed.y };
+	}, []);
+
+	// --- Drag/pan handlers ---
+
+	const handleNodeMouseDown = useCallback((e: React.MouseEvent, nodeId: string, ontologyId: string) => {
+		e.stopPropagation();
+		hasMovedRef.current = false;
+		const { x, y } = getSvgCoords(e.clientX, e.clientY);
+		const node = displayNodes.find(n => n.id === nodeId && n.ontology.id === ontologyId);
+		if (!node) return;
+		dragRef.current = { nodeId, ontologyId, offsetX: x - node.x, offsetY: y - node.y };
+	}, [getSvgCoords, displayNodes]);
+
+	// Background mousedown starts panning
+	const handleBackgroundMouseDown = useCallback((e: React.MouseEvent) => {
+		// Only start pan on left button
+		if (e.button !== 0) return;
+		hasMovedRef.current = false;
+		const vb = viewBoxRef.current;
+		if (!vb) return;
+		panRef.current = { startX: e.clientX, startY: e.clientY, vbX: vb.x, vbY: vb.y };
+	}, []);
+
+	const handleMouseMove = useCallback((e: React.MouseEvent) => {
+		if (dragRef.current && dragRef.current.nodeId) {
+			hasMovedRef.current = true;
+			const { x, y } = getSvgCoords(e.clientX, e.clientY);
+			const key = `${dragRef.current.ontologyId}:${dragRef.current.nodeId}`;
+			setPositionOverrides(prev => {
+				const next = { ...prev, [key]: { x: x - dragRef.current!.offsetX, y: y - dragRef.current!.offsetY } };
+				positionOverridesRef.current = next;
+				return next;
+			});
+			return;
+		}
+		if (panRef.current) {
+			const svg = svgRef.current;
+			if (!svg) return;
+			hasMovedRef.current = true;
+			const rect = svg.getBoundingClientRect();
+			const dx = (e.clientX - panRef.current.startX) * (viewBoxRef.current!.w / rect.width);
+			const dy = (e.clientY - panRef.current.startY) * (viewBoxRef.current!.h / rect.height);
+			setViewBox(prev => prev ? clampView({ ...prev, x: panRef.current!.vbX - dx, y: panRef.current!.vbY - dy }, svgWidth, svgHeight, FULLSCREEN_PADDING) : prev);
+		}
+	}, [getSvgCoords, svgWidth, svgHeight]);
+
+	const finishDrag = useCallback(() => {
+		if (dragRef.current) {
+			try {
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(positionOverridesRef.current));
+			} catch { /* quota exceeded — silently ignore */ }
+			dragRef.current = null;
+		}
+		panRef.current = null;
+	}, []);
+
+	// Distinguish click from drag
+	const handleNodeClick = useCallback((ontology: VirtualOntology) => {
+		if (!hasMovedRef.current) {
+			onSelectOntology(ontology);
+		}
+	}, [onSelectOntology]);
 
 	if (ontologies.length === 0) {
 		return <div className="flex items-center justify-center h-64 text-muted-foreground">No ontologies to display</div>;
 	}
 
+	const vb = viewBox ?? fitViewBox();
+	const vbStr = vb ? `${vb.x} ${vb.y} ${vb.w} ${vb.h}` : undefined;
+
 	return (
-		<div className="relative overflow-auto bg-gradient-to-br from-slate-50 via-white to-indigo-50/40 p-4" style={{ minHeight: 520 }}>
-			<svg width={width} height={height} className="mx-auto block">
+		<div
+			ref={containerRef}
+			className={cn(
+				'relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-indigo-50/40',
+				isFullscreen ? 'fixed inset-0 z-50' : 'h-[640px] w-full'
+			)}
+		>
+			{/* Exit fullscreen button (only when fullscreened) */}
+			{isFullscreen && (
+				<button
+					onClick={() => setFullscreenOntologyId(null)}
+					className="absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-lg border border-indigo-300 bg-white px-2.5 py-1.5 text-xs font-medium text-indigo-600 shadow-sm transition-colors hover:bg-slate-50"
+				>
+					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+						<polyline points="4 8 4 4 8 4" /><line x1="20" y1="4" x2="14" y2="10" />
+						<polyline points="20 16 20 20 16 20" /><line x1="4" y1="20" x2="10" y2="14" />
+					</svg>
+					Exit fullscreen
+				</button>
+			)}
+
+			{/* Zoom controls */}
+			<div className="absolute bottom-4 right-4 z-10 flex flex-col gap-1.5">
+				<ZoomButton onClick={() => zoomBy(1 / 1.3)} label="Zoom in">
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+				</ZoomButton>
+				<ZoomButton onClick={() => zoomBy(1.3)} label="Zoom out">
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>
+				</ZoomButton>
+				<ZoomButton onClick={resetView} label="Fit to view">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M21 16v3a2 2 0 0 1-2 2h-3" /></svg>
+				</ZoomButton>
+			</div>
+
+			<svg
+				ref={svgRef}
+				width="100%"
+				height="100%"
+				viewBox={vbStr}
+				preserveAspectRatio="xMidYMid meet"
+				className="block select-none"
+				style={{ cursor: panRef.current ? 'grabbing' : 'grab' }}
+				onMouseDown={handleBackgroundMouseDown}
+				onMouseMove={handleMouseMove}
+				onMouseUp={finishDrag}
+				onMouseLeave={finishDrag}
+			>
 				<defs>
 					<marker id="ontology-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
 						<path d="M0,0 L0,6 L9,3 z" className="fill-indigo-400" />
@@ -118,7 +424,7 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 				</defs>
 
 				{/* Ontology group backgrounds */}
-				{groups.map(group => (
+				{visibleGroups.map(group => (
 					<g key={group.id}>
 						<rect
 							x={group.x}
@@ -135,11 +441,31 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 						<text x={group.x + 28} y={group.y + 56} className="fill-slate-500 text-[12px]">
 							Business object graph · {group.ontology.virtualObjects.length} objects · {group.ontology.virtualLinks.length} links
 						</text>
+
+						{/* Fullscreen button per ontology */}
+						{!isFullscreen && (
+							<g
+								className="cursor-pointer"
+								onClick={e => { e.stopPropagation(); setFullscreenOntologyId(group.id); }}
+							>
+								<rect
+									x={group.x + group.width - 114}
+									y={group.y + 16}
+									width={90}
+									height={26}
+									rx={8}
+									className="fill-white stroke-slate-200 hover:stroke-indigo-300 transition-colors"
+								/>
+								<text x={group.x + group.width - 69} y={group.y + 34} textAnchor="middle" className="fill-slate-500 text-[11px] font-medium">
+									⛶ Fullscreen
+								</text>
+							</g>
+						)}
 					</g>
 				))}
 
 				{/* Business links */}
-				{links.map(link => {
+				{visibleLinks.map(link => {
 					const midX = (link.x1 + link.x2) / 2;
 					const midY = (link.y1 + link.y2) / 2;
 					const curve = Math.min(80, Math.abs(link.x2 - link.x1) / 3);
@@ -174,11 +500,13 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 				})}
 
 				{/* Business object cards */}
-				{nodes.map(node => (
-					<BusinessObjectNode
+				{visibleNodes.map(node => (
+					<DraggableNode
 						key={`${node.ontology.id}-${node.id}`}
 						node={node}
-						onClick={() => onSelectOntology(node.ontology)}
+						isDragging={dragRef.current?.nodeId === node.id && dragRef.current?.ontologyId === node.ontology.id}
+						onMouseDown={handleNodeMouseDown}
+						onClick={() => handleNodeClick(node.ontology)}
 					/>
 				))}
 			</svg>
@@ -186,20 +514,44 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 	);
 };
 
-const BusinessObjectNode: React.FC<{ node: GraphNode; onClick: () => void }> = ({ node, onClick }) => {
+const ZoomButton: React.FC<{ onClick: () => void; label: string; children: React.ReactNode }> = ({ onClick, label, children }) => (
+	<button
+		type="button"
+		onClick={onClick}
+		title={label}
+		aria-label={label}
+		className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-indigo-600"
+	>
+		{children}
+	</button>
+);
+
+const DraggableNode: React.FC<{
+	node: GraphNode;
+	isDragging: boolean;
+	onMouseDown: (e: React.MouseEvent, nodeId: string, ontologyId: string) => void;
+	onClick: () => void;
+}> = ({ node, isDragging, onMouseDown, onClick }) => {
 	const vo = node.object;
-	const primaryTable = vo.physicalTables.find(t => t.role === 'primary') || vo.physicalTables[0];
+	const primaryTable = vo.physicalTables.find(t => t.kind === 'primary') || vo.physicalTables[0];
 	const fieldCount = vo.physicalTables.reduce((sum, table) => sum + table.fields.length, 0);
 
 	return (
-		<g className="cursor-pointer" onClick={onClick}>
+		<g
+			className={cn('cursor-grab', isDragging && 'cursor-grabbing')}
+			onMouseDown={e => onMouseDown(e, node.id, node.ontology.id)}
+			onClick={onClick}
+		>
 			<rect
 				x={node.x}
 				y={node.y}
 				width={node.width}
 				height={node.height}
 				rx={18}
-				className="fill-white stroke-slate-200 hover:stroke-indigo-300 transition-colors"
+				className={cn(
+					'fill-white stroke-slate-200 hover:stroke-indigo-300 transition-colors',
+					isDragging && 'stroke-indigo-400'
+				)}
 				filter="url(#soft-shadow)"
 			/>
 			<rect
@@ -248,6 +600,7 @@ const MetricPill: React.FC<{ icon: string; label: string; x: number }> = ({ icon
 const buildDepthMap = (ontology: VirtualOntology): Map<string, number> => {
 	const depthMap = new Map<string, number>();
 	const incoming = new Map<string, number>();
+	const maxDepth = Math.max(0, ontology.virtualObjects.length - 1);
 	ontologySafeObjects(ontology).forEach(vo => incoming.set(vo.id, 0));
 	ontology.virtualLinks.forEach(link => incoming.set(link.targetObjectId, (incoming.get(link.targetObjectId) || 0) + 1));
 
@@ -261,7 +614,8 @@ const buildDepthMap = (ontology: VirtualOntology): Map<string, number> => {
 			.filter(link => link.sourceObjectId === current.id)
 			.forEach(link => {
 				const nextDepth = current.depth + 1;
-				if ((depthMap.get(link.targetObjectId) ?? -1) < nextDepth) {
+				// Cap depth at node count to break relationship cycles (e.g. A→B→A)
+				if (nextDepth <= maxDepth && (depthMap.get(link.targetObjectId) ?? -1) < nextDepth) {
 					depthMap.set(link.targetObjectId, nextDepth);
 					queue.push({ id: link.targetObjectId, depth: nextDepth });
 				}

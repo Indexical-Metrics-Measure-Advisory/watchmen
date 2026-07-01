@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
 	Boxes, Link2, Table2, Sigma, ArrowRight, Pencil,
 	Database, ChevronDown, ChevronRight
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { cn } from '@/lib/utils';
 import {
 	VirtualOntology,
@@ -15,11 +15,14 @@ import {
 	VirtualLink,
 	DerivedAttribute,
 	sensitivityConfig,
-	physicalTableRoleConfig,
+	physicalTableKindConfig,
+	physicalTableJoinTypeConfig,
 	joinTypeConfig,
 	aggregateConfig,
+	filterOperatorConfig,
 } from '@/model/ontology';
 import { resolvePhysicalTableLabel } from '@/services/ontologyService';
+import { getAllDataSources, DataSource } from '@/services/dataSourceService';
 
 interface Props {
 	ontology: VirtualOntology | null;
@@ -30,6 +33,19 @@ interface Props {
 
 export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, onOpenChange, onEdit }) => {
 	const [expandedObjects, setExpandedObjects] = useState<Set<string>>(new Set());
+	const [dataSources, setDataSources] = useState<DataSource[]>([]);
+
+	useEffect(() => {
+		if (open) {
+			getAllDataSources().then(setDataSources).catch(() => setDataSources([]));
+		}
+	}, [open]);
+
+	const datasourceName = (id?: string) => {
+		if (!id) return null;
+		const ds = dataSources.find(d => d.dataSourceId === id);
+		return ds?.name ?? id;
+	};
 
 	if (!ontology) return null;
 
@@ -46,8 +62,8 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-4xl max-h-[85vh]">
-				<DialogHeader>
+			<DialogContent className="max-w-4xl max-h-[90vh] !flex !flex-col overflow-hidden">
+				<DialogHeader className="shrink-0">
 					<div className="flex items-start justify-between gap-3">
 						<div>
 							<DialogTitle className="text-xl">{ontology.name}</DialogTitle>
@@ -59,7 +75,7 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 					</div>
 				</DialogHeader>
 
-				<ScrollArea className="max-h-[70vh] pr-4">
+				<div className="flex-1 min-h-0 overflow-y-auto pr-2">
 					<div className="space-y-5">
 						{/* Meta */}
 						<div className="grid grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg border">
@@ -122,6 +138,12 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 												{expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
 												<span className="text-lg">{vo.icon || '📦'}</span>
 												<CardTitle className="text-base flex-1">{vo.name}</CardTitle>
+												{datasourceName(vo.datasourceId) && (
+													<Badge variant="secondary" className="text-[10px]" title={`Data source: ${datasourceName(vo.datasourceId)}`}>
+														<Database className="w-3 h-3 mr-1" />
+														{datasourceName(vo.datasourceId)}
+													</Badge>
+												)}
 												<Badge variant="outline" className="text-[10px]">
 													{vo.physicalTables.length} tables
 												</Badge>
@@ -144,14 +166,20 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 												<div className="space-y-2">
 													<div className="text-xs font-semibold uppercase text-muted-foreground">Physical Tables</div>
 													{vo.physicalTables.map((pt, idx) => {
-														const roleCfg = physicalTableRoleConfig[pt.role];
-														return (
-															<div key={idx} className="flex items-center gap-2 p-2 rounded-md bg-muted/20 text-sm">
-																<Database className="w-3.5 h-3.5 text-muted-foreground" />
-																<span className="font-medium">{resolvePhysicalTableLabel(pt)}</span>
-																<Badge variant="outline" className={cn('text-[10px]', roleCfg.className)}>
-																	{roleCfg.icon} {roleCfg.label}
+													const kindCfg = physicalTableKindConfig[pt.kind] ?? physicalTableKindConfig.detail;
+													const joinCfg = pt.kind === 'primary' ? null : physicalTableJoinTypeConfig[pt.joinType ?? kindCfg.defaultJoinType];
+													return (
+														<div key={idx} className="flex items-center gap-2 p-2 rounded-md bg-muted/20 text-sm">
+															<Database className="w-3.5 h-3.5 text-muted-foreground" />
+															<span className="font-medium">{resolvePhysicalTableLabel(pt)}</span>
+															<Badge variant="outline" className={cn('text-[10px]', kindCfg.className)}>
+																{kindCfg.icon} {kindCfg.label}
+															</Badge>
+															{joinCfg && (
+																<Badge variant="outline" className={cn('text-[10px]', joinCfg.className)}>
+																	{joinCfg.label}
 																</Badge>
+															)}
 																{pt.fields.length > 0 && (
 																	<div className="flex flex-wrap gap-1 ml-2">
 																		{pt.fields.slice(0, 5).map(f => (
@@ -160,6 +188,27 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 																		{pt.fields.length > 5 && (
 																			<span className="text-[10px] text-muted-foreground">+{pt.fields.length - 5}</span>
 																		)}
+																	</div>
+																)}
+																{(pt.filters ?? []).length > 0 && (
+																	<div className="flex flex-wrap gap-1 ml-2 items-center">
+																		<span className="text-[10px] text-muted-foreground uppercase">filter:</span>
+																		{(pt.filters ?? []).map((flt, fIdx) => {
+																			const opCfg = filterOperatorConfig[flt.operator] ?? filterOperatorConfig.eq;
+																			const valStr = Array.isArray(flt.value)
+																				? `[${flt.value.join(', ')}]`
+																				: (flt.value === undefined || flt.value === null || flt.value === '')
+																					? ''
+																					: String(flt.value);
+																			const text = opCfg.needsValue === 'none'
+																				? `${flt.field} ${opCfg.label}`
+																				: `${flt.field} ${opCfg.label} ${valStr}`;
+																			return (
+																				<Badge key={fIdx} variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200">
+																					{text}
+																				</Badge>
+																			);
+																		})}
 																	</div>
 																)}
 															</div>
@@ -239,9 +288,9 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 							</div>
 						)}
 					</div>
-				</ScrollArea>
+				</div>
 
-				<div className="flex justify-end gap-2 pt-3 border-t">
+				<div className="flex justify-end gap-2 pt-3 border-t shrink-0">
 					<Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
 					<Button onClick={() => onEdit(ontology)} className="gap-2">
 						<Pencil className="w-4 h-4" />

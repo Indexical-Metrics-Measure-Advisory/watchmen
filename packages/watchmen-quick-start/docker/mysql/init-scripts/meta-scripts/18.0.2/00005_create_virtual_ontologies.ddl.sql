@@ -7,6 +7,7 @@ CREATE TABLE virtual_ontologies
     technical_owner  VARCHAR(128),
     tags             JSON,
     sensitivity      VARCHAR(32),
+    data_source_id   VARCHAR(50),
     virtual_objects  JSON,
     virtual_links    JSON,
     tenant_id        VARCHAR(50)  NOT NULL,

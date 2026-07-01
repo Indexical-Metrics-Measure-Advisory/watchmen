@@ -31,6 +31,7 @@ class OntologyShaper(EntityShaper):
 			'technical_owner': ontology.technicalOwner,
 			'tags': ontology.tags,
 			'sensitivity': sensitivity_value,
+			# datasourceId 由各 VirtualObject.datasourceId 自行保存，写入 virtual_objects JSON。
 			'virtual_objects': ArrayHelper(ontology.virtualObjects).map(lambda x: x.dict()).to_list(),
 			'virtual_links': ArrayHelper(ontology.virtualLinks).map(lambda x: x.dict()).to_list(),
 		})

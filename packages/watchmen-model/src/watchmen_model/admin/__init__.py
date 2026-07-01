@@ -17,7 +17,7 @@ from .topic import is_aggregation_topic, is_raw_topic, Topic, TopicKind, TopicTy
 from .topic_snapshot import TopicSnapshotFrequency, TopicSnapshotJobLock, TopicSnapshotJobLockId, \
 	TopicSnapshotJobLockStatus, TopicSnapshotScheduler, TopicSnapshotSchedulerId
 from .ontology import (
-	DerivedAttribute, JoinCondition, OntologySensitivity, PhysicalTableMapping, VirtualLink,
+	DerivedAttribute, FilterCondition, JoinCondition, OntologySensitivity, PhysicalTableMapping, VirtualLink,
 	VirtualObject, VirtualObjectAttribute, VirtualOntology,
 )
 from .user import User, UserRole

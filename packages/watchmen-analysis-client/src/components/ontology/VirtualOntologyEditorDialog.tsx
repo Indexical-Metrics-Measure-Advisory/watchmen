@@ -8,12 +8,14 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { cn } from '@/lib/utils';
 import { topicService, Topic } from '@/services/topicService';
+import { getAllDataSources, DataSource } from '@/services/dataSourceService';
 import {
 	VirtualOntology, VirtualObject, VirtualLink, DerivedAttribute, PhysicalTableMapping,
-	physicalTableRoleConfig, joinTypeConfig, aggregateConfig,
+	FilterCondition, FilterOperator, filterOperatorConfig, filterValueAsString, filterValueAsList,
+	physicalTableKindConfig, physicalTableJoinTypeConfig, joinTypeConfig, aggregateConfig,
 	sensitivityConfig, OntologySensitivity,
 } from '@/model/ontology';
 import {
@@ -34,6 +36,7 @@ type TabKey = 'objects' | 'links' | 'meta';
 export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChange, mode, ontology, onSave }) => {
 	const [draft, setDraft] = useState<VirtualOntology>(createEmptyVirtualOntology());
 	const [topics, setTopics] = useState<Topic[]>([]);
+	const [dataSources, setDataSources] = useState<DataSource[]>([]);
 	const [activeTab, setActiveTab] = useState<TabKey>('objects');
 	const [expandedObjects, setExpandedObjects] = useState<Set<string>>(new Set());
 
@@ -43,6 +46,7 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 			setActiveTab('objects');
 			setExpandedObjects(new Set());
 			topicService.getDatamartTopics().then(setTopics).catch(() => setTopics([]));
+			getAllDataSources().then(setDataSources).catch(() => setDataSources([]));
 		}
 	}, [open, ontology]);
 
@@ -51,6 +55,34 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 		topics.forEach(t => map.set(t.id, t));
 		return map;
 	}, [topics]);
+
+	// Factor type 把 watchmen 原始 type 归并成 UI 友好的分组标签（数字、时间、文本等）。
+	const factorTypeGroup = (rawType: string): string => {
+		const t = (rawType || "").toLowerCase();
+		if (["number", "int", "integer", "long", "float", "double", "decimal", "numeric", "amount", "money"].includes(t)) {
+			return "number";
+		}
+		if (["date", "datetime", "timestamp", "time", "instant"].includes(t)) {
+			return "datetime";
+		}
+		if (["boolean", "bool"].includes(t)) {
+			return "boolean";
+		}
+		if (["text", "string", "varchar", "char", "object", "json"].includes(t)) {
+			return "text";
+		}
+		return t || "other";
+	};
+
+	const factorTypeBadgeClass = (group: string): string => {
+		switch (group) {
+			case "number": return "bg-emerald-100 text-emerald-700";
+			case "datetime": return "bg-sky-100 text-sky-700";
+			case "boolean": return "bg-amber-100 text-amber-700";
+			case "text": return "bg-slate-100 text-slate-700";
+			default: return "bg-zinc-100 text-zinc-700";
+		}
+	};
 
 	const update = (patch: Partial<VirtualOntology>) => setDraft(prev => ({ ...prev, ...patch }));
 
@@ -91,8 +123,9 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 			topicId: topic.id,
 			topicName: topic.name,
 			alias: '',
-			role: 'secondary',
+			kind: 'detail',
 			fields: [],
+			joinConditions: [],
 		};
 		setDraft(prev => ({
 			...prev,
@@ -121,6 +154,89 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 				return { ...vo, physicalTables: vo.physicalTables.filter((_, i) => i !== idx) };
 			}),
 		}));
+	};
+
+	const addPhysicalTableJoinCondition = (voId: string, tableIdx: number) => {
+		const vo = draft.virtualObjects.find(v => v.id === voId);
+		const table = vo?.physicalTables[tableIdx];
+		if (!table) return;
+		updatePhysicalTable(voId, tableIdx, {
+			joinConditions: [...(table.joinConditions ?? []), { sourceField: '', targetField: '' }],
+		});
+	};
+
+	const updatePhysicalTableJoinCondition = (
+		voId: string,
+		tableIdx: number,
+		conditionIdx: number,
+		patch: Partial<{ sourceField: string; targetField: string }>,
+	) => {
+		const vo = draft.virtualObjects.find(v => v.id === voId);
+		const table = vo?.physicalTables[tableIdx];
+		if (!table) return;
+		const joinConditions = [...(table.joinConditions ?? [])];
+		joinConditions[conditionIdx] = { ...joinConditions[conditionIdx], ...patch };
+		updatePhysicalTable(voId, tableIdx, { joinConditions });
+	};
+
+	const removePhysicalTableJoinCondition = (voId: string, tableIdx: number, conditionIdx: number) => {
+		const vo = draft.virtualObjects.find(v => v.id === voId);
+		const table = vo?.physicalTables[tableIdx];
+		if (!table) return;
+		updatePhysicalTable(voId, tableIdx, {
+			joinConditions: (table.joinConditions ?? []).filter((_, i) => i !== conditionIdx),
+		});
+	};
+
+	// ---- Physical table filters ----
+	const addPhysicalTableFilter = (voId: string, tableIdx: number) => {
+		const vo = draft.virtualObjects.find(v => v.id === voId);
+		const table = vo?.physicalTables[tableIdx];
+		if (!table) return;
+		const next: FilterCondition = { field: '', operator: 'eq', value: '' };
+		updatePhysicalTable(voId, tableIdx, {
+			filters: [...(table.filters ?? []), next],
+		});
+	};
+
+	const updatePhysicalTableFilter = (
+		voId: string,
+		tableIdx: number,
+		filterIdx: number,
+		patch: Partial<FilterCondition>,
+	) => {
+		const vo = draft.virtualObjects.find(v => v.id === voId);
+		const table = vo?.physicalTables[tableIdx];
+		if (!table) return;
+		const filters = [...(table.filters ?? [])];
+		const current = filters[filterIdx];
+		if (!current) return;
+		const merged: FilterCondition = { ...current, ...patch };
+
+		// When operator changes, coerce value into the shape required by the new operator.
+		if (patch.operator) {
+			const needsValue = filterOperatorConfig[merged.operator].needsValue;
+			if (needsValue === 'list') {
+				const existing = filterValueAsList(current.value);
+				merged.value = existing;
+			} else if (needsValue === 'single') {
+				merged.value = filterValueAsString(current.value);
+			} else {
+				merged.value = '';
+			}
+		}
+
+		filters[filterIdx] = merged;
+		updatePhysicalTable(voId, tableIdx, { filters });
+	};
+
+	const removePhysicalTableFilter = (voId: string, tableIdx: number, filterIdx: number) => {
+		const vo = draft.virtualObjects.find(v => v.id === voId);
+		const table = vo?.physicalTables[tableIdx];
+		if (!table) return;
+		updatePhysicalTable(voId, tableIdx, {
+			filters: (table.filters ?? []).filter((_, i) => i !== filterIdx),
+		});
 	};
 
 	// ---- Attribute operations ----
@@ -211,19 +327,19 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-5xl max-h-[90vh]">
-				<DialogHeader>
+			<DialogContent className="max-w-5xl max-h-[90vh] !flex !flex-col overflow-hidden">
+				<DialogHeader className="shrink-0">
 					<DialogTitle>{mode === 'create' ? 'Create Virtual Ontology' : `Edit: ${draft.name}`}</DialogTitle>
 				</DialogHeader>
 
 				{/* Tabs */}
-				<div className="flex gap-1 border-b pb-2">
+				<div className="flex gap-1 border-b pb-2 shrink-0">
 					<TabButton active={activeTab === 'objects'} onClick={() => setActiveTab('objects')} icon={<Boxes className="w-4 h-4" />} label="Virtual Objects" />
 					<TabButton active={activeTab === 'links'} onClick={() => setActiveTab('links')} icon={<Link2 className="w-4 h-4" />} label="Virtual Links" />
 					<TabButton active={activeTab === 'meta'} onClick={() => setActiveTab('meta')} icon={<Database className="w-4 h-4" />} label="Meta" />
 				</div>
 
-				<ScrollArea className="max-h-[70vh] pr-4">
+				<div className="flex-1 min-h-0 overflow-y-auto pr-2">
 					{activeTab === 'meta' && (
 						<div className="space-y-4 p-1">
 							<Field label="Ontology Name">
@@ -299,6 +415,28 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 													className="text-sm"
 												/>
 
+												{/* Data source binding */}
+												<div className="space-y-1">
+													<label className="text-xs font-medium text-muted-foreground">Data Source</label>
+													<Select
+														value={vo.datasourceId ?? '__none__'}
+														onValueChange={v => updateObject(vo.id, { datasourceId: v === '__none__' ? undefined : v })}
+													>
+														<SelectTrigger className="h-7 text-xs">
+															<SelectValue placeholder="Select a data source" />
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value="__none__">(no data source)</SelectItem>
+															{dataSources.map(ds => (
+																<SelectItem key={ds.dataSourceId} value={ds.dataSourceId}>
+																	{ds.name}
+																	{ds.type && <span className="text-muted-foreground"> · {ds.type}</span>}
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+												</div>
+
 												{/* Physical tables */}
 												<div className="space-y-2">
 													<div className="flex items-center justify-between">
@@ -318,8 +456,13 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 															</SelectContent>
 														</Select>
 													</div>
-													{vo.physicalTables.map((pt, ptIdx) => (
-														<div key={ptIdx} className="flex items-center gap-2 p-2 rounded-md bg-muted/20">
+													{vo.physicalTables.map((pt, ptIdx) => {
+												const isPrimary = pt.kind === 'primary';
+												const primaryTable = vo.physicalTables.find(table => table.kind === 'primary');
+												const primaryFields = primaryTable?.fields ?? [];
+												return (
+													<div key={ptIdx} className="space-y-2 p-2 rounded-md bg-muted/20">
+														<div className="flex items-center gap-2">
 															<Database className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
 															<span className="text-sm font-medium min-w-[120px] truncate" title={pt.topicName}>{pt.topicName}</span>
 															<Input
@@ -328,40 +471,162 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 																placeholder="alias"
 																className="w-20 h-7 text-xs"
 															/>
-															<Select value={pt.role} onValueChange={v => updatePhysicalTable(vo.id, ptIdx, { role: v as PhysicalTableMapping['role'] })}>
+															<Select value={pt.kind} onValueChange={v => updatePhysicalTable(vo.id, ptIdx, { kind: v as PhysicalTableMapping['kind'] })}>
 																<SelectTrigger className="w-28 h-7 text-xs"><SelectValue /></SelectTrigger>
 																<SelectContent>
-																	{Object.entries(physicalTableRoleConfig).map(([key, cfg]) => (
+																	{Object.entries(physicalTableKindConfig).map(([key, cfg]) => (
 																		<SelectItem key={key} value={key}>{cfg.icon} {cfg.label}</SelectItem>
 																	))}
 																</SelectContent>
 															</Select>
-															<div className="flex flex-wrap gap-1 flex-1">
-																{topicMap.get(pt.topicId)?.factors.slice(0, 8).map(f => (
-																	<button
-																		key={f.factorId}
-																		onClick={() => {
-																			const fields = pt.fields.includes(f.name)
-																				? pt.fields.filter(x => x !== f.name)
-																				: [...pt.fields, f.name];
-																			updatePhysicalTable(vo.id, ptIdx, { fields });
-																		}}
-																		className={cn(
-																			'text-[10px] px-1.5 py-0.5 rounded border transition-colors',
-																			pt.fields.includes(f.name)
-																				? 'bg-indigo-100 text-indigo-700 border-indigo-300'
-																				: 'bg-background text-muted-foreground border-muted hover:bg-muted'
-																		)}
-																	>
-																		{f.name}
-																	</button>
-																))}
+															{pt.kind !== 'primary' && (
+																<Select
+																	value={pt.joinType ?? physicalTableKindConfig[pt.kind].defaultJoinType}
+																	onValueChange={v => updatePhysicalTable(vo.id, ptIdx, { joinType: v as PhysicalTableMapping['joinType'] })}
+																>
+																	<SelectTrigger className="w-24 h-7 text-xs"><SelectValue /></SelectTrigger>
+																	<SelectContent>
+																		{Object.entries(physicalTableJoinTypeConfig).map(([key, cfg]) => (
+																			<SelectItem key={key} value={key}>{cfg.label}</SelectItem>
+																		))}
+																	</SelectContent>
+																</Select>
+															)}
+															<div className="flex-1 space-y-1">
+																{(() => {
+																	const factors = topicMap.get(pt.topicId)?.factors ?? [];
+																	const groups: Record<string, typeof factors> = {};
+																	factors.forEach(f => {
+																		const key = factorTypeGroup(f.type);
+																		(groups[key] = groups[key] || []).push(f);
+																	});
+																	const sortedGroups = Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+																	return sortedGroups.map(([groupName, items]) => (
+																		<div key={groupName} className="flex items-center gap-1 flex-wrap">
+																			<span className={cn('text-[9px] px-1 py-0.5 rounded font-mono uppercase shrink-0', factorTypeBadgeClass(groupName))}>{groupName}</span>
+																			{items.map(f => (
+																				<button
+																					key={f.factorId}
+																					title={`${f.name} · ${f.type}`}
+																					onClick={() => {
+																						const fields = pt.fields.includes(f.name)
+																							? pt.fields.filter(x => x !== f.name)
+																							: [...pt.fields, f.name];
+																						updatePhysicalTable(vo.id, ptIdx, { fields });
+																					}}
+																					className={cn(
+																						'text-[10px] px-1.5 py-0.5 rounded border transition-colors',
+																						pt.fields.includes(f.name)
+																							? 'bg-indigo-100 text-indigo-700 border-indigo-300'
+																							: 'bg-background text-muted-foreground border-muted hover:bg-muted'
+																					)}
+																				>
+																					{f.name}
+																				</button>
+																			))}
+																		</div>
+																	));
+																})()}
 															</div>
 															<Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removePhysicalTable(vo.id, ptIdx)}>
 																<Trash2 className="w-3.5 h-3.5 text-red-500" />
 															</Button>
 														</div>
-													))}
+														{!isPrimary && (
+															<div className="ml-5 space-y-2 border-l pl-3">
+																<div className="flex items-center justify-between">
+																	<span className="text-[10px] font-semibold uppercase text-muted-foreground">Join to primary</span>
+																	<Button variant="outline" size="sm" className="h-6 text-[10px] px-2" onClick={() => addPhysicalTableJoinCondition(vo.id, ptIdx)}>
+																		<Plus className="w-2.5 h-2.5 mr-1" /> Condition
+																	</Button>
+																</div>
+																{(pt.joinConditions ?? []).map((jc, jcIdx) => (
+																	<div key={jcIdx} className="flex items-center gap-2">
+																		<Select value={jc.sourceField} onValueChange={v => updatePhysicalTableJoinCondition(vo.id, ptIdx, jcIdx, { sourceField: v })}>
+																			<SelectTrigger className="flex-1 h-7 text-xs"><SelectValue placeholder="primary field" /></SelectTrigger>
+																			<SelectContent>
+																				{primaryFields.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+																			</SelectContent>
+																		</Select>
+																		<span className="text-xs text-muted-foreground">=</span>
+																		<Select value={jc.targetField} onValueChange={v => updatePhysicalTableJoinCondition(vo.id, ptIdx, jcIdx, { targetField: v })}>
+																			<SelectTrigger className="flex-1 h-7 text-xs"><SelectValue placeholder="current field" /></SelectTrigger>
+																			<SelectContent>
+																				{pt.fields.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+																			</SelectContent>
+																		</Select>
+																		<Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removePhysicalTableJoinCondition(vo.id, ptIdx, jcIdx)}>
+																			<Trash2 className="w-3 h-3 text-red-500" />
+																		</Button>
+																	</div>
+																))}
+																{(pt.joinConditions ?? []).length === 0 && (
+																	<div className="text-[10px] text-muted-foreground">Add a condition, e.g. primary.agent_code = current.agent_code.</div>
+																)}
+															</div>
+														)}
+														{/* Filters: row-level key-in constants, e.g. policy_status_code eq "issued" */}
+														<div className="ml-5 space-y-2 border-l pl-3">
+															<div className="flex items-center justify-between">
+																<span className="text-[10px] font-semibold uppercase text-muted-foreground">Filters (key-in constants)</span>
+																<Button variant="outline" size="sm" className="h-6 text-[10px] px-2" onClick={() => addPhysicalTableFilter(vo.id, ptIdx)}>
+																	<Plus className="w-2.5 h-2.5 mr-1" /> Filter
+																</Button>
+															</div>
+															{(pt.filters ?? []).map((flt, fltIdx) => {
+																const opCfg = filterOperatorConfig[flt.operator] ?? filterOperatorConfig.eq;
+																const needsValue = opCfg.needsValue;
+																const tableFields = pt.fields.length > 0 ? pt.fields : (topicMap.get(pt.topicId)?.factors?.map(f => f.name) ?? []);
+																return (
+																	<div key={fltIdx} className="flex items-center gap-2 flex-wrap">
+																		<Select value={flt.field} onValueChange={v => updatePhysicalTableFilter(vo.id, ptIdx, fltIdx, { field: v })}>
+																			<SelectTrigger className="flex-1 min-w-[120px] h-7 text-xs"><SelectValue placeholder="field" /></SelectTrigger>
+																			<SelectContent>
+																				{tableFields.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+																			</SelectContent>
+																		</Select>
+																		<Select value={flt.operator} onValueChange={v => updatePhysicalTableFilter(vo.id, ptIdx, fltIdx, { operator: v as FilterOperator })}>
+																			<SelectTrigger className="w-28 h-7 text-xs"><SelectValue /></SelectTrigger>
+																			<SelectContent>
+																				{Object.entries(filterOperatorConfig).map(([key, cfg]) => (
+																					<SelectItem key={key} value={key}>{cfg.label}</SelectItem>
+																				))}
+																			</SelectContent>
+																		</Select>
+																		{needsValue === 'single' && (
+																			<Input
+																				value={filterValueAsString(flt.value)}
+																				onChange={e => updatePhysicalTableFilter(vo.id, ptIdx, fltIdx, { value: e.target.value })}
+																				placeholder="constant"
+																				className="flex-1 min-w-[120px] h-7 text-xs"
+																			/>
+																		)}
+																		{needsValue === 'list' && (
+																			<Input
+																				value={filterValueAsList(flt.value).join(',')}
+																				onChange={e => updatePhysicalTableFilter(vo.id, ptIdx, fltIdx, {
+																					value: e.target.value.split(',').map(s => s.trim()).filter(Boolean),
+																				})}
+																				placeholder="v1,v2,v3"
+																				className="flex-1 min-w-[160px] h-7 text-xs"
+																			/>
+																		)}
+																		{needsValue === 'none' && (
+																			<span className="text-[10px] text-muted-foreground italic">no value</span>
+																		)}
+																		<Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removePhysicalTableFilter(vo.id, ptIdx, fltIdx)}>
+																			<Trash2 className="w-3 h-3 text-red-500" />
+																		</Button>
+																	</div>
+																);
+															})}
+															{(pt.filters ?? []).length === 0 && (
+																<div className="text-[10px] text-muted-foreground">Optional: restrict rows, e.g. policy_status_code in "issued,active".</div>
+															)}
+														</div>
+													</div>
+												);
+											})}
 												</div>
 
 												{/* Attributes */}
@@ -627,9 +892,9 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 							</Button>
 						</div>
 					)}
-				</ScrollArea>
+				</div>
 
-				<div className="flex justify-end gap-2 pt-3 border-t">
+				<div className="flex justify-end gap-2 pt-3 border-t shrink-0">
 					<Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
 					<Button onClick={handleSave} disabled={!draft.name.trim()}>Save</Button>
 				</div>
