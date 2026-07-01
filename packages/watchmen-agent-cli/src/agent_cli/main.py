@@ -14,7 +14,7 @@ from agent_cli.exceptions import AgentCliException
 from agent_cli.http_client import RestClient
 from agent_cli.settings import settings
 from agent_cli.sync_service import SyncService
-from agent_cli.vault import ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CONFIG_DIR, INGEST_TABLE_CONFIG_DIR, METRICFLOW_METRIC_DIR, METRICFLOW_SEMANTIC_DIR, PIPELINE_DIR, TOPIC_DIR, ensure_vault, list_local_files, load_config, save_config
+from agent_cli.vault import ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CONFIG_DIR, INGEST_TABLE_CONFIG_DIR, METRICFLOW_METRIC_DIR, METRICFLOW_SEMANTIC_DIR, ONTOLOGY_DIR, PIPELINE_DIR, TOPIC_DIR, ensure_vault, list_local_files, load_config, save_config
 
 DISCOVER_COMMANDS = {
     "init": ["--vault", "--host", "--username", "--password", "--pat"],
@@ -57,6 +57,10 @@ DISCOVER_COMMANDS = {
     "ingest module list": ["--vault"],
     "ingest module list-remote": ["--vault"],
     "datasource list-remote": ["--vault"],
+    "ontology pull-name": ["ontology_name", "--vault"],
+    "ontology push-file": ["file_path", "--vault"],
+    "ontology list": ["--vault"],
+    "ontology list-remote": ["--vault"],
     "tenant": ["--vault"],
     "config": ["--vault"],
     "discover": [],
@@ -112,6 +116,7 @@ def build_parser() -> argparse.ArgumentParser:
     register_metric_commands(subparsers)
     register_ingest_commands(subparsers)
     register_datasource_commands(subparsers)
+    register_ontology_commands(subparsers)
     register_tenant_command(subparsers)
     register_config_commands(subparsers)
     return parser
@@ -311,6 +316,23 @@ def handle_ingest_module_list_remote(args: argparse.Namespace) -> None:
 
 def handle_datasource_list_remote(args: argparse.Namespace) -> None:
     run_with_sync_service(args, lambda svc: svc.list_data_sources_from_server())
+
+
+def handle_ontology_pull_name(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.pull_one_ontology_by_name(args.ontology_name))
+
+
+def handle_ontology_push_file(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.push_ontology_yaml_file(Path(args.file_path)))
+
+
+def handle_ontology_list(args: argparse.Namespace) -> None:
+    vault_path = settings.resolved_vault(args.vault)
+    print_entity_file_list(vault_path, ONTOLOGY_DIR)
+
+
+def handle_ontology_list_remote(args: argparse.Namespace) -> None:
+    run_with_sync_service(args, lambda svc: svc.list_ontologies_from_server())
 
 
 def handle_tenant_info(args: argparse.Namespace) -> None:
@@ -605,6 +627,29 @@ def register_datasource_commands(subparsers: argparse._SubParsersAction) -> None
     datasource_list_remote = create_subparser(datasource_parser, "list-remote", "List all data sources on server")
     add_vault_arg(datasource_list_remote)
     datasource_list_remote.set_defaults(handler=handle_datasource_list_remote)
+
+
+def register_ontology_commands(subparsers: argparse._SubParsersAction) -> None:
+    ontology_parser = create_subparser(subparsers, "ontology", "Ontology YAML commands")
+    ontology_sub = ontology_parser.add_subparsers(dest="ontology_cmd", required=True)
+
+    ontology_pull_name = create_subparser(ontology_sub, "pull-name", "Pull an ontology YAML by name")
+    ontology_pull_name.add_argument("ontology_name")
+    add_vault_arg(ontology_pull_name)
+    ontology_pull_name.set_defaults(handler=handle_ontology_pull_name)
+
+    ontology_push_file = create_subparser(ontology_sub, "push-file", "Push a local ontology YAML file")
+    ontology_push_file.add_argument("file_path", help="Path to the local .yml or .yaml file")
+    add_vault_arg(ontology_push_file)
+    ontology_push_file.set_defaults(handler=handle_ontology_push_file)
+
+    ontology_list = create_subparser(ontology_sub, "list", "List local ontology files")
+    add_vault_arg(ontology_list)
+    ontology_list.set_defaults(handler=handle_ontology_list)
+
+    ontology_list_remote = create_subparser(ontology_sub, "list-remote", "List all ontologies on server")
+    add_vault_arg(ontology_list_remote)
+    ontology_list_remote.set_defaults(handler=handle_ontology_list_remote)
 
 
 def register_tenant_command(subparsers: argparse._SubParsersAction) -> None:

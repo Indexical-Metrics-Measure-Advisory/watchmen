@@ -1,6 +1,14 @@
 import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { VirtualOntology, VirtualObject, joinTypeConfig } from '@/model/ontology';
 import { cn } from '@/lib/utils';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
+import { Layers } from 'lucide-react';
 
 interface Props {
 	ontologies: VirtualOntology[];
@@ -76,6 +84,7 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 	const hasMovedRef = useRef(false);
 	const panRef = useRef<{ startX: number; startY: number; vbX: number; vbY: number } | null>(null);
 	const [positionOverrides, setPositionOverrides] = useState<Record<string, { x: number; y: number }>>({});
+	const [selectedOntologyId, setSelectedOntologyId] = useState<string | null>(null);
 	const [fullscreenOntologyId, setFullscreenOntologyId] = useState<string | null>(null);
 	const [viewBox, setViewBox] = useState<ViewBox | null>(null);
 	const viewBoxRef = useRef(viewBox);
@@ -84,6 +93,8 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 	positionOverridesRef.current = positionOverrides;
 
 	const isFullscreen = fullscreenOntologyId !== null;
+	const activeOntologyId = fullscreenOntologyId ?? selectedOntologyId;
+	const hasSelection = activeOntologyId !== null;
 
 	// Load saved positions from localStorage
 	useEffect(() => {
@@ -179,23 +190,23 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 		return links;
 	}, [displayNodes, ontologies]);
 
-	// --- Fullscreen: filter to focused ontology ---
+	// --- Filter to selected ontology ---
 	const visibleGroups = useMemo(() =>
-		isFullscreen ? groups.filter(g => g.id === fullscreenOntologyId) : groups,
-		[groups, isFullscreen, fullscreenOntologyId]);
+		hasSelection ? groups.filter(g => g.id === activeOntologyId) : groups,
+		[groups, hasSelection, activeOntologyId]);
 
 	const visibleNodes = useMemo(() =>
-		isFullscreen ? displayNodes.filter(n => n.ontology.id === fullscreenOntologyId) : displayNodes,
-		[displayNodes, isFullscreen, fullscreenOntologyId]);
+		hasSelection ? displayNodes.filter(n => n.ontology.id === activeOntologyId) : displayNodes,
+		[displayNodes, hasSelection, activeOntologyId]);
 
 	const visibleLinks = useMemo(() => {
-		if (!isFullscreen) return displayLinks;
-		const ontology = ontologies.find(o => o.id === fullscreenOntologyId);
+		if (!hasSelection) return displayLinks;
+		const ontology = ontologies.find(o => o.id === activeOntologyId);
 		if (!ontology) return [];
 		const links: GraphLink[] = [];
 		ontology.virtualLinks.forEach(link => {
-			const source = displayNodes.find(n => n.id === link.sourceObjectId && n.ontology.id === fullscreenOntologyId);
-			const target = displayNodes.find(n => n.id === link.targetObjectId && n.ontology.id === fullscreenOntologyId);
+			const source = displayNodes.find(n => n.id === link.sourceObjectId && n.ontology.id === activeOntologyId);
+			const target = displayNodes.find(n => n.id === link.targetObjectId && n.ontology.id === activeOntologyId);
 			if (source && target) {
 				const sourceIsLeft = source.x <= target.x;
 				links.push({
@@ -212,7 +223,7 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 			}
 		});
 		return links;
-	}, [isFullscreen, fullscreenOntologyId, displayNodes, displayLinks, ontologies]);
+	}, [hasSelection, activeOntologyId, displayNodes, displayLinks, ontologies]);
 
 	// SVG content dimensions (used for clamping the pan/zoom view)
 	const svgWidth = useMemo(() => {
@@ -366,6 +377,34 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 	const vb = viewBox ?? fitViewBox();
 	const vbStr = vb ? `${vb.x} ${vb.y} ${vb.w} ${vb.h}` : undefined;
 
+	if (!hasSelection) {
+		return (
+			<div className="flex flex-col items-center justify-center h-[640px] w-full bg-gradient-to-br from-slate-50 via-white to-indigo-50/40 gap-6">
+				<div className="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center">
+					<Layers className="w-10 h-10 text-indigo-600" />
+				</div>
+				<div className="text-center">
+					<div className="text-lg font-semibold text-slate-900 mb-1">Select an Ontology</div>
+					<div className="text-sm text-muted-foreground mb-4">Choose a virtual ontology to view its graph</div>
+				</div>
+				<div className="w-full max-w-md">
+					<Select value={selectedOntologyId ?? ''} onValueChange={(val) => setSelectedOntologyId(val || null)}>
+						<SelectTrigger>
+							<SelectValue placeholder="Select a virtual ontology..." />
+						</SelectTrigger>
+						<SelectContent>
+							{ontologies.map(ontology => (
+								<SelectItem key={ontology.id} value={ontology.id}>
+									{ontology.name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<div
 			ref={containerRef}
@@ -374,19 +413,54 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 				isFullscreen ? 'fixed inset-0 z-50' : 'h-[640px] w-full'
 			)}
 		>
-			{/* Exit fullscreen button (only when fullscreened) */}
-			{isFullscreen && (
-				<button
-					onClick={() => setFullscreenOntologyId(null)}
-					className="absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-lg border border-indigo-300 bg-white px-2.5 py-1.5 text-xs font-medium text-indigo-600 shadow-sm transition-colors hover:bg-slate-50"
-				>
-					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-						<polyline points="4 8 4 4 8 4" /><line x1="20" y1="4" x2="14" y2="10" />
-						<polyline points="20 16 20 20 16 20" /><line x1="4" y1="20" x2="10" y2="14" />
-					</svg>
-					Exit fullscreen
-				</button>
-			)}
+			{/* Top toolbar */}
+			<div className="absolute top-3 left-3 right-3 z-10 flex items-center gap-3">
+				<div className="flex-1 max-w-md">
+					<Select
+						value={selectedOntologyId ?? ''}
+						onValueChange={(val) => {
+							setSelectedOntologyId(val || null);
+							if (isFullscreen) {
+								setFullscreenOntologyId(val || null);
+							}
+						}}
+					>
+						<SelectTrigger className="bg-white/90 backdrop-blur-sm">
+							<SelectValue placeholder="Select a virtual ontology..." />
+						</SelectTrigger>
+						<SelectContent>
+							{ontologies.map(ontology => (
+								<SelectItem key={ontology.id} value={ontology.id}>
+									{ontology.name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
+				{!isFullscreen ? (
+					<button
+						onClick={() => setFullscreenOntologyId(selectedOntologyId)}
+						className="flex items-center gap-1.5 rounded-lg border border-indigo-300 bg-white px-2.5 py-1.5 text-xs font-medium text-indigo-600 shadow-sm transition-colors hover:bg-slate-50"
+					>
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+							<polyline points="4 8 4 4 8 4" /><line x1="20" y1="4" x2="14" y2="10" />
+							<polyline points="20 16 20 20 16 20" /><line x1="4" y1="20" x2="10" y2="14" />
+						</svg>
+						Fullscreen
+					</button>
+				) : (
+					<button
+						onClick={() => setFullscreenOntologyId(null)}
+						className="flex items-center gap-1.5 rounded-lg border border-indigo-300 bg-white px-2.5 py-1.5 text-xs font-medium text-indigo-600 shadow-sm transition-colors hover:bg-slate-50"
+					>
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+							<polyline points="4 8 4 4 8 4" /><line x1="20" y1="4" x2="14" y2="10" />
+							<polyline points="20 16 20 20 16 20" /><line x1="4" y1="20" x2="10" y2="14" />
+						</svg>
+						Exit fullscreen
+					</button>
+				)}
+			</div>
 
 			{/* Zoom controls */}
 			<div className="absolute bottom-4 right-4 z-10 flex flex-col gap-1.5">
@@ -441,26 +515,6 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 						<text x={group.x + 28} y={group.y + 56} className="fill-slate-500 text-[12px]">
 							Business object graph · {group.ontology.virtualObjects.length} objects · {group.ontology.virtualLinks.length} links
 						</text>
-
-						{/* Fullscreen button per ontology */}
-						{!isFullscreen && (
-							<g
-								className="cursor-pointer"
-								onClick={e => { e.stopPropagation(); setFullscreenOntologyId(group.id); }}
-							>
-								<rect
-									x={group.x + group.width - 114}
-									y={group.y + 16}
-									width={90}
-									height={26}
-									rx={8}
-									className="fill-white stroke-slate-200 hover:stroke-indigo-300 transition-colors"
-								/>
-								<text x={group.x + group.width - 69} y={group.y + 34} textAnchor="middle" className="fill-slate-500 text-[11px] font-medium">
-									⛶ Fullscreen
-								</text>
-							</g>
-						)}
 					</g>
 				))}
 

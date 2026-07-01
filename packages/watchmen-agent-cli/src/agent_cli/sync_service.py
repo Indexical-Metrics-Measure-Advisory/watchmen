@@ -7,7 +7,7 @@ import yaml
 
 from agent_cli.exceptions import AgentCliException
 from agent_cli.http_client import RestClient
-from agent_cli.vault import DATASOURCE_DIR, ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CONFIG_DIR, INGEST_TABLE_CONFIG_DIR, METRICFLOW_METRIC_DIR, METRICFLOW_SEMANTIC_DIR, PIPELINE_DIR, TOPIC_DIR, write_entities, write_yaml_entity, write_yaml_entity_by_name, read_yaml_entities
+from agent_cli.vault import DATASOURCE_DIR, ENUM_DIR, INGEST_MODEL_CONFIG_DIR, INGEST_MODULE_CONFIG_DIR, INGEST_TABLE_CONFIG_DIR, METRICFLOW_METRIC_DIR, METRICFLOW_SEMANTIC_DIR, ONTOLOGY_DIR, PIPELINE_DIR, TOPIC_DIR, write_entities, write_yaml_entity, write_yaml_entity_by_name, read_yaml_entities
 
 SyncTarget = Literal[
     "topic", "pipeline", "enum", "semantic", "metric",
@@ -727,3 +727,49 @@ class SyncService:
         if duplicated:
             details = "; ".join([f"{name}: {', '.join(sorted(ids))}" for name, ids in duplicated.items()])
             raise AgentCliException(f"Topic name must be unique in local vault before push. Duplicates: {details}")
+
+    def pull_one_ontology_by_name(self, ontology_name: str) -> Dict[str, Any]:
+        ontology_yaml = self.client.get_text("/ontology/name/yaml/agent-view", {"name": ontology_name})
+        write_yaml_entity_by_name(self.vault_path, ONTOLOGY_DIR, ontology_yaml)
+        return {"ontologyName": ontology_name, "status": "pulled"}
+
+    def push_ontology_yaml_file(self, file_path: Path) -> Dict[str, Any]:
+        if not file_path.exists():
+            raise AgentCliException(f"File not found: {file_path}")
+        source_yaml = file_path.read_text(encoding="utf-8")
+        source_ontology = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
+        source_name = str((source_ontology or {}).get("name") or "").strip()
+        pushed_yaml = self.client.post_text("/ontology/yaml/agent-upsert", source_yaml)
+        pushed_response = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
+        pushed_name = str((pushed_response or {}).get("name") or "").strip()
+
+        if file_path.resolve().is_relative_to((self.vault_path / ONTOLOGY_DIR).resolve()):
+            write_yaml_entity_by_name(self.vault_path, ONTOLOGY_DIR, source_yaml)
+            if source_name and pushed_name and source_name != pushed_name and file_path.exists():
+                file_path.unlink()
+        else:
+            file_path.write_text(source_yaml, encoding="utf-8")
+
+        return {
+            "status": "pushed",
+            "file": str(file_path),
+            "name": pushed_name or source_name or None,
+        }
+
+    def list_ontologies_from_server(self) -> Dict[str, Any]:
+        ontologies_yaml = self.client.get_text("/ontology/all/yaml/agent-view")
+        ontologies = []
+        if ontologies_yaml.strip():
+            for doc in yaml.safe_load_all(ontologies_yaml):
+                if doc:
+                    ontologies.append(doc)
+        summaries = []
+        for o in ontologies:
+            summaries.append({
+                "name": o.get("name"),
+                "description": o.get("description"),
+                "objectCount": len(o.get("virtualObjects") or []),
+                "linkCount": len(o.get("virtualLinks") or []),
+                "sensitivity": o.get("sensitivity"),
+            })
+        return {"count": len(summaries), "ontologies": summaries}

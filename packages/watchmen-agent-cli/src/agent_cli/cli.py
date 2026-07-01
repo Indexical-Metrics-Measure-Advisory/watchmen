@@ -35,6 +35,10 @@ from agent_cli.main import (
     handle_metric_list_remote,
     handle_metric_pull_name,
     handle_metric_push_file,
+    handle_ontology_list,
+    handle_ontology_list_remote,
+    handle_ontology_pull_name,
+    handle_ontology_push_file,
     handle_pipeline_list,
     handle_pipeline_list_remote,
     handle_pipeline_pull,
@@ -66,6 +70,7 @@ ingest_table_app = typer.Typer(help="Collector table config commands")
 ingest_model_app = typer.Typer(help="Collector model config commands")
 ingest_module_app = typer.Typer(help="Collector module config commands")
 datasource_app = typer.Typer(help="DataSource commands")
+ontology_app = typer.Typer(help="Ontology YAML commands")
 app.add_typer(topic_app, name="topic")
 app.add_typer(pipeline_app, name="pipeline")
 app.add_typer(enum_app, name="enum")
@@ -76,6 +81,7 @@ ingest_app.add_typer(ingest_table_app, name="table")
 ingest_app.add_typer(ingest_model_app, name="model")
 ingest_app.add_typer(ingest_module_app, name="module")
 app.add_typer(datasource_app, name="datasource")
+app.add_typer(ontology_app, name="ontology")
 
 
 def _namespace(**kwargs) -> Namespace:
@@ -485,6 +491,40 @@ def datasource_list_remote_command(
     vault: Optional[str] = typer.Option(None, "--vault"),
 ) -> None:
     _run_with_guard(ctx, lambda: handle_datasource_list_remote(_namespace(vault=vault)))
+
+
+@ontology_app.command("pull-name")
+def ontology_pull_name_command(
+    ctx: typer.Context,
+    ontology_name: str,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ontology_pull_name(_namespace(ontology_name=ontology_name, vault=vault)))
+
+
+@ontology_app.command("push-file")
+def ontology_push_file_command(
+    ctx: typer.Context,
+    file_path: str,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ontology_push_file(_namespace(file_path=file_path, vault=vault)))
+
+
+@ontology_app.command("list")
+def ontology_list_command(
+    ctx: typer.Context,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ontology_list(_namespace(vault=vault)))
+
+
+@ontology_app.command("list-remote")
+def ontology_list_remote_command(
+    ctx: typer.Context,
+    vault: Optional[str] = typer.Option(None, "--vault"),
+) -> None:
+    _run_with_guard(ctx, lambda: handle_ontology_list_remote(_namespace(vault=vault)))
 
 
 def run() -> None:
