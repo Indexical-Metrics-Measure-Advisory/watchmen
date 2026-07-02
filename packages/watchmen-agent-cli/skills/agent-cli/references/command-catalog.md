@@ -72,3 +72,12 @@
 - `ingest module push-file <file_path> --vault`
 - `ingest module list --vault`
 - `ingest module list-remote --vault`
+
+## Virtual Ontology
+
+> Ontology is a standalone command group, **not included** in `pull --target all`. Manage it separately.
+
+- `ontology pull-name "<ontology_name>" --vault`
+- `ontology push-file <file_path> --vault`
+- `ontology list --vault`
+- `ontology list-remote --vault`

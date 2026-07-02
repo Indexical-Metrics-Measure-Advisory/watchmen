@@ -4,13 +4,14 @@
 
 For detailed ID management rules, templates, and workflows for all entity types, see `references/id-management-guide.md`.
 
-| Entity                         | Current local YAML strategy                                                                                                                   |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Topic                          | No-id agent view. Omit `topicId`, `factorId`, `tenantId`, `version`; use `name` as upsert key.                                                |
-| Pipeline                       | No-id agent view. Omit `pipelineId`, `stageId`, `unitId`, `actionId`, `topicId`, `factorId`, `tenantId`, `version`; use `name` as upsert key. |
-| Enum/Semantic/Metric/Ingestion | Legacy id strategy. New IDs use `null`; existing resources may contain real server IDs.                                                       |
+| Entity                         | Current local YAML strategy                                                                                                                                  |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Topic                          | No-id agent view. Omit `topicId`, `factorId`, `tenantId`, `version`; use `name` as upsert key.                                                               |
+| Pipeline                       | No-id agent view. Omit `pipelineId`, `stageId`, `unitId`, `actionId`, `topicId`, `factorId`, `tenantId`, `version`; use `name` as upsert key.                |
+| Enum/Semantic/Metric/Ingestion | Legacy id strategy. New IDs use `null`; existing resources may contain real server IDs.                                                                      |
+| Virtual Ontology               | No-id agent view. Omit `ontologyId`, internal object/link IDs, `tenantId`, `version`; use `name` and `sourceObjectName`/`targetObjectName` as business keys. |
 
-- **Topic/Pipeline**: never invent or fill internal IDs. Use business names (`name`, `sourceTopicName`, `topicName`, `factorName`).
+- **Topic/Pipeline/Ontology**: never invent or fill internal IDs. Use business names (`name`, `sourceTopicName`, `topicName`, `factorName`, `sourceObjectName`, `targetObjectName`).
 - **Legacy entities**: new entity IDs still use `null`; fake/placeholder IDs (e.g., `f-xxx`) can cause server errors.
 
 ## Local File Naming Conventions
@@ -44,6 +45,7 @@ For detailed ID management rules, templates, and workflows for all entity types,
     - Module: `ingest/modules/{module_name}__{module_id}.yml`
     - Model: `ingest/models/{model_name}__{model_id}.yml`
     - Table: `ingest/tables/{table_name}__{table_id}.yml`
+- **Virtual Ontology**: `ontology/{ontology_name}.yml` (no ID suffix, no-id agent view).
 
 ## Topic
 
@@ -164,3 +166,15 @@ For detailed ID management rules, templates, and workflows for all entity types,
             cumulative_type_params: null
         ```
     - YAML endpoints: `/metricflow/metric/name/yaml`, `/metricflow/metric/yaml`
+
+## Virtual Ontology
+
+- **No-id agent view**: agent YAML MUST NOT include `ontologyId`, internal `virtualObjectId` / `virtualLinkId` / `joinConditionId` / `derivedAttributeId`, `tenantId`, or `version`. Upsert is resolved by `ontology.name` on the server.
+- **Link references**: virtual links MUST use `sourceObjectName` and `targetObjectName` (referencing `virtualObjects[].name`) instead of internal object IDs.
+- Agent YAML core fields: `name:str`, `description:str|None`, `owner:str|None`, `technicalOwner:str|None`, `tags:list[str]|None`, `sensitivity:str`, `virtualObjects:list[VirtualObject]`, `virtualLinks:list[VirtualLink]`.
+- `sensitivity` candidates: `public`, `internal`, `confidential`, `secret` (defaults to `internal`).
+- `VirtualObject` core fields: `name:str`, `description:str|None`, `icon:str|None`, `kind:str|None`, `attributes:list[dict]|None`, `derivedAttributes:list[dict]|None`.
+- `VirtualLink` core fields: `name:str`, `sourceObjectName:str`, `targetObjectName:str`, `joinType:str`, `joinConditions:list[dict]`, `description:str|None`.
+- `joinType` candidates: `inner`, `left`, `right`, `full`.
+- YAML endpoints: `/ontology/name/yaml/agent-view`, `/ontology/yaml/agent-upsert`, `/ontology/all/yaml/agent-view`.
+- CLI sync commands are NOT part of `pull --target all`; use the standalone `ontology` command group.

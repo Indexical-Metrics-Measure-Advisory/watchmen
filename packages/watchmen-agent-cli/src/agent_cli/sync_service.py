@@ -729,7 +729,7 @@ class SyncService:
             raise AgentCliException(f"Topic name must be unique in local vault before push. Duplicates: {details}")
 
     def pull_one_ontology_by_name(self, ontology_name: str) -> Dict[str, Any]:
-        ontology_yaml = self.client.get_text("/ontology/name/yaml/agent-view", {"name": ontology_name})
+        ontology_yaml = self.client.get_text("metric/ontology/name/yaml/agent-view", {"name": ontology_name})
         write_yaml_entity_by_name(self.vault_path, ONTOLOGY_DIR, ontology_yaml)
         return {"ontologyName": ontology_name, "status": "pulled"}
 
@@ -739,7 +739,7 @@ class SyncService:
         source_yaml = file_path.read_text(encoding="utf-8")
         source_ontology = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
         source_name = str((source_ontology or {}).get("name") or "").strip()
-        pushed_yaml = self.client.post_text("/ontology/yaml/agent-upsert", source_yaml)
+        pushed_yaml = self.client.post_text("metric/ontology/yaml/agent-upsert", source_yaml)
         pushed_response = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
         pushed_name = str((pushed_response or {}).get("name") or "").strip()
 
@@ -757,7 +757,7 @@ class SyncService:
         }
 
     def list_ontologies_from_server(self) -> Dict[str, Any]:
-        ontologies_yaml = self.client.get_text("/ontology/all/yaml/agent-view")
+        ontologies_yaml = self.client.get_text("/metric/ontology/all/yaml/agent-view")
         ontologies = []
         if ontologies_yaml.strip():
             for doc in yaml.safe_load_all(ontologies_yaml):

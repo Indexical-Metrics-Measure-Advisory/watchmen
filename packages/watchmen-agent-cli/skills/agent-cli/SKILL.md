@@ -1,6 +1,6 @@
 ---
 name: agent-cli
-description: Synchronizes Watchmen metadata (topic/pipeline/enum/semantic/metric/ingest) via CLI+REST. Invoke for init, pull/push, list-remote, pull by name/id, and YAML sync.
+description: Synchronizes Watchmen metadata (topic/pipeline/enum/semantic/metric/ingest/ontology) via CLI+REST. Invoke for init, pull/push, list-remote, pull by name/id, and YAML sync.
 ---
 
 # Agent CLI for Watchmen
@@ -16,18 +16,20 @@ Thin orchestration layer for `agent-cli`. Keep this file concise; load detailed 
 ## When To Invoke
 
 - User asks to initialize CLI vault/config.
-- User asks to pull/push Topic, Pipeline, Enum, Semantic Model, Metric, or Ingestion configs.
+- User asks to pull/push Topic, Pipeline, Enum, Semantic Model, Metric, Ingestion, or Virtual Ontology configs.
 - User asks to list remote metadata or pull data sources.
 - User asks to pull by name/id, or push local YAML files.
 - User asks to create a raw topic from a collector model (generate Topic YAML from Ingestion model).
 
 ## Critical Rules
 
-- **Check Before Create**: Before creating any entity (Topic, Pipeline, Enum, Semantic Model, Metric, Ingestion), first check the local filesystem for existing YAML files, then run `list-remote` to check remote. If it exists, UPDATE instead of creating a duplicate. → `references/pre-submission-validation.md`
-- **Topic/Pipeline Agent YAML**: Topic and Pipeline YAML are now no-id agent views. Do NOT include `topicId`, `factorId`, `pipelineId`, `stageId`, `unitId`, `actionId`, `tenantId`, or `version`. Use `name` as the local file index. → `references/source-of-truth.md`
+- **Check Before Create**: Before creating any entity (Topic, Pipeline, Enum, Semantic Model, Metric, Ingestion, Ontology), first check the local filesystem for existing YAML files, then run `list-remote` to check remote. If it exists, UPDATE instead of creating a duplicate. → `references/pre-submission-validation.md`
+- **Topic/Pipeline/Ontology Agent YAML**: Topic, Pipeline, and Ontology YAML are no-id agent views. Do NOT include `topicId`, `factorId`, `pipelineId`, `stageId`, `unitId`, `actionId`, `ontologyId`, internal object/link IDs, `tenantId`, or `version`. Use `name` as the local file index. → `references/source-of-truth.md`
 - **Topic datasource**: use `dataSourceCode` (not `dataSourceId`) in topic YAML. If unknown, run `datasource list-remote` or ASK the user. → `references/source-of-truth.md`
 - **Pipeline references**: use `sourceTopicName`, `topicName`, and `factorName` instead of `topicId` / `factorId`. → `references/pipeline-development.md`
-- **IDs**: For Topic/Pipeline, omit IDs entirely. For legacy entities (Enum/Semantic/Metric/Ingestion), new IDs still use `null`. → `references/id-management-guide.md`
+- **Ontology references**: use `sourceObjectName` and `targetObjectName` (referencing `virtualObjects[].name`) instead of internal object IDs. → `references/source-of-truth.md`
+- **IDs**: For Topic/Pipeline/Ontology, omit IDs entirely. For legacy entities (Enum/Semantic/Metric/Ingestion), new IDs still use `null`. → `references/id-management-guide.md`
+- **Ontology scope**: Ontology sync is a standalone command group, NOT included in `pull --target all`. Use `ontology pull-name` / `push-file` / `list-remote` separately. → `references/command-catalog.md`
 - **Validation**: Run all pre-submission checks before pushing any YAML. → `references/pre-submission-validation.md`
 - **Data Layers**: Four-layer architecture (Bronze→Silver→Gold→Datamart). → `references/data-layer-architecture.md`
 
@@ -40,7 +42,7 @@ Thin orchestration layer for `agent-cli`. Keep this file concise; load detailed 
 
 ## File Naming Conventions
 
-- Topic/Pipeline local files: `{name}.yml` (no ID suffix).
+- Topic/Pipeline/Ontology local files: `{name}.yml` (no ID suffix).
 - Other legacy entities still use `{name}__{id}.yml` unless their reference says otherwise.
 - Directory layout → `references/source-of-truth.md`
 
@@ -75,7 +77,7 @@ Thin orchestration layer for `agent-cli`. Keep this file concise; load detailed 
 
 ## Scope
 
-- Supported entities: Topic, Pipeline, Enum, MetricFlow Semantic Model, MetricFlow Metric, Ingestion Module/Model/Table, DataSource.
+- Supported entities: Topic, Pipeline, Enum, MetricFlow Semantic Model, MetricFlow Metric, Ingestion Module/Model/Table, Virtual Ontology, DataSource.
 - Supported actions: pull, push, list, list-remote, pull by name/id, push local YAML files, create raw topic from ingestion model.
-- Protocol: YAML for topic/pipeline/enum/ingestion.
+- Protocol: YAML for topic/pipeline/enum/ingestion/ontology.
 - Outputs: JSON summaries suitable for agent chaining.
