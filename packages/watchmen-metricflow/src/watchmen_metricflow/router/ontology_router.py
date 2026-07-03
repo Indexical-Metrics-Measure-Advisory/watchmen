@@ -31,9 +31,19 @@ def get_ontology_service(principal_service: PrincipalService) -> OntologyService
 def _ontology_to_agent_yaml(ontology: VirtualOntology) -> Dict[str, Any]:
 	"""Convert full VirtualOntology to agent-view YAML dict (strip IDs)."""
 	obj_by_id: Dict[str, str] = {}
+	link_by_id: Dict[str, str] = {}
 	for vo in (ontology.virtualObjects or []):
 		if vo.id:
 			obj_by_id[vo.id] = vo.name or ''
+	for vl in (ontology.virtualLinks or []):
+		if vl.id:
+			link_by_id[vl.id] = vl.name or ''
+
+	def _resolve_path_token(idx: int, token: str) -> str:
+		# even index -> object id, odd index -> link id
+		if idx % 2 == 0:
+			return obj_by_id.get(token, token)
+		return link_by_id.get(token, token)
 
 	return {
 		'name': ontology.name,
@@ -49,9 +59,22 @@ def _ontology_to_agent_yaml(ontology: VirtualOntology) -> Dict[str, Any]:
 			'color': vo.color,
 			'physicalTables': ArrayHelper(vo.physicalTables).map(lambda pt: {
 				'topicName': pt.topicName,
-				'role': pt.role,
+				# 关键：必须输出 `kind`（SQL 编译和 UI 都依赖此字段）。
+				# 旧版本误用了 model 中不存在的 `pt.role`（会抛 AttributeError 或输出 null），
+				# 导致 roundtrip 后所有 primary 都退化为 detail，详见 bug #ontology-yaml-kind-loss。
+				'kind': pt.kind,
+				'joinType': pt.joinType,
 				'alias': pt.alias,
 				'fields': pt.fields or [],
+				'joinConditions': ArrayHelper(pt.joinConditions or []).map(lambda jc: {
+					'sourceField': jc.sourceField,
+					'targetField': jc.targetField,
+				}).to_list(),
+				'filters': ArrayHelper(pt.filters or []).map(lambda f: {
+					'field': f.field,
+					'operator': f.operator,
+					'value': f.value,
+				}).to_list(),
 			}).to_list(),
 			'attributes': ArrayHelper(vo.attributes).map(lambda a: {
 				'name': a.name,
@@ -62,7 +85,7 @@ def _ontology_to_agent_yaml(ontology: VirtualOntology) -> Dict[str, Any]:
 				'name': da.name,
 				'description': da.description,
 				'aggregate': da.aggregate,
-				'path': da.path or [],
+				'path': [_resolve_path_token(i, t) for i, t in enumerate(da.path or [])],
 				'targetField': da.targetField,
 			}).to_list(),
 		}).to_list(),
@@ -74,6 +97,11 @@ def _ontology_to_agent_yaml(ontology: VirtualOntology) -> Dict[str, Any]:
 			'joinConditions': ArrayHelper(vl.joinConditions).map(lambda jc: {
 				'sourceField': jc.sourceField,
 				'targetField': jc.targetField,
+			}).to_list(),
+			'filters': ArrayHelper(vl.filters).map(lambda f: {
+				'field': f.field,
+				'operator': f.operator,
+				'value': f.value,
 			}).to_list(),
 			'description': vl.description,
 		}).to_list(),
@@ -123,7 +151,12 @@ def _agent_yaml_to_ontology(
 			color=vo_data.get('color'),
 			physicalTables=vo_data.get('physicalTables', []),
 			attributes=vo_data.get('attributes', []),
-			derivedAttributes=_resolve_derived_ids(vo_data.get('derivedAttributes', []), obj_id),
+			derivedAttributes=_resolve_derived_ids(
+				vo_data.get('derivedAttributes', []),
+				obj_id,
+				obj_by_name={vo.name: vo.id for vo in objects if vo.name},
+				link_by_name={},
+			),
 		))
 	ontology.virtualObjects = objects
 
@@ -141,19 +174,51 @@ def _agent_yaml_to_ontology(
 			targetObjectId=obj_by_name.get(vl_data.get('targetObjectName', ''), ''),
 			joinType=vl_data.get('joinType', 'inner'),
 			joinConditions=vl_data.get('joinConditions', []),
+			filters=vl_data.get('filters', []),
 			description=vl_data.get('description'),
 		))
 	ontology.virtualLinks = links
 
+	# ---- resolve derived path names back to IDs (after links are built) ----
+	link_by_name = {vl.name: vl.id for vl in links if vl.name}
+	obj_ids = set(obj_by_name.values())
+	link_ids = set(link_by_name.values())
+	for vo in ontology.virtualObjects or []:
+		for da in (vo.derivedAttributes or []):
+			resolved_path = []
+			for idx, token in enumerate(da.path or []):
+				if not token:
+					resolved_path.append(token)
+					continue
+				# even index -> object name/id, odd index -> link name/id
+				lookup = obj_by_name if idx % 2 == 0 else link_by_name
+				known_ids = obj_ids if idx % 2 == 0 else link_ids
+				if token in lookup:
+					resolved_path.append(lookup[token])
+				elif token in known_ids:
+					# already an ID, keep as-is
+					resolved_path.append(token)
+				else:
+					# unknown token, keep as-is (validation will catch it later)
+					resolved_path.append(token)
+			da.path = resolved_path
+
 	return ontology
 
 
-def _resolve_derived_ids(derived_list: List[Dict[str, Any]], obj_id: str) -> List[DerivedAttribute]:
-	"""Ensure derived attributes carry objectId."""
+def _resolve_derived_ids(
+	derived_list: List[Dict[str, Any]],
+	obj_id: str,
+	obj_by_name: Dict[str, str],
+	link_by_name: Dict[str, str],
+) -> List[DerivedAttribute]:
+	"""Ensure derived attributes carry objectId. Path token resolution is done in a
+	second pass in _agent_yaml_to_ontology once all virtual objects and links are built."""
 	results = []
 	for da_data in derived_list:
-		da_data['objectId'] = obj_id
-		results.append(da_data)
+		da_copy = dict(da_data)
+		da_copy['objectId'] = obj_id
+		results.append(da_copy)
 	return results
 
 

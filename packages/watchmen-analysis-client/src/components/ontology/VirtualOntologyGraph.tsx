@@ -42,6 +42,8 @@ interface DragState {
 	ontologyId: string | null;
 	offsetX: number;
 	offsetY: number;
+	startClientX: number;
+	startClientY: number;
 }
 
 interface ViewBox {
@@ -60,6 +62,7 @@ const STORAGE_KEY = 'ontology-graph-positions';
 const FULLSCREEN_PADDING = 80;
 const MIN_ZOOM_SCALE = 0.2;
 const MAX_ZOOM_SCALE = 4;
+const DRAG_CLICK_THRESHOLD = 4;
 const clampView = (vb: ViewBox, cw: number, ch: number, pad: number): ViewBox => {
 	const minW = cw / MAX_ZOOM_SCALE;
 	const minH = ch / MAX_ZOOM_SCALE;
@@ -180,7 +183,7 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 						x2: sourceIsLeft ? target.x : target.x + target.width,
 						y2: target.y + target.height / 2,
 						name: link.name,
-						label: joinTypeConfig[link.joinType].label,
+						label: (joinTypeConfig[link.joinType] ?? joinTypeConfig.inner).label,
 						joinType: link.joinType,
 						conditionCount: link.joinConditions.length,
 					});
@@ -216,7 +219,7 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 					x2: sourceIsLeft ? target.x : target.x + target.width,
 					y2: target.y + target.height / 2,
 					name: link.name,
-					label: joinTypeConfig[link.joinType].label,
+					label: (joinTypeConfig[link.joinType] ?? joinTypeConfig.inner).label,
 					joinType: link.joinType,
 					conditionCount: link.joinConditions.length,
 				});
@@ -296,6 +299,21 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 
 	const resetView = useCallback(() => setViewBox(fitViewBox()), [fitViewBox]);
 
+	const resetLayout = useCallback(() => {
+		setPositionOverrides(prev => {
+			if (!activeOntologyId) return prev;
+			const next = Object.fromEntries(
+				Object.entries(prev).filter(([key]) => !key.startsWith(`${activeOntologyId}:`))
+			);
+			positionOverridesRef.current = next;
+			try {
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+			} catch { /* quota exceeded — silently ignore */ }
+			return next;
+		});
+		setViewBox(fitViewBox());
+	}, [activeOntologyId, fitViewBox]);
+
 	// Convert screen coordinates to SVG coordinate space
 	const getSvgCoords = useCallback((clientX: number, clientY: number) => {
 		const svg = svgRef.current;
@@ -312,12 +330,20 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 	// --- Drag/pan handlers ---
 
 	const handleNodeMouseDown = useCallback((e: React.MouseEvent, nodeId: string, ontologyId: string) => {
+		if (e.button !== 0) return;
 		e.stopPropagation();
 		hasMovedRef.current = false;
 		const { x, y } = getSvgCoords(e.clientX, e.clientY);
 		const node = displayNodes.find(n => n.id === nodeId && n.ontology.id === ontologyId);
 		if (!node) return;
-		dragRef.current = { nodeId, ontologyId, offsetX: x - node.x, offsetY: y - node.y };
+		dragRef.current = {
+			nodeId,
+			ontologyId,
+			offsetX: x - node.x,
+			offsetY: y - node.y,
+			startClientX: e.clientX,
+			startClientY: e.clientY,
+		};
 	}, [getSvgCoords, displayNodes]);
 
 	// Background mousedown starts panning
@@ -330,9 +356,10 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 		panRef.current = { startX: e.clientX, startY: e.clientY, vbX: vb.x, vbY: vb.y };
 	}, []);
 
-	const handleMouseMove = useCallback((e: React.MouseEvent) => {
+	const handlePointerMove = useCallback((e: MouseEvent) => {
 		if (dragRef.current && dragRef.current.nodeId) {
-			hasMovedRef.current = true;
+			const moved = Math.hypot(e.clientX - dragRef.current.startClientX, e.clientY - dragRef.current.startClientY);
+			if (moved > DRAG_CLICK_THRESHOLD) hasMovedRef.current = true;
 			const { x, y } = getSvgCoords(e.clientX, e.clientY);
 			const key = `${dragRef.current.ontologyId}:${dragRef.current.nodeId}`;
 			setPositionOverrides(prev => {
@@ -344,11 +371,13 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 		}
 		if (panRef.current) {
 			const svg = svgRef.current;
-			if (!svg) return;
-			hasMovedRef.current = true;
+			const vb = viewBoxRef.current;
+			if (!svg || !vb) return;
+			const moved = Math.hypot(e.clientX - panRef.current.startX, e.clientY - panRef.current.startY);
+			if (moved > DRAG_CLICK_THRESHOLD) hasMovedRef.current = true;
 			const rect = svg.getBoundingClientRect();
-			const dx = (e.clientX - panRef.current.startX) * (viewBoxRef.current!.w / rect.width);
-			const dy = (e.clientY - panRef.current.startY) * (viewBoxRef.current!.h / rect.height);
+			const dx = (e.clientX - panRef.current.startX) * (vb.w / rect.width);
+			const dy = (e.clientY - panRef.current.startY) * (vb.h / rect.height);
 			setViewBox(prev => prev ? clampView({ ...prev, x: panRef.current!.vbX - dx, y: panRef.current!.vbY - dy }, svgWidth, svgHeight, FULLSCREEN_PADDING) : prev);
 		}
 	}, [getSvgCoords, svgWidth, svgHeight]);
@@ -362,6 +391,15 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 		}
 		panRef.current = null;
 	}, []);
+
+	useEffect(() => {
+		window.addEventListener('mousemove', handlePointerMove);
+		window.addEventListener('mouseup', finishDrag);
+		return () => {
+			window.removeEventListener('mousemove', handlePointerMove);
+			window.removeEventListener('mouseup', finishDrag);
+		};
+	}, [handlePointerMove, finishDrag]);
 
 	// Distinguish click from drag
 	const handleNodeClick = useCallback((ontology: VirtualOntology) => {
@@ -462,16 +500,23 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 				)}
 			</div>
 
+			<div className="absolute bottom-4 left-4 z-10 rounded-lg border border-slate-200 bg-white/90 px-3 py-2 text-[11px] text-slate-500 shadow-sm backdrop-blur-sm">
+				Drag background to pan · Wheel to zoom · Drag cards to rearrange · Double-click to fit
+			</div>
+
 			{/* Zoom controls */}
 			<div className="absolute bottom-4 right-4 z-10 flex flex-col gap-1.5">
-				<ZoomButton onClick={() => zoomBy(1 / 1.3)} label="Zoom in">
+				<ZoomButton onClick={() => zoomBy(1 / 1.22)} label="Zoom in">
 					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
 				</ZoomButton>
-				<ZoomButton onClick={() => zoomBy(1.3)} label="Zoom out">
+				<ZoomButton onClick={() => zoomBy(1.22)} label="Zoom out">
 					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>
 				</ZoomButton>
 				<ZoomButton onClick={resetView} label="Fit to view">
 					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M21 16v3a2 2 0 0 1-2 2h-3" /></svg>
+				</ZoomButton>
+				<ZoomButton onClick={resetLayout} label="Reset card positions">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v6h6" /></svg>
 				</ZoomButton>
 			</div>
 
@@ -484,9 +529,7 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 				className="block select-none"
 				style={{ cursor: panRef.current ? 'grabbing' : 'grab' }}
 				onMouseDown={handleBackgroundMouseDown}
-				onMouseMove={handleMouseMove}
-				onMouseUp={finishDrag}
-				onMouseLeave={finishDrag}
+				onDoubleClick={resetView}
 			>
 				<defs>
 					<marker id="ontology-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">

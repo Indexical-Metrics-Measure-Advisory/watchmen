@@ -136,11 +136,18 @@ class VirtualLink(ExtendedBaseModel):
 	targetObjectId: Optional[str] = None
 	joinType: Optional[str] = 'inner'
 	joinConditions: Optional[List[JoinCondition]] = []
+	# 链接级过滤条件：在 join ON 子句中追加 sourceField / targetField
+	# 与常量的比较。语义类似 PhysicalTableMapping.filters，常用于把
+	# "取某条特定的 link 记录"（如某条 role = "policy_holder"）的约束
+	# 下推到 JOIN，而不是 WHERE。
+	filters: Optional[List[FilterCondition]] = []
 	description: Optional[str] = None
 
 	def __setattr__(self, name, value):
 		if name == 'joinConditions':
 			super().__setattr__(name, VirtualLink._construct_join_conditions(value))
+		elif name == 'filters':
+			super().__setattr__(name, VirtualLink._construct_filters(value))
 		else:
 			super().__setattr__(name, value)
 
@@ -150,6 +157,14 @@ class VirtualLink(ExtendedBaseModel):
 			return []
 		return ArrayHelper(values).map(
 			lambda x: x if isinstance(x, JoinCondition) else JoinCondition(**x)
+		).to_list()
+
+	@staticmethod
+	def _construct_filters(values):
+		if values is None:
+			return []
+		return ArrayHelper(values).map(
+			lambda x: x if isinstance(x, FilterCondition) else FilterCondition(**x)
 		).to_list()
 
 

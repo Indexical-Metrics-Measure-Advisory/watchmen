@@ -319,6 +319,69 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 		setDraft(prev => ({ ...prev, virtualLinks: prev.virtualLinks.filter((_, i) => i !== idx) }));
 	};
 
+	// ---- Link filter operations ----
+	const addLinkFilter = (idx: number) => {
+		setDraft(prev => ({
+			...prev,
+			virtualLinks: prev.virtualLinks.map((l, i) =>
+				i === idx
+					? { ...l, filters: [...(l.filters ?? []), { field: '', operator: 'eq' as FilterOperator, value: '' }] }
+					: l
+			),
+		}));
+	};
+
+	const updateLinkFilter = (idx: number, fIdx: number, patch: Partial<FilterCondition>) => {
+		setDraft(prev => ({
+			...prev,
+			virtualLinks: prev.virtualLinks.map((l, i) => {
+				if (i !== idx) return l;
+				const filters = [...(l.filters ?? [])];
+				filters[fIdx] = { ...filters[fIdx], ...patch };
+				return { ...l, filters };
+			}),
+		}));
+	};
+
+	const removeLinkFilter = (idx: number, fIdx: number) => {
+		setDraft(prev => ({
+			...prev,
+			virtualLinks: prev.virtualLinks.map((l, i) => {
+				if (i !== idx) return l;
+				return { ...l, filters: (l.filters ?? []).filter((_, fi) => fi !== fIdx) };
+			}),
+		}));
+	};
+
+	/** 解析 link filter 的 field（"source.col" / "target.col" / "col"）。 */
+	const parseLinkFilterField = (raw: string): { side: 'source' | 'target' | 'none'; column: string } => {
+		const trimmed = (raw || '').trim();
+		const lower = trimmed.toLowerCase();
+		if (lower.startsWith('source.')) return { side: 'source', column: trimmed.slice('source.'.length) };
+		if (lower.startsWith('target.')) return { side: 'target', column: trimmed.slice('target.'.length) };
+		return { side: 'none', column: trimmed };
+	};
+
+	/** 设置 link filter 的 side (source/target)，保留 column 部分。 */
+	const setLinkFilterSide = (idx: number, fIdx: number, side: 'source' | 'target' | 'none') => {
+		const current = (draft.virtualLinks[idx]?.filters ?? [])[fIdx];
+		if (!current) return;
+		const parsed = parseLinkFilterField(current.field);
+		let nextField: string;
+		if (side === 'none') nextField = parsed.column;
+		else nextField = `${side}.${parsed.column}`;
+		updateLinkFilter(idx, fIdx, { field: nextField });
+	};
+
+	/** 拿到 link source / target 物理表所有可用的列名（来自 primary table 的 fields）。 */
+	const getLinkSideFields = (link: VirtualLink, side: 'source' | 'target'): string[] => {
+		const objectId = side === 'source' ? link.sourceObjectId : link.targetObjectId;
+		const vo = draft.virtualObjects.find(o => o.id === objectId);
+		if (!vo) return [];
+		const primary = vo.physicalTables.find(t => t.kind === 'primary');
+		return primary?.fields ?? [];
+	};
+
 	const handleSave = () => {
 		const saved = { ...draft, updatedAt: new Date().toISOString().slice(0, 10) };
 		onSave(saved);
@@ -882,6 +945,102 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 											}}>
 												<Plus className="w-3 h-3 mr-1" /> Add condition
 											</Button>
+										</div>
+										{/* Filters: link-level constraints appended to the ON clause, e.g. source.role_type eq "policy_holder". */}
+										<div className="space-y-2">
+											<div className="flex items-center justify-between">
+												<span className="text-xs font-semibold uppercase text-muted-foreground">
+													Filters (link-level ON predicates)
+												</span>
+												<Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => addLinkFilter(idx)}>
+													<Plus className="w-3 h-3 mr-1" /> Add filter
+												</Button>
+											</div>
+											{(link.filters ?? []).map((flt, fIdx) => {
+												const opCfg = filterOperatorConfig[flt.operator] ?? filterOperatorConfig.eq;
+												const needsValue = opCfg.needsValue;
+												const parsed = parseLinkFilterField(flt.field);
+												const columnOnly = parsed.column;
+												const availableFields = parsed.side === 'target'
+													? getLinkSideFields(link, 'target')
+													: getLinkSideFields(link, 'source');
+												return (
+													<div key={fIdx} className="flex items-center gap-2 flex-wrap">
+														<Select
+															value={parsed.side}
+															onValueChange={v => setLinkFilterSide(idx, fIdx, v as 'source' | 'target' | 'none')}
+														>
+															<SelectTrigger className="w-24 h-7 text-xs">
+																<SelectValue placeholder="side" />
+															</SelectTrigger>
+															<SelectContent>
+																<SelectItem value="source">source</SelectItem>
+																<SelectItem value="target">target</SelectItem>
+																<SelectItem value="none">(none)</SelectItem>
+															</SelectContent>
+														</Select>
+														<Select
+															value={columnOnly}
+															onValueChange={v => {
+																const next = parsed.side === 'none' ? v : `${parsed.side}.${v}`;
+																updateLinkFilter(idx, fIdx, { field: next });
+															}}
+															disabled={parsed.side === 'none' || availableFields.length === 0}
+														>
+															<SelectTrigger className="flex-1 min-w-[120px] h-7 text-xs">
+																<SelectValue placeholder={availableFields.length === 0 ? 'no fields available' : 'column'} />
+															</SelectTrigger>
+															<SelectContent>
+																{availableFields.map(f => (
+																	<SelectItem key={f} value={f}>{f}</SelectItem>
+																))}
+															</SelectContent>
+														</Select>
+														<Select
+															value={flt.operator}
+															onValueChange={v => updateLinkFilter(idx, fIdx, { operator: v as FilterOperator })}
+														>
+															<SelectTrigger className="w-28 h-7 text-xs">
+																<SelectValue />
+															</SelectTrigger>
+															<SelectContent>
+																{Object.entries(filterOperatorConfig).map(([key, cfg]) => (
+																	<SelectItem key={key} value={key}>{cfg.label}</SelectItem>
+																))}
+															</SelectContent>
+														</Select>
+														{needsValue === 'single' && (
+															<Input
+																value={filterValueAsString(flt.value)}
+																onChange={e => updateLinkFilter(idx, fIdx, { value: e.target.value })}
+																placeholder="constant"
+																className="flex-1 min-w-[120px] h-7 text-xs"
+															/>
+														)}
+														{needsValue === 'list' && (
+															<Input
+																value={filterValueAsList(flt.value).join(',')}
+																onChange={e => updateLinkFilter(idx, fIdx, {
+																	value: e.target.value.split(',').map(s => s.trim()).filter(Boolean),
+																})}
+																placeholder="v1,v2,v3"
+																className="flex-1 min-w-[160px] h-7 text-xs"
+															/>
+														)}
+														{needsValue === 'none' && (
+															<span className="text-[10px] text-muted-foreground italic">no value</span>
+														)}
+														<Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeLinkFilter(idx, fIdx)}>
+															<Trash2 className="w-3.5 h-3.5 text-red-500" />
+														</Button>
+													</div>
+												);
+											})}
+											{(link.filters ?? []).length === 0 && (
+												<div className="text-[10px] text-muted-foreground">
+													Optional: append a constant to the ON clause, e.g. <code className="px-1 rounded bg-muted">source.role_type = "policy_holder"</code>.
+												</div>
+											)}
 										</div>
 									</CardContent>
 								</Card>

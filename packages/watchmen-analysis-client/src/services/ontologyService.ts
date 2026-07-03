@@ -152,6 +152,7 @@ export const createEmptyVirtualLink = (): VirtualLink => ({
 	targetObjectId: "",
 	joinType: "inner",
 	joinConditions: [{ sourceField: "", targetField: "" }],
+	filters: [],
 	description: "",
 });
 

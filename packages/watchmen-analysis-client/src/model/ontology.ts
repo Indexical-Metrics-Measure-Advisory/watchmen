@@ -58,6 +58,10 @@ export interface VirtualLink {
 	joinType: "inner" | "left" | "right" | "full";
 	/** Join conditions: source physical field → target physical field */
 	joinConditions: JoinCondition[];
+	/** Link-level filters appended to the ON clause.
+	 *  Use `source.<field>` or `target.<field>` in `FilterCondition.field` to
+	 *  indicate which side the column belongs to (e.g. `source.role_type`). */
+	filters?: FilterCondition[];
 	/** Optional human-readable description of this link */
 	description?: string;
 }

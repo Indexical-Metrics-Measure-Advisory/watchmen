@@ -6,7 +6,7 @@ from sqlalchemy import Column, DateTime, MetaData, Numeric, String, Table, and_,
 from sqlalchemy.sql import Select
 
 from watchmen_model.admin import (
-	DerivedAttribute, FilterCondition, PhysicalTableMapping, VirtualObject, VirtualObjectAttribute, VirtualOntology,
+	DerivedAttribute, FilterCondition, PhysicalTableMapping, VirtualLink, VirtualObject, VirtualObjectAttribute, VirtualOntology,
 )
 
 from .schema import OntologyQueryRequest
@@ -329,6 +329,78 @@ class OntologySqlCompiler:
 		raise OntologySqlCompileError(
 			f'Unsupported filter operator [{flt.operator}] on [{mapping.topicName}.{flt.field}].')
 
+	def _compile_link_filters(
+			self, link: VirtualLink, source_table: Table, target_table: Table, derived_name: str,
+	) -> List[Any]:
+		"""把 link.filters 编译为 ON 子句追加条件。
+
+		FilterCondition.field 用前缀 [source.] / [target.] 标识作用于哪一侧，例如
+		``source.policy_role_type_code`` 表示作用于 source 表，``target.active_flag``
+		表示作用于 target 表。无前缀的字段会被同时尝试解析，先 source 后 target。
+		支持 eq / ne / in / not_in / gt / gte / lt / lte / is_null / is_not_null。
+		"""
+		clauses: List[Any] = []
+		for flt in (link.filters or []):
+			clauses.append(self._compile_single_link_filter(flt, link, source_table, target_table, derived_name))
+		return clauses
+
+	def _compile_single_link_filter(
+			self, flt: FilterCondition, link: VirtualLink, source_table: Table, target_table: Table, derived_name: str,
+	) -> Any:
+		if not flt.field:
+			raise OntologySqlCompileError(
+				f'Filter on virtual link [{link.name}] is missing [field] for derived [{derived_name}].')
+		side, _, column_name = flt.field.partition('.')
+		side = side.strip().lower()
+		if side == 'source':
+			table = source_table
+			side_label = 'source'
+		elif side == 'target':
+			table = target_table
+			side_label = 'target'
+		else:
+			# 兼容无前缀的写法：当作 source（link 通常以 source 为主表）。
+			column_name = flt.field
+			table = source_table
+			side_label = 'source'
+		column = table.c.get(column_name)
+		if column is None:
+			available_fields = ', '.join(sorted(table.c.keys())) or '<none>'
+			raise OntologySqlCompileError(
+				f'Link filter field [{column_name}] not found on {side_label} side of link [{link.name}] '
+				f'for derived [{derived_name}]. Available fields: [{available_fields}].')
+		operator = (flt.operator or 'eq').lower()
+		value = self._compile_single_filter_value(flt)
+
+		if operator == 'eq':
+			return column == value
+		if operator == 'ne':
+			return column != value
+		if operator == 'in':
+			if not isinstance(value, list) or len(value) == 0:
+				raise OntologySqlCompileError(
+					f'Link filter [in] on [{link.name}.{flt.field}] requires a non-empty list value.')
+			return column.in_(value)
+		if operator == 'not_in':
+			if not isinstance(value, list) or len(value) == 0:
+				raise OntologySqlCompileError(
+					f'Link filter [not_in] on [{link.name}.{flt.field}] requires a non-empty list value.')
+			return ~column.in_(value)
+		if operator == 'gt':
+			return column > value
+		if operator == 'gte':
+			return column >= value
+		if operator == 'lt':
+			return column < value
+		if operator == 'lte':
+			return column <= value
+		if operator == 'is_null':
+			return column.is_(None)
+		if operator == 'is_not_null':
+			return column.isnot(None)
+		raise OntologySqlCompileError(
+			f'Unsupported link filter operator [{flt.operator}] on [{link.name}.{flt.field}].')
+
 	def _compile_derived_attributes(
 			self, virtual_object: VirtualObject, requested: List[str], ontology: VirtualOntology, primary_table: Table
 	) -> Tuple[List[Any], List[str], List[Tuple[Table, Any, Tuple]]]:
@@ -383,6 +455,9 @@ class OntologySqlCompiler:
 					f'Target field [{condition.targetField}] not found on [{target_primary.topicName}] '
 					f'for derived [{derived.name}]. Available fields: [{available_fields}].')
 			criteria.append(source_col == target_col)
+		# 追加 link 级 filters（追加到 ON 子句，例如 source.policy_role_type_code == 'policy_holder'）。
+		link_filter_clauses = self._compile_link_filters(link, primary_table, target_table, derived.name)
+		criteria.extend(link_filter_clauses)
 		on_clause = and_(*criteria)
 		# GROUP BY 取主表 join 键列（sourceField）。
 		group_key_names = sorted(set(c.left.name for c in criteria), key=lambda n: n)

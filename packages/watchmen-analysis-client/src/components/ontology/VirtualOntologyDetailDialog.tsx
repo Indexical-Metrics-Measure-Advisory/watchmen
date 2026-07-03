@@ -69,8 +69,8 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 							<DialogTitle className="text-xl">{ontology.name}</DialogTitle>
 							<p className="text-sm text-muted-foreground mt-1">{ontology.description}</p>
 						</div>
-						<Badge className={`${sensitivityConfig[ontology.sensitivity].className} border-0`}>
-							{sensitivityConfig[ontology.sensitivity].icon} {sensitivityConfig[ontology.sensitivity].label}
+						<Badge className={`${(sensitivityConfig[ontology.sensitivity] ?? sensitivityConfig.internal).className} border-0`}>
+							{(sensitivityConfig[ontology.sensitivity] ?? sensitivityConfig.internal).icon} {(sensitivityConfig[ontology.sensitivity] ?? sensitivityConfig.internal).label}
 						</Badge>
 					</div>
 				</DialogHeader>
@@ -255,36 +255,36 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 									Virtual Links ({ontology.virtualLinks.length})
 								</h3>
 								{ontology.virtualLinks.map(link => {
-									const source = findObject(link.sourceObjectId);
-									const target = findObject(link.targetObjectId);
-									const joinCfg = joinTypeConfig[link.joinType];
-									return (
-										<Card key={link.id} className="border">
-											<CardContent className="p-3 space-y-2">
-												<div className="flex items-center gap-2">
-													<span className="text-base">{source?.icon || '?'}</span>
-													<span className="font-medium text-sm">{source?.name || '?'}</span>
-													<ArrowRight className="w-4 h-4 text-muted-foreground" />
-													<span className="text-base">{target?.icon || '?'}</span>
-													<span className="font-medium text-sm">{target?.name || '?'}</span>
-													<Badge variant="outline" className={cn('text-[10px] ml-auto', joinCfg.className)}>
-														{joinCfg.label}
+								const source = findObject(link.sourceObjectId);
+								const target = findObject(link.targetObjectId);
+								const joinCfg = joinTypeConfig[link.joinType] ?? joinTypeConfig.inner;
+								return (
+									<Card key={link.id} className="border">
+										<CardContent className="p-3 space-y-2">
+											<div className="flex items-center gap-2">
+												<span className="text-base">{source?.icon || '?'}</span>
+												<span className="font-medium text-sm">{source?.name || '?'}</span>
+												<ArrowRight className="w-4 h-4 text-muted-foreground" />
+												<span className="text-base">{target?.icon || '?'}</span>
+												<span className="font-medium text-sm">{target?.name || '?'}</span>
+												<Badge variant="outline" className={cn('text-[10px] ml-auto', joinCfg.className)}>
+													{joinCfg.label}
+												</Badge>
+											</div>
+											{link.description && (
+												<p className="text-xs text-muted-foreground">{link.description}</p>
+											)}
+											<div className="flex flex-wrap gap-1.5">
+												{link.joinConditions.map((jc, idx) => (
+													<Badge key={idx} variant="secondary" className="text-[10px]">
+														{jc.sourceField} = {jc.targetField}
 													</Badge>
-												</div>
-												{link.description && (
-													<p className="text-xs text-muted-foreground">{link.description}</p>
-												)}
-												<div className="flex flex-wrap gap-1.5">
-													{link.joinConditions.map((jc, idx) => (
-														<Badge key={idx} variant="secondary" className="text-[10px]">
-															{jc.sourceField} = {jc.targetField}
-														</Badge>
-													))}
-												</div>
-											</CardContent>
-										</Card>
-									);
-								})}
+												))}
+											</div>
+										</CardContent>
+									</Card>
+								);
+							})}
 							</div>
 						)}
 					</div>
@@ -318,8 +318,8 @@ const DerivedAttributeRow: React.FC<{
 	findObject: (id: string) => VirtualObject | undefined;
 	links: VirtualLink[];
 }> = ({ attr, findObject, links }) => {
-	const aggCfg = aggregateConfig[attr.aggregate];
-	const pathLabels = attr.path.map((id, idx) => {
+	const aggCfg = aggregateConfig[attr.aggregate] ?? aggregateConfig.none;
+	const pathLabels = (attr.path ?? []).map((id, idx) => {
 		if (idx % 2 === 0) {
 			const obj = findObject(id);
 			return obj?.name || id;
