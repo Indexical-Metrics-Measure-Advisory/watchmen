@@ -158,3 +158,10 @@ packages/watchmen-analysis-client/.workbuddy/memory/MEMORY.md
 /packages/watchmen-storage-dynamo/.idea
 /packages/watchmen-storage-dsql/.idea
 /packages/watchmen-storage-aurora-limitless/docs
+/code-quality-review
+/admin-code-analysis
+ontology-analysis/ontology-analysis.html
+/ontology-analysis/assets
+/ontology-analysis/_shared/js
+/ontology-dynamics-layer-design
+/ontology-dynamics-ui-design

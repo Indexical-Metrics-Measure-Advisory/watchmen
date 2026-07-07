@@ -15,8 +15,8 @@ from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500, valid
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
-from .pipeline_router import ask_save_pipeline_action
-from .topic_router import ask_save_topic_action
+from .pipeline_common import ask_save_pipeline_action
+from .topic_common import ask_save_topic_action
 
 router = APIRouter()
 

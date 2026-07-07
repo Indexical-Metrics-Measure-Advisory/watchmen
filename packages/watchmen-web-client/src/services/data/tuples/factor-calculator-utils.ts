@@ -13,7 +13,7 @@ import {
 	VariablePredefineFunctions
 } from './factor-calculator-types';
 import {CompatibleTypes, Factor, FactorId, FactorType} from './factor-types';
-import {isComputedParameter, isConstantParameter, isTopicFactorParameter} from './parameter-utils';
+import {isComputedParameter, isConstantParameter, isTopicFactorParameter, isVariableParameter} from './parameter-utils';
 import {Topic, TopicId, TopicKind, TopicType} from './topic-types';
 
 export const createUnknownTopic = (topicId: TopicId, name: string = 'Unknown Topic'): Topic => {
@@ -461,6 +461,29 @@ export const computeParameterTypes = (
 			// constant value, a string
 			return [{array: false, type: FactorType.TEXT}];
 		}
+	} else if (isVariableParameter(parameter)) {
+		const variable = variables.find(v => v.name === parameter.variableName);
+		if (!variable) {
+			return [{array: false, type: AnyFactorType.ERROR}];
+		}
+		if (!parameter.factorName) {
+			return variable.types;
+		}
+		// find factor by name in variable's topic types
+		return variable.types.map(type => {
+			if (type.type === FactorType.OBJECT && type.topic) {
+				const factor = type.topic.factors.find(f => f.name === parameter.factorName);
+				if (factor) {
+					return {
+						topic: type.topic,
+						factor,
+						array: factor.type === FactorType.ARRAY,
+						type: factor.type === FactorType.ARRAY ? FactorType.OBJECT : factor.type
+					};
+				}
+			}
+			return {array: false, type: AnyFactorType.ERROR};
+		});
 	} else {
 		// cannot determine parameter type
 		return [{array: false, type: AnyFactorType.ANY}];

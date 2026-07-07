@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { Card } from '@/components/ui/card';
@@ -14,6 +14,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
@@ -27,16 +29,7 @@ import {
   MetricTypeParams, Category,
   MetricValidationStatus
 } from '@/model/metricsManagement';
-import {
-  getMetrics,
-  getAllMetrics,
-  deleteMetric,
-  updateMetric,
-  createMetric,
-  getCategories,
-  validateMetric
-} from '@/services/metricsManagementService';
-import { getSemanticModels } from '@/services/semanticModelService';
+import { deleteMetric, updateMetric, createMetric } from '@/services/metricsManagementService';
 import DerivedMetricParams from '@/components/DerivedMetricParams';
 import CumulativeMetricParams from '@/components/metrics/CumulativeMetricParams';
 import ConversionMetricParams from '@/components/metrics/ConversionMetricParams';
@@ -45,6 +38,8 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { formatDate, formatDateTime } from '@/i18n/utils/format';
+import useMetricsData from '@/hooks/useMetricsData';
+import { validateForm, cleanTypeParams, normalizeMeasure, getTypeLabel, getFormatLabel } from '@/utils/metricFormUtils';
 
 /** Validation status badge — standalone sub-component */
 const ValidationBadge = ({ status, size = 'default' }: { status?: MetricValidationStatus; size?: 'sm' | 'default' }) => {
@@ -70,134 +65,392 @@ const ValidationBadge = ({ status, size = 'default' }: { status?: MetricValidati
   );
 };
 
+/** Unified Metric Form Dialog for both create and edit */
+interface MetricFormDialogProps {
+  mode: 'create' | 'edit';
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  form: Partial<MetricDefinition>;
+  setForm: React.Dispatch<React.SetStateAction<Partial<MetricDefinition>>>;
+  categories: Category[];
+  availableMeasures: { name: string; label: string; modelName: string }[];
+  allMetricsForSelect: MetricDefinition[];
+  metricNamePattern: RegExp;
+  onSave: () => void;
+}
+
+const MetricFormDialog: React.FC<MetricFormDialogProps> = ({
+  mode,
+  open,
+  onOpenChange,
+  form,
+  setForm,
+  categories,
+  availableMeasures,
+  allMetricsForSelect,
+  metricNamePattern,
+  onSave,
+}) => {
+  const { t } = useTranslation(['common', 'metricsEnum', 'metricsManagement']);
+
+  const updateFormTypeParams = (params: MetricTypeParams) => {
+    setForm(prev => ({ ...prev, type_params: params }));
+  };
+
+  const isEdit = mode === 'edit';
+  const dialogTitle = isEdit ? t('metricsManagement:dialogs.editTitle') : t('metricsManagement:dialogs.createTitle');
+  const dialogDesc = isEdit ? t('metricsManagement:dialogs.editDescription') : t('metricsManagement:dialogs.createDescription');
+  const saveLabel = isEdit ? t('common:saveChanges') : t('metricsManagement:createMetric');
+  const typeHintKey = 'metricsManagement:dialogs.typeSpecificHint';
+
+  // Shared form field renderer — Basic Info tab
+  const renderBasicFields = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>{t('metricsManagement:dialogs.metricName')}</Label>
+          <Input
+            value={form.name || ''}
+            onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
+            placeholder={t('metricsManagement:dialogs.metricNamePlaceholder')}
+            className={form.name && !metricNamePattern.test(form.name) ? 'border-destructive' : ''}
+          />
+          {form.name && !metricNamePattern.test(form.name) ? (
+            <p className="text-xs text-destructive">{t('metricsManagement:dialogs.metricNameInvalid')}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.metricNameHint')}</p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label>{t('metricsManagement:dialogs.displayLabel')}</Label>
+          <Input
+            value={form.label || ''}
+            onChange={(e) => setForm(prev => ({ ...prev, label: e.target.value }))}
+            placeholder={t('metricsManagement:dialogs.displayLabelPlaceholder')}
+          />
+          <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.displayLabelHint')}</p>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>{t('metricsManagement:dialogs.description')}</Label>
+        <Textarea
+          value={form.description || ''}
+          onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
+          placeholder={t('metricsManagement:dialogs.descriptionPlaceholder')}
+          rows={3}
+        />
+        <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.descriptionHint')}</p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label>{t('metricsManagement:dialogs.metricType')}</Label>
+          <Select
+            value={form.type || ''}
+            onValueChange={(value) => setForm(prev => ({ ...prev, type: value as 'simple' | 'ratio' | 'derived' | 'cumulative' | 'conversion' }))}
+          >
+            <SelectTrigger><SelectValue placeholder={t('metricsManagement:dialogs.selectType')} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="simple">{t('metricsEnum:types.simple')}</SelectItem>
+              <SelectItem value="ratio">{t('metricsEnum:types.ratio')}</SelectItem>
+              <SelectItem value="derived">{t('metricsEnum:types.derived')}</SelectItem>
+              <SelectItem value="cumulative">{t('metricsEnum:types.cumulative')}</SelectItem>
+              <SelectItem value="conversion">{t('metricsEnum:types.conversion')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>{t('metricsManagement:dialogs.unit')}</Label>
+          <Input
+            value={form.unit || ''}
+            onChange={(e) => setForm(prev => ({ ...prev, unit: e.target.value }))}
+            placeholder={t('metricsManagement:dialogs.unitPlaceholder')}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>{t('metricsManagement:dialogs.format')}</Label>
+          <Select value={form.format || ''} onValueChange={(value) => setForm(prev => ({ ...prev, format: value }))}>
+            <SelectTrigger><SelectValue placeholder={t('metricsManagement:dialogs.selectFormat')} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="number">{t('metricsEnum:formats.number')}</SelectItem>
+              <SelectItem value="currency">{t('metricsEnum:formats.currency')}</SelectItem>
+              <SelectItem value="percentage">{t('metricsEnum:formats.percentage')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>{t('metricsManagement:dialogs.category')}</Label>
+        <Select value={form.categoryId || 'none'} onValueChange={(value) => setForm(prev => ({ ...prev, categoryId: value === 'none' ? undefined : value }))}>
+          <SelectTrigger><SelectValue placeholder={t('metricsManagement:dialogs.selectCategory')} /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">{t('common:noCategory')}</SelectItem>
+            {categories && categories.length > 0 && categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+
+  // Type-specific tab content
+  const renderTypeSpecificFields = () => {
+    if (!form.type) {
+      return (
+        <div className="flex items-center justify-center py-12 text-muted-foreground">
+          <p>{t('metricsManagement:dialogs.selectTypeHint')}</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="uppercase text-xs">{getTypeLabel(form.type, t)}</Badge>
+          <span className="text-sm text-muted-foreground">{t(typeHintKey)}</span>
+        </div>
+
+        {form.type === 'derived' && (
+          <div className="space-y-2">
+            <Label>{t('metricsManagement:dialogs.derivedParams')}</Label>
+            <DerivedMetricParams
+              params={form.type_params || {}}
+              onChange={updateFormTypeParams}
+            />
+          </div>
+        )}
+
+        {form.type === 'cumulative' && (
+          <div className="space-y-2">
+            <Label>{t('metricsManagement:dialogs.cumulativeParams')}</Label>
+            <CumulativeMetricParams
+              params={form.type_params?.cumulative_type_params || {}}
+              onChange={(params) => updateFormTypeParams({ ...form.type_params, cumulative_type_params: params })}
+            />
+          </div>
+        )}
+
+        {form.type === 'conversion' && (
+          <div className="space-y-2">
+            <Label>{t('metricsManagement:dialogs.conversionParams')}</Label>
+            <ConversionMetricParams
+              params={form.type_params?.conversion_type_params || {}}
+              onChange={(params) => updateFormTypeParams({ ...form.type_params, conversion_type_params: params })}
+            />
+          </div>
+        )}
+
+        {form.type === 'ratio' && (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>{t('metricsManagement:dialogs.numerator')}</Label>
+              <Select
+                value={form.type_params?.numerator?.name || ''}
+                onValueChange={(value) =>
+                  setForm(prev => ({
+                    ...prev,
+                    type_params: {
+                      ...prev.type_params,
+                      numerator: {
+                        name: value,
+                        join_to_timespine: prev.type_params?.numerator?.join_to_timespine || false,
+                        filter: prev.type_params?.numerator?.filter,
+                        alias: prev.type_params?.numerator?.alias,
+                        fill_nulls_with: prev.type_params?.numerator?.fill_nulls_with,
+                      },
+                    },
+                  }))
+                }
+              >
+                <SelectTrigger><SelectValue placeholder={t('metricsManagement:dialogs.selectNumerator')} /></SelectTrigger>
+                <SelectContent>
+                  {allMetricsForSelect.filter(m => m.type === 'simple').map((m) => (
+                    <SelectItem key={m.name} value={m.name}>{m.label || m.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('metricsManagement:dialogs.denominator')}</Label>
+              <Select
+                value={form.type_params?.denominator?.name || ''}
+                onValueChange={(value) =>
+                  setForm(prev => ({
+                    ...prev,
+                    type_params: {
+                      ...prev.type_params,
+                      denominator: {
+                        name: value,
+                        join_to_timespine: prev.type_params?.denominator?.join_to_timespine || false,
+                        filter: prev.type_params?.denominator?.filter,
+                        alias: prev.type_params?.denominator?.alias,
+                        fill_nulls_with: prev.type_params?.denominator?.fill_nulls_with,
+                      },
+                    },
+                  }))
+                }
+              >
+                <SelectTrigger><SelectValue placeholder={t('metricsManagement:dialogs.selectDenominator')} /></SelectTrigger>
+                <SelectContent>
+                  {allMetricsForSelect.filter(m => m.type === 'simple').map((m) => (
+                    <SelectItem key={m.name} value={m.name}>{m.label || m.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+
+        {form.type === 'simple' && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>{t('metricsManagement:dialogs.measure')}</Label>
+              <Select
+                value={form.type_params?.measure?.name || ''}
+                onValueChange={(value) => setForm(prev => ({
+                  ...prev,
+                  type_params: {
+                    ...prev.type_params,
+                    measure: { ...normalizeMeasure(prev.type_params?.measure), name: value }
+                  }
+                }))}
+              >
+                <SelectTrigger><SelectValue placeholder={t('metricsManagement:dialogs.selectMeasure')} /></SelectTrigger>
+                <SelectContent>
+                  {availableMeasures.map((measure, index) => (
+                    <SelectItem key={`${measure.modelName}-${measure.name}-${index}`} value={measure.name}>
+                      {measure.label} ({measure.modelName})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center justify-between rounded-md border px-3 py-2">
+                <Label className="!text-sm !font-normal">{t('metricsManagement:dialogs.joinToTimespine')}</Label>
+                <Switch
+                  checked={normalizeMeasure(form.type_params?.measure).join_to_timespine}
+                  onCheckedChange={(checked) =>
+                    setForm(prev => ({
+                      ...prev,
+                      type_params: {
+                        ...prev.type_params,
+                        measure: { ...normalizeMeasure(prev.type_params?.measure), join_to_timespine: checked }
+                      }
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('metricsManagement:dialogs.alias')}</Label>
+                <Input
+                  value={normalizeMeasure(form.type_params?.measure).alias}
+                  onChange={(e) =>
+                    setForm(prev => ({
+                      ...prev,
+                      type_params: {
+                        ...prev.type_params,
+                        measure: { ...normalizeMeasure(prev.type_params?.measure), alias: e.target.value }
+                      }
+                    }))
+                  }
+                  placeholder={t('metricsManagement:dialogs.aliasPlaceholder')}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('metricsManagement:dialogs.fillNullsWith')}</Label>
+                <Input
+                  type="number"
+                  value={normalizeMeasure(form.type_params?.measure).fill_nulls_with ?? ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setForm(prev => ({
+                      ...prev,
+                      type_params: {
+                        ...prev.type_params,
+                        measure: { ...normalizeMeasure(prev.type_params?.measure), fill_nulls_with: val === '' ? undefined : Number(val) }
+                      }
+                    }));
+                  }}
+                  placeholder={t('metricsManagement:dialogs.fillNullsPlaceholder')}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('metricsManagement:dialogs.filter')}</Label>
+                <Textarea
+                  value={normalizeMeasure(form.type_params?.measure).filter || ''}
+                  onChange={(e) =>
+                    setForm(prev => ({
+                      ...prev,
+                      type_params: {
+                        ...prev.type_params,
+                        measure: { ...normalizeMeasure(prev.type_params?.measure), filter: e.target.value }
+                      }
+                    }))
+                  }
+                  placeholder={t('metricsManagement:dialogs.filterPlaceholder')}
+                  rows={2}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogDescription>{dialogDesc}</DialogDescription>
+        </DialogHeader>
+
+        <Tabs defaultValue="basic" className="mt-2">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="basic">{t('metricsManagement:dialogs.basicTab')}</TabsTrigger>
+            <TabsTrigger value="typeParams">{t('metricsManagement:dialogs.typeParamsTab')}</TabsTrigger>
+          </TabsList>
+          <TabsContent value="basic" className="mt-4">
+            {renderBasicFields()}
+          </TabsContent>
+          <TabsContent value="typeParams" className="mt-4">
+            {renderTypeSpecificFields()}
+          </TabsContent>
+        </Tabs>
+
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            {t('common:cancel')}
+          </Button>
+          <Button onClick={onSave}>{saveLabel}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const MetricsManagement: React.FC = () => {
   const { collapsed } = useSidebar();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation(['common', 'metricsEnum', 'metricsManagement']);
-  const [metrics, setMetrics] = useState<MetricDefinition[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [availableMeasures, setAvailableMeasures] = useState<{name: string, label: string, modelName: string}[]>([]);
-
-  const [selectedMetric, setSelectedMetric] = useState<MetricDefinition | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [metricToEdit, setMetricToEdit] = useState<MetricDefinition | null>(null);
-  const [editForm, setEditForm] = useState<Partial<MetricDefinition>>({});
-  const [createForm, setCreateForm] = useState<Partial<MetricDefinition>>({});
-  const [showCategoryManagement, setShowCategoryManagement] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
-  const [validatingSet, setValidatingSet] = useState<Set<string>>(new Set());
-
-  const [filter, setFilter] = useState<MetricFilter>({
-    categoryId: 'all',
-    type: 'all',
-    searchTerm: ''
-  });
+  const { t } = useTranslation(['common', 'metricsEnum', 'metricsManagement']);
   const { toast } = useToast();
-  const metricNamePattern = /^[a-z0-9_]+$/;
-  const locale = i18n.resolvedLanguage ?? 'en';
 
-  // Separate state for dropdown selectors — always contains ALL metrics regardless of search filter
-  const [allMetricsForSelect, setAllMetricsForSelect] = useState<MetricDefinition[]>([]);
-
-  const normalizeMeasure = (measure?: MetricTypeParams['measure']) => {
-    return {
-      name: measure?.name ?? '',
-      join_to_timespine: measure?.join_to_timespine ?? false,
-      filter: measure?.filter ?? '',
-      alias: measure?.alias ?? '',
-      fill_nulls_with: measure?.fill_nulls_with ?? undefined
-    };
-  };
-
-  const getTypeLabel = (type?: string) => {
-    if (!type) return '';
-    return t(`metricsEnum:types.${type}`, type);
-  };
-
-  const getFormatLabel = (format?: string) => {
-    if (!format) return t('metricsEnum:formats.number');
-    return t(`metricsEnum:formats.${format}`, format);
-  };
-
-  const loadData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      
-      // Use filter.categoryId directly
-      const filterParams = { ...filter };
-      if (filter.categoryId === 'all') {
-         delete filterParams.categoryId;
-      } else if (filter.categoryId === 'uncategorized') {
-         filterParams.categoryId = undefined;
-      }
-      
-      const metricsData = await getMetrics(filterParams);
-
-      // console.log('loadData metrics:', metricsData);
-
-      setMetrics(metricsData || []);
-    } catch (error) {
-      console.error('Error loading metrics:', error);
-      setMetrics([]);
-      toast({
-        title: t('common:error'),
-        description: t('metricsManagement:loadFailed'),
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [filter, toast]);
-
-  const loadCategories = useCallback(async () => {
-    try {
-      const categoriesData = await getCategories();
-      // console.log('loadCategories result:', categoriesData);
-      // Ensure we always set a valid array
-      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-    } catch (error) {
-      console.error('Error loading categories:', error);
-      // Always set an empty array on error to prevent undefined issues
-      setCategories([]);
-    }
-  }, []);
-
-  const loadSemanticModels = useCallback(async () => {
-    try {
-      const models = await getSemanticModels();
-      const measures = models.flatMap(model => 
-        model.measures.map(measure => ({
-          name: measure.name,
-          label: measure.label || measure.name,
-          modelName: model.name
-        }))
-      );
-      setAvailableMeasures(measures);
-    } catch (error) {
-      console.error('Error loading semantic models:', error);
-      setAvailableMeasures([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [filter, loadData]);
-
-  useEffect(() => {
-    getAllMetrics().then(setAllMetricsForSelect).catch(() => setAllMetricsForSelect([]));
-  }, []);
-
-  useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
-
-  useEffect(() => {
-    loadSemanticModels();
-  }, [loadSemanticModels]);
-
-
+  const {
+    metrics, categories, availableMeasures, selectedMetric, setSelectedMetric,
+    isLoading, isEditDialogOpen, setIsEditDialogOpen, isCreateDialogOpen, setIsCreateDialogOpen,
+    metricToEdit, setMetricToEdit, editForm, setEditForm, createForm, setCreateForm,
+    showCategoryManagement, setShowCategoryManagement, viewMode, setViewMode,
+    validatingSet, filter, setFilter, allMetricsForSelect,
+    loadData, loadCategories, loadSemanticModels, handleValidateMetric,
+    metricNamePattern, locale
+  } = useMetricsData();
 
   const handleDeleteMetric = async (metricName: string) => {
     try {
@@ -233,229 +486,6 @@ const MetricsManagement: React.FC = () => {
 
   const handleViewLineage = (metric: MetricDefinition) => {
     navigate(`/metrics/lineage?metric=${encodeURIComponent(metric.name)}`);
-  };
-
-  const validateForm = (form: Partial<MetricDefinition>): string[] => {
-    const errors: string[] = [];
-    
-    if (!form.name?.trim()) {
-      errors.push(t('metricsManagement:validation.metricNameRequired'));
-    } else if (!metricNamePattern.test(form.name.trim())) {
-      errors.push(t('metricsManagement:validation.metricNamePattern'));
-    }
-    
-    if (!form.label?.trim()) {
-      errors.push(t('metricsManagement:validation.metricLabelRequired'));
-    }
-    
-    if (!form.description?.trim()) {
-      errors.push(t('metricsManagement:validation.metricDescriptionRequired'));
-    }
-    
-    if (!form.type) {
-      errors.push(t('metricsManagement:validation.metricTypeRequired'));
-    }
-    
-    // 验证type_params
-    if (form.type === 'simple' && !form.type_params?.measure?.name?.trim()) {
-      errors.push(t('metricsManagement:validation.simpleMeasureRequired'));
-    }
-    
-    if (form.type === 'ratio') {
-      if (!form.type_params?.numerator?.name?.trim()) {
-        errors.push(t('metricsManagement:validation.ratioNumeratorRequired'));
-      }
-      if (!form.type_params?.denominator?.name?.trim()) {
-        errors.push(t('metricsManagement:validation.ratioDenominatorRequired'));
-      }
-    }
-    
-    if (form.type === 'derived') {
-      if (!form.type_params?.expr?.trim()) {
-        errors.push(t('metricsManagement:validation.derivedExpressionRequired'));
-      }
-      if (!form.type_params?.metrics || form.type_params.metrics.length === 0) {
-        errors.push(t('metricsManagement:validation.derivedMetricReferenceRequired'));
-      }
-    }
-
-    if (form.type === 'cumulative') {
-      if (!form.type_params?.cumulative_type_params?.metric?.name) {
-        errors.push(t('metricsManagement:validation.cumulativeBaseMetricRequired'));
-      }
-    }
-
-    if (form.type === 'conversion') {
-      if (!form.type_params?.conversion_type_params?.base_measure?.name && !form.type_params?.conversion_type_params?.base_metric?.name) {
-        errors.push(t('metricsManagement:validation.conversionBaseRequired'));
-      }
-      if (!form.type_params?.conversion_type_params?.conversion_measure?.name && !form.type_params?.conversion_type_params?.conversion_metric?.name) {
-        errors.push(t('metricsManagement:validation.conversionTargetRequired'));
-      }
-      if (!form.type_params?.conversion_type_params?.entity?.trim()) {
-        errors.push(t('metricsManagement:validation.conversionEntityRequired'));
-      }
-    }
-    
-    return errors;
-  };
-
-  const cleanTypeParams = (params: MetricTypeParams | undefined, type: string | undefined): MetricTypeParams | undefined => {
-    if (!params) return undefined;
-    
-    // Helper to convert empty/undefined to null
-    const toNull = (val: any) => (val === undefined || val === '' ? null : val);
-
-    const cleaned: any = { ...params };
-    
-    // Clean window
-    if (cleaned.window && (!cleaned.window.count || !cleaned.window.granularity)) {
-      cleaned.window = null;
-    }
-
-    if (type === 'simple') {
-      // Ensure specific structure for simple metrics
-      cleaned.expr = null;
-      cleaned.window = null;
-      cleaned.numerator = null;
-      cleaned.denominator = null;
-      cleaned.grain_to_date = null;
-      cleaned.metrics = [];
-      cleaned.conversion_type_params = null;
-      cleaned.cumulative_type_params = null;
-
-      if (cleaned.measure) {
-        // Clean measure fields
-        cleaned.measure = {
-          ...cleaned.measure,
-          alias: toNull(cleaned.measure.alias),
-          filter: toNull(cleaned.measure.filter),
-          fill_nulls_with: toNull(cleaned.measure.fill_nulls_with)
-        };
-
-        // Populate input_measures
-        if (cleaned.measure.name) {
-          cleaned.input_measures = [{
-            name: cleaned.measure.name,
-            alias: cleaned.measure.alias,
-            filter: cleaned.measure.filter,
-            fill_nulls_with: cleaned.measure.fill_nulls_with,
-            join_to_timespine: cleaned.measure.join_to_timespine
-          }];
-        } else {
-          cleaned.input_measures = [];
-        }
-      } else {
-        cleaned.input_measures = [];
-      }
-    } else if (type === 'derived') {
-      // Ensure specific structure for derived metrics
-      cleaned.measure = null;
-      cleaned.numerator = null;
-      cleaned.denominator = null;
-      cleaned.window = null;
-      cleaned.grain_to_date = null;
-      cleaned.conversion_type_params = null;
-      cleaned.cumulative_type_params = null;
-      
-      // Clean metrics
-      if (cleaned.metrics) {
-        cleaned.metrics = cleaned.metrics.map((metric: any) => ({
-          ...metric,
-          alias: toNull(metric.alias),
-          filter: toNull(metric.filter),
-          offset_window: metric.offset_window ? {
-            ...metric.offset_window,
-            count: metric.offset_window.count || 0,
-            granularity: metric.offset_window.granularity
-          } : null,
-          offset_to_grain: toNull(metric.offset_to_grain)
-        }));
-      } else {
-        cleaned.metrics = [];
-      }
-
-      // Clean input_measures
-      if (cleaned.input_measures) {
-        cleaned.input_measures = cleaned.input_measures.map((measure: any) => ({
-          ...measure,
-          alias: toNull(measure.alias),
-          filter: toNull(measure.filter),
-          fill_nulls_with: toNull(measure.fill_nulls_with)
-        }));
-      } else {
-        cleaned.input_measures = [];
-      }
-    } else {
-        // Clean conversion params if not conversion type
-        if (type !== 'conversion') {
-          cleaned.conversion_type_params = undefined;
-        } else {
-            // Clean nested window in conversion params if invalid
-            if (cleaned.conversion_type_params?.window && (!cleaned.conversion_type_params.window.count || !cleaned.conversion_type_params.window.granularity)) {
-                cleaned.conversion_type_params = {
-                    ...cleaned.conversion_type_params,
-                    window: undefined
-                };
-            }
-        }
-        
-        // Clean cumulative params if not cumulative type
-        if (type !== 'cumulative') {
-          cleaned.cumulative_type_params = undefined;
-        } else {
-            // Clean nested window in cumulative params if invalid
-            if (cleaned.cumulative_type_params?.window && (!cleaned.cumulative_type_params.window.count || !cleaned.cumulative_type_params.window.granularity)) {
-                cleaned.cumulative_type_params = {
-                    ...cleaned.cumulative_type_params,
-                    window: undefined
-                };
-            }
-        }
-    }
-
-    return cleaned;
-  };
-
-  const handleSaveEdit = async () => {
-    if (!metricToEdit || !editForm.name) return;
-    
-    const errors = validateForm(editForm);
-    if (errors.length > 0) {
-      toast({
-        title: t('common:validationError'),
-        description: errors.join('; '),
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      // Handle "none" categoryId by converting it to undefined
-      const formDataToSubmit = {
-        ...editForm,
-        categoryId: editForm.categoryId === 'none' ? undefined : editForm.categoryId,
-        type_params: cleanTypeParams(editForm.type_params, editForm.type)
-      };
-      
-      await updateMetric(metricToEdit.name, formDataToSubmit);
-      toast({
-        title: t('common:success'),
-        description: t('metricsManagement:metricUpdated', { name: editForm.label || metricToEdit.label }),
-      });
-      setIsEditDialogOpen(false);
-      setMetricToEdit(null);
-      setEditForm({});
-      await loadData();
-      // Auto-validate after save
-      handleValidateMetric(formDataToSubmit as MetricDefinition);
-    } catch (error) {
-      toast({
-        title: t('common:error'),
-        description: t('metricsManagement:updateFailed'),
-        variant: "destructive",
-      });
-    }
   };
 
   const getCategoryName = (categoryId: string | undefined) => {
@@ -505,67 +535,51 @@ const MetricsManagement: React.FC = () => {
     setIsCreateDialogOpen(true);
   };
 
-  // ===== Validation Logic =====
+  const handleSaveEdit = async () => {
+    if (!metricToEdit || !editForm.name) return;
 
-  const handleValidateMetric = useCallback(async (metric: MetricDefinition) => {
-    const metricName = metric.name;
-    if (validatingSet.has(metricName)) return;
+    const errors = validateForm(editForm, metricNamePattern, t);
+    if (errors.length > 0) {
+      toast({
+        title: t('common:validationError'),
+        description: errors.join('; '),
+        variant: "destructive",
+      });
+      return;
+    }
 
-    setValidatingSet(prev => new Set(prev).add(metricName));
     try {
-      const result = await validateMetric(metricName);
-
-      const merged: MetricDefinition = {
-        ...metric,
-        validationStatus: result.status,
-        validationResult: result,
+      // Handle "none" categoryId by converting it to undefined
+      const formDataToSubmit = {
+        ...editForm,
+        categoryId: editForm.categoryId === 'none' ? undefined : editForm.categoryId,
+        type_params: cleanTypeParams(editForm.type_params, editForm.type)
       };
 
-      // Persist full metric with validation results back to backend
-      await updateMetric(metricName, merged);
-
-      // Update the metric in local state
-      setMetrics(prev => prev.map(m =>
-        m.name === metricName
-          ? { ...m, validationStatus: result.status, validationResult: result }
-          : m
-      ));
-
-      if (result.status === 'validated') {
-        toast({ title: t('common:success'), description: t('metricsManagement:validationPassed', { name: metricName }) });
-      } else {
-        toast({
-          title: t('metricsEnum:validationStatus.failed'),
-          description: t('metricsManagement:validationFailed', { name: metricName, reason: result.error || t('common:unknown') }),
-          variant: "destructive"
-        });
-      }
+      await updateMetric(metricToEdit.name, formDataToSubmit);
+      toast({
+        title: t('common:success'),
+        description: t('metricsManagement:metricUpdated', { name: editForm.label || metricToEdit.label }),
+      });
+      setIsEditDialogOpen(false);
+      setMetricToEdit(null);
+      setEditForm({});
+      await loadData();
+      // Auto-validate after save
+      handleValidateMetric(formDataToSubmit as MetricDefinition);
     } catch (error) {
-      console.error('Unexpected validation error:', error);
-      toast({ title: t('common:validationError'), description: t('metricsManagement:validationUnexpected'), variant: "destructive" });
-    } finally {
-      setValidatingSet(prev => {
-        const next = new Set(prev);
-        next.delete(metricName);
-        return next;
+      toast({
+        title: t('common:error'),
+        description: t('metricsManagement:updateFailed'),
+        variant: "destructive",
       });
     }
-  }, [validatingSet, toast]);
-
-  // Helper function to update create form type params
-  const updateCreateFormTypeParams = (params: MetricTypeParams) => {
-    setCreateForm({ ...createForm, type_params: params });
-  };
-
-  // Helper function to update edit form type params
-  const updateEditFormTypeParams = (params: MetricTypeParams) => {
-    setEditForm({ ...editForm, type_params: params });
   };
 
   // Helper function to handle save create
   const handleSaveCreate = async () => {
     try {
-      const errors = validateForm(createForm);
+      const errors = validateForm(createForm, metricNamePattern, t);
       if (errors.length > 0) {
         toast({
           title: t('common:validationError'),
@@ -581,7 +595,7 @@ const MetricsManagement: React.FC = () => {
         categoryId: createForm.categoryId === 'none' ? undefined : createForm.categoryId,
         type_params: cleanTypeParams(createForm.type_params, createForm.type)
       } as Omit<MetricDefinition, 'createdAt' | 'updatedAt'>;
-      
+
       await createMetric(formDataToSubmit);
       setIsCreateDialogOpen(false);
       setCreateForm({
@@ -592,7 +606,7 @@ const MetricsManagement: React.FC = () => {
         unit: '',
         format: 'number',
         type_params: {
-          
+
           measure: { name: '', join_to_timespine: false, filter: '', alias: '', fill_nulls_with: undefined },
           expr: '',
           grain_to_date: undefined,
@@ -619,17 +633,13 @@ const MetricsManagement: React.FC = () => {
     }
   };
 
-
-
-
-
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      
+
       <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
         <Header />
-        
+
         <main className="flex-1 p-6 space-y-6 overflow-y-auto">
           {/* Top Header & Actions */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-6">
@@ -645,8 +655,8 @@ const MetricsManagement: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setShowCategoryManagement(!showCategoryManagement)}
                 className={showCategoryManagement ? "bg-accent text-accent-foreground border-accent" : ""}
               >
@@ -674,12 +684,12 @@ const MetricsManagement: React.FC = () => {
                             {t('common:close')}
                         </Button>
                     </div>
-                    <CategoryManagement 
+                    <CategoryManagement
                       onCategoriesChanged={() => {
                         loadData();
                         loadCategories();
                       }}
-                    /> 
+                    />
                   </div>
                </Card>
             </CollapsibleContent>
@@ -698,7 +708,7 @@ const MetricsManagement: React.FC = () => {
                   onChange={(e) => setFilter({ ...filter, searchTerm: e.target.value })}
                 />
               </div>
-              
+
               <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
                  {/* Category Filter */}
                  <Select
@@ -729,7 +739,7 @@ const MetricsManagement: React.FC = () => {
                     <SelectTrigger className="w-[150px]">
                        <div className="flex items-center gap-2 text-sm">
                         <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span>{filter.type === 'all' ? t('metricsEnum:types.all') : getTypeLabel(filter.type)}</span>
+                        <span>{filter.type === 'all' ? t('metricsEnum:types.all') : getTypeLabel(filter.type, t)}</span>
                       </div>
                     </SelectTrigger>
                     <SelectContent>
@@ -795,8 +805,8 @@ const MetricsManagement: React.FC = () => {
                 </div>
                 <h3 className="text-lg font-semibold">{t('metricsManagement:noMetricsTitle')}</h3>
                 <p className="text-muted-foreground max-w-sm mt-2 mb-6">
-                  {filter.searchTerm || filter.categoryId !== 'all' || filter.type !== 'all' 
-                    ? t('metricsManagement:noMetricsFiltered') 
+                  {filter.searchTerm || filter.categoryId !== 'all' || filter.type !== 'all'
+                    ? t('metricsManagement:noMetricsFiltered')
                     : t('metricsManagement:noMetricsEmpty')}
                 </p>
                 <Button onClick={handleCreateMetricDialog}>
@@ -846,7 +856,7 @@ const MetricsManagement: React.FC = () => {
                               {metric.type === 'simple' && <BarChart3 className="mr-1 h-3 w-3" />}
                               {metric.type === 'ratio' && <Calculator className="mr-1 h-3 w-3" />}
                               {metric.type === 'derived' && <GitBranch className="mr-1 h-3 w-3" />}
-                              {getTypeLabel(metric.type)}
+                              {getTypeLabel(metric.type, t)}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-sm">
@@ -854,7 +864,7 @@ const MetricsManagement: React.FC = () => {
                                {metric.format === 'currency' && <span className="text-muted-foreground">$</span>}
                                {metric.format === 'percentage' && <span className="text-muted-foreground">%</span>}
                                {metric.format === 'number' && <span className="text-muted-foreground">#</span>}
-                               <span className="capitalize">{getFormatLabel(metric.format)}</span>
+                               <span className="capitalize">{getFormatLabel(metric.format, t)}</span>
                             </div>
                             <span className="text-xs text-muted-foreground">{metric.unit || '-'}</span>
                           </TableCell>
@@ -901,7 +911,7 @@ const MetricsManagement: React.FC = () => {
                                   <Edit className="mr-2 h-4 w-4" /> {t('common:edit')}
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                     className="text-destructive focus:text-destructive"
                                     onClick={() => handleDeleteMetric(metric.name)}
                                 >
@@ -924,7 +934,7 @@ const MetricsManagement: React.FC = () => {
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2">
                                         <Badge variant="secondary" className={`${getTypeColor(metric.type)} bg-opacity-10 text-[10px] px-1.5 py-0.5 h-5`}>
-                                            {getTypeLabel(metric.type)}
+                                            {getTypeLabel(metric.type, t)}
                                         </Badge>
                                         <ValidationBadge status={metric.validationStatus} size="sm" />
                                         {metric.categoryId && (
@@ -952,31 +962,31 @@ const MetricsManagement: React.FC = () => {
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                            
+
                             <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
                                 {metric.description || t('metricsManagement:card.noDescription')}
                             </p>
-                            
+
                             <Separator />
-                            
+
                             <div className="grid grid-cols-2 gap-2 text-xs">
                                 <div>
                                     <span className="text-muted-foreground block">{t('metricsManagement:card.format')}</span>
-                                    <span className="font-medium capitalize">{getFormatLabel(metric.format)}</span>
+                                    <span className="font-medium capitalize">{getFormatLabel(metric.format, t)}</span>
                                 </div>
                                 <div>
                                     <span className="text-muted-foreground block">{t('metricsManagement:card.unit')}</span>
                                     <span className="font-medium">{metric.unit || '-'}</span>
                                 </div>
                             </div>
-                            
+
                             <div className="pt-2 flex items-center justify-between">
                                 <span className="text-[10px] text-muted-foreground">
                                     {t('metricsManagement:card.updated', { value: metric.updatedAt ? formatDate(metric.updatedAt, locale) : t('common:unknown') })}
                                 </span>
                                 <div className="flex gap-1">
-                                    <Button 
-                                      size="icon" variant="ghost" className="h-7 w-7" 
+                                    <Button
+                                      size="icon" variant="ghost" className="h-7 w-7"
                                       onClick={() => handleValidateMetric(metric)}
                                       disabled={validatingSet.has(metric.name)}
                                       title={t('metricsManagement:revalidate')}
@@ -1000,688 +1010,33 @@ const MetricsManagement: React.FC = () => {
           )}
           </div>
 
- 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>{t('metricsManagement:dialogs.editTitle')}</DialogTitle>
-            <DialogDescription>
-              {t('metricsManagement:dialogs.editDescription')}
-            </DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="max-h-[60vh] pr-4">
-            <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.metricName')}</label>
-                <Input
-                  value={editForm.name || ''}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  placeholder={t('metricsManagement:dialogs.metricNamePlaceholder')}
-                  className={editForm.name && !metricNamePattern.test(editForm.name) ? 'border-destructive' : ''}
-                />
-                {editForm.name && !metricNamePattern.test(editForm.name) ? (
-                  <p className="text-xs text-destructive">{t('metricsManagement:dialogs.metricNameInvalid')}</p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.metricNameHint')}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.displayLabel')}</label>
-                <Input
-                  value={editForm.label || ''}
-                  onChange={(e) => setEditForm({ ...editForm, label: e.target.value })}
-                  placeholder={t('metricsManagement:dialogs.displayLabelPlaceholder')}
-                />
-                <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.displayLabelHint')}</p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t('metricsManagement:dialogs.description')}</label>
-              <Textarea
-                value={editForm.description || ''}
-                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                placeholder={t('metricsManagement:dialogs.descriptionPlaceholder')}
-                rows={3}
-              />
-              <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.descriptionHint')}</p>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.metricType')}</label>
-                <Select
-                  value={editForm.type || ''}
-                  onValueChange={(value) => setEditForm({ ...editForm, type: value as 'simple' | 'ratio' | 'derived' })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('metricsManagement:dialogs.selectType')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="simple">{t('metricsEnum:types.simple')}</SelectItem>
-                    <SelectItem value="ratio">{t('metricsEnum:types.ratio')}</SelectItem>
-                    <SelectItem value="derived">{t('metricsEnum:types.derived')}</SelectItem>
-                    <SelectItem value="cumulative">{t('metricsEnum:types.cumulative')}</SelectItem>
-                    <SelectItem value="conversion">{t('metricsEnum:types.conversion')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.unit')}</label>
-                <Input
-                  value={editForm.unit || ''}
-                  onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })}
-                  placeholder={t('metricsManagement:dialogs.unitPlaceholder')}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.format')}</label>
-                <Select
-                  value={editForm.format || ''}
-                  onValueChange={(value) => setEditForm({ ...editForm, format: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('metricsManagement:dialogs.selectFormat')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="number">{t('metricsEnum:formats.number')}</SelectItem>
-                    <SelectItem value="currency">{t('metricsEnum:formats.currency')}</SelectItem>
-                    <SelectItem value="percentage">{t('metricsEnum:formats.percentage')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+      {/* Unified Metric Form Dialog — Edit mode */}
+      <MetricFormDialog
+        mode="edit"
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        form={editForm}
+        setForm={setEditForm}
+        categories={categories}
+        availableMeasures={availableMeasures}
+        allMetricsForSelect={allMetricsForSelect}
+        metricNamePattern={metricNamePattern}
+        onSave={handleSaveEdit}
+      />
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.category')}</label>
-                <Select
-                  value={editForm.categoryId || 'none'}
-                  onValueChange={(value) => setEditForm({ ...editForm, categoryId: value === 'none' ? undefined : value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('metricsManagement:dialogs.selectCategory')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">{t('common:noCategory')}</SelectItem>
-                    {categories && categories.length > 0 && categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-            </div>
-            <Separator />
-            <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.typeSpecificHint')}</p>
-            
-            {/* Type-specific Parameters */}
-            {editForm.type === 'derived' && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.derivedParams')}</label>
-                <DerivedMetricParams
-                  params={editForm.type_params || {}}
-                  onChange={updateEditFormTypeParams}
-                />
-              </div>
-            )}
-
-            {editForm.type === 'cumulative' && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.cumulativeParams')}</label>
-                <CumulativeMetricParams
-                  params={editForm.type_params?.cumulative_type_params || {}}
-                  onChange={(params) => updateEditFormTypeParams({ ...editForm.type_params, cumulative_type_params: params })}
-                />
-              </div>
-            )}
-
-            {editForm.type === 'conversion' && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.conversionParams')}</label>
-                <ConversionMetricParams
-                  params={editForm.type_params?.conversion_type_params || {}}
-                  onChange={(params) => updateEditFormTypeParams({ ...editForm.type_params, conversion_type_params: params })}
-                />
-              </div>
-            )}
-            
-            {editForm.type === 'ratio' && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('metricsManagement:dialogs.numerator')}</label>
-                  <Select
-                    value={editForm.type_params?.numerator?.name || ''}
-                    onValueChange={(value) =>
-                      setEditForm({
-                        ...editForm,
-                        type_params: {
-                          ...editForm.type_params,
-                          numerator: {
-                            name: value,
-                            join_to_timespine: editForm.type_params?.numerator?.join_to_timespine || false,
-                            filter: editForm.type_params?.numerator?.filter,
-                            alias: editForm.type_params?.numerator?.alias,
-                            fill_nulls_with: editForm.type_params?.numerator?.fill_nulls_with,
-                          },
-                        },
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('metricsManagement:dialogs.selectNumerator')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allMetricsForSelect.filter(m => m.type === 'simple').map((m) => (
-                        <SelectItem key={m.name} value={m.name}>
-                          {m.label || m.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('metricsManagement:dialogs.denominator')}</label>
-                  <Select
-                    value={editForm.type_params?.denominator?.name || ''}
-                    onValueChange={(value) =>
-                      setEditForm({
-                        ...editForm,
-                        type_params: {
-                          ...editForm.type_params,
-                          denominator: {
-                            name: value,
-                            join_to_timespine: editForm.type_params?.denominator?.join_to_timespine || false,
-                            filter: editForm.type_params?.denominator?.filter,
-                            alias: editForm.type_params?.denominator?.alias,
-                            fill_nulls_with: editForm.type_params?.denominator?.fill_nulls_with,
-                          },
-                        },
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('metricsManagement:dialogs.selectDenominator')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allMetricsForSelect.filter(m => m.type === 'simple').map((m) => (
-                        <SelectItem key={m.name} value={m.name}>
-                          {m.label || m.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
-            
-            {editForm.type === 'simple' && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.measure')}</label>
-                <Select
-                  value={editForm.type_params?.measure?.name || ''}
-                  onValueChange={(value) => setEditForm({ 
-                    ...editForm, 
-                    type_params: { 
-                      ...editForm.type_params, 
-                      measure: { 
-                        ...normalizeMeasure(editForm.type_params?.measure),
-                        name: value
-                      }
-                    }
-                  })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('metricsManagement:dialogs.selectMeasure')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableMeasures.map((measure, index) => (
-                      <SelectItem key={`${measure.modelName}-${measure.name}-${index}`} value={measure.name}>
-                        {measure.label} ({measure.modelName})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center justify-between rounded-md border px-3 py-2">
-                    <span className="text-sm">{t('metricsManagement:dialogs.joinToTimespine')}</span>
-                    <Switch
-                      checked={normalizeMeasure(editForm.type_params?.measure).join_to_timespine}
-                      onCheckedChange={(checked) =>
-                        setEditForm({
-                          ...editForm,
-                          type_params: {
-                            ...editForm.type_params,
-                            measure: {
-                              ...normalizeMeasure(editForm.type_params?.measure),
-                              join_to_timespine: checked
-                            }
-                          }
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('metricsManagement:dialogs.alias')}</label>
-                    <Input
-                      value={normalizeMeasure(editForm.type_params?.measure).alias}
-                      onChange={(e) =>
-                        setEditForm({
-                          ...editForm,
-                          type_params: {
-                            ...editForm.type_params,
-                            measure: {
-                              ...normalizeMeasure(editForm.type_params?.measure),
-                              alias: e.target.value
-                            }
-                          }
-                        })
-                      }
-                      placeholder={t('metricsManagement:dialogs.aliasPlaceholder')}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('metricsManagement:dialogs.fillNullsWith')}</label>
-                    <Input
-                      type="number"
-                      value={normalizeMeasure(editForm.type_params?.measure).fill_nulls_with ?? ''}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setEditForm({
-                          ...editForm,
-                          type_params: {
-                            ...editForm.type_params,
-                            measure: {
-                              ...normalizeMeasure(editForm.type_params?.measure),
-                              fill_nulls_with: val === '' ? undefined : Number(val)
-                            }
-                          }
-                        });
-                      }}
-                      placeholder={t('metricsManagement:dialogs.fillNullsPlaceholder')}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('metricsManagement:dialogs.filter')}</label>
-                    <Textarea
-                      value={normalizeMeasure(editForm.type_params?.measure).filter || ''}
-                      onChange={(e) =>
-                        setEditForm({
-                          ...editForm,
-                          type_params: {
-                            ...editForm.type_params,
-                            measure: {
-                              ...normalizeMeasure(editForm.type_params?.measure),
-                              filter: e.target.value
-                            }
-                          }
-                        })
-                      }
-                      placeholder={t('metricsManagement:dialogs.filterPlaceholder')}
-                      rows={2}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-            </div>
-          </ScrollArea>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              {t('common:cancel')}
-            </Button>
-            <Button onClick={handleSaveEdit}>
-              {t('common:saveChanges')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* 创建指标对话框 */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t('metricsManagement:dialogs.createTitle')}</DialogTitle>
-            <DialogDescription>
-              {t('metricsManagement:dialogs.createDescription')}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.metricName')}</label>
-                <Input
-                  value={createForm.name || ''}
-                  onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-                  placeholder={t('metricsManagement:dialogs.metricNamePlaceholder')}
-                  className={createForm.name && !metricNamePattern.test(createForm.name) ? 'border-destructive' : ''}
-                />
-                {createForm.name && !metricNamePattern.test(createForm.name) ? (
-                  <p className="text-xs text-destructive">{t('metricsManagement:dialogs.metricNameInvalid')}</p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.metricNameHint')}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.displayLabel')}</label>
-                <Input
-                  value={createForm.label || ''}
-                  onChange={(e) => setCreateForm({ ...createForm, label: e.target.value })}
-                  placeholder={t('metricsManagement:dialogs.displayLabelPlaceholder')}
-                />
-                <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.displayLabelHint')}</p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t('metricsManagement:dialogs.description')}</label>
-              <Textarea
-                value={createForm.description || ''}
-                onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
-                placeholder={t('metricsManagement:dialogs.descriptionPlaceholder')}
-                rows={3}
-              />
-              <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.descriptionHint')}</p>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.metricType')}</label>
-                <Select
-                  value={createForm.type || ''}
-                  onValueChange={(value) => setCreateForm({ ...createForm, type: value as 'simple' | 'ratio' | 'derived' })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('metricsManagement:dialogs.selectType')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="simple">{t('metricsEnum:types.simple')}</SelectItem>
-                    <SelectItem value="ratio">{t('metricsEnum:types.ratio')}</SelectItem>
-                    <SelectItem value="derived">{t('metricsEnum:types.derived')}</SelectItem>
-                    <SelectItem value="cumulative">{t('metricsEnum:types.cumulative')}</SelectItem>
-                    <SelectItem value="conversion">{t('metricsEnum:types.conversion')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.unit')}</label>
-                <Input
-                  value={createForm.unit || ''}
-                  onChange={(e) => setCreateForm({ ...createForm, unit: e.target.value })}
-                  placeholder={t('metricsManagement:dialogs.unitPlaceholder')}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.format')}</label>
-                <Select
-                  value={createForm.format || ''}
-                  onValueChange={(value) => setCreateForm({ ...createForm, format: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('metricsManagement:dialogs.selectFormat')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="number">{t('metricsEnum:formats.number')}</SelectItem>
-                    <SelectItem value="currency">{t('metricsEnum:formats.currency')}</SelectItem>
-                    <SelectItem value="percentage">{t('metricsEnum:formats.percentage')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.category')}</label>
-                <Select
-                  value={createForm.categoryId || 'none'}
-                  onValueChange={(value) => setCreateForm({ ...createForm, categoryId: value === 'none' ? undefined : value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('metricsManagement:dialogs.selectCategory')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">{t('common:noCategory')}</SelectItem>
-                    {categories && categories.length > 0 && categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-            </div>
-            <Separator />
-            <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.createTypeHint')}</p>
-            
-            {/* Type-specific Parameters */}
-            {createForm.type === 'derived' && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.derivedParams')}</label>
-                <DerivedMetricParams
-                  params={createForm.type_params || {
-                    
-                  }}
-                  onChange={updateCreateFormTypeParams}
-                />
-              </div>
-            )}
-
-            {createForm.type === 'cumulative' && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.cumulativeParams')}</label>
-                <CumulativeMetricParams
-                  params={createForm.type_params?.cumulative_type_params || {}}
-                  onChange={(params) => updateCreateFormTypeParams({ ...createForm.type_params, cumulative_type_params: params })}
-                />
-              </div>
-            )}
-
-            {createForm.type === 'conversion' && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.conversionParams')}</label>
-                <ConversionMetricParams
-                  params={createForm.type_params?.conversion_type_params || {}}
-                  onChange={(params) => updateCreateFormTypeParams({ ...createForm.type_params, conversion_type_params: params })}
-                />
-              </div>
-            )}
-            
-            {createForm.type === 'ratio' && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('metricsManagement:dialogs.numerator')}</label>
-                  <Select
-                    value={createForm.type_params?.numerator?.name || ''}
-                    onValueChange={(value) =>
-                      setCreateForm({
-                        ...createForm,
-                        type_params: {
-                          ...createForm.type_params,
-                          numerator: {
-                            name: value,
-                            join_to_timespine: createForm.type_params?.numerator?.join_to_timespine || false,
-                            filter: createForm.type_params?.numerator?.filter,
-                            alias: createForm.type_params?.numerator?.alias,
-                            fill_nulls_with: createForm.type_params?.numerator?.fill_nulls_with,
-                          },
-                        },
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('metricsManagement:dialogs.selectNumerator')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allMetricsForSelect.filter(m => m.type === 'simple').map((m) => (
-                        <SelectItem key={m.name} value={m.name}>
-                          {m.label || m.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('metricsManagement:dialogs.denominator')}</label>
-                  <Select
-                    value={createForm.type_params?.denominator?.name || ''}
-                    onValueChange={(value) =>
-                      setCreateForm({
-                        ...createForm,
-                        type_params: {
-                          ...createForm.type_params,
-                          denominator: {
-                            name: value,
-                            join_to_timespine: createForm.type_params?.denominator?.join_to_timespine || false,
-                            filter: createForm.type_params?.denominator?.filter,
-                            alias: createForm.type_params?.denominator?.alias,
-                            fill_nulls_with: createForm.type_params?.denominator?.fill_nulls_with,
-                          },
-                        },
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('metricsManagement:dialogs.selectDenominator')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allMetricsForSelect.filter(m => m.type === 'simple').map((m) => (
-                        <SelectItem key={m.name} value={m.name}>
-                          {m.label || m.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
-            
-            {createForm.type === 'simple' && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('metricsManagement:dialogs.measure')}</label>
-                <Select
-                  value={createForm.type_params?.measure?.name || ''}
-                  onValueChange={(value) => setCreateForm({ 
-                    ...createForm, 
-                    type_params: { 
-                      ...createForm.type_params, 
-                      measure: { 
-                        ...normalizeMeasure(createForm.type_params?.measure),
-                        name: value
-                      }
-                    }
-                  })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('metricsManagement:dialogs.selectMeasure')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableMeasures.map((measure, index) => (
-                      <SelectItem key={`${measure.modelName}-${measure.name}-${index}`} value={measure.name}>
-                        {measure.label} ({measure.modelName})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center justify-between rounded-md border px-3 py-2">
-                    <span className="text-sm">{t('metricsManagement:dialogs.joinToTimespine')}</span>
-                    <Switch
-                      checked={normalizeMeasure(createForm.type_params?.measure).join_to_timespine}
-                      onCheckedChange={(checked) =>
-                        setCreateForm({
-                          ...createForm,
-                          type_params: {
-                            ...createForm.type_params,
-                            measure: {
-                              ...normalizeMeasure(createForm.type_params?.measure),
-                              join_to_timespine: checked
-                            }
-                          }
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('metricsManagement:dialogs.alias')}</label>
-                    <Input
-                      value={normalizeMeasure(createForm.type_params?.measure).alias}
-                      onChange={(e) =>
-                        setCreateForm({
-                          ...createForm,
-                          type_params: {
-                            ...createForm.type_params,
-                            measure: {
-                              ...normalizeMeasure(createForm.type_params?.measure),
-                              alias: e.target.value
-                            }
-                          }
-                        })
-                      }
-                      placeholder={t('metricsManagement:dialogs.aliasPlaceholder')}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('metricsManagement:dialogs.fillNullsWith')}</label>
-                    <Input
-                      type="number"
-                      value={normalizeMeasure(createForm.type_params?.measure).fill_nulls_with ?? ''}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setCreateForm({
-                          ...createForm,
-                          type_params: {
-                            ...createForm.type_params,
-                            measure: {
-                              ...normalizeMeasure(createForm.type_params?.measure),
-                              fill_nulls_with: val === '' ? undefined : Number(val)
-                            }
-                          }
-                        });
-                      }}
-                      placeholder={t('metricsManagement:dialogs.fillNullsPlaceholder')}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('metricsManagement:dialogs.filter')}</label>
-                    <Textarea
-                      value={normalizeMeasure(createForm.type_params?.measure).filter || ''}
-                      onChange={(e) =>
-                        setCreateForm({
-                          ...createForm,
-                          type_params: {
-                            ...createForm.type_params,
-                            measure: {
-                              ...normalizeMeasure(createForm.type_params?.measure),
-                              filter: e.target.value
-                            }
-                          }
-                        })
-                      }
-                      placeholder={t('metricsManagement:dialogs.filterPlaceholder')}
-                      rows={2}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-              {t('common:cancel')}
-            </Button>
-            <Button onClick={handleSaveCreate}>
-              {t('metricsManagement:createMetric')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-
+      {/* Unified Metric Form Dialog — Create mode */}
+      <MetricFormDialog
+        mode="create"
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        form={createForm}
+        setForm={setCreateForm}
+        categories={categories}
+        availableMeasures={availableMeasures}
+        allMetricsForSelect={allMetricsForSelect}
+        metricNamePattern={metricNamePattern}
+        onSave={handleSaveCreate}
+      />
 
       {/* Metric Details Dialog */}
       {selectedMetric && (
@@ -1713,7 +1068,7 @@ const MetricsManagement: React.FC = () => {
                       </Badge>
                     )}
                   </div>
-                  
+
                   {validatingSet.has(selectedMetric.name) && (
                     <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
                       <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
@@ -1751,7 +1106,7 @@ const MetricsManagement: React.FC = () => {
 
                   {/* Re-validate button inside detail dialog */}
                   <div className="mt-3">
-                    <Button 
+                    <Button
                       size="sm" variant="outline"
                       onClick={() => {
                         handleValidateMetric(selectedMetric);
@@ -1800,7 +1155,7 @@ const MetricsManagement: React.FC = () => {
                     <label className="text-sm font-medium">{t('metricsManagement:details.type')}</label>
                     <div className="mt-1">
                       <Badge className={getTypeColor(selectedMetric.type)}>
-                        {getTypeLabel(selectedMetric.type)}
+                        {getTypeLabel(selectedMetric.type, t)}
                       </Badge>
                     </div>
                   </div>
@@ -1826,7 +1181,7 @@ const MetricsManagement: React.FC = () => {
                   <div>
                     <label className="text-sm font-medium">{t('metricsManagement:details.format')}</label>
                     <div className="mt-1 p-2 bg-muted rounded text-sm">
-                      {getFormatLabel(selectedMetric.format)}
+                      {getFormatLabel(selectedMetric.format, t)}
                     </div>
                   </div>
                 )}

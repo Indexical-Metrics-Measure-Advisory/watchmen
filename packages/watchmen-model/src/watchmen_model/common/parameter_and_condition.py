@@ -10,7 +10,8 @@ from .tuple_ids import FactorId, TopicId
 class ParameterKind(str, Enum):
 	TOPIC = 'topic',
 	CONSTANT = 'constant',
-	COMPUTED = 'computed'
+	COMPUTED = 'computed',
+	VARIABLE = 'variable'
 
 
 class Parameter(ExtendedBaseModel):
@@ -54,6 +55,12 @@ class VariablePredefineFunctions(str, Enum):
 class ConstantParameter(Parameter):
 	kind: ParameterKind = ParameterKind.CONSTANT
 	value: Optional[str] = None
+
+
+class VariableParameter(Parameter):
+	kind: ParameterKind = ParameterKind.VARIABLE
+	variableName: Optional[str] = None
+	factorName: Optional[str] = None
 
 
 class ParameterComputeType(str, Enum):
@@ -146,6 +153,8 @@ def construct_parameter(parameter: Optional[Union[dict, Parameter]]) -> Optional
 			return ConstantParameter(**parameter)
 		elif kind == ParameterKind.COMPUTED:
 			return ComputedParameter(**parameter)
+		elif kind == ParameterKind.VARIABLE:
+			return VariableParameter(**parameter)
 		else:
 			raise Exception(f'Parameter kind[{kind}] cannot be recognized.')
 

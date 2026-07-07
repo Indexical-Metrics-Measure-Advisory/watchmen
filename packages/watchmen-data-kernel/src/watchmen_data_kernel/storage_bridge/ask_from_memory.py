@@ -13,7 +13,7 @@ from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variabl
 from watchmen_model.admin import Conditional, Factor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
-	TopicFactorParameter, VariablePredefineFunctions
+	TopicFactorParameter, VariableParameter, VariablePredefineFunctions
 from watchmen_utilities import ArrayHelper, date_might_with_prefix, get_current_time_in_seconds, get_day_of_month, \
 	get_day_of_week, get_half_year, get_month, get_quarter, get_week_of_month, get_week_of_year, get_year, \
 	greater_or_equals_date, greater_or_equals_decimal, greater_or_equals_time, is_blank, is_date, \
@@ -22,7 +22,8 @@ from watchmen_utilities import ArrayHelper, date_might_with_prefix, get_current_
 	value_equals, value_not_equals
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
 	create_get_from_variables_with_prefix, create_previous_trigger_data, create_snowflake_generator, \
-	create_static_str, get_date_from_variables, get_value_from, test_date
+	create_static_str, get_date_from_variables, get_value_from, test_date, create_get_value_from_variables, \
+	create_is_list_from_variables
 from .variables import PipelineVariables
 
 
@@ -99,6 +100,8 @@ def parse_parameter_in_memory(
 		return ParsedMemoryConstantParameter(parameter, principal_service)
 	elif isinstance(parameter, ComputedParameter):
 		return ParsedMemoryComputedParameter(parameter, principal_service)
+	elif isinstance(parameter, VariableParameter):
+		return ParsedMemoryVariableParameter(parameter, principal_service)
 	else:
 		raise DataKernelException(f'Parameter[{parameter.dict()}] is not supported.')
 
@@ -409,6 +412,29 @@ class ParsedMemoryTopicFactorParameter(ParsedMemoryParameter):
 				f'Factor[id={parameter.factorId}] in topic[id={topic.topicId}, name={topic.name}] not found.')
 		self.factor = factor
 		self.askValue = create_ask_factor_value(topic, factor)
+
+	def value(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		return self.askValue(variables, principal_service)
+
+
+class ParsedMemoryVariableParameter(ParsedMemoryParameter):
+	variableName: str = None
+	askValue: Callable[[PipelineVariables, PrincipalService], Any] = None
+
+	def parse(self, parameter: VariableParameter, principal_service: PrincipalService) -> None:
+		if is_blank(parameter.variableName):
+			raise DataKernelException(f'Variable name not declared.')
+		self.variableName = parameter.variableName
+
+		if is_blank(parameter.factorName):
+			# no factor declared, return variable directly
+			self.askValue = create_get_from_variables_with_prefix('', parameter.variableName)
+		else:
+			full_name = f'{parameter.variableName}.{parameter.factorName}'
+			names = full_name.strip().split('.')
+			self.askValue = lambda variables, principal_service: get_value_from(
+				full_name, names,
+				create_get_value_from_variables(variables), create_is_list_from_variables(variables))
 
 	def value(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		return self.askValue(variables, principal_service)

@@ -74,7 +74,7 @@ export interface DerivedAttribute {
 	/** The virtual object this derived attribute belongs to */
 	objectId: string;
 	/** Aggregation / arithmetic type */
-	aggregate: "count" | "sum" | "avg" | "min" | "max" | "none";
+	aggregate: "count" | "count_distinct" | "sum" | "avg" | "min" | "max" | "none";
 	/** Traversal path: [objectId, linkId, objectId, ...] */
 	path: string[];
 	/** Final field name used in aggregation */
@@ -157,6 +157,7 @@ export const joinTypeConfig: Record<VirtualLink["joinType"], { label: string; cl
 
 export const aggregateConfig: Record<DerivedAttribute["aggregate"], { label: string; icon: string }> = {
 	count: { label: "COUNT", icon: "#" },
+	count_distinct: { label: "COUNT DISTINCT", icon: "◉" },
 	sum: { label: "SUM", icon: "Σ" },
 	avg: { label: "AVG", icon: "μ" },
 	min: { label: "MIN", icon: "↓" },

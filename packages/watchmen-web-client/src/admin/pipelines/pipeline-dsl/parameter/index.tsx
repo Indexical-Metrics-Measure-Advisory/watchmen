@@ -5,6 +5,7 @@ import {ParamFrom, PropName} from '../dsl-widgets';
 import {ComputeParameterLine} from './compute-parameter';
 import {ConstantParameterLine} from './constant-parameter';
 import {TopicFactorParameterLine} from './topic-factor-parameter';
+import {VariableParameterLine} from './variable-parameter';
 
 export const ParameterLines = (props: {
 	parameter: Parameter;
@@ -24,5 +25,6 @@ export const ParameterLines = (props: {
 		<ComputeParameterLine parameter={parameter} topicsMap={topicsMap} inList={inList} indent={indent}/>
 		<TopicFactorParameterLine parameter={parameter} topicsMap={topicsMap} inList={inList} indent={indent}/>
 		<ConstantParameterLine parameter={parameter} inList={inList} indent={indent}/>
+		<VariableParameterLine parameter={parameter} topicsMap={topicsMap} inList={inList} indent={indent}/>
 	</>;
 };

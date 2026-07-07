@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, Filter, Grid, List, Eye, Calendar, User, ExternalLink, Database, Activity, TrendingUp, Star, Edit, Save, X, Plus, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,20 +71,27 @@ const DataCatalog: React.FC = () => {
     loadData();
   }, []);
 
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
+
   const applyFilters = useCallback(async () => {
     try {
       setLoading(true);
+      const f = filtersRef.current;
+      const sq = searchQueryRef.current;
       const query: DataCatalogQuery = {
         filter: {
-          searchQuery: filters.search || searchQuery,
-          status: filters.status ? [filters.status] : undefined,
-          type: filters.type ? [filters.type] : undefined,
-          domain: filters.domain ? [filters.domain] : undefined,
-          visibility: filters.visibility ? [filters.visibility] : undefined
+          searchQuery: f.search || sq,
+          status: f.status ? [f.status] : undefined,
+          type: f.type ? [f.type] : undefined,
+          domain: f.domain ? [f.domain] : undefined,
+          visibility: f.visibility ? [f.visibility] : undefined
         },
         pagination: { page: 1, pageSize: 50, total: 0 }
       };
-      
+
       const response = await dataCatalogService.getDataProducts(query);
       setProducts(response.products);
     } catch (error) {
@@ -92,7 +99,7 @@ const DataCatalog: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters, searchQuery]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Debounced search apply
   useEffect(() => {

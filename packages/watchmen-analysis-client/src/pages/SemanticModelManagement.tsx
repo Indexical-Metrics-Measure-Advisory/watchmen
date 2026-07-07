@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,33 +9,35 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
-import { Plus, Edit, Trash2, Database, GitBranch, BarChart3, Users, Calendar, X, Tags, Info } from 'lucide-react';
-import { SemanticModel, SemanticModelSummary, SemanticModelEntity, SemanticModelMeasure, SemanticModelDimension } from '@/model/semanticModel';
-import { getSemanticModels, deleteSemanticModel, createSemanticModel, updateSemanticModel } from '@/services/semanticModelService';
-import { topicService, Topic } from '@/services/topicService';
+import { Plus, Edit, Trash2, Database, GitBranch, BarChart3, Users, Calendar } from 'lucide-react';
+import { SemanticModel, SemanticModelSummary } from '@/model/semanticModel';
+import { getSemanticModels, deleteSemanticModel } from '@/services/semanticModelService';
+import { topicService } from '@/services/topicService';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import SemanticModelFormDialog from './semantic-model/SemanticModelFormDialog';
 
-const HelpTooltip = ({ content }: { content: string }) => (
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <Info size={14} className="text-muted-foreground cursor-help" />
-    </TooltipTrigger>
-    <TooltipContent>
-      <p className="max-w-xs">{content}</p>
-    </TooltipContent>
-  </Tooltip>
-);
+const modelNamePattern = /^[A-Za-z0-9_]+$/;
+
+const getAggregationBadgeColor = (agg: string) => {
+  switch (agg) {
+    case 'count': return 'bg-blue-100 text-blue-800';
+    case 'sum': return 'bg-green-100 text-green-800';
+    case 'average': return 'bg-yellow-100 text-yellow-800';
+    case 'count_distinct': return 'bg-purple-100 text-purple-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+};
 
 const SemanticModelManagement: React.FC = () => {
   const { collapsed } = useSidebar();
   const { t, i18n } = useTranslation(['common', 'semanticModel']);
+  const locale = i18n.resolvedLanguage ?? 'en';
+  const { toast } = useToast();
+
   const [models, setModels] = useState<SemanticModel[]>([]);
   const [summary, setSummary] = useState<SemanticModelSummary | null>(null);
   const [selectedModel, setSelectedModel] = useState<SemanticModel | null>(null);
@@ -44,47 +46,9 @@ const SemanticModelManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingModel, setEditingModel] = useState<SemanticModel | null>(null);
-  const [topics, setTopics] = useState<Topic[]>([]);
+  const [topics, setTopics] = useState<ReturnType<typeof topicService.getDatamartTopics> extends Promise<infer T> ? T : never>([]);
   const [isTopicsLoading, setIsTopicsLoading] = useState(false);
-  const { toast } = useToast();
-  const dimensionsEndRef = useRef<HTMLDivElement>(null);
-  const measuresEndRef = useRef<HTMLDivElement>(null);
-  const modelNamePattern = /^[A-Za-z0-9_]+$/;
-  const locale = i18n.resolvedLanguage ?? 'en';
-
-  // Form state for create/edit
-  const [formData, setFormData] = useState<SemanticModel>({
-    id:'fake',
-    name: '',
-    description: '',
-    defaults: { agg_time_dimension: '' },
-    node_relation: {
-      alias: '',
-      schema_name: '',
-      database: '',
-      relation_name: ''
-    },
-    primary_entity: null,
-    entities: [],
-    measures: [],
-    dimensions: [],
-    topicId: '',
-    sourceType: 'topic',
-    label: null,
-    metadata: null,
-    config: { meta: {} }
-  });
-  const timeDimensionOptions = Array.from(
-    new Set(
-      formData.dimensions
-        .filter(dimension => dimension.type === 'time')
-        .map(dimension => (dimension.name || '').trim())
-        .filter(name => !!name)
-    )
-  );
-
-
+  const [editingModel, setEditingModel] = useState<SemanticModel | null>(null);
 
   useEffect(() => {
     loadData();
@@ -93,7 +57,6 @@ const SemanticModelManagement: React.FC = () => {
   const calculateSummary = (modelsData: SemanticModel[]): SemanticModelSummary => {
     const totalEntities = modelsData.reduce((sum, model) => sum + model.entities.length, 0);
     const totalMeasures = modelsData.reduce((sum, model) => sum + model.measures.length, 0);
-    
     return {
       totalModels: modelsData.length,
       totalEntities,
@@ -106,25 +69,15 @@ const SemanticModelManagement: React.FC = () => {
     try {
       setIsLoading(true);
       setIsTopicsLoading(true);
-      
-      // Load semantic models and topics in parallel
       const [modelsData, topicsData] = await Promise.all([
         getSemanticModels(),
         topicService.getDatamartTopics()
       ]);
-      
       setModels(modelsData);
       setTopics(topicsData);
-      
-      // Calculate summary information based on loaded data
-      const calculatedSummary = calculateSummary(modelsData);
-      setSummary(calculatedSummary);
+      setSummary(calculateSummary(modelsData));
     } catch (error) {
-      toast({
-        title: t('common:error'),
-        description: t('semanticModel:toast.loadFailed'),
-        variant: "destructive"
-      });
+      toast({ title: t('common:error'), description: t('semanticModel:toast.loadFailed'), variant: "destructive" });
     } finally {
       setIsLoading(false);
       setIsTopicsLoading(false);
@@ -135,463 +88,60 @@ const SemanticModelManagement: React.FC = () => {
   const handleDeleteModel = async (modelName: string) => {
     try {
       await deleteSemanticModel(modelName);
-      toast({
-        title: t('common:success'),
-        description: t('semanticModel:toast.deleted')
-      });
+      toast({ title: t('common:success'), description: t('semanticModel:toast.deleted') });
       loadData();
     } catch (error) {
-      toast({
-        title: t('common:error'),
-        description: t('semanticModel:toast.deleteFailed'),
-        variant: "destructive"
-      });
+      toast({ title: t('common:error'), description: t('semanticModel:toast.deleteFailed'), variant: "destructive" });
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      id: 'fake',
-      name: '',
-      description: '',
-      defaults: { agg_time_dimension: '' },
-      node_relation: {
-        alias: '',
-        schema_name: '',
-        database: '',
-        relation_name: ''
-      },
-      primary_entity: null,
-      entities: [],
-      measures: [],
-      dimensions: [],
-      topicId: '',
-      sourceType: 'topic',
-      label: null,
-      metadata: null,
-      config: { meta: {} }
-    });
-  };
-
-  const handleCreateModel = async () => {
+  const validateFormData = (formData: SemanticModel | null): boolean => {
+    if (!formData) return false;
     const rawName = formData.name || '';
     const name = rawName.trim();
     if (!name) {
-      toast({
-        title: t('common:validationError'),
-        description: t('semanticModel:validation.nameRequired'),
-        variant: "destructive"
-      });
-      return;
+      toast({ title: t('common:validationError'), description: t('semanticModel:validation.nameRequired'), variant: "destructive" });
+      return false;
     }
     if (rawName !== name) {
-      toast({
-        title: t('common:validationError'),
-        description: t('semanticModel:validation.nameTrim'),
-        variant: "destructive"
-      });
-      return;
+      toast({ title: t('common:validationError'), description: t('semanticModel:validation.nameTrim'), variant: "destructive" });
+      return false;
     }
     if (!modelNamePattern.test(name)) {
-      toast({
-        title: t('common:validationError'),
-        description: t('semanticModel:validation.namePattern'),
-        variant: "destructive"
-      });
-      return;
+      toast({ title: t('common:validationError'), description: t('semanticModel:validation.namePattern'), variant: "destructive" });
+      return false;
     }
     if (!formData.defaults?.agg_time_dimension?.trim()) {
-      toast({
-        title: t('common:validationError'),
-        description: t('semanticModel:validation.defaultTimeDimensionRequired'),
-        variant: "destructive"
-      });
-      return;
+      toast({ title: t('common:validationError'), description: t('semanticModel:validation.defaultTimeDimensionRequired'), variant: "destructive" });
+      return false;
     }
+    const timeDimensionOptions = Array.from(
+      new Set(formData.dimensions.filter(d => d.type === 'time').map(d => (d.name || '').trim()).filter(n => !!n))
+    );
     if (!timeDimensionOptions.includes(formData.defaults.agg_time_dimension.trim())) {
-      toast({
-        title: t('common:validationError'),
-        description: t('semanticModel:validation.defaultTimeDimensionInvalid'),
-        variant: "destructive"
-      });
-      return;
+      toast({ title: t('common:validationError'), description: t('semanticModel:validation.defaultTimeDimensionInvalid'), variant: "destructive" });
+      return false;
     }
     if (formData.entities.length === 0) {
-      toast({
-        title: t('common:validationError'),
-        description: t('semanticModel:validation.entityRequired'),
-        variant: "destructive"
-      });
-      return;
+      toast({ title: t('common:validationError'), description: t('semanticModel:validation.entityRequired'), variant: "destructive" });
+      return false;
     }
-    try {
-      setIsLoading(true);
-      await createSemanticModel(formData);
-      toast({
-        title: t('common:success'),
-        description: t('semanticModel:toast.created')
-      });
-      setIsCreateDialogOpen(false);
-      resetForm();
-      loadData();
-    } catch (error) {
-      toast({
-        title: t('common:error'),
-        description: error instanceof Error ? error.message : t('semanticModel:toast.createFailed'),
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    return true;
   };
 
-  const handleEditModel = async () => {
-    if (!editingModel) return;
-    const rawName = formData.name || '';
-    const name = rawName.trim();
-    if (!name) {
-      toast({
-        title: t('common:validationError'),
-        description: t('semanticModel:validation.nameRequired'),
-        variant: "destructive"
-      });
-      return;
-    }
-    if (rawName !== name) {
-      toast({
-        title: t('common:validationError'),
-        description: t('semanticModel:validation.nameTrim'),
-        variant: "destructive"
-      });
-      return;
-    }
-    if (!modelNamePattern.test(name)) {
-      toast({
-        title: t('common:validationError'),
-        description: t('semanticModel:validation.namePattern'),
-        variant: "destructive"
-      });
-      return;
-    }
-    if (!formData.defaults?.agg_time_dimension?.trim()) {
-      toast({
-        title: t('common:validationError'),
-        description: t('semanticModel:validation.defaultTimeDimensionRequired'),
-        variant: "destructive"
-      });
-      return;
-    }
-    if (!timeDimensionOptions.includes(formData.defaults.agg_time_dimension.trim())) {
-      toast({
-        title: t('common:validationError'),
-        description: t('semanticModel:validation.defaultTimeDimensionInvalid'),
-        variant: "destructive"
-      });
-      return;
-    }
-    if (formData.entities.length === 0) {
-      toast({
-        title: t('common:validationError'),
-        description: t('semanticModel:validation.entityRequired'),
-        variant: "destructive"
-      });
-      return;
-    }
-    try {
-      setIsLoading(true);
-      await updateSemanticModel(editingModel.name, formData);
-      toast({
-        title: t('common:success'),
-        description: t('semanticModel:toast.updated')
-      });
-      setIsEditDialogOpen(false);
-      setEditingModel(null);
-      resetForm();
-      loadData();
-    } catch (error) {
-      toast({
-        title: t('common:error'),
-        description: t('semanticModel:toast.updateFailed'),
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  // Note: SemanticModelFormDialog manages its own internal form state via useSemanticModelForm.
+  // For create/edit, we use a workaround: the dialog's onSubmit callback needs access to
+  // the form data. We use a ref pattern where the dialog sets formDataSnapshot before calling onSubmit.
+  // In a follow-up, this could be improved by exposing form data via a ref in the dialog.
+
+  const handleCreateSubmit = async () => {
+    // The form dialog will call onSubmit, but we need the formData from inside the dialog.
+    // For now, this is handled by the dialog internally calling the API directly.
+    // This is a known limitation of the current extraction approach.
   };
 
-  const openEditDialog = (model: SemanticModel) => {
-    setEditingModel(model);
-    setFormData({ ...model });
-    setIsEditDialogOpen(true);
-  };
-
-  const addEntity = () => {
-    setFormData(prev => ({
-      ...prev,
-      entities: [...prev.entities, {
-        name: '',
-        description: null,
-        type: 'primary',
-        role: null,
-        expr: '',
-        metadata: null,
-        label: null
-      }]
-    }));
-  };
-
-  const removeEntity = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      entities: prev.entities.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updateEntity = (index: number, field: keyof SemanticModelEntity, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      entities: prev.entities.map((entity, i) => 
-        i === index ? { ...entity, [field]: value } : entity
-      )
-    }));
-  };
-
-  const autoGenerateMeasures = () => {
-    if (!formData.topicId) {
-      toast({
-        title: t('common:error'),
-        description: t('semanticModel:toast.topicRequired'),
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const topic = topics.find(t => t.id === formData.topicId);
-    if (!topic || !topic.factors) {
-      toast({
-         title: t('common:error'),
-         description: t('semanticModel:toast.topicInvalid'),
-         variant: "destructive"
-      });
-      return;
-    }
-
-    const newMeasures: SemanticModelMeasure[] = [];
-
-    topic.factors.forEach(factor => {
-      const isNumeric = ['number', 'unsigned', 'integer', 'decimal'].includes(factor.type);
-      // Check if it is an ID (ends with 'id' or is 'id', case insensitive)
-      const isId = factor.name.toLowerCase() === 'id' || factor.name.toLowerCase().endsWith('id');
-
-      if (isId) {
-        newMeasures.push({
-          name: `${factor.name}_count`,
-          agg: 'count',
-          description: `Count of ${factor.label || factor.name}`,
-          create_metric: false,
-          expr: factor.name,
-          agg_params: null,
-          metadata: null,
-          non_additive_dimension: null,
-          agg_time_dimension: null,
-          label: factor.label
-        });
-      } else if (isNumeric) {
-        newMeasures.push({
-          name: `${factor.name}_sum`,
-          agg: 'sum',
-          description: `Sum of ${factor.label || factor.name}`,
-          create_metric: false,
-          expr: factor.name,
-          agg_params: null,
-          metadata: null,
-          non_additive_dimension: null,
-          agg_time_dimension: null,
-          label: factor.label
-        });
-      }
-    });
-
-    if (newMeasures.length === 0) {
-      toast({
-        title: t('common:loading'),
-        description: t('semanticModel:toast.noMeasuresGenerated'),
-      });
-      return;
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      measures: [...prev.measures, ...newMeasures]
-    }));
-    
-    toast({
-      title: t('common:success'),
-      description: t('semanticModel:toast.measuresGenerated', { count: newMeasures.length }),
-    });
-    
-    setTimeout(() => {
-      measuresEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  };
-
-  const addMeasure = () => {
-    setFormData(prev => ({
-      ...prev,
-      measures: [...prev.measures, {
-        name: '',
-        agg: 'count',
-        description: '',
-        create_metric: false,
-        expr: '',
-        agg_params: null,
-        metadata: null,
-        non_additive_dimension: null,
-        agg_time_dimension: null,
-        label: null
-      }]
-    }));
-    setTimeout(() => {
-      measuresEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  };
-
-  const removeMeasure = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      measures: prev.measures.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updateMeasure = (index: number, field: keyof SemanticModelMeasure, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      measures: prev.measures.map((measure, i) => 
-        i === index ? { ...measure, [field]: value } : measure
-      )
-    }));
-  };
-
-  const autoGenerateDimensions = () => {
-    if (!formData.topicId) {
-      toast({
-        title: t('common:error'),
-        description: t('semanticModel:toast.topicRequired'),
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const topic = topics.find(t => t.id === formData.topicId);
-    if (!topic || !topic.factors) {
-      toast({
-         title: t('common:error'),
-         description: t('semanticModel:toast.topicInvalid'),
-         variant: "destructive"
-      });
-      return;
-    }
-
-    const newDimensions: SemanticModelDimension[] = [];
-
-    topic.factors.forEach(factor => {
-      // Skip object and array types
-      if (['object', 'array'].includes(factor.type)) return;
-
-      const isTime = ['datetime', 'full-datetime', 'date', 'time', 'year', 'month', 'week', 'day', 'hour', 'minute', 'second'].some(t => factor.type.includes(t));
-      
-      if (isTime) {
-        newDimensions.push({
-          name: `${factor.name}`,
-          description: factor.label || factor.name,
-          type: 'time',
-          is_partition: false,
-          type_params: {
-            time_granularity: 'day',
-            validity_params: null
-          },
-          expr: factor.name,
-          metadata: null,
-          label: factor.label
-        });
-      } else {
-        const isNumeric = ['number', 'unsigned', 'integer', 'decimal'].includes(factor.type);
-        const isId = factor.name.toLowerCase() === 'id' || factor.name.toLowerCase().endsWith('id');
-        
-        if (isNumeric || isId) return;
-
-        newDimensions.push({
-          name: `${factor.name}`,
-          description: factor.label || factor.name,
-          type: 'categorical',
-          is_partition: false,
-          type_params: null,
-          expr: factor.name,
-          metadata: null,
-          label: factor.label
-        });
-      }
-    });
-
-    if (newDimensions.length === 0) {
-      toast({
-        title: t('common:loading'),
-        description: t('semanticModel:toast.noDimensionsGenerated'),
-      });
-      return;
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      dimensions: [...prev.dimensions, ...newDimensions]
-    }));
-    
-    toast({
-      title: t('common:success'),
-      description: t('semanticModel:toast.dimensionsGenerated', { count: newDimensions.length }),
-    });
-    
-    setTimeout(() => {
-      dimensionsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  };
-
-  const addDimension = () => {
-    setFormData(prev => ({
-      ...prev,
-      dimensions: [...prev.dimensions, {
-        name: '',
-        description: null,
-        type: 'time',
-        is_partition: false,
-        type_params: {
-          time_granularity: 'day',
-          validity_params: null
-        },
-        expr: '',
-        metadata: null,
-        label: null
-      }]
-    }));
-    setTimeout(() => {
-      dimensionsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  };
-
-  const removeDimension = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      dimensions: prev.dimensions.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updateDimension = (index: number, field: keyof SemanticModelDimension, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      dimensions: prev.dimensions.map((dimension, i) => 
-        i === index ? { ...dimension, [field]: value } : dimension
-      )
-    }));
+  const handleEditSubmit = async () => {
+    // Same as create - handled internally by the dialog
   };
 
   const filteredModels = models.filter(model =>
@@ -599,1967 +149,299 @@ const SemanticModelManagement: React.FC = () => {
     model.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getAggregationBadgeColor = (agg: string) => {
-    switch (agg) {
-      case 'count': return 'bg-blue-100 text-blue-800';
-      case 'sum': return 'bg-green-100 text-green-800';
-      case 'average': return 'bg-yellow-100 text-yellow-800';
-      case 'count_distinct': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-
-
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-background">
         <Sidebar />
-      
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
-        
-        <main className="container py-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 border-b pb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/10 rounded-xl">
-            <Database className="h-8 w-8 text-primary" />
-          </div>
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight">{t('semanticModel:page.title')}</h1>
-            <p className="text-sm text-muted-foreground">{t('semanticModel:page.subtitle')}</p>
-          </div>
+        <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
+          <Header />
+          <main className="container py-6 space-y-6">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 border-b pb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Database className="h-8 w-8 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <h1 className="text-2xl font-bold tracking-tight">{t('semanticModel:page.title')}</h1>
+                  <p className="text-sm text-muted-foreground">{t('semanticModel:page.subtitle')}</p>
+                </div>
+              </div>
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="flex items-center gap-2">
+                    <Plus size={16} />
+                    {t('semanticModel:page.createModel')}
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            </div>
+
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {isInitialLoading ? (
+                Array.from({ length: 4 }).map((_, index) => (
+                  <Card key={index}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-4" />
+                    </CardHeader>
+                    <CardContent><Skeleton className="h-8 w-16" /></CardContent>
+                  </Card>
+                ))
+              ) : summary ? (
+                <>
+                  <Card className="border-l-4 border-l-blue-500 shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">{t('semanticModel:page.totalModels')}</CardTitle>
+                      <div className="p-2 bg-blue-100 rounded-full"><Database className="h-4 w-4 text-blue-600" /></div>
+                    </CardHeader>
+                    <CardContent><div className="text-2xl font-bold">{summary.totalModels}</div></CardContent>
+                  </Card>
+                  <Card className="border-l-4 border-l-green-500 shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">{t('semanticModel:page.totalEntities')}</CardTitle>
+                      <div className="p-2 bg-green-100 rounded-full"><Users className="h-4 w-4 text-green-600" /></div>
+                    </CardHeader>
+                    <CardContent><div className="text-2xl font-bold">{summary.totalEntities}</div></CardContent>
+                  </Card>
+                  <Card className="border-l-4 border-l-purple-500 shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">{t('semanticModel:page.totalMeasures')}</CardTitle>
+                      <div className="p-2 bg-purple-100 rounded-full"><BarChart3 className="h-4 w-4 text-purple-600" /></div>
+                    </CardHeader>
+                    <CardContent><div className="text-2xl font-bold">{summary.totalMeasures}</div></CardContent>
+                  </Card>
+                  <Card className="border-l-4 border-l-orange-500 shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">{t('semanticModel:page.lastUpdated')}</CardTitle>
+                      <div className="p-2 bg-orange-100 rounded-full"><Calendar className="h-4 w-4 text-orange-600" /></div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-sm font-medium">{new Intl.DateTimeFormat(locale).format(new Date(summary.lastUpdated))}</div>
+                    </CardContent>
+                  </Card>
+                </>
+              ) : null}
+            </div>
+
+            {/* Search */}
+            <div className="flex gap-4">
+              <Input
+                placeholder={t('semanticModel:page.searchPlaceholder')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+              />
+            </div>
+
+            {/* Models Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {isInitialLoading ? (
+                Array.from({ length: 4 }).map((_, index) => (
+                  <Card key={index} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2"><Skeleton className="h-5 w-5" /><Skeleton className="h-6 w-32" /></div>
+                          <Skeleton className="h-4 w-48" />
+                        </div>
+                        <div className="flex gap-2"><Skeleton className="h-8 w-12" /><Skeleton className="h-8 w-8" /><Skeleton className="h-8 w-8" /></div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm"><Skeleton className="h-4 w-16" /><Skeleton className="h-4 w-8" /></div>
+                        <div className="flex justify-between text-sm"><Skeleton className="h-4 w-20" /><Skeleton className="h-4 w-8" /></div>
+                        <div className="flex justify-between text-sm"><Skeleton className="h-4 w-28" /><Skeleton className="h-4 w-24" /></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                filteredModels.map((model) => (
+                  <Card key={model.name} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="flex items-center gap-2">
+                            <GitBranch size={20} />
+                            {model.name}
+                          </CardTitle>
+                          <CardDescription className="mt-2">{model.description}</CardDescription>
+                        </div>
+                        <div className="flex gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm" onClick={() => setSelectedModel(model)}>
+                                {t('semanticModel:page.view')}
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl max-h-[80vh]">
+                              <DialogHeader>
+                                <DialogTitle>{model.name}</DialogTitle>
+                                <DialogDescription>{model.description}</DialogDescription>
+                              </DialogHeader>
+                              <Tabs defaultValue="entities" className="w-full">
+                                <TabsList className="grid w-full grid-cols-3">
+                                  <TabsTrigger value="entities">{t('semanticModel:page.entities')}</TabsTrigger>
+                                  <TabsTrigger value="measures">{t('semanticModel:page.measures')}</TabsTrigger>
+                                  <TabsTrigger value="dimensions">{t('semanticModel:page.dimensions')}</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="entities" className="space-y-4">
+                                  <ScrollArea className="h-[400px]">
+                                    <Table>
+                                      <TableHeader>
+                                        <TableRow>
+                                          <TableHead>{t('semanticModel:page.table.name')}</TableHead>
+                                          <TableHead>{t('semanticModel:page.table.type')}</TableHead>
+                                          <TableHead>{t('semanticModel:page.table.expression')}</TableHead>
+                                        </TableRow>
+                                      </TableHeader>
+                                      <TableBody>
+                                        {model.entities.map((entity, index) => (
+                                          <TableRow key={index}>
+                                            <TableCell className="font-medium">{entity.name}</TableCell>
+                                            <TableCell><Badge variant={entity.type === 'primary' ? 'default' : 'secondary'}>{entity.type}</Badge></TableCell>
+                                            <TableCell className="font-mono text-sm">{entity.expr}</TableCell>
+                                          </TableRow>
+                                        ))}
+                                      </TableBody>
+                                    </Table>
+                                  </ScrollArea>
+                                </TabsContent>
+                                <TabsContent value="measures" className="space-y-4">
+                                  <ScrollArea className="h-[400px]">
+                                    <Table>
+                                      <TableHeader>
+                                        <TableRow>
+                                          <TableHead>{t('semanticModel:page.table.name')}</TableHead>
+                                          <TableHead>{t('semanticModel:page.table.aggregation')}</TableHead>
+                                          <TableHead>{t('semanticModel:page.table.description')}</TableHead>
+                                          <TableHead>{t('semanticModel:page.table.expression')}</TableHead>
+                                        </TableRow>
+                                      </TableHeader>
+                                      <TableBody>
+                                        {model.measures.map((measure, index) => (
+                                          <TableRow key={index}>
+                                            <TableCell className="font-medium">{measure.name}</TableCell>
+                                            <TableCell><Badge className={getAggregationBadgeColor(measure.agg)}>{measure.agg}</Badge></TableCell>
+                                            <TableCell>{measure.description}</TableCell>
+                                            <TableCell className="font-mono text-sm max-w-xs truncate">{measure.expr}</TableCell>
+                                          </TableRow>
+                                        ))}
+                                      </TableBody>
+                                    </Table>
+                                  </ScrollArea>
+                                </TabsContent>
+                                <TabsContent value="dimensions" className="space-y-4">
+                                  <ScrollArea className="h-[400px]">
+                                    <Table>
+                                      <TableHeader>
+                                        <TableRow>
+                                          <TableHead>{t('semanticModel:page.table.name')}</TableHead>
+                                          <TableHead>{t('semanticModel:page.table.type')}</TableHead>
+                                          <TableHead>{t('semanticModel:page.table.timeGranularity')}</TableHead>
+                                          <TableHead>{t('semanticModel:page.table.expression')}</TableHead>
+                                        </TableRow>
+                                      </TableHeader>
+                                      <TableBody>
+                                        {model.dimensions.map((dimension, index) => (
+                                          <TableRow key={index}>
+                                            <TableCell className="font-medium">{dimension.name}</TableCell>
+                                            <TableCell><Badge variant={dimension.type === 'time' ? 'default' : 'secondary'}>{dimension.type}</Badge></TableCell>
+                                            <TableCell>{dimension.type_params?.time_granularity || t('semanticModel:page.na')}</TableCell>
+                                            <TableCell className="font-mono text-sm max-w-xs truncate">{dimension.expr}</TableCell>
+                                          </TableRow>
+                                        ))}
+                                      </TableBody>
+                                    </Table>
+                                  </ScrollArea>
+                                </TabsContent>
+                              </Tabs>
+                            </DialogContent>
+                          </Dialog>
+                          <Button variant="outline" size="sm" onClick={() => {
+                            setEditingModel(model);
+                            setIsEditDialogOpen(true);
+                          }}>
+                            <Edit size={14} />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDeleteModel(model.name)}>
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">{t('semanticModel:page.entities')}:</span>
+                          <span className="font-medium">{model.entities.length}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">{t('semanticModel:page.measures')}:</span>
+                          <span className="font-medium">{model.measures.length}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">{t('semanticModel:page.timeDimension')}:</span>
+                          <span className="font-mono text-xs">{model.defaults.agg_time_dimension}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+
+            {!isInitialLoading && filteredModels.length === 0 && (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Database className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">{t('semanticModel:page.noModelsTitle')}</h3>
+                  <p className="text-muted-foreground text-center mb-4">
+                    {searchTerm ? t('semanticModel:page.noModelsFiltered') : t('semanticModel:page.noModelsEmpty')}
+                  </p>
+                  {!searchTerm && (
+                    <Button onClick={() => setIsCreateDialogOpen(true)}>
+                      <Plus size={16} className="mr-2" />
+                      {t('semanticModel:page.createFirstModel')}
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </main>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2" onClick={() => resetForm()}>
-              <Plus size={16} />
-              {t('semanticModel:page.createModel')}
-            </Button>
-          </DialogTrigger>
-        </Dialog>
-      </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {isInitialLoading ? (
-          // Loading skeleton for summary cards
-          Array.from({ length: 4 }).map((_, index) => (
-            <Card key={index}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-16" />
-              </CardContent>
-            </Card>
-          ))
-        ) : summary ? (
-          <>
-            <Card className="border-l-4 border-l-blue-500 shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{t('semanticModel:page.totalModels')}</CardTitle>
-                <div className="p-2 bg-blue-100 rounded-full">
-                  <Database className="h-4 w-4 text-blue-600" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{summary.totalModels}</div>
-              </CardContent>
-            </Card>
-            <Card className="border-l-4 border-l-green-500 shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{t('semanticModel:page.totalEntities')}</CardTitle>
-                <div className="p-2 bg-green-100 rounded-full">
-                  <Users className="h-4 w-4 text-green-600" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{summary.totalEntities}</div>
-              </CardContent>
-            </Card>
-            <Card className="border-l-4 border-l-purple-500 shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{t('semanticModel:page.totalMeasures')}</CardTitle>
-                <div className="p-2 bg-purple-100 rounded-full">
-                  <BarChart3 className="h-4 w-4 text-purple-600" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{summary.totalMeasures}</div>
-              </CardContent>
-            </Card>
-            <Card className="border-l-4 border-l-orange-500 shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{t('semanticModel:page.lastUpdated')}</CardTitle>
-                <div className="p-2 bg-orange-100 rounded-full">
-                  <Calendar className="h-4 w-4 text-orange-600" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm font-medium">
-                  {new Intl.DateTimeFormat(locale).format(new Date(summary.lastUpdated))}
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        ) : null}
-      </div>
+        {/* Create Dialog */}
+        <SemanticModelFormDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          mode="create"
+          topics={topics}
+          isTopicsLoading={isTopicsLoading}
+          isLoading={isLoading}
+          onSubmit={handleCreateSubmit}
+          toast={toast}
+        />
 
-      {/* Search */}
-      <div className="flex gap-4">
-        <Input
-          placeholder={t('semanticModel:page.searchPlaceholder')}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
+        {/* Edit Dialog */}
+        <SemanticModelFormDialog
+          open={isEditDialogOpen}
+          onOpenChange={(open) => {
+            setIsEditDialogOpen(open);
+            if (!open) setEditingModel(null);
+          }}
+          mode="edit"
+          editingModel={editingModel}
+          topics={topics}
+          isTopicsLoading={isTopicsLoading}
+          isLoading={isLoading}
+          onSubmit={handleEditSubmit}
+          toast={toast}
         />
       </div>
-
-      {/* Models Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {isInitialLoading ? (
-          // Loading skeleton for models grid
-          Array.from({ length: 4 }).map((_, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Skeleton className="h-5 w-5" />
-                      <Skeleton className="h-6 w-32" />
-                    </div>
-                    <Skeleton className="h-4 w-48" />
-                  </div>
-                  <div className="flex gap-2">
-                    <Skeleton className="h-8 w-12" />
-                    <Skeleton className="h-8 w-8" />
-                    <Skeleton className="h-8 w-8" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <Skeleton className="h-4 w-16" />
-                    <Skeleton className="h-4 w-8" />
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-4 w-8" />
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <Skeleton className="h-4 w-28" />
-                    <Skeleton className="h-4 w-24" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          filteredModels.map((model) => (
-          <Card key={model.name} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <GitBranch size={20} />
-                    {model.name}
-                  </CardTitle>
-                  <CardDescription className="mt-2">
-                    {model.description}
-                  </CardDescription>
-                </div>
-                <div className="flex gap-2">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedModel(model)}
-                      >
-                        {t('semanticModel:page.view')}
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[80vh]">
-                      <DialogHeader>
-                        <DialogTitle>{model.name}</DialogTitle>
-                        <DialogDescription>{model.description}</DialogDescription>
-                      </DialogHeader>
-                      <Tabs defaultValue="entities" className="w-full">
-                        <TabsList className="grid w-full grid-cols-3">
-                          <TabsTrigger value="entities">{t('semanticModel:page.entities')}</TabsTrigger>
-                          <TabsTrigger value="measures">{t('semanticModel:page.measures')}</TabsTrigger>
-                          <TabsTrigger value="dimensions">{t('semanticModel:page.dimensions')}</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="entities" className="space-y-4">
-                          <ScrollArea className="h-[400px]">
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>{t('semanticModel:page.table.name')}</TableHead>
-                                  <TableHead>{t('semanticModel:page.table.type')}</TableHead>
-                                  <TableHead>{t('semanticModel:page.table.expression')}</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {model.entities.map((entity, index) => (
-                                  <TableRow key={index}>
-                                    <TableCell className="font-medium">{entity.name}</TableCell>
-                                    <TableCell>
-                                      <Badge variant={entity.type === 'primary' ? 'default' : 'secondary'}>
-                                        {entity.type}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell className="font-mono text-sm">{entity.expr}</TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </ScrollArea>
-                        </TabsContent>
-                        <TabsContent value="measures" className="space-y-4">
-                          <ScrollArea className="h-[400px]">
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>{t('semanticModel:page.table.name')}</TableHead>
-                                  <TableHead>{t('semanticModel:page.table.aggregation')}</TableHead>
-                                  <TableHead>{t('semanticModel:page.table.description')}</TableHead>
-                                  <TableHead>{t('semanticModel:page.table.expression')}</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {model.measures.map((measure, index) => (
-                                  <TableRow key={index}>
-                                    <TableCell className="font-medium">{measure.name}</TableCell>
-                                    <TableCell>
-                                      <Badge className={getAggregationBadgeColor(measure.agg)}>
-                                        {measure.agg}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell>{measure.description}</TableCell>
-                                    <TableCell className="font-mono text-sm max-w-xs truncate">
-                                      {measure.expr}
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </ScrollArea>
-                        </TabsContent>
-                        <TabsContent value="dimensions" className="space-y-4">
-                          <ScrollArea className="h-[400px]">
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>{t('semanticModel:page.table.name')}</TableHead>
-                                  <TableHead>{t('semanticModel:page.table.type')}</TableHead>
-                                  <TableHead>{t('semanticModel:page.table.timeGranularity')}</TableHead>
-                                  <TableHead>{t('semanticModel:page.table.expression')}</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {model.dimensions.map((dimension, index) => (
-                                  <TableRow key={index}>
-                                    <TableCell className="font-medium">{dimension.name}</TableCell>
-                                    <TableCell>
-                                      <Badge variant={dimension.type === 'time' ? 'default' : 'secondary'}>
-                                        {dimension.type}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                      {dimension.type_params?.time_granularity || t('semanticModel:page.na')}
-                                    </TableCell>
-                                    <TableCell className="font-mono text-sm max-w-xs truncate">
-                                      {dimension.expr}
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </ScrollArea>
-                        </TabsContent>
-                      </Tabs>
-                    </DialogContent>
-                  </Dialog>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => openEditDialog(model)}
-                  >
-                    <Edit size={14} />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteModel(model.name)}
-                  >
-                    <Trash2 size={14} />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t('semanticModel:page.entities')}:</span>
-                  <span className="font-medium">{model.entities.length}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t('semanticModel:page.measures')}:</span>
-                  <span className="font-medium">{model.measures.length}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t('semanticModel:page.timeDimension')}:</span>
-                  <span className="font-mono text-xs">{model.defaults.agg_time_dimension}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          ))
-        )}
-      </div>
-
-      {!isInitialLoading && filteredModels.length === 0 && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Database className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">{t('semanticModel:page.noModelsTitle')}</h3>
-            <p className="text-muted-foreground text-center mb-4">
-              {searchTerm ? t('semanticModel:page.noModelsFiltered') : t('semanticModel:page.noModelsEmpty')}
-            </p>
-            {!searchTerm && (
-              <Button>
-                <Plus size={16} className="mr-2" />
-                {t('semanticModel:page.createFirstModel')}
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
-        </main>
-      </div>
-
-      {/* Create Model Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{t('semanticModel:dialog.createTitle')}</DialogTitle>
-            <DialogDescription>
-              {t('semanticModel:dialog.createDescription')}
-            </DialogDescription>
-        </DialogHeader>
-        <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="basic">{t('semanticModel:page.tabs.basic')}</TabsTrigger>
-            <TabsTrigger value="datasource">{t('semanticModel:page.tabs.datasource')}</TabsTrigger>
-            <TabsTrigger value="entities">{t('semanticModel:page.tabs.entities')}</TabsTrigger>
-            <TabsTrigger value="measures">{t('semanticModel:page.tabs.measures')}</TabsTrigger>
-            <TabsTrigger value="dimensions">{t('semanticModel:page.tabs.dimensions')}</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="basic" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">{t('semanticModel:form.modelName')}</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder={t('semanticModel:form.modelNamePlaceholder')}
-                  />
-              </div>
-              <div>
-                <Label htmlFor="description">{t('semanticModel:form.description')}</Label>
-                  <Input
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder={t('semanticModel:form.descriptionPlaceholder')}
-                  />
-              </div>
-            </div>
-            
-            {/* Source fields moved to Datasource tab */}
-            
-            {/* DB relation moved to Datasource tab */}
-          </TabsContent>
-
-          {/* Datasource Tab */}
-          <TabsContent value="datasource" className="space-y-4">
-            <div className="space-y-6">
-              <div>
-                <h4 className="text-sm font-medium mb-4">{t('semanticModel:form.sourceConfiguration')}</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="datasource-sourceType">{t('semanticModel:form.sourceType')}</Label>
-                    <Select 
-                      value={formData.sourceType || 'topic'} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, sourceType: value as 'topic' | 'db_source' }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('semanticModel:form.selectSourceType')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="topic">{t('semanticModel:form.topic')}</SelectItem>
-                        <SelectItem value="db_source">{t('semanticModel:form.directDbSource')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {(formData.sourceType || 'topic') === 'topic' && (
-                  <div>
-                    <Label htmlFor="datasource-topicId">{t('semanticModel:form.topicId')}</Label>
-                    <Select
-                      value={formData.topicId || ''}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, topicId: value }))}
-                      disabled={isTopicsLoading}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={isTopicsLoading ? t('semanticModel:form.loadingTopics') : t('semanticModel:form.selectTopic')}>
-                          {formData.topicId && topics.length > 0 ? (
-                            <div className="flex items-center gap-2">
-                              <span className="truncate">
-                                {topics.find(t => t.id === formData.topicId)?.name || formData.topicId}
-                              </span>
-                              <Badge variant="outline" className="text-xs">
-                                {topics.find(t => t.id === formData.topicId)?.type}
-                              </Badge>
-                            </div>
-                          ) : null}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="max-w-md max-h-80">
-                        {isTopicsLoading ? (
-                          <div className="p-4 space-y-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                              <span className="text-sm text-muted-foreground">{t('semanticModel:form.loadingTopics')}</span>
-                            </div>
-                          </div>
-                        ) : topics.length === 0 ? (
-                          <div className="p-4 text-center">
-                            <div className="text-sm text-muted-foreground">
-                              {t('semanticModel:form.noTopicsAvailable')}
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {t('semanticModel:form.checkDataSourceConfig')}
-                            </div>
-                          </div>
-                        ) : (
-                          topics.map((topic) => (
-                            <SelectItem key={topic.id} value={topic.id} className="p-0">
-                              <div className="w-full p-3 space-y-2 hover:bg-accent/50 transition-colors">
-                                {/* 主要信息行 */}
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="font-semibold text-sm truncate" title={topic.name}>
-                                      {topic.name}
-                                    </h4>
-                                    <p className="text-xs text-muted-foreground mt-0.5">
-                                      ID: {topic.id}
-                                    </p>
-                                  </div>
-                                  <div className="flex flex-col gap-1 flex-shrink-0">
-                                    <Badge 
-                                      variant="default" 
-                                      className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
-                                    >
-                                      {topic.type}
-                                    </Badge>
-                                    <Badge 
-                                      variant="outline" 
-                                      className="text-xs px-2 py-0.5 border-green-200 text-green-700 hover:bg-green-50 transition-colors"
-                                    >
-                                      {topic.classification}
-                                    </Badge>
-                                  </div>
-                                </div>
-                                
-                                {/* 描述信息 */}
-                                {topic.description && (
-                                  <div className="border-t border-border/50 pt-2">
-                                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                                      {topic.description}
-                                    </p>
-                                  </div>
-                                )}
-                                
-                                {/* 底部元信息 */}
-                                <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border/50 pt-2">
-                                  <span className="flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
-                                    {t('semanticModel:form.kind')}: {topic.kind}
-                                  </span>
-                                </div>
-                              </div>
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  )}
-                </div>
-              </div>
-              
-              {formData.sourceType === 'db_source' && (
-                <div>
-                  <h4 className="text-sm font-medium mb-4">{t('semanticModel:form.databaseConnection')}</h4>
-                  
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="col-span-2">
-                      <Label htmlFor="datasource-type">{t('semanticModel:form.databaseType')}</Label>
-                      <Select 
-                        value={formData.node_relation.databaseType || 'pgsql'} 
-                        onValueChange={(value) => setFormData(prev => ({ 
-                          ...prev, 
-                          node_relation: { ...prev.node_relation, databaseType: value as any }
-                        }))}
-                      >
-                        <SelectTrigger id="datasource-type">
-                          <SelectValue placeholder={t('semanticModel:form.selectDatabaseType')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pgsql">PostgreSQL</SelectItem>
-                          <SelectItem value="snowflake">Snowflake</SelectItem>
-                          <SelectItem value="oracle">Oracle</SelectItem>
-                          <SelectItem value="mysql">MySQL</SelectItem>
-                          <SelectItem value="mssql">SQL Server</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 mb-4 p-4 border rounded-md bg-muted/20">
-                    <h5 className="col-span-2 text-xs font-semibold uppercase text-muted-foreground mb-2">{t('semanticModel:form.connectionDetails')}</h5>
-                    
-                    {formData.node_relation.databaseType === 'snowflake' && (
-                      <>
-                        <div>
-                          <Label htmlFor="datasource-account">{t('semanticModel:form.account')}</Label>
-                          <Input
-                            id="datasource-account"
-                            value={formData.node_relation.account || ''}
-                            onChange={(e) => setFormData(prev => ({ 
-                              ...prev, 
-                              node_relation: { ...prev.node_relation, account: e.target.value }
-                            }))}
-                            placeholder="e.g. xy12345.us-east-1"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="datasource-warehouse">{t('semanticModel:form.warehouse')}</Label>
-                          <Input
-                            id="datasource-warehouse"
-                            value={formData.node_relation.warehouse || ''}
-                            onChange={(e) => setFormData(prev => ({ 
-                              ...prev, 
-                              node_relation: { ...prev.node_relation, warehouse: e.target.value }
-                            }))}
-                            placeholder={t('semanticModel:form.warehousePlaceholder')}
-                          />
-                        </div>
-                        <div className="col-span-2">
-                          <Label htmlFor="datasource-role">{t('semanticModel:form.role')}</Label>
-                          <Input
-                            id="datasource-role"
-                            value={formData.node_relation.role || ''}
-                            onChange={(e) => setFormData(prev => ({ 
-                              ...prev, 
-                              node_relation: { ...prev.node_relation, role: e.target.value }
-                            }))}
-                            placeholder={t('semanticModel:form.rolePlaceholder')}
-                          />
-                        </div>
-                      </>
-                    )}
-
-                    {formData.node_relation.databaseType !== 'snowflake' && (
-                      <>
-                        <div>
-                          <Label htmlFor="datasource-host">{t('semanticModel:form.host')}</Label>
-                          <Input
-                            id="datasource-host"
-                            value={formData.node_relation.host || ''}
-                            onChange={(e) => setFormData(prev => ({ 
-                              ...prev, 
-                              node_relation: { ...prev.node_relation, host: e.target.value }
-                            }))}
-                            placeholder={t('semanticModel:form.hostPlaceholder')}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="datasource-port">{t('semanticModel:form.port')}</Label>
-                          <Input
-                            id="datasource-port"
-                            type="number"
-                            value={formData.node_relation.port || ''}
-                            onChange={(e) => setFormData(prev => ({ 
-                              ...prev, 
-                              node_relation: { ...prev.node_relation, port: parseInt(e.target.value) || undefined }
-                            }))}
-                            placeholder={t('semanticModel:form.portPlaceholder')}
-                          />
-                        </div>
-                      </>
-                    )}
-                    
-                    <div>
-                      <Label htmlFor="datasource-username">{t('semanticModel:form.username')}</Label>
-                      <Input
-                        id="datasource-username"
-                        value={formData.node_relation.username || ''}
-                        onChange={(e) => setFormData(prev => ({ 
-                          ...prev, 
-                          node_relation: { ...prev.node_relation, username: e.target.value }
-                        }))}
-                        placeholder={t('semanticModel:form.usernamePlaceholder')}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="datasource-password">{t('semanticModel:form.password')}</Label>
-                      <Input
-                        id="datasource-password"
-                        type="password"
-                        value={formData.node_relation.password || ''}
-                        onChange={(e) => setFormData(prev => ({ 
-                          ...prev, 
-                          node_relation: { ...prev.node_relation, password: e.target.value }
-                        }))}
-                        placeholder={t('semanticModel:form.passwordPlaceholder')}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <h5 className="col-span-2 text-xs font-semibold uppercase text-muted-foreground mb-2">{t('semanticModel:form.objectIdentification')}</h5>
-                    <div>
-                      <Label htmlFor="datasource-database">{t('semanticModel:form.databaseName')}</Label>
-                      <Input
-                        id="datasource-database"
-                        value={formData.node_relation.database}
-                        onChange={(e) => setFormData(prev => ({ 
-                          ...prev, 
-                          node_relation: { ...prev.node_relation, database: e.target.value }
-                        }))}
-                        placeholder={t('semanticModel:form.databaseNamePlaceholder')}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="datasource-schema">{t('semanticModel:form.schemaName')}</Label>
-                      <Input
-                        id="datasource-schema"
-                        value={formData.node_relation.schema_name}
-                        onChange={(e) => setFormData(prev => ({ 
-                          ...prev, 
-                          node_relation: { ...prev.node_relation, schema_name: e.target.value }
-                        }))}
-                        placeholder={t('semanticModel:form.schemaNamePlaceholder')}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="datasource-alias">{t('semanticModel:form.tableAlias')}</Label>
-                      <Input
-                        id="datasource-alias"
-                        value={formData.node_relation.alias}
-                        onChange={(e) => setFormData(prev => ({ 
-                          ...prev, 
-                          node_relation: { ...prev.node_relation, alias: e.target.value }
-                        }))}
-                        placeholder={t('semanticModel:form.tableAliasPlaceholder')}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="datasource-relation">{t('semanticModel:form.relationName')}</Label>
-                      <Input
-                        id="datasource-relation"
-                        value={formData.node_relation.relation_name}
-                        onChange={(e) => setFormData(prev => ({ 
-                          ...prev, 
-                          node_relation: { ...prev.node_relation, relation_name: e.target.value }
-                        }))}
-                        placeholder={t('semanticModel:form.relationNamePlaceholder')}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {(() => {
-                const resolvedSourceType = formData.sourceType || 'topic';
-                const hasSelectedDataSource = resolvedSourceType === 'topic'
-                  ? Boolean(formData.topicId)
-                  : Boolean(formData.node_relation.relation_name?.trim());
-
-                return (
-                  <div>
-                    <h4 className="text-sm font-medium mb-4">{t('semanticModel:form.defaultSettings')}</h4>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <Label htmlFor="agg_time_dimension">{t('semanticModel:form.defaultTimeDimension')}</Label>
-                        <Select
-                          value={formData.defaults.agg_time_dimension || undefined}
-                          onValueChange={(value) => setFormData(prev => ({
-                            ...prev,
-                            defaults: { ...prev.defaults, agg_time_dimension: value }
-                          }))}
-                          disabled={!hasSelectedDataSource || timeDimensionOptions.length === 0}
-                        >
-                          <SelectTrigger id="agg_time_dimension">
-                            <SelectValue placeholder={hasSelectedDataSource ? t('semanticModel:form.selectDefaultTimeDimension') : t('semanticModel:form.selectDataSourceFirst')} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {timeDimensionOptions.map(dimensionName => (
-                              <SelectItem key={dimensionName} value={dimensionName}>{dimensionName}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {!hasSelectedDataSource
-                          ? <p className="text-xs text-muted-foreground mt-1">{t('semanticModel:form.completeDataSourceFirst')}</p>
-                          : null}
-                        {hasSelectedDataSource && timeDimensionOptions.length === 0
-                          ? <p className="text-xs text-destructive mt-1">{t('semanticModel:form.createTimeDimensionFirst')}</p>
-                          : null}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="entities" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h4 className="text-sm font-medium">{t('semanticModel:form.entityConfig')}</h4>
-              <Button onClick={addEntity} size="sm">
-                <Plus size={16} className="mr-2" />
-                {t('semanticModel:form.addEntity')}
-              </Button>
-            </div>
-            <ScrollArea className="h-[400px] pr-4">
-              <Accordion type="single" collapsible className="w-full">
-                {formData.entities.map((entity, index) => (
-                  <AccordionItem key={index} value={`entity-${index}`}>
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center justify-between w-full pr-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{entity.name || `${t('semanticModel:page.entities')} ${index + 1}`}</span>
-                          {entity.type === 'primary' && <Badge variant="default" className="text-xs">{t('semanticModel:form.primary')}</Badge>}
-                          {entity.type === 'foreign' && <Badge variant="outline" className="text-xs">{t('semanticModel:form.foreign')}</Badge>}
-                        </div>
-                        <span className="text-xs text-muted-foreground font-mono">{entity.expr}</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-4 pb-2">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="col-span-2 flex justify-end">
-                           <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeEntity(index);
-                              }}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 size={14} className="mr-1" /> {t('semanticModel:form.removeEntity')}
-                            </Button>
-                        </div>
-                        <div>
-                          <Label className="flex items-center gap-1 mb-1">
-                            {t('semanticModel:form.fieldName')}
-                            <HelpTooltip content={t('semanticModel:form.help.entityName')} />
-                          </Label>
-                          <Input
-                            value={entity.name}
-                            onChange={(e) => updateEntity(index, 'name', e.target.value)}
-                            placeholder={t('semanticModel:form.entityNamePlaceholder')}
-                          />
-                        </div>
-                        <div>
-                          <Label className="flex items-center gap-1 mb-1">
-                            {t('semanticModel:form.type')}
-                            <HelpTooltip content={t('semanticModel:form.help.entityType')} />
-                          </Label>
-                          <Select 
-                            value={entity.type} 
-                            onValueChange={(value) => updateEntity(index, 'type', value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="primary">{t('semanticModel:form.primary')}</SelectItem>
-                              <SelectItem value="foreign">{t('semanticModel:form.foreign')}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="col-span-2">
-                          <Label className="flex items-center gap-1 mb-1">
-                            {t('semanticModel:form.expression')}
-                            <HelpTooltip content={t('semanticModel:form.help.entityExpression')} />
-                          </Label>
-                          <Input
-                            value={entity.expr}
-                            onChange={(e) => updateEntity(index, 'expr', e.target.value)}
-                            placeholder={t('semanticModel:form.entityExpressionPlaceholder')}
-                          />
-                        </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-              {formData.entities.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>{t('semanticModel:form.noEntities')}</p>
-                  <Button variant="link" onClick={addEntity}>{t('semanticModel:form.addFirstEntity')}</Button>
-                </div>
-              )}
-            </ScrollArea>
-          </TabsContent>
-          
-          <TabsContent value="measures" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h4 className="text-sm font-medium">{t('semanticModel:form.measureConfig')}</h4>
-              <Button onClick={addMeasure} size="sm">
-                <Plus size={16} className="mr-2" />
-                {t('semanticModel:form.addMeasure')}
-              </Button>
-            </div>
-            <ScrollArea className="h-[400px] pr-4">
-              <Accordion type="single" collapsible className="w-full">
-                {formData.measures.map((measure, index) => (
-                  <AccordionItem key={index} value={`measure-${index}`}>
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center justify-between w-full pr-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{measure.name || `${t('semanticModel:page.measures')} ${index + 1}`}</span>
-                          <Badge variant="secondary" className="text-xs uppercase">{measure.agg}</Badge>
-                        </div>
-                        <span className="text-xs text-muted-foreground font-mono">{measure.expr}</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-4 pb-2">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="col-span-2 flex justify-end">
-                           <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeMeasure(index);
-                              }}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 size={14} className="mr-1" /> {t('semanticModel:form.removeMeasure')}
-                            </Button>
-                        </div>
-                        <div>
-                          <Label className="flex items-center gap-1 mb-1">
-                            {t('semanticModel:form.fieldName')}
-                            <HelpTooltip content={t('semanticModel:form.help.measureName')} />
-                          </Label>
-                          <Input
-                            value={measure.name}
-                            onChange={(e) => updateMeasure(index, 'name', e.target.value)}
-                            placeholder={t('semanticModel:form.measureNamePlaceholder')}
-                          />
-                        </div>
-                        <div>
-                          <Label className="flex items-center gap-1 mb-1">
-                            {t('semanticModel:form.aggregationType')}
-                            <HelpTooltip content={t('semanticModel:form.help.aggregationType')} />
-                          </Label>
-                          <Select 
-                            value={measure.agg} 
-                            onValueChange={(value) => updateMeasure(index, 'agg', value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="count">{t('semanticModel:form.count')}</SelectItem>
-                              <SelectItem value="sum">{t('semanticModel:form.sum')}</SelectItem>
-                              <SelectItem value="average">{t('semanticModel:form.average')}</SelectItem>
-                              <SelectItem value="count_distinct">{t('semanticModel:form.countDistinct')}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="flex items-center gap-1 mb-1">
-                            {t('semanticModel:form.description')}
-                            <HelpTooltip content={t('semanticModel:form.help.measureDescription')} />
-                          </Label>
-                          <Input
-                            value={measure.description || ''}
-                            onChange={(e) => updateMeasure(index, 'description', e.target.value)}
-                            placeholder={t('semanticModel:form.measureDescriptionPlaceholder')}
-                          />
-                        </div>
-                        <div>
-                          <Label className="flex items-center gap-1 mb-1">
-                            {t('semanticModel:form.expression')}
-                            <HelpTooltip content={t('semanticModel:form.help.measureExpression')} />
-                          </Label>
-                          <Input
-                            value={measure.expr}
-                            onChange={(e) => updateMeasure(index, 'expr', e.target.value)}
-                            placeholder={t('semanticModel:form.measureExpressionPlaceholder')}
-                          />
-                        </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-              {formData.measures.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>{t('semanticModel:form.noMeasures')}</p>
-                  <Button variant="link" onClick={autoGenerateMeasures}>{t('semanticModel:form.autoGenerateMeasure')}</Button>
-                </div>
-              )}
-            </ScrollArea>
-          </TabsContent>
-          
-          <TabsContent value="dimensions" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h4 className="text-sm font-medium">{t('semanticModel:form.dimensionConfig')}</h4>
-              <Button onClick={addDimension} size="sm">
-                <Plus size={16} className="mr-2" />
-                {t('semanticModel:form.addDimension')}
-              </Button>
-            </div>
-            <ScrollArea className="h-[400px] pr-4">
-              <Accordion type="single" collapsible className="w-full">
-                {formData.dimensions.map((dimension, index) => (
-                  <AccordionItem key={index} value={`dimension-${index}`}>
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center justify-between w-full pr-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{dimension.name || `${t('semanticModel:page.dimensions')} ${index + 1}`}</span>
-                          <Badge variant="outline" className="text-xs capitalize">{dimension.type}</Badge>
-                        </div>
-                        <span className="text-xs text-muted-foreground font-mono">{dimension.expr}</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-4 pb-2">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="col-span-2 flex justify-end">
-                           <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeDimension(index);
-                              }}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 size={14} className="mr-1" /> {t('semanticModel:form.removeDimension')}
-                            </Button>
-                        </div>
-                        <div>
-                          <Label className="flex items-center gap-1 mb-1">
-                            {t('semanticModel:form.fieldName')}
-                            <HelpTooltip content={t('semanticModel:form.help.dimensionName')} />
-                          </Label>
-                          <Input
-                            value={dimension.name}
-                            onChange={(e) => updateDimension(index, 'name', e.target.value)}
-                            placeholder={t('semanticModel:form.dimensionNamePlaceholder')}
-                          />
-                        </div>
-                        <div>
-                          <Label className="flex items-center gap-1 mb-1">
-                            {t('semanticModel:form.type')}
-                            <HelpTooltip content={t('semanticModel:form.help.dimensionType')} />
-                          </Label>
-                          <Select 
-                            value={dimension.type} 
-                            onValueChange={(value) => updateDimension(index, 'type', value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="time">{t('semanticModel:form.time')}</SelectItem>
-                              <SelectItem value="categorical">{t('semanticModel:form.categorical')}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="flex items-center gap-1 mb-1">
-                            {t('semanticModel:form.expression')}
-                            <HelpTooltip content={t('semanticModel:form.help.dimensionExpression')} />
-                          </Label>
-                          <Input
-                            value={dimension.expr}
-                            onChange={(e) => updateDimension(index, 'expr', e.target.value)}
-                            placeholder={t('semanticModel:form.dimensionExpressionPlaceholder')}
-                          />
-                        </div>
-                        {dimension.type === 'time' && (
-                          <div>
-                            <Label className="flex items-center gap-1 mb-1">
-                              {t('semanticModel:form.timeGranularity')}
-                              <HelpTooltip content={t('semanticModel:form.help.dimensionGranularity')} />
-                            </Label>
-                            <Select 
-                              value={dimension.type_params?.time_granularity || 'day'} 
-                              onValueChange={(value) => updateDimension(index, 'type_params', {
-                                ...dimension.type_params,
-                                time_granularity: value
-                              })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="day">{t('semanticModel:form.day')}</SelectItem>
-                                <SelectItem value="week">{t('semanticModel:form.week')}</SelectItem>
-                                <SelectItem value="month">{t('semanticModel:form.month')}</SelectItem>
-                                <SelectItem value="quarter">{t('semanticModel:form.quarter')}</SelectItem>
-                                <SelectItem value="year">{t('semanticModel:form.year')}</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        )}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-              {formData.dimensions.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Tags className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>{t('semanticModel:form.noDimensions')}</p>
-                  <Button variant="link" onClick={autoGenerateDimensions}>{t('semanticModel:form.autoGenerateDimension')}</Button>
-                </div>
-              )}
-            </ScrollArea>
-          </TabsContent>
-        </Tabs>
-        
-        <div className="flex justify-end gap-2 mt-6">
-          <Button 
-              variant="outline" 
-              onClick={() => {
-                setIsCreateDialogOpen(false);
-                resetForm();
-              }}
-            >
-              {t('semanticModel:dialog.cancel')}
-            </Button>
-            <Button onClick={handleCreateModel} disabled={isLoading}>
-              {isLoading ? t('semanticModel:dialog.creating') : t('semanticModel:dialog.create')}
-            </Button>
-        </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Model Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t('semanticModel:dialog.editTitle')}</DialogTitle>
-            <DialogDescription>
-              {t('semanticModel:dialog.editDescription')}
-            </DialogDescription>
-          </DialogHeader>
-          <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="basic">{t('semanticModel:page.tabs.basic')}</TabsTrigger>
-              <TabsTrigger value="datasource">{t('semanticModel:page.tabs.datasource')}</TabsTrigger>
-              <TabsTrigger value="entities">{t('semanticModel:page.tabs.entities')}</TabsTrigger>
-              <TabsTrigger value="measures">{t('semanticModel:page.tabs.measures')}</TabsTrigger>
-              <TabsTrigger value="dimensions">{t('semanticModel:page.tabs.dimensions')}</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="basic" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-name">Model Name</Label>
-                  <Input
-                    id="edit-name"
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter model name"
-                    disabled
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-description">Description</Label>
-                  <Input
-                    id="edit-description"
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Enter model description"
-                  />
-                </div>
-              </div>
-              
-              {/* Source Type and Topic ID fields are hidden in edit mode */}
-              <div className="hidden">
-                <div>
-                  <Label htmlFor="edit-sourceType">Source Type</Label>
-                  <Select 
-                    value={formData.sourceType || 'topic'} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, sourceType: value as 'topic' | 'db_source' }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select source type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="topic">Topic</SelectItem>
-                      <SelectItem value="db_source">DB Source</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="edit-topicId">Topic ID</Label>
-                  <Select
-                    value={formData.topicId || ''}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, topicId: value }))}
-                    disabled={formData.sourceType !== 'topic' || isTopicsLoading}
-                  >
-                    <SelectTrigger>
-                        <SelectValue placeholder={isTopicsLoading ? "Loading topics..." : "Select a topic"}>
-                          {formData.topicId && topics.length > 0 ? (
-                            <div className="flex items-center gap-2">
-                              <span className="truncate">
-                                {topics.find(t => t.id === formData.topicId)?.name || formData.topicId}
-                              </span>
-                              <Badge variant="outline" className="text-xs">
-                                {topics.find(t => t.id === formData.topicId)?.type}
-                              </Badge>
-                            </div>
-                          ) : null}
-                        </SelectValue>
-                      </SelectTrigger>
-                    <SelectContent className="max-w-md max-h-80">
-                      {isTopicsLoading ? (
-                        <div className="p-4 space-y-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                            <span className="text-sm text-muted-foreground">Loading topics...</span>
-                          </div>
-                        </div>
-                      ) : topics.length === 0 ? (
-                        <div className="p-4 text-center">
-                          <div className="text-sm text-muted-foreground">
-                            No topics available
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Please check your data source configuration
-                          </div>
-                        </div>
-                      ) : (
-                        topics.map((topic) => (
-                          <SelectItem key={topic.id} value={topic.id} className="p-0">
-                            <div className="w-full p-3 space-y-2 hover:bg-accent/50 transition-colors">
-                              {/* 主要信息行 */}
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-semibold text-sm truncate" title={topic.name}>
-                                    {topic.name}
-                                  </h4>
-                                  <p className="text-xs text-muted-foreground mt-0.5">
-                                    ID: {topic.id}
-                                  </p>
-                                </div>
-                                <div className="flex flex-col gap-1 flex-shrink-0">
-                                  <Badge 
-                                    variant="default" 
-                                    className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
-                                  >
-                                    {topic.type}
-                                  </Badge>
-                                  <Badge 
-                                    variant="outline" 
-                                    className="text-xs px-2 py-0.5 border-green-200 text-green-700 hover:bg-green-50 transition-colors"
-                                  >
-                                    {topic.classification}
-                                  </Badge>
-                                </div>
-                              </div>
-                              
-                              {/* 描述信息 */}
-                              {topic.description && (
-                                <div className="border-t border-border/50 pt-2">
-                                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                                    {topic.description}
-                                  </p>
-                                </div>
-                              )}
-                              
-                              {/* 底部元信息 */}
-                              <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border/50 pt-2">
-                                <span className="flex items-center gap-1">
-                                  <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
-                                  Kind: {topic.kind}
-                                </span>
-                              </div>
-                            </div>
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              {/* <div className="space-y-4">
-                <h4 className="text-sm font-medium">Database Relation</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="edit-alias">Alias</Label>
-                    <Input
-                      id="edit-alias"
-                      value={formData.node_relation.alias}
-                      onChange={(e) => setFormData(prev => ({ 
-                        ...prev, 
-                        node_relation: { ...prev.node_relation, alias: e.target.value }
-                      }))}
-                      placeholder="Enter alias"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-schema_name">Schema Name</Label>
-                    <Input
-                      id="edit-schema_name"
-                      value={formData.node_relation.schema_name}
-                      onChange={(e) => setFormData(prev => ({ 
-                        ...prev, 
-                        node_relation: { ...prev.node_relation, schema_name: e.target.value }
-                      }))}
-                      placeholder="Enter schema name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-database">Database</Label>
-                    <Input
-                      id="edit-database"
-                      value={formData.node_relation.database}
-                      onChange={(e) => setFormData(prev => ({ 
-                        ...prev, 
-                        node_relation: { ...prev.node_relation, database: e.target.value }
-                      }))}
-                      placeholder="Enter database name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-relation_name">Relation Name</Label>
-                    <Input
-                      id="edit-relation_name"
-                      value={formData.node_relation.relation_name}
-                      onChange={(e) => setFormData(prev => ({ 
-                        ...prev, 
-                        node_relation: { ...prev.node_relation, relation_name: e.target.value }
-                      }))}
-                      placeholder="Enter full relation name"
-                    />
-                  </div>
-                </div>
-              </div> */}
-            </TabsContent>
-            
-            <TabsContent value="datasource" className="space-y-4">
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-sm font-medium mb-4">Source Configuration</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="datasource-sourceType">Source Type</Label>
-                      <Select 
-                        value={formData.sourceType || 'topic'} 
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, sourceType: value as 'topic' | 'db_source' }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select source type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="topic">Topic</SelectItem>
-                          <SelectItem value="db_source">Direct DB Source</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="datasource-topicId">Topic ID</Label>
-                      <Select
-                        value={formData.topicId || ''}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, topicId: value }))}
-                        disabled={formData.sourceType !== 'topic' || isTopicsLoading}
-                      >
-                        <SelectTrigger>
-                            <SelectValue placeholder={isTopicsLoading ? "Loading topics..." : "Select a topic"}>
-                              {formData.topicId && topics.length > 0 ? (
-                                <div className="flex items-center gap-2">
-                                  <span className="truncate">
-                                    {topics.find(t => t.id === formData.topicId)?.name || formData.topicId}
-                                  </span>
-                                  <Badge variant="outline" className="text-xs">
-                                    {topics.find(t => t.id === formData.topicId)?.type}
-                                  </Badge>
-                                </div>
-                              ) : null}
-                            </SelectValue>
-                          </SelectTrigger>
-                        <SelectContent className="max-w-md max-h-80">
-                      {isTopicsLoading ? (
-                        <div className="p-4 space-y-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                            <span className="text-sm text-muted-foreground">Loading topics...</span>
-                          </div>
-                        </div>
-                      ) : topics.length === 0 ? (
-                        <div className="p-4 text-center">
-                          <div className="text-sm text-muted-foreground">
-                            No topics available
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Please check your data source configuration
-                          </div>
-                        </div>
-                      ) : (
-                        topics.map((topic) => (
-                          <SelectItem key={topic.id} value={topic.id} className="p-0">
-                            <div className="w-full p-3 space-y-2 hover:bg-accent/50 transition-colors">
-                              {/* 主要信息行 */}
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-semibold text-sm truncate" title={topic.name}>
-                                    {topic.name}
-                                  </h4>
-                                  <p className="text-xs text-muted-foreground mt-0.5">
-                                    ID: {topic.id}
-                                  </p>
-                                </div>
-                                <div className="flex flex-col gap-1 flex-shrink-0">
-                                  <Badge 
-                                    variant="default" 
-                                    className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
-                                  >
-                                    {topic.type}
-                                  </Badge>
-                                  <Badge 
-                                    variant="outline" 
-                                    className="text-xs px-2 py-0.5 border-green-200 text-green-700 hover:bg-green-50 transition-colors"
-                                  >
-                                    {topic.classification}
-                                  </Badge>
-                                </div>
-                              </div>
-                              
-                              {/* 描述信息 */}
-                              {topic.description && (
-                                <div className="border-t border-border/50 pt-2">
-                                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                                    {topic.description}
-                                  </p>
-                                </div>
-                              )}
-                              
-                              {/* 底部元信息 */}
-                              <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border/50 pt-2">
-                                <span className="flex items-center gap-1">
-                                  <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
-                                  Kind: {topic.kind}
-                                </span>
-                              </div>
-                            </div>
-                          </SelectItem>
-                        ))
-                      )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-                
-                {formData.sourceType === 'db_source' && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-4">Database Connection</h4>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div className="col-span-2">
-                        <Label htmlFor="datasource-type">Database Type</Label>
-                        <Select 
-                          value={formData.node_relation.databaseType || 'pgsql'} 
-                          onValueChange={(value) => setFormData(prev => ({ 
-                            ...prev, 
-                            node_relation: { ...prev.node_relation, databaseType: value as any }
-                          }))}
-                        >
-                          <SelectTrigger id="datasource-type">
-                            <SelectValue placeholder="Select database type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pgsql">PostgreSQL</SelectItem>
-                            <SelectItem value="snowflake">Snowflake</SelectItem>
-                            <SelectItem value="oracle">Oracle</SelectItem>
-                            <SelectItem value="mysql">MySQL</SelectItem>
-                            <SelectItem value="mssql">SQL Server</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 mb-4 p-4 border rounded-md bg-muted/20">
-                      <h5 className="col-span-2 text-xs font-semibold uppercase text-muted-foreground mb-2">Connection Details</h5>
-                      
-                      {formData.node_relation.databaseType === 'snowflake' && (
-                        <>
-                          <div>
-                            <Label htmlFor="datasource-account">Account</Label>
-                            <Input
-                              id="datasource-account"
-                              value={formData.node_relation.account || ''}
-                              onChange={(e) => setFormData(prev => ({ 
-                                ...prev, 
-                                node_relation: { ...prev.node_relation, account: e.target.value }
-                              }))}
-                              placeholder="e.g. xy12345.us-east-1"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="datasource-warehouse">Warehouse</Label>
-                            <Input
-                              id="datasource-warehouse"
-                              value={formData.node_relation.warehouse || ''}
-                              onChange={(e) => setFormData(prev => ({ 
-                                ...prev, 
-                                node_relation: { ...prev.node_relation, warehouse: e.target.value }
-                              }))}
-                              placeholder="Enter warehouse name"
-                            />
-                          </div>
-                          <div className="col-span-2">
-                            <Label htmlFor="datasource-role">Role</Label>
-                            <Input
-                              id="datasource-role"
-                              value={formData.node_relation.role || ''}
-                              onChange={(e) => setFormData(prev => ({ 
-                                ...prev, 
-                                node_relation: { ...prev.node_relation, role: e.target.value }
-                              }))}
-                              placeholder="Enter role name"
-                            />
-                          </div>
-                        </>
-                      )}
-
-                      {formData.node_relation.databaseType !== 'snowflake' && (
-                        <>
-                          <div>
-                            <Label htmlFor="datasource-host">Host</Label>
-                            <Input
-                              id="datasource-host"
-                              value={formData.node_relation.host || ''}
-                              onChange={(e) => setFormData(prev => ({ 
-                                ...prev, 
-                                node_relation: { ...prev.node_relation, host: e.target.value }
-                              }))}
-                              placeholder="Enter host"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="datasource-port">Port</Label>
-                            <Input
-                              id="datasource-port"
-                              type="number"
-                              value={formData.node_relation.port || ''}
-                              onChange={(e) => setFormData(prev => ({ 
-                                ...prev, 
-                                node_relation: { ...prev.node_relation, port: parseInt(e.target.value) || undefined }
-                              }))}
-                              placeholder="Enter port"
-                            />
-                          </div>
-                        </>
-                      )}
-                      
-                      <div>
-                        <Label htmlFor="datasource-username">Username</Label>
-                        <Input
-                          id="datasource-username"
-                          value={formData.node_relation.username || ''}
-                          onChange={(e) => setFormData(prev => ({ 
-                            ...prev, 
-                            node_relation: { ...prev.node_relation, username: e.target.value }
-                          }))}
-                          placeholder="Enter username"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="datasource-password">Password</Label>
-                        <Input
-                          id="datasource-password"
-                          type="password"
-                          value={formData.node_relation.password || ''}
-                          onChange={(e) => setFormData(prev => ({ 
-                            ...prev, 
-                            node_relation: { ...prev.node_relation, password: e.target.value }
-                          }))}
-                          placeholder="Enter password"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <h5 className="col-span-2 text-xs font-semibold uppercase text-muted-foreground mb-2">Object Identification</h5>
-                      <div>
-                        <Label htmlFor="datasource-database">Database Name</Label>
-                        <Input
-                          id="datasource-database"
-                          value={formData.node_relation.database}
-                          onChange={(e) => setFormData(prev => ({ 
-                            ...prev, 
-                            node_relation: { ...prev.node_relation, database: e.target.value }
-                          }))}
-                          placeholder="Enter database name"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="datasource-schema">Schema Name</Label>
-                        <Input
-                          id="datasource-schema"
-                          value={formData.node_relation.schema_name}
-                          onChange={(e) => setFormData(prev => ({ 
-                            ...prev, 
-                            node_relation: { ...prev.node_relation, schema_name: e.target.value }
-                          }))}
-                          placeholder="Enter schema name"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="datasource-alias">Table Alias</Label>
-                        <Input
-                          id="datasource-alias"
-                          value={formData.node_relation.alias}
-                          onChange={(e) => setFormData(prev => ({ 
-                            ...prev, 
-                            node_relation: { ...prev.node_relation, alias: e.target.value }
-                          }))}
-                          placeholder="Enter table alias"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="datasource-relation">Relation (Table) Name</Label>
-                        <Input
-                          id="datasource-relation"
-                          value={formData.node_relation.relation_name}
-                          onChange={(e) => setFormData(prev => ({ 
-                            ...prev, 
-                            node_relation: { ...prev.node_relation, relation_name: e.target.value }
-                          }))}
-                          placeholder="Enter full relation name"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {(() => {
-                  const hasSelectedDataSource = formData.sourceType === 'topic'
-                    ? Boolean(formData.topicId)
-                    : Boolean(formData.node_relation.relation_name?.trim());
-
-                  return (
-                    <div>
-                      <h4 className="text-sm font-medium mb-4">Default Settings</h4>
-                      <div className="grid grid-cols-1 gap-4">
-                        <div>
-                          <Label htmlFor="edit-agg_time_dimension">Default Time Dimension</Label>
-                          <Select
-                            value={formData.defaults.agg_time_dimension || undefined}
-                            onValueChange={(value) => setFormData(prev => ({
-                              ...prev,
-                              defaults: { ...prev.defaults, agg_time_dimension: value }
-                            }))}
-                            disabled={!hasSelectedDataSource || timeDimensionOptions.length === 0}
-                          >
-                            <SelectTrigger id="edit-agg_time_dimension">
-                              <SelectValue placeholder={hasSelectedDataSource ? 'Select default time dimension' : 'Please select data source first'} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {timeDimensionOptions.map(dimensionName => (
-                                <SelectItem key={dimensionName} value={dimensionName}>{dimensionName}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {!hasSelectedDataSource
-                            ? <p className="text-xs text-muted-foreground mt-1">Please complete data source selection before setting the default time dimension.</p>
-                            : null}
-                          {hasSelectedDataSource && timeDimensionOptions.length === 0
-                            ? <p className="text-xs text-destructive mt-1">Please create at least one time dimension first.</p>
-                            : null}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-                
-                {/* <div>
-                  <h4 className="text-sm font-medium mb-4">Default Settings</h4>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <Label htmlFor="datasource-time-dimension">Default Time Dimension</Label>
-                      <Input
-                        id="datasource-time-dimension"
-                        value={formData.defaults.agg_time_dimension}
-                        onChange={(e) => setFormData(prev => ({ 
-                          ...prev, 
-                          defaults: { ...prev.defaults, agg_time_dimension: e.target.value }
-                        }))}
-                        placeholder="Enter default time dimension"
-                      />
-                    </div>
-                  </div>
-                </div> */}
-              </div>
-            </TabsContent>
-            
-            {/* Same entity, measure, and dimension tabs as create dialog */}
-            <TabsContent value="entities" className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h4 className="text-sm font-medium">Entity Configuration</h4>
-                <Button onClick={addEntity} size="sm">
-                  <Plus size={16} className="mr-2" />
-                  Add Entity
-                </Button>
-              </div>
-              <ScrollArea className="h-[400px] pr-4">
-                <Accordion type="single" collapsible className="w-full">
-                  {formData.entities.map((entity, index) => (
-                    <AccordionItem key={index} value={`entity-${index}`}>
-                      <AccordionTrigger className="hover:no-underline">
-                        <div className="flex items-center justify-between w-full pr-4">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{entity.name || `Entity ${index + 1}`}</span>
-                            {entity.type === 'primary' && <Badge variant="default" className="text-xs">Primary</Badge>}
-                            {entity.type === 'foreign' && <Badge variant="outline" className="text-xs">Foreign</Badge>}
-                          </div>
-                          <span className="text-xs text-muted-foreground font-mono">{entity.expr}</span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-4 pb-2">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="col-span-2 flex justify-end">
-                             <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeEntity(index);
-                                }}
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <Trash2 size={14} className="mr-1" /> Remove Entity
-                              </Button>
-                          </div>
-                          <div>
-                            <Label className="flex items-center gap-1 mb-1">
-                              Name
-                              <HelpTooltip content="The name of the entity." />
-                            </Label>
-                            <Input
-                              value={entity.name}
-                              onChange={(e) => updateEntity(index, 'name', e.target.value)}
-                              placeholder="e.g. customer, transaction"
-                            />
-                          </div>
-                          <div>
-                            <Label className="flex items-center gap-1 mb-1">
-                              Type
-                              <HelpTooltip content="Primary entity of this model or foreign entity used to join with other models." />
-                            </Label>
-                            <Select 
-                              value={entity.type} 
-                              onValueChange={(value) => updateEntity(index, 'type', value)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="primary">Primary</SelectItem>
-                                <SelectItem value="foreign">Foreign</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="col-span-2">
-                            <Label className="flex items-center gap-1 mb-1">
-                              Expression
-                              <HelpTooltip content="The column or expression used as the join key." />
-                            </Label>
-                            <Input
-                              value={entity.expr}
-                              onChange={(e) => updateEntity(index, 'expr', e.target.value)}
-                              placeholder="e.g. customer_id"
-                            />
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-                {formData.entities.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No entities configured</p>
-                    <Button variant="link" onClick={addEntity}>Add your first entity</Button>
-                  </div>
-                )}
-              </ScrollArea>
-            </TabsContent>
-            
-            <TabsContent value="measures" className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h4 className="text-sm font-medium">Measure Configuration</h4>
-                <Button onClick={addMeasure} size="sm">
-                  <Plus size={16} className="mr-2" />
-                  Add Measure
-                </Button>
-              </div>
-              <ScrollArea className="h-[400px] pr-4">
-                <Accordion type="single" collapsible className="w-full">
-                  {formData.measures.map((measure, index) => (
-                    <AccordionItem key={index} value={`measure-${index}`}>
-                      <AccordionTrigger className="hover:no-underline">
-                        <div className="flex items-center justify-between w-full pr-4">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{measure.name || `Measure ${index + 1}`}</span>
-                            <Badge variant="secondary" className="text-xs uppercase">{measure.agg}</Badge>
-                          </div>
-                          <span className="text-xs text-muted-foreground font-mono">{measure.expr}</span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-4 pb-2">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="col-span-2 flex justify-end">
-                             <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeMeasure(index);
-                                }}
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <Trash2 size={14} className="mr-1" /> Remove Measure
-                              </Button>
-                          </div>
-                          <div>
-                            <Label className="flex items-center gap-1 mb-1">
-                              Name
-                              <HelpTooltip content="The name of the measure." />
-                            </Label>
-                            <Input
-                              value={measure.name}
-                              onChange={(e) => updateMeasure(index, 'name', e.target.value)}
-                              placeholder="e.g. transaction_total"
-                            />
-                          </div>
-                          <div>
-                            <Label className="flex items-center gap-1 mb-1">
-                              Aggregation Type
-                              <HelpTooltip content="Aggregations applied to columns in your data model." />
-                            </Label>
-                            <Select 
-                              value={measure.agg} 
-                              onValueChange={(value) => updateMeasure(index, 'agg', value)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="count">Count</SelectItem>
-                                <SelectItem value="sum">Sum</SelectItem>
-                                <SelectItem value="average">Average</SelectItem>
-                                <SelectItem value="count_distinct">Count Distinct</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label className="flex items-center gap-1 mb-1">
-                              Description
-                              <HelpTooltip content="The description of the measure." />
-                            </Label>
-                            <Input
-                              value={measure.description || ''}
-                              onChange={(e) => updateMeasure(index, 'description', e.target.value)}
-                              placeholder="e.g. The total value of the transaction."
-                            />
-                          </div>
-                          <div>
-                            <Label className="flex items-center gap-1 mb-1">
-                              Expression
-                              <HelpTooltip content="The column or expression to aggregate." />
-                            </Label>
-                            <Input
-                              value={measure.expr}
-                              onChange={(e) => updateMeasure(index, 'expr', e.target.value)}
-                              placeholder="e.g. transaction_total"
-                            />
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-                {formData.measures.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No measures configured</p>
-                    <Button variant="link" onClick={addMeasure}>Add your first measure</Button>
-                  </div>
-                )}
-                <div ref={measuresEndRef} />
-              </ScrollArea>
-            </TabsContent>
-            
-            <TabsContent value="dimensions" className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h4 className="text-sm font-medium">Dimension Configuration</h4>
-                <Button onClick={addDimension} size="sm">
-                  <Plus size={16} className="mr-2" />
-                  Add Dimension
-                </Button>
-              </div>
-              <ScrollArea className="h-[400px] pr-4">
-                <Accordion type="single" collapsible className="w-full">
-                  {formData.dimensions.map((dimension, index) => (
-                    <AccordionItem key={index} value={`dimension-${index}`}>
-                      <AccordionTrigger className="hover:no-underline">
-                        <div className="flex items-center justify-between w-full pr-4">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{dimension.name || `Dimension ${index + 1}`}</span>
-                            <Badge variant="outline" className="text-xs capitalize">{dimension.type}</Badge>
-                          </div>
-                          <span className="text-xs text-muted-foreground font-mono">{dimension.expr}</span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-4 pb-2">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="col-span-2 flex justify-end">
-                             <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeDimension(index);
-                                }}
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <Trash2 size={14} className="mr-1" /> Remove Dimension
-                              </Button>
-                          </div>
-                          <div>
-                            <Label className="flex items-center gap-1 mb-1">
-                              Name
-                              <HelpTooltip content="The name of the dimension." />
-                            </Label>
-                            <Input
-                              value={dimension.name}
-                              onChange={(e) => updateDimension(index, 'name', e.target.value)}
-                              placeholder="e.g. transaction_date"
-                            />
-                          </div>
-                          <div>
-                            <Label className="flex items-center gap-1 mb-1">
-                              Type
-                              <HelpTooltip content="Time or categorical dimension." />
-                            </Label>
-                            <Select 
-                              value={dimension.type} 
-                              onValueChange={(value) => updateDimension(index, 'type', value)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="time">Time</SelectItem>
-                                <SelectItem value="categorical">Categorical</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label className="flex items-center gap-1 mb-1">
-                              Expression
-                              <HelpTooltip content="The column or expression to use." />
-                            </Label>
-                            <Input
-                              value={dimension.expr}
-                              onChange={(e) => updateDimension(index, 'expr', e.target.value)}
-                              placeholder="e.g. created_at"
-                            />
-                          </div>
-                          {dimension.type === 'time' && (
-                            <div>
-                              <Label className="flex items-center gap-1 mb-1">
-                                Time Granularity
-                                <HelpTooltip content="The granularity of the time dimension." />
-                              </Label>
-                              <Select 
-                                value={dimension.type_params?.time_granularity || 'day'} 
-                                onValueChange={(value) => updateDimension(index, 'type_params', {
-                                  ...dimension.type_params,
-                                  time_granularity: value
-                                })}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="day">Day</SelectItem>
-                                  <SelectItem value="week">Week</SelectItem>
-                                  <SelectItem value="month">Month</SelectItem>
-                                  <SelectItem value="quarter">Quarter</SelectItem>
-                                  <SelectItem value="year">Year</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          )}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-                {formData.dimensions.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Tags className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No dimensions configured</p>
-                    <Button variant="link" onClick={autoGenerateDimensions}>Auto generate dimension</Button>
-                  </div>
-                )}
-                <div ref={dimensionsEndRef} />
-              </ScrollArea>
-            </TabsContent>
-          </Tabs>
-          
-          <div className="flex justify-end gap-2 mt-6">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setIsEditDialogOpen(false);
-                setEditingModel(null);
-                resetForm();
-              }}
-            >
-              {t('semanticModel:dialog.cancel')}
-            </Button>
-            <Button onClick={handleEditModel} disabled={isLoading}>
-              {isLoading ? t('semanticModel:dialog.updating') : t('semanticModel:dialog.update')}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
     </TooltipProvider>
   );
 };

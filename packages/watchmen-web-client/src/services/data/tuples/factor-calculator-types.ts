@@ -4,7 +4,8 @@ import {Topic, TopicId} from './topic-types';
 export enum ParameterKind {
 	TOPIC = 'topic',
 	CONSTANT = 'constant',
-	COMPUTED = 'computed'
+	COMPUTED = 'computed',
+	VARIABLE = 'variable'
 }
 
 export interface Parameter {
@@ -68,6 +69,12 @@ export interface ComputedParameter extends Computed, Parameter {
 	kind: ParameterKind.COMPUTED;
 }
 
+export interface VariableParameter extends Parameter {
+	kind: ParameterKind.VARIABLE;
+	variableName: string;
+	factorName?: string;
+}
+
 export enum ParameterExpressionOperator {
 	EMPTY = 'empty',
 	NOT_EMPTY = 'not-empty',
@@ -118,6 +125,10 @@ export enum ParameterInvalidReason {
 
 	CONSTANT_TYPE_NOT_MATCHED = 'constant-type-not-matched',
 
+	VARIABLE_NOT_DEFINED = 'variable-not-defined',
+	VARIABLE_NOT_FOUND = 'variable-not-found',
+	VARIABLE_FACTOR_NOT_FOUND = 'variable-factor-not-found',
+
 	JOINT_TYPE_NOT_DEFINED = 'joint-type-not-defined',
 	JOINT_FILTERS_NOT_DEFINED = 'joint-filters-not-defined',
 
@@ -143,6 +154,10 @@ export const ParameterInvalidReasonsLabels: Record<ParameterInvalidReason, strin
 	[ParameterInvalidReason.COMPUTE_CASES_TOO_MANY_UNCONDITIONAL]: 'too many unconditional forks in cases',
 
 	[ParameterInvalidReason.CONSTANT_TYPE_NOT_MATCHED]: 'constant return type doesn\'t match expected',
+
+	[ParameterInvalidReason.VARIABLE_NOT_DEFINED]: 'variable not defined',
+	[ParameterInvalidReason.VARIABLE_NOT_FOUND]: 'variable not found',
+	[ParameterInvalidReason.VARIABLE_FACTOR_NOT_FOUND]: 'variable factor not found',
 
 	[ParameterInvalidReason.JOINT_TYPE_NOT_DEFINED]: 'joint type not defined',
 	[ParameterInvalidReason.JOINT_FILTERS_NOT_DEFINED]: 'no filters defined of joint',

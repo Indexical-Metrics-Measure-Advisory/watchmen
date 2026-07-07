@@ -7,6 +7,7 @@ import React from 'react';
 import {ComputedEditor} from '../computed';
 import {ConstantEditor} from '../constant';
 import {TopicFactorEditor} from '../topic-factor';
+import {VariableEditor} from '../variable';
 import {RemoveMeButton} from './widgets';
 
 export const SubParameterEditBody = (props: {
@@ -34,6 +35,7 @@ export const SubParameterEditBody = (props: {
 			<FontAwesomeIcon icon={ICON_DELETE}/>
 		</RemoveMeButton>
 		<ComputedEditor parameter={parameter} topics={topics} expectedTypes={expectedTypes} expectArray={expectArray}/>
+		<VariableEditor parameter={parameter} topics={topics} expectedTypes={expectedTypes}/>
 	</>;
 
 };

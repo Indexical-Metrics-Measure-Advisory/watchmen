@@ -12,7 +12,8 @@ import {
 	ParameterJoint,
 	ParameterKind,
 	TopicFactorParameter,
-	ValueTypes
+	ValueTypes,
+	VariableParameter
 } from './factor-calculator-types';
 import {
 	computeParameterTypes,
@@ -28,6 +29,7 @@ import {
 	isExpressionParameter,
 	isJointParameter,
 	isTopicFactorParameter,
+	isVariableParameter,
 	ParameterCalculatorDefsMap
 } from './parameter-utils';
 import {PipelineStage} from './pipeline-stage-types';
@@ -142,6 +144,8 @@ export const isParameterValid4Pipeline = (options: {
 		return isConstantParameterValid({parameter, allTopics, triggerTopic, variables, expectedTypes, array, reasons});
 	} else if (isComputedParameter(parameter)) {
 		return isComputedParameterValid({parameter, allTopics, triggerTopic, variables, expectedTypes, array, reasons});
+	} else if (isVariableParameter(parameter)) {
+		return isVariableParameterValid({parameter, allTopics, triggerTopic, variables, expectedTypes, array, reasons});
 	} else {
 		return false;
 	}
@@ -231,6 +235,70 @@ const isTopicFactorParameterValid = (options: {
 	}
 
 	return isFactorTypeCompatibleWith({factorType: factor.type, expectedTypes, reasons});
+};
+
+const isVariableParameterValid = (options: {
+	parameter: VariableParameter;
+	allTopics: Array<Topic>;
+	triggerTopic?: Topic;
+	variables: DeclaredVariables;
+	expectedTypes: ValueTypes;
+	array: boolean;
+	reasons: (reason: ParameterInvalidReason) => void;
+}): boolean => {
+	const {parameter, allTopics, triggerTopic, variables, expectedTypes, array, reasons} = options;
+
+	if (!parameter.variableName || parameter.variableName.trim().length === 0) {
+		reasons(ParameterInvalidReason.VARIABLE_NOT_DEFINED);
+		return false;
+	}
+	const variable = variables.find(v => v.name === parameter.variableName.trim());
+	if (!variable) {
+		reasons(ParameterInvalidReason.VARIABLE_NOT_FOUND);
+		return false;
+	}
+	if (parameter.factorName) {
+		// factor is optional, but when it is given, it must be found in variable's topic
+		const types = variable.types;
+		const topic = types.map(t => t.topic).find(t => t != null);
+		if (!topic) {
+			reasons(ParameterInvalidReason.VARIABLE_FACTOR_NOT_FOUND);
+			return false;
+		}
+		const factor = topic.factors.find(f => f.name === parameter.factorName);
+		if (!factor) {
+			reasons(ParameterInvalidReason.VARIABLE_FACTOR_NOT_FOUND);
+			return false;
+		}
+		return isFactorTypeCompatibleWith({factorType: factor.type, expectedTypes, reasons});
+	}
+
+	// no factor given, validate based on variable types
+	const types = computeParameterTypes(parameter, allTopics, variables, triggerTopic)
+		.filter(type => type.array === array);
+
+	if (types.every(type => type.type === AnyFactorType.ERROR)) {
+		reasons(ParameterInvalidReason.VARIABLE_NOT_FOUND);
+		return false;
+	}
+
+	if (expectedTypes.some(expectedType => expectedType === AnyFactorType.ANY)) {
+		return true;
+	}
+
+	if (types.some(type => type.type === AnyFactorType.ANY)) {
+		return true;
+	}
+
+	const actualExpectedTypes = expectedTypes.filter(expectedType => expectedType !== AnyFactorType.ERROR && expectedType !== AnyFactorType.ANY);
+
+	return types.filter(type => type.type !== AnyFactorType.ERROR)
+		.filter(type => type.array === array)
+		.some(type => isFactorTypeCompatibleWith({
+			factorType: type.type as FactorType,
+			expectedTypes: actualExpectedTypes,
+			reasons: () => reasons(ParameterInvalidReason.FACTOR_TYPE_NOT_MATCHED)
+		}));
 };
 
 const isComputedParameterValid = (options: {
@@ -343,23 +411,18 @@ export const buildVariable = (options: {
 			})
 		};
 	} else if (isReadRowAction(action)) {
+		// eslint-disable-next-line
+		const topic = topics.find(t => t.topicId == action.topicId);
 		return {
 			name: action.variableName.trim(),
-			types: computeParameterTypes({
-				kind: ParameterKind.TOPIC,
-				topicId: action.topicId
-			} as TopicFactorParameter, topics, variables, triggerTopic)
+			types: [{type: FactorType.OBJECT, topic, array: false}]
 		};
 	} else if (isReadRowsAction(action)) {
+		// eslint-disable-next-line
+		const topic = topics.find(t => t.topicId == action.topicId);
 		return {
 			name: action.variableName.trim(),
-			types: computeParameterTypes({
-				kind: ParameterKind.TOPIC,
-				topicId: action.topicId
-			} as TopicFactorParameter, topics, variables, triggerTopic).map(t => {
-				t.array = true;
-				return t;
-			})
+			types: [{type: FactorType.OBJECT, topic, array: true}]
 		};
 	} else if (isExistsAction(action)) {
 		return {

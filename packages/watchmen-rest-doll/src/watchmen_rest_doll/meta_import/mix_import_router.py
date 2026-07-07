@@ -20,7 +20,7 @@ from watchmen_model.indicator import Bucket, Indicator, IndicatorBaseOn
 from watchmen_model.system import Tenant
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_403
-from watchmen_rest_doll.admin.pipeline_router import post_save_pipeline
+from watchmen_rest_doll.admin.pipeline_common import post_save_pipeline
 from watchmen_rest_doll.admin.topic_router import post_save_topic
 from watchmen_rest_doll.console.connected_space_router import ConnectedSpaceWithSubjects, SubjectWithReports
 from watchmen_rest_doll.util import trans

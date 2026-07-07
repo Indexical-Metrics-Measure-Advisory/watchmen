@@ -6,6 +6,7 @@ import {ComputedEditor} from '../../parameter/computed';
 import {ConstantEditor} from '../../parameter/constant';
 import {ParameterFromEditor} from '../../parameter/param-from';
 import {TopicFactorEditor} from '../../parameter/topic-factor';
+import {VariableEditor} from '../../parameter/variable';
 import {useExpressionEventBus} from '../event-bus/expression-event-bus';
 import {ExpressionEventTypes} from '../event-bus/expression-event-bus-types';
 import {ExpressionSideContainer} from './widgets';
@@ -44,5 +45,6 @@ export const ExpressionSide = (props: {
 		<TopicFactorEditor parameter={parameter} topics={topics} expectedTypes={expectedTypes}/>
 		<ConstantEditor parameter={parameter} expectedTypes={expectedTypes} expectArray={expectArray}/>
 		<ComputedEditor parameter={parameter} topics={topics} expectedTypes={expectedTypes} expectArray={expectArray}/>
+		<VariableEditor parameter={parameter} topics={topics} expectedTypes={expectedTypes}/>
 	</ExpressionSideContainer>;
 };

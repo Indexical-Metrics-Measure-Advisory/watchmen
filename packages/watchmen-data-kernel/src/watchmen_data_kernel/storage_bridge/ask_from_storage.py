@@ -18,7 +18,7 @@ from watchmen_model.admin import AccumulateMode, AggregateArithmetic, Factor, Fa
 from watchmen_model.admin.pipeline_action_write import InsertOrMergeRowAction, WriteTopicAction
 from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
-	ParameterKind, TopicFactorParameter, TopicId, VariablePredefineFunctions
+	ParameterKind, TopicFactorParameter, TopicId, VariableParameter, VariablePredefineFunctions
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, \
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal
@@ -270,6 +270,27 @@ class ParsedStorageTopicFactorParameter(ParsedStorageParameter):
 			self,
 			variables: PipelineVariables, principal_service: PrincipalService) -> Union[Any, ColumnNameLiteral]:
 		return self.askValue(variables, principal_service)
+
+
+class ParsedStorageVariableParameter(ParsedStorageParameter):
+	parsedMemory: ParsedMemoryParameter = None
+	possibleTypes: List[PossibleParameterType] = []
+
+	def get_possible_types(self) -> List[PossibleParameterType]:
+		return self.possibleTypes
+
+	def parse(
+			self, parameter: VariableParameter, available_schemas: List[TopicSchema],
+			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
+		if not allow_in_memory_variables:
+			raise DataKernelException(
+				f'Variable parameter[{parameter.dict()}] is not supported when in-memory variables is not allowed.')
+		self.parsedMemory = parse_parameter_in_memory(parameter, principal_service)
+		# variable parameter type is determined at runtime from memory, use ANY_VALUE
+		self.possibleTypes = [PossibleParameterType.ANY_VALUE]
+
+	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		return self.parsedMemory.value(variables, principal_service)
 
 
 def parse_variable_to_value(
@@ -852,6 +873,9 @@ def parse_parameter_for_storage(
 			parameter, available_schemas, principal_service, allow_in_memory_variables)
 	elif isinstance(parameter, ComputedParameter):
 		return ParsedStorageComputedParameter(
+			parameter, available_schemas, principal_service, allow_in_memory_variables)
+	elif isinstance(parameter, VariableParameter):
+		return ParsedStorageVariableParameter(
 			parameter, available_schemas, principal_service, allow_in_memory_variables)
 	else:
 		raise DataKernelException(f'Parameter[{parameter.dict()}] is not supported.')

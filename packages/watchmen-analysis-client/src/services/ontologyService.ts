@@ -121,7 +121,7 @@ export const INITIAL_VIRTUAL_ONTOLOGIES: VirtualOntology[] = [
 // ============================================================================
 
 export const createEmptyVirtualOntology = (): VirtualOntology => ({
-	id: `ont-${Date.now()}`,
+	id: `ont-${crypto.randomUUID()}`,
 	name: "",
 	description: "",
 	owner: "",
@@ -135,7 +135,7 @@ export const createEmptyVirtualOntology = (): VirtualOntology => ({
 });
 
 export const createEmptyVirtualObject = (index: number): VirtualObject => ({
-	id: `vo-${Date.now()}-${index}`,
+	id: `vo-${crypto.randomUUID()}`,
 	name: "",
 	description: "",
 	physicalTables: [],
@@ -146,7 +146,7 @@ export const createEmptyVirtualObject = (index: number): VirtualObject => ({
 });
 
 export const createEmptyVirtualLink = (): VirtualLink => ({
-	id: `vl-${Date.now()}`,
+	id: `vl-${crypto.randomUUID()}`,
 	name: "",
 	sourceObjectId: "",
 	targetObjectId: "",
@@ -157,7 +157,9 @@ export const createEmptyVirtualLink = (): VirtualLink => ({
 });
 
 export const createEmptyDerivedAttribute = (objectId: string): DerivedAttribute => ({
-	id: `da-${Date.now()}`,
+	// 关键：用 crypto.randomUUID 避免同毫秒连点 / React 批处理导致 id 重复。
+	// 一旦 id 重复，React key 会冲突、filter 删除会把所有同 id 都清掉。
+	id: `da-${crypto.randomUUID()}`,
 	name: "",
 	description: "",
 	objectId,
@@ -199,6 +201,53 @@ export const buildTopicMap = (topics: Topic[]): Map<string, Topic> => {
 	const map = new Map<string, Topic>();
 	topics.forEach((t) => map.set(t.id, t));
 	return map;
+};
+
+/**
+ * 给 ontology 内部所有用 ID 作为 React key 的实体（virtualObjects / virtualLinks /
+ * physicalTables / derivedAttributes）做 ID 唯一化。
+
+ * 历史 bug：旧版本用 `Date.now()` 生成 id，同毫秒内连点 / React 批处理会拿到相同 id，
+ * 导致：
+ *   1. React key 冲突 → 用户只看到 N 条 derived 中的 1 条
+ *   2. filter(da => da.id !== daId) 删除时把所有同 id 都干掉 → "删一条全没"
+ *
+ * 这个函数在加载数据时调用一次，保证 UI 操作安全。
+ */
+export const normalizeIds = (ontology: VirtualOntology): VirtualOntology => {
+	const seen = new Set<string>();
+	const ensureUnique = (prefix: string, id: string | undefined | null): string => {
+		if (id && !seen.has(id)) {
+			seen.add(id);
+			return id;
+		}
+		// id 冲突或为空，重新分配
+		let newId = `${prefix}-${crypto.randomUUID()}`;
+		while (seen.has(newId)) newId = `${prefix}-${crypto.randomUUID()}`;
+		seen.add(newId);
+		return newId;
+	};
+
+	return {
+		...ontology,
+		virtualObjects: (ontology.virtualObjects ?? []).map(vo => ({
+			...vo,
+			id: ensureUnique("vo", vo.id),
+			physicalTables: (vo.physicalTables ?? []).map(pt => ({
+				...pt,
+				// physicalTable 没有显式 id 字段，用 alias+topicName 当唯一 key
+				// 这里不强制改 alias，仅在 derivedAttribute 处理冲突
+			})),
+			derivedAttributes: (vo.derivedAttributes ?? []).map(da => ({
+				...da,
+				id: ensureUnique("da", da.id),
+			})),
+		})),
+		virtualLinks: (ontology.virtualLinks ?? []).map(vl => ({
+			...vl,
+			id: ensureUnique("vl", vl.id),
+		})),
+	};
 };
 
 // ============================================================================
@@ -477,7 +526,7 @@ const mergeAgentYamlIntoOntology = (raw: Record<string, unknown>, existing: Virt
 		const vo_name = String(vo_raw.name ?? "");
 		const existing_vo = obj_by_name[vo_name];
 		return {
-			id: existing_vo?.id ?? `vo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+			id: existing_vo?.id ?? `vo-${crypto.randomUUID()}`,
 			name: vo_name,
 			description: String(vo_raw.description ?? ""),
 			datasourceId: vo_raw.datasourceId ? String(vo_raw.datasourceId) : existing_vo?.datasourceId,
@@ -505,7 +554,7 @@ const mergeAgentYamlIntoOntology = (raw: Record<string, unknown>, existing: Virt
 				sourceField: String(a.sourceField ?? ""),
 			})),
 			derivedAttributes: ((vo_raw.derivedAttributes as Record<string, unknown>[]) ?? []).map((da) => ({
-				id: `da-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+				id: `da-${crypto.randomUUID()}`,
 				name: String(da.name ?? ""),
 				description: String(da.description ?? ""),
 				aggregate: String(da.aggregate ?? "count"),
@@ -521,7 +570,7 @@ const mergeAgentYamlIntoOntology = (raw: Record<string, unknown>, existing: Virt
 	});
 
 	const virtualLinks: VirtualLink[] = ((raw.virtualLinks as Record<string, unknown>[]) ?? []).map((vl_raw) => ({
-		id: `vl-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+		id: `vl-${crypto.randomUUID()}`,
 		name: String(vl_raw.name ?? ""),
 		sourceObjectId: new_obj_by_name[String(vl_raw.sourceObjectName ?? "")]?.id ?? "",
 		targetObjectId: new_obj_by_name[String(vl_raw.targetObjectName ?? "")]?.id ?? "",

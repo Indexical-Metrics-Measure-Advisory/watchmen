@@ -8,7 +8,8 @@ import {ParameterFromEditContainer, ParameterFromIcon, ParameterTypeButton} from
 const OptionsLabel: Record<ParameterKind, string> = {
 	[ParameterKind.TOPIC]: 'Topic',
 	[ParameterKind.CONSTANT]: 'Constant',
-	[ParameterKind.COMPUTED]: 'Compute'
+	[ParameterKind.COMPUTED]: 'Compute',
+	[ParameterKind.VARIABLE]: 'Variable'
 };
 
 export const ParameterFromEditor = (props: { parameter: Parameter }) => {
@@ -16,7 +17,7 @@ export const ParameterFromEditor = (props: { parameter: Parameter }) => {
 
 	const {onFromChanged, onIconClicked, onStartEditing, onBlur, editing} = useParamFrom(parameter);
 
-	const candidates = [ParameterKind.TOPIC, ParameterKind.CONSTANT, ParameterKind.COMPUTED].filter(candidate => candidate !== parameter.kind);
+	const candidates = [ParameterKind.TOPIC, ParameterKind.CONSTANT, ParameterKind.COMPUTED, ParameterKind.VARIABLE].filter(candidate => candidate !== parameter.kind);
 
 	return <ParameterFromEditContainer onClick={onStartEditing} tabIndex={0} onBlur={onBlur}>
 		<ParameterTypeButton active={true} edit={editing}

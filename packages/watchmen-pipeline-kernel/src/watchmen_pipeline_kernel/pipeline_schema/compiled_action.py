@@ -717,17 +717,16 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 						raise PipelineKernelException(
 							f'Data not found on do update, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 					elif ask_pipeline_update_retry() and times < ask_pipeline_update_retry_times():
-						# retry interval is based on given settings and random plus 1 - 20 ms
-						# since there are 2 situations will lead update nothing
-						# 1. data is deleted, then in next round, will do insertion
-						# 2. data is updated by another thread, process or node, typically it is caused by version increment.
-						# for case #2, most of all are led by to aggregate data by a data list.
-						# then random the interval might be helpful to distribute the writing evenly.
-						interval = ask_pipeline_update_retry_interval()
-						interval = interval + randrange(1, 20)
-						sleep(interval / 1000)
-						# example: try update on [0, 1, 2] when retry times is 3
-						work(times + 1, is_insert_allowed)
+							base_interval = ask_pipeline_update_retry_interval()  # 10ms
+							# 指数退避: 10ms → 20ms → 40ms（第0/1/2次重试）
+							exponential_interval = base_interval * (2 ** times)
+							# 随机抖动: ±30%，避免多个冲突方同步醒来
+							jitter = int(exponential_interval * 0.3)
+							interval = exponential_interval + randrange(-jitter, jitter + 1)
+							# 保底: 至少 5ms，避免退避后间隔过小
+							interval = max(5, interval)
+							sleep(interval / 1000)
+							work(times + 1, is_insert_allowed)
 					elif ask_pipeline_update_retry() and ask_pipeline_update_retry_force():
 						last_try()
 					else:

@@ -9,6 +9,7 @@ import {ComputedEditor} from '../../parameter/computed';
 import {ConstantEditor} from '../../parameter/constant';
 import {ParameterFromEditor} from '../../parameter/param-from';
 import {TopicFactorEditor} from '../../parameter/topic-factor';
+import {VariableEditor} from '../../parameter/variable';
 import {Parameter2ActionBridge} from './parameter-2-action-bridge';
 import {SingleParameterContainer} from './widgets';
 
@@ -27,6 +28,7 @@ export const SingleParameter = (props: {
 			<TopicFactorEditor parameter={parameter} topics={topics} expectedTypes={expectedTypes}/>
 			<ConstantEditor parameter={parameter} expectedTypes={expectedTypes} expectArray={false}/>
 			<ComputedEditor parameter={parameter} topics={topics} expectedTypes={expectedTypes} expectArray={false}/>
+			<VariableEditor parameter={parameter} topics={topics} expectedTypes={expectedTypes}/>
 		</SingleParameterContainer>
 	</ParameterEventBusProvider>;
 };

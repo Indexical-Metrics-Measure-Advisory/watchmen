@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { Plus, Search, Loader2 } from 'lucide-react';
@@ -159,18 +159,17 @@ const BusinessProblems: React.FC = () => {
     }
   };
 
-  const getFilteredProblems = () => {
+  const filteredProblems = useMemo(() => {
     let filtered = problems;
-    
-    filtered = filtered.filter(problem => 
+
+    filtered = filtered.filter(problem =>
       problem.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       problem.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    
+
     if (statusFilter !== 'all') {
       filtered = filtered.filter(problem => problem.status === statusFilter);
     }
-  
 
     return filtered.sort((a, b) => {
       if (sortOrder === 'newest') {
@@ -179,11 +178,7 @@ const BusinessProblems: React.FC = () => {
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       }
     });
-
-  
-  };
-
-  const filteredProblems = getFilteredProblems();
+  }, [problems, searchTerm, statusFilter, sortOrder]);
   
   const currentChallenge = challengeFilter !== 'all' 
     ? challenges.find(c => c.id === challengeFilter)

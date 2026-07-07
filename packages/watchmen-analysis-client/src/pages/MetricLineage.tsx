@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type {
   MetricLineageViewData, LineageNode, LineageStage, LineageEdge, LineagePath, LineageGroup, LineageRoot, LineageRoute,
 } from '@/model/metricLineage';
@@ -20,137 +21,23 @@ import {
   getMetricLineage,
   getMetricLineageSuggestions,
   isMetricLineageMockData,
-  isMetricLineageMockMetric,
 } from '@/services/metricLineageService';
 import {
   ArrowRight,
   ArrowUpRight,
-  BarChart3,
-  Binary,
-  CheckCircle2,
   Copy,
-  Database,
   ExternalLink,
-  GitBranch,
   Layers3,
-  Network,
   Route,
   Search,
   Sparkles,
-  TableProperties,
   TriangleAlert,
-  Workflow,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getRecentMetricsStorageKey, buildStageMeta, buildStatusMeta, getNodeIcon, getEdgeKindLabel, getMetricRoleLabel, getMetricDependencyDiagnostics, STAGE_ORDER } from '@/utils/lineageHelpers';
+import { useRecentMetrics } from '@/hooks/useRecentMetrics';
 
-const RECENT_METRICS_KEY = 'watchmen_metric_lineage_recent_metrics';
-const getRecentMetricsStorageKey = (tenantId?: string | null): string =>
-  tenantId ? `${RECENT_METRICS_KEY}:${tenantId}` : RECENT_METRICS_KEY;
-
-const clearLegacyRecentMetricsStorageKey = (): void => {
-  localStorage.removeItem(RECENT_METRICS_KEY);
-};
-const STAGE_ORDER: LineageStage[] = ['metric', 'semantic', 'topic', 'pipeline', 'source'];
-
-const buildStageMeta = (t: (key: string, options?: any) => string): Record<LineageStage, { title: string; description: string; icon: React.ReactNode; className: string; accentClass: string }> => ({
-  metric: {
-    title: t('stage.metric.title'),
-    description: t('stage.metric.description'),
-    icon: <BarChart3 className="h-4 w-4" />,
-    className: 'border-blue-200 bg-blue-50/70 text-blue-700',
-    accentClass: 'from-blue-500/20 to-blue-500/5',
-  },
-  semantic: {
-    title: t('stage.semantic.title'),
-    description: t('stage.semantic.description'),
-    icon: <GitBranch className="h-4 w-4" />,
-    className: 'border-violet-200 bg-violet-50/70 text-violet-700',
-    accentClass: 'from-violet-500/20 to-violet-500/5',
-  },
-  topic: {
-    title: t('stage.topic.title'),
-    description: t('stage.topic.description'),
-    icon: <Network className="h-4 w-4" />,
-    className: 'border-cyan-200 bg-cyan-50/70 text-cyan-700',
-    accentClass: 'from-cyan-500/20 to-cyan-500/5',
-  },
-  pipeline: {
-    title: t('stage.pipeline.title'),
-    description: t('stage.pipeline.description'),
-    icon: <Workflow className="h-4 w-4" />,
-    className: 'border-orange-200 bg-orange-50/70 text-orange-700',
-    accentClass: 'from-orange-500/20 to-orange-500/5',
-  },
-  source: {
-    title: t('stage.source.title'),
-    description: t('stage.source.description'),
-    icon: <Database className="h-4 w-4" />,
-    className: 'border-emerald-200 bg-emerald-50/70 text-emerald-700',
-    accentClass: 'from-emerald-500/20 to-emerald-500/5',
-  },
-});
-
-const buildStatusMeta = (t: (key: string, options?: any) => string) => ({
-  resolved: {
-    label: t('status.resolved'),
-    className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    icon: <CheckCircle2 className="h-3.5 w-3.5" />,
-  },
-  partial: {
-    label: t('status.partial'),
-    className: 'border-amber-200 bg-amber-50 text-amber-700',
-    icon: <TriangleAlert className="h-3.5 w-3.5" />,
-  },
-  unresolved: {
-    label: t('status.unresolved'),
-    className: 'border-muted bg-muted/60 text-muted-foreground',
-    icon: <Binary className="h-3.5 w-3.5" />,
-  },
-} as const);
-
-const getNodeIcon = (node: LineageNode) => {
-  switch (node.type) {
-    case 'metric':
-    case 'metric_ref':
-      return <BarChart3 className="h-4 w-4" />;
-    case 'semantic_model':
-    case 'semantic_measure':
-      return <GitBranch className="h-4 w-4" />;
-    case 'topic':
-    case 'topic_factor':
-      return <Network className="h-4 w-4" />;
-    case 'pipeline':
-      return <Workflow className="h-4 w-4" />;
-    case 'source_table':
-      return <TableProperties className="h-4 w-4" />;
-    case 'source_field':
-      return <Database className="h-4 w-4" />;
-    default:
-      return <Layers3 className="h-4 w-4" />;
-  }
-};
-
-const readRecentMetrics = (tenantId?: string | null): string[] => {
-  try {
-    const raw = localStorage.getItem(getRecentMetricsStorageKey(tenantId));
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === 'string' && !isMetricLineageMockMetric(item))
-      : [];
-  } catch {
-    return [];
-  }
-};
-
-const writeRecentMetrics = (metricName: string, tenantId?: string | null): string[] => {
-  const next = [metricName, ...readRecentMetrics(tenantId).filter(item => item !== metricName)].slice(0, 6);
-  localStorage.setItem(getRecentMetricsStorageKey(tenantId), JSON.stringify(next));
-  clearLegacyRecentMetricsStorageKey();
-  return next;
-};
-
-const SummaryCard = ({ title, value, description }: { title: string; value: string | number; description: string }) => (
+const SummaryCard = memo(({ title, value, description }: { title: string; value: string | number; description: string }) => (
   <Card className="border-border/60 shadow-sm">
     <CardContent className="p-4">
       <div className="text-xs uppercase tracking-wide text-muted-foreground">{title}</div>
@@ -158,9 +45,10 @@ const SummaryCard = ({ title, value, description }: { title: string; value: stri
       <div className="mt-1 text-xs text-muted-foreground">{description}</div>
     </CardContent>
   </Card>
-);
+));
+SummaryCard.displayName = 'SummaryCard';
 
-const PathSignalCard = ({
+const PathSignalCard = memo(({
   label,
   value,
   description,
@@ -174,9 +62,10 @@ const PathSignalCard = ({
     <div className="mt-2 text-2xl font-semibold tracking-tight">{value}</div>
     <div className="mt-1 text-xs text-muted-foreground">{description}</div>
   </div>
-);
+));
+PathSignalCard.displayName = 'PathSignalCard';
 
-const GroupSummaryCard = ({
+const GroupSummaryCard = memo(({
   group,
   nodeMap,
   onSelect,
@@ -184,95 +73,68 @@ const GroupSummaryCard = ({
   group: LineageGroup;
   nodeMap: Map<string, LineageNode>;
   onSelect: (nodeId: string) => void;
-}) => (
-  (() => {
-    const { t } = useTranslation('metricLineage');
-    return (
-  <div className="rounded-2xl border bg-background/80 p-4">
-    <div className="flex items-start justify-between gap-3">
-      <div>
-        <div className="text-sm font-medium">{group.title}</div>
-        <div className="mt-1 text-xs text-muted-foreground">
-          {t('routeGroups.nodesActive', { total: group.totalNodes, active: group.activeNodes })}
+}) => {
+  const { t } = useTranslation('metricLineage');
+  return (
+    <div className="rounded-2xl border bg-background/80 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-sm font-medium">{group.title}</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {t('routeGroups.nodesActive', { total: group.totalNodes, active: group.activeNodes })}
+          </div>
         </div>
+        <Badge variant="secondary">{group.totalNodes}</Badge>
       </div>
-      <Badge variant="secondary">{group.totalNodes}</Badge>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {group.previewNodeIds.map(nodeId => {
+          const node = nodeMap.get(nodeId);
+          if (!node) return null;
+          return (
+            <button
+              key={nodeId}
+              type="button"
+              onClick={() => onSelect(nodeId)}
+              className="rounded-full border px-3 py-1 text-xs transition-colors hover:bg-muted"
+            >
+              {node.label || node.name}
+            </button>
+          );
+        })}
+        {group.collapsedNodeCount > 0 && (
+          <Badge variant="outline">{t('routeGroups.more', { count: group.collapsedNodeCount })}</Badge>
+        )}
+      </div>
     </div>
-    <div className="mt-3 flex flex-wrap gap-2">
-      {group.previewNodeIds.map(nodeId => {
-        const node = nodeMap.get(nodeId);
-        if (!node) return null;
-        return (
-          <button
-            key={nodeId}
-            type="button"
-            onClick={() => onSelect(nodeId)}
-            className="rounded-full border px-3 py-1 text-xs transition-colors hover:bg-muted"
-          >
-            {node.label || node.name}
-          </button>
-        );
-      })}
-      {group.collapsedNodeCount > 0 && (
-        <Badge variant="outline">{t('routeGroups.more', { count: group.collapsedNodeCount })}</Badge>
-      )}
-    </div>
-  </div>
-    );
-  })()
-);
+  );
+});
+GroupSummaryCard.displayName = 'GroupSummaryCard';
 
-const RootSummaryCard = ({
+const RootSummaryCard = memo(({
   root,
   onSelect,
 }: {
   root: LineageRoot;
   onSelect: (nodeId: string) => void;
-}) => (
-  (() => {
-    const { t } = useTranslation('metricLineage');
-    return (
-  <button
-    type="button"
-    onClick={() => onSelect(root.nodeId)}
-    className="flex w-full items-center justify-between rounded-xl border p-3 text-left transition-colors hover:bg-muted/30"
-  >
-    <div>
-      <div className="font-medium">{root.label}</div>
-      <div className="mt-1 text-xs text-muted-foreground">
+}) => {
+  const { t } = useTranslation('metricLineage');
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(root.nodeId)}
+      className="flex w-full items-center justify-between rounded-xl border p-3 text-left transition-colors hover:bg-muted/30"
+    >
+      <div>
+        <div className="font-medium">{root.label}</div>
+        <div className="mt-1 text-xs text-muted-foreground">
           {root.nodeType === 'topic' ? t('rootsPanel.rawTopic') : root.nodeType === 'source_table' ? t('rootsPanel.sourceTable') : t('rootsPanel.sourceField')} · {t('rootsPanel.routes', { count: root.routeIds.length })}
+        </div>
       </div>
-    </div>
-    <Badge variant="outline">{t('rootsPanel.hopDepth', { count: root.hopDepth })}</Badge>
-  </button>
-    );
-  })()
-);
-
-const getEdgeKindLabel = (kind: LineageEdge['kind'], t: (key: string, options?: any) => string): string =>
-  t(`edgeKind.${kind}`, kind);
-
-const getMetricRoleLabel = (node: LineageNode, t: (key: string, options?: any) => string): string | null => {
-  if (node.type === 'metric') return t('roles.requestedMetric');
-  if (node.type === 'metric_ref') return t('roles.referencedMetric');
-  return null;
-};
-
-const getMetricDependencyDiagnostics = (diagnostics?: string[], referencedMetricNames: Set<string> = new Set()) => (
-  (diagnostics || []).map(item => {
-    const semanticMeasureMatch = item.match(/^Semantic measure\[(.+?)\] was not found in semantic metadata\.$/);
-    if (!semanticMeasureMatch) {
-      return { item, kind: 'general' as const, metricName: null as string | null };
-    }
-
-    const metricName = semanticMeasureMatch[1];
-    return {
-      item,
-      kind: referencedMetricNames.has(metricName) ? 'referenced_metric_missing_semantic' as const : 'general' as const,
-      metricName,
-    };
-  })
-);
+      <Badge variant="outline">{t('rootsPanel.hopDepth', { count: root.hopDepth })}</Badge>
+    </button>
+  );
+});
+RootSummaryCard.displayName = 'RootSummaryCard';
 
 const MetricLineagePage: React.FC = () => {
   const { collapsed } = useSidebar();
@@ -286,8 +148,9 @@ const MetricLineagePage: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
   const [selectedNodeId, setSelectedNodeId] = React.useState<string | null>(null);
   const [selectedPathId, setSelectedPathId] = React.useState<string | null>(null);
-  const [recentMetrics, setRecentMetrics] = React.useState<string[]>([]);
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
+  const recentMetricsStorageKey = React.useMemo(() => getRecentMetricsStorageKey(user?.tenantId), [user?.tenantId]);
+  const { recentMetrics, addRecentMetric } = useRecentMetrics(recentMetricsStorageKey);
   const stageMeta = React.useMemo(() => buildStageMeta(t), [t]);
   const statusMeta = React.useMemo(() => buildStatusMeta(t), [t]);
 
@@ -307,7 +170,9 @@ const MetricLineagePage: React.FC = () => {
       setSelectedPathId(primaryPath?.id || null);
       setSelectedNodeId(nextSelectedNodeId);
       setSearchParams({ metric: trimmed });
-      setRecentMetrics(isMetricLineageMockData(result) ? readRecentMetrics(user?.tenantId) : writeRecentMetrics(trimmed, user?.tenantId));
+      if (!isMetricLineageMockData(result)) {
+        addRecentMetric(trimmed);
+      }
     } catch (error) {
       console.error('Failed to load metric lineage:', error);
       toast({
@@ -318,13 +183,7 @@ const MetricLineagePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [setSearchParams, t, toast, user?.tenantId]);
-
-  React.useEffect(() => {
-    if (!user?.tenantId) return;
-    clearLegacyRecentMetricsStorageKey();
-    setRecentMetrics(readRecentMetrics(user.tenantId));
-  }, [user?.tenantId]);
+  }, [setSearchParams, t, toast, user?.tenantId, addRecentMetric]);
 
   React.useEffect(() => {
     let active = true;
@@ -587,7 +446,7 @@ const MetricLineagePage: React.FC = () => {
             </CardContent>
           </Card>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-7">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
             <SummaryCard title={t('summary.metricType.title')} value={data?.summary.metricType || '--'} description={t('summary.metricType.description')} />
             <SummaryCard title={t('summary.metricDependencies.title')} value={referencedMetricNodes.length} description={t('summary.metricDependencies.description')} />
             <SummaryCard title={t('summary.routes.title')} value={data?.summary.routeCount || data?.paths.length || 0} description={t('summary.routes.description')} />
@@ -1066,12 +925,18 @@ const MetricLineagePage: React.FC = () => {
                         )}
                       </div>
 
-                      <div className="space-y-3">
-                        <div className="text-sm font-medium">{t('inspector.rawJson')}</div>
-                        <pre className="overflow-x-auto rounded-xl border bg-muted/20 p-3 text-xs">
-                          {JSON.stringify(selectedNode, null, 2)}
-                        </pre>
-                      </div>
+                      <Collapsible>
+                        <CollapsibleTrigger asChild>
+                          <button type="button" className="text-sm font-medium hover:underline text-left w-full">
+                            {t('inspector.rawJson')}
+                          </button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="mt-2">
+                          <pre className="overflow-x-auto rounded-xl border bg-muted/20 p-3 text-xs">
+                            {JSON.stringify(selectedNode, null, 2)}
+                          </pre>
+                        </CollapsibleContent>
+                      </Collapsible>
                     </div>
                   </ScrollArea>
                 ) : (

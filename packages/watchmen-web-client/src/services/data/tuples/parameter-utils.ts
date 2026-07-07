@@ -8,7 +8,8 @@ import {
 	ParameterJoint,
 	ParameterJointType,
 	ParameterKind,
-	TopicFactorParameter
+	TopicFactorParameter,
+	VariableParameter
 } from './factor-calculator-types';
 import {FactorId} from './factor-types';
 import {TopicId} from './topic-types';
@@ -47,6 +48,7 @@ export const ParameterCalculatorDefsMap: Record<ParameterComputeType, ParameterC
 export const isTopicFactorParameter = (param: Parameter): param is TopicFactorParameter => param.kind === ParameterKind.TOPIC;
 export const isConstantParameter = (param: Parameter): param is ConstantParameter => param.kind === ParameterKind.CONSTANT;
 export const isComputedParameter = (param: Parameter): param is ComputedParameter => param.kind === ParameterKind.COMPUTED;
+export const isVariableParameter = (param: Parameter): param is VariableParameter => param.kind === ParameterKind.VARIABLE;
 
 export const isJointParameter = (condition: ParameterCondition): condition is ParameterJoint => {
 	return !!(condition as any).jointType;
@@ -69,6 +71,9 @@ export const createComputedParameter = (): ComputedParameter => {
 	} as ComputedParameter;
 	defendComputedParameter(parameter);
 	return parameter;
+};
+export const createVariableParameter = (): VariableParameter => {
+	return {kind: ParameterKind.VARIABLE, variableName: ''};
 };
 
 export const defendComputedParameter = (parameter: ComputedParameter) => {
@@ -95,6 +100,9 @@ export const defendParameter = (parameter: Parameter) => {
 		parameter.value = parameter.value || '';
 	} else if (isComputedParameter(parameter)) {
 		defendComputedParameter(parameter);
+	} else if (isVariableParameter(parameter)) {
+		parameter.variableName = parameter.variableName || '';
+		parameter.factorName = parameter.factorName || '';
 	}
 };
 
@@ -120,6 +128,15 @@ export const defendParameterAndRemoveUnnecessary = (parameter: Parameter) => {
 		delete old.value;
 		old.type = old.type || ParameterComputeType.ADD;
 		old.parameters = old.parameters || [createTopicFactorParameter(), createTopicFactorParameter()];
+	} else if (isVariableParameter(parameter)) {
+		const old = parameter as any;
+		delete old.value;
+		delete old.type;
+		delete old.parameters;
+		delete old.topicId;
+		delete old.factorId;
+		old.variableName = old.variableName || '';
+		old.factorName = old.factorName || '';
 	}
 };
 
