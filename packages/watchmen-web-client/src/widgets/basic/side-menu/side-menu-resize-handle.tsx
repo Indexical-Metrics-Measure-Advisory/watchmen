@@ -24,6 +24,7 @@ const Handle = styled.div.attrs<HandleState>(({top = 0, left, resizing, alignmen
 		}
 	};
 })<HandleState>`
+	user-select      : none;
 	display          : block;
 	position         : fixed;
 	height           : 100vh;
@@ -60,18 +61,24 @@ export const SideMenuResizeHandle = (props: {
 	const [resizing, setResizing] = useState(false);
 
 	const canStartResize = (x: number) => Math.abs(x - width) <= 3;
-	const onMouseDown = ({target, button, clientX}: MouseEvent) => {
+	const onMouseDown = ({button, clientX}: MouseEvent) => {
 		const x = alignment === ResizeHandleAlignment.LEFT ? clientX : (window.innerWidth - clientX);
 		if (button === 0 && canStartResize(x)) {
 			setResizing(true);
-			const onResizeEnd = (event: Event) => {
-				const {target} = event;
-				setResizing(false);
-				target!.removeEventListener('mouseup', onResizeEnd);
-				target!.removeEventListener('mouseleave', onResizeEnd);
+
+			const onMove = (event: globalThis.MouseEvent) => {
+				event.preventDefault();
+				const moveX = alignment === ResizeHandleAlignment.LEFT ? event.clientX : (window.innerWidth - event.clientX);
+				onResize(moveX);
 			};
-			target.addEventListener('mouseup', onResizeEnd);
-			target.addEventListener('mouseleave', onResizeEnd);
+			const onUp = () => {
+				setResizing(false);
+				document.removeEventListener('mousemove', onMove);
+				document.removeEventListener('mouseup', onUp);
+			};
+
+			document.addEventListener('mousemove', onMove);
+			document.addEventListener('mouseup', onUp);
 		}
 	};
 	const onMouseMove = ({clientX}: MouseEvent) => {
@@ -82,8 +89,6 @@ export const SideMenuResizeHandle = (props: {
 			} else {
 				handleRef.current!.style.cursor = 'default';
 			}
-		} else {
-			onResize(x);
 		}
 	};
 
