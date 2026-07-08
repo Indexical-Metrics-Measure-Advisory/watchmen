@@ -130,12 +130,13 @@ const OntologyDataTester: React.FC = () => {
 		try {
 			// Refresh SQL preview simultaneously for comparison
 			const [compile, query] = await Promise.all([
-				ontologyQueryService.compile(ontologyId, req).catch(() => null),
+				ontologyQueryService.compile(ontologyId, req),
 				ontologyQueryService.query(ontologyId, req),
 			]);
-			if (compile) setCompileResult(compile);
+			setCompileResult(compile);
 			setQueryResult(query);
 		} catch (e) {
+			// 后端返回的错误消息（包括 'filters is required...'）会被完整展示
 			setError((e as Error).message || t('queryFailed'));
 		} finally {
 			setRunning(false);
@@ -334,16 +335,23 @@ const OntologyDataTester: React.FC = () => {
 
 											{/* Filters */}
 											<div className="space-y-2">
-												<label className="text-xs font-medium text-muted-foreground">{t('filters')}</label>
+												<label className="text-xs font-medium text-muted-foreground">
+													{t('filters')} <span className="text-red-500">*</span>
+												</label>
 												{allAttributeNames.length === 0 ? (
 													<span className="text-xs text-muted-foreground">{t('noAttributesForFilter')}</span>
 												) : (
-													<FilterEditor
-														attributeNames={allAttributeNames}
-														filters={filters}
-														onChange={setFilters}
-														t={t}
-													/>
+													<>
+														<FilterEditor
+															attributeNames={allAttributeNames}
+															filters={filters}
+															onChange={setFilters}
+															t={t}
+														/>
+														{Object.keys(filters).length === 0 && (
+															<p className="text-[11px] text-amber-600">{t('filtersRequired')}</p>
+														)}
+													</>
 												)}
 											</div>
 

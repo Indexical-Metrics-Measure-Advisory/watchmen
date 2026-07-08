@@ -10,6 +10,9 @@ class OntologyQueryRequest(BaseModel):
 
 	对应文档 §4.1 的运行时查询接口。客户端只需指定虚拟对象 ID 与业务过滤条件，
 	不需要感知底层物理表的 JOIN 逻辑。
+
+	注意：filters 是否必填由系统配置 ONTOLOGY_QUERY_REQUIRE_FILTERS 控制（默认 True），
+	校验在 service 层执行。
 	"""
 	virtualObjectId: str = Field(..., description='虚拟对象 ID（VirtualObject.id）')
 	filters: Dict[str, Any] = Field(default_factory=dict, description='字段名 → 值 的等值过滤')

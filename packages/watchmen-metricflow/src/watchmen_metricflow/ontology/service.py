@@ -9,6 +9,8 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.admin import OntologyService
 from watchmen_rest.util import raise_400, raise_403, raise_404
 
+from watchmen_metricflow.settings import ask_ontology_query_require_filters
+
 from .engine_provider import OntologyRdsEngineProvider
 from .schema import OntologyQueryRequest, OntologyQueryResponse
 from .security_layer import OntologySecurityLayer
@@ -43,6 +45,7 @@ class OntologyDataAccessService:
 			raise_404(f'Ontology [{ontology_id}] not found.')
 		if ontology.tenantId != self.principal_service.get_tenant_id():
 			raise_403()
+		self._check_filters(request)
 
 		try:
 			compiled = self.compiler.compile(ontology, request)
@@ -66,6 +69,7 @@ class OntologyDataAccessService:
 			raise_404(f'Ontology [{ontology_id}] not found.')
 		if ontology.tenantId != self.principal_service.get_tenant_id():
 			raise_403()
+		self._check_filters(request)
 		try:
 			compiled = self.compiler.compile(ontology, request)
 		except OntologySqlCompileError as e:
@@ -76,6 +80,12 @@ class OntologyDataAccessService:
 			'sql': str(compiled.statement),
 			'labels': compiled.labels,
 		}
+
+	@staticmethod
+	def _check_filters(request: OntologyQueryRequest) -> None:
+		"""根据系统配置决定是否强制要求过滤条件。"""
+		if ask_ontology_query_require_filters() and (not request.filters or len(request.filters) == 0):
+			raise_400('filters is required: at least one filter condition must be provided.')
 
 	@staticmethod
 	def _log_compile_error(ontology_id: str, ontology, request: OntologyQueryRequest,

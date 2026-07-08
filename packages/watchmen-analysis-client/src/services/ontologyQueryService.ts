@@ -12,7 +12,7 @@ import { API_BASE_URL, getDefaultHeaders } from "@/utils/apiConfig";
 export interface OntologyQueryRequest {
 	/** 虚拟对象 ID（VirtualObject.id）。 */
 	virtualObjectId: string;
-	/** 字段名 → 值 的等值过滤；键必须是虚拟对象的 attribute 名。 */
+	/** 字段名 → 值 的等值过滤；键必须是虚拟对象的 attribute 名。后端可通过 ONTOLOGY_QUERY_REQUIRE_FILTERS 配置是否强制。 */
 	filters?: Record<string, unknown>;
 	/** 需返回的属性名；空 = 返回全部 attribute。 */
 	fields?: string[];
