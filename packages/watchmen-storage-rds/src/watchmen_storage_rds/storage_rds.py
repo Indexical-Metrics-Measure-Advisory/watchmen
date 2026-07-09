@@ -50,8 +50,11 @@ class StorageRDS(TransactionalStorageSPI):
 
 	def __init__(self, engine: Engine):
 		self.engine = engine
+		self._managed = False
 
 	def connect(self) -> None:
+		if self._managed:
+			return
 		if self.connection is None:
 			self.connection = self.engine.connect().execution_options(isolation_level="AUTOCOMMIT")
 			self.build_dialect_json_serializer()
@@ -92,7 +95,38 @@ class StorageRDS(TransactionalStorageSPI):
 		finally:
 			self.close()
 
+	def begin_managed(self) -> None:
+		"""
+		Begin a managed transaction. Opens a connection with transaction (non-AUTOCOMMIT),
+		and sets _managed flag so that subsequent connect()/close() calls are no-ops.
+		"""
+		if self.connection is not None:
+			raise UnexpectedStorageException(
+				'Connection exists, failed to begin managed transaction. It should be closed first.')
+		self.connection = self.engine.connect()
+		self.build_dialect_json_serializer()
+		self.connection.begin()
+		self._managed = True
+		if ask_detect_connection_leak_enabled():
+			alive_conn_dict[str(id(self.connection))] = traceback.format_stack(), time()
+
+	def end_managed(self, commit: bool) -> None:
+		"""
+		End the managed transaction. Commit or rollback, then close the connection.
+		Resets _managed flag to False before closing so that close() works normally.
+		"""
+		self._managed = False
+		if commit:
+			self.commit_and_close()
+		else:
+			self.rollback_and_close()
+
+	def is_managed(self) -> bool:
+		return self._managed
+
 	def close(self) -> None:
+		if self._managed:
+			return
 		try:
 			if self.connection is not None:
 				if ask_detect_connection_leak_enabled():

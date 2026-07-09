@@ -197,6 +197,28 @@ class TransactionalStorageSPI(StorageSPI):
 				storage.close()
 	"""
 
+	def begin_managed(self) -> None:
+		"""
+		Begin a managed transaction. The connection will be kept open until end_managed is called.
+		Subsequent connect() and close() calls will be no-op while managed.
+		Default implementation is no-op. Override in subclasses that support managed transactions.
+		"""
+		pass
+
+	def end_managed(self, commit: bool) -> None:
+		"""
+		End the managed transaction. Commit or rollback, then close the connection.
+		Default implementation is no-op. Override in subclasses that support managed transactions.
+		"""
+		pass
+
+	def is_managed(self) -> bool:
+		"""
+		Returns True if the storage is currently in managed transaction mode.
+		Default implementation returns False.
+		"""
+		return False
+
 	@abstractmethod
 	def begin(self) -> None:
 		pass
