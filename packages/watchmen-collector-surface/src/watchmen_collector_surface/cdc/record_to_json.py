@@ -90,11 +90,15 @@ class RecordToJsonService:
 
 	def change_data_record_listener(self):
 		unmerged_records = self.find_records_and_locked()
+		# Track resource_ids already turned into json in this batch, so that later
+		# records with the same resource_id can be detected as duplicated without
+		# hitting the source/json tables again.
+		processed_resource_ids = set()
 		for unmerged_record in unmerged_records:
 			self.performance_result(unmerged_record, True)
 			change_data_record = unmerged_record
 			try:
-				self.process_record(change_data_record)
+				self.process_record(change_data_record, processed_resource_ids)
 			except IntegrityError:
 				change_data_record.isMerged = True
 				change_data_record.status = Status.SUCCESS.value
@@ -141,15 +145,19 @@ class RecordToJsonService:
 		finally:
 			self.change_record_service.close_transaction()
 
-	def process_record(self, change_data_record: ChangeDataRecord) -> None:
+	def process_record(self, change_data_record: ChangeDataRecord, processed_resource_ids: set = None) -> None:
 		config = self.table_config_service.find_by_name(change_data_record.tableName, change_data_record.tenantId)
 		root_config, root_data, record = self.find_root(config, change_data_record)
-		if self.is_duplicated(record):
+		if self.is_duplicated(record, processed_resource_ids):
 			record.isMerged = True
 			record.status = Status.SUCCESS.value
 			self.finish_and_backup_record(record, None, False)
 		else:
 			change_json = self.create_json(root_config, root_data, change_data_record)
+			# Mark this resource_id as processed so subsequent records in the same
+			# batch with the same resource_id short-circuit on the in-memory check.
+			if processed_resource_ids is not None:
+				processed_resource_ids.add(change_json.resourceId)
 			record.isMerged = True
 			record.status = Status.SUCCESS.value
 			self.finish_and_backup_record(record, change_json, True)
@@ -172,8 +180,12 @@ class RecordToJsonService:
 		self.data_capture_service.build_json(root_config, json_data)
 		return self.get_change_data_json(change_data_record, root_config, root_data, json_data)
 
-	def is_duplicated(self, change_record: ChangeDataRecord) -> bool:
+	def is_duplicated(self, change_record: ChangeDataRecord, processed_resource_ids: set = None) -> bool:
 		resource_id = self.generate_resource_id(change_record)
+		# Check the in-memory set of resource_ids already processed in this batch first,
+		# to avoid redundant source/json table queries for duplicate records.
+		if processed_resource_ids is not None and resource_id in processed_resource_ids:
+			return True
 		existed_history_json = self.change_json_history_service.find_by_resource_id(resource_id)
 		if existed_history_json:
 			return True

@@ -19,6 +19,7 @@ from watchmen_storage import EntityCriteria, EntityStraightColumn, DataSourceHel
 	UnexpectedStorageException, EntityIdHelper, EntitySortColumn, EntitySortMethod
 from watchmen_utilities import get_current_time_in_seconds, ArrayHelper
 from watchmen_collector_kernel.cache import CollectorCacheService
+from watchmen_collector_kernel.cache.source_extractor_cache import source_extractor_cache
 from watchmen_collector_kernel.common import CollectorKernelException
 
 logger = getLogger(__name__)
@@ -514,16 +515,27 @@ class TopicTableExtractor(SourceExtractor):
 
 
 def ask_source_extractor(config: CollectorTableConfig) -> ExtractorSPI:
+	# An extractor is a stateless querier. Building one is expensive because it
+	# re-registers the topic and re-creates the storage connection. Cache it by
+	# configId so that hot paths (record_to_json/data_capture, which may call this
+	# once per record) reuse a single instance per config.
+	cached = source_extractor_cache.get_extractor_by_config_id(config.configId)
+	if cached is not None:
+		return cached
+
 	if config.configId.startswith("f-"):
-		return TopicTableExtractor(config)
+		extractor = TopicTableExtractor(config)
 	else:
 		data_source_id = config.dataSourceId
 		principal_service = fake_tenant_admin(config.tenantId)
 		data_source = get_data_source_service(principal_service).find_by_id(data_source_id)
 		if data_source.dataSourceType in (
 				DataSourceType.MYSQL, DataSourceType.ORACLE, DataSourceType.MSSQL, DataSourceType.POSTGRESQL):
-			return SourceTableExtractor(config)
+			extractor = SourceTableExtractor(config)
 		elif data_source.dataSourceType in (DataSourceType.S3, DataSourceType.OSS):
-			return SourceS3Extractor(config)
+			extractor = SourceS3Extractor(config)
 		else:
 			raise Exception(f"{data_source.dataSourceType} is not supported")
+
+	source_extractor_cache.put_extractor_by_config_id(config.configId, extractor)
+	return extractor

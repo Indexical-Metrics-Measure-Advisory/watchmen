@@ -161,9 +161,12 @@ class TopicDataService(TopicStructureService):
 		"""
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
-		storage.connect()
-		topic_data: Optional[Dict[str, Any]] = storage.find_by_id(id_, data_entity_helper.get_entity_id_helper())
-		return topic_data
+		try:
+			storage.connect()
+			topic_data: Optional[Dict[str, Any]] = storage.find_by_id(id_, data_entity_helper.get_entity_id_helper())
+			return topic_data
+		finally:
+			storage.close()
 
 	def find_one(self, criteria: EntityCriteria) -> Optional[Dict[str, Any]]:
 		"""

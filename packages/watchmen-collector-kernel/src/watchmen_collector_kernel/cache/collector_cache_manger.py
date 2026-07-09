@@ -36,6 +36,10 @@ class CollectorDatasourceByTenantIdCache(Cache):
 	pass
 
 
+class SourceExtractorByConfigIdCache(Cache):
+	pass
+
+
 configure_cache('MODULE_CONFIG_BY_ID',
                 {'cache_class': ModuleConfigByIdCache, 'maxsize': 512})
 
@@ -68,6 +72,10 @@ configure_cache('COLLECTOR_DATASOURCE_BY_TENANT_ID',
                 {'cache_class': CollectorDatasourceByTenantIdCache, 'maxsize': 512})
 
 
+configure_cache('SOURCE_EXTRACTOR_BY_CONFIG_ID',
+                {'cache_class': SourceExtractorByConfigIdCache, 'maxsize': 512})
+
+
 def get_module_config_by_id_cache() -> ModuleConfigByIdCache:
 	return cache_set['MODULE_CONFIG_BY_ID']
 
@@ -90,3 +98,7 @@ def get_collector_topic_by_id_cache() -> CollectorTopicByIdCache:
 
 def get_collector_datasource_by_tenant_id_cache() -> CollectorDatasourceByTenantIdCache:
 	return cache_set['COLLECTOR_DATASOURCE_BY_TENANT_ID']
+
+
+def get_source_extractor_by_config_id_cache() -> SourceExtractorByConfigIdCache:
+	return cache_set['SOURCE_EXTRACTOR_BY_CONFIG_ID']

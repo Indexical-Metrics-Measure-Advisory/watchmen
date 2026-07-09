@@ -65,10 +65,15 @@ def heart_beat_on_table_configs() -> None:
             if loaded is None:
                 CollectorCacheService.table_config().remove_config_by_name(table_config.name, table_config.tenantId)
                 CollectorCacheService.table_config().remove_configs_by_parent_name(table_config.parentName, table_config.tenantId)
+                # Invalidate the cached extractor built from the removed config
+                CollectorCacheService.source_extractor().remove_extractor_by_config_id(table_config.configId)
             elif loaded.lastModifiedAt > table_config.lastModifiedAt or loaded.version > table_config.version:
                 CollectorCacheService.table_config().remove_configs_by_parent_name(table_config.parentName,
                                                                                    table_config.tenantId)
                 CollectorCacheService.table_config().put_config_by_name(loaded)
+                # Invalidate the cached extractor built from the stale config, the next
+                # ask_source_extractor call will rebuild it from the freshly loaded config
+                CollectorCacheService.source_extractor().remove_extractor_by_config_id(table_config.configId)
     finally:
         collector_table_config_service.close_transaction()
 

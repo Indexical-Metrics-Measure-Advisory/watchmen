@@ -234,6 +234,32 @@ class ChangeDataJsonService(TupleService):
 		finally:
 			self.storage.close()
 
+	def find_existing_resource_ids(self, resource_ids: List[str]) -> List[str]:
+		"""
+		Bulk check which resource_ids already exist, returning the existing ones.
+		Uses a single IN query instead of one find_by_resource_id per record,
+		turning an N+1 dedup check into a single round-trip.
+		Returns an empty list when the input is empty.
+		"""
+		if not resource_ids:
+			return []
+		try:
+			self.storage.connect()
+			rows = self.storage.find_straight_values(EntityStraightValuesFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='resource_id'),
+						operator=EntityCriteriaOperator.IN,
+						right=resource_ids)
+				],
+				straightColumns=[EntityStraightColumn(columnName='resource_id')]
+			))
+			return [row.get('resource_id') for row in rows if row.get('resource_id') is not None]
+		finally:
+			self.storage.close()
+
 	def find_by_object_id(self, model_name: str, object_id: str, model_trigger_id: int) -> List:
 		try:
 			self.storage.connect()

@@ -94,7 +94,6 @@ async def fetch_topic_data(
 		EntitySortColumn(name=TopicDataColumnNames.UPDATE_TIME.value, method=EntitySortMethod.DESC)
 	]
 
-	print(sort)
 	if criteria is None or is_blank(criteria.jointType) or criteria.filters is None:
 		criteria_list = []
 	else:

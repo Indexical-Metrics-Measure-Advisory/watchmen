@@ -123,17 +123,26 @@ class TaskListener:
                 run(self.process_task_with_change_data_json(unfinished_task))
 
     async def process_task_with_change_data_json(self, unfinished_task: ScheduledTask):
+        # Initialize outside try so the except block can always reference it safely,
+        # even if the exception occurs before the processing loop begins.
+        finished_json_ids = []
         try:
-            finished_json_ids = []
+            # Bulk-load change_json entities up front, then dedup against the history
+            # table in a single IN query, instead of one find_by_resource_id per record.
+            change_jsons = []
             for change_json_id in unfinished_task.changeJsonIds:
                 change_json = self.get_change_data_json(change_json_id)
                 if change_json:
-                    if self.is_duplicated(change_json):
-                        self.delete_change_json(change_json)
-                    else:
-                        await self.process_sub_tasks(unfinished_task, change_json)
-                        self.update_change_json_result(change_json, Status.SUCCESS.value)
-                        finished_json_ids.append(change_json.changeJsonId)
+                    change_jsons.append(change_json)
+            duplicated_resource_ids = set(self.find_duplicated_resource_ids(change_jsons))
+
+            for change_json in change_jsons:
+                if change_json.resourceId in duplicated_resource_ids:
+                    self.delete_change_json(change_json)
+                else:
+                    await self.process_sub_tasks(unfinished_task, change_json)
+                    self.update_change_json_result(change_json, Status.SUCCESS.value)
+                    finished_json_ids.append(change_json.changeJsonId)
 
             finished_task = self.update_task_status(unfinished_task, Status.SUCCESS.value)
             self.handle_execution_result(finished_task)
@@ -144,12 +153,19 @@ class TaskListener:
             finished_task = self.update_task_status(unfinished_task, Status.FAIL.value, format_exc())
             self.handle_execution_result(finished_task)
 
-    def is_duplicated(self, change_data_json: ChangeDataJson) -> bool:
-        existed_json = self.change_json_history_service.find_by_resource_id(change_data_json.resourceId)
-        if existed_json:
-            return True
-        else:
-            return False
+    def find_duplicated_resource_ids(self, change_jsons: List[ChangeDataJson]) -> List[str]:
+        """
+        Return the resource_ids that already exist in the history table or the
+        json table. Uses bulk IN queries to avoid N round-trips of is_duplicated.
+        Mirrors the original two-table check (history + current json table).
+        """
+        resource_ids = [cj.resourceId for cj in change_jsons if cj.resourceId is not None]
+        if not resource_ids:
+            return []
+        duplicated = set(self.change_json_history_service.find_existing_resource_ids(resource_ids))
+        # Also check the current json table, matching the original is_duplicated behavior.
+        duplicated.update(self.change_json_service.find_existing_resource_ids(resource_ids))
+        return list(duplicated)
 
     def handle_unfinished_change_json(self, unfinished_change_json_ids: List):
         for unfinished_json_id in unfinished_change_json_ids:
