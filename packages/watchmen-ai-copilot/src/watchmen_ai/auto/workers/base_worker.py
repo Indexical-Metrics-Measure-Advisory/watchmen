@@ -17,6 +17,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
+from watchmen_ai.auto.context_bridge import WatchmenDataBridge
 from watchmen_ai.auto.core import (
     AuditAction,
     AuditEvent,
@@ -47,11 +48,13 @@ class BaseWorker(ABC):
         log_bus: LogBus,
         executor: OpenCodeExecutor,
         skills: Optional[Dict[str, Any]] = None,
+        data_bridge: Optional[WatchmenDataBridge] = None,
     ) -> None:
         self.store = store
         self.log_bus = log_bus
         self.executor = executor
         self.skills = skills or {}
+        self.data_bridge = data_bridge
 
     # ------------------------------------------------------------------
     # TaskQueue entry point
@@ -64,10 +67,18 @@ class BaseWorker(ABC):
         returns a serializable summary.
         """
         auto_approve = task.payload.get("auto_approve", False)
+        context_scope = task.payload.get("context_scope")
         self._log(task, "info", f"[{self.worker_type}] starting loop")
 
         try:
             observation = self.observe(task)
+
+            # Inject Watchmen context when context_scope is specified
+            if context_scope and self.data_bridge is not None:
+                watchmen_ctx = self._fetch_watchmen_context(context_scope)
+                observation["watchmen_context"] = watchmen_ctx
+                self._log(task, "info", f"[{self.worker_type}] injected watchmen_context scope={context_scope}")
+
             discoveries = self.discover(task, observation)
             proposals = self.reason(task, discoveries)
             self.propose(task, proposals)
@@ -192,6 +203,36 @@ class BaseWorker(ABC):
         )
         self.store.append_audit(event)
         return event
+
+    def _fetch_watchmen_context(self, scope: str) -> Dict[str, Any]:
+        """Fetch context from Watchmen Data Bridge based on scope."""
+        if self.data_bridge is None:
+            return {}
+
+        try:
+            if scope == "full":
+                bundle = self.data_bridge.fetch_full_context()
+                return {
+                    "topics": [t.model_dump(mode="json") for t in bundle.topics],
+                    "pipelines": [p.model_dump(mode="json") for p in bundle.pipelines],
+                    "dqc_rules": [r.model_dump(mode="json") for r in bundle.dqc_rules],
+                    "ontology": bundle.ontology,
+                }
+            elif scope == "topics":
+                return {"topics": [t.model_dump(mode="json") for t in self.data_bridge.fetch_topics()]}
+            elif scope == "pipelines":
+                return {"pipelines": [p.model_dump(mode="json") for p in self.data_bridge.fetch_pipelines()]}
+            elif scope == "dqc":
+                return {"dqc_rules": [r.model_dump(mode="json") for r in self.data_bridge.fetch_dqc_rules()]}
+            elif scope == "ontology":
+                ontology = self.data_bridge.fetch_ontology("main")
+                return {"ontology": ontology}
+            else:
+                logger.warning("[%s] unknown context_scope=%s", self.worker_type, scope)
+                return {}
+        except Exception as e:
+            logger.error("[%s] failed to fetch watchmen context: %s", self.worker_type, e)
+            return {}
 
     def _new_proposal_id(self) -> str:
         return f"prop-{self.worker_type}-{uuid4().hex[:8]}"

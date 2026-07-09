@@ -35,8 +35,9 @@ class InsightWorker(BaseWorker):
         log_bus: LogBus,
         executor: OpenCodeExecutor,
         pattern_analyzer: PatternAnalyzer,
+        data_bridge=None,
     ) -> None:
-        super().__init__(store, log_bus, executor, {"pattern_analyzer": pattern_analyzer})
+        super().__init__(store, log_bus, executor, {"pattern_analyzer": pattern_analyzer}, data_bridge)
         self.pattern_analyzer = pattern_analyzer
 
     def observe(self, task: Task) -> Dict[str, Any]:

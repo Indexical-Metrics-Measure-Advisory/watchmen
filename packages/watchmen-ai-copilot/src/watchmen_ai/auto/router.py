@@ -167,3 +167,9 @@ def get_audit_log() -> Dict[str, Any]:
 def list_workers() -> Dict[str, Any]:
     """List all registered workers (blueprint: 4 worker containers)."""
     return {"workers": get_orchestrator().list_workers()}
+
+
+@router.post("/refresh-context")
+def refresh_context() -> Dict[str, Any]:
+    """Manually refresh Watchmen Data Bridge context and return summary."""
+    return get_orchestrator().refresh_context()

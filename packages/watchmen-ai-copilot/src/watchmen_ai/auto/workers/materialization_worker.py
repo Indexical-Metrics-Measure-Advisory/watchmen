@@ -34,8 +34,9 @@ class MaterializationWorker(BaseWorker):
         log_bus: LogBus,
         executor: OpenCodeExecutor,
         pipeline_generator: PipelineGenerator,
+        data_bridge=None,
     ) -> None:
-        super().__init__(store, log_bus, executor, {"pipeline_generator": pipeline_generator})
+        super().__init__(store, log_bus, executor, {"pipeline_generator": pipeline_generator}, data_bridge)
         self.pipeline_generator = pipeline_generator
 
     def observe(self, task: Task) -> Dict[str, Any]:

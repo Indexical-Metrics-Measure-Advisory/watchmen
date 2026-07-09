@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
+from watchmen_ai.auto.context_bridge import WatchmenDataBridge
 from watchmen_ai.auto.core import (
     AuditAction,
     AuditEvent,
@@ -32,8 +33,13 @@ class BaseOntologyAgent(ABC):
 
     agent_type: str = "base"
 
-    def __init__(self, ontology: BusinessOntology):
+    def __init__(
+        self,
+        ontology: BusinessOntology,
+        data_bridge: Optional[WatchmenDataBridge] = None,
+    ):
         self.ontology = ontology
+        self.data_bridge = data_bridge
         self.pending_proposals: List[Proposal] = []
         self.audit_log: List[AuditEvent] = []
 
@@ -98,6 +104,21 @@ class BaseOntologyAgent(ABC):
         logger.info("[%s] Starting loop", self.agent_type)
 
         observation = self.observe()
+
+        # Inject Watchmen context if data_bridge is available
+        if self.data_bridge is not None:
+            try:
+                bundle = self.data_bridge.fetch_full_context()
+                observation["watchmen_context"] = {
+                    "topics": [t.model_dump(mode="json") for t in bundle.topics],
+                    "pipelines": [p.model_dump(mode="json") for p in bundle.pipelines],
+                    "dqc_rules": [r.model_dump(mode="json") for r in bundle.dqc_rules],
+                    "ontology": bundle.ontology,
+                }
+                logger.info("[%s] injected watchmen_context into observation", self.agent_type)
+            except Exception as e:
+                logger.error("[%s] failed to inject watchmen_context: %s", self.agent_type, e)
+
         discoveries = self.discover(observation)
 
         if not discoveries:

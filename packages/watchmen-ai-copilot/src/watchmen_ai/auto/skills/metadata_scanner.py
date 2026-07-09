@@ -1,7 +1,9 @@
 """Skill: Scan external metadata sources for ontology discovery."""
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+
+from watchmen_ai.auto.context_bridge import WatchmenDataBridge
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +15,15 @@ class MetadataScanner:
     Used by: OntologyArchitectAgent
     """
 
-    def __init__(self, config: Dict[str, Any] | None = None):
+    def __init__(
+        self,
+        config: Dict[str, Any] | None = None,
+        data_bridge: Optional[WatchmenDataBridge] = None,
+    ):
         self.config = config or {}
         self._sources: List[Dict[str, Any]] = []
         self._demo_mode = config.get("demo_mode", True) if config else True
+        self.data_bridge = data_bridge
 
     def register_source(self, source_type: str, connection: Dict[str, Any]) -> None:
         """Register a metadata source to scan."""
@@ -25,32 +32,67 @@ class MetadataScanner:
     def scan_tables(self) -> List[Dict[str, Any]]:
         """Scan registered sources for table definitions."""
         logger.info("Scanning tables from %d sources", len(self._sources))
-        
+
         if self._demo_mode:
-            # Return demo data for testing
             return self._get_demo_tables()
-        
-        # TODO: Implement actual scanning via watchmen-meta services
+
+        # If data_bridge is available, fetch real topics from Watchmen API
+        if self.data_bridge is not None:
+            try:
+                topics = self.data_bridge.fetch_topics()
+                logger.info("[metadata_scanner] fetched %d topics from Watchmen API", len(topics))
+                return [
+                    {
+                        "name": t.name,
+                        "type": t.type,
+                        "kind": t.kind,
+                        "description": t.description,
+                        "columns": [
+                            {"name": f.name, "type": f.type}
+                            for f in t.factors
+                        ],
+                    }
+                    for t in topics
+                ]
+            except Exception as e:
+                logger.error("[metadata_scanner] failed to fetch from Watchmen API: %s", e)
+
+        # Fallback: scan registered external sources
         tables = []
         for source in self._sources:
             if source["type"] == "database":
-                # Scan database tables
                 tables.extend(self._scan_database_tables(source["connection"]))
         return tables
 
     def scan_topics(self) -> List[Dict[str, Any]]:
         """Scan registered sources for topic definitions."""
         logger.info("Scanning topics from %d sources", len(self._sources))
-        
+
         if self._demo_mode:
-            # Return demo data for testing
             return self._get_demo_topics()
-        
-        # TODO: Implement actual scanning via watchmen-meta services
+
+        # If data_bridge is available, fetch real topics from Watchmen API
+        if self.data_bridge is not None:
+            try:
+                topics = self.data_bridge.fetch_topics()
+                logger.info("[metadata_scanner] fetched %d topics from Watchmen API", len(topics))
+                return [
+                    {
+                        "name": t.name,
+                        "type": t.type,
+                        "kind": t.kind,
+                        "description": t.description,
+                        "partitions": 0,  # Not exposed by REST API
+                    }
+                    for t in topics
+                ]
+            except Exception as e:
+                logger.error("[metadata_scanner] failed to fetch from Watchmen API: %s", e)
+
+        # Fallback: scan registered external sources
         topics = []
         for source in self._sources:
             if source["type"] == "kafka":
-                # Scan Kafka topics
                 topics.extend(self._scan_kafka_topics(source["connection"]))
         return topics
 

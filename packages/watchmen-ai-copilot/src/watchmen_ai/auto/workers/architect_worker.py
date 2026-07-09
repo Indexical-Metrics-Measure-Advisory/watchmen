@@ -41,8 +41,9 @@ class ArchitectWorker(BaseWorker):
         log_bus: LogBus,
         executor: OpenCodeExecutor,
         metadata_scanner: MetadataScanner,
+        data_bridge=None,
     ) -> None:
-        super().__init__(store, log_bus, executor, {"metadata_scanner": metadata_scanner})
+        super().__init__(store, log_bus, executor, {"metadata_scanner": metadata_scanner}, data_bridge)
         self.metadata_scanner = metadata_scanner
 
     def observe(self, task: Task) -> Dict[str, Any]:

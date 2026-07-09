@@ -10,125 +10,122 @@ from watchmen_rest import get_admin_principal, get_console_principal
 from watchmen_rest.util import raise_400, raise_404
 from watchmen_utilities import is_blank, is_not_blank, ArrayHelper
 
-from watchmen_metricflow.meta.business_glossary_meta_service import StandardService
+from watchmen_metricflow.meta.business_glossary_meta_service import GlossaryService
 from watchmen_metricflow.model.business_glossary import (
-	Standard, StandardBundle, SectionId, EntryRow, EntryMap,
-	TableEntry, FieldCodeEntry, CodeValueEntry, TermEntry,
-	NamingEntry, DependencyEntry, OverviewEntry, ENTRY_FIELD_BY_SECTION,
+	Glossary, GlossaryBundle, Category, Term,
+	TermEntityAssignment, TermRelationType,
+	GlossaryUpsert, CategoryUpsert, TermUpsert,
+	TermEntityAssignmentUpsert, TermRelationUpsert,
+	TermDeleteRequest, CategoryDeleteRequest,
 )
 from watchmen_metricflow.util import trans, trans_readonly
 
 router = APIRouter()
 
 
-def get_standard_service(principal_service: PrincipalService) -> StandardService:
-	return StandardService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+def get_glossary_service(principal_service: PrincipalService) -> GlossaryService:
+	return GlossaryService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
 # ============================================================================
-# Agent-view YAML helpers (no internal IDs, business names only)
+# Agent-view YAML helpers
 # ============================================================================
 
-def _bundle_to_agent_yaml(bundle: StandardBundle) -> Dict[str, Any]:
-	"""Convert a StandardBundle to agent-view YAML dict (keeps entry ids for round-trip)."""
-	standard = bundle.standard
-	entries = bundle.entries or EntryMap()
+def _bundle_to_agent_yaml(bundle: GlossaryBundle) -> Dict[str, Any]:
+	"""Convert a GlossaryBundle to agent-view YAML dict."""
+	glossary = bundle.glossary
 	return {
-		'abbreviation': standard.abbreviation,
-		'name': standard.name,
-		'description': standard.description,
-		'version': standard.version,
-		'status': standard.status.value if standard.status else 'draft',
-		'sourceUrl': standard.sourceUrl,
-		'tags': standard.tags or [],
-		'entries': {
-			'overview': ArrayHelper(entries.overview).map(lambda e: e.dict()).to_list(),
-			'tables': ArrayHelper(entries.tables).map(lambda e: e.dict()).to_list(),
-			'fields': ArrayHelper(entries.fields).map(lambda e: e.dict()).to_list(),
-			'codes': ArrayHelper(entries.codes).map(lambda e: e.dict()).to_list(),
-			'terms': ArrayHelper(entries.terms).map(lambda e: e.dict()).to_list(),
-			'naming': ArrayHelper(entries.naming).map(lambda e: e.dict()).to_list(),
-			'dependencies': ArrayHelper(entries.dependencies).map(lambda e: e.dict()).to_list(),
-		},
+		'name': glossary.name,
+		'displayName': glossary.display_name,
+		'description': glossary.description,
+		'language': glossary.language,
+		'status': glossary.status.value if glossary.status else 'draft',
+		'owner': glossary.owner,
+		'tags': glossary.tags or [],
+		'categories': ArrayHelper(bundle.categories or []).map(lambda c: c.model_dump()).to_list(),
+		'terms': ArrayHelper(bundle.terms or []).map(lambda t: t.model_dump()).to_list(),
 	}
-
-
-# Map section name -> entry model class, used to coerce dict rows back to typed entries.
-_ENTRY_CLASS_BY_SECTION: Dict[str, Any] = {
-	'overview': OverviewEntry,
-	'tables': TableEntry,
-	'fields': FieldCodeEntry,
-	'codes': CodeValueEntry,
-	'terms': TermEntry,
-	'naming': NamingEntry,
-	'dependencies': DependencyEntry,
-}
 
 
 def _agent_yaml_to_bundle(
 	yaml_data: Dict[str, Any],
-	existing: Optional[StandardBundle],
-	service: StandardService,
-) -> StandardBundle:
-	"""Convert agent-view YAML dict to a StandardBundle, reusing ids from existing when names match."""
+	existing: Optional[GlossaryBundle],
+	service: GlossaryService,
+) -> GlossaryBundle:
+	"""Convert agent-view YAML dict to a GlossaryBundle."""
 	tenant_id = service.principalService.get_tenant_id()
 
 	if existing:
-		standard = existing.standard
+		glossary = existing.glossary
 	else:
-		standard = Standard(
+		glossary = Glossary(
 			id=str(service.snowflakeGenerator.next_id()),
 			tenantId=tenant_id,
 		)
 
-	standard.abbreviation = yaml_data.get('abbreviation', '')
-	standard.name = yaml_data.get('name', '')
-	standard.description = yaml_data.get('description')
-	standard.version = yaml_data.get('version')
-	status_raw = yaml_data.get('status', 'draft')
-	standard.status = status_raw
-	standard.sourceUrl = yaml_data.get('sourceUrl')
-	standard.tags = yaml_data.get('tags', [])
+	glossary.name = yaml_data.get('name', '')
+	glossary.display_name = yaml_data.get('displayName')
+	glossary.description = yaml_data.get('description')
+	glossary.language = yaml_data.get('language')
+	glossary.status = yaml_data.get('status', 'draft')
+	glossary.owner = yaml_data.get('owner')
+	glossary.tags = yaml_data.get('tags', [])
 
-	# Build entries, reusing existing entry ids where the yaml row already carries one.
-	raw_entries = yaml_data.get('entries') or {}
-	entries = EntryMap()
-	for section_name, entry_cls in _ENTRY_CLASS_BY_SECTION.items():
-		raw_list = raw_entries.get(section_name) or []
-		typed_list = []
-		for row_dict in raw_list:
-			# Ensure id is present; reuse if provided, otherwise generate.
-			if is_blank(row_dict.get('id')):
-				row_dict['id'] = str(service.snowflakeGenerator.next_id())
-			typed_list.append(entry_cls(**row_dict))
-		setattr(entries, ENTRY_FIELD_BY_SECTION[SectionId(section_name)], typed_list)
+	# Build categories
+	raw_categories = yaml_data.get('categories') or []
+	categories = []
+	for cat_dict in raw_categories:
+		if is_blank(cat_dict.get('id')):
+			cat_dict['id'] = str(service.snowflakeGenerator.next_id())
+		cat_dict['glossary_id'] = glossary.id
+		categories.append(Category(**cat_dict))
 
-	return StandardBundle(standard=standard, entries=entries)
+	# Build terms
+	raw_terms = yaml_data.get('terms') or []
+	terms = []
+	for term_dict in raw_terms:
+		if is_blank(term_dict.get('id')):
+			term_dict['id'] = str(service.snowflakeGenerator.next_id())
+		term_dict['glossary_id'] = glossary.id
+		# Build assigned_entities
+		raw_entities = term_dict.pop('assigned_entities', [])
+		if raw_entities:
+			entity_list = []
+			for ent_dict in raw_entities:
+				if is_blank(ent_dict.get('relation_guid')):
+					ent_dict['relation_guid'] = str(service.snowflakeGenerator.next_id())
+				entity_list.append(TermEntityAssignment(**ent_dict))
+			term_dict['assigned_entities'] = entity_list
+		terms.append(Term(**term_dict))
+
+	return GlossaryBundle(glossary=glossary, categories=categories, terms=terms)
 
 
-# ---- Standards ----
+# ============================================================================
+# Glossary CRUD
+# ============================================================================
 
-@router.get('/business-glossary', tags=['CONSOLE', 'ADMIN'], response_model=List[StandardBundle])
-async def list_standards(
+@router.get('/metricflow/business-glossary', tags=['CONSOLE', 'ADMIN'], response_model=List[GlossaryBundle])
+async def list_glossaries(
 		principal_service: PrincipalService = Depends(get_console_principal)
-) -> List[StandardBundle]:
-	service = get_standard_service(principal_service)
+) -> List[GlossaryBundle]:
+	service = get_glossary_service(principal_service)
 
-	def action() -> List[StandardBundle]:
+	def action() -> List[GlossaryBundle]:
 		return service.list_bundles()
 
 	return trans_readonly(service, action)
 
 
-@router.get('/business-glossary/{standard_id}', tags=['CONSOLE', 'ADMIN'], response_model=StandardBundle)
-async def get_standard(
-		standard_id: str,
+@router.get('/metricflow/business-glossary/{glossary_id}', tags=['CONSOLE', 'ADMIN'], response_model=GlossaryBundle)
+async def get_glossary(
+		glossary_id: str,
 		principal_service: PrincipalService = Depends(get_console_principal)
-) -> StandardBundle:
-	service = get_standard_service(principal_service)
+) -> GlossaryBundle:
+	service = get_glossary_service(principal_service)
 
-	def action() -> StandardBundle:
-		bundle = service.find_bundle(standard_id)
+	def action() -> GlossaryBundle:
+		bundle = service.find_bundle(glossary_id)
 		if bundle is None:
 			raise_404()
 		return bundle
@@ -136,129 +133,373 @@ async def get_standard(
 	return trans_readonly(service, action)
 
 
-@router.post('/business-glossary/standard', tags=['ADMIN'], response_model=Standard)
-async def create_standard(
-		standard: Standard,
+@router.post('/metricflow/business-glossary', tags=['ADMIN'], response_model=Glossary)
+async def create_glossary(
+		upsert: GlossaryUpsert,
 		principal_service: PrincipalService = Depends(get_admin_principal)
-) -> Standard:
-	if is_blank(standard.abbreviation) or is_blank(standard.name):
-		raise_400('Standard abbreviation and name are required.')
+) -> Glossary:
+	if is_blank(upsert.name):
+		raise_400('Glossary name is required.')
 
-	service = get_standard_service(principal_service)
+	service = get_glossary_service(principal_service)
 
-	def action() -> Standard:
-		standard.tenantId = principal_service.get_tenant_id()
-		if is_blank(standard.id):
-			standard.id = str(service.snowflakeGenerator.next_id())
-		bundle = StandardBundle(standard=standard, entries=None)
-		return service.create_bundle(bundle).standard
+	def action() -> Glossary:
+		glossary = Glossary(
+			name=upsert.name,
+			display_name=upsert.display_name or upsert.name,
+			description=upsert.description,
+			language=upsert.language,
+			status=upsert.status,
+			owner=upsert.owner,
+			tags=upsert.tags,
+			tenantId=principal_service.get_tenant_id(),
+		)
+		bundle = GlossaryBundle(glossary=glossary, categories=[], terms=[])
+		return service.create_bundle(bundle).glossary
 
 	return trans(service, action)
 
 
-@router.post('/business-glossary/standard/update', tags=['ADMIN'], response_model=Standard)
-async def update_standard(
-		standard: Standard,
+@router.post('/metricflow/business-glossary/update', tags=['ADMIN'], response_model=Glossary)
+async def update_glossary(
+		upsert: GlossaryUpsert,
 		principal_service: PrincipalService = Depends(get_admin_principal)
-) -> Standard:
-	if is_blank(standard.id):
-		raise_400('Standard id is required.')
+) -> Glossary:
+	if is_blank(upsert.name):
+		raise_400('Glossary name is required.')
 
-	service = get_standard_service(principal_service)
+	service = get_glossary_service(principal_service)
 
-	def action() -> Standard:
-		standard.tenantId = principal_service.get_tenant_id()
-		existing = service.find_bundle(standard.id)
+	def action() -> Glossary:
+		glossary = Glossary(
+			id=upsert.id,
+			name=upsert.name,
+			display_name=upsert.display_name,
+			description=upsert.description,
+			language=upsert.language,
+			status=upsert.status,
+			owner=upsert.owner,
+			tags=upsert.tags,
+			tenantId=principal_service.get_tenant_id(),
+		)
+		if is_blank(glossary.id):
+			raise_400('Glossary id is required for update.')
+		existing = service.find_bundle(glossary.id)
 		if existing is None:
 			raise_404()
-		if existing.standard.tenantId != standard.tenantId:
-			raise_400('Tenant mismatch.')
-		return service.update_standard(standard)
+		return service.update_glossary(glossary)
 
 	return trans(service, action)
 
 
-@router.post('/business-glossary/standard/delete', tags=['ADMIN'])
-async def delete_standard(
-		standard_id: Optional[str] = None,
+@router.post('/metricflow/business-glossary/delete', tags=['ADMIN'])
+async def delete_glossary(
+		glossary_id: Optional[str] = None,
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> dict:
-	if is_blank(standard_id):
-		raise_400('Standard id is required.')
+	if is_blank(glossary_id):
+		raise_400('Glossary id is required.')
 
-	service = get_standard_service(principal_service)
+	service = get_glossary_service(principal_service)
 
 	def action() -> dict:
-		existing = service.find_bundle(standard_id)
+		existing = service.find_bundle(glossary_id)
 		if existing is None:
 			raise_404()
-		service.delete_bundle(standard_id)
-		return {'standardId': standard_id, 'deleted': True}
+		service.delete_bundle(glossary_id)
+		return {'glossaryId': glossary_id, 'deleted': True}
 
 	return trans(service, action)
 
 
-# ---- Entries ----
+# ============================================================================
+# Category CRUD
+# ============================================================================
 
-@router.post('/business-glossary/{standard_id}/{section}', tags=['ADMIN'], response_model=EntryRow)
-async def create_entry(
-		standard_id: str,
-		section: SectionId,
-		row: EntryRow,
+@router.post('/metricflow/business-glossary/{glossary_id}/categories', tags=['ADMIN'], response_model=Category)
+async def create_category(
+		glossary_id: str,
+		upsert: CategoryUpsert,
 		principal_service: PrincipalService = Depends(get_admin_principal)
-) -> EntryRow:
-	service = get_standard_service(principal_service)
+) -> Category:
+	if is_blank(glossary_id) or is_blank(upsert.name):
+		raise_400('Glossary id and category name are required.')
 
-	def action() -> EntryRow:
-		existing = service.find_bundle(standard_id)
+	service = get_glossary_service(principal_service)
+
+	def action() -> Category:
+		existing = service.find_bundle(glossary_id)
 		if existing is None:
 			raise_404()
-		if is_blank(getattr(row, 'id', None)):
-			row.id = str(service.snowflakeGenerator.next_id())
-		return service.append_entry(standard_id, section, row)
+		category = Category(
+			id=upsert.id,
+			name=upsert.name,
+			description=upsert.description,
+			parent_category_id=upsert.parent_category_id,
+			order_index=upsert.order_index,
+		)
+		return service.append_category(glossary_id, category)
 
 	return trans(service, action)
 
 
-@router.post('/business-glossary/{standard_id}/{section}/update', tags=['ADMIN'], response_model=EntryRow)
-async def update_entry(
-		standard_id: str,
-		section: SectionId,
-		row: EntryRow,
+@router.post('/metricflow/business-glossary/{glossary_id}/categories/update', tags=['ADMIN'], response_model=Category)
+async def update_category(
+		glossary_id: str,
+		upsert: CategoryUpsert,
 		principal_service: PrincipalService = Depends(get_admin_principal)
-) -> EntryRow:
-	if is_blank(getattr(row, 'id', None)):
-		raise_400('Entry id is required.')
+) -> Category:
+	if is_blank(glossary_id) or is_blank(upsert.id) or is_blank(upsert.name):
+		raise_400('Glossary id, category id, and category name are required.')
 
-	service = get_standard_service(principal_service)
+	service = get_glossary_service(principal_service)
 
-	def action() -> EntryRow:
-		existing = service.find_bundle(standard_id)
+	def action() -> Category:
+		existing = service.find_bundle(glossary_id)
 		if existing is None:
 			raise_404()
-		return service.update_entry(standard_id, section, row)
+		category = Category(
+			id=upsert.id,
+			name=upsert.name,
+			description=upsert.description,
+			parent_category_id=upsert.parent_category_id,
+			order_index=upsert.order_index,
+		)
+		return service.update_category(glossary_id, category)
 
 	return trans(service, action)
 
 
-@router.post('/business-glossary/{standard_id}/{section}/delete', tags=['ADMIN'])
-async def delete_entry(
-		standard_id: str,
-		section: SectionId,
-		entry_id: Optional[str] = None,
+@router.post('/metricflow/business-glossary/{glossary_id}/categories/delete', tags=['ADMIN'])
+async def delete_category(
+		glossary_id: str,
+		request: CategoryDeleteRequest,
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> dict:
-	if is_blank(entry_id):
-		raise_400('Entry id is required.')
+	if is_blank(glossary_id) or is_blank(request.category_id):
+		raise_400('Glossary id and category id are required.')
 
-	service = get_standard_service(principal_service)
+	service = get_glossary_service(principal_service)
 
 	def action() -> dict:
-		existing = service.find_bundle(standard_id)
+		existing = service.find_bundle(glossary_id)
 		if existing is None:
 			raise_404()
-		service.delete_entry(standard_id, section, entry_id)
-		return {'entryId': entry_id, 'section': section.value, 'deleted': True}
+		service.delete_category(glossary_id, request.category_id)
+		return {'categoryId': request.category_id, 'deleted': True}
+
+	return trans(service, action)
+
+
+# ============================================================================
+# Term CRUD
+# ============================================================================
+
+@router.post('/metricflow/business-glossary/{glossary_id}/terms', tags=['ADMIN'], response_model=Term)
+async def create_term(
+		glossary_id: str,
+		upsert: TermUpsert,
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Term:
+	if is_blank(glossary_id) or is_blank(upsert.name):
+		raise_400('Glossary id and term name are required.')
+
+	service = get_glossary_service(principal_service)
+
+	def action() -> Term:
+		existing = service.find_bundle(glossary_id)
+		if existing is None:
+			raise_404()
+		term = Term(
+			id=upsert.id,
+			name=upsert.name,
+			display_name=upsert.display_name,
+			description=upsert.description,
+			short_description=upsert.short_description,
+			abbreviation=upsert.abbreviation,
+			examples=upsert.examples,
+			status=upsert.status,
+			category_ids=upsert.category_ids,
+			synonyms=upsert.synonyms,
+			related_terms=upsert.related_terms,
+			antonyms=upsert.antonyms,
+			is_a=upsert.is_a,
+			owner=upsert.owner,
+			steward=upsert.steward,
+			source_url=upsert.source_url,
+		)
+		return service.append_term(glossary_id, term)
+
+	return trans(service, action)
+
+
+@router.post('/metricflow/business-glossary/{glossary_id}/terms/update', tags=['ADMIN'], response_model=Term)
+async def update_term(
+		glossary_id: str,
+		upsert: TermUpsert,
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Term:
+	if is_blank(glossary_id) or is_blank(upsert.id) or is_blank(upsert.name):
+		raise_400('Glossary id, term id, and term name are required.')
+
+	service = get_glossary_service(principal_service)
+
+	def action() -> Term:
+		existing = service.find_bundle(glossary_id)
+		if existing is None:
+			raise_404()
+		term = Term(
+			id=upsert.id,
+			name=upsert.name,
+			display_name=upsert.display_name,
+			description=upsert.description,
+			short_description=upsert.short_description,
+			abbreviation=upsert.abbreviation,
+			examples=upsert.examples,
+			status=upsert.status,
+			category_ids=upsert.category_ids,
+			synonyms=upsert.synonyms,
+			related_terms=upsert.related_terms,
+			antonyms=upsert.antonyms,
+			is_a=upsert.is_a,
+			owner=upsert.owner,
+			steward=upsert.steward,
+			source_url=upsert.source_url,
+		)
+		return service.update_term(glossary_id, term)
+
+	return trans(service, action)
+
+
+@router.post('/metricflow/business-glossary/{glossary_id}/terms/delete', tags=['ADMIN'])
+async def delete_term(
+		glossary_id: str,
+		request: TermDeleteRequest,
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> dict:
+	if is_blank(glossary_id) or is_blank(request.term_id):
+		raise_400('Glossary id and term id are required.')
+
+	service = get_glossary_service(principal_service)
+
+	def action() -> dict:
+		existing = service.find_bundle(glossary_id)
+		if existing is None:
+			raise_404()
+		service.delete_term(glossary_id, request.term_id)
+		return {'termId': request.term_id, 'deleted': True}
+
+	return trans(service, action)
+
+
+@router.get('/metricflow/business-glossary/{glossary_id}/terms/search', tags=['CONSOLE', 'ADMIN'], response_model=List[Term])
+async def search_terms(
+		glossary_id: str,
+		q: Optional[str] = Query(None, description='Search query for term name/description'),
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> List[Term]:
+	service = get_glossary_service(principal_service)
+
+	def action() -> List[Term]:
+		return service.search_terms(glossary_id, q or '')
+
+	return trans_readonly(service, action)
+
+
+# ============================================================================
+# Term Relations
+# ============================================================================
+
+@router.post('/metricflow/business-glossary/{glossary_id}/terms/{term_id}/relations', tags=['ADMIN'], response_model=Term)
+async def add_term_relation(
+		glossary_id: str,
+		term_id: str,
+		request: TermRelationUpsert,
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Term:
+	if is_blank(term_id) or is_blank(request.target_term_id):
+		raise_400('Term id and target term id are required.')
+
+	service = get_glossary_service(principal_service)
+
+	def action() -> Term:
+		existing = service.find_bundle(glossary_id)
+		if existing is None:
+			raise_404()
+		return service.add_term_relation(glossary_id, term_id, request.relation_type, request.target_term_id)
+
+	return trans(service, action)
+
+
+@router.post('/metricflow/business-glossary/{glossary_id}/terms/{term_id}/relations/delete', tags=['ADMIN'], response_model=Term)
+async def remove_term_relation(
+		glossary_id: str,
+		term_id: str,
+		request: TermRelationUpsert,
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Term:
+	if is_blank(term_id) or is_blank(request.target_term_id):
+		raise_400('Term id and target term id are required.')
+
+	service = get_glossary_service(principal_service)
+
+	def action() -> Term:
+		existing = service.find_bundle(glossary_id)
+		if existing is None:
+			raise_404()
+		return service.remove_term_relation(glossary_id, term_id, request.relation_type, request.target_term_id)
+
+	return trans(service, action)
+
+
+# ============================================================================
+# Term Entity Assignments
+# ============================================================================
+
+@router.post('/metricflow/business-glossary/{glossary_id}/terms/{term_id}/entities', tags=['ADMIN'], response_model=Term)
+async def assign_entity_to_term(
+		glossary_id: str,
+		term_id: str,
+		request: TermEntityAssignmentUpsert,
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Term:
+	if is_blank(term_id) or is_blank(request.entity_type) or is_blank(request.entity_id):
+		raise_400('Term id, entity type, and entity id are required.')
+
+	service = get_glossary_service(principal_service)
+
+	def action() -> Term:
+		existing = service.find_bundle(glossary_id)
+		if existing is None:
+			raise_404()
+		assignment = TermEntityAssignment(
+			entity_type=request.entity_type,
+			entity_id=request.entity_id,
+			entity_name=request.entity_name,
+			confidence=request.confidence,
+		)
+		return service.assign_entity_to_term(glossary_id, term_id, assignment)
+
+	return trans(service, action)
+
+
+@router.post('/metricflow/business-glossary/{glossary_id}/terms/{term_id}/entities/delete', tags=['ADMIN'], response_model=Term)
+async def remove_entity_from_term(
+		glossary_id: str,
+		term_id: str,
+		request: TermEntityAssignmentUpsert,
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> Term:
+	if is_blank(term_id) or is_blank(request.entity_type) or is_blank(request.entity_id):
+		raise_400('Term id, entity type, and entity id are required.')
+
+	service = get_glossary_service(principal_service)
+
+	def action() -> Term:
+		existing = service.find_bundle(glossary_id)
+		if existing is None:
+			raise_404()
+		return service.remove_entity_from_term(glossary_id, term_id, request.entity_type, request.entity_id)
 
 	return trans(service, action)
 
@@ -267,11 +508,11 @@ async def delete_entry(
 # Agent-view YAML endpoints (CLI / AI Agent)
 # ============================================================================
 
-@router.get('/business-glossary/all/yaml/agent-view', tags=['CONSOLE', 'ADMIN'], response_class=Response)
-async def list_all_standards_agent_view(
+@router.get('/metricflow/business-glossary/all/yaml/agent-view', tags=['CONSOLE', 'ADMIN'], response_class=Response)
+async def list_all_glossaries_agent_view(
 		principal_service: PrincipalService = Depends(get_console_principal),
 ) -> Response:
-	service = get_standard_service(principal_service)
+	service = get_glossary_service(principal_service)
 
 	def action() -> Response:
 		bundles = service.list_bundles()
@@ -287,17 +528,17 @@ async def list_all_standards_agent_view(
 	return trans_readonly(service, action)
 
 
-@router.get('/business-glossary/name/yaml/agent-view', tags=['CONSOLE', 'ADMIN'], response_class=Response)
-async def get_standard_agent_view(
-		name: str = Query(..., description='Standard name'),
+@router.get('/metricflow/business-glossary/name/yaml/agent-view', tags=['CONSOLE', 'ADMIN'], response_class=Response)
+async def get_glossary_agent_view(
+		name: str = Query(..., description='Glossary name'),
 		principal_service: PrincipalService = Depends(get_console_principal),
 ) -> Response:
-	service = get_standard_service(principal_service)
+	service = get_glossary_service(principal_service)
 
 	def action() -> Response:
 		bundle = service.find_bundle_by_name(name)
 		if bundle is None:
-			raise_404(f'Standard [{name}] not found.')
+			raise_404(f'Glossary [{name}] not found.')
 		content = yaml.dump(
 			_bundle_to_agent_yaml(bundle),
 			allow_unicode=True, default_flow_style=False, sort_keys=False,
@@ -307,8 +548,8 @@ async def get_standard_agent_view(
 	return trans_readonly(service, action)
 
 
-@router.post('/business-glossary/yaml/agent-upsert', tags=['ADMIN'], response_class=Response)
-async def upsert_standard_agent_view(
+@router.post('/metricflow/business-glossary/yaml/agent-upsert', tags=['ADMIN'], response_class=Response)
+async def upsert_glossary_agent_view(
 		request: Request,
 		principal_service: PrincipalService = Depends(get_admin_principal),
 ) -> Response:
@@ -317,11 +558,9 @@ async def upsert_standard_agent_view(
 	if not yaml_data:
 		raise_400('YAML body is empty.')
 	if is_blank(yaml_data.get('name')):
-		raise_400('Standard name is required.')
-	if is_blank(yaml_data.get('abbreviation')):
-		raise_400('Standard abbreviation is required.')
+		raise_400('Glossary name is required.')
 
-	service = get_standard_service(principal_service)
+	service = get_glossary_service(principal_service)
 
 	def action() -> Response:
 		existing = service.find_bundle_by_name(yaml_data['name'])
@@ -329,10 +568,10 @@ async def upsert_standard_agent_view(
 		if existing:
 			service.replace_bundle(bundle)
 		else:
-			bundle.standard.tenantId = principal_service.get_tenant_id()
+			bundle.glossary.tenantId = principal_service.get_tenant_id()
 			service.create_bundle(bundle)
 		content = yaml.dump(
-			{'status': 'ok', 'name': bundle.standard.name, 'abbreviation': bundle.standard.abbreviation},
+			{'status': 'ok', 'name': bundle.glossary.name},
 			allow_unicode=True, default_flow_style=False, sort_keys=False,
 		)
 		return Response(content=content, media_type='application/x-yaml')

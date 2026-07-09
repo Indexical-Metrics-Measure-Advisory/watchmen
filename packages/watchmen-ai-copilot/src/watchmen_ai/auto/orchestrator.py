@@ -13,6 +13,7 @@ the same code path works for sync dev mode and Redis/Celery production.
 import logging
 from typing import Any, Dict, List, Optional
 
+from watchmen_ai.auto.context_bridge import WatchmenDataBridge
 from watchmen_ai.auto.executors import MockOpenCodeExecutor, OpenCodeExecutor
 from watchmen_ai.auto.log_bus import InMemoryLogBus, LogBus
 from watchmen_ai.auto.queue import SyncTaskQueue, Task, TaskQueue
@@ -52,15 +53,19 @@ class Orchestrator:
         quality_checker: Optional[QualityChecker] = None,
         pattern_analyzer: Optional[PatternAnalyzer] = None,
         pipeline_generator: Optional[PipelineGenerator] = None,
+        data_bridge: Optional[WatchmenDataBridge] = None,
     ) -> None:
         # --- Shared infrastructure (blueprint cross-cutting layers) ---
         self.store = store or InMemoryOntologyStore()
         self.queue = queue or SyncTaskQueue()
         self.log_bus = log_bus or InMemoryLogBus()
         self.executor = executor or MockOpenCodeExecutor()
+        self.data_bridge = data_bridge
 
         # --- Skills (injected into workers) ---
-        self.metadata_scanner = metadata_scanner or MetadataScanner(config={"demo_mode": True})
+        self.metadata_scanner = metadata_scanner or MetadataScanner(
+            config={"demo_mode": True}, data_bridge=self.data_bridge
+        )
         self.quality_checker = quality_checker or QualityChecker()
         self.pattern_analyzer = pattern_analyzer or PatternAnalyzer()
         self.pipeline_generator = pipeline_generator or PipelineGenerator()
@@ -68,13 +73,13 @@ class Orchestrator:
         # --- Workers (blueprint: one per container) ---
         self.workers: Dict[str, Any] = {
             "architect": ArchitectWorker(
-                self.store, self.log_bus, self.executor, self.metadata_scanner),
+                self.store, self.log_bus, self.executor, self.metadata_scanner, self.data_bridge),
             "materialization": MaterializationWorker(
-                self.store, self.log_bus, self.executor, self.pipeline_generator),
+                self.store, self.log_bus, self.executor, self.pipeline_generator, self.data_bridge),
             "health": HealthWorker(
-                self.store, self.log_bus, self.executor, self.quality_checker),
+                self.store, self.log_bus, self.executor, self.quality_checker, self.data_bridge),
             "insight": InsightWorker(
-                self.store, self.log_bus, self.executor, self.pattern_analyzer),
+                self.store, self.log_bus, self.executor, self.pattern_analyzer, self.data_bridge),
         }
 
         # Register worker handlers with the task queue
@@ -185,6 +190,19 @@ class Orchestrator:
             }
             for l in self.log_bus.history(task_id)
         ]
+
+    def refresh_context(self) -> Dict[str, Any]:
+        """Manually refresh Watchmen Data Bridge context (human-in-the-loop or scheduled)."""
+        if self.data_bridge is None:
+            return {"status": "skipped", "reason": "data_bridge not configured"}
+        bundle = self.data_bridge.refresh_context()
+        return {
+            "status": "refreshed",
+            "topics": len(bundle.topics),
+            "pipelines": len(bundle.pipelines),
+            "dqc_rules": len(bundle.dqc_rules),
+            "fetched_at": bundle.fetched_at.isoformat(),
+        }
 
     def list_workers(self) -> List[Dict[str, str]]:
         return [

@@ -26,8 +26,6 @@ from .core import (
     AuditAction,
     AuditEvent,
     BusinessOntology,
-    Decision,
-    DecisionOutcome,
     NodeHealth,
     OntologyAttribute,
     OntologyNode,
@@ -91,8 +89,6 @@ __all__ = [
     "Proposal",
     "ProposalStatus",
     "ProposalAction",
-    "Decision",
-    "DecisionOutcome",
     "AuditEvent",
     "AuditAction",
     # Skills

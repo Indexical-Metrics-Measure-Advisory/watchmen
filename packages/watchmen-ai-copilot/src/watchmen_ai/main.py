@@ -6,7 +6,6 @@ import logging
 from watchmen_ai.ai_server import ai_app
 from watchmen_ai.hypothesis.router import hypothesis_business_router, metrics_router, agent_router, \
     agent_managment_router, analysis_router, analysis_report_router, ai_chat_router
-from watchmen_ai.mcp.router import topic_mcp_router, pipeline_mcp_router
 from watchmen_ai.auto import router as ontology_control_plane_router
 
 from watchmen_rest.system import health_router
@@ -46,8 +45,6 @@ ArrayHelper([
     agent_managment_router.router,
     analysis_router.router,
     analysis_report_router.router,
-    topic_mcp_router.router,
-    pipeline_mcp_router.router,
     ontology_control_plane_router.router,
 
     # chat_router.router,

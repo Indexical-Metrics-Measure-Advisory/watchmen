@@ -705,14 +705,15 @@ table_virtual_ontologies = Table(
 table_business_glossary = Table(
 	'business_glossary', meta_data,
 	create_pk('standard_id'),
-	create_str('abbreviation', 64, False),
 	create_str('name', 255, False),
-	create_str('description', 1024),
-	# create_str('version', 64),
+	create_str('display_name', 255),
+	create_str('description', 2048),
+	create_str('language', 16),
 	create_str('status', 32),
-	create_str('source_url', 512),
+	create_str('owner', 128),
 	create_json('tags'),
-	create_json('entries'),
+	create_json('categories'),
+	create_json('terms'),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 

@@ -18,6 +18,14 @@ app:FastAPI = metric_flow_app.construct()
 def startup():
     metric_flow_app.on_startup(app)
 
+    # Import glossary seed data if table is empty
+    try:
+        from watchmen_metricflow.data.glossary_seed_import import import_glossary_seed_data
+        import_glossary_seed_data()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Glossary seed import failed during startup: {e}")
+
     if ask_mcp_flag():
         mcp = FastApiMCP(
             app,

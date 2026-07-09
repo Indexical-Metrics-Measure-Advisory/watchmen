@@ -1,138 +1,181 @@
 from enum import Enum
-from typing import List, Optional, Union, Dict
+from typing import List, Optional
 
 from watchmen_model.common import TenantBasedTuple
 from watchmen_utilities import ExtendedBaseModel
 
 
-class StandardStatus(str, Enum):
+# ============================================================================
+# Enums
+# ============================================================================
+
+class GlossaryStatus(str, Enum):
 	ACTIVE = 'active'
 	DEPRECATED = 'deprecated'
 	DRAFT = 'draft'
 
 
-class SectionId(str, Enum):
-	TABLES = 'tables'
-	FIELDS = 'fields'
-	CODES = 'codes'
-	TERMS = 'terms'
-	NAMING = 'naming'
-	DEPENDENCIES = 'dependencies'
-	OVERVIEW = 'overview'
+class TermStatus(str, Enum):
+	ACTIVE = 'active'
+	DEPRECATED = 'deprecated'
+	DRAFT = 'draft'
 
 
-class Standard(ExtendedBaseModel, TenantBasedTuple):
+class EntityType(str, Enum):
+	TOPIC = 'topic'
+	ONTOLOGY = 'ontology'
+	FACTOR = 'factor'
+	SEMANTIC_MODEL = 'semantic_model'
+
+
+class TermRelationType(str, Enum):
+	SYNONYM = 'synonym'
+	RELATED = 'related'
+	ANTONYM = 'antonym'
+	IS_A = 'is_a'
+
+
+# ============================================================================
+# Glossary (术语表)
+# ============================================================================
+
+class Glossary(ExtendedBaseModel, TenantBasedTuple):
 	id: str = None
-	abbreviation: str = None
 	name: str = None
+	display_name: str = None
 	description: Optional[str] = None
-	version: str = None
-	status: StandardStatus = None
-	sourceUrl: Optional[str] = None
+	language: Optional[str] = None
+	status: GlossaryStatus = None
+	owner: Optional[str] = None
 	tags: Optional[List[str]] = None
 
 
-class TableEntry(ExtendedBaseModel):
+# ============================================================================
+# Category (分类)
+# ============================================================================
+
+class Category(ExtendedBaseModel):
 	id: str = None
-	domain: str = None
 	name: str = None
-	abbreviation: str = None
-	fieldCount: int = None
-
-
-class FieldCodeEntry(ExtendedBaseModel):
-	id: str = None
-	code: str = None
-	usedInTables: int = None
-	tables: Optional[str] = None
+	qualified_name: str = None
 	description: Optional[str] = None
+	parent_category_id: Optional[str] = None
+	glossary_id: Optional[str] = None
+	order_index: int = 0
 
 
-class CodeValueEntry(ExtendedBaseModel):
+# ============================================================================
+# Term Entity Assignment (术语-资产关联)
+# ============================================================================
+
+class TermEntityAssignment(ExtendedBaseModel):
+	entity_type: str = None
+	entity_id: str = None
+	entity_name: Optional[str] = None
+	relation_guid: str = None
+	confidence: float = 1.0
+
+
+# ============================================================================
+# Term (业务术语)
+# ============================================================================
+
+class Term(ExtendedBaseModel):
 	id: str = None
-	code: str = None
 	name: str = None
+	qualified_name: str = None
+	display_name: Optional[str] = None
 	description: Optional[str] = None
-	codeTable: Optional[str] = None
+	short_description: Optional[str] = None
+	abbreviation: Optional[str] = None
+	examples: Optional[List[str]] = None
+	status: TermStatus = None
+	glossary_id: Optional[str] = None
+	category_ids: List[str] = []
+	# term relations
+	synonyms: List[str] = []
+	related_terms: List[str] = []
+	antonyms: List[str] = []
+	is_a: List[str] = []
+	# entity assignments
+	assigned_entities: List[TermEntityAssignment] = []
+	# governance
+	owner: Optional[str] = None
+	steward: Optional[str] = None
+	source_url: Optional[str] = None
 
 
-class TermEntry(ExtendedBaseModel):
-	id: str = None
-	index: int = None
-	term: str = None
-	relatedCode: Optional[str] = None
-	definition: Optional[str] = None
+# ============================================================================
+# Bundle (聚合根)
+# ============================================================================
+
+class GlossaryBundle(ExtendedBaseModel):
+	glossary: Glossary
+	categories: List[Category] = []
+	terms: List[Term] = []
 
 
-class NamingEntry(ExtendedBaseModel):
-	id: str = None
-	prefix: str = None
-	meaning: str = None
-	example: Optional[str] = None
+# ============================================================================
+# Upsert payloads
+# ============================================================================
 
-
-class DependencyEntry(ExtendedBaseModel):
-	id: str = None
-	level: int = None
-	description: str = None
-
-
-class OverviewEntry(ExtendedBaseModel):
-	id: str = None
-	domain: str = None
-	tableCount: int = None
-	coreEntities: Optional[str] = None
-	description: Optional[str] = None
-
-
-EntryRow = Union[
-	TableEntry, FieldCodeEntry, CodeValueEntry,
-	TermEntry, NamingEntry, DependencyEntry, OverviewEntry
-]
-
-
-class EntryMap(ExtendedBaseModel):
-	tables: List[TableEntry] = []
-	fields: List[FieldCodeEntry] = []
-	codes: List[CodeValueEntry] = []
-	terms: List[TermEntry] = []
-	naming: List[NamingEntry] = []
-	dependencies: List[DependencyEntry] = []
-	overview: List[OverviewEntry] = []
-
-
-class StandardBundle(ExtendedBaseModel):
-	standard: Standard
-	entries: Optional[EntryMap] = None
-
-
-class StandardUpsert(ExtendedBaseModel, TenantBasedTuple):
-	"""Payload for create/update of a Standard. The id may be assigned by the server."""
-	abbreviation: str = None
+class GlossaryUpsert(ExtendedBaseModel, TenantBasedTuple):
+	"""Payload for create/update of a Glossary."""
 	name: str = None
+	display_name: Optional[str] = None
 	description: Optional[str] = None
-	version: str = None
-	status: StandardStatus = None
-	sourceUrl: Optional[str] = None
+	language: Optional[str] = None
+	status: GlossaryStatus = None
+	owner: Optional[str] = None
 	tags: Optional[List[str]] = None
 
 
-class EntryUpsertRequest(ExtendedBaseModel):
-	"""Wrapper for the entry to be written, plus a stable client-provided id when needed."""
-	row: EntryRow
+class CategoryUpsert(ExtendedBaseModel):
+	"""Payload for create/update of a Category."""
+	id: Optional[str] = None
+	name: str = None
+	description: Optional[str] = None
+	parent_category_id: Optional[str] = None
+	order_index: int = 0
 
 
-class EntryDeleteRequest(ExtendedBaseModel):
-	entryId: str
+class TermUpsert(ExtendedBaseModel):
+	"""Payload for create/update of a Term."""
+	id: Optional[str] = None
+	name: str = None
+	display_name: Optional[str] = None
+	description: Optional[str] = None
+	short_description: Optional[str] = None
+	abbreviation: Optional[str] = None
+	examples: Optional[List[str]] = None
+	status: TermStatus = None
+	category_ids: List[str] = []
+	synonyms: List[str] = []
+	related_terms: List[str] = []
+	antonyms: List[str] = []
+	is_a: List[str] = []
+	owner: Optional[str] = None
+	steward: Optional[str] = None
+	source_url: Optional[str] = None
 
 
-# Helper: list field name in EntryMap per section.
-ENTRY_FIELD_BY_SECTION: Dict[SectionId, str] = {
-	SectionId.TABLES: 'tables',
-	SectionId.FIELDS: 'fields',
-	SectionId.CODES: 'codes',
-	SectionId.TERMS: 'terms',
-	SectionId.NAMING: 'naming',
-	SectionId.DEPENDENCIES: 'dependencies',
-	SectionId.OVERVIEW: 'overview',
-}
+class TermEntityAssignmentUpsert(ExtendedBaseModel):
+	"""Payload for assigning/removing an entity to/from a term."""
+	entity_type: str = None
+	entity_id: str = None
+	entity_name: Optional[str] = None
+	confidence: float = 1.0
+
+
+class TermRelationUpsert(ExtendedBaseModel):
+	"""Payload for adding/removing a term relation."""
+	relation_type: TermRelationType = None
+	target_term_id: str = None
+
+
+class TermDeleteRequest(ExtendedBaseModel):
+	term_id: str = None
+
+
+class CategoryDeleteRequest(ExtendedBaseModel):
+	category_id: str = None

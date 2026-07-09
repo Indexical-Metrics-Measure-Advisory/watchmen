@@ -1,4 +1,0 @@
-class EmbeddingModelBuilder():
-    """
-    EmbeddingModelCreater
-    """

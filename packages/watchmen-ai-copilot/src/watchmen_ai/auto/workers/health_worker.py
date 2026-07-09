@@ -39,8 +39,9 @@ class HealthWorker(BaseWorker):
         log_bus: LogBus,
         executor: OpenCodeExecutor,
         quality_checker: QualityChecker,
+        data_bridge=None,
     ) -> None:
-        super().__init__(store, log_bus, executor, {"quality_checker": quality_checker})
+        super().__init__(store, log_bus, executor, {"quality_checker": quality_checker}, data_bridge)
         self.quality_checker = quality_checker
 
     def observe(self, task: Task) -> Dict[str, Any]:

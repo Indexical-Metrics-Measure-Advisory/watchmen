@@ -8,7 +8,6 @@ from .ontology import (
     NodeHealth,
 )
 from .proposal import Proposal, ProposalStatus, ProposalAction
-from .decision import Decision, DecisionOutcome
 from .audit import AuditEvent, AuditAction
 
 __all__ = [
@@ -20,8 +19,6 @@ __all__ = [
     "Proposal",
     "ProposalStatus",
     "ProposalAction",
-    "Decision",
-    "DecisionOutcome",
     "AuditEvent",
     "AuditAction",
 ]
