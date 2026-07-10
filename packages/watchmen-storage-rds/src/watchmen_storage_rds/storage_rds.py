@@ -103,7 +103,8 @@ class StorageRDS(TransactionalStorageSPI):
 		if self.connection is not None:
 			raise UnexpectedStorageException(
 				'Connection exists, failed to begin managed transaction. It should be closed first.')
-		self.connection = self.engine.connect()
+		self.connection = self.engine.connect() \
+			.execution_options(isolation_level="READ COMMITTED")
 		self.build_dialect_json_serializer()
 		self.connection.begin()
 		self._managed = True
