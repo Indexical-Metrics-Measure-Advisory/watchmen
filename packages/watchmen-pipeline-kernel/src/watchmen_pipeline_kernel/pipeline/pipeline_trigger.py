@@ -1,4 +1,4 @@
-from asyncio import ensure_future
+import asyncio
 from logging import getLogger
 from typing import Any, Callable, Dict, Optional
 
@@ -149,7 +149,18 @@ class PipelineTrigger:
 		self.prepare_trigger_data()
 		result = self.save_trigger_data()
 		if self.asynchronized:
-			ensure_future(self.start(result))
+			# start() 内部全是同步阻塞代码（无 await 断点），直接 ensure_future
+			# 会阻塞事件循环。用 run_in_executor 把它丢到线程池，事件循环
+			# 可以立即返回 HTTP 响应，pipeline 在后台线程执行完毕。
+			loop = asyncio.get_running_loop()
+			loop.run_in_executor(None, self._run_start_in_background, result)
 		else:
 			await self.start(result)
 		return result.internalDataId
+
+	def _run_start_in_background(self, trigger: TopicTrigger) -> None:
+		"""在线程池 worker 中驱动 start() 执行完毕，异常记录日志不抛出。"""
+		try:
+			asyncio.run(self.start(trigger))
+		except Exception as e:
+			logger.error(f'Background pipeline execution failed: {e}', exc_info=e)
