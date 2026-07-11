@@ -638,36 +638,35 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 		def last_try() -> None:
 			# force lock and update, the final try after all retries by optimistic lock are failed
 			# still use the regular process
-			# find data by given findBy, do insertion when data not found and insertion is allowed, blablabla...
+			# find data by given findBy, do insertion when data not found and insertion is allowed, blablablabla...
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
 			# use transaction here
 			topic_data_service.get_storage().begin()
-			data = topic_data_service.find(criteria=[statement])
-			count = len(data)
-			if count == 0:
-				if allow_insert:
-					# data not found, do insertion
-					self.do_insert(
-						variables, new_pipeline, action_monitor_log, principal_service, topic_data_service, False)
+			try:
+				data = topic_data_service.find(criteria=[statement])
+				count = len(data)
+				if count == 0:
+					if allow_insert:
+						# data not found, do insertion
+						self.do_insert(
+							variables, new_pipeline, action_monitor_log, principal_service, topic_data_service, False)
+					else:
+						# insertion is not allowed
+						raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
+				elif count != 1:
+					raise PipelineKernelException(
+						f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 				else:
-					# insertion is not allowed
-					raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
-			elif count != 1:
-				raise PipelineKernelException(
-					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
-			else:
-				# after several times failures, it is the last try.
-				# do lock loaded data by id, then it cannot be updated by any other threads, processes or nodes.
-				# Of consideration of performance, we do need a TX lock here,
-				# but in some RDS(eg. MySQL), for update lock must through id criteria, otherwise leads TM lock.
-				# still, data might be deleted before it is locked, raise exception on this situation.
-				# or, lock it successfully, do update and commit transaction.
-				# when data row was locked, update requests from any other threads, processes or nodes
-				# are waiting for the transaction commit or rollback.
-				topic_data_service.get_storage().begin()
-				try:
+					# after several times failures, it is the last try.
+					# do lock loaded data by id, then it cannot be updated by any other threads, processes or nodes.
+					# of consideration of performance, we do need a TX lock here,
+					# but in some RDS(eg. MySQL), for update lock must through id criteria, otherwise leads TM lock.
+					# still, data might be deleted before it is locked, raise exception on this situation.
+					# or, lock it successfully, do update and commit transaction.
+					# when data row was locked, update requests from any other threads, processes or nodes
+					# are waiting for the transaction commit or rollback.
 					# data was loaded from storage, of course it has an id
 					_, data_id = topic_data_service.get_data_entity_helper().find_data_id(data[0])
 					locked_data = topic_data_service.find_and_lock_by_id(data_id)
@@ -683,17 +682,24 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 							f'Data not found on doing last try to update, '
 							f'{self.on_topic_message()}, by [{[statement.to_dict()]}].')
 					topic_data_service.get_storage().commit_and_close()
-				except Exception as e:
-					topic_data_service.get_storage().rollback_and_close()
-					raise e
-				finally:
-					topic_data_service.get_storage().close()
+			except Exception as e:
+				topic_data_service.get_storage().rollback_and_close()
+				raise e
+			finally:
+				topic_data_service.get_storage().close()
 
-		def work(times: int, is_insert_allowed: bool) -> None:
+		def work(times: int, is_insert_allowed: bool, cached_data: Optional[Dict[str, Any]] = None) -> None:
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
-			statement = self.parsedFindBy.run(variables, principal_service)
-			action_monitor_log.findBy = statement.to_dict()
-			data = topic_data_service.find(criteria=[statement])
+			if cached_data is not None:
+				# retry by id: read latest version via primary key, skip full condition query
+				_, data_id = topic_data_service.get_data_entity_helper().find_data_id(cached_data)
+				data = [topic_data_service.find_data_by_id(data_id)] if data_id is not None else []
+				data = [d for d in data if d is not None]
+			else:
+				# first attempt: full condition query
+				statement = self.parsedFindBy.run(variables, principal_service)
+				action_monitor_log.findBy = statement.to_dict()
+				data = topic_data_service.find(criteria=[statement])
 			count = len(data)
 			if count == 0:
 				if is_insert_allowed:
@@ -704,10 +710,10 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 						work(times, False)
 				else:
 					# insertion is not allowed
-					raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
+					raise PipelineKernelException(f'Data not found, {self.on_topic_message()}.')
 			elif count != 1:
 				raise PipelineKernelException(
-					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
+					f'Too many data[count={count}] found, {self.on_topic_message()}.')
 			else:
 				# found one matched, do update
 				updated_count = self.do_update(
@@ -715,23 +721,26 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 				if updated_count == 0:
 					if not topic_data_service.get_data_entity_helper().is_versioned():
 						raise PipelineKernelException(
-							f'Data not found on do update, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
+							f'Data not found on do update, {self.on_topic_message()}.')
 					elif ask_pipeline_update_retry() and times < ask_pipeline_update_retry_times():
-							base_interval = ask_pipeline_update_retry_interval()  # 10ms
-							# 指数退避: 10ms → 20ms → 40ms（第0/1/2次重试）
-							exponential_interval = base_interval * (2 ** times)
-							# 随机抖动: ±30%，避免多个冲突方同步醒来
-							jitter = int(exponential_interval * 0.3)
-							interval = exponential_interval + randrange(-jitter, jitter + 1)
-							# 保底: 至少 5ms，避免退避后间隔过小
-							interval = max(5, interval)
-							sleep(interval / 1000)
-							work(times + 1, is_insert_allowed)
+							# adaptive backoff: 0ms on first retry, 5ms on second, 10ms on third
+							if times == 0:
+								interval = 0
+							elif times == 1:
+								interval = 5
+							else:
+								interval = 10
+							if interval > 0:
+								jitter = max(1, int(interval * 0.3))
+								interval = interval + randrange(-jitter, jitter + 1)
+								interval = max(1, interval)
+								sleep(interval / 1000)
+							work(times + 1, is_insert_allowed, data[0])
 					elif ask_pipeline_update_retry() and ask_pipeline_update_retry_force():
 						last_try()
 					else:
 						raise PipelineKernelException(
-							f'Data not found on do update, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
+							f'Data not found on do update, {self.on_topic_message()}.')
 
 		def create_worker() -> Callable[[], None]:
 			# retry times starts from 0
