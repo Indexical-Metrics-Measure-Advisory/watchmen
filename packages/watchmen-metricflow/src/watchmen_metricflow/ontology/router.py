@@ -1,8 +1,8 @@
-"""Ontology Data Access REST 路由。
+"""Ontology Data Access REST router.
 
-MVP 提供 REST 查询能力：
-- POST /ontology/{ontology_id}/query：执行查询
-- POST /ontology/{ontology_id}/query/compile：仅编译 SQL，用于调试
+MVP provides REST query endpoints:
+- POST /ontology/{ontology_id}/query: execute the query
+- POST /ontology/{ontology_id}/query/compile: compile SQL only, for debugging
 """
 
 from typing import Any, Dict
@@ -10,7 +10,7 @@ from typing import Any, Dict
 from fastapi import APIRouter, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_meta.admin import OntologyService
+from watchmen_meta.admin import OntologyService, TopicService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
 from watchmen_rest import get_console_principal
@@ -31,10 +31,15 @@ def get_data_access_service(
 		principal_service: PrincipalService,
 		ontology_service: OntologyService,
 ) -> OntologyDataAccessService:
-	# 复用 ontology_service 的 storage 实例，保证 engine_provider 内的 DataSourceService
-	# 与外层 trans_readonly 共享同一 connection / 事务。
+	# Reuse the ontology_service storage instance so that the DataSourceService
+	# inside engine_provider shares the same connection / transaction as the
+	# outer trans_readonly.
 	engine_provider = OntologyRdsEngineProvider(principal_service, storage=ontology_service.storage)
-	return OntologyDataAccessService(principal_service, ontology_service, engine_provider=engine_provider)
+	# Reuse the same storage instance to build TopicService for factor-type masking.
+	topic_service = TopicService(
+		ontology_service.storage, ontology_service.snowflakeGenerator, ontology_service.principalService)
+	return OntologyDataAccessService(
+		principal_service, ontology_service, engine_provider=engine_provider, topic_service=topic_service)
 
 
 @router.post('/ontology/{ontology_id}/query', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=OntologyQueryResponse)

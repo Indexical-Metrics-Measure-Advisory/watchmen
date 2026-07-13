@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "watchmen-search"
+version = "18.0.0"
+description = "Generic embedding + vector search toolkit extracted from watchmen-ai-copilot RAG module. No watchmen-* dependencies."
+authors = ["luke0623 <luke0623@outlook.com>"]
+license = "MIT"
+packages = [
+	{ include = "watchmen_search", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "~3.12"
+pydantic = "^2.9.2"
+python-json-logger = "^2.0.7"
+lancedb = "^0.14.0"
+pyarrow = "^18.1.0"
+numpy = "<2.0.0"
+openai = "^1.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-asyncio = "^0.23.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

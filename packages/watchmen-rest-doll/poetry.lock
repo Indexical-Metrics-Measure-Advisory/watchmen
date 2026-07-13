@@ -4380,13 +4380,13 @@ numpy = "^2.1.0"
 watchmen-data-kernel = {path = "../watchmen-data-kernel", develop = true}
 
 [package.extras]
-mongodb = ["watchmen-storage-mongodb @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mongodb"]
-mssql = ["watchmen-storage-mssql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mssql"]
-mysql = ["watchmen-storage-mysql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mysql"]
-oracle = ["watchmen-storage-oracle @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oracle"]
-oss = ["watchmen-storage-oss @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oss"]
-postgresql = ["watchmen-storage-postgresql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-postgresql"]
-s3 = ["watchmen-storage-s3 @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-s3"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+oss = ["watchmen-storage-oss @ ../watchmen-storage-oss"]
+postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
+s3 = ["watchmen-storage-s3 @ ../watchmen-storage-s3"]
 
 [package.source]
 type = "directory"
@@ -4408,13 +4408,13 @@ watchmen-pipeline-kernel = {path = "../watchmen-pipeline-kernel", develop = true
 watchmen-rest = {path = "../watchmen-rest", develop = true}
 
 [package.extras]
-mongodb = ["watchmen-storage-mongodb @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mongodb"]
-mssql = ["watchmen-storage-mssql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mssql"]
-mysql = ["watchmen-storage-mysql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mysql"]
-oracle = ["watchmen-storage-oracle @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oracle"]
-oss = ["watchmen-storage-oss @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oss"]
-postgresql = ["watchmen-storage-postgresql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-postgresql"]
-s3 = ["watchmen-storage-s3 @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-s3"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+oss = ["watchmen-storage-oss @ ../watchmen-storage-oss"]
+postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
+s3 = ["watchmen-storage-s3 @ ../watchmen-storage-s3"]
 
 [package.source]
 type = "directory"
@@ -4436,13 +4436,13 @@ pycryptodome = "^3.20.0"
 watchmen-meta = {path = "../watchmen-meta", develop = true}
 
 [package.extras]
-mongodb = ["watchmen-storage-mongodb @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mongodb"]
-mssql = ["watchmen-storage-mssql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mssql"]
-mysql = ["watchmen-storage-mysql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mysql"]
-oracle = ["watchmen-storage-oracle @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oracle"]
-oss = ["watchmen-storage-oss @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oss"]
-postgresql = ["watchmen-storage-postgresql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-postgresql"]
-s3 = ["watchmen-storage-s3 @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-s3"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+oss = ["watchmen-storage-oss @ ../watchmen-storage-oss"]
+postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
+s3 = ["watchmen-storage-s3 @ ../watchmen-storage-s3"]
 
 [package.source]
 type = "directory"
@@ -4463,13 +4463,13 @@ watchmen-data-kernel = {path = "../watchmen-data-kernel", develop = true}
 watchmen-rest = {path = "../watchmen-rest", develop = true}
 
 [package.extras]
-mongodb = ["watchmen-storage-mongodb @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mongodb"]
-mssql = ["watchmen-storage-mssql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mssql"]
-mysql = ["watchmen-storage-mysql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mysql"]
-oracle = ["watchmen-storage-oracle @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oracle"]
-oss = ["watchmen-storage-oss @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oss"]
-postgresql = ["watchmen-storage-postgresql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-postgresql"]
-s3 = ["watchmen-storage-s3 @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-s3"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+oss = ["watchmen-storage-oss @ ../watchmen-storage-oss"]
+postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
+s3 = ["watchmen-storage-s3 @ ../watchmen-storage-s3"]
 
 [package.source]
 type = "directory"
@@ -4489,14 +4489,14 @@ develop = true
 watchmen-inquiry-kernel = {path = "../watchmen-inquiry-kernel", develop = true}
 
 [package.extras]
-mongodb = ["watchmen-storage-mongodb @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mongodb"]
-mssql = ["watchmen-storage-mssql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mssql"]
-mysql = ["watchmen-storage-mysql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mysql"]
-oracle = ["watchmen-storage-oracle @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oracle"]
-oss = ["watchmen-storage-oss @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oss"]
-postgresql = ["watchmen-storage-postgresql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-postgresql"]
-s3 = ["watchmen-storage-s3 @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-s3"]
-trino = ["watchmen-inquiry-trino @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-inquiry-trino"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+oss = ["watchmen-storage-oss @ ../watchmen-storage-oss"]
+postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
+s3 = ["watchmen-storage-s3 @ ../watchmen-storage-s3"]
+trino = ["watchmen-inquiry-trino @ ../watchmen-inquiry-trino"]
 
 [package.source]
 type = "directory"
@@ -4517,11 +4517,11 @@ watchmen-indicator-kernel = {path = "../watchmen-indicator-kernel", develop = tr
 watchmen-rest = {path = "../watchmen-rest", develop = true}
 
 [package.extras]
-mongodb = ["watchmen-storage-mongodb @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mongodb"]
-mssql = ["watchmen-storage-mssql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mssql"]
-mysql = ["watchmen-storage-mysql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mysql"]
-oracle = ["watchmen-storage-oracle @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oracle"]
-postgresql = ["watchmen-storage-postgresql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-postgresql"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
 
 [package.source]
 type = "directory"
@@ -4542,14 +4542,14 @@ watchmen-data-kernel = {path = "../watchmen-data-kernel", develop = true}
 watchmen-pipeline-kernel = {path = "../watchmen-pipeline-kernel", develop = true}
 
 [package.extras]
-mongodb = ["watchmen-storage-mongodb @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mongodb"]
-mssql = ["watchmen-storage-mssql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mssql"]
-mysql = ["watchmen-storage-mysql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mysql"]
-oracle = ["watchmen-storage-oracle @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oracle"]
-oss = ["watchmen-storage-oss @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oss"]
-postgresql = ["watchmen-storage-postgresql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-postgresql"]
-s3 = ["watchmen-storage-s3 @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-s3"]
-trino = ["watchmen-inquiry-trino @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-inquiry-trino"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+oss = ["watchmen-storage-oss @ ../watchmen-storage-oss"]
+postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
+s3 = ["watchmen-storage-s3 @ ../watchmen-storage-s3"]
+trino = ["watchmen-inquiry-trino @ ../watchmen-inquiry-trino"]
 
 [package.source]
 type = "directory"
@@ -4570,14 +4570,14 @@ watchmen-inquiry-kernel = {path = "../watchmen-inquiry-kernel", develop = true}
 watchmen-rest = {path = "../watchmen-rest", develop = true}
 
 [package.extras]
-mongodb = ["watchmen-storage-mongodb @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mongodb"]
-mssql = ["watchmen-storage-mssql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mssql"]
-mysql = ["watchmen-storage-mysql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mysql"]
-oracle = ["watchmen-storage-oracle @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oracle"]
-oss = ["watchmen-storage-oss @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oss"]
-postgresql = ["watchmen-storage-postgresql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-postgresql"]
-s3 = ["watchmen-storage-s3 @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-s3"]
-trino = ["watchmen-inquiry-trino @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-inquiry-trino"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+oss = ["watchmen-storage-oss @ ../watchmen-storage-oss"]
+postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
+s3 = ["watchmen-storage-s3 @ ../watchmen-storage-s3"]
+trino = ["watchmen-inquiry-trino @ ../watchmen-inquiry-trino"]
 
 [package.source]
 type = "directory"
@@ -4639,11 +4639,11 @@ watchmen-auth = {path = "../watchmen-auth", develop = true}
 watchmen-storage = {path = "../watchmen-storage", develop = true}
 
 [package.extras]
-mongodb = ["watchmen-storage-mongodb @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mongodb"]
-mssql = ["watchmen-storage-mssql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mssql"]
-mysql = ["watchmen-storage-mysql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mysql"]
-oracle = ["watchmen-storage-oracle @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oracle"]
-postgresql = ["watchmen-storage-postgresql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-postgresql"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
 
 [package.source]
 type = "directory"
@@ -4688,11 +4688,11 @@ watchmen-data-kernel = {path = "../watchmen-data-kernel", develop = true}
 [package.extras]
 es-ext-writer = []
 kafka-ext-writer = ["aiokafka (>=0.12.0,<0.13.0)"]
-mongodb = ["watchmen-storage-mongodb @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mongodb"]
-mssql = ["watchmen-storage-mssql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mssql"]
-mysql = ["watchmen-storage-mysql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mysql"]
-oracle = ["watchmen-storage-oracle @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oracle"]
-postgresql = ["watchmen-storage-postgresql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-postgresql"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
 standard-ext-writer = ["requests (>=2.32.3,<3.0.0)"]
 
 [package.source]
@@ -4717,11 +4717,11 @@ watchmen-rest = {path = "../watchmen-rest", develop = true}
 collector = []
 es-ext-writer = []
 kafka = ["aiokafka (>=0.11.0,<0.12.0)", "kafka-python (>=2.0.2,<3.0.0)"]
-mongodb = ["watchmen-storage-mongodb @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mongodb"]
-mssql = ["watchmen-storage-mssql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mssql"]
-mysql = ["watchmen-storage-mysql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mysql"]
-oracle = ["watchmen-storage-oracle @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oracle"]
-postgresql = ["watchmen-storage-postgresql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-postgresql"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
 rabbitmq = ["aio-pika (>=9.4.2,<10.0.0)"]
 standard-ext-writer = ["requests (>=2.32.3,<3.0.0)"]
 
