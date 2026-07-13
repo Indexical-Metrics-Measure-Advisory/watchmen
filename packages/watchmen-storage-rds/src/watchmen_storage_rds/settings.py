@@ -12,6 +12,10 @@ class StorageRDSSettings(ExtendedBaseSettings):
 
 	SQL_ALCHEMY_POOL_SIZE: int = 5
 	SQL_ALCHEMY_POOL_MAX_OVERFLOW: int = 10
+	# Seconds to wait for a connection to become available from the pool before
+	# raising TimeoutError. Explicitly set so a blocked event loop does not turn
+	# into an indefinite hang when the pool is exhausted.
+	SQL_ALCHEMY_POOL_TIMEOUT: int = 30
 	SQL_ALCHEMY_USE_NULL_POOL: bool = False
 
 
@@ -37,6 +41,10 @@ def ask_sql_alchemy_pool_size() -> int:
 
 def ask_sql_alchemy_pool_max_overflow() -> int:
 	return settings.SQL_ALCHEMY_POOL_MAX_OVERFLOW
+
+
+def ask_sql_alchemy_pool_timeout() -> int:
+	return settings.SQL_ALCHEMY_POOL_TIMEOUT
 
 
 def ask_sql_alchemy_use_null_pool() -> bool:

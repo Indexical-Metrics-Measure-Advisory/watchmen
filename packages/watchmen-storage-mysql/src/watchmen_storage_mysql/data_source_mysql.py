@@ -9,7 +9,7 @@ from watchmen_model.common import DataModel
 from watchmen_model.system import DataSource, DataSourceParam
 from watchmen_storage import DataSourceHelper
 from watchmen_storage_rds import ask_sql_alchemy_pool_size, ask_sql_alchemy_pool_max_overflow, \
-    ask_sql_alchemy_use_null_pool
+    ask_sql_alchemy_pool_timeout, ask_sql_alchemy_use_null_pool
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, serialize_to_json
 from .storage_mysql import StorageMySQL, TopicDataStorageMySQL
 
@@ -52,6 +52,7 @@ class MySQLDataSourceHelper(DataSourceHelper):
                 pool_recycle=params.poolRecycle,
                 pool_size=ask_sql_alchemy_pool_size(),
                 max_overflow=ask_sql_alchemy_pool_max_overflow(),
+                pool_timeout=ask_sql_alchemy_pool_timeout(),
                 json_serializer=serialize_to_json,
                 pool_pre_ping=True
             )

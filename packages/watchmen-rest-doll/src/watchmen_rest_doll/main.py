@@ -3,7 +3,6 @@ from watchmen_indicator_surface import get_indicator_surface_routers
 from watchmen_inquiry_surface import get_inquiry_surface_routers
 from watchmen_lineage.router import lineage_router
 from watchmen_pipeline_surface import get_pipeline_surface_routers
-from watchmen_rest.system import health_router
 from watchmen_utilities import ArrayHelper
 from .admin import enumeration_router, pipeline_agent_router, pipeline_graphic_router, pipeline_router, \
 	pipeline_yaml_router, space_router, synonym_topic_router, \
@@ -19,6 +18,7 @@ from .meta_import import connected_space_import_router, dashboard_import_router,
 	pipeline_import_router, report_import_router, space_import_router, subject_import_router, topic_import_router, \
 	user_group_import_router, user_import_router
 from .sso.sso_router import install_sso_router
+from .system import health_router
 from .system import ai_model_router, data_source_router, external_writer_router, pat_router, plugin_router, \
 	tenant_init_router, tenant_router, operation_router, package_version_router, system_router
 from .webhook import webhook_router
