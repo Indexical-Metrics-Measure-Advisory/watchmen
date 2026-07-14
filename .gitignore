@@ -169,3 +169,9 @@ ontology-analysis/ontology-analysis.html
 /ontology-architecture-design
 /.workbuddy
 /.zcode
+/packages/watchmen-storage-mysql-async/.idea
+/packages/watchmen-analysis-client/datamo-redesign
+/watchmen-data-monitor
+/packages/watchmen-storage-rds-async/.idea
+/packages/watchmen-analysis-client/ontology-redesign
+/watchmen-portal
