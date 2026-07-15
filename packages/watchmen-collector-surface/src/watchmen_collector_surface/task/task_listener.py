@@ -155,17 +155,18 @@ class TaskListener:
 
     def find_duplicated_resource_ids(self, change_jsons: List[ChangeDataJson]) -> List[str]:
         """
-        Return the resource_ids that already exist in the history table or the
-        json table. Uses bulk IN queries to avoid N round-trips of is_duplicated.
-        Mirrors the original two-table check (history + current json table).
+        Return the resource_ids that already exist in the history table.
+        Uses a bulk IN query to avoid N round-trips of is_duplicated.
+        Mirrors the original is_duplicated behavior, which only checked the
+        history table. The current json table must NOT be checked here — these
+        change_jsons were just loaded from it, so every resourceId would match
+        and every record would be wrongly treated as duplicated, skipping the
+        history write entirely.
         """
         resource_ids = [cj.resourceId for cj in change_jsons if cj.resourceId is not None]
         if not resource_ids:
             return []
-        duplicated = set(self.change_json_history_service.find_existing_resource_ids(resource_ids))
-        # Also check the current json table, matching the original is_duplicated behavior.
-        duplicated.update(self.change_json_service.find_existing_resource_ids(resource_ids))
-        return list(duplicated)
+        return list(self.change_json_history_service.find_existing_resource_ids(resource_ids))
 
     def handle_unfinished_change_json(self, unfinished_change_json_ids: List):
         for unfinished_json_id in unfinished_change_json_ids:
