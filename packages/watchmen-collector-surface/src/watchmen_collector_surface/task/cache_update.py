@@ -20,18 +20,15 @@ def heart_beat_on_module_configs() -> None:
     collector_module_config_service = get_collector_module_config_service(ask_meta_storage(),
                                                                           ask_snowflake_generator(),
                                                                           ask_super_admin())
-    collector_module_config_service.begin_transaction()
-    try:
-        for module_config in module_configs:
-            loaded: Optional[CollectorModuleConfig] = collector_module_config_service.find_by_module_id(
-                module_config.moduleId)
-            if loaded is None:
-                CollectorCacheService.module_config().remove(module_config.moduleId)
-            elif loaded.lastModifiedAt > module_config.lastModifiedAt or loaded.version > module_config.version:
-                CollectorCacheService.module_config().put(loaded)
-    
-    finally:
-        collector_module_config_service.close_transaction()
+    # find_by_module_id is self-contained (opens/closes its own transaction),
+    # so no outer transaction here — otherwise the inner begin_transaction() collides.
+    for module_config in module_configs:
+        loaded: Optional[CollectorModuleConfig] = collector_module_config_service.find_by_module_id(
+            module_config.moduleId)
+        if loaded is None:
+            CollectorCacheService.module_config().remove(module_config.moduleId)
+        elif loaded.lastModifiedAt > module_config.lastModifiedAt or loaded.version > module_config.version:
+            CollectorCacheService.module_config().put(loaded)
         
         
 def heart_beat_on_model_configs() -> None:
@@ -39,18 +36,15 @@ def heart_beat_on_model_configs() -> None:
     collector_model_config_service = get_collector_model_config_service(ask_meta_storage(),
                                                                         ask_snowflake_generator(),
                                                                         ask_super_admin())
-    collector_model_config_service.begin_transaction()
-    try:
-        for model_config in model_configs:
-            loaded: Optional[CollectorModelConfig] = collector_model_config_service.find_by_model_id(
-                model_config.modelId)
-            if loaded is None:
-                CollectorCacheService.model_config().remove(model_config.modelName, model_config.tenantId)
-            elif loaded.lastModifiedAt > model_config.lastModifiedAt or loaded.version > model_config.version:
-                CollectorCacheService.model_config().put(loaded)
-    
-    finally:
-        collector_model_config_service.close_transaction()
+    # find_by_model_id is self-contained (opens/closes its own transaction),
+    # so no outer transaction here — otherwise the inner begin_transaction() collides.
+    for model_config in model_configs:
+        loaded: Optional[CollectorModelConfig] = collector_model_config_service.find_by_model_id(
+            model_config.modelId)
+        if loaded is None:
+            CollectorCacheService.model_config().remove(model_config.modelName, model_config.tenantId)
+        elif loaded.lastModifiedAt > model_config.lastModifiedAt or loaded.version > model_config.version:
+            CollectorCacheService.model_config().put(loaded)
 
 
 def heart_beat_on_table_configs() -> None:
@@ -58,24 +52,22 @@ def heart_beat_on_table_configs() -> None:
     collector_table_config_service = get_collector_table_config_service(ask_meta_storage(),
                                                                         ask_snowflake_generator(),
                                                                         ask_super_admin())
-    collector_table_config_service.begin_transaction()
-    try:
-        for table_config in table_configs:
-            loaded: Optional[CollectorTableConfig] = collector_table_config_service.find_config_by_id(table_config.configId)
-            if loaded is None:
-                CollectorCacheService.table_config().remove_config_by_name(table_config.name, table_config.tenantId)
-                CollectorCacheService.table_config().remove_configs_by_parent_name(table_config.parentName, table_config.tenantId)
-                # Invalidate the cached extractor built from the removed config
-                CollectorCacheService.source_extractor().remove_extractor_by_config_id(table_config.configId)
-            elif loaded.lastModifiedAt > table_config.lastModifiedAt or loaded.version > table_config.version:
-                CollectorCacheService.table_config().remove_configs_by_parent_name(table_config.parentName,
-                                                                                   table_config.tenantId)
-                CollectorCacheService.table_config().put_config_by_name(loaded)
-                # Invalidate the cached extractor built from the stale config, the next
-                # ask_source_extractor call will rebuild it from the freshly loaded config
-                CollectorCacheService.source_extractor().remove_extractor_by_config_id(table_config.configId)
-    finally:
-        collector_table_config_service.close_transaction()
+    # find_config_by_id is self-contained (opens/closes its own transaction),
+    # so no outer transaction here — otherwise the inner begin_transaction() collides.
+    for table_config in table_configs:
+        loaded: Optional[CollectorTableConfig] = collector_table_config_service.find_config_by_id(table_config.configId)
+        if loaded is None:
+            CollectorCacheService.table_config().remove_config_by_name(table_config.name, table_config.tenantId)
+            CollectorCacheService.table_config().remove_configs_by_parent_name(table_config.parentName, table_config.tenantId)
+            # Invalidate the cached extractor built from the removed config
+            CollectorCacheService.source_extractor().remove_extractor_by_config_id(table_config.configId)
+        elif loaded.lastModifiedAt > table_config.lastModifiedAt or loaded.version > table_config.version:
+            CollectorCacheService.table_config().remove_configs_by_parent_name(table_config.parentName,
+                                                                               table_config.tenantId)
+            CollectorCacheService.table_config().put_config_by_name(loaded)
+            # Invalidate the cached extractor built from the stale config, the next
+            # ask_source_extractor call will rebuild it from the freshly loaded config
+            CollectorCacheService.source_extractor().remove_extractor_by_config_id(table_config.configId)
 
 
 
