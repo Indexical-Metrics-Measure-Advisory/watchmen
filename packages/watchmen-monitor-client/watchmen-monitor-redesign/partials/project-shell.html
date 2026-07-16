@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watchmen 数据监控</title>
+    <style id="theme-vars">
+/* ==========================================================================
+   Watchmen Monitor — Clean Professional Theme
+   Brand prefix: wm | Light mode | Inter + JetBrains Mono
+   ========================================================================== */
+
+:root {
+  /* ---- Brand Primary (Indigo) ---- */
+  --wm-primary: #4F46E5;
+  --wm-primary-hover: #4338CA;
+  --wm-primary-active: #3730A3;
+  --wm-primary-tint-1: #EEF2FF;
+  --wm-primary-tint-2: #E0E7FF;
+  --wm-primary-tint-3: #C7D2FE;
+  --wm-primary-tint-4: #A5B4FC;
+  --wm-primary-tint-5: #818CF8;
+  --wm-on-primary: #FFFFFF;
+
+  /* ---- Neutral Surface ---- */
+  --wm-bg: #F8FAFC;
+  --wm-bg-elevated: #FFFFFF;
+  --wm-surface: #FFFFFF;
+  --wm-surface-muted: #F1F5F9;
+  --wm-surface-hover: #F8FAFC;
+  --wm-overlay-scrim: rgba(15, 23, 42, 0.50);
+
+  /* ---- Text ---- */
+  --wm-text: #0F172A;
+  --wm-text-secondary: #475569;
+  --wm-text-muted: #94A3B8;
+  --wm-text-inverse: #FFFFFF;
+  --wm-text-link: #4F46E5;
+
+  /* ---- Border ---- */
+  --wm-border: #E2E8F0;
+  --wm-border-strong: #CBD5E1;
+  --wm-border-subtle: #F1F5F9;
+
+  /* ---- Status Colors ---- */
+  --wm-state-success: #16A34A;
+  --wm-state-success-bg: #F0FDF4;
+  --wm-state-success-border: #BBF7D0;
+  --wm-state-warning: #EA580C;
+  --wm-state-warning-bg: #FFF7ED;
+  --wm-state-warning-border: #FED7AA;
+  --wm-state-error: #DC2626;
+  --wm-state-error-bg: #FEF2F2;
+  --wm-state-error-border: #FECACA;
+  --wm-state-info: #2563EB;
+  --wm-state-info-bg: #EFF6FF;
+  --wm-state-info-border: #BFDBFE;
+  --wm-state-neutral: #64748B;
+  --wm-state-neutral-bg: #F8FAFC;
+  --wm-state-neutral-border: #E2E8F0;
+
+  /* ---- Radius ---- */
+  --wm-radius-sm: 4px;
+  --wm-radius-md: 8px;
+  --wm-radius-lg: 12px;
+  --wm-radius-full: 9999px;
+
+  /* ---- Shadow ---- */
+  --wm-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --wm-shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px 0 rgba(15, 23, 42, 0.03);
+  --wm-shadow-md: 0 4px 12px 0 rgba(15, 23, 42, 0.08);
+  --wm-shadow-lg: 0 10px 30px 0 rgba(15, 23, 42, 0.12);
+
+  /* ---- Typography ---- */
+  --wm-font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --wm-font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
+  --wm-font-size-xs: 11px;
+  --wm-font-size-sm: 12px;
+  --wm-font-size-base: 13px;
+  --wm-font-size-md: 14px;
+  --wm-font-size-lg: 16px;
+  --wm-font-size-xl: 20px;
+  --wm-font-size-2xl: 28px;
+  --wm-font-size-3xl: 36px;
+  --wm-line-height-tight: 1.25;
+  --wm-line-height-normal: 1.5;
+  --wm-tracking-tight: -0.02em;
+  --wm-tracking-normal: 0;
+  --wm-tracking-wide: 0.04em;
+
+  /* ---- Spacing ---- */
+  --wm-space-1: 4px;
+  --wm-space-2: 8px;
+  --wm-space-3: 12px;
+  --wm-space-4: 16px;
+  --wm-space-5: 20px;
+  --wm-space-6: 24px;
+  --wm-space-8: 32px;
+}
+
+/* ---- Dark mode (data screen projection) ---- */
+.dark {
+  --wm-primary: #818CF8;
+  --wm-primary-hover: #A5B4FC;
+  --wm-primary-active: #C7D2FE;
+  --wm-primary-tint-1: #1E1B4B;
+  --wm-primary-tint-2: #312E81;
+  --wm-primary-tint-3: #3730A3;
+  --wm-primary-tint-4: #4F46E5;
+  --wm-primary-tint-5: #6366F1;
+  --wm-on-primary: #0F172A;
+
+  --wm-bg: #0F172A;
+  --wm-bg-elevated: #1E293B;
+  --wm-surface: #1E293B;
+  --wm-surface-muted: #334155;
+  --wm-surface-hover: #334155;
+  --wm-overlay-scrim: rgba(0, 0, 0, 0.65);
+
+  --wm-text: #F1F5F9;
+  --wm-text-secondary: #CBD5E1;
+  --wm-text-muted: #64748B;
+  --wm-text-inverse: #0F172A;
+  --wm-text-link: #A5B4FC;
+
+  --wm-border: #334155;
+  --wm-border-strong: #475569;
+  --wm-border-subtle: #1E293B;
+
+  --wm-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.20);
+  --wm-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.25), 0 1px 2px 0 rgba(0, 0, 0, 0.15);
+  --wm-shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.30);
+  --wm-shadow-lg: 0 10px 30px 0 rgba(0, 0, 0, 0.40);
+}
+
+/* ---- Typography Classes ---- */
+.wm-h1 {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-2xl);
+  font-weight: 700;
+  line-height: var(--wm-line-height-tight);
+  letter-spacing: var(--wm-tracking-tight);
+  color: var(--wm-text);
+}
+
+.wm-h2 {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-xl);
+  font-weight: 600;
+  line-height: var(--wm-line-height-tight);
+  letter-spacing: var(--wm-tracking-tight);
+  color: var(--wm-text);
+}
+
+.wm-h3 {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-lg);
+  font-weight: 600;
+  line-height: var(--wm-line-height-tight);
+  color: var(--wm-text);
+}
+
+.wm-body {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-md);
+  font-weight: 400;
+  line-height: var(--wm-line-height-normal);
+  color: var(--wm-text-secondary);
+}
+
+.wm-body-sm {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-sm);
+  font-weight: 400;
+  line-height: var(--wm-line-height-normal);
+  color: var(--wm-text-muted);
+}
+
+.wm-caption {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-xs);
+  font-weight: 500;
+  line-height: var(--wm-line-height-normal);
+  letter-spacing: var(--wm-tracking-wide);
+  text-transform: uppercase;
+  color: var(--wm-text-muted);
+}
+
+.wm-mono {
+  font-family: var(--wm-font-mono);
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.wm-mono-sm {
+  font-family: var(--wm-font-mono);
+  font-size: var(--wm-font-size-xs);
+  font-weight: 500;
+}
+
+/* ---- Base ---- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-base);
+  color: var(--wm-text);
+  background: var(--wm-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--wm-border-strong);
+  border-radius: var(--wm-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--wm-text-muted);
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--wm-primary);
+    --color-border: var(--wm-border);
+  }
+  @layer base {
+    body { background: var(--wm-surface); color: var(--wm-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden antialiased">
+    <!-- ===== Left Sidebar (w-60 / 240px) ===== -->
+    <aside class="w-60 flex-shrink-0 flex flex-col" style="background: var(--wm-surface); border-right: 1px solid var(--wm-border);">
+        <!-- Logo Header -->
+        <div class="flex items-center gap-3 px-4 h-16 flex-shrink-0" style="border-bottom: 1px solid var(--wm-border-subtle);">
+            <div class="flex items-center justify-center w-9 h-9 flex-shrink-0 rounded-lg" style="background: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-primary-tint-5) 100%);">
+                <i data-lucide="activity" class="w-5 h-5" style="color: var(--wm-on-primary);"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold truncate" style="color: var(--wm-text);">Watchmen Data Monitor</div>
+                <div class="text-xs truncate" style="color: var(--wm-text-muted);">数据监控</div>
+            </div>
+            <span class="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded whitespace-nowrap" style="background: var(--wm-primary-tint-1); color: var(--wm-primary); font-size: var(--wm-font-size-xs); font-weight: 600; letter-spacing: 0.04em;">PROD</span>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto px-3 py-4">
+            <div class="wm-caption px-3 mb-2">监控</div>
+            <!-- SLOT: activeNavItem — leaf pages set data-active="true" on the correct <a> below -->
+            <div class="flex flex-col gap-0.5">
+                <a href="#" data-dom-id="nav-overview" data-nav-key="overview" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="layout-dashboard" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">总览</span>
+                </a>
+                <a href="#" data-dom-id="nav-ingestion" data-nav-key="ingestion" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="database" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">采集</span>
+                </a>
+                <a href="#" data-dom-id="nav-pipeline" data-nav-key="pipeline" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="git-branch" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">管道</span>
+                </a>
+                <a href="#" data-dom-id="nav-topics" data-nav-key="topics" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="table-2" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">Topics</span>
+                </a>
+                <a href="#" data-dom-id="nav-alerts" data-nav-key="alerts" data-active="false" class="nav-item nav-item-disabled flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="bell" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">告警</span>
+                </a>
+                <a href="#" data-dom-id="nav-global-map" data-nav-key="global-map" data-active="false" class="nav-item nav-item-disabled flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="share-2" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">全局</span>
+                </a>
+                <a href="#" data-dom-id="nav-settings" data-nav-key="settings" data-active="false" class="nav-item nav-item-disabled flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="settings" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">设置</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Sidebar Footer — Live Status -->
+        <div class="flex items-center gap-2 px-4 py-3 flex-shrink-0" style="border-top: 1px solid var(--wm-border-subtle);">
+            <span class="live-dot flex-shrink-0"></span>
+            <span class="text-xs whitespace-nowrap" style="color: var(--wm-text-secondary);">Live monitoring</span>
+        </div>
+    </aside>
+
+    <!-- ===== Main Wrapper ===== -->
+    <div class="flex-1 flex flex-col min-w-0">
+        <!-- Top Bar (sticky, z-40) -->
+        <header class="sticky top-0 z-40 flex items-center gap-4 px-6 h-16 flex-shrink-0" style="background: var(--wm-surface); border-bottom: 1px solid var(--wm-border);">
+            <!-- Left: sidebar trigger + page title/subtitle -->
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+                <button type="button" aria-label="切换侧边栏" data-dom-id="sidebar-trigger" class="icon-btn flex items-center justify-center w-8 h-8 flex-shrink-0 rounded-md">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div class="min-w-0">
+                    <h1 class="text-base font-semibold truncate" style="color: var(--wm-text);"><!-- SLOT: pageTitle -->数据监控</h1>
+                    <p class="text-xs truncate" style="color: var(--wm-text-muted);"><!-- SLOT: pageSubtitle -->实时数据管道监控平台</p>
+                </div>
+            </div>
+
+            <!-- Right: search + time range + refresh + lang + avatar + logout -->
+            <div class="flex items-center gap-3 flex-shrink-0">
+                <!-- Global Search -->
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style="color: var(--wm-text-muted);"></i>
+                    <input type="text" placeholder="搜索..." class="search-input w-48 h-8 pl-8 pr-3 rounded-md" style="font-size: var(--wm-font-size-sm);" />
+                </div>
+
+                <!-- Time Range Segmented Control -->
+                <div class="flex items-center rounded-md p-0.5" style="background: var(--wm-surface-muted);">
+                    <button type="button" data-range="1h" class="time-range-btn px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">1h</button>
+                    <button type="button" data-range="24h" class="time-range-btn time-range-active px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">24h</button>
+                    <button type="button" data-range="7d" class="time-range-btn px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">7d</button>
+                    <button type="button" data-range="30d" class="time-range-btn px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">30d</button>
+                </div>
+
+                <!-- Refresh Button -->
+                <button type="button" aria-label="刷新数据" data-dom-id="btn-refresh" class="icon-btn flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                </button>
+
+                <!-- Language Toggle -->
+                <div class="flex items-center rounded-md p-0.5" style="background: var(--wm-surface-muted);">
+                    <button type="button" class="lang-btn px-2 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">EN</button>
+                    <button type="button" class="lang-btn lang-active px-2 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">中</button>
+                </div>
+
+                <!-- Avatar -->
+                <div class="flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold flex-shrink-0" style="background: var(--wm-primary); color: var(--wm-on-primary);">YF</div>
+
+                <!-- Logout Button -->
+                <button type="button" aria-label="退出登录" data-dom-id="btn-logout" class="icon-btn flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area (flex-1, overflow-auto, 24px padding) -->
+        <main class="flex-1 overflow-auto p-6" style="background: linear-gradient(180deg, var(--wm-bg) 0%, var(--wm-surface-hover) 100%);">
+            <!-- SLOT: mainContent — leaf pages inject their page-specific content here -->
+        </main>
+    </div>
+
+    <!-- ===== Shell Styles (brand-variable-based; not expressible via Tailwind utilities) ===== -->
+    <style>
+        /* Nav item interactive states */
+        .nav-item {
+            color: var(--wm-text-secondary);
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .nav-item:hover {
+            background: var(--wm-surface-muted);
+            color: var(--wm-text);
+        }
+        .nav-item[data-active="true"] {
+            background: var(--wm-primary-tint-1);
+            color: var(--wm-primary);
+        }
+        .nav-item[data-active="true"] .nav-icon {
+            color: var(--wm-primary);
+        }
+        .nav-item:focus-visible {
+            outline: 2px solid var(--wm-primary);
+            outline-offset: -2px;
+        }
+        .nav-item-disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Icon button states */
+        .icon-btn {
+            color: var(--wm-text-secondary);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .icon-btn:hover {
+            background: var(--wm-surface-muted);
+            color: var(--wm-text);
+        }
+        .icon-btn:active {
+            background: var(--wm-border-subtle);
+        }
+        .icon-btn:focus-visible {
+            outline: 2px solid var(--wm-primary);
+            outline-offset: -2px;
+        }
+
+        /* Search input states */
+        .search-input {
+            border: 1px solid var(--wm-border);
+            background: var(--wm-surface);
+            color: var(--wm-text);
+            transition: border-color 150ms cubic-bezier(.2,.8,.2,1), box-shadow 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .search-input::placeholder {
+            color: var(--wm-text-muted);
+        }
+        .search-input:hover {
+            border-color: var(--wm-border-strong);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--wm-primary);
+            box-shadow: 0 0 0 2px var(--wm-primary-tint-2);
+        }
+
+        /* Time range segmented control */
+        .time-range-btn {
+            color: var(--wm-text-muted);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .time-range-btn:hover {
+            color: var(--wm-text);
+        }
+        .time-range-active {
+            background: var(--wm-surface);
+            color: var(--wm-text);
+            box-shadow: var(--wm-shadow-xs);
+        }
+        .time-range-btn:focus-visible {
+            outline: 2px solid var(--wm-primary);
+            outline-offset: -2px;
+        }
+
+        /* Language toggle */
+        .lang-btn {
+            color: var(--wm-text-muted);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .lang-btn:hover {
+            color: var(--wm-text);
+        }
+        .lang-active {
+            background: var(--wm-surface);
+            color: var(--wm-text);
+            box-shadow: var(--wm-shadow-xs);
+        }
+
+        /* Pulsing live indicator */
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: var(--wm-radius-full);
+            background: var(--wm-state-success);
+            position: relative;
+        }
+        .live-dot::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: var(--wm-radius-full);
+            background: var(--wm-state-success);
+            animation: live-pulse 2s cubic-bezier(.2,.8,.2,1) infinite;
+        }
+        @keyframes live-pulse {
+            0%   { transform: scale(1);   opacity: 0.5; }
+            100% { transform: scale(2.8); opacity: 0;   }
+        }
+
+        /* Reduced motion — downgrade to near-zero */
+        @media (prefers-reduced-motion: reduce) {
+            .live-dot::after { animation: none; }
+            .nav-item,
+            .icon-btn,
+            .search-input,
+            .time-range-btn,
+            .lang-btn {
+                transition-duration: 0.01ms;
+            }
+        }
+
+        /* Touch devices — disable hover feedback */
+        @media (hover: none) {
+            .nav-item:hover,
+            .icon-btn:hover,
+            .time-range-btn:hover,
+            .lang-btn:hover {
+                background: transparent;
+            }
+            .nav-item:hover { color: var(--wm-text-secondary); }
+            .icon-btn:hover { color: var(--wm-text-secondary); }
+            .time-range-btn:hover,
+            .lang-btn:hover { color: var(--wm-text-muted); }
+            .nav-item[data-active="true"]:hover {
+                background: var(--wm-primary-tint-1);
+                color: var(--wm-primary);
+            }
+        }
+    </style>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

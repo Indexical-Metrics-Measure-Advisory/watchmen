@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watchmen 数据监控</title>
+    <style id="theme-vars">
+/* ==========================================================================
+   Watchmen Monitor — Clean Professional Theme
+   Brand prefix: wm | Light mode | Inter + JetBrains Mono
+   ========================================================================== */
+
+:root {
+  /* ---- Brand Primary (Indigo) ---- */
+  --wm-primary: #4F46E5;
+  --wm-primary-hover: #4338CA;
+  --wm-primary-active: #3730A3;
+  --wm-primary-tint-1: #EEF2FF;
+  --wm-primary-tint-2: #E0E7FF;
+  --wm-primary-tint-3: #C7D2FE;
+  --wm-primary-tint-4: #A5B4FC;
+  --wm-primary-tint-5: #818CF8;
+  --wm-on-primary: #FFFFFF;
+
+  /* ---- Neutral Surface ---- */
+  --wm-bg: #F8FAFC;
+  --wm-bg-elevated: #FFFFFF;
+  --wm-surface: #FFFFFF;
+  --wm-surface-muted: #F1F5F9;
+  --wm-surface-hover: #F8FAFC;
+  --wm-overlay-scrim: rgba(15, 23, 42, 0.50);
+
+  /* ---- Text ---- */
+  --wm-text: #0F172A;
+  --wm-text-secondary: #475569;
+  --wm-text-muted: #94A3B8;
+  --wm-text-inverse: #FFFFFF;
+  --wm-text-link: #4F46E5;
+
+  /* ---- Border ---- */
+  --wm-border: #E2E8F0;
+  --wm-border-strong: #CBD5E1;
+  --wm-border-subtle: #F1F5F9;
+
+  /* ---- Status Colors ---- */
+  --wm-state-success: #16A34A;
+  --wm-state-success-bg: #F0FDF4;
+  --wm-state-success-border: #BBF7D0;
+  --wm-state-warning: #EA580C;
+  --wm-state-warning-bg: #FFF7ED;
+  --wm-state-warning-border: #FED7AA;
+  --wm-state-error: #DC2626;
+  --wm-state-error-bg: #FEF2F2;
+  --wm-state-error-border: #FECACA;
+  --wm-state-info: #2563EB;
+  --wm-state-info-bg: #EFF6FF;
+  --wm-state-info-border: #BFDBFE;
+  --wm-state-neutral: #64748B;
+  --wm-state-neutral-bg: #F8FAFC;
+  --wm-state-neutral-border: #E2E8F0;
+
+  /* ---- Radius ---- */
+  --wm-radius-sm: 4px;
+  --wm-radius-md: 8px;
+  --wm-radius-lg: 12px;
+  --wm-radius-full: 9999px;
+
+  /* ---- Shadow ---- */
+  --wm-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --wm-shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px 0 rgba(15, 23, 42, 0.03);
+  --wm-shadow-md: 0 4px 12px 0 rgba(15, 23, 42, 0.08);
+  --wm-shadow-lg: 0 10px 30px 0 rgba(15, 23, 42, 0.12);
+
+  /* ---- Typography ---- */
+  --wm-font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --wm-font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
+  --wm-font-size-xs: 11px;
+  --wm-font-size-sm: 12px;
+  --wm-font-size-base: 13px;
+  --wm-font-size-md: 14px;
+  --wm-font-size-lg: 16px;
+  --wm-font-size-xl: 20px;
+  --wm-font-size-2xl: 28px;
+  --wm-font-size-3xl: 36px;
+  --wm-line-height-tight: 1.25;
+  --wm-line-height-normal: 1.5;
+  --wm-tracking-tight: -0.02em;
+  --wm-tracking-normal: 0;
+  --wm-tracking-wide: 0.04em;
+
+  /* ---- Spacing ---- */
+  --wm-space-1: 4px;
+  --wm-space-2: 8px;
+  --wm-space-3: 12px;
+  --wm-space-4: 16px;
+  --wm-space-5: 20px;
+  --wm-space-6: 24px;
+  --wm-space-8: 32px;
+}
+
+/* ---- Dark mode (data screen projection) ---- */
+.dark {
+  --wm-primary: #818CF8;
+  --wm-primary-hover: #A5B4FC;
+  --wm-primary-active: #C7D2FE;
+  --wm-primary-tint-1: #1E1B4B;
+  --wm-primary-tint-2: #312E81;
+  --wm-primary-tint-3: #3730A3;
+  --wm-primary-tint-4: #4F46E5;
+  --wm-primary-tint-5: #6366F1;
+  --wm-on-primary: #0F172A;
+
+  --wm-bg: #0F172A;
+  --wm-bg-elevated: #1E293B;
+  --wm-surface: #1E293B;
+  --wm-surface-muted: #334155;
+  --wm-surface-hover: #334155;
+  --wm-overlay-scrim: rgba(0, 0, 0, 0.65);
+
+  --wm-text: #F1F5F9;
+  --wm-text-secondary: #CBD5E1;
+  --wm-text-muted: #64748B;
+  --wm-text-inverse: #0F172A;
+  --wm-text-link: #A5B4FC;
+
+  --wm-border: #334155;
+  --wm-border-strong: #475569;
+  --wm-border-subtle: #1E293B;
+
+  --wm-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.20);
+  --wm-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.25), 0 1px 2px 0 rgba(0, 0, 0, 0.15);
+  --wm-shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.30);
+  --wm-shadow-lg: 0 10px 30px 0 rgba(0, 0, 0, 0.40);
+}
+
+/* ---- Typography Classes ---- */
+.wm-h1 {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-2xl);
+  font-weight: 700;
+  line-height: var(--wm-line-height-tight);
+  letter-spacing: var(--wm-tracking-tight);
+  color: var(--wm-text);
+}
+
+.wm-h2 {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-xl);
+  font-weight: 600;
+  line-height: var(--wm-line-height-tight);
+  letter-spacing: var(--wm-tracking-tight);
+  color: var(--wm-text);
+}
+
+.wm-h3 {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-lg);
+  font-weight: 600;
+  line-height: var(--wm-line-height-tight);
+  color: var(--wm-text);
+}
+
+.wm-body {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-md);
+  font-weight: 400;
+  line-height: var(--wm-line-height-normal);
+  color: var(--wm-text-secondary);
+}
+
+.wm-body-sm {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-sm);
+  font-weight: 400;
+  line-height: var(--wm-line-height-normal);
+  color: var(--wm-text-muted);
+}
+
+.wm-caption {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-xs);
+  font-weight: 500;
+  line-height: var(--wm-line-height-normal);
+  letter-spacing: var(--wm-tracking-wide);
+  text-transform: uppercase;
+  color: var(--wm-text-muted);
+}
+
+.wm-mono {
+  font-family: var(--wm-font-mono);
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.wm-mono-sm {
+  font-family: var(--wm-font-mono);
+  font-size: var(--wm-font-size-xs);
+  font-weight: 500;
+}
+
+/* ---- Base ---- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-base);
+  color: var(--wm-text);
+  background: var(--wm-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--wm-border-strong);
+  border-radius: var(--wm-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--wm-text-muted);
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--wm-primary);
+    --color-border: var(--wm-border);
+  }
+  @layer base {
+    body { background: var(--wm-surface); color: var(--wm-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden antialiased">
+    <!-- ===== Left Sidebar (w-60 / 240px) ===== -->
+    <aside class="w-60 flex-shrink-0 flex flex-col" style="background: var(--wm-surface); border-right: 1px solid var(--wm-border);">
+        <!-- Logo Header -->
+        <div class="flex items-center gap-3 px-4 h-16 flex-shrink-0" style="border-bottom: 1px solid var(--wm-border-subtle);">
+            <div class="flex items-center justify-center w-9 h-9 flex-shrink-0 rounded-lg" style="background: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-primary-tint-5) 100%);">
+                <i data-lucide="activity" class="w-5 h-5" style="color: var(--wm-on-primary);"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold truncate" style="color: var(--wm-text);">Watchmen Data Monitor</div>
+                <div class="text-xs truncate" style="color: var(--wm-text-muted);">数据监控</div>
+            </div>
+            <span class="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded whitespace-nowrap" style="background: var(--wm-primary-tint-1); color: var(--wm-primary); font-size: var(--wm-font-size-xs); font-weight: 600; letter-spacing: 0.04em;">PROD</span>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto px-3 py-4">
+            <div class="wm-caption px-3 mb-2">监控</div>
+            <!-- SLOT: activeNavItem — leaf pages set data-active="true" on the correct <a> below -->
+            <div class="flex flex-col gap-0.5">
+                <a href="#" data-dom-id="nav-overview" data-nav-key="overview" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="layout-dashboard" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">总览</span>
+                </a>
+                <a href="#" data-dom-id="nav-ingestion" data-nav-key="ingestion" data-active="true" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="database" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">采集</span>
+                </a>
+                <a href="#" data-dom-id="nav-pipeline" data-nav-key="pipeline" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="git-branch" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">管道</span>
+                </a>
+                <a href="#" data-dom-id="nav-topics" data-nav-key="topics" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="table-2" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">Topics</span>
+                </a>
+                <a href="#" data-dom-id="nav-alerts" data-nav-key="alerts" data-active="false" class="nav-item nav-item-disabled flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="bell" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">告警</span>
+                </a>
+                <a href="#" data-dom-id="nav-global-map" data-nav-key="global-map" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="share-2" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">全局</span>
+                </a>
+                <a href="#" data-dom-id="nav-settings" data-nav-key="settings" data-active="false" class="nav-item nav-item-disabled flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="settings" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">设置</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Sidebar Footer — Live Status -->
+        <div class="flex items-center gap-2 px-4 py-3 flex-shrink-0" style="border-top: 1px solid var(--wm-border-subtle);">
+            <span class="live-dot flex-shrink-0"></span>
+            <span class="text-xs whitespace-nowrap" style="color: var(--wm-text-secondary);">Live monitoring</span>
+        </div>
+    </aside>
+
+    <!-- ===== Main Wrapper ===== -->
+    <div class="flex-1 flex flex-col min-w-0">
+        <!-- Top Bar (sticky, z-40) -->
+        <header class="sticky top-0 z-40 flex items-center gap-4 px-6 h-16 flex-shrink-0" style="background: var(--wm-surface); border-bottom: 1px solid var(--wm-border);">
+            <!-- Left: sidebar trigger + page title/subtitle -->
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+                <button type="button" aria-label="切换侧边栏" data-dom-id="sidebar-trigger" class="icon-btn flex items-center justify-center w-8 h-8 flex-shrink-0 rounded-md">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div class="min-w-0">
+                    <h1 class="text-base font-semibold truncate" style="color: var(--wm-text);"><!-- SLOT: pageTitle -->采集监控</h1>
+                    <p class="text-xs truncate" style="color: var(--wm-text-muted);"><!-- SLOT: pageSubtitle -->实时追踪采集事件与分表处理进度</p>
+                </div>
+            </div>
+
+            <!-- Right: search + time range + refresh + lang + avatar + logout -->
+            <div class="flex items-center gap-3 flex-shrink-0">
+                <!-- Global Search -->
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style="color: var(--wm-text-muted);"></i>
+                    <input type="text" placeholder="搜索..." class="search-input w-48 h-8 pl-8 pr-3 rounded-md" style="font-size: var(--wm-font-size-sm);" />
+                </div>
+
+                <!-- Time Range Segmented Control -->
+                <div class="flex items-center rounded-md p-0.5" style="background: var(--wm-surface-muted);">
+                    <button type="button" data-range="1h" class="time-range-btn px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">1h</button>
+                    <button type="button" data-range="24h" class="time-range-btn time-range-active px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">24h</button>
+                    <button type="button" data-range="7d" class="time-range-btn px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">7d</button>
+                    <button type="button" data-range="30d" class="time-range-btn px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">30d</button>
+                </div>
+
+                <!-- Refresh Button -->
+                <button type="button" aria-label="刷新数据" data-dom-id="btn-refresh" class="icon-btn flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                </button>
+
+                <!-- Language Toggle -->
+                <div class="flex items-center rounded-md p-0.5" style="background: var(--wm-surface-muted);">
+                    <button type="button" class="lang-btn px-2 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">EN</button>
+                    <button type="button" class="lang-btn lang-active px-2 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">中</button>
+                </div>
+
+                <!-- Avatar -->
+                <div class="flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold flex-shrink-0" style="background: var(--wm-primary); color: var(--wm-on-primary);">YF</div>
+
+                <!-- Logout Button -->
+                <button type="button" aria-label="退出登录" data-dom-id="btn-logout" class="icon-btn flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area (flex-1, overflow-auto, 24px padding) -->
+        <main class="flex-1 overflow-auto p-6" style="background: linear-gradient(180deg, var(--wm-bg) 0%, var(--wm-surface-hover) 100%);">
+            <!-- ===== Page-Specific Styles (scoped to main content) ===== -->
+            <style>
+                /* Scenario context bar */
+                .scenario-bar {
+                    background: var(--wm-primary-tint-1);
+                    border: 1px solid var(--wm-primary-tint-2);
+                    border-radius: var(--wm-radius-md);
+                }
+
+                /* KPI tile */
+                .kpi-tile {
+                    background: var(--wm-surface);
+                    border: 1px solid var(--wm-border);
+                    border-left: 3px solid var(--wm-border);
+                    border-radius: var(--wm-radius-md);
+                    padding: 14px 16px;
+                    transition: border-color 150ms cubic-bezier(.2,.8,.2,1);
+                }
+                .kpi-tile:hover { border-color: var(--wm-border-strong); }
+
+                /* Neutral code-style tag (event type / module) */
+                .type-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 2px 8px;
+                    border-radius: var(--wm-radius-sm);
+                    background: var(--wm-surface-muted);
+                    color: var(--wm-text-secondary);
+                    font-size: var(--wm-font-size-xs);
+                    font-weight: 600;
+                    line-height: 1.5;
+                    white-space: nowrap;
+                    letter-spacing: 0.02em;
+                    border: 1px solid var(--wm-border);
+                }
+
+                /* Status pill with dot */
+                .status-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 2px 9px;
+                    border-radius: var(--wm-radius-full);
+                    font-size: var(--wm-font-size-xs);
+                    font-weight: 600;
+                    line-height: 1.5;
+                    white-space: nowrap;
+                }
+                .status-dot {
+                    width: 6px;
+                    height: 6px;
+                    border-radius: var(--wm-radius-full);
+                    flex-shrink: 0;
+                    position: relative;
+                }
+                .status-dot-pulse::after {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    border-radius: var(--wm-radius-full);
+                    animation: status-pulse 1.8s cubic-bezier(.2,.8,.2,1) infinite;
+                }
+                @keyframes status-pulse {
+                    0%   { transform: scale(1);   opacity: 0.55; }
+                    100% { transform: scale(2.6); opacity: 0; }
+                }
+
+                /* Event card */
+                .event-card {
+                    background: var(--wm-surface);
+                    border: 1px solid var(--wm-border);
+                    border-radius: var(--wm-radius-md);
+                    padding: 12px 14px;
+                    cursor: pointer;
+                    transition: border-color 150ms cubic-bezier(.2,.8,.2,1), background-color 150ms cubic-bezier(.2,.8,.2,1);
+                }
+                .event-card:hover {
+                    background: var(--wm-surface-hover);
+                    border-color: var(--wm-border-strong);
+                }
+                .event-card-selected,
+                .event-card-selected:hover {
+                    background: var(--wm-primary-tint-1);
+                    border-color: var(--wm-primary-tint-3);
+                    box-shadow: 0 0 0 2px var(--wm-primary-tint-2);
+                }
+                .event-card:focus-visible {
+                    outline: 2px solid var(--wm-primary);
+                    outline-offset: 1px;
+                }
+
+                /* Progress bar */
+                .progress-track {
+                    width: 100%;
+                    height: 6px;
+                    background: var(--wm-surface-muted);
+                    border-radius: var(--wm-radius-full);
+                    overflow: hidden;
+                }
+                .progress-fill {
+                    height: 100%;
+                    border-radius: var(--wm-radius-full);
+                    transition: width 320ms cubic-bezier(.3,0,0,1);
+                }
+
+                /* Results table */
+                .results-table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 600px; }
+                .results-table thead th {
+                    text-align: left;
+                    font-size: var(--wm-font-size-xs);
+                    font-weight: 600;
+                    color: var(--wm-text-muted);
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                    padding: 10px 12px;
+                    background: var(--wm-surface-muted);
+                    border-bottom: 1px solid var(--wm-border);
+                    white-space: nowrap;
+                }
+                .results-table tbody td {
+                    padding: 11px 12px;
+                    border-bottom: 1px solid var(--wm-border-subtle);
+                    font-size: var(--wm-font-size-sm);
+                    color: var(--wm-text);
+                    vertical-align: middle;
+                    white-space: nowrap;
+                }
+                .results-table tbody tr:last-child td { border-bottom: none; }
+                .results-table tbody tr { transition: background-color 150ms cubic-bezier(.2,.8,.2,1); }
+                .results-table tbody tr:hover { background: var(--wm-surface-hover); }
+                .row-fail, .row-fail:hover { background: var(--wm-state-error-bg); }
+
+                /* Filter dropdown */
+                .filter-select {
+                    appearance: none;
+                    -webkit-appearance: none;
+                    border: 1px solid var(--wm-border);
+                    background-color: var(--wm-surface);
+                    color: var(--wm-text-secondary);
+                    border-radius: var(--wm-radius-md);
+                    font-size: var(--wm-font-size-sm);
+                    padding: 5px 30px 5px 10px;
+                    cursor: pointer;
+                    transition: border-color 150ms cubic-bezier(.2,.8,.2,1);
+                    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+                    background-repeat: no-repeat;
+                    background-position: right 9px center;
+                }
+                .filter-select:hover { border-color: var(--wm-border-strong); color: var(--wm-text); }
+                .filter-select:focus { outline: none; border-color: var(--wm-primary); box-shadow: 0 0 0 2px var(--wm-primary-tint-2); }
+
+                /* Pagination */
+                .page-btn {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 28px;
+                    height: 28px;
+                    border: 1px solid var(--wm-border);
+                    background: var(--wm-surface);
+                    color: var(--wm-text-secondary);
+                    border-radius: var(--wm-radius-md);
+                    cursor: pointer;
+                    transition: background-color 150ms cubic-bezier(.2,.8,.2,1), border-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+                }
+                .page-btn:hover:not(:disabled) { background: var(--wm-surface-hover); border-color: var(--wm-border-strong); color: var(--wm-text); }
+                .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+                .page-btn:focus-visible { outline: 2px solid var(--wm-primary); outline-offset: -2px; }
+
+                /* Gauge card */
+                .gauge-card {
+                    background: var(--wm-surface);
+                    border: 1px solid var(--wm-border);
+                    border-radius: var(--wm-radius-md);
+                    padding: 14px 16px;
+                }
+
+                /* Reduced motion */
+                @media (prefers-reduced-motion: reduce) {
+                    .status-dot-pulse::after { animation: none; }
+                    .kpi-tile, .event-card, .results-table tbody tr, .filter-select, .page-btn, .progress-fill { transition-duration: 0.01ms; }
+                }
+                /* Touch devices — disable hover feedback */
+                @media (hover: none) {
+                    .kpi-tile:hover { border-color: var(--wm-border); }
+                    .event-card:hover { background: var(--wm-surface); border-color: var(--wm-border); }
+                    .event-card-selected, .event-card-selected:hover { background: var(--wm-primary-tint-1); border-color: var(--wm-primary-tint-3); }
+                    .results-table tbody tr:hover { background: transparent; }
+                    .row-fail, .row-fail:hover { background: var(--wm-state-error-bg); }
+                    .page-btn:hover:not(:disabled) { background: var(--wm-surface); border-color: var(--wm-border); color: var(--wm-text-secondary); }
+                }
+            </style>
+
+            <!-- ===== Scenario Context Bar ===== -->
+            <div class="scenario-bar flex items-center gap-2.5 px-4 py-2.5 mb-5">
+                <i data-lucide="gauge" class="w-4 h-4 flex-shrink-0" style="color: var(--wm-primary);"></i>
+                <span class="text-xs" style="color: var(--wm-text-secondary);"><span style="color: var(--wm-primary); font-weight: 600;">数据工程师视角</span> · 实时追踪采集事件，定位卡住或失败的表</span>
+            </div>
+
+            <!-- ===== KPI Summary Row ===== -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
+                <!-- KPI 1: 触发事件总数 -->
+                <div class="kpi-tile" style="border-left-color: var(--wm-primary);">
+                    <div class="wm-caption">触发事件总数</div>
+                    <div class="mt-1.5">
+                        <span class="text-2xl font-bold tabular-nums" style="color: var(--wm-text);">247</span>
+                    </div>
+                    <div class="flex items-center gap-1 mt-1.5">
+                        <i data-lucide="trending-up" class="w-3 h-3" style="color: var(--wm-state-success);"></i>
+                        <span class="text-xs font-medium" style="color: var(--wm-state-success);">+12 今日</span>
+                    </div>
+                </div>
+                <!-- KPI 2: 执行中 -->
+                <div class="kpi-tile" style="border-left-color: var(--wm-state-info);">
+                    <div class="wm-caption">执行中</div>
+                    <div class="flex items-center gap-2 mt-1.5">
+                        <span class="text-2xl font-bold tabular-nums" style="color: var(--wm-text);">3</span>
+                        <span class="status-dot status-dot-pulse" style="background: var(--wm-state-info);"></span>
+                    </div>
+                    <div class="text-xs mt-1.5" style="color: var(--wm-text-muted);">实时运行</div>
+                </div>
+                <!-- KPI 3: 成功 -->
+                <div class="kpi-tile" style="border-left-color: var(--wm-state-success);">
+                    <div class="wm-caption">成功</div>
+                    <div class="mt-1.5">
+                        <span class="text-2xl font-bold tabular-nums" style="color: var(--wm-text);">238</span>
+                    </div>
+                    <div class="text-xs mt-1.5" style="color: var(--wm-text-muted);">96.4% 完成率</div>
+                </div>
+                <!-- KPI 4: 失败 -->
+                <div class="kpi-tile" style="border-left-color: var(--wm-state-error);">
+                    <div class="wm-caption">失败</div>
+                    <div class="mt-1.5">
+                        <span class="text-2xl font-bold tabular-nums" style="color: var(--wm-text);">4</span>
+                    </div>
+                    <div class="flex items-center gap-1 mt-1.5">
+                        <i data-lucide="trending-up" class="w-3 h-3" style="color: var(--wm-state-error);"></i>
+                        <span class="text-xs font-medium" style="color: var(--wm-state-error);">+2</span>
+                    </div>
+                </div>
+                <!-- KPI 5: 等待中 -->
+                <div class="kpi-tile" style="border-left-color: var(--wm-state-warning);">
+                    <div class="wm-caption">等待中</div>
+                    <div class="mt-1.5">
+                        <span class="text-2xl font-bold tabular-nums" style="color: var(--wm-text);">2</span>
+                    </div>
+                    <div class="text-xs mt-1.5" style="color: var(--wm-text-muted);">队列排队</div>
+                </div>
+            </div>
+
+            <!-- ===== Master-Detail Layout ===== -->
+            <div class="grid lg:grid-cols-[1fr_1.2fr] gap-5 items-start">
+                <!-- ===== Left Column — Event List ===== -->
+                <section class="flex flex-col" style="background: var(--wm-surface); border: 1px solid var(--wm-border); border-radius: var(--wm-radius-lg);">
+                    <!-- Section header -->
+                    <div class="flex items-center justify-between gap-3 px-4 py-3" style="border-bottom: 1px solid var(--wm-border);">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <h2 class="text-sm font-semibold truncate" style="color: var(--wm-text);">触发事件</h2>
+                            <span class="type-pill">247</span>
+                        </div>
+                        <select data-dom-id="filter-type" class="filter-select" aria-label="筛选事件类型">
+                            <option value="all">类型: 全部</option>
+                            <option value="BY_TABLE">类型: BY_TABLE</option>
+                            <option value="BY_RECORD">类型: BY_RECORD</option>
+                            <option value="BY_PIPELINE">类型: BY_PIPELINE</option>
+                            <option value="BY_SCHEDULE">类型: BY_SCHEDULE</option>
+                        </select>
+                    </div>
+                    <!-- Event list (scrollable) -->
+                    <div class="flex-1 overflow-y-auto p-3 space-y-2" style="max-height: 640px;">
+
+                        <!-- Event 1 — EXECUTING (selected by default) -->
+                        <div class="event-card event-card-selected" role="button" tabindex="0" aria-pressed="true">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="type-pill">BY_TABLE</span>
+                                <span class="status-pill" style="background: var(--wm-state-info-bg); color: var(--wm-state-info);">
+                                    <span class="status-dot status-dot-pulse" style="background: var(--wm-state-info);"></span>执行中
+                                </span>
+                                <span class="wm-mono-sm ml-auto" style="color: var(--wm-text-muted);">#1749772800123</span>
+                            </div>
+                            <div class="text-sm font-semibold mb-2" style="font-family: var(--wm-font-mono); color: var(--wm-text);">orders_fact_daily</div>
+                            <div class="flex items-center gap-2.5 text-xs">
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span class="wm-mono-sm" style="color: var(--wm-text-secondary);">14:23:05</span>
+                                </span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span style="color: var(--wm-text-secondary);">执行中</span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="timer" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span style="color: var(--wm-text-secondary);">运行中</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Event 2 — SUCCESS -->
+                        <div class="event-card" role="button" tabindex="0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="type-pill">BY_TABLE</span>
+                                <span class="status-pill" style="background: var(--wm-state-success-bg); color: var(--wm-state-success);">
+                                    <span class="status-dot" style="background: var(--wm-state-success);"></span>已完成
+                                </span>
+                                <span class="wm-mono-sm ml-auto" style="color: var(--wm-text-muted);">#1749772799845</span>
+                            </div>
+                            <div class="text-sm font-semibold mb-2" style="font-family: var(--wm-font-mono); color: var(--wm-text);">user_events_stream</div>
+                            <div class="flex items-center gap-2.5 text-xs">
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span class="wm-mono-sm" style="color: var(--wm-text-secondary);">14:22:48</span>
+                                </span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span style="color: var(--wm-text-secondary);">已完成</span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="timer" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span class="wm-mono-sm" style="color: var(--wm-text-secondary);">1.23s</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Event 3 — FAIL -->
+                        <div class="event-card" role="button" tabindex="0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="type-pill">BY_PIPELINE</span>
+                                <span class="status-pill" style="background: var(--wm-state-error-bg); color: var(--wm-state-error);">
+                                    <span class="status-dot" style="background: var(--wm-state-error);"></span>失败
+                                </span>
+                                <span class="wm-mono-sm ml-auto" style="color: var(--wm-text-muted);">#1749772797201</span>
+                            </div>
+                            <div class="text-sm font-semibold mb-2" style="font-family: var(--wm-font-mono); color: var(--wm-text);">payment_transactions</div>
+                            <div class="flex items-center gap-2.5 text-xs">
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span class="wm-mono-sm" style="color: var(--wm-text-secondary);">14:21:12</span>
+                                </span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span style="color: var(--wm-state-error);">失败</span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="timer" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span class="wm-mono-sm" style="color: var(--wm-text-secondary);">2.45s</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Event 4 — SUCCESS -->
+                        <div class="event-card" role="button" tabindex="0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="type-pill">BY_TABLE</span>
+                                <span class="status-pill" style="background: var(--wm-state-success-bg); color: var(--wm-state-success);">
+                                    <span class="status-dot" style="background: var(--wm-state-success);"></span>已完成
+                                </span>
+                                <span class="wm-mono-sm ml-auto" style="color: var(--wm-text-muted);">#1749772795188</span>
+                            </div>
+                            <div class="text-sm font-semibold mb-2" style="font-family: var(--wm-font-mono); color: var(--wm-text);">inventory_snapshot</div>
+                            <div class="flex items-center gap-2.5 text-xs">
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span class="wm-mono-sm" style="color: var(--wm-text-secondary);">14:20:33</span>
+                                </span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span style="color: var(--wm-text-secondary);">已完成</span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="timer" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span class="wm-mono-sm" style="color: var(--wm-text-secondary);">456ms</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Event 5 — WAITING -->
+                        <div class="event-card" role="button" tabindex="0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="type-pill">BY_RECORD</span>
+                                <span class="status-pill" style="background: var(--wm-state-warning-bg); color: var(--wm-state-warning);">
+                                    <span class="status-dot" style="background: var(--wm-state-warning);"></span>等待中
+                                </span>
+                                <span class="wm-mono-sm ml-auto" style="color: var(--wm-text-muted);">#1749772793022</span>
+                            </div>
+                            <div class="text-sm font-semibold mb-2" style="font-family: var(--wm-font-mono); color: var(--wm-text);">dim_customer</div>
+                            <div class="flex items-center gap-2.5 text-xs">
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span class="wm-mono-sm" style="color: var(--wm-text-secondary);">14:19:05</span>
+                                </span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span style="color: var(--wm-text-secondary);">等待中</span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="timer" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span style="color: var(--wm-text-secondary);">运行中</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Event 6 — SUCCESS -->
+                        <div class="event-card" role="button" tabindex="0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="type-pill">BY_SCHEDULE</span>
+                                <span class="status-pill" style="background: var(--wm-state-success-bg); color: var(--wm-state-success);">
+                                    <span class="status-dot" style="background: var(--wm-state-success);"></span>已完成
+                                </span>
+                                <span class="wm-mono-sm ml-auto" style="color: var(--wm-text-muted);">#1749772788994</span>
+                            </div>
+                            <div class="text-sm font-semibold mb-2" style="font-family: var(--wm-font-mono); color: var(--wm-text);">order_items_fact</div>
+                            <div class="flex items-center gap-2.5 text-xs">
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span class="wm-mono-sm" style="color: var(--wm-text-secondary);">14:18:22</span>
+                                </span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span style="color: var(--wm-text-secondary);">已完成</span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="timer" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span class="wm-mono-sm" style="color: var(--wm-text-secondary);">892ms</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Event 7 — EXECUTING -->
+                        <div class="event-card" role="button" tabindex="0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="type-pill">BY_TABLE</span>
+                                <span class="status-pill" style="background: var(--wm-state-info-bg); color: var(--wm-state-info);">
+                                    <span class="status-dot status-dot-pulse" style="background: var(--wm-state-info);"></span>执行中
+                                </span>
+                                <span class="wm-mono-sm ml-auto" style="color: var(--wm-text-muted);">#1749772785102</span>
+                            </div>
+                            <div class="text-sm font-semibold mb-2" style="font-family: var(--wm-font-mono); color: var(--wm-text);">marketing_events</div>
+                            <div class="flex items-center gap-2.5 text-xs">
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span class="wm-mono-sm" style="color: var(--wm-text-secondary);">14:17:48</span>
+                                </span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span style="color: var(--wm-text-secondary);">执行中</span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="timer" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span style="color: var(--wm-text-secondary);">运行中</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Event 8 — INITIAL -->
+                        <div class="event-card" role="button" tabindex="0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="type-pill">BY_TABLE</span>
+                                <span class="status-pill" style="background: var(--wm-state-neutral-bg); color: var(--wm-state-neutral);">
+                                    <span class="status-dot" style="background: var(--wm-state-neutral);"></span>初始化
+                                </span>
+                                <span class="wm-mono-sm ml-auto" style="color: var(--wm-text-muted);">#1749772782331</span>
+                            </div>
+                            <div class="text-sm font-semibold mb-2" style="font-family: var(--wm-font-mono); color: var(--wm-text);">refund_records</div>
+                            <div class="flex items-center gap-2.5 text-xs">
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span class="wm-mono-sm" style="color: var(--wm-text-secondary);">14:16:30</span>
+                                </span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span style="color: var(--wm-text-secondary);">初始化</span>
+                                <span style="color: var(--wm-border-strong);">·</span>
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="timer" class="w-3 h-3" style="color: var(--wm-text-muted);"></i>
+                                    <span style="color: var(--wm-text-muted);">—</span>
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- Pagination -->
+                    <div class="flex items-center justify-between px-4 py-3" style="border-top: 1px solid var(--wm-border);">
+                        <span class="text-xs" style="color: var(--wm-text-muted);">第 <span class="tabular-nums" style="color: var(--wm-text-secondary); font-weight: 600;">1</span> / 21 页</span>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" data-dom-id="page-prev" class="page-btn" disabled aria-label="上一页"><i data-lucide="chevron-left" class="w-3.5 h-3.5"></i></button>
+                            <button type="button" data-dom-id="page-next" class="page-btn" aria-label="下一页"><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== Right Column — Selected Event Detail ===== -->
+                <section class="flex flex-col" style="background: var(--wm-surface); border: 1px solid var(--wm-border); border-radius: var(--wm-radius-lg);">
+                    <!-- Section header -->
+                    <div class="flex items-center justify-between gap-3 px-4 py-3" style="border-bottom: 1px solid var(--wm-border);">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <h2 class="text-sm font-semibold truncate" style="color: var(--wm-text);">分表处理结果</h2>
+                            <span class="wm-mono-sm" style="color: var(--wm-text-muted);">#1749772800123</span>
+                        </div>
+                        <span class="status-pill" style="background: var(--wm-state-info-bg); color: var(--wm-state-info);">
+                            <span class="status-dot status-dot-pulse" style="background: var(--wm-state-info);"></span>执行中
+                        </span>
+                    </div>
+                    <!-- Results table -->
+                    <div class="overflow-x-auto">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>表名</th>
+                                    <th>模块</th>
+                                    <th>模型</th>
+                                    <th style="text-align: right;">数据量</th>
+                                    <th>JSON完成</th>
+                                    <th>进度</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Row 1 — EXECUTING 90% -->
+                                <tr>
+                                    <td><span class="font-semibold" style="font-family: var(--wm-font-mono); color: var(--wm-text);">orders_fact_daily</span></td>
+                                    <td><span class="type-pill">ODS</span></td>
+                                    <td><span class="wm-mono-sm" style="color: var(--wm-text-secondary);">fact_orders</span></td>
+                                    <td class="text-right tabular-nums" style="color: var(--wm-text-secondary);">12,580</td>
+                                    <td><span class="wm-mono-sm tabular-nums" style="color: var(--wm-text-secondary);">452/500</span></td>
+                                    <td>
+                                        <div class="flex items-center gap-2" style="min-width: 108px;">
+                                            <div class="progress-track" style="flex: 1;">
+                                                <div class="progress-fill" style="width: 90%; background: var(--wm-state-info);"></div>
+                                            </div>
+                                            <span class="text-xs tabular-nums text-right" style="color: var(--wm-text-muted); width: 30px;">90%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-pill" style="background: var(--wm-state-info-bg); color: var(--wm-state-info);">
+                                            <span class="status-dot status-dot-pulse" style="background: var(--wm-state-info);"></span>执行中
+                                        </span>
+                                    </td>
+                                </tr>
+                                <!-- Row 2 — SUCCESS 100% -->
+                                <tr>
+                                    <td><span class="font-semibold" style="font-family: var(--wm-font-mono); color: var(--wm-text);">orders_dim_daily</span></td>
+                                    <td><span class="type-pill">DIM</span></td>
+                                    <td><span class="wm-mono-sm" style="color: var(--wm-text-secondary);">dim_orders</span></td>
+                                    <td class="text-right tabular-nums" style="color: var(--wm-text-secondary);">8,240</td>
+                                    <td><span class="wm-mono-sm tabular-nums" style="color: var(--wm-text-secondary);">500/500</span></td>
+                                    <td>
+                                        <div class="flex items-center gap-2" style="min-width: 108px;">
+                                            <div class="progress-track" style="flex: 1;">
+                                                <div class="progress-fill" style="width: 100%; background: var(--wm-state-success);"></div>
+                                            </div>
+                                            <span class="text-xs tabular-nums text-right" style="color: var(--wm-text-muted); width: 30px;">100%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-pill" style="background: var(--wm-state-success-bg); color: var(--wm-state-success);">
+                                            <span class="status-dot" style="background: var(--wm-state-success);"></span>已完成
+                                        </span>
+                                    </td>
+                                </tr>
+                                <!-- Row 3 — EXECUTING 80% -->
+                                <tr>
+                                    <td><span class="font-semibold" style="font-family: var(--wm-font-mono); color: var(--wm-text);">orders_summary</span></td>
+                                    <td><span class="type-pill">DWS</span></td>
+                                    <td><span class="wm-mono-sm" style="color: var(--wm-text-secondary);">dws_order_summary</span></td>
+                                    <td class="text-right tabular-nums" style="color: var(--wm-text-secondary);">3,120</td>
+                                    <td><span class="wm-mono-sm tabular-nums" style="color: var(--wm-text-secondary);">320/400</span></td>
+                                    <td>
+                                        <div class="flex items-center gap-2" style="min-width: 108px;">
+                                            <div class="progress-track" style="flex: 1;">
+                                                <div class="progress-fill" style="width: 80%; background: var(--wm-state-info);"></div>
+                                            </div>
+                                            <span class="text-xs tabular-nums text-right" style="color: var(--wm-text-muted); width: 30px;">80%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-pill" style="background: var(--wm-state-info-bg); color: var(--wm-state-info);">
+                                            <span class="status-dot status-dot-pulse" style="background: var(--wm-state-info);"></span>执行中
+                                        </span>
+                                    </td>
+                                </tr>
+                                <!-- Row 4 — FAIL 20% (red tint) -->
+                                <tr class="row-fail">
+                                    <td><span class="font-semibold" style="font-family: var(--wm-font-mono); color: var(--wm-text);">orders_error_log</span></td>
+                                    <td><span class="type-pill">ODS</span></td>
+                                    <td><span class="wm-mono-sm" style="color: var(--wm-text-secondary);">error_log</span></td>
+                                    <td class="text-right tabular-nums" style="color: var(--wm-text-secondary);">48</td>
+                                    <td><span class="wm-mono-sm tabular-nums" style="color: var(--wm-state-error);">12/60</span></td>
+                                    <td>
+                                        <div class="flex items-center gap-2" style="min-width: 108px;">
+                                            <div class="progress-track" style="flex: 1;">
+                                                <div class="progress-fill" style="width: 20%; background: var(--wm-state-error);"></div>
+                                            </div>
+                                            <span class="text-xs tabular-nums text-right" style="color: var(--wm-state-error); width: 30px;">20%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-pill" style="background: var(--wm-state-error-bg); color: var(--wm-state-error);">
+                                            <span class="status-dot" style="background: var(--wm-state-error);"></span>失败
+                                        </span>
+                                    </td>
+                                </tr>
+                                <!-- Row 5 — SUCCESS 100% -->
+                                <tr>
+                                    <td><span class="font-semibold" style="font-family: var(--wm-font-mono); color: var(--wm-text);">orders_realtime</span></td>
+                                    <td><span class="type-pill">DWD</span></td>
+                                    <td><span class="wm-mono-sm" style="color: var(--wm-text-secondary);">dwd_order_rt</span></td>
+                                    <td class="text-right tabular-nums" style="color: var(--wm-text-secondary);">5,680</td>
+                                    <td><span class="wm-mono-sm tabular-nums" style="color: var(--wm-text-secondary);">280/280</span></td>
+                                    <td>
+                                        <div class="flex items-center gap-2" style="min-width: 108px;">
+                                            <div class="progress-track" style="flex: 1;">
+                                                <div class="progress-fill" style="width: 100%; background: var(--wm-state-success);"></div>
+                                            </div>
+                                            <span class="text-xs tabular-nums text-right" style="color: var(--wm-text-muted); width: 30px;">100%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-pill" style="background: var(--wm-state-success-bg); color: var(--wm-state-success);">
+                                            <span class="status-dot" style="background: var(--wm-state-success);"></span>已完成
+                                        </span>
+                                    </td>
+                                </tr>
+                                <!-- Row 6 — WAITING 0% -->
+                                <tr>
+                                    <td><span class="font-semibold" style="font-family: var(--wm-font-mono); color: var(--wm-text);">orders_archive</span></td>
+                                    <td><span class="type-pill">ADS</span></td>
+                                    <td><span class="wm-mono-sm" style="color: var(--wm-text-secondary);">ads_order_archive</span></td>
+                                    <td class="text-right tabular-nums" style="color: var(--wm-text-muted);">0</td>
+                                    <td><span class="wm-mono-sm tabular-nums" style="color: var(--wm-text-muted);">0/0</span></td>
+                                    <td>
+                                        <div class="flex items-center gap-2" style="min-width: 108px;">
+                                            <div class="progress-track" style="flex: 1;">
+                                                <div class="progress-fill" style="width: 0%; background: var(--wm-state-warning);"></div>
+                                            </div>
+                                            <span class="text-xs tabular-nums text-right" style="color: var(--wm-text-muted); width: 30px;">0%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-pill" style="background: var(--wm-state-warning-bg); color: var(--wm-state-warning);">
+                                            <span class="status-dot" style="background: var(--wm-state-warning);"></span>等待中
+                                        </span>
+                                    </td>
+                                </tr>
+                                <!-- Row 7 — EXECUTING 75% -->
+                                <tr>
+                                    <td><span class="font-semibold" style="font-family: var(--wm-font-mono); color: var(--wm-text);">orders_metrics</span></td>
+                                    <td><span class="type-pill">ADS</span></td>
+                                    <td><span class="wm-mono-sm" style="color: var(--wm-text-secondary);">ads_order_metrics</span></td>
+                                    <td class="text-right tabular-nums" style="color: var(--wm-text-secondary);">2,940</td>
+                                    <td><span class="wm-mono-sm tabular-nums" style="color: var(--wm-text-secondary);">150/200</span></td>
+                                    <td>
+                                        <div class="flex items-center gap-2" style="min-width: 108px;">
+                                            <div class="progress-track" style="flex: 1;">
+                                                <div class="progress-fill" style="width: 75%; background: var(--wm-state-info);"></div>
+                                            </div>
+                                            <span class="text-xs tabular-nums text-right" style="color: var(--wm-text-muted); width: 30px;">75%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-pill" style="background: var(--wm-state-info-bg); color: var(--wm-state-info);">
+                                            <span class="status-dot status-dot-pulse" style="background: var(--wm-state-info);"></span>执行中
+                                        </span>
+                                    </td>
+                                </tr>
+                                <!-- Row 8 — EXECUTING 83% -->
+                                <tr>
+                                    <td><span class="font-semibold" style="font-family: var(--wm-font-mono); color: var(--wm-text);">orders_delta</span></td>
+                                    <td><span class="type-pill">DWD</span></td>
+                                    <td><span class="wm-mono-sm" style="color: var(--wm-text-secondary);">dwd_order_delta</span></td>
+                                    <td class="text-right tabular-nums" style="color: var(--wm-text-secondary);">1,820</td>
+                                    <td><span class="wm-mono-sm tabular-nums" style="color: var(--wm-text-secondary);">100/120</span></td>
+                                    <td>
+                                        <div class="flex items-center gap-2" style="min-width: 108px;">
+                                            <div class="progress-track" style="flex: 1;">
+                                                <div class="progress-fill" style="width: 83%; background: var(--wm-state-info);"></div>
+                                            </div>
+                                            <span class="text-xs tabular-nums text-right" style="color: var(--wm-text-muted); width: 30px;">83%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-pill" style="background: var(--wm-state-info-bg); color: var(--wm-state-info);">
+                                            <span class="status-dot status-dot-pulse" style="background: var(--wm-state-info);"></span>执行中
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Progress overview gauges -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4" style="border-top: 1px solid var(--wm-border);">
+                        <!-- Gauge 1: 记录处理 -->
+                        <div class="gauge-card">
+                            <div class="flex items-center gap-3">
+                                <div class="relative flex-shrink-0" style="width: 52px; height: 52px;">
+                                    <svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true">
+                                        <circle cx="26" cy="26" r="20" fill="none" stroke="var(--wm-surface-muted)" stroke-width="6"/>
+                                        <circle cx="26" cy="26" r="20" fill="none" stroke="var(--wm-primary)" stroke-width="6" stroke-linecap="round" stroke-dasharray="125.66" stroke-dashoffset="2.51" transform="rotate(-90 26 26)"/>
+                                    </svg>
+                                    <span class="absolute inset-0 flex items-center justify-center text-xs font-bold tabular-nums" style="color: var(--wm-text);">98%</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="wm-caption">记录处理</div>
+                                    <div class="flex items-baseline gap-1.5 mt-1">
+                                        <span class="text-base font-semibold tabular-nums" style="color: var(--wm-text);">488</span>
+                                        <span class="text-xs tabular-nums" style="color: var(--wm-text-muted);">/ 500</span>
+                                    </div>
+                                    <div class="text-xs mt-0.5" style="color: var(--wm-text-muted);">未完成 <span class="tabular-nums font-semibold" style="color: var(--wm-state-warning);">12</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Gauge 2: JSON处理 -->
+                        <div class="gauge-card">
+                            <div class="flex items-center gap-3">
+                                <div class="relative flex-shrink-0" style="width: 52px; height: 52px;">
+                                    <svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true">
+                                        <circle cx="26" cy="26" r="20" fill="none" stroke="var(--wm-surface-muted)" stroke-width="6"/>
+                                        <circle cx="26" cy="26" r="20" fill="none" stroke="var(--wm-primary)" stroke-width="6" stroke-linecap="round" stroke-dasharray="125.66" stroke-dashoffset="12.57" transform="rotate(-90 26 26)"/>
+                                    </svg>
+                                    <span class="absolute inset-0 flex items-center justify-center text-xs font-bold tabular-nums" style="color: var(--wm-text);">90%</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="wm-caption">JSON处理</div>
+                                    <div class="flex items-baseline gap-1.5 mt-1">
+                                        <span class="text-base font-semibold tabular-nums" style="color: var(--wm-text);">452</span>
+                                        <span class="text-xs tabular-nums" style="color: var(--wm-text-muted);">/ 500</span>
+                                    </div>
+                                    <div class="text-xs mt-0.5" style="color: var(--wm-text-muted);">未完成 <span class="tabular-nums font-semibold" style="color: var(--wm-state-warning);">48</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Gauge 3: 任务执行 -->
+                        <div class="gauge-card">
+                            <div class="flex items-center gap-3">
+                                <div class="relative flex-shrink-0" style="width: 52px; height: 52px;">
+                                    <svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true">
+                                        <circle cx="26" cy="26" r="20" fill="none" stroke="var(--wm-surface-muted)" stroke-width="6"/>
+                                        <circle cx="26" cy="26" r="20" fill="none" stroke="var(--wm-primary)" stroke-width="6" stroke-linecap="round" stroke-dasharray="125.66" stroke-dashoffset="5.03" transform="rotate(-90 26 26)"/>
+                                    </svg>
+                                    <span class="absolute inset-0 flex items-center justify-center text-xs font-bold tabular-nums" style="color: var(--wm-text);">96%</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="wm-caption">任务执行</div>
+                                    <div class="flex items-baseline gap-1.5 mt-1">
+                                        <span class="text-base font-semibold tabular-nums" style="color: var(--wm-text);">23</span>
+                                        <span class="text-xs tabular-nums" style="color: var(--wm-text-muted);">/ 24</span>
+                                    </div>
+                                    <div class="text-xs mt-0.5" style="color: var(--wm-text-muted);">未完成 <span class="tabular-nums font-semibold" style="color: var(--wm-state-warning);">1</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== Shell Styles (brand-variable-based; not expressible via Tailwind utilities) ===== -->
+    <style>
+        /* Nav item interactive states */
+        .nav-item {
+            color: var(--wm-text-secondary);
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .nav-item:hover {
+            background: var(--wm-surface-muted);
+            color: var(--wm-text);
+        }
+        .nav-item[data-active="true"] {
+            background: var(--wm-primary-tint-1);
+            color: var(--wm-primary);
+        }
+        .nav-item[data-active="true"] .nav-icon {
+            color: var(--wm-primary);
+        }
+        .nav-item:focus-visible {
+            outline: 2px solid var(--wm-primary);
+            outline-offset: -2px;
+        }
+        .nav-item-disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Icon button states */
+        .icon-btn {
+            color: var(--wm-text-secondary);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .icon-btn:hover {
+            background: var(--wm-surface-muted);
+            color: var(--wm-text);
+        }
+        .icon-btn:active {
+            background: var(--wm-border-subtle);
+        }
+        .icon-btn:focus-visible {
+            outline: 2px solid var(--wm-primary);
+            outline-offset: -2px;
+        }
+
+        /* Search input states */
+        .search-input {
+            border: 1px solid var(--wm-border);
+            background: var(--wm-surface);
+            color: var(--wm-text);
+            transition: border-color 150ms cubic-bezier(.2,.8,.2,1), box-shadow 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .search-input::placeholder {
+            color: var(--wm-text-muted);
+        }
+        .search-input:hover {
+            border-color: var(--wm-border-strong);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--wm-primary);
+            box-shadow: 0 0 0 2px var(--wm-primary-tint-2);
+        }
+
+        /* Time range segmented control */
+        .time-range-btn {
+            color: var(--wm-text-muted);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .time-range-btn:hover {
+            color: var(--wm-text);
+        }
+        .time-range-active {
+            background: var(--wm-surface);
+            color: var(--wm-text);
+            box-shadow: var(--wm-shadow-xs);
+        }
+        .time-range-btn:focus-visible {
+            outline: 2px solid var(--wm-primary);
+            outline-offset: -2px;
+        }
+
+        /* Language toggle */
+        .lang-btn {
+            color: var(--wm-text-muted);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .lang-btn:hover {
+            color: var(--wm-text);
+        }
+        .lang-active {
+            background: var(--wm-surface);
+            color: var(--wm-text);
+            box-shadow: var(--wm-shadow-xs);
+        }
+
+        /* Pulsing live indicator */
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: var(--wm-radius-full);
+            background: var(--wm-state-success);
+            position: relative;
+        }
+        .live-dot::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: var(--wm-radius-full);
+            background: var(--wm-state-success);
+            animation: live-pulse 2s cubic-bezier(.2,.8,.2,1) infinite;
+        }
+        @keyframes live-pulse {
+            0%   { transform: scale(1);   opacity: 0.5; }
+            100% { transform: scale(2.8); opacity: 0;   }
+        }
+
+        /* Reduced motion — downgrade to near-zero */
+        @media (prefers-reduced-motion: reduce) {
+            .live-dot::after { animation: none; }
+            .nav-item,
+            .icon-btn,
+            .search-input,
+            .time-range-btn,
+            .lang-btn {
+                transition-duration: 0.01ms;
+            }
+        }
+
+        /* Touch devices — disable hover feedback */
+        @media (hover: none) {
+            .nav-item:hover,
+            .icon-btn:hover,
+            .time-range-btn:hover,
+            .lang-btn:hover {
+                background: transparent;
+            }
+            .nav-item:hover { color: var(--wm-text-secondary); }
+            .icon-btn:hover { color: var(--wm-text-secondary); }
+            .time-range-btn:hover,
+            .lang-btn:hover { color: var(--wm-text-muted); }
+            .nav-item[data-active="true"]:hover {
+                background: var(--wm-primary-tint-1);
+                color: var(--wm-primary);
+            }
+        }
+    </style>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

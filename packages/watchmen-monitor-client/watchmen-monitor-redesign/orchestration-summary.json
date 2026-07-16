@@ -1,0 +1,177 @@
+{
+  "project": {
+    "name": "Watchmen 监控页面重设计",
+    "operation": "create",
+    "designRead": "Data monitoring dashboard / data engineers & ops teams / calm professional trust / high density / avoid generic AI gradient hero, avoid neon glow",
+    "designDials": {
+      "layoutVariance": 2,
+      "motionIntensity": 1,
+      "visualDensity": 4
+    },
+    "styleDefinitionBrief": "Enterprise data monitoring SaaS, cool neutral light + indigo accent, Inter + JetBrains Mono, restrained surfaces with border-first depth, high information density for daily ops workflows.",
+    "dashboardMode": true,
+    "chartsRequired": true,
+    "styleContinuityAnchors": {
+      "colorSystem": "Light theme: indigo primary (#4F46E5) with 5 tints, slate-50 background, white surfaces, slate-200 borders. Status: green/orange/red/blue semantic only. No extra brand hues.",
+      "shapeSystem": "Radius: sm=4px, md=8px, lg=12px, full=9999px. Cards use 8px radius, buttons 6px, inputs 6px, pills full.",
+      "typographySystem": "Inter (sans) for all UI text, JetBrains Mono for identifiers/trace IDs/enum values/table names. H1=28px/700, H2=20px/600, H3=16px/600, body=14px/400, caption=11px/500/uppercase/wide.",
+      "spacingSystem": "4px base unit. Page padding 24px, section gap 20px, card padding 16-20px, tight data rows 8-12px vertical.",
+      "componentLanguage": "Border-first cards with subtle shadow-xs. Status pills with dot + label. Progress meters as thin bars. KPI tiles with large numeric + label + optional delta. Mono text for all identifiers.",
+      "surfaceAndDepth": "Static surfaces use border + shadow-xs (alpha 0.04). Floating layers (dropdowns, modals, popovers) use shadow-md/lg. No colored shadows, no glow.",
+      "imageryAndIconography": "Lucide-style line icons (1.5px stroke). No photographs. Data visualization uses recharts-style area/bar charts with brand tints.",
+      "interactionTone": "Subtle hover backgrounds (slate-50), selected state uses indigo-50 ring. No bounce, no scale transform on static elements. Live indicator uses pulsing green dot."
+    },
+    "sharedProjectShellContract": {
+      "navStructure": "Left sidebar: logo header (gradient indigo icon + app title + env badge), nav group with 7 items (Overview, Ingestion, Pipeline, Topics, Alerts disabled, Global Map disabled, Settings disabled), live status footer with pulsing green dot.",
+      "topbarPattern": "Sticky top bar: sidebar trigger + page title/subtitle on left; global search input + time range segmented control (1h/24h/7d/30d) + refresh button + language toggle + avatar + logout on right.",
+      "mainFrame": "Flex-1 main area with gradient bg-slate-50, 24px padding, overflow-auto.",
+      "radiusScale": "sm=4px, md=8px, lg=12px, full=9999px",
+      "surfaceDepthModel": "Static: border + shadow-xs. Floating: shadow-md/lg.",
+      "ctaStyle": "Primary: indigo bg, white text, 6px radius, 32-36px height. Secondary: white bg, slate-200 border. Ghost: transparent, hover slate-50.",
+      "alignmentRhythm": "All rows align to 4px grid. Section headers align left. KPI numbers are right-aligned tabular-nums. Status pills and badges use center alignment within their containers."
+    },
+    "generationTree": {
+      "root": {
+        "nodeId": "gen-project-shell",
+        "kind": "project-shell",
+        "output": "partials/project-shell.html",
+        "sharedRegions": ["left sidebar", "top bar", "main content frame", "brand CSS usage"],
+        "mutableSlots": ["activeNavItem", "pageTitle", "pageSubtitle"],
+        "status": "planned",
+        "children": [
+          {
+            "nodeId": "gen-page-ingestion-monitor",
+            "kind": "page-leaf",
+            "output": "pages/ingestion-monitor.html",
+            "privateRegions": ["scenario context bar", "KPI summary row", "event list cards", "selected event detail panel", "progress overview gauges"],
+            "mutableSlots": ["activeNavItem", "pageTitle", "pageSubtitle"],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "gen-page-pipeline-monitor",
+            "kind": "page-leaf",
+            "output": "pages/pipeline-monitor.html",
+            "privateRegions": ["scenario context bar", "filter bar", "KPI summary row", "pipeline log list", "selected log detail with DAG tree"],
+            "mutableSlots": ["activeNavItem", "pageTitle", "pageSubtitle"],
+            "status": "planned",
+            "children": []
+          }
+        ]
+      }
+    }
+  },
+  "designSource": {
+    "operatingMode": "free-explore",
+    "styleConstraints": {
+      "radiusMax": 12,
+      "staticShadowAlphaMax": 0.05
+    }
+  },
+  "pages": [
+    {
+      "nodeId": "page-ingestion-monitor",
+      "pageIndex": 1,
+      "title": "采集监控 — 事件追踪",
+      "pageType": "information-dense",
+      "visualNorthStar": "A monitoring cockpit where a data engineer instantly sees which ingestion events are running, which succeeded, and which failed — with a live event timeline on the left and a per-table drill-down on the right. The page should feel like an air traffic control radar for data pipelines.",
+      "continuityAnchors": [
+        "Light theme with indigo primary and slate surfaces",
+        "Border-first cards with subtle shadow-xs",
+        "Inter for UI text, JetBrains Mono for identifiers and data values",
+        "Status pills with dot + label (green/orange/red/blue/neutral tones)",
+        "Left sidebar + topbar shared shell with active nav highlighting"
+      ],
+      "componentPlan": [],
+      "imagePlan": [],
+      "chartsRequired": true,
+      "scenario": {
+        "persona": "数据工程师 (Data Engineer)",
+        "goal": "实时追踪数据采集进度，快速定位卡住或失败的事件，下钻查看分表处理详情",
+        "flow": "查看事件概览 → 发现 EXECUTING 状态事件 → 点击查看分表结果 → 确认 JSON 处理进度 → 定位失败表"
+      }
+    },
+    {
+      "nodeId": "page-pipeline-monitor",
+      "pageIndex": 2,
+      "title": "管道监控 — 执行诊断",
+      "pageType": "information-dense",
+      "visualNorthStar": "A diagnostic workbench where an ops engineer filters pipeline logs by error status, inspects a collapsible DAG execution tree (stages → units → actions), reads error messages inline, and triggers a rerun — all without leaving the page. Think of it as a flight recorder for pipeline executions.",
+      "continuityAnchors": [
+        "Light theme with indigo primary and slate surfaces",
+        "Border-first cards with subtle shadow-xs",
+        "Inter for UI text, JetBrains Mono for identifiers and data values",
+        "Status pills with dot + label (green/orange/red/blue/neutral tones)",
+        "Left sidebar + topbar shared shell with active nav highlighting"
+      ],
+      "componentPlan": [],
+      "imagePlan": [],
+      "chartsRequired": false,
+      "scenario": {
+        "persona": "运维工程师 (Ops Engineer)",
+        "goal": "排查管道执行失败，查看 DAG 执行树定位异常节点，一键重跑失败管道",
+        "flow": "筛选 ERROR 状态日志 → 查看执行 DAG 树 → 展开 ERROR 节点查看错误信息 → 查看 old/new 值差异 → 点击重跑"
+      }
+    }
+  ],
+  "assets": [],
+  "wiringPlan": [
+    {
+      "sourcePageId": "page-ingestion-monitor",
+      "domId": "nav-pipeline",
+      "targetPageId": "page-pipeline-monitor",
+      "label": "切换到管道监控"
+    }
+  ],
+  "hiddenInteractionPlan": [
+    {
+      "sourcePageId": "page-ingestion-monitor",
+      "domId": "nav-overview",
+      "targetPageId": "page-ingestion-monitor",
+      "label": "总览",
+      "reason": "global nav (page not in this project, self-referencing placeholder)"
+    },
+    {
+      "sourcePageId": "page-ingestion-monitor",
+      "domId": "nav-ingestion",
+      "targetPageId": "page-ingestion-monitor",
+      "label": "采集监控",
+      "reason": "self nav active"
+    },
+    {
+      "sourcePageId": "page-ingestion-monitor",
+      "domId": "nav-topics",
+      "targetPageId": "page-ingestion-monitor",
+      "label": "Topics",
+      "reason": "global nav (page not in this project)"
+    },
+    {
+      "sourcePageId": "page-pipeline-monitor",
+      "domId": "nav-overview",
+      "targetPageId": "page-pipeline-monitor",
+      "label": "总览",
+      "reason": "global nav (page not in this project)"
+    },
+    {
+      "sourcePageId": "page-pipeline-monitor",
+      "domId": "nav-ingestion",
+      "targetPageId": "page-ingestion-monitor",
+      "label": "采集监控",
+      "reason": "return to ingestion monitor"
+    },
+    {
+      "sourcePageId": "page-pipeline-monitor",
+      "domId": "nav-pipeline",
+      "targetPageId": "page-pipeline-monitor",
+      "label": "管道监控",
+      "reason": "self nav active"
+    },
+    {
+      "sourcePageId": "page-pipeline-monitor",
+      "domId": "nav-topics",
+      "targetPageId": "page-pipeline-monitor",
+      "label": "Topics",
+      "reason": "global nav (page not in this project)"
+    }
+  ]
+}

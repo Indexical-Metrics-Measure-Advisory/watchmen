@@ -1,0 +1,69 @@
+{
+  "root": {
+    "nodeId": "gen-project-shell",
+    "kind": "project-shell",
+    "pageIds": ["page-ingestion-monitor", "page-pipeline-monitor", "page-global-map"],
+    "output": "partials/project-shell.html",
+    "sharedRegions": [
+      "left sidebar (logo, nav items, live status footer)",
+      "top bar (page title, subtitle, global search, time range, refresh, language, avatar, logout)",
+      "main content frame background and padding",
+      "brand CSS variable usage, type scale, radius scale, shadow model"
+    ],
+    "privateRegions": [],
+    "mutableSlots": ["activeNavItem", "pageTitle", "pageSubtitle"],
+    "status": "generated",
+    "children": [
+      {
+        "nodeId": "gen-page-ingestion-monitor",
+        "kind": "page-leaf",
+        "pageIds": ["page-ingestion-monitor"],
+        "output": "pages/ingestion-monitor.html",
+        "sharedRegions": [],
+        "privateRegions": [
+          "scenario context bar",
+          "KPI summary row",
+          "event list cards",
+          "selected event detail panel with per-table results grid",
+          "progress overview gauges"
+        ],
+        "mutableSlots": ["activeNavItem", "pageTitle", "pageSubtitle"],
+        "status": "generated",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-pipeline-monitor",
+        "kind": "page-leaf",
+        "pageIds": ["page-pipeline-monitor"],
+        "output": "pages/pipeline-monitor.html",
+        "sharedRegions": [],
+        "privateRegions": [
+          "scenario context bar",
+          "filter bar with active filter chips",
+          "KPI summary row",
+          "pipeline log list",
+          "selected log detail: header with rerun, value diff, nested DAG tree"
+        ],
+        "mutableSlots": ["activeNavItem", "pageTitle", "pageSubtitle"],
+        "status": "generated",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-global-map",
+        "kind": "page-leaf",
+        "pageIds": ["page-global-map"],
+        "output": "pages/global-map.html",
+        "sharedRegions": [],
+        "privateRegions": [
+          "scenario context bar",
+          "data flow diagram with 4 connected stages",
+          "stage KPI cards",
+          "selected stage detail panel with related logs"
+        ],
+        "mutableSlots": ["activeNavItem", "pageTitle", "pageSubtitle", "mainContent"],
+        "status": "generated",
+        "children": []
+      }
+    ]
+  }
+}
