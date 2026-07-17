@@ -176,9 +176,15 @@ ontology-analysis/ontology-analysis.html
 /packages/watchmen-storage-rds-async/.idea
 /packages/watchmen-storage-rds-async/.idea
 /packages/watchmen-storage-rds-async/.idea
+<<<<<<< Updated upstream
 /watchmen-data-monitor
 /packages/watchmen-analysis-client/ontology-redesign
+=======
+/packages/watchmen-analysis-client/ontology-redesign
+/watchmen-data-monitor
+>>>>>>> Stashed changes
 /watchmen-portal
+<<<<<<< Updated upstream
 /packages/watchmen-monitor-client/node_modules/.vite
 /packages/watchmen-monitor-client/node_modules
 /packages/watchmen-analysis-client/metrics-redesign
@@ -189,3 +195,7 @@ ontology-analysis/ontology-analysis.html
 /pii-dqc-management
 /packages/watchmen-monitor-client/watchmen-monitor-redesign
 /packages/watchmen-monitor-client/watchmen-monitor-redesign
+=======
+/pii-dqc-management
+/packages/watchmen-analysis-client/metrics-redesign
+>>>>>>> Stashed changes
