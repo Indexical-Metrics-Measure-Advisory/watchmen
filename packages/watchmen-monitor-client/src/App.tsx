@@ -10,6 +10,7 @@ import Overview from '@/pages/Index';
 import IngestionMonitor from '@/pages/IngestionMonitor';
 import PipelineMonitor from '@/pages/PipelineMonitor';
 import Topics from '@/pages/Topics';
+import GlobalMap from '@/pages/GlobalMap';
 import NotFound from '@/pages/NotFound';
 
 const queryClient = new QueryClient({
@@ -44,6 +45,7 @@ function App() {
             <Route path="ingestion" element={<IngestionMonitor />} />
             <Route path="pipeline" element={<PipelineMonitor />} />
             <Route path="topics" element={<Topics />} />
+            <Route path="global-map" element={<GlobalMap />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

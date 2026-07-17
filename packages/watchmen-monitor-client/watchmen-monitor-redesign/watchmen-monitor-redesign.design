@@ -2,12 +2,12 @@
   "data": [
     {
       "id": "page-ingestion-monitor",
-      "title": "采集监控 — 事件追踪",
+      "title": "Ingestion Monitor — Event Tracking",
       "type": "page",
       "version": 1,
       "createdAt": 1749772800000,
       "canvasData": {
-        "x": 0,
+        "x": 620,
         "y": 0,
         "group": 0
       },
@@ -17,24 +17,24 @@
           {
             "domId": "nav-pipeline",
             "targetPageId": "page-pipeline-monitor",
-            "transitionLabel": "切换到管道监控"
+            "transitionLabel": "Go to Pipeline Monitor"
           },
           {
             "domId": "nav-global-map",
             "targetPageId": "page-global-map",
-            "transitionLabel": "查看全局地图"
+            "transitionLabel": "View Global Map"
           },
           {
             "domId": "nav-ingestion",
             "targetPageId": "page-ingestion-monitor",
             "hideEdge": true,
-            "transitionLabel": "采集监控"
+            "transitionLabel": "Ingestion Monitor"
           },
           {
             "domId": "nav-overview",
             "targetPageId": "page-ingestion-monitor",
             "hideEdge": true,
-            "transitionLabel": "总览"
+            "transitionLabel": "Overview"
           },
           {
             "domId": "nav-topics",
@@ -47,13 +47,13 @@
     },
     {
       "id": "page-pipeline-monitor",
-      "title": "管道监控 — 执行诊断",
+      "title": "Pipeline Monitor — Execution Diagnostics",
       "type": "page",
       "version": 1,
       "createdAt": 1749772800000,
       "canvasData": {
         "x": 620,
-        "y": 0,
+        "y": 377,
         "group": 0
       },
       "devMetadata": {
@@ -62,25 +62,25 @@
           {
             "domId": "nav-global-map",
             "targetPageId": "page-global-map",
-            "transitionLabel": "查看全局地图"
+            "transitionLabel": "View Global Map"
           },
           {
             "domId": "nav-ingestion",
             "targetPageId": "page-ingestion-monitor",
             "hideEdge": true,
-            "transitionLabel": "返回采集监控"
+            "transitionLabel": "Back to Ingestion Monitor"
           },
           {
             "domId": "nav-pipeline",
             "targetPageId": "page-pipeline-monitor",
             "hideEdge": true,
-            "transitionLabel": "管道监控"
+            "transitionLabel": "Pipeline Monitor"
           },
           {
             "domId": "nav-overview",
             "targetPageId": "page-pipeline-monitor",
             "hideEdge": true,
-            "transitionLabel": "总览"
+            "transitionLabel": "Overview"
           },
           {
             "domId": "nav-topics",
@@ -93,12 +93,12 @@
     },
     {
       "id": "page-global-map",
-      "title": "全局地图 — 数据流总览",
+      "title": "Global Map — Data Flow Overview",
       "type": "page",
       "version": 1,
       "createdAt": 1749772800000,
       "canvasData": {
-        "x": 620,
+        "x": 0,
         "y": 377,
         "group": 0
       },
@@ -108,40 +108,113 @@
           {
             "domId": "node-ingestion",
             "targetPageId": "page-ingestion-monitor",
-            "transitionLabel": "查看采集详情"
+            "transitionLabel": "View Ingestion Details"
           },
           {
             "domId": "node-pipeline",
             "targetPageId": "page-pipeline-monitor",
-            "transitionLabel": "查看管道详情"
+            "transitionLabel": "View Pipeline Details"
           },
           {
             "domId": "nav-ingestion",
             "targetPageId": "page-ingestion-monitor",
             "hideEdge": true,
-            "transitionLabel": "采集监控"
+            "transitionLabel": "Ingestion Monitor"
           },
           {
             "domId": "nav-pipeline",
             "targetPageId": "page-pipeline-monitor",
             "hideEdge": true,
-            "transitionLabel": "管道监控"
+            "transitionLabel": "Pipeline Monitor"
           },
           {
             "domId": "nav-global-map",
             "targetPageId": "page-global-map",
             "hideEdge": true,
-            "transitionLabel": "全局地图"
+            "transitionLabel": "Global Map"
           },
           {
             "domId": "nav-overview",
             "targetPageId": "page-global-map",
             "hideEdge": true,
-            "transitionLabel": "总览"
+            "transitionLabel": "Overview"
           },
           {
             "domId": "nav-topics",
             "targetPageId": "page-global-map",
+            "hideEdge": true,
+            "transitionLabel": "Topics"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-global-map-v2",
+      "title": "Global Map v2 — Deep Data Flow",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1749772800000,
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/global-map-v2.html",
+        "interactions": [
+          {
+            "domId": "node-ingestion",
+            "targetPageId": "page-ingestion-monitor",
+            "transitionLabel": "View Ingestion Details"
+          },
+          {
+            "domId": "node-pipeline",
+            "targetPageId": "page-pipeline-monitor",
+            "transitionLabel": "View Pipeline Details"
+          },
+          {
+            "domId": "link-ingestion-full",
+            "targetPageId": "page-ingestion-monitor",
+            "transitionLabel": "View All Ingestion Events"
+          },
+          {
+            "domId": "link-pipeline-full",
+            "targetPageId": "page-pipeline-monitor",
+            "transitionLabel": "View All Pipeline Logs"
+          },
+          {
+            "domId": "link-topic-full",
+            "targetPageId": "page-global-map-v2",
+            "hideEdge": true,
+            "transitionLabel": "View All Topics"
+          },
+          {
+            "domId": "nav-ingestion",
+            "targetPageId": "page-ingestion-monitor",
+            "hideEdge": true,
+            "transitionLabel": "Ingestion Monitor"
+          },
+          {
+            "domId": "nav-pipeline",
+            "targetPageId": "page-pipeline-monitor",
+            "hideEdge": true,
+            "transitionLabel": "Pipeline Monitor"
+          },
+          {
+            "domId": "nav-global-map",
+            "targetPageId": "page-global-map-v2",
+            "hideEdge": true,
+            "transitionLabel": "Global Map"
+          },
+          {
+            "domId": "nav-overview",
+            "targetPageId": "page-global-map-v2",
+            "hideEdge": true,
+            "transitionLabel": "Overview"
+          },
+          {
+            "domId": "nav-topics",
+            "targetPageId": "page-global-map-v2",
             "hideEdge": true,
             "transitionLabel": "Topics"
           }
@@ -152,6 +225,6 @@
   "config": {
     "autoLayout": true,
     "deviceType": "desktop",
-    "projectName": "Watchmen 监控页面重设计"
+    "projectName": "Watchmen Monitor Redesign"
   }
 }

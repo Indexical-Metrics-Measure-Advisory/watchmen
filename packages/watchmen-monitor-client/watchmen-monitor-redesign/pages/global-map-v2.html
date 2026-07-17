@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watchmen Data Monitor</title>
+    <style id="theme-vars">
+/* ==========================================================================
+   Watchmen Monitor — Clean Professional Theme
+   Brand prefix: wm | Light mode | Inter + JetBrains Mono
+   ========================================================================== */
+
+:root {
+  /* ---- Brand Primary (Indigo) ---- */
+  --wm-primary: #4F46E5;
+  --wm-primary-hover: #4338CA;
+  --wm-primary-active: #3730A3;
+  --wm-primary-tint-1: #EEF2FF;
+  --wm-primary-tint-2: #E0E7FF;
+  --wm-primary-tint-3: #C7D2FE;
+  --wm-primary-tint-4: #A5B4FC;
+  --wm-primary-tint-5: #818CF8;
+  --wm-on-primary: #FFFFFF;
+
+  /* ---- Neutral Surface ---- */
+  --wm-bg: #F8FAFC;
+  --wm-bg-elevated: #FFFFFF;
+  --wm-surface: #FFFFFF;
+  --wm-surface-muted: #F1F5F9;
+  --wm-surface-hover: #F8FAFC;
+  --wm-overlay-scrim: rgba(15, 23, 42, 0.50);
+
+  /* ---- Text ---- */
+  --wm-text: #0F172A;
+  --wm-text-secondary: #475569;
+  --wm-text-muted: #94A3B8;
+  --wm-text-inverse: #FFFFFF;
+  --wm-text-link: #4F46E5;
+
+  /* ---- Border ---- */
+  --wm-border: #E2E8F0;
+  --wm-border-strong: #CBD5E1;
+  --wm-border-subtle: #F1F5F9;
+
+  /* ---- Status Colors ---- */
+  --wm-state-success: #16A34A;
+  --wm-state-success-bg: #F0FDF4;
+  --wm-state-success-border: #BBF7D0;
+  --wm-state-warning: #EA580C;
+  --wm-state-warning-bg: #FFF7ED;
+  --wm-state-warning-border: #FED7AA;
+  --wm-state-error: #DC2626;
+  --wm-state-error-bg: #FEF2F2;
+  --wm-state-error-border: #FECACA;
+  --wm-state-info: #2563EB;
+  --wm-state-info-bg: #EFF6FF;
+  --wm-state-info-border: #BFDBFE;
+  --wm-state-neutral: #64748B;
+  --wm-state-neutral-bg: #F8FAFC;
+  --wm-state-neutral-border: #E2E8F0;
+
+  /* ---- Radius ---- */
+  --wm-radius-sm: 4px;
+  --wm-radius-md: 8px;
+  --wm-radius-lg: 12px;
+  --wm-radius-full: 9999px;
+
+  /* ---- Shadow ---- */
+  --wm-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --wm-shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px 0 rgba(15, 23, 42, 0.03);
+  --wm-shadow-md: 0 4px 12px 0 rgba(15, 23, 42, 0.08);
+  --wm-shadow-lg: 0 10px 30px 0 rgba(15, 23, 42, 0.12);
+
+  /* ---- Typography ---- */
+  --wm-font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --wm-font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
+  --wm-font-size-xs: 11px;
+  --wm-font-size-sm: 12px;
+  --wm-font-size-base: 13px;
+  --wm-font-size-md: 14px;
+  --wm-font-size-lg: 16px;
+  --wm-font-size-xl: 20px;
+  --wm-font-size-2xl: 28px;
+  --wm-font-size-3xl: 36px;
+  --wm-line-height-tight: 1.25;
+  --wm-line-height-normal: 1.5;
+  --wm-tracking-tight: -0.02em;
+  --wm-tracking-normal: 0;
+  --wm-tracking-wide: 0.04em;
+
+  /* ---- Spacing ---- */
+  --wm-space-1: 4px;
+  --wm-space-2: 8px;
+  --wm-space-3: 12px;
+  --wm-space-4: 16px;
+  --wm-space-5: 20px;
+  --wm-space-6: 24px;
+  --wm-space-8: 32px;
+}
+
+/* ---- Dark mode (data screen projection) ---- */
+.dark {
+  --wm-primary: #818CF8;
+  --wm-primary-hover: #A5B4FC;
+  --wm-primary-active: #C7D2FE;
+  --wm-primary-tint-1: #1E1B4B;
+  --wm-primary-tint-2: #312E81;
+  --wm-primary-tint-3: #3730A3;
+  --wm-primary-tint-4: #4F46E5;
+  --wm-primary-tint-5: #6366F1;
+  --wm-on-primary: #0F172A;
+
+  --wm-bg: #0F172A;
+  --wm-bg-elevated: #1E293B;
+  --wm-surface: #1E293B;
+  --wm-surface-muted: #334155;
+  --wm-surface-hover: #334155;
+  --wm-overlay-scrim: rgba(0, 0, 0, 0.65);
+
+  --wm-text: #F1F5F9;
+  --wm-text-secondary: #CBD5E1;
+  --wm-text-muted: #64748B;
+  --wm-text-inverse: #0F172A;
+  --wm-text-link: #A5B4FC;
+
+  --wm-border: #334155;
+  --wm-border-strong: #475569;
+  --wm-border-subtle: #1E293B;
+
+  --wm-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.20);
+  --wm-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.25), 0 1px 2px 0 rgba(0, 0, 0, 0.15);
+  --wm-shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.30);
+  --wm-shadow-lg: 0 10px 30px 0 rgba(0, 0, 0, 0.40);
+}
+
+/* ---- Typography Classes ---- */
+.wm-h1 {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-2xl);
+  font-weight: 700;
+  line-height: var(--wm-line-height-tight);
+  letter-spacing: var(--wm-tracking-tight);
+  color: var(--wm-text);
+}
+
+.wm-h2 {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-xl);
+  font-weight: 600;
+  line-height: var(--wm-line-height-tight);
+  letter-spacing: var(--wm-tracking-tight);
+  color: var(--wm-text);
+}
+
+.wm-h3 {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-lg);
+  font-weight: 600;
+  line-height: var(--wm-line-height-tight);
+  color: var(--wm-text);
+}
+
+.wm-body {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-md);
+  font-weight: 400;
+  line-height: var(--wm-line-height-normal);
+  color: var(--wm-text-secondary);
+}
+
+.wm-body-sm {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-sm);
+  font-weight: 400;
+  line-height: var(--wm-line-height-normal);
+  color: var(--wm-text-muted);
+}
+
+.wm-caption {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-xs);
+  font-weight: 500;
+  line-height: var(--wm-line-height-normal);
+  letter-spacing: var(--wm-tracking-wide);
+  text-transform: uppercase;
+  color: var(--wm-text-muted);
+}
+
+.wm-mono {
+  font-family: var(--wm-font-mono);
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.wm-mono-sm {
+  font-family: var(--wm-font-mono);
+  font-size: var(--wm-font-size-xs);
+  font-weight: 500;
+}
+
+/* ---- Base ---- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-base);
+  color: var(--wm-text);
+  background: var(--wm-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--wm-border-strong);
+  border-radius: var(--wm-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--wm-text-muted);
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--wm-primary);
+    --color-border: var(--wm-border);
+  }
+  @layer base {
+    body { background: var(--wm-surface); color: var(--wm-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden antialiased">
+    <!-- ===== Left Sidebar (w-60 / 240px) ===== -->
+    <aside class="w-60 flex-shrink-0 flex flex-col" style="background: var(--wm-surface); border-right: 1px solid var(--wm-border);">
+        <!-- Logo Header -->
+        <div class="flex items-center gap-3 px-4 h-16 flex-shrink-0" style="border-bottom: 1px solid var(--wm-border-subtle);">
+            <div class="flex items-center justify-center w-9 h-9 flex-shrink-0 rounded-lg" style="background: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-primary-tint-5) 100%);">
+                <i data-lucide="activity" class="w-5 h-5" style="color: var(--wm-on-primary);"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold truncate" style="color: var(--wm-text);">Watchmen Data Monitor</div>
+                <div class="text-xs truncate" style="color: var(--wm-text-muted);">Data Monitor</div>
+            </div>
+            <span class="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded whitespace-nowrap" style="background: var(--wm-primary-tint-1); color: var(--wm-primary); font-size: var(--wm-font-size-xs); font-weight: 600; letter-spacing: 0.04em;">PROD</span>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto px-3 py-4">
+            <div class="wm-caption px-3 mb-2">Monitor</div>
+            <!-- SLOT: activeNavItem — leaf pages set data-active="true" on the correct <a> below -->
+            <div class="flex flex-col gap-0.5">
+                <a href="#" data-dom-id="nav-overview" data-nav-key="overview" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="layout-dashboard" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">Overview</span>
+                </a>
+                <a href="#" data-dom-id="nav-ingestion" data-nav-key="ingestion" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="database" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">Ingestion</span>
+                </a>
+                <a href="#" data-dom-id="nav-pipeline" data-nav-key="pipeline" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="git-branch" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">Pipeline</span>
+                </a>
+                <a href="#" data-dom-id="nav-topics" data-nav-key="topics" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="table-2" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">Topics</span>
+                </a>
+                <a href="#" data-dom-id="nav-alerts" data-nav-key="alerts" data-active="false" class="nav-item nav-item-disabled flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="bell" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">Alerts</span>
+                </a>
+                <a href="#" data-dom-id="nav-global-map" data-nav-key="global-map" data-active="true" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="share-2" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">Global Map</span>
+                </a>
+                <a href="#" data-dom-id="nav-settings" data-nav-key="settings" data-active="false" class="nav-item nav-item-disabled flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="settings" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">Settings</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Sidebar Footer — Live Status -->
+        <div class="flex items-center gap-2 px-4 py-3 flex-shrink-0" style="border-top: 1px solid var(--wm-border-subtle);">
+            <span class="live-dot flex-shrink-0"></span>
+            <span class="text-xs whitespace-nowrap" style="color: var(--wm-text-secondary);">Live monitoring</span>
+        </div>
+    </aside>
+
+    <!-- ===== Main Wrapper ===== -->
+    <div class="flex-1 flex flex-col min-w-0">
+        <!-- Top Bar (sticky, z-40) -->
+        <header class="sticky top-0 z-40 flex items-center gap-4 px-6 h-16 flex-shrink-0" style="background: var(--wm-surface); border-bottom: 1px solid var(--wm-border);">
+            <!-- Left: sidebar trigger + page title/subtitle -->
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+                <button type="button" aria-label="Toggle sidebar" data-dom-id="sidebar-trigger" class="icon-btn flex items-center justify-center w-8 h-8 flex-shrink-0 rounded-md">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div class="min-w-0">
+                    <h1 class="text-base font-semibold truncate" style="color: var(--wm-text);"><!-- SLOT: pageTitle -->Global Map v2</h1>
+                    <p class="text-xs truncate" style="color: var(--wm-text-muted);"><!-- SLOT: pageSubtitle -->Deep data flow inspection · Sources &rarr; Ingestion &rarr; Topics &rarr; Pipelines</p>
+                </div>
+            </div>
+
+            <!-- Right: search + time range + refresh + lang + avatar + logout -->
+            <div class="flex items-center gap-3 flex-shrink-0">
+                <!-- Global Search -->
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style="color: var(--wm-text-muted);"></i>
+                    <input type="text" placeholder="Search..." class="search-input w-48 h-8 pl-8 pr-3 rounded-md" style="font-size: var(--wm-font-size-sm);" />
+                </div>
+
+                <!-- Time Range Segmented Control -->
+                <div class="flex items-center rounded-md p-0.5" style="background: var(--wm-surface-muted);">
+                    <button type="button" data-range="1h" class="time-range-btn px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">1h</button>
+                    <button type="button" data-range="24h" class="time-range-btn time-range-active px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">24h</button>
+                    <button type="button" data-range="7d" class="time-range-btn px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">7d</button>
+                    <button type="button" data-range="30d" class="time-range-btn px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">30d</button>
+                </div>
+
+                <!-- Refresh Button -->
+                <button type="button" aria-label="Refresh data" data-dom-id="btn-refresh" class="icon-btn flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                </button>
+
+                <!-- Language Toggle -->
+                <div class="flex items-center rounded-md p-0.5" style="background: var(--wm-surface-muted);">
+                    <button type="button" class="lang-btn lang-active px-2 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">EN</button>
+                    <button type="button" class="lang-btn px-2 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">中</button>
+                </div>
+
+                <!-- Avatar -->
+                <div class="flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold flex-shrink-0" style="background: var(--wm-primary); color: var(--wm-on-primary);">YF</div>
+
+                <!-- Logout Button -->
+                <button type="button" aria-label="Log out" data-dom-id="btn-logout" class="icon-btn flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area (flex-1, overflow-auto, 24px padding) -->
+        <main class="flex-1 overflow-auto p-6" style="background: linear-gradient(180deg, var(--wm-bg) 0%, var(--wm-surface-hover) 100%);">
+            <!-- ===== Global Map v2 — Deep Data Flow — Page Styles ===== -->
+            <style>
+                /* Stage card */
+                .stage-card{flex:1 1 0;min-width:0;text-align:left;cursor:pointer;background:var(--wm-surface);border:1px solid var(--wm-border);border-radius:var(--wm-radius-lg);padding:12px;transition:border-color 150ms cubic-bezier(.2,.8,.2,1),background-color 150ms cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;}
+                .stage-card:hover{border-color:var(--wm-primary-tint-4);background:var(--wm-surface-hover);}
+                .stage-card:focus-visible{outline:2px solid var(--wm-primary);outline-offset:2px;}
+                .stage-card.is-selected{background:var(--wm-primary-tint-1);border-color:var(--wm-primary-tint-3);box-shadow:0 0 0 1px var(--wm-primary-tint-3);}
+                /* Flow connector */
+                .flow-connector{flex:0 0 auto;width:18px;position:relative;align-self:center;height:28px;}
+                .flow-line{position:absolute;top:50%;left:0;right:0;height:0;border-top:2px dashed var(--wm-border-strong);transform:translateY(-50%);}
+                .flow-dot{position:absolute;top:50%;left:0;width:6px;height:6px;border-radius:var(--wm-radius-full);background:var(--wm-primary);transform:translateY(-50%);animation:flow-travel 2.8s linear infinite;}
+                @keyframes flow-travel{0%{left:-3px;opacity:0;}15%{opacity:1;}85%{opacity:1;}100%{left:100%;opacity:0;}}
+                /* Health dot */
+                .health-dot{width:7px;height:7px;border-radius:var(--wm-radius-full);flex-shrink:0;display:inline-block;}
+                .health-dot.is-pulse{position:relative;}
+                .health-dot.is-pulse::after{content:'';position:absolute;inset:-1px;border-radius:var(--wm-radius-full);background:inherit;animation:dot-pulse 1.6s cubic-bezier(.2,.8,.2,1) infinite;}
+                @keyframes dot-pulse{0%{transform:scale(1);opacity:0.55;}100%{transform:scale(2.6);opacity:0;}}
+                /* Connection type pill (tiny) */
+                .conn-pill{display:inline-flex;align-items:center;height:16px;padding:0 5px;border-radius:var(--wm-radius-sm);font-size:9px;font-weight:600;letter-spacing:0.03em;background:var(--wm-surface-muted);color:var(--wm-text-secondary);font-family:var(--wm-font-mono);}
+                /* Stacked status bar (in stage card) */
+                .stack-bar{display:flex;height:4px;border-radius:var(--wm-radius-full);overflow:hidden;background:var(--wm-border-subtle);width:100%;}
+                /* Mini breakdown text */
+                .mini-breakdown{font-size:10px;line-height:1.45;color:var(--wm-text-muted);font-family:var(--wm-font-mono);letter-spacing:0.01em;}
+                /* Tab */
+                .gm-tab{flex:1;min-width:0;padding:9px 8px;border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;color:var(--wm-text-secondary);font-size:12px;font-weight:500;transition:color 150ms cubic-bezier(.2,.8,.2,1),border-color 150ms cubic-bezier(.2,.8,.2,1);white-space:nowrap;text-align:center;}
+                .gm-tab:hover{color:var(--wm-text);}
+                .gm-tab:focus-visible{outline:2px solid var(--wm-primary);outline-offset:-2px;border-radius:var(--wm-radius-sm);}
+                .gm-tab.is-active{color:var(--wm-primary);border-bottom-color:var(--wm-primary);font-weight:600;}
+                /* Filter chip */
+                .filter-chip{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:var(--wm-radius-full);font-size:11px;font-weight:500;background:var(--wm-surface-muted);color:var(--wm-text-secondary);border:1px solid var(--wm-border);}
+                .filter-chip.is-active{background:var(--wm-primary-tint-1);color:var(--wm-primary);border-color:var(--wm-primary-tint-3);}
+                /* Event type pill */
+                .etype-pill{display:inline-flex;align-items:center;height:16px;padding:0 5px;border-radius:var(--wm-radius-sm);font-size:9px;font-weight:600;letter-spacing:0.04em;font-family:var(--wm-font-mono);background:var(--wm-surface-muted);color:var(--wm-text-secondary);white-space:nowrap;}
+                /* Topic type pill */
+                .ttype-pill{display:inline-flex;align-items:center;height:16px;padding:0 5px;border-radius:var(--wm-radius-sm);font-size:9px;font-weight:600;letter-spacing:0.04em;font-family:var(--wm-font-mono);background:var(--wm-primary-tint-1);color:var(--wm-primary);white-space:nowrap;}
+                /* Kind badge */
+                .kind-badge{display:inline-flex;align-items:center;height:15px;padding:0 5px;border-radius:var(--wm-radius-sm);font-size:9px;font-weight:600;letter-spacing:0.04em;background:var(--wm-surface-muted);color:var(--wm-text-muted);white-space:nowrap;}
+                /* Detail row */
+                .detail-row{cursor:pointer;border:1px solid transparent;border-radius:var(--wm-radius-md);padding:9px 10px;transition:background-color 150ms cubic-bezier(.2,.8,.2,1),border-color 150ms cubic-bezier(.2,.8,.2,1);width:100%;text-align:left;}
+                .detail-row:hover{background:var(--wm-surface-muted);}
+                .detail-row:focus-visible{outline:2px solid var(--wm-primary);outline-offset:1px;}
+                .detail-row.is-selected{background:var(--wm-primary-tint-1);border-color:var(--wm-primary-tint-3);}
+                /* Progress meter (thin) */
+                .meter-track{height:4px;border-radius:var(--wm-radius-full);background:var(--wm-border-subtle);overflow:hidden;flex:1;}
+                .meter-fill{height:100%;border-radius:var(--wm-radius-full);background:var(--wm-primary);}
+                /* Action badge */
+                .action-badge{display:inline-flex;align-items:center;gap:2px;height:15px;padding:0 5px;border-radius:var(--wm-radius-sm);font-size:10px;font-weight:600;font-family:var(--wm-font-mono);letter-spacing:0.02em;}
+                /* gm-link */
+                .gm-link{transition:color 150ms cubic-bezier(.2,.8,.2,1);}
+                .gm-link:hover{color:var(--wm-primary-hover);}
+                .gm-link:focus-visible{outline:2px solid var(--wm-primary);outline-offset:2px;border-radius:var(--wm-radius-sm);}
+                /* Lineage bar */
+                .lineage-col{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;min-width:0;}
+                .lineage-stack{width:100%;max-width:90px;height:48px;border-radius:var(--wm-radius-md);display:flex;flex-direction:column-reverse;overflow:hidden;border:1px solid var(--wm-border);}
+                .lineage-arrow{flex:0 0 auto;display:flex;align-items:center;color:var(--wm-text-muted);}
+                @media (prefers-reduced-motion: reduce){.flow-dot,.health-dot.is-pulse::after{animation:none;opacity:0.55;}.stage-card,.detail-row,.gm-link,.gm-tab{transition-duration:0.01ms;}}
+                @media (hover: none){.stage-card:hover{background:var(--wm-surface);border-color:var(--wm-border);}.stage-card.is-selected:hover{background:var(--wm-primary-tint-1);border-color:var(--wm-primary-tint-3);}.detail-row:hover{background:transparent;}.detail-row.is-selected:hover{background:var(--wm-primary-tint-1);}.gm-tab:hover{color:var(--wm-text-secondary);}.gm-tab.is-active:hover{color:var(--wm-primary);}}
+            </style>
+
+            <!-- Scenario Context Bar -->
+            <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg mb-5" style="background:var(--wm-primary-tint-1);border:1px solid var(--wm-primary-tint-2);">
+                <i data-lucide="share-2" class="w-4 h-4 flex-shrink-0" style="color:var(--wm-primary);"></i>
+                <span class="text-sm" style="color:var(--wm-primary);">Platform Admin View &middot; Deep data flow inspection across sources, ingestion, topics, and pipelines with real-time drill-down</span>
+            </div>
+
+            <!-- Enriched KPI Row (6 tiles) -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-5">
+                <!-- KPI 1: Flow Health -->
+                <div class="rounded-lg p-4 flex flex-col" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="wm-caption">Flow Health</span>
+                        <i data-lucide="heart-pulse" class="w-4 h-4 flex-shrink-0" style="color:var(--wm-state-error);"></i>
+                    </div>
+                    <div class="flex items-baseline gap-1.5 mb-2">
+                        <span class="text-2xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">94</span>
+                        <span class="text-xs" style="color:var(--wm-text-muted);">/ 100</span>
+                    </div>
+                    <div class="h-1 rounded-full mb-2" style="background:var(--wm-border-subtle);">
+                        <div class="h-full rounded-full" style="width:94%;background:var(--wm-state-error);"></div>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="health-dot" style="background:var(--wm-state-error);"></span>
+                        <span class="text-xs" style="color:var(--wm-text-secondary);">5 anomalies</span>
+                    </div>
+                </div>
+                <!-- KPI 2: Data Sources -->
+                <div class="rounded-lg p-4 flex flex-col" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="wm-caption">Data Sources</span>
+                        <i data-lucide="database" class="w-4 h-4 flex-shrink-0" style="color:var(--wm-state-success);"></i>
+                    </div>
+                    <div class="flex items-baseline gap-1.5 mb-2">
+                        <span class="text-2xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">12</span>
+                        <span class="text-xs" style="color:var(--wm-text-muted);">sources</span>
+                    </div>
+                    <div class="flex-1"></div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="health-dot" style="background:var(--wm-state-success);"></span>
+                        <span class="text-xs whitespace-nowrap" style="color:var(--wm-text-secondary);">10 connected &middot; 2 idle</span>
+                    </div>
+                </div>
+                <!-- KPI 3: Ingestion Events -->
+                <div class="rounded-lg p-4 flex flex-col" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="wm-caption">Ingestion Events</span>
+                        <i data-lucide="arrow-down-to-line" class="w-4 h-4 flex-shrink-0" style="color:var(--wm-state-info);"></i>
+                    </div>
+                    <div class="flex items-baseline gap-1.5 mb-2">
+                        <span class="text-2xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">247</span>
+                        <span class="text-xs" style="color:var(--wm-text-muted);">events</span>
+                    </div>
+                    <div class="flex-1"></div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="health-dot is-pulse" style="background:var(--wm-state-info);"></span>
+                        <span class="text-xs whitespace-nowrap" style="color:var(--wm-text-secondary);">238 ok &middot; 3 run &middot; 4 fail</span>
+                    </div>
+                </div>
+                <!-- KPI 4: Topics -->
+                <div class="rounded-lg p-4 flex flex-col" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="wm-caption">Topics</span>
+                        <i data-lucide="layers" class="w-4 h-4 flex-shrink-0" style="color:var(--wm-text-muted);"></i>
+                    </div>
+                    <div class="flex items-baseline gap-1.5 mb-2">
+                        <span class="text-2xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">89</span>
+                        <span class="text-xs" style="color:var(--wm-text-muted);">topics</span>
+                    </div>
+                    <div class="flex-1"></div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="health-dot" style="background:var(--wm-state-neutral);"></span>
+                        <span class="text-xs whitespace-nowrap" style="color:var(--wm-text-secondary);">62 biz &middot; 21 sys &middot; 6 syn</span>
+                    </div>
+                </div>
+                <!-- KPI 5: Pipeline Runs -->
+                <div class="rounded-lg p-4 flex flex-col" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="wm-caption">Pipeline Runs</span>
+                        <i data-lucide="git-branch" class="w-4 h-4 flex-shrink-0" style="color:var(--wm-state-success);"></i>
+                    </div>
+                    <div class="flex items-baseline gap-1.5 mb-2">
+                        <span class="text-2xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">1,847</span>
+                        <span class="text-xs" style="color:var(--wm-text-muted);">runs</span>
+                    </div>
+                    <div class="flex-1"></div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="health-dot" style="background:var(--wm-state-success);"></span>
+                        <span class="text-xs whitespace-nowrap" style="color:var(--wm-text-secondary);">1,798 done &middot; 17 err</span>
+                    </div>
+                </div>
+                <!-- KPI 6: Avg Duration -->
+                <div class="rounded-lg p-4 flex flex-col" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="wm-caption">Avg Duration</span>
+                        <i data-lucide="clock" class="w-4 h-4 flex-shrink-0" style="color:var(--wm-state-info);"></i>
+                    </div>
+                    <div class="flex items-baseline gap-1.5 mb-2">
+                        <span class="text-2xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">2.34</span>
+                        <span class="text-xs" style="color:var(--wm-text-muted);">sec</span>
+                    </div>
+                    <div class="flex-1"></div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="health-dot" style="background:var(--wm-state-info);"></span>
+                        <span class="text-xs whitespace-nowrap" style="color:var(--wm-text-secondary);">across all stages</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content: Enriched Flow Diagram + Tabbed Detail Panel -->
+            <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-5">
+                <!-- ===== Left Column — Deep Flow Diagram + Lineage ===== -->
+                <div class="flex flex-col gap-5 min-w-0">
+                    <!-- Enriched Flow Diagram -->
+                    <section class="rounded-lg p-5" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="wm-h2">Data Flow</h2>
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="activity" class="w-3.5 h-3.5 flex-shrink-0" style="color:var(--wm-text-muted);"></i>
+                                <span class="text-xs whitespace-nowrap" style="color:var(--wm-text-muted);">Sources &rarr; Ingestion &rarr; Topics &rarr; Pipeline</span>
+                            </div>
+                        </div>
+                        <div class="flex items-stretch gap-1">
+                            <!-- Stage 1: Data Sources -->
+                            <button type="button" data-dom-id="node-sources" class="stage-card">
+                                <div class="flex items-center gap-2 mb-2.5">
+                                    <div class="flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0" style="background:var(--wm-primary-tint-1);">
+                                        <i data-lucide="database" class="w-3.5 h-3.5" style="color:var(--wm-primary);"></i>
+                                    </div>
+                                    <h3 class="text-xs font-semibold" style="color:var(--wm-text);">Sources</h3>
+                                </div>
+                                <div class="flex items-baseline gap-1 mb-2">
+                                    <span class="text-xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">12</span>
+                                    <span class="text-[10px]" style="color:var(--wm-text-muted);">sources</span>
+                                </div>
+                                <div class="flex flex-wrap gap-1 mb-2">
+                                    <span class="conn-pill">MySQL &times;5</span>
+                                    <span class="conn-pill">PG &times;3</span>
+                                    <span class="conn-pill">Kafka &times;2</span>
+                                    <span class="conn-pill">API &times;2</span>
+                                </div>
+                                <div class="flex-1"></div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="health-dot" style="background:var(--wm-state-success);"></span>
+                                    <span class="text-[10px] whitespace-nowrap" style="color:var(--wm-text-secondary);">10 connected</span>
+                                </div>
+                            </button>
+                            <!-- Connector 1 -->
+                            <div class="flow-connector" aria-hidden="true">
+                                <div class="flow-line"></div>
+                                <div class="flow-dot"></div>
+                            </div>
+                            <!-- Stage 2: Ingestion (SELECTED) -->
+                            <button type="button" data-dom-id="node-ingestion" class="stage-card is-selected" aria-pressed="true">
+                                <div class="flex items-center gap-2 mb-2.5">
+                                    <div class="flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0" style="background:var(--wm-primary-tint-2);">
+                                        <i data-lucide="arrow-down-to-line" class="w-3.5 h-3.5" style="color:var(--wm-primary);"></i>
+                                    </div>
+                                    <h3 class="text-xs font-semibold" style="color:var(--wm-text);">Ingestion</h3>
+                                </div>
+                                <div class="flex items-baseline gap-1 mb-2">
+                                    <span class="text-xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">247</span>
+                                    <span class="text-[10px]" style="color:var(--wm-text-muted);">events</span>
+                                </div>
+                                <div class="mini-breakdown mb-1.5">BY_TABLE 156 &middot; BY_RECORD 52 &middot; BY_PIPELINE 28 &middot; BY_SCHEDULE 11</div>
+                                <div class="stack-bar mb-1.5">
+                                    <div style="width:96.4%;background:var(--wm-state-success);"></div>
+                                    <div style="width:1.2%;background:var(--wm-state-info);"></div>
+                                    <div style="width:1.6%;background:var(--wm-state-error);"></div>
+                                    <div style="width:0.8%;background:var(--wm-state-warning);"></div>
+                                </div>
+                                <div class="flex-1"></div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="health-dot is-pulse" style="background:var(--wm-state-warning);"></span>
+                                    <span class="text-[10px] whitespace-nowrap" style="color:var(--wm-text-secondary);">3 executing &middot; 4 failed</span>
+                                </div>
+                            </button>
+                            <!-- Connector 2 -->
+                            <div class="flow-connector" aria-hidden="true">
+                                <div class="flow-line"></div>
+                                <div class="flow-dot" style="animation-delay:0.9s;"></div>
+                            </div>
+                            <!-- Stage 3: Topics -->
+                            <button type="button" data-dom-id="node-topic" class="stage-card">
+                                <div class="flex items-center gap-2 mb-2.5">
+                                    <div class="flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0" style="background:var(--wm-primary-tint-1);">
+                                        <i data-lucide="layers" class="w-3.5 h-3.5" style="color:var(--wm-primary);"></i>
+                                    </div>
+                                    <h3 class="text-xs font-semibold" style="color:var(--wm-text);">Topics</h3>
+                                </div>
+                                <div class="flex items-baseline gap-1 mb-2">
+                                    <span class="text-xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">89</span>
+                                    <span class="text-[10px]" style="color:var(--wm-text-muted);">topics</span>
+                                </div>
+                                <div class="mini-breakdown mb-1.5">RAW 34 &middot; DISTINCT 22 &middot; AGG 18 &middot; META 10</div>
+                                <div class="flex flex-wrap gap-1 mb-1.5">
+                                    <span class="conn-pill">BIZ 62</span>
+                                    <span class="conn-pill">SYS 21</span>
+                                    <span class="conn-pill">SYN 6</span>
+                                </div>
+                                <div class="text-[10px] mb-1" style="color:var(--wm-text-muted);font-family:var(--wm-font-mono);">412 factors total</div>
+                                <div class="flex-1"></div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="health-dot" style="background:var(--wm-state-success);"></span>
+                                    <span class="text-[10px] whitespace-nowrap" style="color:var(--wm-text-secondary);">healthy</span>
+                                </div>
+                            </button>
+                            <!-- Connector 3 -->
+                            <div class="flow-connector" aria-hidden="true">
+                                <div class="flow-line"></div>
+                                <div class="flow-dot" style="animation-delay:1.8s;"></div>
+                            </div>
+                            <!-- Stage 4: Pipeline -->
+                            <button type="button" data-dom-id="node-pipeline" class="stage-card">
+                                <div class="flex items-center gap-2 mb-2.5">
+                                    <div class="flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0" style="background:var(--wm-primary-tint-1);">
+                                        <i data-lucide="git-branch" class="w-3.5 h-3.5" style="color:var(--wm-primary);"></i>
+                                    </div>
+                                    <h3 class="text-xs font-semibold" style="color:var(--wm-text);">Pipeline</h3>
+                                </div>
+                                <div class="flex items-baseline gap-1 mb-2">
+                                    <span class="text-xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">1,847</span>
+                                    <span class="text-[10px]" style="color:var(--wm-text-muted);">runs</span>
+                                </div>
+                                <div class="stack-bar mb-1.5">
+                                    <div style="width:97.3%;background:var(--wm-state-success);"></div>
+                                    <div style="width:1.7%;background:var(--wm-state-warning);"></div>
+                                    <div style="width:1.0%;background:var(--wm-state-error);"></div>
+                                </div>
+                                <div class="mini-breakdown mb-1.5">+12.4k ins &middot; ~3.2k upd &middot; -156 del</div>
+                                <div class="flex-1"></div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="health-dot" style="background:var(--wm-state-error);"></span>
+                                    <span class="text-[10px] whitespace-nowrap font-semibold" style="color:var(--wm-state-error);">17 errors</span>
+                                </div>
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Cross-Stage Data Lineage -->
+                    <section class="rounded-lg p-5" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="wm-h2">Cross-Stage Lineage</h2>
+                            <span class="text-xs" style="color:var(--wm-text-muted);">Volume by health</span>
+                        </div>
+                        <div class="flex items-end gap-1">
+                            <!-- Sources -->
+                            <div class="lineage-col">
+                                <span class="text-[10px] font-semibold tabular-nums" style="color:var(--wm-text);">12</span>
+                                <div class="lineage-stack">
+                                    <div style="flex:10;background:var(--wm-state-success);"></div>
+                                    <div style="flex:2;background:var(--wm-state-warning);"></div>
+                                </div>
+                                <span class="text-[10px] whitespace-nowrap" style="color:var(--wm-text-muted);">Sources</span>
+                            </div>
+                            <div class="lineage-arrow"><i data-lucide="chevron-right" class="w-4 h-4"></i></div>
+                            <!-- Events -->
+                            <div class="lineage-col">
+                                <span class="text-[10px] font-semibold tabular-nums" style="color:var(--wm-text);">247</span>
+                                <div class="lineage-stack">
+                                    <div style="flex:238;background:var(--wm-state-success);"></div>
+                                    <div style="flex:3;background:var(--wm-state-info);"></div>
+                                    <div style="flex:4;background:var(--wm-state-error);"></div>
+                                    <div style="flex:2;background:var(--wm-state-warning);"></div>
+                                </div>
+                                <span class="text-[10px] whitespace-nowrap" style="color:var(--wm-text-muted);">Events</span>
+                            </div>
+                            <div class="lineage-arrow"><i data-lucide="chevron-right" class="w-4 h-4"></i></div>
+                            <!-- Topics -->
+                            <div class="lineage-col">
+                                <span class="text-[10px] font-semibold tabular-nums" style="color:var(--wm-text);">89</span>
+                                <div class="lineage-stack">
+                                    <div style="flex:89;background:var(--wm-state-success);"></div>
+                                </div>
+                                <span class="text-[10px] whitespace-nowrap" style="color:var(--wm-text-muted);">Topics</span>
+                            </div>
+                            <div class="lineage-arrow"><i data-lucide="chevron-right" class="w-4 h-4"></i></div>
+                            <!-- Pipeline Runs -->
+                            <div class="lineage-col">
+                                <span class="text-[10px] font-semibold tabular-nums" style="color:var(--wm-text);">1,847</span>
+                                <div class="lineage-stack">
+                                    <div style="flex:1798;background:var(--wm-state-success);"></div>
+                                    <div style="flex:32;background:var(--wm-state-warning);"></div>
+                                    <div style="flex:17;background:var(--wm-state-error);"></div>
+                                </div>
+                                <span class="text-[10px] whitespace-nowrap" style="color:var(--wm-text-muted);">Runs</span>
+                            </div>
+                        </div>
+                        <!-- Legend -->
+                        <div class="flex items-center gap-4 mt-4 pt-3" style="border-top:1px solid var(--wm-border-subtle);">
+                            <div class="flex items-center gap-1.5">
+                                <span class="health-dot" style="background:var(--wm-state-success);"></span>
+                                <span class="text-[10px]" style="color:var(--wm-text-secondary);">Success / Connected</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="health-dot" style="background:var(--wm-state-info);"></span>
+                                <span class="text-[10px]" style="color:var(--wm-text-secondary);">Executing</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="health-dot" style="background:var(--wm-state-warning);"></span>
+                                <span class="text-[10px]" style="color:var(--wm-text-secondary);">Idle / Waiting / Ignored</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="health-dot" style="background:var(--wm-state-error);"></span>
+                                <span class="text-[10px]" style="color:var(--wm-text-secondary);">Error / Failed</span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- ===== Right Column — Tabbed Stage Detail Panel ===== -->
+                <div class="flex flex-col gap-4 min-w-0">
+                    <!-- Tabbed Detail Panel -->
+                    <section class="rounded-lg flex flex-col min-w-0" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                        <!-- Tab Bar -->
+                        <div class="flex items-center px-2" style="border-bottom:1px solid var(--wm-border-subtle);">
+                            <button type="button" class="gm-tab">Sources</button>
+                            <button type="button" class="gm-tab is-active" aria-pressed="true">Ingestion</button>
+                            <button type="button" data-dom-id="link-topic-full" class="gm-tab">Topics</button>
+                            <button type="button" data-dom-id="link-pipeline-full" class="gm-tab">Pipeline</button>
+                        </div>
+
+                        <!-- Active Tab Content: Ingestion Events -->
+                        <div class="flex flex-col min-w-0">
+                            <!-- Panel Header -->
+                            <div class="flex items-center justify-between gap-2 px-5 py-3.5" style="border-bottom:1px solid var(--wm-border-subtle);">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <h2 class="wm-h2 truncate">Ingestion Events</h2>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md whitespace-nowrap flex-shrink-0 text-xs font-semibold" style="background:var(--wm-state-info-bg);color:var(--wm-state-info);">247 events</span>
+                                </div>
+                                <a href="#" data-dom-id="link-ingestion-full" class="gm-link inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap flex-shrink-0" style="color:var(--wm-primary);">
+                                    View All
+                                    <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                                </a>
+                            </div>
+
+                            <!-- Filter Chips -->
+                            <div class="flex items-center gap-2 px-5 py-2.5" style="border-bottom:1px solid var(--wm-border-subtle);">
+                                <span class="filter-chip is-active">
+                                    <i data-lucide="filter" class="w-3 h-3"></i>
+                                    Type: BY_TABLE
+                                </span>
+                                <span class="filter-chip">
+                                    Status: All
+                                    <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                                </span>
+                                <span class="text-[10px] ml-auto" style="color:var(--wm-text-muted);">8 of 247 shown</span>
+                            </div>
+
+                            <!-- Event List -->
+                            <div class="overflow-y-auto p-3 flex flex-col gap-0.5" style="max-height:420px;">
+                                <!-- Event 1: EXECUTING (selected) -->
+                                <button type="button" class="detail-row is-selected">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <span class="health-dot is-pulse flex-shrink-0" style="background:var(--wm-state-info);"></span>
+                                            <span class="etype-pill flex-shrink-0">BY_TABLE</span>
+                                            <span class="wm-mono-sm text-xs font-semibold truncate" style="color:var(--wm-text);">orders_fact_daily</span>
+                                        </div>
+                                        <span class="text-[10px] whitespace-nowrap flex-shrink-0 font-semibold" style="color:var(--wm-state-info);">Running</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2" style="padding-left:15px;">
+                                        <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">#1749772800123</span>
+                                        <div class="flex items-center gap-2 flex-shrink-0">
+                                            <div class="meter-track" style="width:60px;"><div class="meter-fill" style="width:65%;background:var(--wm-state-info);"></div></div>
+                                            <span class="text-[10px] tabular-nums" style="color:var(--wm-text-secondary);">65%</span>
+                                        </div>
+                                    </div>
+                                </button>
+                                <!-- Event 2: SUCCESS -->
+                                <button type="button" class="detail-row">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <span class="health-dot flex-shrink-0" style="background:var(--wm-state-success);"></span>
+                                            <span class="etype-pill flex-shrink-0">BY_TABLE</span>
+                                            <span class="wm-mono-sm text-xs font-semibold truncate" style="color:var(--wm-text);">user_events_agg</span>
+                                        </div>
+                                        <span class="text-[10px] whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-muted);">2m ago</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2" style="padding-left:15px;">
+                                        <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">#1749772798432</span>
+                                        <span class="text-[10px] whitespace-nowrap flex-shrink-0 tabular-nums" style="color:var(--wm-text-secondary);">1.23s</span>
+                                    </div>
+                                </button>
+                                <!-- Event 3: SUCCESS -->
+                                <button type="button" class="detail-row">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <span class="health-dot flex-shrink-0" style="background:var(--wm-state-success);"></span>
+                                            <span class="etype-pill flex-shrink-0">BY_RECORD</span>
+                                            <span class="wm-mono-sm text-xs font-semibold truncate" style="color:var(--wm-text);">inventory_snapshot</span>
+                                        </div>
+                                        <span class="text-[10px] whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-muted);">5m ago</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2" style="padding-left:15px;">
+                                        <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">#1749772797128</span>
+                                        <span class="text-[10px] whitespace-nowrap flex-shrink-0 tabular-nums" style="color:var(--wm-text-secondary);">0.87s</span>
+                                    </div>
+                                </button>
+                                <!-- Event 4: FAIL -->
+                                <button type="button" class="detail-row">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <span class="health-dot flex-shrink-0" style="background:var(--wm-state-error);"></span>
+                                            <span class="etype-pill flex-shrink-0">BY_TABLE</span>
+                                            <span class="wm-mono-sm text-xs font-semibold truncate" style="color:var(--wm-text);">payment_reconcile</span>
+                                        </div>
+                                        <span class="text-[10px] whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-muted);">8m ago</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2" style="padding-left:15px;">
+                                        <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">#1749772796881</span>
+                                        <span class="text-[10px] whitespace-nowrap flex-shrink-0 tabular-nums" style="color:var(--wm-state-error);">5.12s FAIL</span>
+                                    </div>
+                                </button>
+                                <!-- Event 5: EXECUTING -->
+                                <button type="button" class="detail-row">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <span class="health-dot is-pulse flex-shrink-0" style="background:var(--wm-state-info);"></span>
+                                            <span class="etype-pill flex-shrink-0">BY_PIPELINE</span>
+                                            <span class="wm-mono-sm text-xs font-semibold truncate" style="color:var(--wm-text);">order_sync_pl</span>
+                                        </div>
+                                        <span class="text-[10px] whitespace-nowrap flex-shrink-0 font-semibold" style="color:var(--wm-state-info);">Running</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2" style="padding-left:15px;">
+                                        <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">#1749772795544</span>
+                                        <div class="flex items-center gap-2 flex-shrink-0">
+                                            <div class="meter-track" style="width:60px;"><div class="meter-fill" style="width:34%;background:var(--wm-state-info);"></div></div>
+                                            <span class="text-[10px] tabular-nums" style="color:var(--wm-text-secondary);">34%</span>
+                                        </div>
+                                    </div>
+                                </button>
+                                <!-- Event 6: WAITING -->
+                                <button type="button" class="detail-row">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <span class="health-dot flex-shrink-0" style="background:var(--wm-state-warning);"></span>
+                                            <span class="etype-pill flex-shrink-0">BY_SCHEDULE</span>
+                                            <span class="wm-mono-sm text-xs font-semibold truncate" style="color:var(--wm-text);">daily_rollup</span>
+                                        </div>
+                                        <span class="text-[10px] whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-muted);">12m ago</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2" style="padding-left:15px;">
+                                        <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">#1749772794210</span>
+                                        <span class="text-[10px] whitespace-nowrap flex-shrink-0" style="color:var(--wm-state-warning);">Queued</span>
+                                    </div>
+                                </button>
+                                <!-- Event 7: SUCCESS -->
+                                <button type="button" class="detail-row">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <span class="health-dot flex-shrink-0" style="background:var(--wm-state-success);"></span>
+                                            <span class="etype-pill flex-shrink-0">BY_RECORD</span>
+                                            <span class="wm-mono-sm text-xs font-semibold truncate" style="color:var(--wm-text);">logistics_track</span>
+                                        </div>
+                                        <span class="text-[10px] whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-muted);">18m ago</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2" style="padding-left:15px;">
+                                        <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">#1749772793897</span>
+                                        <span class="text-[10px] whitespace-nowrap flex-shrink-0 tabular-nums" style="color:var(--wm-text-secondary);">2.01s</span>
+                                    </div>
+                                </button>
+                                <!-- Event 8: FAIL -->
+                                <button type="button" class="detail-row">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <span class="health-dot flex-shrink-0" style="background:var(--wm-state-error);"></span>
+                                            <span class="etype-pill flex-shrink-0">BY_TABLE</span>
+                                            <span class="wm-mono-sm text-xs font-semibold truncate" style="color:var(--wm-text);">risk_score_calc</span>
+                                        </div>
+                                        <span class="text-[10px] whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-muted);">25m ago</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2" style="padding-left:15px;">
+                                        <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">#1749772792411</span>
+                                        <span class="text-[10px] whitespace-nowrap flex-shrink-0 tabular-nums" style="color:var(--wm-state-error);">8.76s FAIL</span>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Progress Summary Mini Card -->
+                    <section class="rounded-lg p-5" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                        <div class="flex items-center justify-between mb-3.5">
+                            <h3 class="wm-h3">Progress Summary</h3>
+                            <span class="text-[10px] inline-flex items-center gap-1" style="color:var(--wm-text-muted);">
+                                <i data-lucide="loader" class="w-3 h-3"></i>
+                                3 executing
+                            </span>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <!-- Records -->
+                            <div class="flex flex-col gap-1.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-medium" style="color:var(--wm-text-secondary);">Records</span>
+                                    <span class="text-[10px] tabular-nums" style="color:var(--wm-text-muted);">
+                                        <span class="font-semibold" style="color:var(--wm-state-success);">488</span> finished &middot; 12 unfinished
+                                    </span>
+                                </div>
+                                <div class="meter-track"><div class="meter-fill" style="width:97.6%;"></div></div>
+                            </div>
+                            <!-- JSON -->
+                            <div class="flex flex-col gap-1.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-medium" style="color:var(--wm-text-secondary);">JSON</span>
+                                    <span class="text-[10px] tabular-nums" style="color:var(--wm-text-muted);">
+                                        <span class="font-semibold" style="color:var(--wm-state-success);">452</span> finished &middot; 48 unfinished
+                                    </span>
+                                </div>
+                                <div class="meter-track"><div class="meter-fill" style="width:90.4%;"></div></div>
+                            </div>
+                            <!-- Tasks -->
+                            <div class="flex flex-col gap-1.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-medium" style="color:var(--wm-text-secondary);">Tasks</span>
+                                    <span class="text-[10px] tabular-nums" style="color:var(--wm-text-muted);">
+                                        <span class="font-semibold" style="color:var(--wm-state-success);">23</span> finished &middot; 1 unfinished
+                                    </span>
+                                </div>
+                                <div class="meter-track"><div class="meter-fill" style="width:95.8%;"></div></div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== Shell Styles (brand-variable-based; not expressible via Tailwind utilities) ===== -->
+    <style>
+        /* Nav item interactive states */
+        .nav-item {
+            color: var(--wm-text-secondary);
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .nav-item:hover {
+            background: var(--wm-surface-muted);
+            color: var(--wm-text);
+        }
+        .nav-item[data-active="true"] {
+            background: var(--wm-primary-tint-1);
+            color: var(--wm-primary);
+        }
+        .nav-item[data-active="true"] .nav-icon {
+            color: var(--wm-primary);
+        }
+        .nav-item:focus-visible {
+            outline: 2px solid var(--wm-primary);
+            outline-offset: -2px;
+        }
+        .nav-item-disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Icon button states */
+        .icon-btn {
+            color: var(--wm-text-secondary);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .icon-btn:hover {
+            background: var(--wm-surface-muted);
+            color: var(--wm-text);
+        }
+        .icon-btn:active {
+            background: var(--wm-border-subtle);
+        }
+        .icon-btn:focus-visible {
+            outline: 2px solid var(--wm-primary);
+            outline-offset: -2px;
+        }
+
+        /* Search input states */
+        .search-input {
+            border: 1px solid var(--wm-border);
+            background: var(--wm-surface);
+            color: var(--wm-text);
+            transition: border-color 150ms cubic-bezier(.2,.8,.2,1), box-shadow 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .search-input::placeholder {
+            color: var(--wm-text-muted);
+        }
+        .search-input:hover {
+            border-color: var(--wm-border-strong);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--wm-primary);
+            box-shadow: 0 0 0 2px var(--wm-primary-tint-2);
+        }
+
+        /* Time range segmented control */
+        .time-range-btn {
+            color: var(--wm-text-muted);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .time-range-btn:hover {
+            color: var(--wm-text);
+        }
+        .time-range-active {
+            background: var(--wm-surface);
+            color: var(--wm-text);
+            box-shadow: var(--wm-shadow-xs);
+        }
+        .time-range-btn:focus-visible {
+            outline: 2px solid var(--wm-primary);
+            outline-offset: -2px;
+        }
+
+        /* Language toggle */
+        .lang-btn {
+            color: var(--wm-text-muted);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .lang-btn:hover {
+            color: var(--wm-text);
+        }
+        .lang-active {
+            background: var(--wm-surface);
+            color: var(--wm-text);
+            box-shadow: var(--wm-shadow-xs);
+        }
+
+        /* Pulsing live indicator */
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: var(--wm-radius-full);
+            background: var(--wm-state-success);
+            position: relative;
+        }
+        .live-dot::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: var(--wm-radius-full);
+            background: var(--wm-state-success);
+            animation: live-pulse 2s cubic-bezier(.2,.8,.2,1) infinite;
+        }
+        @keyframes live-pulse {
+            0%   { transform: scale(1);   opacity: 0.5; }
+            100% { transform: scale(2.8); opacity: 0;   }
+        }
+
+        /* Reduced motion — downgrade to near-zero */
+        @media (prefers-reduced-motion: reduce) {
+            .live-dot::after { animation: none; }
+            .nav-item,
+            .icon-btn,
+            .search-input,
+            .time-range-btn,
+            .lang-btn {
+                transition-duration: 0.01ms;
+            }
+        }
+
+        /* Touch devices — disable hover feedback */
+        @media (hover: none) {
+            .nav-item:hover,
+            .icon-btn:hover,
+            .time-range-btn:hover,
+            .lang-btn:hover {
+                background: transparent;
+            }
+            .nav-item:hover { color: var(--wm-text-secondary); }
+            .icon-btn:hover { color: var(--wm-text-secondary); }
+            .time-range-btn:hover,
+            .lang-btn:hover { color: var(--wm-text-muted); }
+            .nav-item[data-active="true"]:hover {
+                background: var(--wm-primary-tint-1);
+                color: var(--wm-primary);
+            }
+        }
+    </style>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

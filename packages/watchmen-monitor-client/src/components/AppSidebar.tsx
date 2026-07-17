@@ -26,7 +26,7 @@ interface NavItem {
 
 // Disabled items (Alerts/Global Map) are gated by env flags; Settings is a permanent placeholder.
 const SHOW_ALERTS = (import.meta.env.VITE_SHOW_ALERTS ?? 'false') === 'true';
-const SHOW_GLOBAL_MAP = (import.meta.env.VITE_SHOW_GLOBAL_MAP ?? 'false') === 'true';
+const SHOW_GLOBAL_MAP = (import.meta.env.VITE_SHOW_GLOBAL_MAP ?? 'true') === 'true';
 
 const menuItems: NavItem[] = [
   { id: 'overview', url: '/', icon: LayoutDashboard },
