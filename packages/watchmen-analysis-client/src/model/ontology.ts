@@ -209,3 +209,6 @@ export const virtualObjectColors = [
 	"bg-cyan-500",
 	"bg-orange-500",
 ];
+	lte: { label: "≤" },
+	eq: { label: "=" },
+};

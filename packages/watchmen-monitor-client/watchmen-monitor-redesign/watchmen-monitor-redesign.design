@@ -1,0 +1,157 @@
+{
+  "data": [
+    {
+      "id": "page-ingestion-monitor",
+      "title": "采集监控 — 事件追踪",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1749772800000,
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/ingestion-monitor.html",
+        "interactions": [
+          {
+            "domId": "nav-pipeline",
+            "targetPageId": "page-pipeline-monitor",
+            "transitionLabel": "切换到管道监控"
+          },
+          {
+            "domId": "nav-global-map",
+            "targetPageId": "page-global-map",
+            "transitionLabel": "查看全局地图"
+          },
+          {
+            "domId": "nav-ingestion",
+            "targetPageId": "page-ingestion-monitor",
+            "hideEdge": true,
+            "transitionLabel": "采集监控"
+          },
+          {
+            "domId": "nav-overview",
+            "targetPageId": "page-ingestion-monitor",
+            "hideEdge": true,
+            "transitionLabel": "总览"
+          },
+          {
+            "domId": "nav-topics",
+            "targetPageId": "page-ingestion-monitor",
+            "hideEdge": true,
+            "transitionLabel": "Topics"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-pipeline-monitor",
+      "title": "管道监控 — 执行诊断",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1749772800000,
+      "canvasData": {
+        "x": 620,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/pipeline-monitor.html",
+        "interactions": [
+          {
+            "domId": "nav-global-map",
+            "targetPageId": "page-global-map",
+            "transitionLabel": "查看全局地图"
+          },
+          {
+            "domId": "nav-ingestion",
+            "targetPageId": "page-ingestion-monitor",
+            "hideEdge": true,
+            "transitionLabel": "返回采集监控"
+          },
+          {
+            "domId": "nav-pipeline",
+            "targetPageId": "page-pipeline-monitor",
+            "hideEdge": true,
+            "transitionLabel": "管道监控"
+          },
+          {
+            "domId": "nav-overview",
+            "targetPageId": "page-pipeline-monitor",
+            "hideEdge": true,
+            "transitionLabel": "总览"
+          },
+          {
+            "domId": "nav-topics",
+            "targetPageId": "page-pipeline-monitor",
+            "hideEdge": true,
+            "transitionLabel": "Topics"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-global-map",
+      "title": "全局地图 — 数据流总览",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1749772800000,
+      "canvasData": {
+        "x": 620,
+        "y": 377,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/global-map.html",
+        "interactions": [
+          {
+            "domId": "node-ingestion",
+            "targetPageId": "page-ingestion-monitor",
+            "transitionLabel": "查看采集详情"
+          },
+          {
+            "domId": "node-pipeline",
+            "targetPageId": "page-pipeline-monitor",
+            "transitionLabel": "查看管道详情"
+          },
+          {
+            "domId": "nav-ingestion",
+            "targetPageId": "page-ingestion-monitor",
+            "hideEdge": true,
+            "transitionLabel": "采集监控"
+          },
+          {
+            "domId": "nav-pipeline",
+            "targetPageId": "page-pipeline-monitor",
+            "hideEdge": true,
+            "transitionLabel": "管道监控"
+          },
+          {
+            "domId": "nav-global-map",
+            "targetPageId": "page-global-map",
+            "hideEdge": true,
+            "transitionLabel": "全局地图"
+          },
+          {
+            "domId": "nav-overview",
+            "targetPageId": "page-global-map",
+            "hideEdge": true,
+            "transitionLabel": "总览"
+          },
+          {
+            "domId": "nav-topics",
+            "targetPageId": "page-global-map",
+            "hideEdge": true,
+            "transitionLabel": "Topics"
+          }
+        ]
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": true,
+    "deviceType": "desktop",
+    "projectName": "Watchmen 监控页面重设计"
+  }
+}

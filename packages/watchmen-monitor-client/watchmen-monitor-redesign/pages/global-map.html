@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watchmen 数据监控</title>
+    <style id="theme-vars">
+/* ==========================================================================
+   Watchmen Monitor — Clean Professional Theme
+   Brand prefix: wm | Light mode | Inter + JetBrains Mono
+   ========================================================================== */
+
+:root {
+  /* ---- Brand Primary (Indigo) ---- */
+  --wm-primary: #4F46E5;
+  --wm-primary-hover: #4338CA;
+  --wm-primary-active: #3730A3;
+  --wm-primary-tint-1: #EEF2FF;
+  --wm-primary-tint-2: #E0E7FF;
+  --wm-primary-tint-3: #C7D2FE;
+  --wm-primary-tint-4: #A5B4FC;
+  --wm-primary-tint-5: #818CF8;
+  --wm-on-primary: #FFFFFF;
+
+  /* ---- Neutral Surface ---- */
+  --wm-bg: #F8FAFC;
+  --wm-bg-elevated: #FFFFFF;
+  --wm-surface: #FFFFFF;
+  --wm-surface-muted: #F1F5F9;
+  --wm-surface-hover: #F8FAFC;
+  --wm-overlay-scrim: rgba(15, 23, 42, 0.50);
+
+  /* ---- Text ---- */
+  --wm-text: #0F172A;
+  --wm-text-secondary: #475569;
+  --wm-text-muted: #94A3B8;
+  --wm-text-inverse: #FFFFFF;
+  --wm-text-link: #4F46E5;
+
+  /* ---- Border ---- */
+  --wm-border: #E2E8F0;
+  --wm-border-strong: #CBD5E1;
+  --wm-border-subtle: #F1F5F9;
+
+  /* ---- Status Colors ---- */
+  --wm-state-success: #16A34A;
+  --wm-state-success-bg: #F0FDF4;
+  --wm-state-success-border: #BBF7D0;
+  --wm-state-warning: #EA580C;
+  --wm-state-warning-bg: #FFF7ED;
+  --wm-state-warning-border: #FED7AA;
+  --wm-state-error: #DC2626;
+  --wm-state-error-bg: #FEF2F2;
+  --wm-state-error-border: #FECACA;
+  --wm-state-info: #2563EB;
+  --wm-state-info-bg: #EFF6FF;
+  --wm-state-info-border: #BFDBFE;
+  --wm-state-neutral: #64748B;
+  --wm-state-neutral-bg: #F8FAFC;
+  --wm-state-neutral-border: #E2E8F0;
+
+  /* ---- Radius ---- */
+  --wm-radius-sm: 4px;
+  --wm-radius-md: 8px;
+  --wm-radius-lg: 12px;
+  --wm-radius-full: 9999px;
+
+  /* ---- Shadow ---- */
+  --wm-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --wm-shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px 0 rgba(15, 23, 42, 0.03);
+  --wm-shadow-md: 0 4px 12px 0 rgba(15, 23, 42, 0.08);
+  --wm-shadow-lg: 0 10px 30px 0 rgba(15, 23, 42, 0.12);
+
+  /* ---- Typography ---- */
+  --wm-font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --wm-font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
+  --wm-font-size-xs: 11px;
+  --wm-font-size-sm: 12px;
+  --wm-font-size-base: 13px;
+  --wm-font-size-md: 14px;
+  --wm-font-size-lg: 16px;
+  --wm-font-size-xl: 20px;
+  --wm-font-size-2xl: 28px;
+  --wm-font-size-3xl: 36px;
+  --wm-line-height-tight: 1.25;
+  --wm-line-height-normal: 1.5;
+  --wm-tracking-tight: -0.02em;
+  --wm-tracking-normal: 0;
+  --wm-tracking-wide: 0.04em;
+
+  /* ---- Spacing ---- */
+  --wm-space-1: 4px;
+  --wm-space-2: 8px;
+  --wm-space-3: 12px;
+  --wm-space-4: 16px;
+  --wm-space-5: 20px;
+  --wm-space-6: 24px;
+  --wm-space-8: 32px;
+}
+
+/* ---- Dark mode (data screen projection) ---- */
+.dark {
+  --wm-primary: #818CF8;
+  --wm-primary-hover: #A5B4FC;
+  --wm-primary-active: #C7D2FE;
+  --wm-primary-tint-1: #1E1B4B;
+  --wm-primary-tint-2: #312E81;
+  --wm-primary-tint-3: #3730A3;
+  --wm-primary-tint-4: #4F46E5;
+  --wm-primary-tint-5: #6366F1;
+  --wm-on-primary: #0F172A;
+
+  --wm-bg: #0F172A;
+  --wm-bg-elevated: #1E293B;
+  --wm-surface: #1E293B;
+  --wm-surface-muted: #334155;
+  --wm-surface-hover: #334155;
+  --wm-overlay-scrim: rgba(0, 0, 0, 0.65);
+
+  --wm-text: #F1F5F9;
+  --wm-text-secondary: #CBD5E1;
+  --wm-text-muted: #64748B;
+  --wm-text-inverse: #0F172A;
+  --wm-text-link: #A5B4FC;
+
+  --wm-border: #334155;
+  --wm-border-strong: #475569;
+  --wm-border-subtle: #1E293B;
+
+  --wm-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.20);
+  --wm-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.25), 0 1px 2px 0 rgba(0, 0, 0, 0.15);
+  --wm-shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.30);
+  --wm-shadow-lg: 0 10px 30px 0 rgba(0, 0, 0, 0.40);
+}
+
+/* ---- Typography Classes ---- */
+.wm-h1 {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-2xl);
+  font-weight: 700;
+  line-height: var(--wm-line-height-tight);
+  letter-spacing: var(--wm-tracking-tight);
+  color: var(--wm-text);
+}
+
+.wm-h2 {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-xl);
+  font-weight: 600;
+  line-height: var(--wm-line-height-tight);
+  letter-spacing: var(--wm-tracking-tight);
+  color: var(--wm-text);
+}
+
+.wm-h3 {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-lg);
+  font-weight: 600;
+  line-height: var(--wm-line-height-tight);
+  color: var(--wm-text);
+}
+
+.wm-body {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-md);
+  font-weight: 400;
+  line-height: var(--wm-line-height-normal);
+  color: var(--wm-text-secondary);
+}
+
+.wm-body-sm {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-sm);
+  font-weight: 400;
+  line-height: var(--wm-line-height-normal);
+  color: var(--wm-text-muted);
+}
+
+.wm-caption {
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-xs);
+  font-weight: 500;
+  line-height: var(--wm-line-height-normal);
+  letter-spacing: var(--wm-tracking-wide);
+  text-transform: uppercase;
+  color: var(--wm-text-muted);
+}
+
+.wm-mono {
+  font-family: var(--wm-font-mono);
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.wm-mono-sm {
+  font-family: var(--wm-font-mono);
+  font-size: var(--wm-font-size-xs);
+  font-weight: 500;
+}
+
+/* ---- Base ---- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--wm-font-sans);
+  font-size: var(--wm-font-size-base);
+  color: var(--wm-text);
+  background: var(--wm-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--wm-border-strong);
+  border-radius: var(--wm-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--wm-text-muted);
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--wm-primary);
+    --color-border: var(--wm-border);
+  }
+  @layer base {
+    body { background: var(--wm-surface); color: var(--wm-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden antialiased">
+    <!-- ===== Left Sidebar (w-60 / 240px) ===== -->
+    <aside class="w-60 flex-shrink-0 flex flex-col" style="background: var(--wm-surface); border-right: 1px solid var(--wm-border);">
+        <!-- Logo Header -->
+        <div class="flex items-center gap-3 px-4 h-16 flex-shrink-0" style="border-bottom: 1px solid var(--wm-border-subtle);">
+            <div class="flex items-center justify-center w-9 h-9 flex-shrink-0 rounded-lg" style="background: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-primary-tint-5) 100%);">
+                <i data-lucide="activity" class="w-5 h-5" style="color: var(--wm-on-primary);"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold truncate" style="color: var(--wm-text);">Watchmen Data Monitor</div>
+                <div class="text-xs truncate" style="color: var(--wm-text-muted);">数据监控</div>
+            </div>
+            <span class="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded whitespace-nowrap" style="background: var(--wm-primary-tint-1); color: var(--wm-primary); font-size: var(--wm-font-size-xs); font-weight: 600; letter-spacing: 0.04em;">PROD</span>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto px-3 py-4">
+            <div class="wm-caption px-3 mb-2">监控</div>
+            <!-- SLOT: activeNavItem — leaf pages set data-active="true" on the correct <a> below -->
+            <div class="flex flex-col gap-0.5">
+                <a href="#" data-dom-id="nav-overview" data-nav-key="overview" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="layout-dashboard" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">总览</span>
+                </a>
+                <a href="#" data-dom-id="nav-ingestion" data-nav-key="ingestion" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="database" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">采集</span>
+                </a>
+                <a href="#" data-dom-id="nav-pipeline" data-nav-key="pipeline" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="git-branch" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">管道</span>
+                </a>
+                <a href="#" data-dom-id="nav-topics" data-nav-key="topics" data-active="false" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="table-2" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">Topics</span>
+                </a>
+                <a href="#" data-dom-id="nav-alerts" data-nav-key="alerts" data-active="false" class="nav-item nav-item-disabled flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="bell" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">告警</span>
+                </a>
+                <a href="#" data-dom-id="nav-global-map" data-nav-key="global-map" data-active="true" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="share-2" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">全局</span>
+                </a>
+                <a href="#" data-dom-id="nav-settings" data-nav-key="settings" data-active="false" class="nav-item nav-item-disabled flex items-center gap-3 px-3 py-2 rounded-md text-sm">
+                    <i data-lucide="settings" class="nav-icon w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">设置</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Sidebar Footer — Live Status -->
+        <div class="flex items-center gap-2 px-4 py-3 flex-shrink-0" style="border-top: 1px solid var(--wm-border-subtle);">
+            <span class="live-dot flex-shrink-0"></span>
+            <span class="text-xs whitespace-nowrap" style="color: var(--wm-text-secondary);">Live monitoring</span>
+        </div>
+    </aside>
+
+    <!-- ===== Main Wrapper ===== -->
+    <div class="flex-1 flex flex-col min-w-0">
+        <!-- Top Bar (sticky, z-40) -->
+        <header class="sticky top-0 z-40 flex items-center gap-4 px-6 h-16 flex-shrink-0" style="background: var(--wm-surface); border-bottom: 1px solid var(--wm-border);">
+            <!-- Left: sidebar trigger + page title/subtitle -->
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+                <button type="button" aria-label="切换侧边栏" data-dom-id="sidebar-trigger" class="icon-btn flex items-center justify-center w-8 h-8 flex-shrink-0 rounded-md">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div class="min-w-0">
+                    <h1 class="text-base font-semibold truncate" style="color: var(--wm-text);"><!-- SLOT: pageTitle -->全局地图</h1>
+                    <p class="text-xs truncate" style="color: var(--wm-text-muted);"><!-- SLOT: pageSubtitle -->数据流总览 · 点击节点查看相关日志</p>
+                </div>
+            </div>
+
+            <!-- Right: search + time range + refresh + lang + avatar + logout -->
+            <div class="flex items-center gap-3 flex-shrink-0">
+                <!-- Global Search -->
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style="color: var(--wm-text-muted);"></i>
+                    <input type="text" placeholder="搜索..." class="search-input w-48 h-8 pl-8 pr-3 rounded-md" style="font-size: var(--wm-font-size-sm);" />
+                </div>
+
+                <!-- Time Range Segmented Control -->
+                <div class="flex items-center rounded-md p-0.5" style="background: var(--wm-surface-muted);">
+                    <button type="button" data-range="1h" class="time-range-btn px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">1h</button>
+                    <button type="button" data-range="24h" class="time-range-btn time-range-active px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">24h</button>
+                    <button type="button" data-range="7d" class="time-range-btn px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">7d</button>
+                    <button type="button" data-range="30d" class="time-range-btn px-2.5 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">30d</button>
+                </div>
+
+                <!-- Refresh Button -->
+                <button type="button" aria-label="刷新数据" data-dom-id="btn-refresh" class="icon-btn flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                </button>
+
+                <!-- Language Toggle -->
+                <div class="flex items-center rounded-md p-0.5" style="background: var(--wm-surface-muted);">
+                    <button type="button" class="lang-btn px-2 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">EN</button>
+                    <button type="button" class="lang-btn lang-active px-2 py-1 rounded whitespace-nowrap" style="font-size: var(--wm-font-size-sm);">中</button>
+                </div>
+
+                <!-- Avatar -->
+                <div class="flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold flex-shrink-0" style="background: var(--wm-primary); color: var(--wm-on-primary);">YF</div>
+
+                <!-- Logout Button -->
+                <button type="button" aria-label="退出登录" data-dom-id="btn-logout" class="icon-btn flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area (flex-1, overflow-auto, 24px padding) -->
+        <main class="flex-1 overflow-auto p-6" style="background: linear-gradient(180deg, var(--wm-bg) 0%, var(--wm-surface-hover) 100%);">
+            <!-- ===== Global Map — Page Styles ===== -->
+            <style>
+                .stage-card{flex:1 1 0;min-width:0;text-align:left;cursor:pointer;background:var(--wm-surface);border:1px solid var(--wm-border);border-radius:var(--wm-radius-lg);padding:14px;transition:border-color 150ms cubic-bezier(.2,.8,.2,1),background-color 150ms cubic-bezier(.2,.8,.2,1);}
+                .stage-card:hover{border-color:var(--wm-primary-tint-4);background:var(--wm-surface-hover);}
+                .stage-card:focus-visible{outline:2px solid var(--wm-primary);outline-offset:2px;}
+                .stage-card.is-selected{background:var(--wm-primary-tint-1);border-color:var(--wm-primary-tint-3);outline:2px solid var(--wm-primary-tint-3);outline-offset:-2px;}
+                .flow-connector{flex:0 0 auto;width:30px;position:relative;align-self:center;height:28px;}
+                .flow-line{position:absolute;top:50%;left:0;right:0;height:0;border-top:2px dashed var(--wm-border-strong);transform:translateY(-50%);}
+                .flow-dot{position:absolute;top:50%;left:0;width:6px;height:6px;border-radius:var(--wm-radius-full);background:var(--wm-primary);transform:translateY(-50%);animation:flow-travel 2.8s linear infinite;}
+                @keyframes flow-travel{0%{left:-3px;opacity:0;}15%{opacity:1;}85%{opacity:1;}100%{left:100%;opacity:0;}}
+                .health-dot{width:7px;height:7px;border-radius:var(--wm-radius-full);flex-shrink:0;display:inline-block;}
+                .log-entry{cursor:pointer;border:1px solid transparent;border-radius:var(--wm-radius-md);padding:10px 12px;transition:background-color 150ms cubic-bezier(.2,.8,.2,1),border-color 150ms cubic-bezier(.2,.8,.2,1);}
+                .log-entry:hover{background:var(--wm-surface-muted);}
+                .log-entry:focus-visible{outline:2px solid var(--wm-primary);outline-offset:1px;}
+                .log-entry.is-selected{background:var(--wm-primary-tint-1);border-color:var(--wm-primary-tint-3);}
+                .stat-seg{height:8px;}
+                .gm-link{transition:color 150ms cubic-bezier(.2,.8,.2,1);}
+                .gm-link:hover{color:var(--wm-primary-hover);}
+                .gm-link:focus-visible{outline:2px solid var(--wm-primary);outline-offset:2px;border-radius:var(--wm-radius-sm);}
+                @media (prefers-reduced-motion: reduce){.flow-dot{animation:none;opacity:0.55;}.stage-card,.log-entry,.gm-link{transition-duration:0.01ms;}}
+                @media (hover: none){.stage-card:hover{background:var(--wm-surface);border-color:var(--wm-border);}.stage-card.is-selected:hover{background:var(--wm-primary-tint-1);border-color:var(--wm-primary-tint-3);}.log-entry:hover{background:transparent;}.log-entry.is-selected:hover{background:var(--wm-primary-tint-1);}}
+            </style>
+
+            <!-- Scenario Context Bar -->
+            <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg mb-5" style="background:var(--wm-primary-tint-1);border:1px solid var(--wm-primary-tint-2);">
+                <i data-lucide="share-2" class="w-4 h-4 flex-shrink-0" style="color:var(--wm-primary);"></i>
+                <span class="text-sm" style="color:var(--wm-primary);">平台管理员视角 · 纵览数据从采集到管道的完整流转，点击节点查看相关日志</span>
+            </div>
+
+            <!-- Overall Health KPI Row -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+                <!-- KPI 1: 数据流健康度 -->
+                <div class="rounded-lg p-4 flex flex-col" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="wm-caption">数据流健康度</span>
+                        <i data-lucide="heart-pulse" class="w-4 h-4 flex-shrink-0" style="color:var(--wm-state-success);"></i>
+                    </div>
+                    <div class="flex items-baseline gap-1.5 mb-2">
+                        <span class="text-2xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">96</span>
+                        <span class="text-xs" style="color:var(--wm-text-muted);">/ 100</span>
+                    </div>
+                    <div class="h-1 rounded-full mb-2" style="background:var(--wm-border-subtle);">
+                        <div class="h-full rounded-full" style="width:96%;background:var(--wm-state-success);"></div>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="health-dot" style="background:var(--wm-state-error);"></span>
+                        <span class="text-xs" style="color:var(--wm-text-secondary);">3 个异常</span>
+                    </div>
+                </div>
+                <!-- KPI 2: 采集事件 -->
+                <div class="rounded-lg p-4 flex flex-col" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="wm-caption">采集事件</span>
+                        <i data-lucide="arrow-down-to-line" class="w-4 h-4 flex-shrink-0" style="color:var(--wm-state-info);"></i>
+                    </div>
+                    <div class="flex items-baseline gap-1.5 mb-2">
+                        <span class="text-2xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">247</span>
+                        <span class="text-xs" style="color:var(--wm-text-muted);">次</span>
+                    </div>
+                    <div class="flex-1"></div>
+                    <div class="flex items-center gap-1.5">
+                        <i data-lucide="clock" class="w-3 h-3 flex-shrink-0" style="color:var(--wm-text-muted);"></i>
+                        <span class="text-xs" style="color:var(--wm-text-secondary);">近 24h</span>
+                    </div>
+                </div>
+                <!-- KPI 3: Topic 总数 -->
+                <div class="rounded-lg p-4 flex flex-col" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="wm-caption">Topic 总数</span>
+                        <i data-lucide="layers" class="w-4 h-4 flex-shrink-0" style="color:var(--wm-text-muted);"></i>
+                    </div>
+                    <div class="flex items-baseline gap-1.5 mb-2">
+                        <span class="text-2xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">89</span>
+                        <span class="text-xs" style="color:var(--wm-text-muted);">个</span>
+                    </div>
+                    <div class="flex-1"></div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="health-dot" style="background:var(--wm-state-success);"></span>
+                        <span class="text-xs" style="color:var(--wm-text-secondary);">86 活跃 · 3 空闲</span>
+                    </div>
+                </div>
+                <!-- KPI 4: 管道执行 -->
+                <div class="rounded-lg p-4 flex flex-col" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="wm-caption">管道执行</span>
+                        <i data-lucide="git-branch" class="w-4 h-4 flex-shrink-0" style="color:var(--wm-state-success);"></i>
+                    </div>
+                    <div class="flex items-baseline gap-1.5 mb-2">
+                        <span class="text-2xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">1,847</span>
+                        <span class="text-xs" style="color:var(--wm-text-muted);">次</span>
+                    </div>
+                    <div class="flex-1"></div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="health-dot" style="background:var(--wm-state-success);"></span>
+                        <span class="text-xs" style="color:var(--wm-text-secondary);">97.3% 成功率</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content: Flow Diagram + Detail Panel -->
+            <div class="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-5">
+                <!-- Left column: Data Flow Diagram + Trend -->
+                <div class="flex flex-col gap-5 min-w-0">
+                    <!-- Data Flow Diagram (centerpiece) -->
+                    <section class="rounded-lg p-5" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="wm-h2">数据流链路</h2>
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="activity" class="w-3.5 h-3.5 flex-shrink-0" style="color:var(--wm-text-muted);"></i>
+                                <span class="text-xs whitespace-nowrap" style="color:var(--wm-text-muted);">数据源 → 采集 → Topic → 管道</span>
+                            </div>
+                        </div>
+                        <div class="flex items-stretch gap-1.5">
+                            <!-- Stage 1: 数据源 -->
+                            <button type="button" data-dom-id="node-sources" class="stage-card">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div class="flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0" style="background:var(--wm-primary-tint-1);">
+                                        <i data-lucide="database" class="w-4 h-4" style="color:var(--wm-primary);"></i>
+                                    </div>
+                                    <h3 class="text-sm font-semibold" style="color:var(--wm-text);">数据源</h3>
+                                </div>
+                                <div class="flex items-baseline gap-1 mb-3">
+                                    <span class="text-2xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">12</span>
+                                    <span class="text-xs" style="color:var(--wm-text-muted);">个</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="health-dot" style="background:var(--wm-state-success);"></span>
+                                    <span class="text-xs whitespace-nowrap" style="color:var(--wm-text-secondary);">全部在线</span>
+                                </div>
+                            </button>
+                            <!-- Connector 1 -->
+                            <div class="flow-connector" aria-hidden="true">
+                                <div class="flow-line"></div>
+                                <div class="flow-dot"></div>
+                            </div>
+                            <!-- Stage 2: 采集 -->
+                            <button type="button" data-dom-id="node-ingestion" class="stage-card">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div class="flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0" style="background:var(--wm-primary-tint-1);">
+                                        <i data-lucide="arrow-down-to-line" class="w-4 h-4" style="color:var(--wm-primary);"></i>
+                                    </div>
+                                    <h3 class="text-sm font-semibold" style="color:var(--wm-text);">采集</h3>
+                                </div>
+                                <div class="flex items-baseline gap-1 mb-3">
+                                    <span class="text-2xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">247</span>
+                                    <span class="text-xs" style="color:var(--wm-text-muted);">事件</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 mb-0.5">
+                                    <span class="health-dot" style="background:var(--wm-state-warning);"></span>
+                                    <span class="text-xs whitespace-nowrap" style="color:var(--wm-text-secondary);">3 执行中 · 4 失败</span>
+                                </div>
+                                <div class="text-[11px] leading-snug" style="color:var(--wm-text-muted);">238 成功</div>
+                            </button>
+                            <!-- Connector 2 -->
+                            <div class="flow-connector" aria-hidden="true">
+                                <div class="flow-line"></div>
+                                <div class="flow-dot" style="animation-delay:0.9s;"></div>
+                            </div>
+                            <!-- Stage 3: Topic -->
+                            <button type="button" data-dom-id="node-topic" class="stage-card">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div class="flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0" style="background:var(--wm-primary-tint-1);">
+                                        <i data-lucide="layers" class="w-4 h-4" style="color:var(--wm-primary);"></i>
+                                    </div>
+                                    <h3 class="text-sm font-semibold" style="color:var(--wm-text);">Topic</h3>
+                                </div>
+                                <div class="flex items-baseline gap-1 mb-3">
+                                    <span class="text-2xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">89</span>
+                                    <span class="text-xs" style="color:var(--wm-text-muted);">个</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="health-dot" style="background:var(--wm-state-success);"></span>
+                                    <span class="text-xs whitespace-nowrap" style="color:var(--wm-text-secondary);">86 活跃 · 3 空闲</span>
+                                </div>
+                            </button>
+                            <!-- Connector 3 -->
+                            <div class="flow-connector" aria-hidden="true">
+                                <div class="flow-line"></div>
+                                <div class="flow-dot" style="animation-delay:1.8s;"></div>
+                            </div>
+                            <!-- Stage 4: Pipeline (selected by default) -->
+                            <button type="button" data-dom-id="node-pipeline" class="stage-card is-selected" aria-pressed="true">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div class="flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0" style="background:var(--wm-primary-tint-2);">
+                                        <i data-lucide="git-branch" class="w-4 h-4" style="color:var(--wm-primary);"></i>
+                                    </div>
+                                    <h3 class="text-sm font-semibold" style="color:var(--wm-text);">Pipeline</h3>
+                                </div>
+                                <div class="flex items-baseline gap-1 mb-3">
+                                    <span class="text-2xl font-bold tabular-nums leading-none" style="color:var(--wm-text);">1,847</span>
+                                    <span class="text-xs" style="color:var(--wm-text-muted);">次执行</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 mb-0.5">
+                                    <span class="health-dot" style="background:var(--wm-state-error);"></span>
+                                    <span class="text-xs font-semibold whitespace-nowrap" style="color:var(--wm-state-error);">17 错误</span>
+                                </div>
+                                <div class="text-[11px] leading-snug" style="color:var(--wm-text-muted);">1,798 成功 · 32 忽略</div>
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Throughput Trend Chart -->
+                    <section class="rounded-lg p-5" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                        <div class="flex items-center justify-between mb-3">
+                            <h2 class="wm-h2">数据流趋势</h2>
+                            <span class="text-xs" style="color:var(--wm-text-muted);">24h 吞吐量</span>
+                        </div>
+                        <div class="flex items-baseline gap-2 mb-3">
+                            <span class="text-xl font-bold tabular-nums" style="color:var(--wm-text);">68.4k</span>
+                            <span class="text-xs font-semibold" style="color:var(--wm-state-success);">+12.3%</span>
+                            <span class="text-xs" style="color:var(--wm-text-muted);">较昨日</span>
+                        </div>
+                        <svg viewBox="0 0 600 160" preserveAspectRatio="none" class="w-full block" style="height:150px;">
+                            <defs>
+                                <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" style="stop-color:var(--wm-primary);stop-opacity:0.22"/>
+                                    <stop offset="100%" style="stop-color:var(--wm-primary);stop-opacity:0"/>
+                                </linearGradient>
+                            </defs>
+                            <line x1="0" y1="60" x2="600" y2="60" stroke="var(--wm-border-subtle)" stroke-width="1"/>
+                            <line x1="0" y1="100" x2="600" y2="100" stroke="var(--wm-border-subtle)" stroke-width="1"/>
+                            <line x1="0" y1="140" x2="600" y2="140" stroke="var(--wm-border)" stroke-width="1"/>
+                            <path d="M0,98 L50,104 L100,106 L150,102 L200,86 L250,66 L300,46 L350,38 L400,30 L450,34 L500,50 L550,58 L600,74 L600,140 L0,140 Z" fill="url(#trendFill)"/>
+                            <path d="M0,98 L50,104 L100,106 L150,102 L200,86 L250,66 L300,46 L350,38 L400,30 L450,34 L500,50 L550,58 L600,74" fill="none" stroke="var(--wm-primary)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+                            <circle cx="400" cy="30" r="6" fill="var(--wm-primary)" fill-opacity="0.18"/>
+                            <circle cx="400" cy="30" r="3" fill="var(--wm-primary)"/>
+                        </svg>
+                        <div class="flex justify-between mt-2">
+                            <span class="text-[11px]" style="color:var(--wm-text-muted);">00:00</span>
+                            <span class="text-[11px]" style="color:var(--wm-text-muted);">06:00</span>
+                            <span class="text-[11px]" style="color:var(--wm-text-muted);">12:00</span>
+                            <span class="text-[11px]" style="color:var(--wm-text-muted);">18:00</span>
+                            <span class="text-[11px]" style="color:var(--wm-text-muted);">24:00</span>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Right column: Selected Stage Detail Panel -->
+                <div class="flex flex-col gap-4 min-w-0">
+                    <!-- Pipeline Logs Panel -->
+                    <section class="rounded-lg flex flex-col min-w-0" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                        <div class="flex items-center justify-between gap-2 px-5 py-4" style="border-bottom:1px solid var(--wm-border-subtle);">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <h2 class="wm-h2 truncate">Pipeline · 相关日志</h2>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md whitespace-nowrap flex-shrink-0 text-xs font-semibold" style="background:var(--wm-state-error-bg);color:var(--wm-state-error);">17 条错误</span>
+                            </div>
+                            <a href="#" data-dom-id="link-pipeline-full" class="gm-link inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap flex-shrink-0" style="color:var(--wm-primary);">
+                                查看全部
+                                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </div>
+                        <div class="overflow-y-auto p-3 flex flex-col gap-0.5" style="max-height:440px;">
+                            <!-- Log 1 (selected) -->
+                            <button type="button" class="log-entry is-selected text-left">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="health-dot flex-shrink-0" style="background:var(--wm-state-error);"></span>
+                                        <span class="text-sm font-semibold truncate" style="color:var(--wm-text);">订单数据同步管道</span>
+                                    </div>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-muted);">3 分钟前</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2 mt-1" style="padding-left:15px;">
+                                    <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">trace: a3f9c2e1</span>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-secondary);">2.45s</span>
+                                </div>
+                            </button>
+                            <!-- Log 2 -->
+                            <button type="button" class="log-entry text-left">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="health-dot flex-shrink-0" style="background:var(--wm-state-error);"></span>
+                                        <span class="text-sm font-semibold truncate" style="color:var(--wm-text);">用户行为分析管道</span>
+                                    </div>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-muted);">8 分钟前</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2 mt-1" style="padding-left:15px;">
+                                    <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">trace: b7d4f8a0</span>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-secondary);">5.12s</span>
+                                </div>
+                            </button>
+                            <!-- Log 3 -->
+                            <button type="button" class="log-entry text-left">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="health-dot flex-shrink-0" style="background:var(--wm-state-success);"></span>
+                                        <span class="text-sm font-semibold truncate" style="color:var(--wm-text);">商品库存更新管道</span>
+                                    </div>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-muted);">12 分钟前</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2 mt-1" style="padding-left:15px;">
+                                    <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">trace: c2e1a9b3</span>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-secondary);">1.23s</span>
+                                </div>
+                            </button>
+                            <!-- Log 4 -->
+                            <button type="button" class="log-entry text-left">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="health-dot flex-shrink-0" style="background:var(--wm-state-error);"></span>
+                                        <span class="text-sm font-semibold truncate" style="color:var(--wm-text);">支付对账管道</span>
+                                    </div>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-muted);">18 分钟前</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2 mt-1" style="padding-left:15px;">
+                                    <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">trace: d8a6c4f2</span>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-secondary);">8.76s</span>
+                                </div>
+                            </button>
+                            <!-- Log 5 -->
+                            <button type="button" class="log-entry text-left">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="health-dot flex-shrink-0" style="background:var(--wm-state-warning);"></span>
+                                        <span class="text-sm font-semibold truncate" style="color:var(--wm-text);">日志归档管道</span>
+                                    </div>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-muted);">25 分钟前</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2 mt-1" style="padding-left:15px;">
+                                    <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">trace: e5b3d7c1</span>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-secondary);">0.45s</span>
+                                </div>
+                            </button>
+                            <!-- Log 6 -->
+                            <button type="button" class="log-entry text-left">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="health-dot flex-shrink-0" style="background:var(--wm-state-error);"></span>
+                                        <span class="text-sm font-semibold truncate" style="color:var(--wm-text);">风控规则计算管道</span>
+                                    </div>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-muted);">34 分钟前</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2 mt-1" style="padding-left:15px;">
+                                    <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">trace: f1c8e6a4</span>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-secondary);">3.89s</span>
+                                </div>
+                            </button>
+                            <!-- Log 7 -->
+                            <button type="button" class="log-entry text-left">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="health-dot flex-shrink-0" style="background:var(--wm-state-success);"></span>
+                                        <span class="text-sm font-semibold truncate" style="color:var(--wm-text);">物流轨迹同步管道</span>
+                                    </div>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-muted);">41 分钟前</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2 mt-1" style="padding-left:15px;">
+                                    <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">trace: a9d2b5e8</span>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-secondary);">2.01s</span>
+                                </div>
+                            </button>
+                            <!-- Log 8 -->
+                            <button type="button" class="log-entry text-left">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="health-dot flex-shrink-0" style="background:var(--wm-state-warning);"></span>
+                                        <span class="text-sm font-semibold truncate" style="color:var(--wm-text);">营销数据汇总管道</span>
+                                    </div>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-muted);">52 分钟前</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2 mt-1" style="padding-left:15px;">
+                                    <span class="wm-mono-sm truncate" style="color:var(--wm-text-muted);">trace: b4e7f1c3</span>
+                                    <span class="text-xs whitespace-nowrap flex-shrink-0" style="color:var(--wm-text-secondary);">0.92s</span>
+                                </div>
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Stage Statistics -->
+                    <section class="rounded-lg p-5" style="background:var(--wm-surface);border:1px solid var(--wm-border);">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="wm-h3">阶段统计</h3>
+                            <span class="text-xs" style="color:var(--wm-text-muted);">共 1,847 次</span>
+                        </div>
+                        <div class="flex w-full rounded-full overflow-hidden mb-4" style="background:var(--wm-border-subtle);">
+                            <div class="stat-seg" style="width:97.3%;background:var(--wm-state-success);"></div>
+                            <div class="stat-seg" style="width:1.7%;background:var(--wm-state-warning);"></div>
+                            <div class="stat-seg" style="width:1.0%;background:var(--wm-state-error);"></div>
+                        </div>
+                        <div class="flex flex-col gap-2.5">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="health-dot" style="background:var(--wm-state-success);"></span>
+                                    <span class="text-xs" style="color:var(--wm-text-secondary);">成功</span>
+                                </div>
+                                <span class="text-xs font-semibold tabular-nums" style="color:var(--wm-text);">1,798</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="health-dot" style="background:var(--wm-state-warning);"></span>
+                                    <span class="text-xs" style="color:var(--wm-text-secondary);">忽略</span>
+                                </div>
+                                <span class="text-xs font-semibold tabular-nums" style="color:var(--wm-text);">32</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="health-dot" style="background:var(--wm-state-error);"></span>
+                                    <span class="text-xs" style="color:var(--wm-text-secondary);">错误</span>
+                                </div>
+                                <span class="text-xs font-semibold tabular-nums" style="color:var(--wm-text);">17</span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== Shell Styles (brand-variable-based; not expressible via Tailwind utilities) ===== -->
+    <style>
+        /* Nav item interactive states */
+        .nav-item {
+            color: var(--wm-text-secondary);
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .nav-item:hover {
+            background: var(--wm-surface-muted);
+            color: var(--wm-text);
+        }
+        .nav-item[data-active="true"] {
+            background: var(--wm-primary-tint-1);
+            color: var(--wm-primary);
+        }
+        .nav-item[data-active="true"] .nav-icon {
+            color: var(--wm-primary);
+        }
+        .nav-item:focus-visible {
+            outline: 2px solid var(--wm-primary);
+            outline-offset: -2px;
+        }
+        .nav-item-disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Icon button states */
+        .icon-btn {
+            color: var(--wm-text-secondary);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .icon-btn:hover {
+            background: var(--wm-surface-muted);
+            color: var(--wm-text);
+        }
+        .icon-btn:active {
+            background: var(--wm-border-subtle);
+        }
+        .icon-btn:focus-visible {
+            outline: 2px solid var(--wm-primary);
+            outline-offset: -2px;
+        }
+
+        /* Search input states */
+        .search-input {
+            border: 1px solid var(--wm-border);
+            background: var(--wm-surface);
+            color: var(--wm-text);
+            transition: border-color 150ms cubic-bezier(.2,.8,.2,1), box-shadow 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .search-input::placeholder {
+            color: var(--wm-text-muted);
+        }
+        .search-input:hover {
+            border-color: var(--wm-border-strong);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--wm-primary);
+            box-shadow: 0 0 0 2px var(--wm-primary-tint-2);
+        }
+
+        /* Time range segmented control */
+        .time-range-btn {
+            color: var(--wm-text-muted);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .time-range-btn:hover {
+            color: var(--wm-text);
+        }
+        .time-range-active {
+            background: var(--wm-surface);
+            color: var(--wm-text);
+            box-shadow: var(--wm-shadow-xs);
+        }
+        .time-range-btn:focus-visible {
+            outline: 2px solid var(--wm-primary);
+            outline-offset: -2px;
+        }
+
+        /* Language toggle */
+        .lang-btn {
+            color: var(--wm-text-muted);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1);
+        }
+        .lang-btn:hover {
+            color: var(--wm-text);
+        }
+        .lang-active {
+            background: var(--wm-surface);
+            color: var(--wm-text);
+            box-shadow: var(--wm-shadow-xs);
+        }
+
+        /* Pulsing live indicator */
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: var(--wm-radius-full);
+            background: var(--wm-state-success);
+            position: relative;
+        }
+        .live-dot::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: var(--wm-radius-full);
+            background: var(--wm-state-success);
+            animation: live-pulse 2s cubic-bezier(.2,.8,.2,1) infinite;
+        }
+        @keyframes live-pulse {
+            0%   { transform: scale(1);   opacity: 0.5; }
+            100% { transform: scale(2.8); opacity: 0;   }
+        }
+
+        /* Reduced motion — downgrade to near-zero */
+        @media (prefers-reduced-motion: reduce) {
+            .live-dot::after { animation: none; }
+            .nav-item,
+            .icon-btn,
+            .search-input,
+            .time-range-btn,
+            .lang-btn {
+                transition-duration: 0.01ms;
+            }
+        }
+
+        /* Touch devices — disable hover feedback */
+        @media (hover: none) {
+            .nav-item:hover,
+            .icon-btn:hover,
+            .time-range-btn:hover,
+            .lang-btn:hover {
+                background: transparent;
+            }
+            .nav-item:hover { color: var(--wm-text-secondary); }
+            .icon-btn:hover { color: var(--wm-text-secondary); }
+            .time-range-btn:hover,
+            .lang-btn:hover { color: var(--wm-text-muted); }
+            .nav-item[data-active="true"]:hover {
+                background: var(--wm-primary-tint-1);
+                color: var(--wm-primary);
+            }
+        }
+    </style>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>
