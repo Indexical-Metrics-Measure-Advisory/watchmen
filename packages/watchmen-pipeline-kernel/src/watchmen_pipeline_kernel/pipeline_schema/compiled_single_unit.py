@@ -41,8 +41,10 @@ class CompiledSingleUnit:
 		"""
 		Determine the transaction strategy at compile time.
 		- 'none': no storage actions, no transaction needed
-		- 'action_level': aggregation topic or multiple data sources, degrade to per-action
-		- 'unit_level': single data source, all non-aggregation, use unit-level transaction
+		- 'action_level': single storage action, aggregation topic or multiple data
+		  sources, degrade to per-action
+		- 'unit_level': multiple storage actions on a single data source, all
+		  non-aggregation, use unit-level transaction
 		"""
 		storage_actions = ArrayHelper(self.actions) \
 			.filter(lambda x: isinstance(x, CompiledStorageAction)) \
@@ -51,6 +53,12 @@ class CompiledSingleUnit:
 		# No storage actions (Alarm, CopyToMemory, WriteToExternal only)
 		if len(storage_actions) == 0:
 			return 'none'
+
+		# A single storage action is already atomic in AUTOCOMMIT mode; a managed
+		# unit-level transaction would only add begin/commit round trips per record
+		# with no atomicity gain. Run it with per-action behavior instead.
+		if len(storage_actions) == 1:
+			return 'action_level'
 
 		# Collect topics and data source IDs from storage actions
 		data_source_ids = set()

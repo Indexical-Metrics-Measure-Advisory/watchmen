@@ -9,4 +9,4 @@ from .topic_data_storage_rds import TopicDataStorageRDS
 from .types import SQLAlchemyStatement
 from .dbscript_builder import ScriptBuilder
 from .settings import ask_sql_alchemy_pool_size, ask_sql_alchemy_pool_max_overflow, ask_sql_alchemy_pool_timeout, \
-	ask_sql_alchemy_use_null_pool
+	ask_sql_alchemy_pool_pre_ping, ask_sql_alchemy_use_null_pool

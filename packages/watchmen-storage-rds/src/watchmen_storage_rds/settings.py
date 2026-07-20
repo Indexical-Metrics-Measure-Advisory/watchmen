@@ -16,6 +16,12 @@ class StorageRDSSettings(ExtendedBaseSettings):
 	# raising TimeoutError. Kept short so that under async concurrency bursts,
 	# requests fail fast instead of queuing for 30s and inflating P95/P99 latency.
 	SQL_ALCHEMY_POOL_TIMEOUT: int = 5
+	# Ping every checked-out connection with a SELECT 1 before use. Costs one extra
+	# round trip per checkout (several per ingested record), so keep it off unless
+	# connections can go stale in the pool (e.g. long-lived async deployments where
+	# a dead connection would hang the event loop). pool_recycle covers staleness
+	# in the regular synchronous path.
+	SQL_ALCHEMY_POOL_PRE_PING: bool = False
 	SQL_ALCHEMY_USE_NULL_POOL: bool = False
 
 
@@ -45,6 +51,10 @@ def ask_sql_alchemy_pool_max_overflow() -> int:
 
 def ask_sql_alchemy_pool_timeout() -> int:
 	return settings.SQL_ALCHEMY_POOL_TIMEOUT
+
+
+def ask_sql_alchemy_pool_pre_ping() -> bool:
+	return settings.SQL_ALCHEMY_POOL_PRE_PING
 
 
 def ask_sql_alchemy_use_null_pool() -> bool:
