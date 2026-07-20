@@ -10,12 +10,12 @@ class StorageRDSSettings(ExtendedBaseSettings):
 	PRINT_RDS_CONNECTION_LEAK_INTERVAL: int = 300
 	RDS_CONNECTION_LEAK_TIME_IN_SECONDS: int = 1
 
-	SQL_ALCHEMY_POOL_SIZE: int = 5
-	SQL_ALCHEMY_POOL_MAX_OVERFLOW: int = 10
+	SQL_ALCHEMY_POOL_SIZE: int = 20
+	SQL_ALCHEMY_POOL_MAX_OVERFLOW: int = 20
 	# Seconds to wait for a connection to become available from the pool before
-	# raising TimeoutError. Explicitly set so a blocked event loop does not turn
-	# into an indefinite hang when the pool is exhausted.
-	SQL_ALCHEMY_POOL_TIMEOUT: int = 30
+	# raising TimeoutError. Kept short so that under async concurrency bursts,
+	# requests fail fast instead of queuing for 30s and inflating P95/P99 latency.
+	SQL_ALCHEMY_POOL_TIMEOUT: int = 5
 	SQL_ALCHEMY_USE_NULL_POOL: bool = False
 
 

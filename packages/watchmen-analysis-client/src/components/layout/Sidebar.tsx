@@ -50,20 +50,20 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label, collapsed, isSubItem
     <Link 
       to={to} 
       className={cn(
-        "flex items-center gap-3 py-2 rounded-lg text-sidebar-foreground/80 transition-all duration-200",
-        isSubItem ? "px-8 ml-2" : "px-4",
+        "flex items-center gap-2.5 py-1.5 rounded-md text-[13px] transition-all duration-200",
+        isSubItem ? "px-3 ml-5" : "px-3",
         isActive 
           ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" 
-          : "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+          : "text-sidebar-foreground/70 hover:bg-sidebar-hover-bg hover:text-sidebar-foreground"
       )}
     >
       <div className={cn(
-        "w-5 h-5 flex items-center justify-center",
-        isActive ? "text-primary" : "text-sidebar-foreground/70"
+        "w-[18px] h-[18px] flex items-center justify-center shrink-0",
+        isActive ? "text-primary" : "text-sidebar-foreground/60"
       )}>
         {icon}
       </div>
-      {!collapsed && <span className={isSubItem ? "text-sm" : ""}>{label}</span>}
+      {!collapsed && <span className="truncate">{label}</span>}
     </Link>
   );
 };
@@ -81,15 +81,15 @@ const NavGroup: React.FC<NavGroupProps> = ({ icon, label, children, collapsed, e
   if (collapsed) {
     return (
       <div className="relative group" data-group={label}>
-        <div className="flex items-center justify-center px-4 py-3 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-all duration-200">
-          <div className="w-6 h-6 flex items-center justify-center text-sidebar-foreground/70">
+        <div className="flex items-center justify-center px-3 py-2 rounded-md text-sidebar-foreground/70 hover:bg-sidebar-hover-bg transition-all duration-200">
+          <div className="w-[18px] h-[18px] flex items-center justify-center">
             {icon}
           </div>
         </div>
         <div className="absolute left-full top-0 ml-2 bg-popover border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-48">
           <div className="p-2">
-            <div className="font-medium text-sm px-3 py-2 text-sidebar-foreground">{label}</div>
-            <div className="space-y-1">
+            <div className="font-medium text-[13px] px-3 py-2 text-sidebar-foreground">{label}</div>
+            <div className="space-y-0.5">
               {children}
             </div>
           </div>
@@ -102,16 +102,13 @@ const NavGroup: React.FC<NavGroupProps> = ({ icon, label, children, collapsed, e
     <div>
       <button
         onClick={onToggle}
-        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-all duration-200"
+        className="w-full flex items-center justify-between px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground hover:text-sidebar-foreground transition-colors duration-200"
       >
-        <div className="w-6 h-6 flex items-center justify-center text-sidebar-foreground/70">
-          {icon}
-        </div>
-        <span className="flex-1 text-left">{label}</span>
-        {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        <span>{label}</span>
+        {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
       </button>
       {expanded && (
-        <div className="mt-1 space-y-1">
+        <div className="space-y-0.5 mb-1">
           {children}
         </div>
       )}
@@ -129,16 +126,16 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
 
   return (
     <aside className={cn(
-      "h-screen bg-sidebar fixed top-0 left-0 border-r border-border/50 flex flex-col transition-all duration-300 z-50",
+      "h-screen bg-sidebar fixed top-0 left-0 border-r border-border flex flex-col transition-all duration-300 z-50",
       collapsed ? "w-20" : "w-56",
       className
     )}>
-      <div className="p-4 border-b border-border/50 relative">
+      <div className="p-4 border-b border-border relative">
         <div className={cn(
           "flex items-center gap-3 px-2",
           collapsed && "justify-center"
         )}>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shrink-0 shadow-sm">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shrink-0 shadow-sm">
             <svg 
               width="20" 
               height="20" 
@@ -162,7 +159,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         </div>
         <button
           onClick={toggleSidebar}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-sidebar-accent/50 text-sidebar-foreground/70"
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-sidebar-hover-bg text-sidebar-foreground/70"
         >
           <ChevronLeft className={cn(
             "h-4 w-4 transition-transform duration-300",
@@ -171,7 +168,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         </button>
       </div>
       
-      <nav className="flex-1 px-2 py-4 space-y-2">
+      <nav className="flex-1 px-3 py-4 space-y-3 overflow-y-auto">
         {SHOW_SMART_CONSOLE && (
           <NavItem to="/" icon={<LayoutDashboard size={18} />} label={t('nav:smartConsole')} collapsed={collapsed} />
         )}
@@ -247,7 +244,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         )}
       </nav>
       
-      <div className="p-4 border-t border-border/50 space-y-1">
+      <div className="p-3 border-t border-border space-y-0.5">
         <NavItem to="/settings" icon={<Settings size={18} />} label={t('nav:settings')} collapsed={collapsed} />
         <NavItem to="/help" icon={<HelpCircle size={18} />} label={t('nav:help')} collapsed={collapsed} />
       </div>

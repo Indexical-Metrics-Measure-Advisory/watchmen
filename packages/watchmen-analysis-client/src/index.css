@@ -6,84 +6,108 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 220 20% 16%;
+    /* ── Light Tech Palette (Indigo primary) ── */
+    --background: 213 33% 97.5%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 16%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 16%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 210 100% 50%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 239 84% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 225 100% 97%;
+    --secondary-foreground: 239 84% 45%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 213 27% 93%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 225 100% 97%;
+    --accent-foreground: 239 84% 45%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 210 100% 50%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 239 84% 45%;
 
-    --radius: 0.8rem;
+    --radius: 0.5rem;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 20% 16%;
-    --sidebar-primary: 210 100% 50%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 239 84% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-    
+    --sidebar-accent: 239 100% 97%;
+    --sidebar-accent-foreground: 239 84% 45%;
+    --sidebar-hover-bg: 213 27% 93%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 239 84% 45%;
+
+    /* ── State colors ── */
+    --state-success: 160 84% 39%;
+    --state-success-bg: 151 80% 95%;
+    --state-warning: 38 92% 50%;
+    --state-warning-bg: 45 93% 95%;
+    --state-error: 0 84% 60%;
+    --state-error-bg: 0 86% 97%;
+    --state-info: 217 91% 60%;
+    --state-info-bg: 214 95% 97%;
+
   }
 
   .dark {
-    --background: 220 20% 4%;
-    --foreground: 210 20% 98%;
+    /* ── Dark Tech Palette (Indigo primary) ── */
+    --background: 224 20% 6%;
+    --foreground: 213 33% 97.5%;
 
-    --card: 220 20% 7%;
-    --card-foreground: 210 20% 98%;
+    --card: 224 20% 8%;
+    --card-foreground: 213 33% 97.5%;
 
-    --popover: 220 20% 7%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 224 20% 8%;
+    --popover-foreground: 213 33% 97.5%;
 
-    --primary: 210 100% 50%;
-    --primary-foreground: 210 20% 98%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 224 20% 12%;
+    --secondary-foreground: 213 33% 97.5%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 224 20% 12%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 224 20% 12%;
+    --accent-foreground: 213 33% 97.5%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 213 33% 97.5%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 210 100% 50%;
-    
-    --sidebar-background: 220 20% 7%;
-    --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 210 100% 50%;
+    --border: 224 20% 14%;
+    --input: 224 20% 14%;
+    --ring: 239 84% 67%;
+
+    --sidebar-background: 224 20% 8%;
+    --sidebar-foreground: 213 33% 97.5%;
+    --sidebar-primary: 239 84% 67%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 9%;
-    --sidebar-accent-foreground: 210 20% 98%;
-    --sidebar-border: 220 20% 12%;
-    --sidebar-ring: 210 100% 50%;
+    --sidebar-accent: 239 84% 15%;
+    --sidebar-accent-foreground: 239 84% 67%;
+    --sidebar-hover-bg: 224 20% 14%;
+    --sidebar-border: 224 20% 14%;
+    --sidebar-ring: 239 84% 67%;
+
+    /* ── State colors (dark) ── */
+    --state-success: 160 84% 50%;
+    --state-success-bg: 160 84% 12%;
+    --state-warning: 38 92% 55%;
+    --state-warning-bg: 38 92% 12%;
+    --state-error: 0 84% 55%;
+    --state-error-bg: 0 84% 12%;
+    --state-info: 217 91% 67%;
+    --state-info-bg: 217 91% 12%;
   }
 }
 
@@ -94,16 +118,25 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
 .glass-card {
-  @apply bg-white/80 dark:bg-card/80 backdrop-blur-md border border-border/50 rounded-xl shadow-glass transition-all duration-300 hover:shadow-glass-hover;
+  @apply bg-card border border-border rounded-lg transition-all duration-200;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+}
+
+.glass-card:hover {
+  box-shadow: 0 4px 12px rgba(15,23,42,0.05);
 }
 
 .glass-panel {
-  @apply bg-white/90 dark:bg-card/90 backdrop-blur-lg border border-border/80 rounded-xl shadow-glass;
+  @apply bg-card border border-border rounded-lg;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.04);
 }
 
 .slide-enter {
@@ -173,30 +206,30 @@
 .hljs-keyword,
 .hljs-selector-tag,
 .hljs-built_in {
-  @apply text-blue-600 dark:text-blue-400;
+  @apply text-indigo-600 dark:text-indigo-400;
 }
 
 .hljs-string,
 .hljs-attr {
-  @apply text-green-600 dark:text-green-400;
+  @apply text-emerald-600 dark:text-emerald-400;
 }
 
 .hljs-comment,
 .hljs-quote {
-  @apply text-gray-500 dark:text-gray-400 italic;
+  @apply text-muted-foreground italic;
 }
 
 .hljs-number,
 .hljs-literal {
-  @apply text-orange-600 dark:text-orange-400;
+  @apply text-amber-600 dark:text-amber-400;
 }
 
 .hljs-function,
 .hljs-title {
-  @apply text-purple-600 dark:text-purple-400;
+  @apply text-violet-600 dark:text-violet-400;
 }
 
 .hljs-variable,
 .hljs-name {
-  @apply text-red-600 dark:text-red-400;
+  @apply text-rose-600 dark:text-rose-400;
 }

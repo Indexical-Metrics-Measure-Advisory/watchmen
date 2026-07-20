@@ -60,6 +60,7 @@ export default {
 					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
 					accent: 'hsl(var(--sidebar-accent))',
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+					'hover-bg': 'hsl(var(--sidebar-hover-bg, 213 27% 93%))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				}
@@ -109,10 +110,11 @@ export default {
 				'float': 'float 3s ease-in-out infinite'
 			},
 			boxShadow: {
-				'glass': '0 8px 32px rgba(0, 0, 0, 0.06)',
-				'glass-hover': '0 8px 32px rgba(0, 0, 0, 0.1)',
-				'subtle': '0 2px 10px rgba(0, 0, 0, 0.05)',
-				'card': '0 4px 20px rgba(0, 0, 0, 0.07)'
+				'glass': '0 1px 3px rgba(15,23,42,0.04)',
+				'glass-hover': '0 4px 12px rgba(15,23,42,0.05)',
+				'subtle': '0 1px 2px rgba(15,23,42,0.04)',
+				'card': '0 1px 3px rgba(15,23,42,0.04)',
+				'medium': '0 4px 12px rgba(15,23,42,0.05)'
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

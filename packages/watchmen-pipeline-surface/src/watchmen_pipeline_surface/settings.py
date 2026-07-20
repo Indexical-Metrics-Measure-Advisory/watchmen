@@ -23,6 +23,11 @@ class PipelineSurfaceSettings(ExtendedBaseSettings):
 	KAFKA_BOOTSTRAP_SERVER: str = 'localhost:9092'
 	KAFKA_TOPICS: str = ''
 
+	# When true, connector handlers (Kafka/RabbitMQ) route pipeline triggers through the
+	# fully-async data-service chain (asyncpg/aiomysql) instead of synchronous storage on
+	# the event loop. Requires an async storage backend package to be installed.
+	PIPELINE_FULL_ASYNC_TRIGGER: bool = False
+
 
 settings = PipelineSurfaceSettings()
 # logger.info(f'Pipeline surface settings[{settings.dict()}].')
@@ -59,3 +64,7 @@ def ask_rabbitmq_connector_settings() -> RabbitmqSettings:
 		durable=settings.RABBITMQ_DURABLE,
 		autoDelete=settings.RABBITMQ_AUTO_DELETE
 	)
+
+
+def ask_pipeline_full_async_trigger() -> bool:
+	return settings.PIPELINE_FULL_ASYNC_TRIGGER

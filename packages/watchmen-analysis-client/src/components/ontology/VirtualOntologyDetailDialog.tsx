@@ -101,8 +101,8 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 						{/* Three-layer architecture */}
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 							<LayerCard
-								icon={<Boxes className="w-5 h-5 text-indigo-600" />}
-								bg="bg-indigo-50"
+								icon={<Boxes className="w-5 h-5 text-primary" />}
+								bg="bg-primary/10"
 								label="Business Layer"
 								value={ontology.virtualObjects.length}
 								sub="Virtual Objects"
@@ -126,7 +126,7 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 						{/* Virtual Objects */}
 						<div className="space-y-3">
 							<h3 className="text-sm font-semibold flex items-center gap-2">
-								<Boxes className="w-4 h-4 text-indigo-500" />
+								<Boxes className="w-4 h-4 text-primary" />
 								Virtual Objects ({ontology.virtualObjects.length})
 							</h3>
 							{ontology.virtualObjects.map(vo => {

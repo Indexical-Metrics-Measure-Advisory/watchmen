@@ -1,4 +1,4 @@
-from asyncio import ensure_future
+from asyncio import ensure_future, Semaphore
 from logging import getLogger
 from typing import Any, Callable, Dict, Optional
 
@@ -11,12 +11,24 @@ from watchmen_model.admin import Pipeline, PipelineTriggerType, TopicKind
 from watchmen_model.common import PipelineId
 from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineTriggerTraceId
 from watchmen_pipeline_kernel.common import PipelineKernelException
+from watchmen_pipeline_kernel.common.settings import ask_pipeline_async_concurrency_limit
 from watchmen_pipeline_kernel.pipeline_schema import RuntimePipelineContext
 from watchmen_pipeline_kernel.topic import RuntimeTopicStorages
 from watchmen_utilities import ArrayHelper, is_not_blank
 from .pipelines_dispatcher import PipelinesDispatcher
 
 logger = getLogger(__name__)
+
+# Lazy-initialized semaphore to cap concurrent async pipeline executions.
+# Bound to the event loop at first use to avoid cross-loop binding issues.
+_async_concurrency_semaphore: Optional[Semaphore] = None
+
+
+def _get_async_semaphore() -> Semaphore:
+	global _async_concurrency_semaphore
+	if _async_concurrency_semaphore is None:
+		_async_concurrency_semaphore = Semaphore(ask_pipeline_async_concurrency_limit())
+	return _async_concurrency_semaphore
 
 
 def get_pipeline_service(principal_service: PrincipalService) -> PipelineService:
@@ -149,7 +161,77 @@ class PipelineTrigger:
 		self.prepare_trigger_data()
 		result = self.save_trigger_data()
 		if self.asynchronized:
-			ensure_future(self.start(result))
+			# Fire-and-forget: schedule pipeline execution on the event loop.
+			# Wrap in a semaphore to cap concurrency at the connection pool size,
+			# preventing connection starvation that inflates P95/P99 tail latency.
+			async def _start_bounded() -> None:
+				async with _get_async_semaphore():
+					await self.start(result)
+			ensure_future(_start_bounded())
 		else:
 			await self.start(result)
+		return result.internalDataId
+
+	# ---- Pure synchronous path (no async/await) ----
+	# For use by FastAPI `def` routes so the event loop is not blocked.
+	# The logic mirrors start()/invoke() exactly; start() has no real await
+	# inside, so this is a mechanical de-async version.
+
+	def start_sync(self, trigger: TopicTrigger, pipeline_id: Optional[PipelineId] = None) -> None:
+		"""
+		Synchronous counterpart of start(). The dispatch chain
+		(PipelinesDispatcher -> RuntimePipelineContext -> compiled_pipeline.run)
+		is entirely synchronous, so this simply drops the async wrapper.
+		"""
+		schema = self.triggerTopicSchema
+		topic = schema.get_topic()
+		if is_not_blank(pipeline_id):
+			pipeline = get_pipeline_service(self.principalService).find_by_id(pipeline_id)
+			if pipeline is None:
+				raise PipelineKernelException(f'Given pipeline[id={pipeline_id}] not found.')
+			else:
+				pipelines = [pipeline]
+		else:
+			pipelines = get_pipeline_service(self.principalService).find_by_topic_id(topic.topicId)
+		if len(pipelines) == 0:
+			if is_not_blank(pipeline_id):
+				raise PipelineKernelException(f'Given pipeline[id={pipeline_id}] not found.')
+			else:
+				logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
+			return
+
+		pipelines = ArrayHelper(pipelines) \
+			.filter(lambda x: self.should_run(trigger.triggerType, x)).to_list()
+		if len(pipelines) == 0:
+			if is_not_blank(pipeline_id):
+				raise PipelineKernelException(
+					f'Given pipeline[id={pipeline_id}] does not match trigger type[{trigger.triggerType}].')
+			else:
+				logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
+			return
+
+		def construct_queued_pipeline(a_pipeline: Pipeline) -> RuntimePipelineContext:
+			return RuntimePipelineContext(
+				pipeline=a_pipeline,
+				trigger_topic_schema=self.triggerTopicSchema,
+				previous_data=trigger.previous,
+				current_data=trigger.current,
+				principal_service=self.principalService,
+				trace_id=self.traceId,
+				data_id=trigger.internalDataId
+			)
+
+		PipelinesDispatcher(
+			contexts=ArrayHelper(pipelines).map(lambda x: construct_queued_pipeline(x)).to_list(),
+			storages=self.storages,
+		).start(self.handle_monitor_log)
+
+	def invoke_sync(self) -> int:
+		"""
+		Synchronous counterpart of invoke(). Prepares and saves trigger data,
+		then runs the pipeline dispatch chain synchronously (no event loop).
+		"""
+		self.prepare_trigger_data()
+		result = self.save_trigger_data()
+		self.start_sync(result)
 		return result.internalDataId

@@ -16,6 +16,7 @@ from .storage_exception import EntityNotFoundException, InsertConflictException,
 	NoFreeJoinException, OptimisticLockException, TooManyEntitiesFoundException, UnexpectedStorageException, \
 	UnsupportedComputationException, UnsupportedCriteriaException, UnsupportedSortMethodException, \
 	UnsupportedStraightColumnException
+from .async_storage_spi import AsyncStorageSPI, AsyncTransactionalStorageSPI, AsyncTopicDataStorageSPI
 from .storage_spi import StorageSPI, TopicDataStorageSPI, TransactionalStorageSPI
 from .storage_types import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, Entity, \
 	EntityColumnAggregateArithmetic, EntityColumnName, EntityColumnType, EntityColumnValue, EntityCriteria, \

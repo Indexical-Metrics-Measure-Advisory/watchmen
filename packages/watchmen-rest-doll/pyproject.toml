@@ -28,6 +28,9 @@ watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop
 watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true, optional = true }
 watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true, optional = true }
 watchmen-storage-adls = { path = "../watchmen-storage-adls", develop = true, optional = true }
+watchmen-storage-rds-async = { path = "../watchmen-storage-rds-async", develop = true, optional = true }
+watchmen-storage-mysql-async = { path = "../watchmen-storage-mysql-async", develop = true, optional = true }
+watchmen-storage-postgresql-async = { path = "../watchmen-storage-postgresql-async", develop = true, optional = true }
 kafka-python = { version = "^2.0.2", optional = true }
 aiokafka = { version = "^0.11.0", optional = true }
 aio-pika = { version = "^9.4.2", optional = true }
@@ -49,6 +52,8 @@ postgresql = ["watchmen-storage-postgresql"]
 oss = ["watchmen-storage-oss"]
 s3 = ["watchmen-storage-s3"]
 adls = ["watchmen-storage-adls"]
+mysql-async = ["watchmen-storage-mysql-async", "watchmen-storage-rds-async"]
+postgresql-async = ["watchmen-storage-postgresql-async", "watchmen-storage-rds-async"]
 kafka = ["kafka-python", "aiokafka"]
 rabbit = ["aio-pika"]
 prometheus = ["starlette-prometheus"]

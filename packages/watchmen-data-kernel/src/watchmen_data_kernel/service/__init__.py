@@ -1,3 +1,3 @@
-from .service_helper import ask_topic_data_service
-from .storage_helper import ask_topic_storage
+from .service_helper import ask_topic_data_service, ask_topic_data_service_async
+from .storage_helper import ask_topic_storage, ask_topic_storage_async, clear_async_storage_cache
 from .topic_structure_helper import sync_topic_structure_storage

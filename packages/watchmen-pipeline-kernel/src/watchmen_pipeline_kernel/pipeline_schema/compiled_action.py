@@ -642,51 +642,72 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
-			# use transaction here
-			topic_data_service.get_storage().begin()
+			storage = topic_data_service.get_storage()
+			# If unit-level transaction is active, use it directly; otherwise start our own
+			own_transaction = not storage.is_managed()
+			if own_transaction:
+				storage.begin_managed()
 			try:
 				data = topic_data_service.find(criteria=[statement])
 				count = len(data)
 				if count == 0:
 					if allow_insert:
 						# data not found, do insertion
-						self.do_insert(
-							variables, new_pipeline, action_monitor_log, principal_service, topic_data_service, False)
+						# use allow_failure=True to handle concurrent insert race condition
+						success_on_insert = self.do_insert(
+							variables, new_pipeline, action_monitor_log, principal_service,
+							topic_data_service, True)
+						if success_on_insert:
+							if own_transaction:
+								storage.end_managed(True)
+							return
+						# concurrent insert by another pipeline, transaction is in error state
+						if own_transaction:
+							# rollback and retry as update in a fresh transaction
+							storage.end_managed(False)
+							storage.begin_managed()
+							data = topic_data_service.find(criteria=[statement])
+							count = len(data)
+							if count == 0:
+								raise PipelineKernelException(
+									f'Data not found after concurrent insert conflict, {self.on_topic_message()}.')
+							elif count != 1:
+								raise PipelineKernelException(
+									f'Too many data[count={count}] found, {self.on_topic_message()}.')
+							# fall through to update logic below
+						else:
+							# In unit-level transaction, cannot retry after IntegrityError
+							raise PipelineKernelException(
+								f'Concurrent insert conflict in unit-level transaction, {self.on_topic_message()}.')
 					else:
 						# insertion is not allowed
 						raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 				elif count != 1:
 					raise PipelineKernelException(
 						f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
-				else:
-					# after several times failures, it is the last try.
-					# do lock loaded data by id, then it cannot be updated by any other threads, processes or nodes.
-					# of consideration of performance, we do need a TX lock here,
-					# but in some RDS(eg. MySQL), for update lock must through id criteria, otherwise leads TM lock.
-					# still, data might be deleted before it is locked, raise exception on this situation.
-					# or, lock it successfully, do update and commit transaction.
-					# when data row was locked, update requests from any other threads, processes or nodes
-					# are waiting for the transaction commit or rollback.
-					# data was loaded from storage, of course it has an id
-					_, data_id = topic_data_service.get_data_entity_helper().find_data_id(data[0])
-					locked_data = topic_data_service.find_and_lock_by_id(data_id)
-					if locked_data is None:
-						raise PipelineKernelException(
-							f'Data not found on doing "for update" lock when last try to update, '
-							f'{self.on_topic_message()}, by [{[statement.to_dict()]}].')
-					# found one matched, do update
-					updated_count = self.do_update_with_lock(
-						locked_data, variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
-					if updated_count == 0:
-						raise PipelineKernelException(
-							f'Data not found on doing last try to update, '
-							f'{self.on_topic_message()}, by [{[statement.to_dict()]}].')
-					topic_data_service.get_storage().commit_and_close()
+				# found one matched, do update with lock
+				_, data_id = topic_data_service.get_data_entity_helper().find_data_id(data[0])
+				locked_data = topic_data_service.find_and_lock_by_id(data_id)
+				if locked_data is None:
+					raise PipelineKernelException(
+						f'Data not found on doing "for update" lock when last try to update, '
+						f'{self.on_topic_message()}, by [{[statement.to_dict()]}].')
+				# found one matched, do update
+				updated_count = self.do_update_with_lock(
+					locked_data, variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
+				if updated_count == 0:
+					raise PipelineKernelException(
+						f'Data not found on doing last try to update, '
+						f'{self.on_topic_message()}, by [{[statement.to_dict()]}].')
+				if own_transaction:
+					storage.end_managed(True)
 			except Exception as e:
-				topic_data_service.get_storage().rollback_and_close()
+				if own_transaction:
+					storage.end_managed(False)
 				raise e
 			finally:
-				topic_data_service.get_storage().close()
+				if own_transaction:
+					storage.close()
 
 		def work(times: int, is_insert_allowed: bool, cached_data: Optional[Dict[str, Any]] = None) -> None:
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
@@ -703,9 +724,12 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 			count = len(data)
 			if count == 0:
 				if is_insert_allowed:
-					# data not found, do insertion
+					# do_insert uses AUTOCOMMIT (or unit-level managed transaction if active).
+					# In AUTOCOMMIT mode, insert is committed immediately, so retry
+					# will see the committed record and correctly fall back to update.
 					success_on_insert = self.do_insert(
-						variables, new_pipeline, action_monitor_log, principal_service, topic_data_service, True)
+						variables, new_pipeline, action_monitor_log, principal_service,
+						topic_data_service, True)
 					if not success_on_insert:
 						work(times, False)
 				else:
@@ -723,19 +747,19 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 						raise PipelineKernelException(
 							f'Data not found on do update, {self.on_topic_message()}.')
 					elif ask_pipeline_update_retry() and times < ask_pipeline_update_retry_times():
-							# adaptive backoff: 0ms on first retry, 5ms on second, 10ms on third
-							if times == 0:
-								interval = 0
-							elif times == 1:
-								interval = 5
-							else:
-								interval = 10
-							if interval > 0:
-								jitter = max(1, int(interval * 0.3))
-								interval = interval + randrange(-jitter, jitter + 1)
-								interval = max(1, interval)
-								sleep(interval / 1000)
-							work(times + 1, is_insert_allowed, data[0])
+						# adaptive backoff: 0ms on first retry, 5ms on second, 10ms on third
+						if times == 0:
+							interval = 0
+						elif times == 1:
+							interval = 5
+						else:
+							interval = 10
+						if interval > 0:
+							jitter = max(1, int(interval * 0.3))
+							interval = interval + randrange(-jitter, jitter + 1)
+							interval = max(1, interval)
+							sleep(interval / 1000)
+						work(times + 1, is_insert_allowed, data[0])
 					elif ask_pipeline_update_retry() and ask_pipeline_update_retry_force():
 						last_try()
 					else:

@@ -20,6 +20,9 @@ watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, o
 watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
 watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true, optional = true }
 watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true, optional = true }
+watchmen-storage-rds-async = { path = "../watchmen-storage-rds-async", develop = true, optional = true }
+watchmen-storage-mysql-async = { path = "../watchmen-storage-mysql-async", develop = true, optional = true }
+watchmen-storage-postgresql-async = { path = "../watchmen-storage-postgresql-async", develop = true, optional = true }
 
 [tool.poetry.group.dev.dependencies]
 
@@ -31,6 +34,8 @@ mssql = ["watchmen-storage-mssql"]
 postgresql = ["watchmen-storage-postgresql"]
 oss = ["watchmen-storage-oss"]
 s3 = ["watchmen-storage-s3"]
+mysql-async = ["watchmen-storage-mysql-async", "watchmen-storage-rds-async"]
+postgresql-async = ["watchmen-storage-postgresql-async", "watchmen-storage-rds-async"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

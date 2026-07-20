@@ -1,4 +1,7 @@
 from .data_service import TopicDataEntityHelper, TopicDataService, TopicStructureService, TopicTrigger
 from .raw_data_service import RawTopicDataEntityHelper, RawTopicDataService
 from .regular_data_service import RegularTopicDataEntityHelper, RegularTopicDataService
-from .topic_storage import build_topic_data_storage
+from .async_data_service import AsyncTopicDataService
+from .async_raw_data_service import AsyncRawTopicDataService
+from .async_regular_data_service import AsyncRegularTopicDataService
+from .topic_storage import build_topic_data_storage, build_topic_data_storage_async

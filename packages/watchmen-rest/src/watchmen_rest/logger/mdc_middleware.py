@@ -1,3 +1,4 @@
+import asyncio
 from typing import Awaitable, Callable, Optional
 
 from fastapi import Request, Response, HTTPException
@@ -38,7 +39,12 @@ class MDCMiddleware(BaseHTTPMiddleware):
                 if tenant_name:
                     mdc_put("tenant", tenant_name)
                 else:
-                   self.get_tenant_by_authentication(request)
+                    # Resolve the tenant via a worker thread so a cache miss (which
+                    # hits the meta DB) cannot block the single uvicorn event loop.
+                    # Token parsing and the kernel tenant cache lookup are cheap, so
+                    # this only matters on the cold path, but that cold path is
+                    # exactly what stalled the whole process under load.
+                    await asyncio.to_thread(self.get_tenant_by_authentication, request)
                 response: Response = await call_next(request)
             
             return response

@@ -22,6 +22,10 @@ class PipelineKernelSettings(ExtendedBaseSettings):
 	PIPELINE_UPDATE_RETRY_FORCE: bool = True  # enable force retry after all retries failed
 	PIPELINE_ASYNC_HANDLE_MONITOR_LOG: bool = True  # handle monitor log (might with pipelines) asynchronized
 	PIPELINE_ERROR_HANDLE_MONITOR_LOG: bool = False  # just handle error monitor log
+	# Max concurrent pipeline executions in async mode. Should match the storage
+	# connection pool capacity (pool_size + max_overflow) to prevent connection
+	# starvation that inflates P95/P99 tail latency.
+	PIPELINE_ASYNC_CONCURRENCY_LIMIT: int = 40
 	QUERY_MONITOR_LOG: bool = False
 	PIPELINE_RECURSION_LIMIT: int = 900
 	PIPELINE_STANDARD_EXTERNAL_WRITER_TIMEOUT: int = 60
@@ -105,3 +109,7 @@ def ask_pipeline_error_handle_monitor_log() -> bool:
 
 def ask_standard_external_writer_timeout() -> int:
 	return settings.PIPELINE_STANDARD_EXTERNAL_WRITER_TIMEOUT
+
+
+def ask_pipeline_async_concurrency_limit() -> int:
+	return settings.PIPELINE_ASYNC_CONCURRENCY_LIMIT

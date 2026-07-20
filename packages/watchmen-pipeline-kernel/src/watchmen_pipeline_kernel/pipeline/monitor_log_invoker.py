@@ -8,7 +8,6 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import PipelineTriggerType, TopicKind
 from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineTriggerTraceId, MonitorLogStatus
 from watchmen_pipeline_kernel.common import PipelineKernelException, ask_pipeline_error_handle_monitor_log
-from watchmen_utilities import run
 from .pipeline_trigger import PipelineTrigger
 
 logger = getLogger(__name__)
@@ -61,8 +60,17 @@ def create_monitor_log_pipeline_invoker(
 				handle_monitor_log=handle_monitor_log
 			)
 			if asynchronized:
-				asyncio.ensure_future(trigger.invoke())
+				try:
+					asyncio.get_running_loop()
+					# We are inside a running event loop, fire-and-forget is safe.
+					asyncio.ensure_future(trigger.invoke())
+				except RuntimeError:
+					# No running event loop in this thread (e.g. FastAPI `def` route
+					# runs in an AnyIO worker thread). Fall back to synchronous invoke
+					# so the monitor log is not lost.
+					trigger.invoke_sync()
 			else:
-				run(trigger.invoke())
+				# Pure synchronous path; no need for the run() thread-pool bridge.
+				trigger.invoke_sync()
 
 	return handle_monitor_log

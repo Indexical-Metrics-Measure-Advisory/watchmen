@@ -60,7 +60,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="w-full bg-white/80 dark:bg-card/80 backdrop-blur-md border-b border-border/50 py-3 px-6 flex items-center justify-between z-[9997]">
+    <header className="w-full bg-background/85 backdrop-blur-sm border-b border-border py-3 px-6 flex items-center justify-between z-[9997]">
       <h1 className="text-xl font-medium">{getPageTitle()}</h1>
       
       <div className="flex items-center gap-4">
@@ -114,7 +114,7 @@ const Header: React.FC = () => {
                   {user?.role} {user?.email && `• ${user.email}`}
                 </span>
               </div>
-              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium text-sm">
+              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center text-white font-medium text-sm">
                 {user?.name?.charAt(0).toUpperCase() || 'U'}
               </div>
               <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
@@ -125,7 +125,7 @@ const Header: React.FC = () => {
               <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-card border border-border rounded-lg shadow-lg z-[99999]">
                 <div className="p-4 border-b border-border">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium text-lg">
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center text-white font-medium text-lg">
                       {user?.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -138,7 +138,7 @@ const Header: React.FC = () => {
                         </p>
                       )}
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
                           {user?.role}
                         </span>
                         {user?.isActive && (

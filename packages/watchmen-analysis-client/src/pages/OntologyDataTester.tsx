@@ -8,9 +8,7 @@ import { useSidebar } from '@/contexts/SidebarContext';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { VirtualOntology, physicalTableKindConfig, aggregateConfig } from '@/model/ontology';
@@ -193,47 +191,44 @@ const OntologyDataTester: React.FC = () => {
 	return (
 		<div className="min-h-screen bg-background">
 			<Sidebar />
-			<div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
+			<div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300 flex flex-col`}>
 				<Header />
-				<main className="container py-6">
-					{/* 标题区 */}
-					<div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+				<main className="flex-1 overflow-y-auto p-6">
+					{/* Title — design: 24px bold, 13px subtitle */}
+					<div className="flex items-start justify-between mb-5">
 						<div>
-							<h1 className="text-2xl font-semibold flex items-center gap-2">
-								<FlaskConical className="w-6 h-6 text-indigo-600" />
+							<h1 className="text-2xl font-bold leading-tight flex items-center gap-2">
+								<FlaskConical className="w-6 h-6 text-primary" />
 								{t('pageTitle')}
 							</h1>
-							<p className="text-muted-foreground mt-1">
+							<p className="text-[13px] text-muted-foreground mt-1 leading-normal">
 								{t('pageSubtitle')}
 							</p>
 						</div>
-						<Button variant="ghost" size="icon" onClick={reloadOntologies} title={t('refreshOntologies')} disabled={loadingMeta}>
+						<Button variant="outline" size="icon" className="h-9 w-9" onClick={reloadOntologies} title={t('refreshOntologies')} disabled={loadingMeta}>
 							<RefreshCw className={cn('w-4 h-4', loadingMeta && 'animate-spin')} />
 						</Button>
 					</div>
 
 					{loadingMeta ? (
-						<Card>
-							<CardContent className="flex items-center justify-center py-12">
-								<Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-							</CardContent>
-						</Card>
+						<div className="bg-card border border-border rounded-lg flex items-center justify-center py-12">
+							<Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+						</div>
 					) : (
-						<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-							{/* 左侧：配置面板 */}
-							<div className="lg:col-span-1 space-y-4">
-								<Card>
-									<CardHeader className="pb-3">
-										<CardTitle className="text-base flex items-center gap-2">
-											<Boxes className="w-4 h-4 text-indigo-500" />
-											{t('configSelection')}
-										</CardTitle>
-									</CardHeader>
-									<CardContent className="space-y-4">
-										<div className="space-y-2">
-											<label className="text-xs font-medium text-muted-foreground">{t('virtualOntology')}</label>
+						<div className="flex gap-6 items-start">
+							{/* ═══ LEFT PANEL — Configuration ═══ */}
+							<div className="w-[360px] min-w-[360px] space-y-5">
+								{/* Card 1: Selection */}
+								<div className="bg-card border border-border rounded-lg p-5">
+									<div className="flex items-center gap-2 mb-4">
+										<Boxes className="w-4 h-4 text-primary" />
+										<h2 className="text-sm font-semibold">{t('configSelection')}</h2>
+									</div>
+									<div className="space-y-3">
+										<div>
+											<label className="block mb-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('virtualOntology')}</label>
 											<Select value={ontologyId} onValueChange={onSelectOntology}>
-												<SelectTrigger><SelectValue placeholder={t('selectOntology')} /></SelectTrigger>
+												<SelectTrigger className="h-9 text-[13px]"><SelectValue placeholder={t('selectOntology')} /></SelectTrigger>
 												<SelectContent>
 													{ontologies.map((o) => (
 														<SelectItem key={o.ontologyId ?? o.id} value={o.ontologyId ?? o.id}>
@@ -243,11 +238,10 @@ const OntologyDataTester: React.FC = () => {
 												</SelectContent>
 											</Select>
 										</div>
-
-										<div className="space-y-2">
-											<label className="text-xs font-medium text-muted-foreground">{t('virtualObject')}</label>
+										<div>
+											<label className="block mb-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('virtualObject')}</label>
 											<Select value={objectId} onValueChange={setObjectId} disabled={!ontology}>
-												<SelectTrigger><SelectValue placeholder={t('selectVirtualObject')} /></SelectTrigger>
+												<SelectTrigger className="h-9 text-[13px]"><SelectValue placeholder={t('selectVirtualObject')} /></SelectTrigger>
 												<SelectContent>
 													{(ontology?.virtualObjects ?? []).map((vo) => (
 														<SelectItem key={vo.id} value={vo.id}>
@@ -257,10 +251,9 @@ const OntologyDataTester: React.FC = () => {
 												</SelectContent>
 											</Select>
 										</div>
-
 										{virtualObject?.datasourceId && (
-											<div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
-												<Database className="w-3.5 h-3.5" />
+											<div className="flex items-center gap-2 text-xs text-muted-foreground pt-3 border-t border-border">
+												<Database className="w-3.5 h-3.5 text-emerald-600" />
 												{t('datasourceBound', { id: virtualObject.datasourceId })}
 											</div>
 										)}
@@ -270,74 +263,74 @@ const OntologyDataTester: React.FC = () => {
 												<span>{t('noDatasourceWarning')}</span>
 											</div>
 										)}
-									</CardContent>
-								</Card>
+									</div>
+								</div>
 
-								{/* 属性 / 衍生 / 过滤 */}
+								{/* Card 2: Query Builder */}
 								{virtualObject && (
-									<Card>
-										<CardHeader className="pb-3">
-											<CardTitle className="text-base flex items-center gap-2">
-												<Table2 className="w-4 h-4 text-purple-500" />
-												{virtualObject.icon || '📦'} {virtualObject.name}
-											</CardTitle>
-											<CardDescription className="line-clamp-2">{virtualObject.description}</CardDescription>
-										</CardHeader>
-										<CardContent className="space-y-4">
-											{/* Return fields */}
-											<div className="space-y-2">
-												<div className="flex items-center justify-between">
-													<label className="text-xs font-medium text-muted-foreground">{t('returnFields')}</label>
-													<Button variant="ghost" size="sm" className="h-6 text-xs px-2"
-														onClick={() => setSelectedFields(selectedFields.length === 0 ? allAttributeNames : [])}>
-														{selectedFields.length === 0 ? t('selectAll') : t('clear')}
-													</Button>
+									<div className="bg-card border border-border rounded-lg p-5">
+										<div className="flex items-center gap-2 mb-1">
+											<span className="text-base">{virtualObject.icon || '📦'}</span>
+											<h2 className="text-sm font-semibold">{virtualObject.name}</h2>
+										</div>
+										<p className="text-xs text-muted-foreground mb-4">{virtualObject.description}</p>
+
+										{/* Return fields */}
+										<div className="mb-4">
+											<div className="flex items-center justify-between mb-2">
+												<span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('returnFields')}</span>
+												<button className="text-[11px] font-medium text-primary hover:underline"
+													onClick={() => setSelectedFields(selectedFields.length === 0 ? allAttributeNames : [])}>
+													{selectedFields.length === 0 ? t('selectAll') : t('clear')}
+												</button>
+											</div>
+											<p className="text-[11px] text-muted-foreground mb-2">{t('emptyReturnsAll')}</p>
+											<div className="flex flex-wrap gap-1.5">
+												{(virtualObject.attributes ?? []).map((a) => {
+													const on = selectedFields.includes(a.name);
+													return (
+														<button key={a.name} onClick={() => toggleField(a.name)}
+															className={cn('text-xs px-2.5 py-1 rounded-full border transition-colors font-medium',
+																on ? 'bg-primary/10 text-primary border-primary/30' : 'bg-card text-muted-foreground border-border hover:bg-muted')}>
+															{a.name}
+														</button>
+													);
+												})}
+												{allAttributeNames.length === 0 && (
+													<span className="text-xs text-muted-foreground">{t('noAttributes')}</span>
+												)}
+											</div>
+										</div>
+
+										{/* Derived attributes */}
+										{allDerivedNames.length > 0 && (
+											<div className="mb-4 pt-4 border-t border-border">
+												<div className="flex items-center gap-1.5 mb-2">
+													<Sigma className="w-3.5 h-3.5 text-primary" />
+													<span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('derivedAttributes')}</span>
 												</div>
-												<p className="text-[11px] text-muted-foreground/80">{t('emptyReturnsAll')}</p>
 												<div className="flex flex-wrap gap-1.5">
-													{(virtualObject.attributes ?? []).map((a) => {
-														const on = selectedFields.includes(a.name);
+													{(virtualObject.derivedAttributes ?? []).map((d) => {
+														const on = selectedDerived.includes(d.name);
+														const cfg = aggregateConfig[d.aggregate] ?? aggregateConfig.count;
 														return (
-															<button key={a.name} onClick={() => toggleField(a.name)}
-																className={cn('text-xs px-2 py-1 rounded-md border transition-colors',
-																	on ? 'bg-indigo-100 text-indigo-700 border-indigo-300' : 'bg-muted/30 hover:bg-muted border-transparent')}>
-																{a.name}
+															<button key={d.id} onClick={() => toggleDerived(d.name)}
+																className={cn('text-xs px-2.5 py-1 rounded-full border transition-colors inline-flex items-center gap-1 font-medium',
+																	on ? 'bg-primary/10 text-primary border-primary/30' : 'bg-card text-muted-foreground border-border hover:bg-muted')}>
+																<span>{cfg.icon}</span>{d.name}
 															</button>
 														);
 													})}
-													{allAttributeNames.length === 0 && (
-														<span className="text-xs text-muted-foreground">{t('noAttributes')}</span>
-													)}
 												</div>
 											</div>
+										)}
 
-											{/* Derived attributes */}
-											{allDerivedNames.length > 0 && (
-												<div className="space-y-2">
-													<label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-														<Sigma className="w-3 h-3" /> {t('derivedAttributes')}
-													</label>
-													<div className="flex flex-wrap gap-1.5">
-														{(virtualObject.derivedAttributes ?? []).map((d) => {
-															const on = selectedDerived.includes(d.name);
-															const cfg = aggregateConfig[d.aggregate] ?? aggregateConfig.count;
-															return (
-																<button key={d.id} onClick={() => toggleDerived(d.name)}
-																	className={cn('text-xs px-2 py-1 rounded-md border transition-colors inline-flex items-center gap-1',
-																		on ? 'bg-amber-100 text-amber-700 border-amber-300' : 'bg-muted/30 hover:bg-muted border-transparent')}>
-																	<span>{cfg.icon}</span>{d.name}
-																</button>
-															);
-														})}
-													</div>
-												</div>
-											)}
-
-											{/* Filters */}
-											<div className="space-y-2">
-												<label className="text-xs font-medium text-muted-foreground">
-													{t('filters')} <span className="text-red-500">*</span>
-												</label>
+										{/* Filters */}
+										<div className="mb-4 pt-4 border-t border-border">
+											<span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+												{t('filters')} <span className="text-red-500">*</span>
+											</span>
+											<div className="mt-2">
 												{allAttributeNames.length === 0 ? (
 													<span className="text-xs text-muted-foreground">{t('noAttributesForFilter')}</span>
 												) : (
@@ -349,18 +342,20 @@ const OntologyDataTester: React.FC = () => {
 															t={t}
 														/>
 														{Object.keys(filters).length === 0 && (
-															<p className="text-[11px] text-amber-600">{t('filtersRequired')}</p>
+															<p className="text-[11px] text-amber-600 mt-2">{t('filtersRequired')}</p>
 														)}
 													</>
 												)}
 											</div>
+										</div>
 
-											{/* Pagination */}
-											<div className="grid grid-cols-2 gap-3">
-												<div className="space-y-2">
-													<label className="text-xs font-medium text-muted-foreground">{t('limit')}</label>
+										{/* Pagination */}
+										<div className="pt-4 border-t border-border">
+											<div className="flex items-center gap-4">
+												<div>
+													<label className="block mb-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('limit')}</label>
 													<Select value={String(limit)} onValueChange={(v) => setLimit(Number(v))}>
-														<SelectTrigger><SelectValue /></SelectTrigger>
+														<SelectTrigger className="w-20 h-8 text-xs font-mono"><SelectValue /></SelectTrigger>
 														<SelectContent>
 															{ROW_LIMIT_OPTIONS.map((n) => (
 																<SelectItem key={n} value={String(n)}>{n}</SelectItem>
@@ -368,140 +363,144 @@ const OntologyDataTester: React.FC = () => {
 														</SelectContent>
 													</Select>
 												</div>
-												<div className="space-y-2">
-													<label className="text-xs font-medium text-muted-foreground">{t('offset')}</label>
-													<Input type="number" min={0} value={offset}
+												<div>
+													<label className="block mb-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('offset')}</label>
+													<Input type="number" min={0} value={offset} className="w-20 h-8 font-mono text-xs"
 														onChange={(e) => setOffset(Math.max(0, Number(e.target.value) || 0))} />
 												</div>
 											</div>
-										</CardContent>
-									</Card>
+										</div>
+									</div>
 								)}
 							</div>
 
-							{/* 右侧：SQL 预览 + 结果 */}
-							<div className="lg:col-span-2 space-y-4">
-								<Card>
-									<CardHeader className="pb-3">
-										<div className="flex items-center justify-between">
-											<CardTitle className="text-base flex items-center gap-2">
-												<FlaskConical className="w-4 h-4 text-indigo-500" />
-												{t('compiledSql')}
-											</CardTitle>
-											<div className="flex items-center gap-2">
-												<Button variant="ghost" size="sm" className="gap-1.5 h-8"
-													onClick={runCompile} disabled={compiling || !virtualObject}>
-													{compiling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-													{t('compile')}
-												</Button>
-												<Button variant="ghost" size="sm" className="gap-1.5 h-8"
-													onClick={copySql} disabled={!compileResult?.sql}>
-													{copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-													{copied ? t('copied') : t('copy')}
-												</Button>
-											</div>
+							{/* ═══ RIGHT PANEL — Results ═══ */}
+							<div className="flex-1 space-y-5 min-w-0">
+								{/* Card 3: Compiled SQL */}
+								<div className="bg-card border border-border rounded-lg p-5">
+									<div className="flex items-center justify-between mb-3">
+										<div className="flex items-center gap-2">
+											<FlaskConical className="w-4 h-4 text-primary" />
+											<h2 className="text-sm font-semibold">{t('compiledSql')}</h2>
 										</div>
-				    				</CardHeader>
-									<CardContent className="space-y-3">
-										{compileResult ? (
-											<>
-												{compileResult.labels.length > 0 && (
-													<div className="flex flex-wrap items-center gap-1.5 text-xs">
-														<span className="text-muted-foreground">{t('columns')}:</span>
-														{compileResult.labels.map((l) => (
-															<Badge key={l} variant="secondary" className="text-[10px]">{l}</Badge>
-														))}
-													</div>
-												)}
-												<pre className="font-mono text-xs bg-muted/40 border rounded-md p-3 overflow-auto max-h-[240px] whitespace-pre-wrap break-all">
-													{compileResult.sql}
-												</pre>
-											</>
-										) : (
-											<pre className="font-mono text-xs text-muted-foreground bg-muted/20 border rounded-md p-3 min-h-[120px]">
-												{virtualObject ? t('clickCompileHint') : t('selectObjectFirst')}
-											</pre>
-										)}
-										<div className="flex items-center justify-end">
-											<Button className="gap-2" onClick={runQuery} disabled={running || !virtualObject}>
-												{running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-												{running ? t('running') : t('executeQuery')}
+										<div className="flex items-center gap-2">
+											<Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs"
+												onClick={runCompile} disabled={compiling || !virtualObject}>
+												{compiling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+												{t('compile')}
+											</Button>
+											<Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs"
+												onClick={copySql} disabled={!compileResult?.sql}>
+												{copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+												{copied ? t('copied') : t('copy')}
 											</Button>
 										</div>
-									</CardContent>
-								</Card>
+									</div>
+
+									{compileResult ? (
+										<>
+											{compileResult.labels.length > 0 && (
+												<div className="flex flex-wrap gap-1.5 mb-3">
+													{compileResult.labels.map((l) => (
+														<span key={l} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">{l}</span>
+													))}
+												</div>
+											)}
+											{/* SQL Terminal — dark IDE style */}
+											<div className="rounded-lg overflow-hidden border border-border">
+												<div className="flex items-center px-3 py-1.5 border-b border-border bg-muted/60">
+													<span className="text-[11px] font-medium px-2 py-0.5 rounded-t bg-zinc-900 text-indigo-300">SQL Preview</span>
+													<span className="text-[10px] ml-auto text-muted-foreground font-mono">postgresql</span>
+												</div>
+												<pre className="font-mono text-[13px] bg-zinc-900 text-slate-200 p-3 overflow-auto max-h-[280px] leading-relaxed">
+													{compileResult.sql}
+												</pre>
+											</div>
+										</>
+									) : (
+										<div className="rounded-lg overflow-hidden border border-border">
+											<div className="flex items-center px-3 py-1.5 border-b border-border bg-muted/60">
+												<span className="text-[11px] font-medium px-2 py-0.5 rounded-t bg-zinc-900 text-indigo-300">SQL Preview</span>
+											</div>
+											<pre className="font-mono text-[13px] bg-zinc-900 text-slate-500 p-3 min-h-[120px] leading-relaxed">
+												{virtualObject ? t('clickCompileHint') : t('selectObjectFirst')}
+											</pre>
+										</div>
+									)}
+									<div className="flex items-center justify-end mt-3">
+										<Button className="gap-2 h-9 text-xs font-semibold" onClick={runQuery} disabled={running || !virtualObject}>
+											{running ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+											{running ? t('running') : t('executeQuery')}
+										</Button>
+									</div>
+								</div>
 
 								{/* Error */}
 								{error && (
-									<Card className="border-red-200">
-										<CardContent className="py-4">
-											<div className="flex items-start gap-2 text-sm text-red-700">
-												<AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-												<div>
-													<div className="font-medium mb-1">{t('failed')}</div>
-													<pre className="whitespace-pre-wrap text-xs text-red-600">{error}</pre>
-												</div>
+									<div className="bg-red-50 border border-red-200 rounded-lg p-4">
+										<div className="flex items-start gap-2 text-sm text-red-700">
+											<AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+											<div>
+												<div className="font-medium mb-1">{t('failed')}</div>
+												<pre className="whitespace-pre-wrap text-xs text-red-600">{error}</pre>
 											</div>
-										</CardContent>
-									</Card>
+										</div>
+									</div>
 								)}
 
-								{/* Query results */}
+								{/* Card 4: Query Results */}
 								{queryResult && (
-									<Card>
-										<CardHeader className="pb-3">
-											<div className="flex items-center justify-between">
-												<CardTitle className="text-base flex items-center gap-2">
-													<Table2 className="w-4 h-4 text-emerald-500" />
-													{t('queryResults')}
-												</CardTitle>
-												<span className="text-xs text-muted-foreground">
-													{t('rowsLabel', { count: queryResult.rows.length })}
-													{queryResult.total != null ? t('totalLabel', { count: queryResult.total }) : ''}
-													{' × '}{t('columnsLabel', { count: resultColumns.length })}
-												</span>
+									<div className="bg-card border border-border rounded-lg p-5">
+										<div className="flex items-center justify-between mb-3">
+											<div className="flex items-center gap-2">
+												<Table2 className="w-4 h-4 text-primary" />
+												<h2 className="text-sm font-semibold">{t('queryResults')}</h2>
 											</div>
-										</CardHeader>
-										<CardContent>
-											<ResultTable columns={resultColumns} rows={queryResult.rows} t={t} />
-										</CardContent>
-									</Card>
+											<span className="text-xs font-medium px-2 py-0.5 rounded-md bg-muted text-muted-foreground">
+												{t('rowsLabel', { count: queryResult.rows.length })}
+												{queryResult.total != null ? t('totalLabel', { count: queryResult.total }) : ''}
+												{' × '}{t('columnsLabel', { count: resultColumns.length })}
+											</span>
+										</div>
+										<ResultTable columns={resultColumns} rows={queryResult.rows} t={t} />
+									</div>
 								)}
 
-								{/* Virtual objects list */}
+								{/* Card 5: Virtual Objects List */}
 								{ontology && ontology.virtualObjects.length > 0 && (
-									<Card>
-										<CardHeader className="pb-3">
-											<CardTitle className="text-base flex items-center gap-2">
-												<Boxes className="w-4 h-4 text-indigo-500" />
-												{t('virtualObjectsList')}
-												<span className="text-muted-foreground font-normal text-sm">({ontology.virtualObjects.length})</span>
-											</CardTitle>
-										</CardHeader>
-										<CardContent className="space-y-1">
+									<div className="bg-card border border-border rounded-lg p-5">
+										<div className="flex items-center gap-2 mb-3">
+											<h2 className="text-sm font-semibold">{t('virtualObjectsList')} <span className="font-normal text-muted-foreground">({ontology.virtualObjects.length})</span></h2>
+										</div>
+										<div className="space-y-0.5">
 											{ontology.virtualObjects.map((vo) => {
 												const expanded = expandedObjects.has(vo.id);
 												const isActive = vo.id === objectId;
 												return (
-													<div key={vo.id} className={cn('rounded-md border', isActive ? 'border-indigo-300 bg-indigo-50/40' : 'border-transparent')}>
-														<div className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-muted/40 rounded-md" onClick={() => setObjectId(vo.id)}>
-															<button onClick={(e) => { e.stopPropagation(); toggleObject(vo.id); }} className="p-0.5 hover:bg-muted rounded">
-																{expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+													<div key={vo.id}>
+														<div className={cn('flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer border transition-colors',
+																isActive ? 'bg-primary/10 border-primary/30' : 'border-transparent hover:bg-muted')}
+															onClick={() => setObjectId(vo.id)}>
+															<button onClick={(e) => { e.stopPropagation(); toggleObject(vo.id); }} className="p-0.5">
+																{expanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />}
 															</button>
-															<span>{vo.icon || '📦'}</span>
-															<span className={cn('text-sm flex-1 truncate', isActive && 'font-semibold')}>{vo.name}</span>
-															<Badge variant="outline" className="text-[10px]">{t('tablesLabel', { count: vo.physicalTables.length })}</Badge>
+															<span className="text-sm">{vo.icon || '📦'}</span>
+															<span className={cn('text-[13px] flex-1 truncate', isActive ? 'font-semibold text-primary' : 'font-medium')}>{vo.name}</span>
+															<span className={cn('text-[11px] px-1.5 py-0.5 rounded font-medium',
+																isActive ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground')}>
+																{t('tablesLabel', { count: vo.physicalTables.length })}
+															</span>
 														</div>
 														{expanded && (
-															<div className="px-7 pb-2 text-xs text-muted-foreground space-y-1">
+															<div className="space-y-0.5">
 																{(vo.physicalTables ?? []).map((pt, i) => {
 																	const cfg = physicalTableKindConfig[pt.kind] ?? physicalTableKindConfig.detail;
 																	return (
-																		<div key={i} className="flex items-center gap-1.5">
-																			<Database className="w-3 h-3" />
-																			<span>{resolvePhysicalTableLabel(pt)}</span>
-																			<Badge variant="outline" className={cn('text-[10px]', cfg.className)}>{cfg.icon} {cfg.label}</Badge>
-																			<span className="text-muted-foreground/70">· {t('fieldsLabel', { count: pt.fields.length })}</span>
+																		<div key={i} className="flex items-center gap-2 px-3 py-1.5 pl-11 text-xs text-muted-foreground">
+																			<Database className="w-3 h-3 text-muted-foreground/60" />
+																			<span className="font-mono text-[12px] text-foreground">{resolvePhysicalTableLabel(pt)}</span>
+																			<span className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-medium', cfg.className)}>{cfg.icon} {cfg.label}</span>
+																			<span className="text-[10px] text-muted-foreground">{t('fieldsLabel', { count: pt.fields.length })}</span>
 																		</div>
 																	);
 																})}
@@ -510,8 +509,8 @@ const OntologyDataTester: React.FC = () => {
 													</div>
 												);
 											})}
-										</CardContent>
-									</Card>
+										</div>
+									</div>
 								)}
 							</div>
 						</div>
@@ -550,21 +549,21 @@ const FilterEditor: React.FC<{
 	return (
 		<div className="space-y-2">
 			{Object.entries(filters).map(([field, value]) => (
-				<div key={field} className="flex items-center gap-2">
-					<Badge variant="outline" className="text-xs shrink-0">{field}</Badge>
-					<span className="text-xs text-muted-foreground">=</span>
-					<Input className="h-7 text-xs flex-1" value={value}
+				<div key={field} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-muted/40 border border-border rounded text-xs">
+					<span className="text-[11px] font-semibold font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">{field}</span>
+					<span className="text-muted-foreground">=</span>
+					<Input className="h-6 text-xs flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0 px-1 font-mono" value={value}
 						onChange={(e) => updateFilter(field, e.target.value)}
 						placeholder={t('filterValuePlaceholder')} />
-					<Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeFilter(field)}>
-						<X className="w-3.5 h-3.5" />
-					</Button>
+					<button className="p-0.5 rounded hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors shrink-0" onClick={() => removeFilter(field)}>
+						<X className="w-3 h-3" />
+					</button>
 				</div>
 			))}
 			{available.length > 0 && (
 				<div className="flex items-center gap-2">
 					<Select value={pendingField} onValueChange={setPendingField}>
-						<SelectTrigger className="h-7 text-xs"><SelectValue placeholder={t('selectAttribute')} /></SelectTrigger>
+						<SelectTrigger className="h-7 text-xs flex-1"><SelectValue placeholder={t('selectAttribute')} /></SelectTrigger>
 						<SelectContent>
 							{available.map((n) => (<SelectItem key={n} value={n}>{n}</SelectItem>))}
 						</SelectContent>
@@ -595,20 +594,20 @@ const ResultTable: React.FC<{
 		);
 	}
 	return (
-		<div className="overflow-auto max-h-[480px] rounded-md border">
-			<table className="w-full text-xs">
-				<thead className="sticky top-0 bg-muted/80 backdrop-blur">
+		<div className="overflow-auto max-h-[340px] rounded-lg border border-border">
+			<table className="w-full text-[13px] border-collapse">
+				<thead className="sticky top-0">
 					<tr>
 						{columns.map((c) => (
-							<th key={c} className="text-left font-semibold px-3 py-2 border-b whitespace-nowrap">{c}</th>
+							<th key={c} className="text-left font-semibold text-[11px] uppercase tracking-wide text-muted-foreground px-3 py-2 border-b border-border bg-muted/60 whitespace-nowrap">{c}</th>
 						))}
 					</tr>
 				</thead>
 				<tbody>
 					{rows.map((row, ri) => (
-						<tr key={ri} className="hover:bg-muted/30 border-b last:border-b-0">
+						<tr key={ri} className={cn('border-b border-border last:border-b-0 hover:bg-primary/5', ri % 2 === 1 && 'bg-muted/20')}>
 							{columns.map((c) => (
-								<td key={c} className="px-3 py-1.5 align-top whitespace-nowrap max-w-[320px] truncate" title={formatCell(row[c])}>
+								<td key={c} className="px-3 py-2 align-top whitespace-nowrap font-mono text-[12px] max-w-[320px] truncate" title={formatCell(row[c])}>
 									{formatCell(row[c])}
 								</td>
 							))}
