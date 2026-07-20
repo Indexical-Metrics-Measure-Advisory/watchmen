@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "watchmen-storage-mysql-async"
+version = "18.0.0"
+description = ""
+authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
+license = "MIT"
+packages = [
+    { include = "watchmen_storage_mysql_async", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "~3.12"
+SQLAlchemy = { version = "~2.0.35", extras = ["asyncio"] }
+aiomysql = "^0.2.0"
+watchmen-storage = { path = "../watchmen-storage", develop = true }
+watchmen-storage-rds = { path = "../watchmen-storage-rds", develop = true }
+watchmen-storage-rds-async = { path = "../watchmen-storage-rds-async", develop = true }
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true }
+
+[tool.poetry.group.dev.dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
