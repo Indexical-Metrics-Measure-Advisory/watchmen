@@ -1,14 +1,20 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+import time
 
 from fastapi import APIRouter, Body, Depends
+from sqlalchemy import text
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
+from watchmen_data_kernel.storage.topic_storage import build_topic_data_storage
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.system import DataSourceService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import DataPage, DataSourceId, Pageable
-from watchmen_model.system import DataSource
+from watchmen_model.system import DataSource, DataSourceType
 from watchmen_rest import get_any_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_hide_datasource_pwd_enabled, ask_tuple_delete_enabled
@@ -26,6 +32,21 @@ def get_data_source_service(principal_service: PrincipalService) -> DataSourceSe
 def clear_pwd(data_source: DataSource):
 	if ask_hide_datasource_pwd_enabled():
 		data_source.password = None
+
+
+def data_source_type_name(data_source_type: Optional[DataSourceType]) -> Optional[str]:
+	"""
+	Data sources deserialized from storage hold ``dataSourceType`` as a plain
+	``str`` (see ``DataSourceShaper.deserialize``), while freshly constructed
+	objects may hold a ``DataSourceType`` enum. Normalize both to the underlying
+	string value so consumers always receive the raw type name regardless of
+	how the data source was loaded.
+	"""
+	if data_source_type is None:
+		return None
+	if isinstance(data_source_type, DataSourceType):
+		return data_source_type.value
+	return str(data_source_type)
 
 
 @router.get('/datasource', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
@@ -120,6 +141,94 @@ async def find_all_data_sources(
 
 	data_source_list = attach_tenant_name(trans_readonly(data_source_service, action), principal_service)
 	return ArrayHelper(data_source_list).each(clear_pwd).to_list()
+
+
+def probe_data_source(data_source: DataSource) -> Dict:
+	"""
+	Probe a single data source connectivity. SQL sources are checked by executing a
+	lightweight query; other types (S3/OSS/MongoDB etc.) are marked as skipped.
+	"""
+	started = time.monotonic()
+	result = {
+		'dataSourceId': data_source.dataSourceId,
+		'name': data_source.name,
+		'type': data_source_type_name(data_source.dataSourceType),
+		'status': 'skipped',
+		'latencyMs': None,
+		'error': None
+	}
+	sql_types = (
+		DataSourceType.MYSQL, DataSourceType.ORACLE, DataSourceType.MSSQL,
+		DataSourceType.POSTGRESQL, DataSourceType.SNOWFLAKE
+	)
+	if data_source.dataSourceType not in sql_types:
+		return result
+
+	storage = None
+	try:
+		storage = build_topic_data_storage(data_source)()
+		engine = getattr(storage, 'engine', None)
+		if engine is None:
+			return result
+		probe_sql = 'SELECT 1 FROM DUAL' if data_source.dataSourceType == DataSourceType.ORACLE else 'SELECT 1'
+		with engine.connect() as connection:
+			connection.execute(text(probe_sql))
+		result['status'] = 'ok'
+		result['latencyMs'] = round((time.monotonic() - started) * 1000)
+	except Exception as e:
+		result['status'] = 'error'
+		result['latencyMs'] = round((time.monotonic() - started) * 1000)
+		result['error'] = str(e)[:300]
+	finally:
+		engine = getattr(storage, 'engine', None) if storage is not None else None
+		if engine is not None:
+			try:
+				engine.dispose()
+			except Exception:
+				pass
+	return result
+
+
+@router.get('/datasource/health', tags=[UserRole.ADMIN], response_model=None)
+async def check_data_sources_health(
+		principal_service: PrincipalService = Depends(get_any_admin_principal)) -> Dict:
+	data_source_service = get_data_source_service(principal_service)
+
+	def action() -> List[DataSource]:
+		tenant_id = None
+		if principal_service.is_tenant_admin():
+			tenant_id = principal_service.get_tenant_id()
+		return data_source_service.find_all(tenant_id)
+
+	data_source_list = trans_readonly(data_source_service, action)
+
+	results = []
+	pool = ThreadPoolExecutor(max_workers=4)
+	try:
+		futures = {pool.submit(probe_data_source, ds): ds for ds in data_source_list}
+		try:
+			for future in as_completed(futures, timeout=30):
+				results.append(future.result())
+		except TimeoutError:
+			# mark probes that did not finish in time as timeout
+			finished_ids = {item['dataSourceId'] for item in results}
+			for ds in data_source_list:
+				if ds.dataSourceId not in finished_ids:
+					results.append({
+						'dataSourceId': ds.dataSourceId,
+						'name': ds.name,
+						'type': data_source_type_name(ds.dataSourceType),
+						'status': 'timeout',
+						'latencyMs': None,
+						'error': None
+					})
+	finally:
+		pool.shutdown(wait=False)
+
+	return {
+		'checkedAt': datetime.now().isoformat(),
+		'sources': results
+	}
 
 
 @router.delete('/datasource', tags=[UserRole.SUPER_ADMIN], response_model=None)

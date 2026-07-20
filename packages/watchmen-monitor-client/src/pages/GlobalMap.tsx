@@ -1,6 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -12,20 +11,25 @@ import {
   HeartPulse,
   Activity,
   Clock,
-  Filter,
-  ChevronDown,
   Loader,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { KpiTile } from '@/components/monitor/KpiTile';
-import { StatusPill } from '@/components/monitor/StatusPill';
 import { MonoText, EmptyState, ErrorBanner } from '@/components/monitor/common';
 import {
   useIngestEvents,
   useAllPipelines,
   usePipelineLogs,
   useAllTopics,
+  useDataSources,
+  useDataSourceHealth,
+  useIngestEventDetail,
+  useIngestProgress,
+  useIngestEventStats,
+  usePipelineLogStats,
 } from '@/hooks/useMonitorQueries';
+import type { MonitorOutletContext } from '@/components/Layout';
 import {
   getIngestStatusMeta,
   getEventTypeLabel,
@@ -34,16 +38,46 @@ import {
   TONE_DOT_CLASS,
   type Tone,
 } from '@/utils/monitorConstants';
-import { IngestStatus, type EventTriggerItem } from '@/models/monitor.models';
+import { IngestStatus, type EventTriggerItem, type EventResultRecord } from '@/models/monitor.models';
 import {
   MonitorLogStatus,
   type PipelineMonitorLogCriteria,
-  type PipelineMonitorLog,
 } from '@/models/pipeline.models';
-import { TopicType, type Topic } from '@/models/topic.models';
+import { TopicType } from '@/models/topic.models';
+import type { DataSourceItem, DataSourceHealthItem } from '@/services/dataSourceService';
+import { isCollectorDataSource } from '@/services/dataSourceService';
 import { formatDistanceToNow } from 'date-fns';
 
 type StageId = 'sources' | 'ingestion' | 'topics' | 'pipeline';
+type StatusFilter = 'all' | 'running' | 'failed' | 'success' | 'queued';
+
+/* ── Helpers ─────────────────────────────────────────────────────── */
+const fmtNum = (n?: number | null): string => (n ?? 0).toLocaleString();
+
+/** Compute overall json-progress percent from per-table detail rows. */
+const calcDetailPercent = (rows: EventResultRecord[]): number | null => {
+  let finished = 0;
+  let total = 0;
+  for (const row of rows) {
+    finished += row.jsonFinishedCount ?? 0;
+    total += (row.jsonCount ?? 0) + (row.jsonFinishedCount ?? 0);
+  }
+  return total > 0 ? Math.round((finished / total) * 100) : null;
+};
+
+const DS_TYPE_ICON_CLASS: Record<string, string> = {
+  MYSQL: 'text-blue-500',
+  POSTGRESQL: 'text-indigo-500',
+  ORACLE: 'text-red-500',
+  MSSQL: 'text-amber-600',
+  MONGODB: 'text-green-600',
+  KAFKA: 'text-orange-500',
+  S3: 'text-cyan-500',
+  OSS: 'text-cyan-500',
+};
+
+const dsTypeIconClass = (type?: string): string =>
+  DS_TYPE_ICON_CLASS[(type ?? '').toUpperCase()] ?? 'text-slate-400';
 
 /* ── Animated flow connector ─────────────────────────────────────── */
 const FlowConnector: React.FC<{ delay?: number }> = ({ delay = 0 }) => (
@@ -144,7 +178,7 @@ const LineageCol: React.FC<{
   segments: { flex: number; tone: Tone }[];
 }> = ({ label, value, segments }) => (
   <div className="flex flex-1 flex-col items-center gap-1.5">
-    <span className="text-[10px] font-semibold tabular-nums text-foreground">{value}</span>
+    <span className="text-[10px] font-semibold tabular-nums text-foreground">{fmtNum(value)}</span>
     <div className="flex h-12 w-full max-w-[90px] flex-col-reverse overflow-hidden rounded-md border border-slate-200">
       {segments.map((seg, i) => (
         <div key={i} className={cn(TONE_DOT_CLASS[seg.tone])} style={{ flex: seg.flex }} />
@@ -154,7 +188,7 @@ const LineageCol: React.FC<{
   </div>
 );
 
-/* ── Event detail row (v2 enriched) ──────────────────────────────── */
+/* ── Event detail row ────────────────────────────────────────────── */
 const EventRow: React.FC<{
   event: EventTriggerItem;
   selected: boolean;
@@ -162,6 +196,9 @@ const EventRow: React.FC<{
 }> = ({ event, selected, onClick }) => {
   const meta = getIngestStatusMeta(event.status);
   const isExecuting = event.status === IngestStatus.EXECUTING;
+  // Real per-event progress, only fetched while the event is executing.
+  const detailQ = useIngestEventDetail(isExecuting ? event.eventTriggerId : null);
+  const percent = isExecuting ? calcDetailPercent(detailQ.data ?? []) : null;
   const duration = event.startTime
     ? event.endTime
       ? new Date(event.endTime).getTime() - new Date(event.startTime).getTime()
@@ -217,11 +254,13 @@ const EventRow: React.FC<{
           <div className="flex shrink-0 items-center gap-2">
             <div className="h-1 w-14 overflow-hidden rounded-full bg-slate-100">
               <div
-                className="h-full rounded-full bg-blue-500"
-                style={{ width: `${event.percent ?? 50}%` }}
+                className={cn('h-full rounded-full bg-blue-500 transition-all', percent == null && 'animate-pulse')}
+                style={{ width: `${percent ?? 100}%`, opacity: percent == null ? 0.4 : 1 }}
               />
             </div>
-            <span className="text-[10px] tabular-nums text-muted-foreground">{event.percent ?? 50}%</span>
+            <span className="text-[10px] tabular-nums text-muted-foreground">
+              {percent == null ? '…' : `${percent}%`}
+            </span>
           </div>
         ) : (
           <span
@@ -239,23 +278,25 @@ const EventRow: React.FC<{
   );
 };
 
-/* ── Filter chip ──────────────────────────────────────────────────── */
-const FilterChip: React.FC<{
-  children: React.ReactNode;
-  active?: boolean;
-  icon?: React.ReactNode;
-}> = ({ children, active, icon }) => (
-  <span
-    className={cn(
-      'inline-flex h-5 items-center gap-1 rounded-full border px-2 text-[11px] font-medium',
-      active
-        ? 'border-indigo-200 bg-indigo-50 text-indigo-600'
-        : 'border-slate-200 bg-slate-50 text-muted-foreground',
-    )}
+/* ── Compact filter select ────────────────────────────────────────── */
+const FilterSelect: React.FC<{
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+  ariaLabel: string;
+}> = ({ value, onChange, options, ariaLabel }) => (
+  <select
+    aria-label={ariaLabel}
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    className="h-5 cursor-pointer rounded-full border border-slate-200 bg-slate-50 px-1.5 text-[11px] font-medium text-muted-foreground outline-none transition-colors hover:border-slate-300 focus:border-indigo-300"
   >
-    {icon}
-    {children}
-  </span>
+    {options.map((opt) => (
+      <option key={opt.value} value={opt.value}>
+        {opt.label}
+      </option>
+    ))}
+  </select>
 );
 
 /* ── Progress meter (thin, for summary card) ──────────────────────── */
@@ -271,11 +312,12 @@ const ProgressMeter: React.FC<{
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">{label}</span>
         <span className="text-[10px] tabular-nums text-muted-foreground">
-          <span className="font-semibold text-green-600">{finished}</span> finished · {unfinished} unfinished
+          <span className="font-semibold text-green-600">{fmtNum(finished)}</span> / {fmtNum(total)}
+          <span className="ml-1.5 text-indigo-600">{Math.round(pct)}%</span>
         </span>
       </div>
       <div className="h-1 overflow-hidden rounded-full bg-slate-100">
-        <div className="h-full rounded-full bg-indigo-500" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
@@ -283,29 +325,47 @@ const ProgressMeter: React.FC<{
 
 /* ── Main GlobalMap v2 page ───────────────────────────────────────── */
 const GlobalMap: React.FC = () => {
-  const { t } = useTranslation(['globalMap', 'common', 'nav']);
   const navigate = useNavigate();
   const [activeStage, setActiveStage] = React.useState<StageId>('ingestion');
   const [selectedEventId, setSelectedEventId] = React.useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = React.useState<string>('all');
+  const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('all');
 
-  // Fetch summary data from all three services
+  // Fetch summary data from all services
   const eventsQ = useIngestEvents({ pageNumber: 1, pageSize: 8 });
   const topicsQ = useAllTopics();
   const pipelinesQ = useAllPipelines();
-  const pipelineLogsQ = usePipelineLogs({
+  const dataSourcesQ = useDataSources();
+  const pipelineErrorLogsQ = usePipelineLogs({
     pageNumber: 1,
     pageSize: 8,
     status: MonitorLogStatus.ERROR,
   } as PipelineMonitorLogCriteria);
+  // Total pipeline runs (itemCount only, single-row page).
+  const pipelineAllLogsQ = usePipelineLogs({
+    pageNumber: 1,
+    pageSize: 1,
+  } as PipelineMonitorLogCriteria);
+  // Aggregated stats from the new backend endpoints (fall back to page samples when unavailable).
+  const dataSourceHealthQ = useDataSourceHealth();
+  const pipelineStatsQ = usePipelineLogStats({ sampleSize: 200 });
+  const eventStatsQ = useIngestEventStats(200);
+
+  // Refresh cadence is driven globally from the Layout top-bar selector
+  // (1m/5m/10m/manual); Layout owns the timer and invalidates all monitor
+  // query prefixes. Here we only consume the exposed refresh controls so the
+  // in-page "Refresh now" button shares the same channel.
+  const { refresh, isRefreshing } = useOutletContext<MonitorOutletContext>();
 
   // Compute KPI values from real data
-  const events = eventsQ.data?.data ?? [];
-  const topics = topicsQ.data ?? [];
-  const pipelineLogs = pipelineLogsQ.data?.data ?? [];
+  const events = React.useMemo(() => eventsQ.data?.data ?? [], [eventsQ.data]);
+  const topics = React.useMemo(() => topicsQ.data ?? [], [topicsQ.data]);
+  const pipelineErrorLogs = React.useMemo(() => pipelineErrorLogsQ.data?.data ?? [], [pipelineErrorLogsQ.data]);
+  const dataSources = React.useMemo(() => dataSourcesQ.data ?? [], [dataSourcesQ.data]);
   const eventCount = eventsQ.data?.itemCount ?? events.length;
   const topicCount = topics.length;
-  const pipelineCount = pipelinesQ.data?.length ?? 0;
-  const errorLogCount = pipelineLogsQ.data?.itemCount ?? 0;
+  const errorLogCount = pipelineErrorLogsQ.data?.itemCount ?? 0;
+  const pipelineRunCount = pipelineAllLogsQ.data?.itemCount ?? 0;
 
   // Status breakdowns from actual events
   const statusCounts = React.useMemo(() => {
@@ -351,18 +411,28 @@ const GlobalMap: React.FC = () => {
     return counts;
   }, [topics]);
 
+  // Data source type breakdown
+  const dsTypeCounts = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const ds of dataSources) {
+      const type = (ds.dataSourceType ?? 'UNKNOWN').toUpperCase();
+      counts[type] = (counts[type] ?? 0) + 1;
+    }
+    return counts;
+  }, [dataSources]);
+
   // Total factors across topics
   const totalFactors = React.useMemo(
     () => topics.reduce((sum, t) => sum + (t.factors?.length ?? 0), 0),
     [topics],
   );
 
-  // Pipeline action totals
+  // Pipeline action totals (from the error logs currently loaded)
   const pipelineActionTotals = React.useMemo(() => {
     let inserts = 0;
     let updates = 0;
     let deletes = 0;
-    for (const log of pipelineLogs) {
+    for (const log of pipelineErrorLogs) {
       for (const stage of log.stages ?? []) {
         for (const unit of stage.units ?? []) {
           for (const action of unit.actions ?? []) {
@@ -374,7 +444,7 @@ const GlobalMap: React.FC = () => {
       }
     }
     return { inserts, updates, deletes };
-  }, [pipelineLogs]);
+  }, [pipelineErrorLogs]);
 
   // Pipeline ID → name lookup map (resolves pipelineId to human-readable name)
   const pipelineNameMap = React.useMemo(() => {
@@ -385,12 +455,95 @@ const GlobalMap: React.FC = () => {
     return map;
   }, [pipelinesQ.data]);
 
-  const isLoading = eventsQ.isLoading || topicsQ.isLoading;
-  const firstExecutingEvent = events.find((e) => e.status === IngestStatus.EXECUTING);
+  // Average duration of finished events on the current page (honest recent-sample metric)
+  const avgDurationMs = React.useMemo(() => {
+    const durations = events
+      .filter((e) => e.startTime && e.endTime)
+      .map((e) => new Date(e.endTime as string).getTime() - new Date(e.startTime as string).getTime());
+    if (durations.length === 0) return null;
+    return durations.reduce((a, b) => a + b, 0) / durations.length;
+  }, [events]);
+
+  // Auto-select the first executing event (or the first event) for the detail card
+  React.useEffect(() => {
+    if (selectedEventId || events.length === 0) return;
+    const executing = events.find((e) => e.status === IngestStatus.EXECUTING);
+    setSelectedEventId((executing ?? events[0]).eventTriggerId);
+  }, [events, selectedEventId]);
+
+  // Client-side filtering of the loaded events
+  const filteredEvents = React.useMemo(
+    () =>
+      events.filter((e) => {
+        if (typeFilter !== 'all' && getEventTypeLabel(e.type) !== typeFilter) return false;
+        if (statusFilter === 'all') return true;
+        const tone = getIngestStatusMeta(e.status).tone;
+        if (statusFilter === 'running') return tone === 'info';
+        if (statusFilter === 'failed') return tone === 'error';
+        if (statusFilter === 'success') return tone === 'success';
+        return tone === 'warning'; // queued
+      }),
+    [events, typeFilter, statusFilter],
+  );
+
+  // Selected event drill-down queries (real per-event progress data)
+  const drillDownEnabled = activeStage === 'ingestion' && selectedEventId != null;
+  const eventDetailQ = useIngestEventDetail(selectedEventId, drillDownEnabled);
+  const recordCountsQ = useIngestProgress(selectedEventId, 'record', drillDownEnabled);
+  const jsonCountsQ = useIngestProgress(selectedEventId, 'json', drillDownEnabled);
+  const taskCountsQ = useIngestProgress(selectedEventId, 'task', drillDownEnabled);
+  const selectedEvent = events.find((e) => e.eventTriggerId === selectedEventId) ?? null;
+  const eventDetailRows = eventDetailQ.data ?? [];
+
+  // Data source health probe results (dataSourceId → probe item)
+  const dsHealthMap = React.useMemo(() => {
+    const map: Record<string, DataSourceHealthItem> = {};
+    for (const item of dataSourceHealthQ.data?.sources ?? []) {
+      map[item.dataSourceId] = item;
+    }
+    return map;
+  }, [dataSourceHealthQ.data]);
+  const dsHealthCounts = React.useMemo(() => {
+    let ok = 0;
+    let failed = 0;
+    for (const item of dataSourceHealthQ.data?.sources ?? []) {
+      if (item.status === 'ok') ok++;
+      else if (item.status === 'error' || item.status === 'timeout') failed++;
+    }
+    return { ok, failed, checked: (dataSourceHealthQ.data?.sources ?? []).length > 0 };
+  }, [dataSourceHealthQ.data]);
+
+  // Global ingestion status counts (exact, from /ingest/monitor/event/stats; falls back to page sample)
+  const globalStatusCounts = React.useMemo(() => {
+    const byStatus = eventStatsQ.data?.byStatus;
+    if (!byStatus) return null;
+    return {
+      success: byStatus[String(IngestStatus.SUCCESS)] ?? 0,
+      executing: byStatus[String(IngestStatus.EXECUTING)] ?? 0,
+      failed: byStatus[String(IngestStatus.FAIL)] ?? 0,
+      waiting: byStatus[String(IngestStatus.WAITING)] ?? 0,
+      initial: byStatus[String(IngestStatus.INITIAL)] ?? 0,
+    };
+  }, [eventStatsQ.data]);
+  const effStatusCounts = globalStatusCounts ?? statusCounts;
+
+  // Global pipeline write totals (from /pipeline/log/stats sample; falls back to loaded error logs)
+  const effPipelineActionTotals = React.useMemo(() => {
+    const stats = pipelineStatsQ.data;
+    if (!stats) return pipelineActionTotals;
+    return { inserts: stats.insertCount, updates: stats.updateCount, deletes: stats.deleteCount };
+  }, [pipelineStatsQ.data, pipelineActionTotals]);
+
+  const isLoading = eventsQ.isLoading || topicsQ.isLoading || dataSourcesQ.isLoading;
+  const healthPct =
+    pipelineRunCount > 0 ? Math.round(((pipelineRunCount - errorLogCount) / pipelineRunCount) * 100) : 100;
+  // Avg duration: prefer pipeline-run stats (server-side sample), fall back to finished events on this page.
+  const effAvgDurationMs = pipelineStatsQ.data?.avgDurationMs ?? avgDurationMs;
+  const avgDurationCaption = pipelineStatsQ.data?.avgDurationMs != null ? 'pipeline runs avg' : 'recent events';
 
   return (
     <div className="space-y-5">
-      {/* Scenario context bar */}
+      {/* Scenario context bar + live refresh indicator */}
       <div className="flex items-center gap-2.5 rounded-lg border border-indigo-100 bg-indigo-50/50 px-4 py-2.5">
         <HeartPulse className="h-4 w-4 shrink-0 text-indigo-500" />
         <span className="text-xs text-indigo-700">
@@ -398,44 +551,71 @@ const GlobalMap: React.FC = () => {
           {' · '}
           Deep data flow inspection across sources, ingestion, topics, and pipelines with real-time drill-down
         </span>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+          </span>
+          <span className="text-[10px] font-semibold text-green-600">LIVE</span>
+          {eventsQ.dataUpdatedAt > 0 && (
+            <span className="hidden text-[10px] text-indigo-400 sm:inline">
+              {formatDistanceToNow(eventsQ.dataUpdatedAt, { addSuffix: true })}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={refresh}
+            aria-label="Refresh now"
+            className="inline-flex h-5 w-5 items-center justify-center rounded text-indigo-500 transition-colors hover:bg-indigo-100"
+          >
+            <RefreshCw className={cn('h-3 w-3', isRefreshing && 'animate-spin')} />
+          </button>
+        </div>
       </div>
 
       {/* Enriched KPI Row (6 tiles) */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         <KpiTile
           label="Flow Health"
-          value={errorLogCount > 0 ? `${100 - Math.min(errorLogCount, 100)}` : '100'}
-          caption={errorLogCount > 0 ? `${errorLogCount} anomalies` : 'All healthy'}
+          value={`${healthPct}%`}
+          caption={errorLogCount > 0 ? `${fmtNum(errorLogCount)} anomalies` : 'All healthy'}
           tone={errorLogCount > 0 ? 'error' : 'success'}
         />
         <KpiTile
           label="Data Sources"
-          value="12"
-          caption="10 connected · 2 idle"
-          tone="success"
+          value={dataSourcesQ.isLoading ? '…' : fmtNum(dataSources.length)}
+          caption={
+            dsHealthCounts.checked
+              ? `${dsHealthCounts.ok} connected · ${dsHealthCounts.failed} failed`
+              : Object.entries(dsTypeCounts)
+                  .slice(0, 2)
+                  .map(([type, count]) => `${type.toLowerCase()} ×${count}`)
+                  .join(' · ') || 'Registered sources'
+          }
+          tone={dsHealthCounts.failed > 0 ? 'error' : 'neutral'}
         />
         <KpiTile
           label="Ingestion Events"
-          value={eventCount}
-          caption={`${statusCounts.success} ok · ${statusCounts.executing} run · ${statusCounts.failed} fail`}
-          tone={statusCounts.failed > 0 ? 'warning' : 'success'}
+          value={fmtNum(eventCount)}
+          caption={`${effStatusCounts.success} ok · ${effStatusCounts.executing} run · ${effStatusCounts.failed} fail`}
+          tone={effStatusCounts.failed > 0 ? 'warning' : 'success'}
         />
         <KpiTile
           label="Topics"
-          value={topicCount}
+          value={fmtNum(topicCount)}
           caption={`${topicKindCounts['business'] ?? 0} biz · ${topicKindCounts['system'] ?? 0} sys · ${topicKindCounts['synonym'] ?? 0} syn`}
           tone="neutral"
         />
         <KpiTile
           label="Pipeline Runs"
-          value={pipelineCount}
-          caption={`${pipelineCount - errorLogCount} done · ${errorLogCount} err`}
+          value={fmtNum(pipelineRunCount)}
+          caption={`${fmtNum(pipelineRunCount - errorLogCount)} done · ${fmtNum(errorLogCount)} err`}
           tone={errorLogCount > 0 ? 'error' : 'success'}
         />
         <KpiTile
           label="Avg Duration"
-          value="2.34"
-          caption="sec · across all stages"
+          value={effAvgDurationMs != null ? formatDuration(effAvgDurationMs) : '—'}
+          caption={avgDurationCaption}
           tone="info"
         />
       </div>
@@ -468,32 +648,40 @@ const GlobalMap: React.FC = () => {
                 <StageCard
                   icon={<Database className="h-3.5 w-3.5 text-indigo-600" />}
                   name="Sources"
-                  count="12"
+                  count={fmtNum(dataSources.length)}
                   unit="sources"
-                  healthTone="success"
-                  healthLabel="10 connected"
+                  healthTone={!dsHealthCounts.checked ? 'neutral' : dsHealthCounts.failed > 0 ? 'error' : 'success'}
+                  healthLabel={
+                    dsHealthCounts.checked
+                      ? `${dsHealthCounts.ok} connected · ${dsHealthCounts.failed} failed`
+                      : `${fmtNum(dataSources.length)} registered`
+                  }
                   active={activeStage === 'sources'}
                   onClick={() => setActiveStage('sources')}
                 >
                   <div className="mb-2 flex flex-wrap gap-1">
-                    <ConnPill>MySQL ×5</ConnPill>
-                    <ConnPill>PG ×3</ConnPill>
-                    <ConnPill>Kafka ×2</ConnPill>
-                    <ConnPill>API ×2</ConnPill>
+                    {Object.entries(dsTypeCounts)
+                      .slice(0, 4)
+                      .map(([type, count]) => (
+                        <ConnPill key={type}>
+                          {type} ×{count}
+                        </ConnPill>
+                      ))}
+                    {Object.keys(dsTypeCounts).length === 0 && <ConnPill>none</ConnPill>}
                   </div>
                 </StageCard>
 
                 <FlowConnector />
 
-                {/* Stage 2: Ingestion (SELECTED) */}
+                {/* Stage 2: Ingestion */}
                 <StageCard
                   icon={<ArrowDownToLine className="h-3.5 w-3.5 text-indigo-600" />}
                   name="Ingestion"
-                  count={String(eventCount)}
+                  count={fmtNum(eventCount)}
                   unit="events"
-                  healthTone={statusCounts.failed > 0 ? 'warning' : 'success'}
-                  healthLabel={`${statusCounts.executing} executing · ${statusCounts.failed} failed`}
-                  pulse={statusCounts.executing > 0}
+                  healthTone={effStatusCounts.failed > 0 ? 'warning' : 'success'}
+                  healthLabel={`${effStatusCounts.executing} executing · ${effStatusCounts.failed} failed`}
+                  pulse={effStatusCounts.executing > 0}
                   active={activeStage === 'ingestion'}
                   onClick={() => setActiveStage('ingestion')}
                 >
@@ -503,10 +691,10 @@ const GlobalMap: React.FC = () => {
                   {eventCount > 0 && (
                     <StackBar
                       segments={[
-                        { pct: (statusCounts.success / eventCount) * 100, tone: 'success' as Tone },
-                        { pct: (statusCounts.executing / eventCount) * 100, tone: 'info' as Tone },
-                        { pct: (statusCounts.failed / eventCount) * 100, tone: 'error' as Tone },
-                        { pct: (statusCounts.waiting / eventCount) * 100, tone: 'warning' as Tone },
+                        { pct: (effStatusCounts.success / eventCount) * 100, tone: 'success' as Tone },
+                        { pct: (effStatusCounts.executing / eventCount) * 100, tone: 'info' as Tone },
+                        { pct: (effStatusCounts.failed / eventCount) * 100, tone: 'error' as Tone },
+                        { pct: (effStatusCounts.waiting / eventCount) * 100, tone: 'warning' as Tone },
                       ].filter((s) => s.pct > 0)}
                     />
                   )}
@@ -518,7 +706,7 @@ const GlobalMap: React.FC = () => {
                 <StageCard
                   icon={<Layers className="h-3.5 w-3.5 text-indigo-600" />}
                   name="Topics"
-                  count={String(topicCount)}
+                  count={fmtNum(topicCount)}
                   unit="topics"
                   healthTone="success"
                   healthLabel="healthy"
@@ -534,7 +722,7 @@ const GlobalMap: React.FC = () => {
                     <ConnPill>SYN {topicKindCounts['synonym'] ?? 0}</ConnPill>
                   </div>
                   <div className="mb-1 font-mono text-[10px] text-muted-foreground">
-                    {totalFactors} factors total
+                    {fmtNum(totalFactors)} factors total
                   </div>
                 </StageCard>
 
@@ -544,23 +732,23 @@ const GlobalMap: React.FC = () => {
                 <StageCard
                   icon={<GitBranch className="h-3.5 w-3.5 text-indigo-600" />}
                   name="Pipeline"
-                  count={String(pipelineCount)}
+                  count={fmtNum(pipelineRunCount)}
                   unit="runs"
                   healthTone={errorLogCount > 0 ? 'error' : 'success'}
-                  healthLabel={errorLogCount > 0 ? `${errorLogCount} errors` : 'healthy'}
+                  healthLabel={errorLogCount > 0 ? `${fmtNum(errorLogCount)} errors` : 'healthy'}
                   active={activeStage === 'pipeline'}
                   onClick={() => setActiveStage('pipeline')}
                 >
-                  {pipelineCount > 0 && (
+                  {pipelineRunCount > 0 && (
                     <StackBar
                       segments={[
-                        { pct: ((pipelineCount - errorLogCount) / pipelineCount) * 100, tone: 'success' as Tone },
-                        { pct: (errorLogCount / pipelineCount) * 100, tone: 'error' as Tone },
+                        { pct: ((pipelineRunCount - errorLogCount) / pipelineRunCount) * 100, tone: 'success' as Tone },
+                        { pct: (errorLogCount / pipelineRunCount) * 100, tone: 'error' as Tone },
                       ].filter((s) => s.pct > 0)}
                     />
                   )}
                   <MiniBreakdown>
-                    +{pipelineActionTotals.inserts} ins · ~{pipelineActionTotals.updates} upd · -{pipelineActionTotals.deletes} del
+                    +{fmtNum(effPipelineActionTotals.inserts)} ins · ~{fmtNum(effPipelineActionTotals.updates)} upd · -{fmtNum(effPipelineActionTotals.deletes)} del
                   </MiniBreakdown>
                 </StageCard>
               </div>
@@ -576,11 +764,8 @@ const GlobalMap: React.FC = () => {
             <div className="flex items-end gap-1">
               <LineageCol
                 label="Sources"
-                value={12}
-                segments={[
-                  { flex: 10, tone: 'success' as Tone },
-                  { flex: 2, tone: 'warning' as Tone },
-                ]}
+                value={dataSources.length}
+                segments={[{ flex: dataSources.length || 1, tone: 'success' as Tone }]}
               />
               <div className="flex items-center text-muted-foreground">
                 <ChevronRight className="h-4 w-4" />
@@ -589,10 +774,10 @@ const GlobalMap: React.FC = () => {
                 label="Events"
                 value={eventCount}
                 segments={[
-                  { flex: statusCounts.success || 1, tone: 'success' as Tone },
-                  { flex: statusCounts.executing || 0, tone: 'info' as Tone },
-                  { flex: statusCounts.failed || 0, tone: 'error' as Tone },
-                  { flex: statusCounts.waiting || 0, tone: 'warning' as Tone },
+                  { flex: effStatusCounts.success || 1, tone: 'success' as Tone },
+                  { flex: effStatusCounts.executing || 0, tone: 'info' as Tone },
+                  { flex: effStatusCounts.failed || 0, tone: 'error' as Tone },
+                  { flex: effStatusCounts.waiting || 0, tone: 'warning' as Tone },
                 ].filter((s) => s.flex > 0)}
               />
               <div className="flex items-center text-muted-foreground">
@@ -608,9 +793,9 @@ const GlobalMap: React.FC = () => {
               </div>
               <LineageCol
                 label="Runs"
-                value={pipelineCount}
+                value={pipelineRunCount}
                 segments={[
-                  { flex: pipelineCount - errorLogCount || 1, tone: 'success' as Tone },
+                  { flex: pipelineRunCount - errorLogCount || 1, tone: 'success' as Tone },
                   { flex: errorLogCount || 0, tone: 'error' as Tone },
                 ].filter((s) => s.flex > 0)}
               />
@@ -632,7 +817,7 @@ const GlobalMap: React.FC = () => {
           </Card>
         </div>
 
-        {/* Right column — tabbed detail panel + progress summary */}
+        {/* Right column — tabbed detail panel + drill-down cards */}
         <div className="flex min-w-0 flex-col gap-4">
           <Card className="flex min-w-0 flex-col p-0">
             {/* Tab bar */}
@@ -666,7 +851,7 @@ const GlobalMap: React.FC = () => {
                   <div className="flex min-w-0 items-center gap-2">
                     <h2 className="truncate text-base font-semibold text-foreground">Ingestion Events</h2>
                     <span className="inline-flex shrink-0 items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">
-                      {eventCount} events
+                      {fmtNum(eventCount)} events
                     </span>
                   </div>
                   <button
@@ -678,17 +863,31 @@ const GlobalMap: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Filter chips */}
+                {/* Filters */}
                 <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-2.5">
-                  <FilterChip active icon={<Filter className="h-3 w-3" />}>
-                    Type: All
-                  </FilterChip>
-                  <FilterChip>
-                    Status: All
-                    <ChevronDown className="h-3 w-3" />
-                  </FilterChip>
+                  <FilterSelect
+                    ariaLabel="Filter by type"
+                    value={typeFilter}
+                    onChange={setTypeFilter}
+                    options={[
+                      { value: 'all', label: 'Type: All' },
+                      ...Object.keys(eventTypeCounts).map((label) => ({ value: label, label })),
+                    ]}
+                  />
+                  <FilterSelect
+                    ariaLabel="Filter by status"
+                    value={statusFilter}
+                    onChange={(v) => setStatusFilter(v as StatusFilter)}
+                    options={[
+                      { value: 'all', label: 'Status: All' },
+                      { value: 'running', label: 'Running' },
+                      { value: 'failed', label: 'Failed' },
+                      { value: 'success', label: 'Success' },
+                      { value: 'queued', label: 'Queued' },
+                    ]}
+                  />
                   <span className="ml-auto text-[10px] text-muted-foreground">
-                    {events.length} of {eventCount} shown
+                    {filteredEvents.length} of {fmtNum(eventCount)} shown
                   </span>
                 </div>
 
@@ -703,13 +902,13 @@ const GlobalMap: React.FC = () => {
                       <Skeleton key={i} className="h-14 w-full" />
                     ))}
                   </div>
-                ) : events.length === 0 ? (
+                ) : filteredEvents.length === 0 ? (
                   <div className="p-4">
                     <EmptyState title="No ingestion events" />
                   </div>
                 ) : (
                   <div className="flex max-h-[420px] flex-col gap-0.5 overflow-y-auto p-3">
-                    {events.map((event) => (
+                    {filteredEvents.map((event) => (
                       <EventRow
                         key={event.eventTriggerId}
                         event={event}
@@ -730,7 +929,7 @@ const GlobalMap: React.FC = () => {
                     <h2 className="truncate text-base font-semibold text-foreground">Pipeline Logs</h2>
                     {errorLogCount > 0 && (
                       <span className="inline-flex shrink-0 items-center rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600">
-                        {errorLogCount} errors
+                        {fmtNum(errorLogCount)} errors
                       </span>
                     )}
                   </div>
@@ -744,23 +943,23 @@ const GlobalMap: React.FC = () => {
                 </div>
 
                 {/* Pipeline log list */}
-                {pipelineLogsQ.error ? (
+                {pipelineErrorLogsQ.error ? (
                   <div className="p-4">
-                    <ErrorBanner message={String(pipelineLogsQ.error)} onRetry={() => pipelineLogsQ.refetch()} />
+                    <ErrorBanner message={String(pipelineErrorLogsQ.error)} onRetry={() => pipelineErrorLogsQ.refetch()} />
                   </div>
-                ) : pipelineLogsQ.isLoading ? (
+                ) : pipelineErrorLogsQ.isLoading ? (
                   <div className="space-y-1 p-3">
                     {Array.from({ length: 6 }).map((_, i) => (
                       <Skeleton key={i} className="h-14 w-full" />
                     ))}
                   </div>
-                ) : pipelineLogs.length === 0 ? (
+                ) : pipelineErrorLogs.length === 0 ? (
                   <div className="p-4">
                     <EmptyState title="No pipeline errors" description="All runs completed successfully" />
                   </div>
                 ) : (
                   <div className="flex max-h-[420px] flex-col gap-0.5 overflow-y-auto p-3">
-                    {pipelineLogs.map((log) => {
+                    {pipelineErrorLogs.map((log) => {
                       const sm = getPipelineLogStatusMeta(log.status);
                       return (
                         <div
@@ -805,10 +1004,10 @@ const GlobalMap: React.FC = () => {
             {activeStage === 'topics' && (
               <div className="flex min-w-0 flex-col">
                 <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-5 py-3.5">
-                  <div className="flex min-w-0 items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <h2 className="truncate text-base font-semibold text-foreground">Topics</h2>
                     <span className="inline-flex shrink-0 items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-                      {topicCount} topics
+                      {fmtNum(topicCount)} topics
                     </span>
                   </div>
                 </div>
@@ -861,84 +1060,210 @@ const GlobalMap: React.FC = () => {
                   <div className="flex min-w-0 items-center gap-2">
                     <h2 className="truncate text-base font-semibold text-foreground">Data Sources</h2>
                     <span className="inline-flex shrink-0 items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-                      12 sources
+                      {fmtNum(dataSources.length)} sources
                     </span>
                   </div>
                 </div>
-                <div className="flex max-h-[420px] flex-col gap-0.5 overflow-y-auto p-3">
-                  {[
-                    { name: 'order_db', type: 'MySQL', connected: true, topics: 8 },
-                    { name: 'analytics_dw', type: 'PostgreSQL', connected: true, topics: 12 },
-                    { name: 'events_stream', type: 'Kafka', connected: true, topics: 5 },
-                    { name: 'user_profiles', type: 'MySQL', connected: true, topics: 6 },
-                    { name: 'payment_service', type: 'API', connected: false, topics: 3 },
-                    { name: 'inventory_db', type: 'PostgreSQL', connected: true, topics: 7 },
-                  ].map((src) => (
-                    <div
-                      key={src.name}
-                      className="flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-2.5 py-2 hover:bg-slate-50"
-                    >
-                      <Database className={cn('h-3.5 w-3.5 shrink-0', src.type === 'MySQL' ? 'text-blue-500' : src.type === 'PostgreSQL' ? 'text-indigo-500' : src.type === 'Kafka' ? 'text-orange-500' : 'text-cyan-500')} />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-medium text-muted-foreground">{src.type}</span>
-                          <MonoText className="truncate text-xs font-semibold text-foreground">: {src.name}</MonoText>
+                {dataSourcesQ.error ? (
+                  <div className="p-4">
+                    <ErrorBanner message={String(dataSourcesQ.error)} onRetry={() => dataSourcesQ.refetch()} />
+                  </div>
+                ) : dataSourcesQ.isLoading ? (
+                  <div className="space-y-1 p-3">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <Skeleton key={i} className="h-14 w-full" />
+                    ))}
+                  </div>
+                ) : dataSources.length === 0 ? (
+                  <div className="p-4">
+                    <EmptyState title="No data sources registered" />
+                  </div>
+                ) : (
+                  <div className="flex max-h-[420px] flex-col gap-0.5 overflow-y-auto p-3">
+                    {dataSources.map((src: DataSourceItem) => {
+                      const health = dsHealthMap[src.dataSourceId];
+                      const healthTone: Tone | null =
+                        health == null ? null
+                        : health.status === 'ok' ? 'success'
+                        : health.status === 'error' ? 'error'
+                        : health.status === 'timeout' ? 'warning'
+                        : 'neutral';
+                      const healthTitle =
+                        health == null ? undefined
+                        : health.status === 'ok'
+                          ? `Connected${health.latencyMs != null ? ` · ${health.latencyMs}ms` : ''}`
+                          : health.status === 'skipped'
+                            ? 'Probe skipped (non-SQL source)'
+                            : health.error ?? health.status;
+                      return (
+                        <div
+                          key={src.dataSourceId}
+                          className="flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-2.5 py-2 hover:bg-slate-50"
+                        >
+                          <Database className={cn('h-3.5 w-3.5 shrink-0', dsTypeIconClass(src.dataSourceType))} />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="inline-flex h-4 items-center rounded bg-slate-100 px-1.5 font-mono text-[9px] font-semibold tracking-wide text-slate-600">
+                                {(src.dataSourceType ?? 'UNKNOWN').toUpperCase()}
+                              </span>
+                              <MonoText className="truncate text-xs font-semibold text-foreground">
+                                {src.name ?? src.dataSourceCode ?? src.dataSourceId}
+                              </MonoText>
+                              {isCollectorDataSource(src) && (
+                                <span
+                                  title="Data source flagged as the ingestion collector (param collector=true)"
+                                  className="inline-flex h-4 shrink-0 items-center rounded border border-amber-200 bg-amber-50 px-1.5 text-[9px] font-semibold text-amber-700"
+                                >
+                                  collector
+                                </span>
+                              )}
+                            </div>
+                            {src.host && (
+                              <MonoText className="text-[10px] text-muted-foreground">
+                                {src.host}
+                                {src.port ? `:${src.port}` : ''}
+                              </MonoText>
+                            )}
+                          </div>
+                          {healthTone != null ? (
+                            <span
+                              title={healthTitle}
+                              className="flex shrink-0 items-center gap-1.5"
+                            >
+                              {health?.status === 'ok' && health.latencyMs != null && (
+                                <span className="text-[10px] tabular-nums text-muted-foreground">
+                                  {health.latencyMs}ms
+                                </span>
+                              )}
+                              <span className={cn('h-1.5 w-1.5 rounded-full', TONE_DOT_CLASS[healthTone])} />
+                            </span>
+                          ) : (
+                            <span className="shrink-0 text-[10px] text-muted-foreground">Registered</span>
+                          )}
                         </div>
-                        <span className="text-[10px] text-muted-foreground">{src.topics} topics</span>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        <span className={cn('h-1.5 w-1.5 rounded-full', src.connected ? 'bg-green-500' : 'bg-orange-400')} />
-                        <span className="text-[10px] text-muted-foreground">
-                          {src.connected ? 'Connected' : 'Idle'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </Card>
 
-          {/* Progress Summary Mini Card (only when ingestion tab active) */}
-          {activeStage === 'ingestion' && !eventsQ.isLoading && events.length > 0 && (
+          {/* Event Detail drill-down (only when ingestion tab active and an event is selected) */}
+          {activeStage === 'ingestion' && selectedEventId && (
             <Card className="p-5">
-              <div className="mb-3.5 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-foreground">Progress Summary</h3>
-                <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+              <div className="mb-3.5 flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <h3 className="text-sm font-semibold text-foreground">Event Detail</h3>
+                  <MonoText className="truncate text-[10px] text-muted-foreground">
+                    #{selectedEventId}
+                    {selectedEvent?.tableName ? ` · ${selectedEvent.tableName}` : ''}
+                  </MonoText>
+                </div>
+                <span className="inline-flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground">
                   <Loader className="h-3 w-3" />
-                  {statusCounts.executing} executing
+                  {effStatusCounts.executing} executing
                 </span>
               </div>
-              <div className="flex flex-col gap-3">
-                <ProgressMeter
-                  label="Records"
-                  finished={events.filter((e) => e.isFinished).length}
-                  unfinished={events.filter((e) => !e.isFinished).length}
-                />
-                <ProgressMeter
-                  label="JSON"
-                  finished={events.filter((e) => e.isFinished).length}
-                  unfinished={events.filter((e) => !e.isFinished).length}
-                />
-                <ProgressMeter
-                  label="Tasks"
-                  finished={events.filter((e) => e.isFinished).length}
-                  unfinished={events.filter((e) => !e.isFinished).length}
-                />
+
+              {/* Real per-stage progress for the selected event */}
+              <div className="mb-4 flex flex-col gap-3">
+                {recordCountsQ.isLoading || jsonCountsQ.isLoading || taskCountsQ.isLoading ? (
+                  <>
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-full" />
+                  </>
+                ) : (
+                  <>
+                    <ProgressMeter
+                      label="Records"
+                      finished={recordCountsQ.data?.finished ?? 0}
+                      unfinished={recordCountsQ.data?.unfinished ?? 0}
+                    />
+                    <ProgressMeter
+                      label="JSON"
+                      finished={jsonCountsQ.data?.finished ?? 0}
+                      unfinished={jsonCountsQ.data?.unfinished ?? 0}
+                    />
+                    <ProgressMeter
+                      label="Tasks"
+                      finished={taskCountsQ.data?.finished ?? 0}
+                      unfinished={taskCountsQ.data?.unfinished ?? 0}
+                    />
+                  </>
+                )}
               </div>
+
+              {/* Per-table breakdown */}
+              {eventDetailQ.error ? (
+                <ErrorBanner message={String(eventDetailQ.error)} onRetry={() => eventDetailQ.refetch()} />
+              ) : eventDetailQ.isLoading ? (
+                <div className="space-y-1">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-8 w-full" />
+                  ))}
+                </div>
+              ) : eventDetailRows.length === 0 ? (
+                <EmptyState title="No table detail for this event" />
+              ) : (
+                <div className="flex max-h-[220px] flex-col gap-0.5 overflow-y-auto">
+                  {eventDetailRows.map((row) => {
+                    const jsonTotal = (row.jsonCount ?? 0) + (row.jsonFinishedCount ?? 0);
+                    const jsonPct = jsonTotal > 0 ? ((row.jsonFinishedCount ?? 0) / jsonTotal) * 100 : 0;
+                    const rowTone: Tone =
+                      (row.errors ?? 0) > 0 ? 'error' : jsonTotal > 0 && jsonPct < 100 ? 'info' : 'success';
+                    return (
+                      <div
+                        key={row.tableTriggerId ?? row.tableName}
+                        className="flex items-center gap-2 rounded-md px-1.5 py-1.5 hover:bg-slate-50"
+                      >
+                        <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', TONE_DOT_CLASS[rowTone])} />
+                        <MonoText className="min-w-0 flex-1 truncate text-[11px] font-medium text-foreground">
+                          {row.tableName ?? '—'}
+                        </MonoText>
+                        <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
+                          {fmtNum(row.dataCount)} rows
+                        </span>
+                        <div className="h-1 w-16 shrink-0 overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className={cn('h-full rounded-full', TONE_DOT_CLASS[rowTone])}
+                            style={{ width: `${jsonPct}%` }}
+                          />
+                        </div>
+                        <span className="w-14 shrink-0 text-right text-[10px] tabular-nums text-muted-foreground">
+                          {fmtNum(row.jsonFinishedCount)}/{fmtNum(jsonTotal)}
+                        </span>
+                        {(row.errors ?? 0) > 0 && (
+                          <span className="shrink-0 rounded bg-red-50 px-1 text-[9px] font-semibold text-red-600">
+                            {row.errors} err
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </Card>
           )}
 
           {/* Execution Stats (only when pipeline tab active) */}
-          {activeStage === 'pipeline' && !pipelineLogsQ.isLoading && pipelineLogs.length > 0 && (
+          {activeStage === 'pipeline' && !pipelineErrorLogsQ.isLoading && pipelineRunCount > 0 && (
             <Card className="p-5">
               <div className="mb-3.5 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-foreground">Execution Stats</h3>
+                <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <Clock className="h-3 w-3" />
+                  {fmtNum(pipelineRunCount)} runs
+                  {pipelineStatsQ.data?.p95DurationMs != null && (
+                    <span className="ml-1">· p95 {formatDuration(pipelineStatsQ.data.p95DurationMs)}</span>
+                  )}
+                </span>
               </div>
               {/* Stacked bar */}
               <div className="mb-3 flex h-1.5 overflow-hidden rounded-full bg-slate-100">
-                <div className="h-full bg-green-500" style={{ width: String(((pipelineCount - errorLogCount) / (pipelineCount || 1)) * 100) + '%' }} />
-                <div className="h-full bg-red-500" style={{ width: String((errorLogCount / (pipelineCount || 1)) * 100) + '%' }} />
+                <div className="h-full bg-green-500" style={{ width: String(((pipelineRunCount - errorLogCount) / (pipelineRunCount || 1)) * 100) + '%' }} />
+                <div className="h-full bg-red-500" style={{ width: String((errorLogCount / (pipelineRunCount || 1)) * 100) + '%' }} />
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -952,9 +1277,9 @@ const GlobalMap: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-[10px]">
-                  <span className="text-green-600">+{pipelineActionTotals.inserts}</span>
-                  <span className="text-blue-600">~{pipelineActionTotals.updates}</span>
-                  <span className="text-red-600">-{pipelineActionTotals.deletes}</span>
+                  <span className="text-green-600">+{fmtNum(effPipelineActionTotals.inserts)}</span>
+                  <span className="text-blue-600">~{fmtNum(effPipelineActionTotals.updates)}</span>
+                  <span className="text-red-600">-{fmtNum(effPipelineActionTotals.deletes)}</span>
                 </div>
               </div>
             </Card>

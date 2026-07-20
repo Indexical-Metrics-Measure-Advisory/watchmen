@@ -16,7 +16,7 @@ from watchmen_model.common import Pageable, DataPage, TenantId
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400
 from watchmen_rest_doll.util import trans_readonly
-from watchmen_utilities import is_blank
+from watchmen_utilities import ExtendedBaseModel, is_blank
 
 router = APIRouter()
 
@@ -53,6 +53,47 @@ async def find_events_page_by_tenant(pageable: Pageable = Body(...),
         return trigger_event_service.find_page_by_tenant(None, tenant_id, pageable)
 
     return trans_readonly(trigger_event_service, action)
+
+
+class TriggerEventStatsCriteria(ExtendedBaseModel):
+    # size of the recent-events sample used for status/type/duration aggregates
+    sampleSize: Optional[int] = 200
+
+
+@router.post('/ingest/monitor/event/stats', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def monitor_event_stats(criteria: TriggerEventStatsCriteria = Body(...),
+        principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> Dict:
+    tenant_id: TenantId = principal_service.get_tenant_id()
+    trigger_event_service = get_trigger_event_service(ask_collector_storage(tenant_id, principal_service),
+                                                      ask_snowflake_generator(),
+                                                      principal_service)
+    sample_size = max(1, min(criteria.sampleSize or 200, 500))
+
+    def action() -> QueryTriggerEventDataPage:
+        # noinspection PyTypeChecker
+        return trigger_event_service.find_page_by_tenant(
+            None, tenant_id, Pageable(pageNumber=1, pageSize=sample_size))
+
+    page = trans_readonly(trigger_event_service, action)
+    events = page.data or []
+
+    by_status: Dict[str, int] = {}
+    by_type: Dict[str, int] = {}
+    duration_mills = []
+    for event in events:
+        by_status[str(event.status)] = by_status.get(str(event.status), 0) + 1
+        by_type[str(event.type)] = by_type.get(str(event.type), 0) + 1
+        if event.startTime is not None and event.endTime is not None:
+            duration_mills.append(round((event.endTime - event.startTime).total_seconds() * 1000))
+
+    return {
+        'total': page.itemCount or 0,
+        'byStatus': by_status,
+        'byType': by_type,
+        'avgDurationMs': round(sum(duration_mills) / len(duration_mills)) if len(duration_mills) > 0 else 0,
+        'sampleSize': len(events)
+    }
 
 
 @router.post('/ingest/monitor/module', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)

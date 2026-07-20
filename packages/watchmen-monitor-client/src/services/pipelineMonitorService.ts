@@ -8,6 +8,28 @@ import type {
   PipelineMonitorResult,
 } from '@/models/pipeline.models';
 
+/** Criteria for POST /pipeline/log/stats (non-paginated; sampleSize caps the duration/write sample). */
+export interface PipelineLogStatsCriteria {
+  topicId?: string;
+  pipelineId?: string;
+  startDate?: string;
+  endDate?: string;
+  tenantId?: string;
+  sampleSize?: number;
+}
+
+/** Aggregated pipeline-run stats returned by POST /pipeline/log/stats. */
+export interface PipelineLogStats {
+  total: number;
+  byStatus: Record<string, number>;
+  avgDurationMs?: number | null;
+  p95DurationMs?: number | null;
+  insertCount: number;
+  updateCount: number;
+  deleteCount: number;
+  sampleSize: number;
+}
+
 class PipelineMonitorService {
   /** POST /pipeline/log — paginated monitor logs. */
   async getLogs(criteria: PipelineMonitorLogCriteria): Promise<PipelineMonitorLogDataPage> {
@@ -56,6 +78,16 @@ class PipelineMonitorService {
       method: 'POST',
       headers: getDefaultHeaders(),
       body: JSON.stringify(payload),
+    });
+    return checkResponse(res);
+  }
+
+  /** POST /pipeline/log/stats — aggregated stats (counts by status, avg/p95 duration, write counts). */
+  async getLogStats(criteria: PipelineLogStatsCriteria = {}): Promise<PipelineLogStats> {
+    const res = await fetch(`${API_BASE_URL}/pipeline/log/stats`, {
+      method: 'POST',
+      headers: getDefaultHeaders(),
+      body: JSON.stringify(omitNil(criteria)),
     });
     return checkResponse(res);
   }

@@ -13,7 +13,7 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
-import { LayoutDashboard, Database, GitBranch, Table2, Bell, Share2, Settings, Activity } from 'lucide-react';
+import { LayoutDashboard, Database, GitBranch, Server, Bell, Settings, Activity } from 'lucide-react';
 import { systemService } from '@/services/systemService';
 import { useTranslation } from 'react-i18next';
 
@@ -24,17 +24,15 @@ interface NavItem {
   disabled?: boolean;
 }
 
-// Disabled items (Alerts/Global Map) are gated by env flags; Settings is a permanent placeholder.
+// Alerts is gated by an env flag; Settings is a permanent placeholder.
 const SHOW_ALERTS = (import.meta.env.VITE_SHOW_ALERTS ?? 'false') === 'true';
-const SHOW_GLOBAL_MAP = (import.meta.env.VITE_SHOW_GLOBAL_MAP ?? 'true') === 'true';
 
 const menuItems: NavItem[] = [
   { id: 'overview', url: '/', icon: LayoutDashboard },
   { id: 'ingestion', url: '/ingestion', icon: Database },
   { id: 'pipeline', url: '/pipeline', icon: GitBranch },
-  { id: 'topics', url: '/topics', icon: Table2 },
+  { id: 'datasource', url: '/datasource', icon: Server },
   { id: 'alerts', url: '/alerts', icon: Bell, disabled: !SHOW_ALERTS },
-  { id: 'globalMap', url: '/global-map', icon: Share2, disabled: !SHOW_GLOBAL_MAP },
   { id: 'settings', url: '/settings', icon: Settings, disabled: true },
 ];
 

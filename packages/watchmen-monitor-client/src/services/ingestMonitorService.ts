@@ -13,6 +13,18 @@ import type {
   ProgressCounts,
 } from '@/models/monitor.models';
 
+/**
+ * Aggregated trigger-event stats returned by POST /ingest/monitor/event/stats.
+ * byStatus keys are stringified TriggerEventStatus ints (0 INITIAL, 1 EXECUTING, 2 SUCCESS, 3 FAIL, 4 WAITING).
+ */
+export interface TriggerEventStats {
+  total: number;
+  byStatus: Record<string, number>;
+  byType: Record<string, number>;
+  avgDurationMs?: number | null;
+  sampleSize: number;
+}
+
 class IngestMonitorService {
   /** GET /ingest/query/event — single event lookup. */
   async getEvent(eventTriggerId: string | number): Promise<EventTriggerItem> {
@@ -89,6 +101,16 @@ class IngestMonitorService {
   async getEventDetail(eventTriggerId: string | number): Promise<EventResultRecord[]> {
     const url = `${API_BASE_URL}/ingest/monitor/event/detail?trigger_event_id=${encodeURIComponent(eventTriggerId)}`;
     const res = await fetch(url, { method: 'GET', headers: getDefaultHeaders() });
+    return checkResponse(res);
+  }
+
+  /** POST /ingest/monitor/event/stats — aggregated trigger-event stats (counts by status/type, avg duration). */
+  async getEventStats(sampleSize: number = 200): Promise<TriggerEventStats> {
+    const res = await fetch(`${API_BASE_URL}/ingest/monitor/event/stats`, {
+      method: 'POST',
+      headers: getDefaultHeaders(),
+      body: JSON.stringify({ sampleSize }),
+    });
     return checkResponse(res);
   }
 }

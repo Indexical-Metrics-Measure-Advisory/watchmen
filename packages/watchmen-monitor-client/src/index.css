@@ -99,3 +99,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Flow connector dot animation used by GlobalMap (animate-[flow_2s_ease-in-out_infinite]) */
+@keyframes flow {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    left: calc(100% - 0.25rem);
+    opacity: 0;
+  }
+}

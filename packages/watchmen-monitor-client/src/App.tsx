@@ -6,10 +6,9 @@ import { ThemeProvider } from '@/components/theme-provider';
 import AuthGuard from '@/components/AuthGuard';
 import Layout from '@/components/Layout';
 import Login from '@/pages/Login';
-import Overview from '@/pages/Index';
 import IngestionMonitor from '@/pages/IngestionMonitor';
 import PipelineMonitor from '@/pages/PipelineMonitor';
-import Topics from '@/pages/Topics';
+import DataSourceMonitor from '@/pages/DataSourceMonitor';
 import GlobalMap from '@/pages/GlobalMap';
 import NotFound from '@/pages/NotFound';
 
@@ -41,11 +40,10 @@ function App() {
               </AuthGuard>
             }
           >
-            <Route index element={<Overview />} />
+            <Route index element={<GlobalMap />} />
             <Route path="ingestion" element={<IngestionMonitor />} />
             <Route path="pipeline" element={<PipelineMonitor />} />
-            <Route path="topics" element={<Topics />} />
-            <Route path="global-map" element={<GlobalMap />} />
+            <Route path="datasource" element={<DataSourceMonitor />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

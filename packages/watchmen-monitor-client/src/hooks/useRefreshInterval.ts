@@ -23,6 +23,9 @@ const INTERVAL_MS: Record<RefreshInterval, number> = {
   manual: 0,
 };
 
+/** Resolve a `RefreshInterval` preference to the millisecond cadence used by `useAutoRefresh`. */
+export const refreshIntervalToMs = (interval: RefreshInterval): number => INTERVAL_MS[interval];
+
 const isRefreshInterval = (value: unknown): value is RefreshInterval =>
   typeof value === 'string' && (REFRESH_INTERVAL_OPTIONS as ReadonlyArray<string>).includes(value);
 

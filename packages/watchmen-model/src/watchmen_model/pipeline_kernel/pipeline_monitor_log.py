@@ -214,10 +214,10 @@ class PipelineMonitorLog(ConditionalMonitorLog):
 
 
 class PipelineMonitorLogCriteria(Pageable):
-	topicId: TopicId = None
-	pipelineId: PipelineId = None
-	startDate: str = None
-	endDate: str = None
-	status: MonitorLogStatus = None
-	traceId: PipelineTriggerTraceId = None
-	tenantId: TenantId = None
+	topicId: Optional[TopicId] = None
+	pipelineId: Optional[PipelineId ]= None
+	startDate:Optional[str ]= None
+	endDate: Optional[str] = None
+	status: Optional[MonitorLogStatus] = None
+	traceId: Optional[PipelineTriggerTraceId ]= None
+	tenantId: Optional[TenantId ]= None

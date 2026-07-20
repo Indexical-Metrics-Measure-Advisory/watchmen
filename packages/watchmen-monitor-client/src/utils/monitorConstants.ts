@@ -75,6 +75,21 @@ export const PIPELINE_TRIGGER_TYPE_LABEL: Record<PipelineTriggerType, string> = 
   [PipelineTriggerType.DELETE]: 'DELETE',
 };
 
+// ---- Data source health probe status ----
+export type DataSourceHealthStatus = 'ok' | 'error' | 'skipped' | 'timeout';
+
+export const DATA_SOURCE_HEALTH_META: Record<DataSourceHealthStatus, { tone: Tone }> = {
+  ok: { tone: 'success' },
+  error: { tone: 'error' },
+  skipped: { tone: 'neutral' },
+  timeout: { tone: 'warning' },
+};
+
+export const getDataSourceHealthMeta = (status?: DataSourceHealthStatus | string | null) => {
+  if (!status) return { tone: 'neutral' as Tone };
+  return DATA_SOURCE_HEALTH_META[status as DataSourceHealthStatus] || { tone: 'neutral' as Tone };
+};
+
 // ---- Topic type / kind ----
 export const TOPIC_TYPE_LABEL: Record<TopicType, string> = {
   [TopicType.RAW]: 'RAW',

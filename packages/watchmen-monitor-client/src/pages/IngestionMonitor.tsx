@@ -8,14 +8,18 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { StatusPill } from '@/components/monitor/StatusPill';
 import { ProgressMeter } from '@/components/monitor/ProgressMeter';
 import { MonoText, EmptyState, ErrorBanner } from '@/components/monitor/common';
-import { useIngestEvents, useIngestEventDetail, useIngestProgress } from '@/hooks/useMonitorQueries';
+import { useIngestEvents, useIngestEventDetail, useIngestProgress, useDataSources, useDataSourceHealth } from '@/hooks/useMonitorQueries';
 import {
   getIngestStatusMeta,
   getEventTypeLabel,
   formatDuration,
   formatPercent,
+  TONE_DOT_CLASS,
+  type Tone,
 } from '@/utils/monitorConstants';
 import { pipelineMetaService } from '@/services/pipelineMetaService';
+import { isCollectorDataSource } from '@/services/dataSourceService';
+import { Database } from 'lucide-react';
 
 const PAGE_SIZE = 12;
 
@@ -30,6 +34,19 @@ const IngestionMonitor: React.FC = () => {
   const recordsQ = useIngestProgress(selectedId, 'record', subtab === 'records');
   const jsonQ = useIngestProgress(selectedId, 'json', subtab === 'json');
   const tasksQ = useIngestProgress(selectedId, 'task', subtab === 'tasks');
+
+  // The collector source database: ingestion events originate from here.
+  // Selected by the param collector=true (mirrors backend storage_helper.py).
+  const dataSourcesQ = useDataSources();
+  const dataSourceHealthQ = useDataSourceHealth();
+  const collectorSource = React.useMemo(
+    () => (dataSourcesQ.data ?? []).find(isCollectorDataSource) ?? null,
+    [dataSourcesQ.data],
+  );
+  const collectorHealth = React.useMemo(() => {
+    const sources = dataSourceHealthQ.data?.sources ?? [];
+    return collectorSource ? sources.find((s) => s.dataSourceId === collectorSource.dataSourceId) : undefined;
+  }, [dataSourceHealthQ.data, collectorSource]);
 
   // Cache pipeline names for display
   const [pipelineNames, setPipelineNames] = React.useState<Record<string, string>>({});
@@ -46,6 +63,43 @@ const IngestionMonitor: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      {/* Collector source database — where ingestion events originate. */}
+      <Card className="p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-amber-50 text-amber-600">
+            <Database className="h-4 w-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium text-muted-foreground">{t('monitor:collectorSourceTitle')}</p>
+            {collectorSource ? (
+              <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                <MonoText className="text-sm font-semibold text-foreground">
+                  {collectorSource.name ?? collectorSource.dataSourceCode ?? collectorSource.dataSourceId}
+                </MonoText>
+                <span className="inline-flex h-4 items-center rounded bg-slate-100 px-1.5 text-[10px] font-semibold text-muted-foreground">
+                  {(collectorSource.dataSourceType ?? 'UNKNOWN').toUpperCase()}
+                </span>
+                {(collectorSource.host || collectorSource.port) && (
+                  <MonoText className="text-xs text-muted-foreground">
+                    {collectorSource.host ?? ''}
+                    {collectorSource.port ? `:${collectorSource.port}` : ''}
+                  </MonoText>
+                )}
+              </div>
+            ) : (
+              <p className="mt-0.5 text-xs text-muted-foreground">{t('monitor:collectorSourceNone')}</p>
+            )}
+          </div>
+          {collectorSource && collectorHealth && (
+            <div className="flex shrink-0 items-center gap-2">
+              {collectorHealth.latencyMs != null && (
+                <MonoText className="text-xs text-muted-foreground">{formatDuration(collectorHealth.latencyMs)}</MonoText>
+              )}
+              <CollectorHealthBadge status={collectorHealth.status} t={t} />
+            </div>
+          )}
+        </div>
+      </Card>
       <Tabs value={subtab} onValueChange={setSubtab}>
         <TabsList>
           <TabsTrigger value="events">{t('monitor:subtabs.events')}</TabsTrigger>
@@ -201,6 +255,31 @@ const IngestionMonitor: React.FC = () => {
         })}
       </Tabs>
     </div>
+  );
+};
+
+const CollectorHealthBadge: React.FC<{
+  status: string;
+  t: (k: string) => string;
+}> = ({ status, t }) => {
+  const tone: Tone =
+    status === 'ok' ? 'success' : status === 'error' ? 'error' : status === 'timeout' ? 'warning' : 'neutral';
+  const label =
+    status === 'ok'
+      ? t('monitor:collectorHealthOk')
+      : status === 'error'
+        ? t('monitor:collectorHealthError')
+        : t('monitor:collectorHealthSkipped');
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium ${
+      tone === 'success' ? 'bg-green-50 text-green-700 border-green-200'
+      : tone === 'error' ? 'bg-red-50 text-red-700 border-red-200'
+      : tone === 'warning' ? 'bg-orange-50 text-orange-700 border-orange-200'
+      : 'bg-slate-50 text-slate-600 border-slate-200'
+    }`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${TONE_DOT_CLASS[tone]}`} />
+      {label}
+    </span>
   );
 };
 

@@ -13,7 +13,7 @@ void i18n
     fallbackLng: defaultLanguage,
     supportedLngs: Object.keys(resources),
     defaultNS: 'common',
-    ns: ['common', 'nav', 'auth', 'overview', 'monitor', 'pipeline', 'topics'],
+    ns: ['common', 'nav', 'auth', 'monitor', 'pipeline', 'datasource'],
     interpolation: {
       escapeValue: false,
     },

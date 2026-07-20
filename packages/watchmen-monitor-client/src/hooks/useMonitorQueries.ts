@@ -3,8 +3,10 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { ingestMonitorService } from '@/services/ingestMonitorService';
 import { pipelineMonitorService } from '@/services/pipelineMonitorService';
+import type { PipelineLogStatsCriteria } from '@/services/pipelineMonitorService';
 import { pipelineMetaService } from '@/services/pipelineMetaService';
 import { topicService } from '@/services/topicService';
+import dataSourceService from '@/services/dataSourceService';
 import type { Pageable } from '@/models/api.models';
 import type { PipelineMonitorLogCriteria } from '@/models/pipeline.models';
 
@@ -19,6 +21,11 @@ const REACT_QUERY_KEYS = {
   topicsSearch: (query: string | null, p: Pageable) => ['topics', 'search', query ?? '', p] as const,
   topicsAll: ['topics', 'all'] as const,
   topic: (id: string) => ['topic', id] as const,
+  dataSourcesAll: ['datasource', 'all'] as const,
+  dataSourceHealth: ['datasource', 'health'] as const,
+  ingestEventStats: ['ingest', 'event-stats'] as const,
+  pipelineLogStats: (criteria: PipelineLogStatsCriteria) =>
+    ['pipeline', 'log-stats', criteria] as const,
 } as const;
 
 // ---- Ingest ----
@@ -101,4 +108,34 @@ export const useTopic = (topicId: string | null | undefined, enabled = true) =>
     queryKey: REACT_QUERY_KEYS.topic(topicId ?? ''),
     queryFn: () => topicService.getTopic(topicId as string),
     enabled: enabled && !!topicId,
+  });
+
+// ---- Data Sources ----
+export const useDataSources = (enabled = true) =>
+  useQuery({
+    queryKey: REACT_QUERY_KEYS.dataSourcesAll,
+    queryFn: () => dataSourceService.getAllDataSources(),
+    enabled,
+  });
+
+export const useDataSourceHealth = (enabled = true) =>
+  useQuery({
+    queryKey: REACT_QUERY_KEYS.dataSourceHealth,
+    queryFn: () => dataSourceService.checkDataSourceHealth(),
+    enabled,
+  });
+
+// ---- Aggregated Stats ----
+export const useIngestEventStats = (sampleSize = 200, enabled = true) =>
+  useQuery({
+    queryKey: REACT_QUERY_KEYS.ingestEventStats,
+    queryFn: () => ingestMonitorService.getEventStats(sampleSize),
+    enabled,
+  });
+
+export const usePipelineLogStats = (criteria: PipelineLogStatsCriteria = {}, enabled = true) =>
+  useQuery({
+    queryKey: REACT_QUERY_KEYS.pipelineLogStats(criteria),
+    queryFn: () => pipelineMonitorService.getLogStats(criteria),
+    enabled,
   });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -9,6 +10,8 @@ import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '@/i18n/hooks/use-locale';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+import { useRefreshInterval, refreshIntervalToMs } from '@/hooks/useRefreshInterval';
 import { RefreshCw, LogOut } from 'lucide-react';
 
 /** Derive page title/subtitle from the current pathname. */
@@ -19,11 +22,24 @@ const usePageTitle = () => {
   if (path === '/') return { title: t('nav:overview'), subtitle: t('nav:overviewSubtitle') };
   if (path.startsWith('/ingestion')) return { title: t('nav:ingestion'), subtitle: t('nav:ingestionSubtitle') };
   if (path.startsWith('/pipeline')) return { title: t('nav:pipeline'), subtitle: t('nav:pipelineSubtitle') };
-  if (path.startsWith('/topics')) return { title: t('nav:topics'), subtitle: t('nav:topicsSubtitle') };
+  if (path.startsWith('/datasource')) return { title: t('nav:datasource'), subtitle: t('nav:datasourceSubtitle') };
   return { title: 'Watchmen', subtitle: '' };
 };
 
 const TIME_RANGES = ['1h', '24h', '7d', '30d'] as const;
+
+/**
+ * Query-key prefixes invalidated on every auto/manual refresh. Keep in sync
+ * with the prefixes declared in `src/hooks/useMonitorQueries.ts`.
+ */
+const REFRESH_QUERY_PREFIXES = ['ingest', 'pipeline', 'topics', 'datasource'] as const;
+
+export type MonitorOutletContext = {
+  timeRange: (typeof TIME_RANGES)[number];
+  refreshKey: number;
+  refresh: () => void;
+  isRefreshing: boolean;
+};
 
 const Layout: React.FC = () => {
   const { user, logout } = useAuth();
@@ -32,15 +48,22 @@ const Layout: React.FC = () => {
   const { title, subtitle } = usePageTitle();
   const [timeRange, setTimeRange] = React.useState<(typeof TIME_RANGES)[number]>('24h');
   const [globalSearch, setGlobalSearch] = React.useState('');
-  const [refreshKey, setRefreshKey] = React.useState(0);
+  const queryClient = useQueryClient();
+  const { interval: refreshInterval, setInterval: setRefreshInterval } = useRefreshInterval();
+  const { refreshKey, refresh, isRefreshing } = useAutoRefresh(refreshIntervalToMs(refreshInterval));
+
+  // Invalidate every monitor query prefix on each refresh tick so all visible
+  // pages re-fetch through a single, central timer. Skip the initial mount
+  // (refreshKey === 0) to avoid a redundant fetch right after hydration.
+  React.useEffect(() => {
+    if (refreshKey === 0) return;
+    for (const prefix of REFRESH_QUERY_PREFIXES) {
+      queryClient.invalidateQueries({ queryKey: [prefix] });
+    }
+  }, [refreshKey, queryClient]);
 
   const getUserAvatar = (name: string) =>
     name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
-
-  // Broadcast a refresh event so pages listening can re-fetch.
-  React.useEffect(() => {
-    window.dispatchEvent(new CustomEvent('monitor:refresh', { detail: { refreshKey, timeRange } }));
-  }, [refreshKey, timeRange]);
 
   return (
     <TooltipProvider>
@@ -84,11 +107,22 @@ const Layout: React.FC = () => {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => setRefreshKey((k) => k + 1)}
+                    onClick={refresh}
                     title={t('common:refresh')}
                   >
-                    <RefreshCw className="h-4 w-4" />
+                    <RefreshCw className={isRefreshing ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
                   </Button>
+                  <select
+                    value={refreshInterval}
+                    onChange={(e) => setRefreshInterval(e.target.value as typeof refreshInterval)}
+                    className="h-8 rounded border bg-background px-1.5 text-xs"
+                    aria-label={t('common:refreshInterval')}
+                  >
+                    <option value="1m">1m</option>
+                    <option value="5m">5m</option>
+                    <option value="10m">10m</option>
+                    <option value="manual">{t('common:refreshIntervalManual')}</option>
+                  </select>
                   {user && (
                     <>
                       <select
@@ -112,7 +146,7 @@ const Layout: React.FC = () => {
               </div>
             </div>
             <div className="flex-1 overflow-auto bg-gradient-to-b from-slate-50 to-slate-50/50 p-6">
-              <Outlet context={{ timeRange, refreshKey }} />
+              <Outlet context={{ timeRange, refreshKey, refresh, isRefreshing } as MonitorOutletContext} />
             </div>
           </main>
         </div>
@@ -122,3 +156,4 @@ const Layout: React.FC = () => {
 };
 
 export default Layout;
+
