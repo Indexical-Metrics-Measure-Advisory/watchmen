@@ -203,3 +203,29 @@ jobs:
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
           poetry publish --build
+      - name: Package [watchmen-storage-rds-async] and publish to Pypi
+        working-directory: ./packages/watchmen-storage-rds-async
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          poetry publish --build
+      - name: Package [watchmen-storage-postgresql-async] and publish to Pypi
+        working-directory: ./packages/watchmen-storage-postgresql-async
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          poetry publish --build
+      - name: Package [watchmen-storage-mysql-async] and publish to Pypi
+        working-directory: ./packages/watchmen-storage-mysql-async
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          poetry publish --build
+      - name: Package [watchmen-agent-cli] and publish to Pypi
+        working-directory: ./packages/watchmen-agent-cli
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          poetry publish --build
+      - name: Package [watchmen-agent-runtime-cli] and publish to Pypi
+        working-directory: ./packages/watchmen-agent-runtime-cli
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          poetry publish --build
+      
