@@ -32,7 +32,7 @@ const menuItems: NavItem[] = [
   { id: 'ingestion', url: '/ingestion', icon: Database },
   { id: 'pipeline', url: '/pipeline', icon: GitBranch },
   { id: 'datasource', url: '/datasource', icon: Server },
-  { id: 'alerts', url: '/alerts', icon: Bell, disabled: !SHOW_ALERTS },
+  // { id: 'alerts', url: '/alerts', icon: Bell, disabled: !SHOW_ALERTS },
   { id: 'settings', url: '/settings', icon: Settings, disabled: true },
 ];
 
