@@ -1,0 +1,25 @@
+CREATE TABLE pii_classification_terms
+(
+    term_id              VARCHAR(50)  NOT NULL,
+    name                 VARCHAR(255) NOT NULL,
+    description          TEXT,
+    category             VARCHAR(64),
+    sensitivity_level    VARCHAR(16),
+    data_level           VARCHAR(64),
+    owner_department     VARCHAR(128),
+    match_strategy       VARCHAR(16),
+    factor_type_patterns TEXT,
+    keyword_patterns     TEXT,
+    linked_factors       MEDIUMTEXT,
+    tenant_id            VARCHAR(50)  NOT NULL,
+    created_at           DATETIME     NOT NULL,
+    created_by           VARCHAR(50)  NOT NULL,
+    last_modified_at     DATETIME     NOT NULL,
+    last_modified_by     VARCHAR(50)  NOT NULL,
+    version              INTEGER      DEFAULT 1,
+    PRIMARY KEY (term_id),
+    UNIQUE INDEX uk_pii_classification_terms_name (name, tenant_id),
+    KEY idx_pii_classification_terms_tenant_id (tenant_id),
+    KEY idx_pii_classification_terms_created_at (created_at),
+    KEY idx_pii_classification_terms_last_modified_at (last_modified_at)
+);
