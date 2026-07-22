@@ -112,13 +112,19 @@ class FactorDiscoveryService:
 	@staticmethod
 	def _merge(*groups: List[LinkedFactor]) -> List[LinkedFactor]:
 		"""Merge groups, de-duplicating by topicId|factorId and keeping the
-		highest-confidence entry."""
+		highest-confidence entry. A link confirmed by the user always keeps
+		its confirmed flag, even when a fresher hit wins on confidence."""
 		best: dict = {}
 		for group in groups:
 			for lf in group or []:
 				existing = best.get(lf.key)
-				if existing is None or lf.matchConfidence > existing.matchConfidence:
+				if existing is None:
 					best[lf.key] = lf
+				elif lf.matchConfidence > existing.matchConfidence:
+					lf.confirmed = lf.confirmed or existing.confirmed
+					best[lf.key] = lf
+				else:
+					existing.confirmed = existing.confirmed or lf.confirmed
 		return sorted(
 			best.values(),
 			key=lambda lf: (-lf.matchConfidence, lf.topicId or '', lf.factorId or ''),

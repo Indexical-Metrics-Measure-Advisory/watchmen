@@ -23,7 +23,6 @@ watchmen-auth = { path = "../watchmen-auth", develop = true }
 watchmen-storage = { path = "../watchmen-storage", develop = true }
 watchmen-meta = { path = "../watchmen-meta", develop = true }
 watchmen-rest = { path = "../watchmen-rest", develop = true }
-watchmen-metricflow = { path = "../watchmen-metricflow", develop = true }
 watchmen-search = { path = "../watchmen-search", develop = true }
 
 [tool.poetry.group.dev.dependencies]

@@ -39,7 +39,7 @@ const menuItems: NavItem[] = [
 export function AppSidebar() {
   const location = useLocation();
   const { t } = useTranslation(['nav', 'common']);
-  const appTitle = import.meta.env.VITE_APP_TITLE ?? 'Watchmen Data Monitor';
+  const appTitle = import.meta.env.VITE_APP_TITLE ?? 'Data Monitor';
   const [envTag, setEnvTag] = React.useState<string>('');
 
   React.useEffect(() => {

@@ -75,9 +75,18 @@ export const resources = {
       subtitle: 'Real-time tracking of ingestion events and per-table progress',
       triggerEvents: 'Trigger Events',
       eventDetail: 'Event Detail',
-      subtabs: {
-        events: 'Trigger Events',
-        detail: 'Per-Table Results',
+      kpi: {
+        total: 'Total Events',
+        executing: 'Executing',
+        success: 'Success',
+        fail: 'Failed',
+        waiting: 'Waiting',
+      },
+      sections: {
+        results: 'Per-Table Results',
+        progress: 'Progress',
+      },
+      gauge: {
         records: 'Records',
         json: 'JSON',
         tasks: 'Tasks',
@@ -143,6 +152,18 @@ export const resources = {
       },
       rerun: 'Rerun',
       rerunAllErrors: 'Rerun all errors',
+      kpi: {
+        total: 'Total Runs',
+        successRate: 'Success Rate',
+        ignored: 'Ignored',
+        errors: 'Errors',
+        avgDuration: 'Avg duration',
+      },
+      sections: {
+        logs: 'Execution Logs',
+        detail: 'Run Detail',
+        valueDiff: 'Value Changes',
+      },
       empty: 'No pipeline logs match the current filters',
       rerunStarted: 'Rerun started',
       rerunFailed: 'Rerun failed',
@@ -258,9 +279,18 @@ export const resources = {
       subtitle: '实时跟踪采集事件与分表进度',
       triggerEvents: '触发事件',
       eventDetail: '事件详情',
-      subtabs: {
-        events: '触发事件',
-        detail: '分表结果',
+      kpi: {
+        total: '事件总数',
+        executing: '执行中',
+        success: '成功',
+        fail: '失败',
+        waiting: '等待中',
+      },
+      sections: {
+        results: '分表结果',
+        progress: '完成进度',
+      },
+      gauge: {
         records: '记录',
         json: 'JSON',
         tasks: '任务',
@@ -326,6 +356,18 @@ export const resources = {
       },
       rerun: '重跑',
       rerunAllErrors: '重跑全部错误',
+      kpi: {
+        total: '执行总数',
+        successRate: '成功率',
+        ignored: '已忽略',
+        errors: '失败',
+        avgDuration: '平均耗时',
+      },
+      sections: {
+        logs: '执行日志',
+        detail: '运行详情',
+        valueDiff: '值变更',
+      },
       empty: '当前筛选条件下没有管道日志',
       rerunStarted: '已开始重跑',
       rerunFailed: '重跑失败',

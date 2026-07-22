@@ -2,6 +2,25 @@ import {fetchSystemEnv} from './services/data/account/system';
 
 export const isHideDataSourcePwdEnabled = () => process.env.REACT_APP_HIDE_DATASOURCE_PWD === 'true';
 export const isDataQualityCenterEnabled = () => process.env.REACT_APP_DQC_ENABLED === 'true';
+
+const DQC_PII_ENABLED_KEY = 'watchmen-dqc-pii-enabled';
+export const DQC_PII_ENABLED_CHANGED_EVENT = 'watchmen-dqc-pii-enabled-changed';
+/** data classification (pii) page in dqc, switched off by default */
+export const isPiiClassificationEnabled = (): boolean => {
+	try {
+		return localStorage.getItem(DQC_PII_ENABLED_KEY) === 'true';
+	} catch {
+		return false;
+	}
+};
+export const setPiiClassificationEnabled = (enabled: boolean): void => {
+	try {
+		localStorage.setItem(DQC_PII_ENABLED_KEY, enabled ? 'true' : 'false');
+	} catch {
+		// ignore
+	}
+	window.dispatchEvent(new Event(DQC_PII_ENABLED_CHANGED_EVENT));
+};
 export const isSynonymDQCEnabled = () => isDataQualityCenterEnabled() && process.env.REACT_APP_SYNONYM_DQC_ENABLED === 'true';
 export const isPipelinesDownloadEnabled = () => process.env.REACT_APP_PIPELINES_DOWNLOAD === 'true';
 export const isMultipleDataSourcesEnabled = () => process.env.REACT_APP_MULTIPLE_DATA_SOURCES === 'true';

@@ -59,13 +59,19 @@ These edits live in `watchmen-rest-dqc`, **not** in this package. They are the
 only host-side changes required.
 
 1. Add `watchmen-pii-classification` to `watchmen-rest-dqc/pyproject.toml`.
-2. In `watchmen-rest-dqc/src/watchmen_rest_dqc/main.py`, include the router:
+2. In `watchmen-rest-dqc/src/watchmen_rest_dqc/main.py`, include the router
+   **behind the host feature flag** — the package is imported and mounted
+   only when it is on (see `pii_classification_enabled()` in `main.py`):
 
    ```python
-   from watchmen_pii.app import get_pii_router
-   # ...inside the ArrayHelper([...]).each(lambda x: app.include_router(x)) list:
-   get_pii_router(),
+   if pii_classification_enabled():
+       from watchmen_pii.app import get_pii_router
+       routers.append(get_pii_router())
    ```
+
+   The flag lives in `watchmen_rest_dqc/settings.py`
+   (`PII_CLASSIFICATION_ENABLED`, default `false`) and is read from the
+   environment. The seed import in `startup()` is gated by the same flag.
 3. (Optional) Seed default terms on startup, mirroring the glossary seed
    pattern in `watchmen-metricflow`:
 
@@ -115,14 +121,18 @@ JSON-encoded text by `PIITermShaper`.
 
 ## Configuration
 
-The AI channel is **optional**. If `AZURE_OPENAI_API_KEY` /
-`AZURE_OPENAI_ENDPOINT` / `AZURE_OPENAI_DEPLOYMENT` are set, the router builds
-an `AIRecommender` on first use; otherwise discovery silently degrades to
-logic-only matching.
-
 | Env var | Default | Purpose |
 |---|---|---|
-| `PII_SEARCH_DB_PATH` | `./data/pii_vectors` | LanceDB path for the factor vector index |
+| `PII_CLASSIFICATION_ENABLED` | `false` | Host-side flag (`watchmen-rest-dqc`); the PII router and seed import are only wired in when `true` |
+| `PII_AI_CHANNEL_ENABLED` | `false` | Enable the AI recommendation channel. **Off in the first version** — discovery is logic matching plus manual mapping only |
+| `PII_SEARCH_DB_PATH` | `./data/pii_vectors` | LanceDB path for the factor vector index (AI channel only) |
+
+The AI channel is **optional and off by default**. Only when
+`PII_AI_CHANNEL_ENABLED=true` *and* `AZURE_OPENAI_API_KEY` /
+`AZURE_OPENAI_ENDPOINT` / `AZURE_OPENAI_DEPLOYMENT` are set does the router
+build an `AIRecommender` on first use; otherwise discovery is logic-only.
+The `watchmen-search` import inside `ai_recommender.py` is lazy, so running
+with the AI channel off never touches the search stack at runtime.
 
 ## Tests
 

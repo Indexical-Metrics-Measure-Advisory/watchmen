@@ -52,10 +52,20 @@ router = APIRouter()
 _ai_recommender: Optional[AIRecommender] = None
 
 
+def _ai_channel_enabled() -> bool:
+	# The AI (watchmen-search) channel is off in the first version — discovery
+	# is logic matching plus manual mapping only. Set PII_AI_CHANNEL_ENABLED=true
+	# to turn it on once watchmen-search is deployed.
+	import os
+	return os.environ.get('PII_AI_CHANNEL_ENABLED', 'false').strip().lower() == 'true'
+
+
 def _maybe_ai_recommender() -> Optional[AIRecommender]:
 	global _ai_recommender
 	if _ai_recommender is not None:
 		return _ai_recommender
+	if not _ai_channel_enabled():
+		return None
 	try:
 		from watchmen_search import AzureOpenAIProvider, LanceVectorStore, SemanticSearchService
 		provider = AzureOpenAIProvider()  # raises if Azure is not configured

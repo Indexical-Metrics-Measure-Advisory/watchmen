@@ -11,6 +11,18 @@ export const MonoText: React.FC<{ children: React.ReactNode; className?: string 
 export const MonoTextProps = MonoText; // alias for clarity when importing
 export default MonoText;
 
+/** Section header bar for border-first panels (`Card p-0`): title on the left, optional extra on the right. */
+export const PanelHeader: React.FC<{ title: React.ReactNode; extra?: React.ReactNode; className?: string }> = ({
+  title,
+  extra,
+  className,
+}) => (
+  <div className={cn('flex items-center justify-between gap-2 border-b px-4 py-3', className)}>
+    <p className="text-sm font-semibold text-foreground">{title}</p>
+    {extra != null && <div className="text-xs text-muted-foreground">{extra}</div>}
+  </div>
+);
+
 interface EmptyStateProps {
   title: string;
   description?: string;

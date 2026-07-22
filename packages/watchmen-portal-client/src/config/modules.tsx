@@ -26,18 +26,18 @@ export interface PortalModule {
  * Coming-soon modules are displayed in a disabled state.
  *
  * Update `url` fields to match your deployment routes.
+ * `lastAccessed` is populated at runtime from local tracking, not configured here.
  */
 export const portalModules: PortalModule[] = [
   {
-    id: "webclient",
+    id: "admin",
     title: "Data Development",
     subtitle: "Web Client",
     description:
       "For data developers — build and manage data pipelines, data models, and data assets",
     icon: Code2,
     status: "available",
-    url: "/webclient",
-    lastAccessed: "2h ago",
+    url: "/admin",
   },
   {
     id: "ingest",
@@ -48,7 +48,6 @@ export const portalModules: PortalModule[] = [
     icon: Database,
     status: "available",
     url: "/ingest",
-    lastAccessed: "1d ago",
   },
   {
     id: "analysis",
@@ -59,26 +58,26 @@ export const portalModules: PortalModule[] = [
     icon: BarChart3,
     status: "available",
     url: "/analysis",
-    lastAccessed: "3d ago",
   },
   {
     id: "ops",
     title: "Data Operations",
-    subtitle: "Ops Center",
+    subtitle: "Monitor Client",
     description:
       "Monitor platform health, manage alerts, and automate operations",
     icon: Server,
-    status: "coming-soon",
+    status: "available",
+    url: "/monitor",
   },
-  {
-    id: "ai-perception",
-    title: "AI Perception",
-    subtitle: "Intelligence Layer",
-    description:
-      "AI-powered data quality sensing, anomaly detection, and intelligent insights",
-    icon: Sparkles,
-    status: "coming-soon",
-  },
+  // {
+  //   id: "ai-perception",
+  //   title: "AI Perception",
+  //   subtitle: "Intelligence Layer",
+  //   description:
+  //     "AI-powered data quality sensing, anomaly detection, and intelligent insights",
+  //   icon: Sparkles,
+  //   status: "coming-soon",
+  // },
 ];
 
 export const availableCount = portalModules.filter(

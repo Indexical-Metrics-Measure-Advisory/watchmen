@@ -116,6 +116,7 @@ import {
 	faUndoAlt,
 	faUpload,
 	faUser,
+	faUserShield,
 	faUsers,
 	faWarehouse,
 	faWaveSquare,
@@ -215,6 +216,7 @@ export const ICON_TOOLBOX = faToolbox;
 export const ICON_CONSANGUINITY = faDna;
 export const ICON_CATALOG = faWarehouse;
 export const ICON_TAG = faTags;
+export const ICON_PII = faUserShield;
 export const ICON_AI_MODEL = faRobot;
 export const ICON_RULE_DEFINE = faRobot;
 export const ICON_STATISTICS = faCompass;

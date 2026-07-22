@@ -5,6 +5,7 @@ import {PersonalAccessToken} from '@/widgets/common-settings/personal-access-tok
 import {ThemeSettings} from '@/widgets/common-settings/theme';
 import React from 'react';
 import {CacheSettings} from './cache';
+import {ClassificationSettings} from './classification';
 
 export const DataQualitySettings = () => {
 	return <SettingsPage>
@@ -12,6 +13,7 @@ export const DataQualitySettings = () => {
 		<VerticalMarginOneUnit/>
 		<ThemeSettings/>
 		<PersonalAccessToken/>
+		<ClassificationSettings/>
 		<CacheSettings/>
 		<VerticalMarginOneUnit/>
 	</SettingsPage>;

@@ -5,9 +5,11 @@ import type { PortalModule } from "@/config/modules";
 
 interface ModuleCardProps {
   module: PortalModule;
+  /** Called when the user clicks Enter — used to track last-accessed time. */
+  onEnter?: (moduleId: string) => void;
 }
 
-export function ModuleCard({ module }: ModuleCardProps) {
+export function ModuleCard({ module, onEnter }: ModuleCardProps) {
   const { icon: Icon, title, subtitle, description, status } = module;
   const isAvailable = status === "available";
 
@@ -70,12 +72,17 @@ export function ModuleCard({ module }: ModuleCardProps) {
       <div className="mt-5 pt-4 border-t border-border">
         {isAvailable ? (
           <div className="flex items-center justify-between">
-            <span className="inline-flex items-center gap-1 text-xs whitespace-nowrap text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              Last accessed {module.lastAccessed}
-            </span>
+            {module.lastAccessed ? (
+              <span className="inline-flex items-center gap-1 text-xs whitespace-nowrap text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                Last accessed {module.lastAccessed}
+              </span>
+            ) : (
+              <span />
+            )}
             <a
               href={module.url}
+              onClick={() => onEnter?.(module.id)}
               data-dom-id={`enter-${module.id}`}
               className="portal-btn-primary inline-flex items-center gap-1.5 h-9 px-4 rounded-md text-sm font-medium whitespace-nowrap shrink-0 bg-primary text-primary-foreground hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >

@@ -14,10 +14,11 @@ import {
 } from '@/components/ui/select';
 import { ChevronDown, ChevronRight, Play } from 'lucide-react';
 import { StatusPill } from '@/components/monitor/StatusPill';
-import { MonoText, EmptyState, ErrorBanner } from '@/components/monitor/common';
-import { usePipelineLogs, useAllPipelines } from '@/hooks/useMonitorQueries';
+import { KpiTile } from '@/components/monitor/KpiTile';
+import { MonoText, EmptyState, ErrorBanner, PanelHeader } from '@/components/monitor/common';
+import { usePipelineLogs, useAllPipelines, usePipelineLogStats } from '@/hooks/useMonitorQueries';
 import { pipelineMonitorService } from '@/services/pipelineMonitorService';
-import { getPipelineLogStatusMeta, formatDuration } from '@/utils/monitorConstants';
+import { getPipelineLogStatusMeta, formatDuration, TONE_DOT_CLASS } from '@/utils/monitorConstants';
 import { MonitorLogStatus, type PipelineMonitorLog, type PipelineMonitorLogCriteria } from '@/models/pipeline.models';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -40,8 +41,8 @@ const TreeNode: React.FC<{
   return (
     <div>
       <div
-        className={`flex items-center gap-2 py-1.5 ${hasChildren ? 'cursor-pointer hover:bg-muted/40' : ''}`}
-        style={{ paddingLeft: depth * 18 }}
+        className={`flex items-center gap-2 py-1.5 pr-3 ${hasChildren ? 'cursor-pointer hover:bg-muted/40' : ''}`}
+        style={{ paddingLeft: depth * 18 + 12 }}
         onClick={() => hasChildren && setOpen((o) => !o)}
       >
         {hasChildren ? (
@@ -57,7 +58,10 @@ const TreeNode: React.FC<{
         </span>
       </div>
       {error && (
-        <pre className="ml-8 mb-2 max-h-32 overflow-auto rounded bg-red-50 p-2 text-xs text-red-700" style={{ marginLeft: depth * 18 + 16 }}>
+        <pre
+          className="mb-2 mr-3 max-h-32 overflow-auto rounded-md border border-red-200 bg-red-50 p-2.5 text-xs text-red-700"
+          style={{ marginLeft: depth * 18 + 28 }}
+        >
           {error}
         </pre>
       )}
@@ -82,6 +86,13 @@ const PipelineMonitor: React.FC = () => {
 
   const logsQ = usePipelineLogs(filters);
   const pipelinesQ = useAllPipelines();
+  // Aggregated KPIs follow the same entity filters as the log list (status/trace excluded).
+  const statsQ = usePipelineLogStats({
+    pipelineId: filters.pipelineId ?? undefined,
+    topicId: filters.topicId ?? undefined,
+    startDate: filters.startDate ?? undefined,
+    endDate: filters.endDate ?? undefined,
+  });
 
   const pipelineName = React.useMemo(() => {
     const map: Record<string, string> = {};
@@ -92,6 +103,12 @@ const PipelineMonitor: React.FC = () => {
   const logs = logsQ.data?.data ?? [];
   const pageCount = logsQ.data?.pageCount ?? 1;
   const selected = logs.find((l) => l.uid === selectedUid) ?? null;
+
+  const stats = statsQ.data;
+  const doneCount = stats?.byStatus?.[MonitorLogStatus.DONE] ?? 0;
+  const ignoredCount = stats?.byStatus?.[MonitorLogStatus.IGNORED] ?? 0;
+  const errorCount = stats?.byStatus?.[MonitorLogStatus.ERROR] ?? 0;
+  const successRate = stats != null && stats.total > 0 ? `${((doneCount / stats.total) * 100).toFixed(1)}%` : '—';
 
   const setField = <K extends keyof PipelineMonitorLogCriteria>(key: K, value: PipelineMonitorLogCriteria[K]) => {
     setFilters((f) => ({ ...f, [key]: value, pageNumber: 1 }));
@@ -157,10 +174,38 @@ const PipelineMonitor: React.FC = () => {
         </div>
       </Card>
 
+      {/* KPI row */}
+      {statsQ.isLoading ? (
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[92px] w-full" />)}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <KpiTile
+            label={t('pipeline:kpi.total')}
+            value={stats?.total ?? 0}
+            tone="neutral"
+            caption={stats?.avgDurationMs != null ? `${t('pipeline:kpi.avgDuration')} ${formatDuration(stats.avgDurationMs)}` : undefined}
+          />
+          <KpiTile
+            label={t('pipeline:kpi.successRate')}
+            value={successRate}
+            tone="success"
+            caption={stats != null ? <span className="tabular-nums">{doneCount} / {stats.total}</span> : undefined}
+          />
+          <KpiTile label={t('pipeline:kpi.ignored')} value={ignoredCount} tone="warning" />
+          <KpiTile label={t('pipeline:kpi.errors')} value={errorCount} tone="error" />
+        </div>
+      )}
+
       {/* Master-detail */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-        {/* List */}
+        {/* Log list */}
         <Card className="p-0">
+          <PanelHeader
+            title={t('pipeline:sections.logs')}
+            extra={logsQ.data?.itemCount != null ? <span className="tabular-nums">{logsQ.data.itemCount}</span> : null}
+          />
           <div className="max-h-[640px] overflow-auto">
             {logsQ.error ? (
               <div className="p-4"><ErrorBanner message={String(logsQ.error)} onRetry={() => logsQ.refetch()} /></div>
@@ -176,11 +221,11 @@ const PipelineMonitor: React.FC = () => {
                   <div
                     key={log.uid}
                     onClick={() => setSelectedUid(log.uid ?? null)}
-                    className={`flex cursor-pointer items-center gap-3 border-b px-3 py-2.5 last:border-0 ${
-                      active ? 'bg-blue-50/60 ring-1 ring-inset ring-blue-300' : 'hover:bg-muted/40'
+                    className={`flex cursor-pointer items-center gap-3 border-b px-4 py-2.5 last:border-0 ${
+                      active ? 'bg-indigo-50/60 ring-1 ring-inset ring-indigo-300' : 'hover:bg-muted/40'
                     }`}
                   >
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${sm.tone === 'success' ? 'bg-green-500' : sm.tone === 'error' ? 'bg-red-500' : sm.tone === 'warning' ? 'bg-orange-500' : 'bg-slate-400'}`} />
+                    <span className={`h-2 w-2 shrink-0 rounded-full ${TONE_DOT_CLASS[sm.tone]}`} />
                     <div className="min-w-0 flex-1">
                       <MonoText className="block truncate text-sm font-medium text-foreground">
                         {log.pipelineId ? (pipelineName[log.pipelineId] ?? log.pipelineId) : '—'}
@@ -197,24 +242,24 @@ const PipelineMonitor: React.FC = () => {
             )}
           </div>
           {/* Pagination */}
-          <div className="flex items-center justify-between border-t px-3 py-2 text-xs text-muted-foreground">
-            <span>Page {filters.pageNumber} / {Math.max(1, pageCount)}</span>
+          <div className="flex items-center justify-between border-t px-4 py-2 text-xs text-muted-foreground">
+            <span className="tabular-nums">{filters.pageNumber} / {Math.max(1, pageCount)}</span>
             <div className="flex gap-1">
               <Button size="sm" variant="outline" disabled={(filters.pageNumber ?? 1) <= 1}
-                onClick={() => setFilters((f) => ({ ...f, pageNumber: (f.pageNumber ?? 1) - 1 }))}>Prev</Button>
+                onClick={() => setFilters((f) => ({ ...f, pageNumber: (f.pageNumber ?? 1) - 1 }))}>{t('common:previous')}</Button>
               <Button size="sm" variant="outline" disabled={(filters.pageNumber ?? 1) >= pageCount}
-                onClick={() => setFilters((f) => ({ ...f, pageNumber: (f.pageNumber ?? 1) + 1 }))}>Next</Button>
+                onClick={() => setFilters((f) => ({ ...f, pageNumber: (f.pageNumber ?? 1) + 1 }))}>{t('common:next')}</Button>
             </div>
           </div>
         </Card>
 
-        {/* Detail */}
-        <Card className="p-5">
-          {!selected ? (
-            <EmptyState title={t('pipeline:empty')} />
-          ) : (
-            <div>
-              <div className="mb-4 flex items-start justify-between">
+        {/* Detail column: header card / value diff card / stages card */}
+        <div className="space-y-4">
+          <Card className="p-4">
+            {!selected ? (
+              <EmptyState title={t('pipeline:empty')} />
+            ) : (
+              <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2">
                     <StatusPill tone={getPipelineLogStatusMeta(selected.status).tone} label={getPipelineLogStatusMeta(selected.status).label} />
@@ -225,31 +270,38 @@ const PipelineMonitor: React.FC = () => {
                   <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
                     <MonoText>{selected.traceId}</MonoText>
                     <span>{selected.startTime ? formatDistanceToNow(new Date(selected.startTime), { addSuffix: true }) : ''}</span>
-                    <span>{formatDuration(selected.spentInMills)}</span>
+                    <span className="tabular-nums">{formatDuration(selected.spentInMills)}</span>
                   </div>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => rerun(selected)}>
+                <Button size="sm" className="bg-indigo-600 text-white hover:bg-indigo-700" onClick={() => rerun(selected)}>
                   <Play className="mr-1 h-3.5 w-3.5" />{t('pipeline:rerun')}
                 </Button>
               </div>
+            )}
+          </Card>
 
-              {/* Old / new value diff */}
-              {(selected.oldValue != null || selected.newValue != null) && (
-                <div className="mb-4 grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="mb-1 text-xs font-medium text-muted-foreground">{t('pipeline:detail.oldValue')}</p>
-                    <pre className="max-h-40 overflow-auto rounded bg-slate-50 p-2 text-xs">{JSON.stringify(selected.oldValue ?? {}, null, 2)}</pre>
-                  </div>
-                  <div>
-                    <p className="mb-1 text-xs font-medium text-muted-foreground">{t('pipeline:detail.newValue')}</p>
-                    <pre className="max-h-40 overflow-auto rounded bg-slate-50 p-2 text-xs">{JSON.stringify(selected.newValue ?? {}, null, 2)}</pre>
-                  </div>
+          {/* Old / new value diff */}
+          {selected && (selected.oldValue != null || selected.newValue != null) && (
+            <Card className="p-0">
+              <PanelHeader title={t('pipeline:sections.valueDiff')} />
+              <div className="grid grid-cols-2 gap-3 p-4">
+                <div className="overflow-hidden rounded-md border border-red-200/70 bg-red-50/50">
+                  <p className="border-b border-red-200/70 px-3 py-1.5 text-xs font-medium text-red-700">{t('pipeline:detail.oldValue')}</p>
+                  <pre className="max-h-40 overflow-auto p-3 text-xs">{JSON.stringify(selected.oldValue ?? {}, null, 2)}</pre>
                 </div>
-              )}
+                <div className="overflow-hidden rounded-md border border-green-200/70 bg-green-50/50">
+                  <p className="border-b border-green-200/70 px-3 py-1.5 text-xs font-medium text-green-700">{t('pipeline:detail.newValue')}</p>
+                  <pre className="max-h-40 overflow-auto p-3 text-xs">{JSON.stringify(selected.newValue ?? {}, null, 2)}</pre>
+                </div>
+              </div>
+            </Card>
+          )}
 
-              {/* Nested DAG tree */}
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('pipeline:detail.stages')}</p>
-              <div className="rounded-lg border">
+          {/* Nested DAG tree */}
+          {selected && (
+            <Card className="p-0">
+              <PanelHeader title={t('pipeline:detail.stages')} />
+              <div className="py-1.5">
                 {(selected.stages ?? []).length === 0 && (
                   <p className="px-3 py-4 text-center text-xs text-muted-foreground">{t('common:empty')}</p>
                 )}
@@ -297,9 +349,9 @@ const PipelineMonitor: React.FC = () => {
                   </TreeNode>
                 ))}
               </div>
-            </div>
+            </Card>
           )}
-        </Card>
+        </div>
       </div>
     </div>
   );

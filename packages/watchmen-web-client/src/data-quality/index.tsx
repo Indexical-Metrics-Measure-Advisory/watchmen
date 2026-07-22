@@ -10,6 +10,7 @@ import DataQualityCatalog from './catalog';
 import DataQualityConsanguinity from './consanguinity';
 import {DataQualityMenu} from './menu';
 import DataQualityMonitorRules from './rules';
+import DataQualityPii from './pii';
 import DataQualitySettings from './settings';
 import DataQualityStatistics from './statistics';
 import DataQualityTagManagement from './tag-management';
@@ -66,6 +67,7 @@ const DataQualityIndex = () => {
 				{/*{asRoute(Router.DATA_QUALITY_END_USER, <DataQualityEndUser/>, {scrollable: false})}*/}
 				{asRoute(Router.DQC_SETTINGS, <DataQualitySettings/>)}
 				{asRoute(Router.DQC_TAG_MANAGEMENT, <DataQualityTagManagement/>)}
+				{asRoute(Router.DQC_PII, <DataQualityPii/>, {scrollable: false})}
 				{asFallbackNavigate(Router.DQC_STATISTICS)}
 			</Routes>
 		</DataQualityCacheEventBusProvider>

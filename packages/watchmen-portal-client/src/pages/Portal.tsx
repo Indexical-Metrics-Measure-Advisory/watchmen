@@ -1,11 +1,42 @@
+import { useMemo, useState } from "react";
+import { LogOut } from "lucide-react";
 import { ModuleCard } from "@/components/ModuleCard";
 import {
   portalModules,
   availableCount,
   comingSoonCount,
 } from "@/config/modules";
+import { useAuth } from "@/context/AuthContext";
+import {
+  formatRelativeTime,
+  loadLastAccessed,
+  markAccessed,
+} from "@/lib/lastAccessed";
 
 export default function Portal() {
+  const { user, logout } = useAuth();
+  const [lastAccessed, setLastAccessed] = useState<Record<string, number>>(
+    loadLastAccessed
+  );
+
+  const modules = useMemo(
+    () =>
+      portalModules.map((module) => ({
+        ...module,
+        lastAccessed: lastAccessed[module.id]
+          ? formatRelativeTime(lastAccessed[module.id])
+          : undefined,
+      })),
+    [lastAccessed]
+  );
+
+  const handleEnter = (moduleId: string) => {
+    setLastAccessed(markAccessed(moduleId));
+  };
+
+  const displayName = user?.nickName || user?.name || "";
+  const avatarInitial = displayName.trim().charAt(0).toUpperCase() || "?";
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
@@ -27,12 +58,22 @@ export default function Portal() {
           {/* User info */}
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
-              <div className="text-sm font-medium text-foreground">Alex Chen</div>
-              <div className="text-xs text-muted-foreground">Data Engineer</div>
+              <div className="text-sm font-medium text-foreground">
+                {displayName}
+              </div>
+              <div className="text-xs text-muted-foreground">{user?.role}</div>
             </div>
             <div className="w-9 h-9 flex items-center justify-center rounded-full bg-primary/10 text-primary">
-              <span className="text-sm font-semibold">A</span>
+              <span className="text-sm font-semibold">{avatarInitial}</span>
             </div>
+            <button
+              type="button"
+              onClick={logout}
+              title="Sign out"
+              className="w-9 h-9 flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </header>
@@ -78,8 +119,12 @@ export default function Portal() {
       <section className="px-6 pb-16 lg:pb-20 flex-1">
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {portalModules.map((module) => (
-              <ModuleCard key={module.id} module={module} />
+            {modules.map((module) => (
+              <ModuleCard
+                key={module.id}
+                module={module}
+                onEnter={handleEnter}
+              />
             ))}
           </div>
         </div>

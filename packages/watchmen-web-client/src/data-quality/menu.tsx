@@ -1,3 +1,4 @@
+import {DQC_PII_ENABLED_CHANGED_EVENT, isPiiClassificationEnabled} from '@/feature-switch';
 import {Router} from '@/routes/types';
 import {
 	ICON_ADMIN,
@@ -6,6 +7,7 @@ import {
 	ICON_END_USER,
 	ICON_HOME,
 	ICON_LOGOUT,
+	ICON_PII,
 	ICON_RULE_DEFINE,
 	ICON_SETTINGS,
 	ICON_STATISTICS,
@@ -22,7 +24,7 @@ import {SideMenuUser} from '@/widgets/basic/side-menu/side-menu-user';
 import {useSideMenuRoutes} from '@/widgets/basic/side-menu/use-side-menu-routes';
 import {useSideMenuWidth} from '@/widgets/basic/side-menu/use-side-menu-width';
 import {isAdminAvailable} from '@/widgets/common-settings/workbench-utils';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {matchPath, useLocation} from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -55,6 +57,13 @@ export const DataQualityMenu = () => {
 	const location = useLocation();
 	const {menuWidth, showTooltip, onResize} = useSideMenuWidth();
 	const {account, navigateTo, logout} = useSideMenuRoutes('Bye-bye now?');
+	const [piiEnabled, setPiiEnabled] = useState(isPiiClassificationEnabled());
+
+	useEffect(() => {
+		const onSwitchChanged = () => setPiiEnabled(isPiiClassificationEnabled());
+		window.addEventListener(DQC_PII_ENABLED_CHANGED_EVENT, onSwitchChanged);
+		return () => window.removeEventListener(DQC_PII_ENABLED_CHANGED_EVENT, onSwitchChanged);
+	}, []);
 
 	const workbenches = [];
 
@@ -99,6 +108,10 @@ export const DataQualityMenu = () => {
 		<SideMenuItem icon={ICON_TAG} label="Tag Management" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.DQC_TAG_MANAGEMENT}, location.pathname)}
 		              onClick={navigateTo(Router.DQC_TAG_MANAGEMENT)}/>
+		<SideMenuItem icon={ICON_PII} label="Data Classification" showTooltip={showTooltip}
+		              active={!!matchPath({path: Router.DQC_PII}, location.pathname)}
+		              onClick={navigateTo(Router.DQC_PII)}
+		              visible={piiEnabled}/>
 	
 		<SideMenuItem icon={ICON_END_USER} label="End User's Console" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.DQC_END_USER}, location.pathname)}

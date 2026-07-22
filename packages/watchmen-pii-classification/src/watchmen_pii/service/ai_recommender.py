@@ -10,14 +10,24 @@ Backed by :class:`watchmen_search.SemanticSearchService`. Two responsibilities:
    the threshold as :class:`LinkedFactor` (``matchSource='ai'``).
 
 Per the design doc, AI results are always marked as unconfirmed "辅助推荐".
+
+.. note::
+   The watchmen-search dependency is optional (Poetry extra ``ai``) and the
+   channel itself is gated by the ``PII_AI_CHANNEL_ENABLED`` env flag — both
+   are off in the first version, where discovery is logic matching plus
+   manual mapping only.
 """
+from __future__ import annotations
+
 from logging import getLogger
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, TYPE_CHECKING
 
 from watchmen_model.admin import Factor, Topic
-from watchmen_search import SearchDocument, SemanticSearchService
 
 from watchmen_pii.model import LinkedFactor, MATCH_SOURCE_AI, PIIClassificationTerm
+
+if TYPE_CHECKING:
+	from watchmen_search import SemanticSearchService
 
 logger = getLogger(__name__)
 
@@ -43,6 +53,8 @@ class AIRecommender:
 		"""
 		# Clear previously indexed documents for this tenant so re-indexing does
 		# not leave stale factors behind.
+		from watchmen_search import SearchDocument
+
 		try:
 			await self._search.delete_by_filter({"tenantId": tenant_id})
 		except Exception:  # pragma: no cover - store may be empty / missing
