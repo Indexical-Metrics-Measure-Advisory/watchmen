@@ -16,7 +16,7 @@
 
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import MetaData, Table, and_, func, select
+from sqlalchemy import MetaData, Table, and_, asc, desc, func, select
 from sqlalchemy.sql import Select
 
 from watchmen_model.admin import (
@@ -137,6 +137,9 @@ class OntologySqlCompiler:
 		if all_where_clauses:
 			statement = statement.where(and_(*all_where_clauses))
 
+		# 5) ORDER BY
+		statement = self._apply_order_by(virtual_object, request, tables_by_alias, statement)
+
 		statement = statement.limit(request.limit).offset(request.offset)
 		return CompiledOntologyQuery(statement=statement, labels=labels, virtual_object=virtual_object)
 
@@ -153,6 +156,10 @@ class OntologySqlCompiler:
 			attr = attributes.get(field)
 			if attr is not None:
 				required_attrs.append(attr)
+		for entry in (getattr(request, 'orderBy', None) or []):
+			attr = attributes.get(entry.field)
+			if attr is not None:
+				required_attrs.append(attr)
 		return {attr.sourceTable for attr in required_attrs if attr.sourceTable}
 
 	def _mapping_required(self, mapping: PhysicalTableMapping, required_aliases: set) -> bool:
@@ -163,6 +170,34 @@ class OntologySqlCompiler:
 			OntologyTableFactory.physical_table_name(mapping.topicName),
 		}
 		return any(k in required_aliases for k in keys if k)
+
+	def _apply_order_by(
+			self, virtual_object: VirtualObject, request: OntologyQueryRequest,
+			tables_by_alias: Dict[str, Table], statement: Select
+	) -> Select:
+		order_by = getattr(request, 'orderBy', None) or []
+		if not order_by:
+			return statement
+		attributes = {attr.name: attr for attr in virtual_object.attributes or []}
+		# 仅 includeDerived 中实际被请求的衍生属性可排序
+		derived_names = {
+			derived.name for derived in virtual_object.derivedAttributes or []
+			if derived.name in (request.includeDerived or [])
+		}
+		for entry in order_by:
+			field = entry.field
+			is_desc = (entry.direction or 'asc').lower() == 'desc'
+			if field in attributes:
+				column = self._resolve_attribute_column(attributes[field], tables_by_alias)
+				statement = statement.order_by(column.desc() if is_desc else column.asc())
+			elif field in derived_names:
+				# 衍生列按 label 引用（SQLAlchemy 在同一 select 内按 label 文本解析）
+				statement = statement.order_by(desc(field) if is_desc else asc(field))
+			else:
+				raise OntologySqlCompileError(
+					f'Order by field [{field}] is not an attribute of virtual object [{virtual_object.name}] '
+					f'and not a requested derived attribute.')
+		return statement
 
 	def _find_virtual_object(self, ontology: VirtualOntology, object_id: str) -> VirtualObject:
 		for obj in ontology.virtualObjects or []:

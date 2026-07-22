@@ -8,12 +8,23 @@
 
 import { API_BASE_URL, getDefaultHeaders } from "@/utils/apiConfig";
 
+/** 排序项：field 为 attribute 名或请求的衍生属性名，direction 为排序方向。 */
+export interface OntologyOrderBy {
+	field: string;
+	direction: "asc" | "desc";
+}
+
 /** 运行时查询请求（对应后端 OntologyQueryRequest）。 */
 export interface OntologyQueryRequest {
 	/** 虚拟对象 ID（VirtualObject.id）。 */
 	virtualObjectId: string;
-	/** 字段名 → 值 的等值过滤；键必须是虚拟对象的 attribute 名。后端可通过 ONTOLOGY_QUERY_REQUIRE_FILTERS 配置是否强制。 */
+	/**
+	 * 字段名 → 过滤条件；键必须是虚拟对象的 attribute 名。后端可通过 ONTOLOGY_QUERY_REQUIRE_FILTERS 配置是否强制。
+	 * 值为标量时表示等值过滤；也可以是 { operator, value } 对象（operator 如 gt/gte/lt/lte/eq/ne 等）。
+	 */
 	filters?: Record<string, unknown>;
+	/** 排序规则；数组顺序即排序优先级。 */
+	orderBy?: OntologyOrderBy[];
 	/** 需返回的属性名；空 = 返回全部 attribute。 */
 	fields?: string[];
 	/** 需计算的衍生属性名。 */

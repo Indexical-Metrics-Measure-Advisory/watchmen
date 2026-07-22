@@ -95,7 +95,14 @@ class FilterCompiler:
 			if attr is None:
 				raise OntologySqlCompileError(
 					f'Filter field [{field}] is not defined in virtual object [{virtual_object.name}].')
-			criteria.append(resolve_attribute_column(attr) == value)
+			column = resolve_attribute_column(attr)
+			if isinstance(value, dict) and 'operator' in value:
+				# 对象形式 {"operator": ..., "value": ...}：走 FilterCondition 操作符逻辑
+				flt = FilterCondition(field=field, operator=value.get('operator'), value=value.get('value'))
+				criteria.append(self._apply_operator(flt, column, table_label=f'attribute [{field}]'))
+			else:
+				# 标量：保持等值过滤
+				criteria.append(column == value)
 		return and_(*criteria) if criteria else None
 
 	# ---- 内部：单条 FilterCondition 处理 ---------------------------------------
@@ -138,6 +145,11 @@ class FilterCompiler:
 			return column < value
 		if operator == 'lte':
 			return column <= value
+		if operator == 'between':
+			if not isinstance(value, (list, tuple)) or len(value) != 2:
+				raise OntologySqlCompileError(
+					f'Filter [between] on [{table_label}] requires a list value of exactly 2 elements.')
+			return column.between(value[0], value[1])
 		if operator == 'is_null':
 			return column.is_(None)
 		if operator == 'is_not_null':

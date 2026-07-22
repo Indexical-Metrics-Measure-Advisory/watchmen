@@ -1,12 +1,14 @@
 """Ontology Data Access Service orchestration layer."""
 
 import logging
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import Engine
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import OntologyService, TopicService
+from watchmen_model.admin import FactorType, VirtualObject
 from watchmen_rest.util import raise_400, raise_403, raise_404
 
 from watchmen_metricflow.settings import ask_ontology_query_require_filters
@@ -42,8 +44,8 @@ class OntologyDataAccessService:
 		self.compiler = OntologySqlCompiler()
 		# field-level masking by factor type / encrypt: falls back to the name
 		# heuristic when topic_service is not provided
-		resolver = FactorTypeResolver(topic_service, principal_service)
-		self.security = OntologySecurityLayer(principal_service, topic_resolver=resolver)
+		self._factor_resolver = FactorTypeResolver(topic_service, principal_service)
+		self.security = OntologySecurityLayer(principal_service, topic_resolver=self._factor_resolver)
 
 	def query(self, ontology_id: str, request: OntologyQueryRequest) -> OntologyQueryResponse:
 		ontology = self.ontology_service.find_by_id(ontology_id)
@@ -52,6 +54,7 @@ class OntologyDataAccessService:
 		if ontology.tenantId != self.principal_service.get_tenant_id():
 			raise_403()
 		self._check_filters(request)
+		self._prepare_filters(ontology, request)
 
 		try:
 			compiled = self.compiler.compile(ontology, request)
@@ -76,6 +79,7 @@ class OntologyDataAccessService:
 		if ontology.tenantId != self.principal_service.get_tenant_id():
 			raise_403()
 		self._check_filters(request)
+		self._prepare_filters(ontology, request)
 		try:
 			compiled = self.compiler.compile(ontology, request)
 		except OntologySqlCompileError as e:
@@ -92,6 +96,82 @@ class OntologyDataAccessService:
 		"""Decide whether filters are required based on system configuration."""
 		if ask_ontology_query_require_filters() and (not request.filters or len(request.filters) == 0):
 			raise_400('filters is required: at least one filter condition must be provided.')
+
+	# comparison operators restricted to numeric / datetime fields
+	_COMPARISON_OPERATORS = ('gt', 'gte', 'lt', 'lte', 'between')
+	_NUMERIC_FACTOR_TYPES = (FactorType.SEQUENCE, FactorType.NUMBER, FactorType.UNSIGNED)
+	_DATETIME_FACTOR_TYPES = (FactorType.DATE, FactorType.DATETIME, FactorType.FULL_DATETIME, FactorType.TIME)
+
+	def _prepare_filters(self, ontology, request: OntologyQueryRequest) -> None:
+		"""Validate comparison-operator filters against factor types and coerce values in place.
+
+		gt/gte/lt/lte/between are allowed only on numeric or datetime fields; between
+		additionally requires a list value of exactly 2 elements. When the factor
+		cannot be resolved (topic service missing, etc.), the filter passes through
+		unvalidated, matching the security layer's fallback philosophy.
+		"""
+		comparisons = [
+			(field, value) for field, value in (request.filters or {}).items()
+			if isinstance(value, dict) and str(value.get('operator') or '').lower() in self._COMPARISON_OPERATORS
+		]
+		if not comparisons:
+			return
+		virtual_object: Optional[VirtualObject] = next(
+			(obj for obj in ontology.virtualObjects or [] if obj.id == request.virtualObjectId), None)
+		if virtual_object is None:
+			# let the compiler raise the not-found error as before
+			return
+		resolved = self._factor_resolver.resolve_attributes(virtual_object)
+		for field, value in comparisons:
+			factor = resolved.get(field)
+			if factor is None or not factor.resolved or factor.factor_type is None:
+				continue
+			operator = str(value.get('operator')).lower()
+			if factor.factor_type in self._NUMERIC_FACTOR_TYPES:
+				coerce = self._coerce_numeric_value
+			elif factor.factor_type in self._DATETIME_FACTOR_TYPES:
+				coerce = self._coerce_datetime_value
+			else:
+				raise_400(f'operator [{operator}] is only supported for numeric or datetime field [{field}].')
+			if operator == 'between':
+				raw = value.get('value')
+				if not isinstance(raw, (list, tuple)) or len(raw) != 2:
+					raise_400(
+						f'filter value on field [{field}] with operator [between] '
+						f'must be a list of exactly 2 elements.')
+				value['value'] = [coerce(field, operator, item) for item in raw]
+			else:
+				value['value'] = coerce(field, operator, value.get('value'))
+
+	@staticmethod
+	def _coerce_numeric_value(field: str, operator: str, value: Any) -> Any:
+		if isinstance(value, bool) or value is None:
+			raise_400(f'filter value on numeric field [{field}] with operator [{operator}] must be a number.')
+		if isinstance(value, (int, float)):
+			return value
+		if isinstance(value, str):
+			try:
+				return int(value)
+			except ValueError:
+				try:
+					return float(value)
+				except ValueError:
+					pass
+		raise_400(f'filter value [{value}] on numeric field [{field}] cannot be parsed as a number.')
+
+	@staticmethod
+	def _coerce_datetime_value(field: str, operator: str, value: Any) -> Any:
+		if not isinstance(value, str):
+			# already a native type (or None); nothing to validate here
+			return value
+		try:
+			# Python 3.11+ fromisoformat accepts 'YYYY-MM-DD' as well
+			datetime.fromisoformat(value)
+		except ValueError:
+			raise_400(f'filter value [{value}] on datetime field [{field}] is not a valid ISO datetime.')
+		# keep the ISO string: FilterCondition only accepts scalar str/int/float/bool
+		# values and database drivers bind ISO datetime strings natively
+		return value
 
 	@staticmethod
 	def _log_compile_error(ontology_id: str, ontology, request: OntologyQueryRequest,

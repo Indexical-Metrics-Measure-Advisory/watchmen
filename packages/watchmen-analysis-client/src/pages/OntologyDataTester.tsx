@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
 	Boxes, Table2, FlaskConical, RefreshCw, Play, Copy, Check, Loader2,
@@ -13,13 +13,30 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { VirtualOntology, physicalTableKindConfig, aggregateConfig } from '@/model/ontology';
+import { VirtualOntology, physicalTableKindConfig, aggregateConfig, FilterOperator, filterOperatorConfig } from '@/model/ontology';
 import { ontologyService, resolvePhysicalTableLabel } from '@/services/ontologyService';
 import {
-	ontologyQueryService, OntologyQueryRequest, OntologyCompileResult, OntologyQueryResult,
+	ontologyQueryService, OntologyQueryRequest, OntologyOrderBy, OntologyCompileResult, OntologyQueryResult,
 } from '@/services/ontologyQueryService';
+import { topicService } from '@/services/topicService';
 
 const ROW_LIMIT_OPTIONS = [10, 50, 100, 200, 500];
+
+/** UI classification of an attribute, derived from its physical factor type. */
+type AttributeKind = 'number' | 'datetime' | 'text';
+// Runtime-only operators beyond the config-level FilterOperator union (do not add to model/ontology.ts)
+type RuntimeFilterOperator = FilterOperator | 'between';
+type FilterValue = { operator: RuntimeFilterOperator; value: string; valueTo?: string };
+
+// Factor type strings from watchmen_model.admin.factor.FactorType
+const NUMERIC_FACTOR_TYPES = new Set(['sequence', 'number', 'unsigned']);
+const DATETIME_FACTOR_TYPES = new Set(['datetime', 'full-datetime', 'date', 'time']);
+
+const TEXT_FILTER_OPERATORS: RuntimeFilterOperator[] = ['eq'];
+const COMPARABLE_FILTER_OPERATORS: RuntimeFilterOperator[] = ['eq', 'gt', 'gte', 'lt', 'lte', 'between'];
+
+const filterOperatorLabel = (op: RuntimeFilterOperator, t: (key: string) => string): string =>
+	op === 'between' ? t('between') : filterOperatorConfig[op].label;
 
 const OntologyDataTester: React.FC = () => {
 	const { t } = useTranslation('ontologyDataTester');
@@ -34,9 +51,13 @@ const OntologyDataTester: React.FC = () => {
 	// 查询参数
 	const [selectedFields, setSelectedFields] = useState<string[]>([]); // 空 = 全部 attribute
 	const [selectedDerived, setSelectedDerived] = useState<string[]>([]);
-	const [filters, setFilters] = useState<Record<string, string>>({});
+	const [filters, setFilters] = useState<Record<string, FilterValue>>({});
+	const [orderBy, setOrderBy] = useState<OntologyOrderBy[]>([]);
 	const [limit, setLimit] = useState<number>(100);
 	const [offset, setOffset] = useState<number>(0);
+
+	// topicName → (factorName → factorType), used to classify attribute kinds
+	const [factorTypes, setFactorTypes] = useState<Map<string, Map<string, string>>>(new Map());
 
 	// 结果状态
 	const [compileResult, setCompileResult] = useState<OntologyCompileResult | null>(null);
@@ -75,11 +96,50 @@ const OntologyDataTester: React.FC = () => {
 		[ontology, objectId],
 	);
 
+	// ---- Load topic factor types for attribute kind classification ----
+	useEffect(() => {
+		if (!ontology) return;
+		let cancelled = false;
+		topicService.getDatamartTopics()
+			.then((topics) => {
+				if (cancelled) return;
+				const next = new Map<string, Map<string, string>>();
+				topics.forEach((topic) => {
+					const factors = new Map<string, string>();
+					(topic.factors ?? []).forEach((f) => {
+						if (f.name) factors.set(f.name, f.type);
+					});
+					next.set(topic.name, factors);
+				});
+				setFactorTypes(next);
+			})
+			.catch((e) => {
+				console.error('[OntologyDataTester] failed to load topic factors', e);
+				// failures → all fields fall back to 'text'
+				if (!cancelled) setFactorTypes(new Map());
+			});
+		return () => { cancelled = true; };
+	}, [ontology]);
+
+	// Resolve the UI kind of an attribute via its physical factor type; unknown/missing → 'text'
+	const attributeKind = useCallback((name: string): AttributeKind => {
+		const attr = virtualObject?.attributes.find((a) => a.name === name);
+		if (!virtualObject || !attr) return 'text';
+		const mapping = virtualObject.physicalTables.find((pt) => (pt.alias || pt.topicName) === attr.sourceTable);
+		if (!mapping) return 'text';
+		const factorType = factorTypes.get(mapping.topicName)?.get(attr.sourceField);
+		if (!factorType) return 'text';
+		if (NUMERIC_FACTOR_TYPES.has(factorType)) return 'number';
+		if (DATETIME_FACTOR_TYPES.has(factorType)) return 'datetime';
+		return 'text';
+	}, [virtualObject, factorTypes]);
+
 	// ---- Reset query parameters when switching objects ----
 	useEffect(() => {
 		setSelectedFields([]);
 		setSelectedDerived([]);
 		setFilters({});
+		setOrderBy([]);
 		setOffset(0);
 		setCompileResult(null);
 		setQueryResult(null);
@@ -90,14 +150,24 @@ const OntologyDataTester: React.FC = () => {
 	const buildRequest = (): OntologyQueryRequest | null => {
 		if (!virtualObject) return null;
 		const cleanFilters: Record<string, unknown> = {};
-		Object.entries(filters).forEach(([k, v]) => {
-			if (v.trim() !== '') cleanFilters[k] = v.trim();
+		Object.entries(filters).forEach(([k, f]) => {
+			const value = f.value.trim();
+			if (f.operator === 'between') {
+				const valueTo = (f.valueTo ?? '').trim();
+				if (value !== '' && valueTo !== '') cleanFilters[k] = { operator: 'between', value: [value, valueTo] };
+				else if (value !== '') cleanFilters[k] = { operator: 'gte', value };
+				else if (valueTo !== '') cleanFilters[k] = { operator: 'lte', value: valueTo };
+				return;
+			}
+			if (value === '') return;
+			cleanFilters[k] = f.operator === 'eq' ? value : { operator: f.operator, value };
 		});
 		return {
 			virtualObjectId: virtualObject.id,
 			fields: selectedFields,
 			includeDerived: selectedDerived,
 			filters: cleanFilters,
+			...(orderBy.length > 0 ? { orderBy } : {}),
 			limit,
 			offset,
 		};
@@ -346,6 +416,7 @@ const OntologyDataTester: React.FC = () => {
 															attributeNames={allAttributeNames}
 															filters={filters}
 															onChange={setFilters}
+															attributeKind={attributeKind}
 															t={t}
 														/>
 														{Object.keys(filters).length === 0 && (
@@ -353,6 +424,17 @@ const OntologyDataTester: React.FC = () => {
 														)}
 													</>
 												)}
+											</div>
+
+											{/* Order By */}
+											<div className="space-y-2">
+												<label className="text-xs font-medium text-muted-foreground">{t('orderBy')}</label>
+												<OrderByEditor
+													fields={[...allAttributeNames, ...selectedDerived]}
+													orderBy={orderBy}
+													onChange={setOrderBy}
+													t={t}
+												/>
 											</div>
 
 											{/* Pagination */}
@@ -523,22 +605,24 @@ const OntologyDataTester: React.FC = () => {
 };
 
 // ============================================================================
-// Filter editor: attribute name + equality input
+// Filter editor: attribute name + operator + value input
 // ============================================================================
 const FilterEditor: React.FC<{
 	attributeNames: string[];
-	filters: Record<string, string>;
-	onChange: (next: Record<string, string>) => void;
+	filters: Record<string, FilterValue>;
+	onChange: (next: Record<string, FilterValue>) => void;
+	attributeKind: (name: string) => AttributeKind;
 	t: (key: string, options?: Record<string, unknown>) => string;
-}> = ({ attributeNames, filters, onChange, t }) => {
+}> = ({ attributeNames, filters, onChange, attributeKind, t }) => {
 	const [pendingField, setPendingField] = useState<string>('');
 
 	const addFilter = () => {
 		if (!pendingField || filters[pendingField] !== undefined) return;
-		onChange({ ...filters, [pendingField]: '' });
+		onChange({ ...filters, [pendingField]: { operator: 'eq', value: '' } });
 		setPendingField('');
 	};
-	const updateFilter = (field: string, value: string) => onChange({ ...filters, [field]: value });
+	const updateFilter = (field: string, patch: Partial<FilterValue>) =>
+		onChange({ ...filters, [field]: { ...filters[field], ...patch } });
 	const removeFilter = (field: string) => {
 		const next = { ...filters };
 		delete next[field];
@@ -549,18 +633,51 @@ const FilterEditor: React.FC<{
 
 	return (
 		<div className="space-y-2">
-			{Object.entries(filters).map(([field, value]) => (
-				<div key={field} className="flex items-center gap-2">
-					<Badge variant="outline" className="text-xs shrink-0">{field}</Badge>
-					<span className="text-xs text-muted-foreground">=</span>
-					<Input className="h-7 text-xs flex-1" value={value}
-						onChange={(e) => updateFilter(field, e.target.value)}
-						placeholder={t('filterValuePlaceholder')} />
-					<Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeFilter(field)}>
-						<X className="w-3.5 h-3.5" />
-					</Button>
-				</div>
-			))}
+			{Object.entries(filters).map(([field, filter]) => {
+				const kind = attributeKind(field);
+				const operators = kind === 'text' ? TEXT_FILTER_OPERATORS : COMPARABLE_FILTER_OPERATORS;
+				return (
+					<div key={field} className="flex items-center gap-2">
+						<Badge variant="outline" className="text-xs shrink-0">{field}</Badge>
+						<Select value={filter.operator} onValueChange={(v) => {
+							const operator = v as RuntimeFilterOperator;
+							// keep the from-value when switching; drop the to-bound for single-value operators
+							updateFilter(field, operator === 'between' ? { operator } : { operator, valueTo: undefined });
+						}}>
+							<SelectTrigger className="h-7 text-xs w-[96px] shrink-0" title={t('operator')}><SelectValue /></SelectTrigger>
+							<SelectContent>
+								{operators.map((op) => (
+									<SelectItem key={op} value={op}>{filterOperatorLabel(op, t)}</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+						{filter.operator === 'between' ? (
+							<>
+								<Input className="h-7 text-xs flex-1"
+									type={kind === 'number' ? 'number' : 'text'}
+									value={filter.value}
+									onChange={(e) => updateFilter(field, { value: e.target.value })}
+									placeholder={kind === 'datetime' ? t('datetimeValuePlaceholder') : t('rangeFromPlaceholder')} />
+								<span className="text-xs text-muted-foreground shrink-0">–</span>
+								<Input className="h-7 text-xs flex-1"
+									type={kind === 'number' ? 'number' : 'text'}
+									value={filter.valueTo ?? ''}
+									onChange={(e) => updateFilter(field, { valueTo: e.target.value })}
+									placeholder={kind === 'datetime' ? t('datetimeValuePlaceholder') : t('rangeToPlaceholder')} />
+							</>
+						) : (
+							<Input className="h-7 text-xs flex-1"
+								type={kind === 'number' ? 'number' : 'text'}
+								value={filter.value}
+								onChange={(e) => updateFilter(field, { value: e.target.value })}
+								placeholder={kind === 'datetime' ? t('datetimeValuePlaceholder') : t('filterValuePlaceholder')} />
+						)}
+						<Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeFilter(field)}>
+							<X className="w-3.5 h-3.5" />
+						</Button>
+					</div>
+				);
+			})}
 			{available.length > 0 && (
 				<div className="flex items-center gap-2">
 					<Select value={pendingField} onValueChange={setPendingField}>
@@ -571,6 +688,67 @@ const FilterEditor: React.FC<{
 					</Select>
 					<Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={addFilter} disabled={!pendingField}>
 						<Plus className="w-3 h-3" />{t('add')}
+					</Button>
+				</div>
+			)}
+		</div>
+	);
+};
+
+// ============================================================================
+// Order By editor: field + direction rows, array order = sort priority
+// ============================================================================
+const OrderByEditor: React.FC<{
+	fields: string[];
+	orderBy: OntologyOrderBy[];
+	onChange: (next: OntologyOrderBy[]) => void;
+	t: (key: string, options?: Record<string, unknown>) => string;
+}> = ({ fields, orderBy, onChange, t }) => {
+	const [pendingField, setPendingField] = useState<string>('');
+
+	const addSort = () => {
+		if (!pendingField || orderBy.some((o) => o.field === pendingField)) return;
+		onChange([...orderBy, { field: pendingField, direction: 'asc' }]);
+		setPendingField('');
+	};
+	const updateSort = (index: number, patch: Partial<OntologyOrderBy>) =>
+		onChange(orderBy.map((o, i) => (i === index ? { ...o, ...patch } : o)));
+	const removeSort = (index: number) => onChange(orderBy.filter((_, i) => i !== index));
+
+	const available = fields.filter((n) => !orderBy.some((o) => o.field === n));
+
+	return (
+		<div className="space-y-2">
+			{orderBy.map((sort, index) => (
+				<div key={sort.field} className="flex items-center gap-2">
+					<Select value={sort.field} onValueChange={(v) => updateSort(index, { field: v })}>
+						<SelectTrigger className="h-7 text-xs flex-1"><SelectValue placeholder={t('sortField')} /></SelectTrigger>
+						<SelectContent>
+							{[sort.field, ...available].map((n) => (<SelectItem key={n} value={n}>{n}</SelectItem>))}
+						</SelectContent>
+					</Select>
+					<Select value={sort.direction} onValueChange={(v) => updateSort(index, { direction: v as OntologyOrderBy['direction'] })}>
+						<SelectTrigger className="h-7 text-xs w-[110px] shrink-0"><SelectValue placeholder={t('sortDirection')} /></SelectTrigger>
+						<SelectContent>
+							<SelectItem value="asc">{t('asc')}</SelectItem>
+							<SelectItem value="desc">{t('desc')}</SelectItem>
+						</SelectContent>
+					</Select>
+					<Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeSort(index)}>
+						<X className="w-3.5 h-3.5" />
+					</Button>
+				</div>
+			))}
+			{available.length > 0 && (
+				<div className="flex items-center gap-2">
+					<Select value={pendingField} onValueChange={setPendingField}>
+						<SelectTrigger className="h-7 text-xs"><SelectValue placeholder={t('sortField')} /></SelectTrigger>
+						<SelectContent>
+							{available.map((n) => (<SelectItem key={n} value={n}>{n}</SelectItem>))}
+						</SelectContent>
+					</Select>
+					<Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={addSort} disabled={!pendingField}>
+						<Plus className="w-3 h-3" />{t('addSort')}
 					</Button>
 				</div>
 			)}
