@@ -361,8 +361,8 @@ export const getAllMetrics = async (): Promise<MetricDefinition[]> => {
 	try {
 		const isAPIAvailable = await isRealTimeMetricsAvailable();
 		if (isAPIAvailable) {
-			const realTimeData = await fetchRealTimeMetrics();
-			return (realTimeData?.metrics ?? realTimeData ?? []) as MetricDefinition[];
+			const realTimeData = (await fetchRealTimeMetrics()) as { metrics?: MetricDefinition[] } | undefined;
+			return (realTimeData?.metrics ?? []) as MetricDefinition[];
 		}
 	} catch {
 		// fall through to mock
@@ -388,8 +388,8 @@ export const getMetrics = async (filter?: MetricFilter): Promise<MetricDefinitio
 
 		if (isAPIAvailable) {
 			try {
-				const realTimeData = await fetchRealTimeMetrics();
-				const metrics: MetricDefinition[] = (realTimeData?.metrics ?? realTimeData ?? []) as MetricDefinition[];
+				const realTimeData = (await fetchRealTimeMetrics()) as { metrics?: MetricDefinition[] } | undefined;
+				const metrics: MetricDefinition[] = (realTimeData?.metrics ?? []) as MetricDefinition[];
 				const filtered = filter ? applyMetricFilters(metrics, filter) : metrics;
 				// If real-time returns empty list, fall back to mock to keep UI useful
 
@@ -630,7 +630,7 @@ export const getMetricCategories = async (): Promise<MetricCategory[]> => {
 		throw new MetricsAPIException(
 			MetricsAPIError.SERVER_ERROR,
 			"Failed to get metric categories",
-			error instanceof Error ? undefined : (error as any)?.status,
+			error instanceof Error ? undefined : extractErrorStatus(error),
 			error instanceof Error ? error : undefined,
 		);
 	}
@@ -678,7 +678,7 @@ export const getMetric = async (name: string): Promise<MetricDefinition | null> 
 		throw new MetricsAPIException(
 			MetricsAPIError.SERVER_ERROR,
 			"Failed to get metric",
-			error instanceof Error ? undefined : (error as any)?.status,
+			error instanceof Error ? undefined : extractErrorStatus(error),
 			error instanceof Error ? error : undefined,
 		);
 	}
@@ -703,7 +703,7 @@ export const createMetric = async (
 		throw new MetricsAPIException(
 			MetricsAPIError.SERVER_ERROR,
 			"Failed to create metric",
-			error instanceof Error ? undefined : (error as any)?.status,
+			error instanceof Error ? undefined : extractErrorStatus(error),
 			error instanceof Error ? error : undefined,
 		);
 	}
@@ -726,7 +726,7 @@ export const updateMetric = async (name: string, updates: Partial<MetricDefiniti
 		throw new MetricsAPIException(
 			MetricsAPIError.SERVER_ERROR,
 			"Failed to update metric",
-			error instanceof Error ? undefined : (error as any)?.status,
+			error instanceof Error ? undefined : extractErrorStatus(error),
 			error instanceof Error ? error : undefined,
 		);
 	}
@@ -746,7 +746,7 @@ export const deleteMetric = async (name: string): Promise<void> => {
 		throw new MetricsAPIException(
 			MetricsAPIError.SERVER_ERROR,
 			"Failed to delete metric",
-			error instanceof Error ? undefined : (error as any)?.status,
+			error instanceof Error ? undefined : extractErrorStatus(error),
 			error instanceof Error ? error : undefined,
 		);
 	}
@@ -769,7 +769,7 @@ export const getMetricValues = async (metricNames: string[]): Promise<MetricValu
 		throw new MetricsAPIException(
 			MetricsAPIError.SERVER_ERROR,
 			"Failed to get metric values",
-			error instanceof Error ? undefined : (error as any)?.status,
+			error instanceof Error ? undefined : extractErrorStatus(error),
 			error instanceof Error ? error : undefined,
 		);
 	}
@@ -1173,6 +1173,15 @@ export enum MetricsAPIError {
 	TIMEOUT_ERROR = "TIMEOUT_ERROR",
 }
 
+/** Extract HTTP status code from a non-Error thrown value (e.g. fetch response). */
+const extractErrorStatus = (error: unknown): number | undefined => {
+	if (typeof error === "object" && error !== null && "status" in error) {
+		const status = (error as { status: unknown }).status;
+		return typeof status === "number" ? status : undefined;
+	}
+	return undefined;
+};
+
 export class MetricsAPIException extends Error {
 	constructor(
 		public type: MetricsAPIError,
@@ -1247,7 +1256,7 @@ const retryWithBackoff = async <T>(fn: () => Promise<T>, config: RetryConfig = D
 /**
  * Enhanced error handling for fetch responses
  */
-const handleAPIResponse = async (response: Response): Promise<any> => {
+const handleAPIResponse = async (response: Response): Promise<unknown> => {
 	if (!response.ok) {
 		let errorType: MetricsAPIError;
 		let errorMessage: string;
@@ -1395,7 +1404,7 @@ export const findDimensionsByMetric = async (metricName: string): Promise<Dimens
 		if (data && Array.isArray(data.dimensions)) {
 			return {
 				dimensions: data.dimensions as MetricDimension[],
-				total: (data as any).total ?? data.dimensions.length,
+				total: (data as { total?: number }).total ?? data.dimensions.length,
 			};
 		}
 		return { dimensions: [], total: 0 };

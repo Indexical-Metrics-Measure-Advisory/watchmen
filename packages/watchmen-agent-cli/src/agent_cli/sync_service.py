@@ -55,7 +55,7 @@ class SyncService:
                 write_yaml_entity(self.vault_path, ENUM_DIR, yaml_str, "enumId", name_key="name")
             result["enums"] = len(enums)
         if target in ("semantic", "all"):
-            semantic_yaml = self.client.get_text("/metric/metricflow/semantic-model/all/yaml/agent-view")
+            semantic_yaml = self.client.get_text("/metricflow/semantic-model/all/yaml/agent-view")
             semantic_models = yaml.safe_load(semantic_yaml) if semantic_yaml.strip() else []
             semantic_models = semantic_models if isinstance(semantic_models, list) else []
             for model in semantic_models:
@@ -63,7 +63,7 @@ class SyncService:
                 write_yaml_entity(self.vault_path, METRICFLOW_SEMANTIC_DIR, yaml_str, "id", name_key="name")
             result["semantic_models"] = len(semantic_models)
         if target in ("metric", "all"):
-            metrics_yaml = self.client.get_text("/metric/metricflow/metric/all/yaml/agent-view")
+            metrics_yaml = self.client.get_text("/metricflow/metric/all/yaml/agent-view")
             metrics = yaml.safe_load(metrics_yaml) if metrics_yaml.strip() else []
             metrics = metrics if isinstance(metrics, list) else []
             for metric in metrics:
@@ -287,7 +287,7 @@ class SyncService:
         return {"count": len(pipeline_summaries), "pipelines": pipeline_summaries}
 
     def pull_one_semantic_model_by_name(self, model_name: str) -> Dict[str, Any]:
-        model_yaml = self.client.get_text("/metric/metricflow/semantic-model/name/yaml/agent-view", {"model_name": model_name})
+        model_yaml = self.client.get_text("/metricflow/semantic-model/name/yaml/agent-view", {"model_name": model_name})
         write_yaml_entity(self.vault_path, METRICFLOW_SEMANTIC_DIR, model_yaml, "id", name_key="name")
         return {"semanticModelName": model_name, "status": "pulled"}
 
@@ -297,7 +297,7 @@ class SyncService:
         source_yaml = file_path.read_text(encoding="utf-8")
         source_model = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
         source_id = str((source_model or {}).get("id") or "").strip()
-        pushed_yaml = self.client.post_text("/metric/metricflow/semantic-model/yaml/agent-upsert", source_yaml)
+        pushed_yaml = self.client.post_text("/metricflow/semantic-model/yaml/agent-upsert", source_yaml)
         pushed_model = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
         pushed_id = str((pushed_model or {}).get("id") or "").strip()
         replaced = bool(source_id and pushed_id and source_id == pushed_id)
@@ -318,7 +318,7 @@ class SyncService:
         }
 
     def list_semantic_models_from_server(self) -> Dict[str, Any]:
-        models = self.client.get_json("/metric/metricflow/semantic-models/all")
+        models = self.client.get_json("/metricflow/semantic-models/all")
         summaries = []
         for model in models:
             summaries.append({
@@ -330,7 +330,7 @@ class SyncService:
         return {"count": len(summaries), "semanticModels": summaries}
 
     def pull_one_metric_by_name(self, metric_name: str) -> Dict[str, Any]:
-        metric_yaml = self.client.get_text("/metric/metricflow/metric/name/yaml/agent-view", {"metric_name": metric_name})
+        metric_yaml = self.client.get_text("/metricflow/metric/name/yaml/agent-view", {"metric_name": metric_name})
         write_yaml_entity(self.vault_path, METRICFLOW_METRIC_DIR, metric_yaml, "id", name_key="name")
         return {"metricName": metric_name, "status": "pulled"}
 
@@ -340,7 +340,7 @@ class SyncService:
         source_yaml = file_path.read_text(encoding="utf-8")
         source_metric = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
         source_id = str((source_metric or {}).get("id") or "").strip()
-        pushed_yaml = self.client.post_text("/metric/metricflow/metric/yaml/agent-upsert", source_yaml)
+        pushed_yaml = self.client.post_text("/metricflow/metric/yaml/agent-upsert", source_yaml)
         pushed_metric = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
         pushed_id = str((pushed_metric or {}).get("id") or "").strip()
         replaced = bool(source_id and pushed_id and source_id == pushed_id)
@@ -729,7 +729,7 @@ class SyncService:
             raise AgentCliException(f"Topic name must be unique in local vault before push. Duplicates: {details}")
 
     def pull_one_ontology_by_name(self, ontology_name: str) -> Dict[str, Any]:
-        ontology_yaml = self.client.get_text("metric/ontology/name/yaml/agent-view", {"name": ontology_name})
+        ontology_yaml = self.client.get_text("/ontology/name/yaml/agent-view", {"name": ontology_name})
         write_yaml_entity_by_name(self.vault_path, ONTOLOGY_DIR, ontology_yaml)
         return {"ontologyName": ontology_name, "status": "pulled"}
 
@@ -739,7 +739,7 @@ class SyncService:
         source_yaml = file_path.read_text(encoding="utf-8")
         source_ontology = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
         source_name = str((source_ontology or {}).get("name") or "").strip()
-        pushed_yaml = self.client.post_text("metric/ontology/yaml/agent-upsert", source_yaml)
+        pushed_yaml = self.client.post_text("/ontology/yaml/agent-upsert", source_yaml)
         pushed_response = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
         pushed_name = str((pushed_response or {}).get("name") or "").strip()
 
@@ -757,7 +757,7 @@ class SyncService:
         }
 
     def list_ontologies_from_server(self) -> Dict[str, Any]:
-        ontologies_yaml = self.client.get_text("/metric/ontology/all/yaml/agent-view")
+        ontologies_yaml = self.client.get_text("/ontology/all/yaml/agent-view")
         ontologies = []
         if ontologies_yaml.strip():
             for doc in yaml.safe_load_all(ontologies_yaml):
