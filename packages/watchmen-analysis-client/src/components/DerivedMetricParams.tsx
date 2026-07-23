@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2 } from 'lucide-react';
@@ -28,15 +31,7 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
         setAvailableMetrics(metrics);
       } catch (error) {
         console.error('Failed to load metrics:', error);
-        // Fallback to some common metric names if API fails
-         setAvailableMetrics([
-           { name: 'total_policies_issued', label: 'Total Policies Issued', description: 'Total number of issued policies', type: 'simple', type_params: {}, createdAt: '', updatedAt: '' },
-           { name: 'total_annual_premium_hkd', label: 'Annual Premium Income (HKD)', description: 'Total annual premium income', type: 'simple', type_params: {}, createdAt: '', updatedAt: '' },
-           { name: 'total_afyp_hkd', label: 'First Year Premium (HKD)', description: 'Total first year premium', type: 'simple', type_params: {}, createdAt: '', updatedAt: '' },
-           { name: 'avg_premium_per_policy', label: 'Average Policy Premium', description: 'Average annual premium per policy', type: 'simple', type_params: {}, createdAt: '', updatedAt: '' },
-           { name: 'active_banks_count', label: 'Active Banks', description: 'Number of active banks', type: 'simple', type_params: {}, createdAt: '', updatedAt: '' },
-           { name: 'active_branches_count', label: 'Active Branches', description: 'Number of active branches', type: 'simple', type_params: {}, createdAt: '', updatedAt: '' }
-         ]);
+        setAvailableMetrics([]);
       } finally {
         setIsLoadingMetrics(false);
       }
@@ -52,9 +47,8 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
   const addMetricReference = () => {
     const newMetric: MetricReference = {
       name: '',
-      alias: null as any,
+      alias: '',
       filter: null,
-      offset_window: null as any,
       offset_to_grain: null
     };
     updateParams({
@@ -108,11 +102,38 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
     }
   };
 
+  // Insert a metric name into the expression (appended to the end)
+  const insertMetricIntoExpr = (name: string) => {
+    const current = params.expr || '';
+    updateParams({ expr: current ? `${current} ${name}` : name });
+  };
+
+  // Chips shown above the expression editor: selected references first, else available metrics
+  const selectedMetricNames = (params.metrics || []).map(m => m.name).filter(Boolean);
+  const chipMetrics = selectedMetricNames.length > 0
+    ? availableMetrics.filter(m => selectedMetricNames.includes(m.name))
+    : availableMetrics.slice(0, 10);
+
   return (
     <div className="space-y-6">
       {/* Expression */}
       <div className="space-y-2">
         <label className="text-sm font-medium">{t('derived.expression')}</label>
+        {!isLoadingMetrics && chipMetrics.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs text-muted-foreground">{t('derived.insertMetricHint')}:</span>
+            {chipMetrics.map((m) => (
+              <Badge
+                key={m.name}
+                variant="secondary"
+                className="cursor-pointer hover:bg-secondary/60"
+                onClick={() => insertMetricIntoExpr(m.name)}
+              >
+                {m.label || m.name}
+              </Badge>
+            ))}
+          </div>
+        )}
         <Textarea
           value={params.expr || ''}
           onChange={(e) => updateParams({ expr: e.target.value })}
@@ -126,7 +147,7 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Metric References</CardTitle>
+            <CardTitle className="text-lg">{t('derived.metricReferences')}</CardTitle>
             <Button size="sm" onClick={addMetricReference}>
               <Plus className="h-4 w-4 mr-2" />
               {t('derived.addMetric')}
@@ -157,7 +178,7 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
                       const updatedMetrics = [...(params.metrics || [])];
                       updatedMetrics[index] = { ...updatedMetrics[index], name: value };
                       
-                      let updatedInputMeasures = [...(params.input_measures || [])];
+                      const updatedInputMeasures = [...(params.input_measures || [])];
                       
                       if (selectedMetric?.type === 'simple' && selectedMetric.type_params.measure) {
                         const measure = selectedMetric.type_params.measure;
@@ -234,11 +255,11 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
                         <SelectValue placeholder={t('derived.selectGranularity')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="day">Day</SelectItem>
-                        <SelectItem value="week">Week</SelectItem>
-                        <SelectItem value="month">Month</SelectItem>
-                        <SelectItem value="quarter">Quarter</SelectItem>
-                        <SelectItem value="year">Year</SelectItem>
+                        {['day', 'week', 'month', 'quarter', 'year'].map((granularity) => (
+                          <SelectItem key={granularity} value={granularity}>
+                            {t(`granularity.${granularity}`)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -259,7 +280,7 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Input Measures</CardTitle>
+            <CardTitle className="text-lg">{t('derived.inputMeasures')}</CardTitle>
             <Button size="sm" onClick={addInputMeasure}>
               <Plus className="h-4 w-4 mr-2" />
               {t('derived.addMeasure')}
@@ -300,16 +321,14 @@ const DerivedMetricParams: React.FC<DerivedMetricParamsProps> = ({ params, onCha
               </div>
 
               <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
+                <Switch
                   id={`join-timespine-${index}`}
                   checked={measure.join_to_timespine}
-                  onChange={(e) => updateInputMeasure(index, { join_to_timespine: e.target.checked })}
-                  className="rounded"
+                  onCheckedChange={(checked) => updateInputMeasure(index, { join_to_timespine: checked })}
                 />
-                <label htmlFor={`join-timespine-${index}`} className="text-sm font-medium">
+                <Label htmlFor={`join-timespine-${index}`} className="text-sm font-medium">
                   {t('derived.joinToTimespine')}
-                </label>
+                </Label>
               </div>
             </div>
           ))}

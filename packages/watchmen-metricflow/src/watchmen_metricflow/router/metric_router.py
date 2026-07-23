@@ -201,14 +201,12 @@ def build_merged_profile(semantics: List[SemanticModel], principal_service: Prin
     for semantic in semantics:
         profile_data = build_profile(semantic, principal_service)
 
-        print("profile_data",profile_data)
         key = get_data_source_key(profile_data)
         if key and key not in profiles_map:
             profiles_map[key] = profile_data
 
     if len(profiles_map) > 2:
         raise HTTPException(status_code=400, detail="Too many data sources. Maximum 2 allowed.")
-    print("profiles_map",profiles_map)
     if not profiles_map:
         return None
 
@@ -251,7 +249,6 @@ async def build_metric_config(principal_service):
     ## load datasource list
     profile = build_merged_profile(semantics, principal_service)
 
-    print("profile",profile)
     config = CLIConfigurationDB(tenant_id, semantics, metrics_json, profile)
     # Cache configuration for this tenant
 

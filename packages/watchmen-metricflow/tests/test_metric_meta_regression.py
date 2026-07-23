@@ -198,7 +198,7 @@ class TestPageItemCount(unittest.TestCase):
         app.dependency_overrides[get_console_principal] = _principal_stub
         with mock.patch.object(metric_meta_router, 'get_metric_service', return_value=service):
             client = TestClient(app)
-            response = client.post('/metricflow/metrics/name', json={'pageNumber': 1, 'pageSize': 2})
+            response = client.post('/metricflow/metrics/name?query_name=m', json={'pageNumber': 1, 'pageSize': 2})
         self.assertEqual(200, response.status_code)
         page = response.json()
         self.assertEqual(2, len(page['data']))
@@ -269,7 +269,7 @@ class TestPoolBackedSqlClientBindParams(unittest.TestCase):
             SqlBindParameter(key='x', value=SqlBindParameterValue(int_value=42)),
         ))
         result = self._client().query('select :x as v', params)
-        self.assertEqual(['v'], result.column_names)
+        self.assertEqual(['v'], list(result.column_names))
         self.assertEqual([[42]], [list(row) for row in result.rows])
 
     def test_query_without_bind_params(self):

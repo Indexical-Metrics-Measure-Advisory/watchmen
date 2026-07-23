@@ -10,7 +10,7 @@ from watchmen_meta.system import DataSourceService
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
 from watchmen_metricflow.meta.semantic_meta_service import SemanticModelService
 from watchmen_metricflow.model.metrics import Metric, MetricWithCategory
-from watchmen_metricflow.model.semantic import SemanticModel, SemanticModelSourceType
+from watchmen_metricflow.model.semantic import NodeRelation, SemanticModel, SemanticModelSourceType
 from watchmen_model.common import TenantId
 from watchmen_model.system import DataSource, DataSourceType
 
@@ -63,7 +63,8 @@ def save_metric(principal_service: PrincipalService, metric: Metric) -> Metric:
         existing_metric = metric_service.find_by_name(metric.name, tenant_id)
 
         if existing_metric:
-            # If exists, call update logic
+            # If exists, call update logic against the stored id
+            metric.id = existing_metric.id
             res = metric_service.update(metric)
         else:
             # If not exists, call create logic
@@ -82,7 +83,8 @@ def save_semantic_model(principal_service: PrincipalService, semantic_model: Sem
         existing_model = semantic_model_service.find_by_name(semantic_model.name, tenant_id)
 
         if existing_model:
-            # If exists, call update logic
+            # If exists, call update logic against the stored id
+            semantic_model.id = existing_model.id
             res = semantic_model_service.update(semantic_model)
         else:
             # If not exists, call create logic
@@ -202,49 +204,50 @@ def build_profile(semantic_model: SemanticModel, principal_service: PrincipalSer
         pass
     elif source_type == SemanticModelSourceType.DB_DIRECT:
         node_relation = semantic_model.node_relation
-        ds_type = node_relation.get("databaseType")
+        # node_relation may arrive as a raw dict depending on how the model was constructed
+        if isinstance(node_relation, dict):
+            node_relation = NodeRelation.model_validate(node_relation)
+        ds_type = node_relation.databaseType
 
-        print(node_relation)
-        
         output_config = {
-             "host": node_relation.get("host"),
-             "user": node_relation.get("username"),
-             "password": node_relation.get("password"),
-             "port": node_relation.get("port"),
-             "dbname": node_relation.get("database"),
+             "host": node_relation.host,
+             "user": node_relation.username,
+             "password": node_relation.password,
+             "port": node_relation.port,
+             "dbname": node_relation.database,
              "threads": 4,
              "keepalives_idle": 0,
              "connect_timeout": 10,
              "retries": 1
         }
-        
+
         target_name = ""
 
         if ds_type == 'pgsql':
             target_name = "postgres"
             output_config["type"] = "postgres"
-            output_config["schema"] = node_relation.get("schema_name")
+            output_config["schema"] = node_relation.schema_name
         elif ds_type == 'mysql':
             target_name = "mysql"
             output_config["type"] = "mysql"
-            output_config["schema"] = node_relation.get("schema_name")
+            output_config["schema"] = node_relation.schema_name
         elif ds_type == 'mssql':
             target_name = "mssql"
             output_config["type"] = "mssql"
-            output_config["schema"] = node_relation.get("schema_name")
+            output_config["schema"] = node_relation.schema_name
         elif ds_type == 'oracle':
             target_name = "oracle"
             output_config["type"] = "oracle"
-            output_config["schema"] = node_relation.get("schema_name")
+            output_config["schema"] = node_relation.schema_name
         elif ds_type == 'snowflake':
             target_name = "snowflake"
             output_config["type"] = "snowflake"
-            output_config["account"] = node_relation.get("account")
-            output_config["database"] = node_relation.get("database")
-            output_config["warehouse"] = node_relation.get("warehouse")
-            output_config["role"] = node_relation.get("role") or "PUBLIC"
-            output_config["schema"] = node_relation.get("schema_name") or "PUBLIC"
-            
+            output_config["account"] = node_relation.account
+            output_config["database"] = node_relation.database
+            output_config["warehouse"] = node_relation.warehouse
+            output_config["role"] = node_relation.role or "PUBLIC"
+            output_config["schema"] = node_relation.schema_name or "PUBLIC"
+
             output_config.pop("host", None)
             output_config.pop("dbname", None)
             output_config.pop("port", None)

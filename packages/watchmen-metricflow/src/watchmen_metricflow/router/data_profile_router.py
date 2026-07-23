@@ -204,7 +204,7 @@ async def find_data_profiles_page_by_name(
         
         return QueryDataProfileDataPage(
             data=page_data,
-            itemCount=len(page_data),
+            itemCount=len(profiles),
             pageNumber=pageable.pageNumber,
             pageSize=pageable.pageSize,
             pageCount=(len(profiles) + pageable.pageSize - 1) // pageable.pageSize

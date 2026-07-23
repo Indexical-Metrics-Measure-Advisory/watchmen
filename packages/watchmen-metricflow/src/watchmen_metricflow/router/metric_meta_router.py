@@ -157,11 +157,11 @@ async def update_metric(
     
     def action():
         # Check if metric exists
-        # existing_metric = metric_service.find_by_name(metric_name, metric.tenantId)
-        # if existing_metric is None:
-        #     raise_404('Metric not found.')
-        # metric.id = existing_metric.id
-        print(metric)
+        existing_metric = metric_service.find_by_name(metric_name, metric.tenantId)
+        if existing_metric is None:
+            raise_404('Metric not found.')
+
+        metric.id = existing_metric.id
         metric_result = metric_service.update(metric)
         return metric_result, lambda: metric_config_cache.remove(metric.tenantId)
     
@@ -295,7 +295,7 @@ async def find_metrics_page_by_name(
 
         return QueryMetricDataPage(
             data=page_data,
-            itemCount=len(page_data),
+            itemCount=len(metrics),
             pageNumber=pageable.pageNumber,
             pageSize=pageable.pageSize,
             pageCount=(len(metrics) + pageable.pageSize - 1) // pageable.pageSize

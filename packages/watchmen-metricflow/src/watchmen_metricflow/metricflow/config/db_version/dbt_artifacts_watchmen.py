@@ -27,36 +27,42 @@ saved_queries = []
 #     return ConfigService()
 
 
-raw_data = {
-  "project_configuration": {
-    "time_spine_table_configurations": [],
-    "metadata": None,
-    "dsi_package_version": {
-      "major_version": "0",
-      "minor_version": "7",
-      "patch_version": "4"
+def build_base_raw_manifest() -> dict:
+  """Build a fresh base semantic manifest for each call.
+
+  Must not be a module-level shared dict: tenants mutate the returned
+  structure, so sharing it leaks one tenant's models/metrics into another's.
+  """
+  return {
+    "project_configuration": {
+      "time_spine_table_configurations": [],
+      "metadata": None,
+      "dsi_package_version": {
+        "major_version": "0",
+        "minor_version": "7",
+        "patch_version": "4"
+      },
+      "time_spines": [
+        {
+            ##TODO data source todo
+          "node_relation": {
+            "alias": "all_days",
+            "schema_name": "life_metrics",
+            "database": "postgres",
+            "relation_name": "\"postgres\".\"life_metrics\".\"all_days\""
+          },
+          "primary_column": {
+            "name": "date_day",
+            "time_granularity": "day"
+          },
+          "custom_granularities": []
+        }
+      ]
     },
-    "time_spines": [
-      {
-          ##TODO data source todo
-        "node_relation": {
-          "alias": "all_days",
-          "schema_name": "life_metrics",
-          "database": "postgres",
-          "relation_name": "\"postgres\".\"life_metrics\".\"all_days\""
-        },
-        "primary_column": {
-          "name": "date_day",
-          "time_granularity": "day"
-        },
-        "custom_granularities": []
-      }
-    ]
-  },
-  "saved_queries": [],
-  "semantic_models":[],
-  "metrics":[]
-}
+    "saved_queries": [],
+    "semantic_models":[],
+    "metrics":[]
+  }
 
 
 
@@ -77,7 +83,6 @@ class DBTArtifactsWatchmen(dbtArtifacts):
                             if alias and name:
                                 pattern = r'(?<![a-zA-Z0-9_])' + re.escape(alias) + r'(?![a-zA-Z0-9_])'
                                 expr = re.sub(pattern, name, expr)
-                                print(expr)
                                 del input_metric['alias']
                         type_params['expr'] = expr
         return metrics_list
@@ -88,7 +93,7 @@ class DBTArtifactsWatchmen(dbtArtifacts):
         adapter = get_adapter_by_type(project_metadata.profile.credentials.type)
 
         # todo add schema info
-        raw_semantic_manifest  = raw_data # load from file system semantic manifest.json
+        raw_semantic_manifest = build_base_raw_manifest()
         
         raw_semantic_manifest["semantic_models"] = semantic_models.model_dump() if hasattr(semantic_models, 'model_dump') else [item.model_dump() if hasattr(item, 'model_dump') else item for item in semantic_models]
         metrics_data = metrics.model_dump() if hasattr(metrics, 'model_dump') else [item.model_dump() if hasattr(item, 'model_dump') else item for item in metrics]

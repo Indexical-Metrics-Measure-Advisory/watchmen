@@ -213,7 +213,7 @@ class SemanticModelDefaults(BaseModel):
 class SemanticModel(ExtendedBaseModel, TenantBasedTuple, Auditable,OptimisticLock):
     """Semantic model"""
     model_config = ConfigDict(use_enum_values=True)
-    id : str
+    id: Optional[str] = None
     name: str
     description: str
     node_relation: NodeRelation

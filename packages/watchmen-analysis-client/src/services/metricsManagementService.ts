@@ -361,8 +361,12 @@ export const getAllMetrics = async (): Promise<MetricDefinition[]> => {
 	try {
 		const isAPIAvailable = await isRealTimeMetricsAvailable();
 		if (isAPIAvailable) {
-			const realTimeData = (await fetchRealTimeMetrics()) as { metrics?: MetricDefinition[] } | undefined;
-			return (realTimeData?.metrics ?? []) as MetricDefinition[];
+			const realTimeData = await fetchRealTimeMetrics();
+			// The API returns a raw array; tolerate a legacy { metrics: [...] } wrapper as well
+			const metrics = Array.isArray(realTimeData)
+				? realTimeData
+				: ((realTimeData as { metrics?: MetricDefinition[] } | undefined)?.metrics ?? []);
+			return metrics as MetricDefinition[];
 		}
 	} catch {
 		// fall through to mock
@@ -388,8 +392,11 @@ export const getMetrics = async (filter?: MetricFilter): Promise<MetricDefinitio
 
 		if (isAPIAvailable) {
 			try {
-				const realTimeData = (await fetchRealTimeMetrics()) as { metrics?: MetricDefinition[] } | undefined;
-				const metrics: MetricDefinition[] = (realTimeData?.metrics ?? []) as MetricDefinition[];
+				const realTimeData = await fetchRealTimeMetrics();
+				// The API returns a raw array; tolerate a legacy { metrics: [...] } wrapper as well
+				const metrics: MetricDefinition[] = (Array.isArray(realTimeData)
+					? realTimeData
+					: ((realTimeData as { metrics?: MetricDefinition[] } | undefined)?.metrics ?? [])) as MetricDefinition[];
 				const filtered = filter ? applyMetricFilters(metrics, filter) : metrics;
 				// If real-time returns empty list, fall back to mock to keep UI useful
 

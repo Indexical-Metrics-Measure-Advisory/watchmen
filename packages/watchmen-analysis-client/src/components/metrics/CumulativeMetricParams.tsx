@@ -81,7 +81,7 @@ const CumulativeMetricParams: React.FC<CumulativeMetricParamsProps> = ({ params,
             <SelectContent>
               {Object.values(TimeGranularity).map((granularity) => (
                 <SelectItem key={granularity} value={granularity}>
-                  {granularity}
+                  {t(`metricsParams:granularity.${granularity}`)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -113,38 +113,34 @@ const CumulativeMetricParams: React.FC<CumulativeMetricParamsProps> = ({ params,
       <div className="space-y-2">
         <Label>{t('metricsParams:cumulative.windowSettings')}</Label>
         <p className="text-xs text-muted-foreground">{t('metricsParams:cumulative.windowHint')}</p>
-        <div className="grid grid-cols-2 gap-4">
-            <div>
-                <Label className="text-xs text-muted-foreground">{t('metricsParams:cumulative.count')}</Label>
-                <Input
-                    type="text"
-                    value={params.window?.count || ''}
-                    onChange={(e) => updateParams({
-                        window: { ...params.window, count: parseInt(e.target.value) || undefined }
-                    })}
-                    placeholder={t('metricsParams:cumulative.countPlaceholder')}
-                />
-            </div>
-            <div>
-                <Label className="text-xs text-muted-foreground">{t('metricsParams:cumulative.granularity')}</Label>
-                <Select
-                    value={params.window?.granularity || ''}
-                    onValueChange={(value) => updateParams({
-                        window: { ...params.window, granularity: value }
-                    })}
-                >
-                    <SelectTrigger>
-                        <SelectValue placeholder={t('metricsParams:cumulative.selectTimeGranularity')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {Object.values(TimeGranularity).map((granularity) => (
-                            <SelectItem key={granularity} value={granularity}>
-                            {granularity}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">{t('metricsParams:cumulative.recentPrefix')}</span>
+          <Input
+            type="text"
+            className="w-24"
+            value={params.window?.count || ''}
+            onChange={(e) => updateParams({
+              window: { ...params.window, count: parseInt(e.target.value) || undefined }
+            })}
+            placeholder={t('metricsParams:cumulative.countPlaceholder')}
+          />
+          <Select
+            value={params.window?.granularity || ''}
+            onValueChange={(value) => updateParams({
+              window: { ...params.window, granularity: value }
+            })}
+          >
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder={t('metricsParams:cumulative.selectTimeGranularity')} />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(TimeGranularity).map((granularity) => (
+                <SelectItem key={granularity} value={granularity}>
+                  {t(`metricsParams:granularity.${granularity}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>

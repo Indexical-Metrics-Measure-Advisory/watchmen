@@ -367,7 +367,7 @@ async def find_semantic_models_page_by_name(
 
         return QuerySemanticModelDataPage(
             data=page_data,
-            itemCount=len(page_data),
+            itemCount=len(semantic_models),
             pageNumber=pageable.pageNumber,
             pageSize=pageable.pageSize,
             pageCount=(len(semantic_models) + pageable.pageSize - 1) // pageable.pageSize

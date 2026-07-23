@@ -1,6 +1,4 @@
-import time
 import sqlalchemy
-from typing import Dict, Any
 
 from dbt_metricflow.cli.dbt_connectors.adapter_backed_client import AdapterBackedSqlClient
 from metricflow.data_table.mf_table import MetricFlowDataTable
@@ -45,13 +43,8 @@ class PoolBackedSqlClient(AdapterBackedSqlClient):
                 if hasattr(self._adapter, 'connections') and hasattr(self._adapter.connections, 'commit_if_has_connection'):
                     self._adapter.connections.commit_if_has_connection()
 
-        if sql_bind_parameter_set.param_dict:
-            raise Exception("SqlBindParameterSet not supported")
-
-        start = time.perf_counter()
-        
         with self._engine.connect() as conn:
-            result = conn.execute(sqlalchemy.text(stmt))
+            result = conn.execute(sqlalchemy.text(stmt), sql_bind_parameter_set.param_dict)
             columns = list(result.keys())
             rows = [list(row) for row in result.fetchall()]
 
@@ -59,12 +52,12 @@ class PoolBackedSqlClient(AdapterBackedSqlClient):
             column_names=columns,
             rows=rows,
         )
-        
+
         return data_table
-        
+
     def execute(self, stmt: str, sql_bind_parameter_set: SqlBindParameterSet = SqlBindParameterSet()) -> None:
         if self._engine is None:
             return super().execute(stmt, sql_bind_parameter_set)
-            
+
         with self._engine.begin() as conn:
-            conn.execute(sqlalchemy.text(stmt))
+            conn.execute(sqlalchemy.text(stmt), sql_bind_parameter_set.param_dict)

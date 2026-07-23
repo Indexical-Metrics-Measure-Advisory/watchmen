@@ -115,7 +115,7 @@ class MetricValidationResult(BaseModel):
 class Metric(ExtendedBaseModel, TenantBasedTuple, Auditable,OptimisticLock):
     
     # model_config = ConfigDict(use_enum_values=True)
-    id:str
+    id: Optional[str] = None
     name: str
     description: Optional[str] = None
     type: MetricType

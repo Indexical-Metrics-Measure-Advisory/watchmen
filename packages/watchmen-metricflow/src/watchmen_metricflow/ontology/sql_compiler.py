@@ -414,6 +414,13 @@ class _DerivedAttributeCompiler:
 			right_ref_col = source_col if reversed_dir else target_col
 			if idx == len(path_segments) - 1 and last_target_col is None:
 				last_target_col = right_ref_col
+			# GROUP BY 键必须在合并 link filters 之前提取：
+			# 过滤器表达式的 .left.name 可能恰与主表列同名，混进来会污染聚合粒度
+			if idx == 0:
+				first_segment_keys = [
+					c.left.name for c in segment_criteria
+					if hasattr(c, 'left') and hasattr(c.left, 'name')
+				]
 			# 追加 link 级 filters（追加到 ON 子句）；反向时 source/target 侧也交换，
 			# 使 filter 的 source./target. 前缀仍对应 link 定义的 source/target VO。
 			flt_src_table = right_table if reversed_dir else prev_table
@@ -421,11 +428,6 @@ class _DerivedAttributeCompiler:
 			segment_criteria.extend(
 				self._filter_compiler.compile_link_filters(link, flt_src_table, flt_tgt_table, derived.name))
 			join_clauses.append((right_table, and_(*segment_criteria)))
-			if idx == 0:
-				first_segment_keys = [
-					c.left.name for c in segment_criteria
-					if hasattr(c, 'left') and hasattr(c.left, 'name')
-				]
 			prev_table = right_table
 			prev_vo = next_vo
 
