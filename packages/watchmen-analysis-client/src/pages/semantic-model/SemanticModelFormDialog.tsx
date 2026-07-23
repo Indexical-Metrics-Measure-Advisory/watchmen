@@ -29,7 +29,7 @@ interface SemanticModelFormDialogProps {
   topics: Topic[];
   isTopicsLoading: boolean;
   isLoading: boolean;
-  onSubmit: () => Promise<void>;
+  onSubmit: (formData: SemanticModel) => Promise<void>;
   toast: (options: { title: string; description?: string; variant?: 'destructive' | 'default' }) => void;
 }
 
@@ -511,7 +511,7 @@ export const SemanticModelFormDialog: React.FC<SemanticModelFormDialogProps> = (
   };
 
   const handleSubmit = async () => {
-    await onSubmit();
+    await onSubmit(formData);
   };
 
   const handleClose = (newOpen: boolean) => {

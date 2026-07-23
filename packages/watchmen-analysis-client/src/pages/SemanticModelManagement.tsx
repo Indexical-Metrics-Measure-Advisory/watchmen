@@ -14,7 +14,7 @@ import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import { Plus, Edit, Trash2, Database, GitBranch, BarChart3, Users, Calendar } from 'lucide-react';
 import { SemanticModel, SemanticModelSummary } from '@/model/semanticModel';
-import { getSemanticModels, deleteSemanticModel } from '@/services/semanticModelService';
+import { getSemanticModels, createSemanticModel, updateSemanticModel, deleteSemanticModel } from '@/services/semanticModelService';
 import { topicService } from '@/services/topicService';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
@@ -129,19 +129,29 @@ const SemanticModelManagement: React.FC = () => {
     return true;
   };
 
-  // Note: SemanticModelFormDialog manages its own internal form state via useSemanticModelForm.
-  // For create/edit, we use a workaround: the dialog's onSubmit callback needs access to
-  // the form data. We use a ref pattern where the dialog sets formDataSnapshot before calling onSubmit.
-  // In a follow-up, this could be improved by exposing form data via a ref in the dialog.
-
-  const handleCreateSubmit = async () => {
-    // The form dialog will call onSubmit, but we need the formData from inside the dialog.
-    // For now, this is handled by the dialog internally calling the API directly.
-    // This is a known limitation of the current extraction approach.
+  const handleCreateSubmit = async (formData: SemanticModel) => {
+    if (!validateFormData(formData)) return;
+    try {
+      await createSemanticModel(formData);
+      toast({ title: t('common:success'), description: t('semanticModel:toast.created') });
+      setIsCreateDialogOpen(false);
+      loadData();
+    } catch (error) {
+      toast({ title: t('common:error'), description: t('semanticModel:toast.createFailed'), variant: "destructive" });
+    }
   };
 
-  const handleEditSubmit = async () => {
-    // Same as create - handled internally by the dialog
+  const handleEditSubmit = async (formData: SemanticModel) => {
+    if (!validateFormData(formData)) return;
+    try {
+      await updateSemanticModel(formData.name, formData);
+      toast({ title: t('common:success'), description: t('semanticModel:toast.updated') });
+      setIsEditDialogOpen(false);
+      setEditingModel(null);
+      loadData();
+    } catch (error) {
+      toast({ title: t('common:error'), description: t('semanticModel:toast.updateFailed'), variant: "destructive" });
+    }
   };
 
   const filteredModels = models.filter(model =>
