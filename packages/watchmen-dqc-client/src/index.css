@@ -1,205 +1,76 @@
-:root {
-  --background: 210 20% 98%;
-  --foreground: 220 20% 16%;
-  --border: 214 30% 90%;
-  --card-shadow: 0 1px 3px rgba(17, 36, 64, 0.06), 0 1px 2px rgba(17, 36, 64, 0.04);
-  --card-shadow-lg: 0 4px 12px rgba(17, 36, 64, 0.08), 0 2px 4px rgba(17, 36, 64, 0.04);
-  --sidebar-width: 260px;
-  --sidebar-collapsed: 64px;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* DataMO dark professional theme. Brand accent derives from the legacy
+   mockup's blue→violet gradient (#5b7fff → #7c3aed) on a deep blue-black base. */
+@layer base {
+  :root {
+    --background: 224 47% 6%;
+    --foreground: 213 31% 91%;
+
+    --card: 224 44% 9%;
+    --card-foreground: 213 31% 91%;
+
+    --popover: 224 44% 9%;
+    --popover-foreground: 213 31% 91%;
+
+    --primary: 226 84% 66%;
+    --primary-foreground: 224 47% 6%;
+
+    --secondary: 222 30% 14%;
+    --secondary-foreground: 213 31% 91%;
+
+    --muted: 222 30% 14%;
+    --muted-foreground: 217 15% 60%;
+
+    --accent: 262 60% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 38 92% 55%;
+    --warning-foreground: 224 47% 6%;
+
+    --success: 152 60% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 222 25% 16%;
+    --input: 222 25% 18%;
+    --ring: 226 84% 66%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 225 50% 5%;
+    --sidebar-foreground: 217 15% 65%;
+    --sidebar-primary: 226 84% 66%;
+    --sidebar-primary-foreground: 224 47% 6%;
+    --sidebar-accent: 222 30% 13%;
+    --sidebar-accent-foreground: 213 31% 91%;
+    --sidebar-border: 222 25% 14%;
+    --sidebar-ring: 226 84% 66%;
+  }
 }
 
-* {
-  box-sizing: border-box;
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
 }
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ===== Layout ===== */
-.layout {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
-  transition: grid-template-columns 0.2s ease;
-}
-
-.layout .sidebar.collapsed ~ .main {
-  grid-column: 2;
-}
-
-/* ===== Sidebar ===== */
-.sidebar {
-  border-right: 1px solid hsl(var(--border));
-  background: #ffffff;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-  transition: width 0.2s ease;
-}
-
-.sidebar.collapsed {
-  width: var(--sidebar-collapsed);
-  padding: 12px 6px;
-  align-items: center;
-}
-
-.sidebar-brand {
-  padding: 8px 6px 16px;
-  margin-bottom: 4px;
-}
-
+/* Brand gradient logo dot (from the legacy DataMO mockup) */
 .logo-dot {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
   background: linear-gradient(135deg, #5b7fff, #7c3aed);
-  color: #ffffff;
-  flex-shrink: 0;
 }
 
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.sidebar-nav .rt-Button {
-  justify-content: flex-start;
-  gap: 10px;
-  padding: 8px 12px;
-  font-size: 13px;
-  border-radius: 6px;
-  transition: all 0.15s ease;
-}
-
-.sidebar-nav .rt-Button:hover {
-  background: hsl(var(--border));
-}
-
-.sidebar.collapsed .sidebar-nav .rt-Button {
-  justify-content: center;
-  padding: 10px;
-}
-
-.sidebar-footer {
-  margin-top: auto;
-}
-
-/* ===== Main Content ===== */
-.main {
-  padding: 20px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0;
-}
-
-.page-content {
-  overflow-x: hidden;
-}
-
-/* ===== Cards ===== */
-.radix-surface {
-  border: 1px solid hsl(var(--border));
-  box-shadow: var(--card-shadow);
-  border-radius: 8px;
-  transition: box-shadow 0.15s ease;
-}
-
-.radix-surface:hover {
-  box-shadow: var(--card-shadow-lg);
-}
-
-.topbar {
-  border: 1px solid hsl(var(--border));
-  box-shadow: none;
-}
-
-.user-meta {
-  text-align: right;
-}
-
-/* ===== KPI Grid ===== */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.kpi-grid .radix-surface {
-  padding: 16px;
-}
-
-/* ===== Panels ===== */
-.panel {
-  overflow: auto;
-}
-
-.panel .rt-Card {
-  border: 1px solid hsl(var(--border));
-}
-
-/* ===== Rule Grid (legacy) ===== */
-.rule-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-/* ===== Tier Grid ===== */
-.tier-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.tier-card {
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.tier-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--card-shadow-lg);
-}
-
-/* ===== Login ===== */
-.login-page {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(160deg, #f0f4ff 0%, #faf5ff 50%, #fef2f2 100%);
-}
-
-.login-card {
-  width: min(480px, 92vw);
-}
-
-.login-card .rt-Card {
-  border: 1px solid hsl(var(--border));
-}
-
-/* ===== Tabs ===== */
-.rt-TabsList {
-  flex-wrap: wrap;
-}
-
-/* ===== Table ===== */
-.rt-TableRoot {
-  width: 100%;
-}
-
-/* ===== Scrollbar ===== */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -215,73 +86,5 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* ===== Badge ===== */
-.rt-Badge {
-  font-size: 11px;
-  white-space: nowrap;
-}
-
-/* ===== Responsive ===== */
-@media (max-width: 1280px) {
-  .tier-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 1080px) {
-  .layout {
-    grid-template-columns: var(--sidebar-collapsed) minmax(0, 1fr);
-  }
-
-  .sidebar {
-    border-right: 0;
-    border-bottom: 1px solid hsl(var(--border));
-    width: var(--sidebar-collapsed);
-    padding: 12px 6px;
-    align-items: center;
-    height: auto;
-    position: relative;
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-
-  .sidebar-nav {
-    flex-direction: row;
-    width: 100%;
-  }
-
-  .sidebar-nav .rt-Button {
-    justify-content: center;
-    padding: 8px 10px;
-    font-size: 11px;
-  }
-
-  .sidebar-footer {
-    display: none;
-  }
-
-  .kpi-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .rule-grid {
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-  }
-
-  .tier-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .main {
-    padding: 12px;
-  }
-
-  .kpi-grid {
-    grid-template-columns: 1fr;
-  }
+  background: hsl(var(--muted-foreground));
 }
