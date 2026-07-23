@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Plus, Trash2, BarChart3, Users, Tags, Info } from 'lucide-react';
 import { SemanticModel, SemanticModelNodeRelation } from '@/model/semanticModel';
@@ -14,11 +16,21 @@ import { Topic } from '@/services/topicService';
 import { useSemanticModelForm } from '@/hooks/useSemanticModelForm';
 import { useAutoGenerate } from '@/hooks/useAutoGenerate';
 import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
 
 const HelpTooltip = ({ content }: { content: string }) => (
   <span className="inline-flex ml-1" title={content}>
     <Info size={13} className="text-muted-foreground cursor-help" />
   </span>
+);
+
+const SectionTitle = ({ index, title }: { index: number; title: string }) => (
+  <div className="flex items-center gap-2">
+    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+      {index}
+    </span>
+    <h3 className="text-base font-semibold">{title}</h3>
+  </div>
 );
 
 interface SemanticModelFormDialogProps {
@@ -329,6 +341,8 @@ const MeasureTab: React.FC<{
                       <SelectItem value="sum">{t('semanticModel:form.sum')}</SelectItem>
                       <SelectItem value="average">{t('semanticModel:form.average')}</SelectItem>
                       <SelectItem value="count_distinct">{t('semanticModel:form.countDistinct')}</SelectItem>
+                      <SelectItem value="min">{t('semanticModel:form.min')}</SelectItem>
+                      <SelectItem value="max">{t('semanticModel:form.max')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -535,17 +549,21 @@ export const SemanticModelFormDialog: React.FC<SemanticModelFormDialogProps> = (
             {isEdit ? t('semanticModel:dialog.editDescription') : t('semanticModel:dialog.createDescription')}
           </DialogDescription>
         </DialogHeader>
-        <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="basic">{t('semanticModel:page.tabs.basic')}</TabsTrigger>
-            <TabsTrigger value="datasource">{t('semanticModel:page.tabs.datasource')}</TabsTrigger>
-            <TabsTrigger value="entities">{t('semanticModel:page.tabs.entities')}</TabsTrigger>
-            <TabsTrigger value="measures">{t('semanticModel:page.tabs.measures')}</TabsTrigger>
-            <TabsTrigger value="dimensions">{t('semanticModel:page.tabs.dimensions')}</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="basic" className="space-y-4">
+        <div className="mt-2 space-y-8">
+          {/* Section 1: basic information */}
+          <section className="space-y-6">
+            <SectionTitle index={1} title={t('semanticModel:form.sectionBasicInfo')} />
             <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor={isEdit ? 'edit-label' : 'label'}>{t('semanticModel:form.displayLabel')}</Label>
+                <Input
+                  id={isEdit ? 'edit-label' : 'label'}
+                  value={formData.label || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
+                  placeholder={t('semanticModel:form.displayLabelPlaceholder')}
+                />
+                <p className="text-xs text-muted-foreground mt-1">{t('semanticModel:form.displayLabelHint')}</p>
+              </div>
               <div>
                 <Label htmlFor={isEdit ? 'edit-name' : 'name'}>{t('semanticModel:form.modelName')}</Label>
                 <Input
@@ -556,7 +574,7 @@ export const SemanticModelFormDialog: React.FC<SemanticModelFormDialogProps> = (
                   disabled={isEdit}
                 />
               </div>
-              <div>
+              <div className="col-span-2">
                 <Label htmlFor={isEdit ? 'edit-description' : 'description'}>{t('semanticModel:form.description')}</Label>
                 <Input
                   id={isEdit ? 'edit-description' : 'description'}
@@ -566,84 +584,106 @@ export const SemanticModelFormDialog: React.FC<SemanticModelFormDialogProps> = (
                 />
               </div>
             </div>
-          </TabsContent>
+          </section>
 
-          <TabsContent value="datasource" className="space-y-4">
-            <div className="space-y-6">
-              <div>
-                <h4 className="text-sm font-medium mb-4">{t('semanticModel:form.sourceConfiguration')}</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="datasource-sourceType">{t('semanticModel:form.sourceType')}</Label>
-                    <Select
-                      value={formData.sourceType || 'topic'}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, sourceType: value as 'topic' | 'db_source' }))}
-                    >
-                      <SelectTrigger><SelectValue placeholder={t('semanticModel:form.selectSourceType')} /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="topic">{t('semanticModel:form.topic')}</SelectItem>
-                        <SelectItem value="db_source">{t('semanticModel:form.directDbSource')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {(formData.sourceType || 'topic') === 'topic' && (
-                    <div>
-                      <Label>{t('semanticModel:form.selectTopic')}</Label>
-                      <TopicSelector
-                        topicId={formData.topicId}
-                        topics={topics}
-                        isTopicsLoading={isTopicsLoading}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, topicId: value }))}
-                        t={t}
-                      />
-                    </div>
+          <Separator />
+
+          {/* Section 2: data source */}
+          <section className="space-y-6">
+            <SectionTitle index={2} title={t('semanticModel:form.sectionDataSource')} />
+            <RadioGroup
+              value={formData.sourceType || 'topic'}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, sourceType: value as 'topic' | 'db_source' }))}
+              className="grid grid-cols-2 gap-3"
+            >
+              {([
+                { value: 'topic', nameKey: 'semanticModel:form.sourceTypeCards.topic.name', descKey: 'semanticModel:form.sourceTypeCards.topic.description' },
+                { value: 'db_source', nameKey: 'semanticModel:form.sourceTypeCards.dbSource.name', descKey: 'semanticModel:form.sourceTypeCards.dbSource.description' },
+              ] as const).map((option) => (
+                <label
+                  key={option.value}
+                  className={cn(
+                    'cursor-pointer rounded-lg border p-4 transition-colors hover:border-primary/50',
+                    (formData.sourceType || 'topic') === option.value && 'border-primary bg-primary/5 ring-1 ring-primary'
                   )}
-                </div>
-              </div>
-
-              {formData.sourceType === 'db_source' && (
-                <DbConnectionFields nodeRelation={formData.node_relation} onChange={handleNodeRelationChange} t={t} />
-              )}
-
-              <div>
-                <h4 className="text-sm font-medium mb-4">{t('semanticModel:form.defaultSettings')}</h4>
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <Label htmlFor={isEdit ? 'edit-agg_time_dimension' : 'agg_time_dimension'}>{t('semanticModel:form.defaultTimeDimension')}</Label>
-                    <Select
-                      value={formData.defaults.agg_time_dimension || undefined}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, defaults: { ...prev.defaults, agg_time_dimension: value } }))}
-                      disabled={!hasSelectedDataSource || timeDimensionOptions.length === 0}
-                    >
-                      <SelectTrigger id={isEdit ? 'edit-agg_time_dimension' : 'agg_time_dimension'}>
-                        <SelectValue placeholder={hasSelectedDataSource ? t('semanticModel:form.selectDefaultTimeDimension') : t('semanticModel:form.selectDataSourceFirst')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeDimensionOptions.map(dimensionName => (
-                          <SelectItem key={dimensionName} value={dimensionName}>{dimensionName}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {!hasSelectedDataSource && <p className="text-xs text-muted-foreground mt-1">{t('semanticModel:form.completeDataSourceFirst')}</p>}
-                    {hasSelectedDataSource && timeDimensionOptions.length === 0 && <p className="text-xs text-destructive mt-1">{t('semanticModel:form.createTimeDimensionFirst')}</p>}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-medium">{t(option.nameKey)}</span>
+                    <RadioGroupItem value={option.value} className="mt-0.5" />
                   </div>
-                </div>
+                  <p className="mt-1 text-xs text-muted-foreground">{t(option.descKey)}</p>
+                </label>
+              ))}
+            </RadioGroup>
+
+            {(formData.sourceType || 'topic') === 'topic' && (
+              <div>
+                <Label>{t('semanticModel:form.selectTopic')}</Label>
+                <TopicSelector
+                  topicId={formData.topicId}
+                  topics={topics}
+                  isTopicsLoading={isTopicsLoading}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, topicId: value }))}
+                  t={t}
+                />
               </div>
+            )}
+
+            {formData.sourceType === 'db_source' && (
+              <DbConnectionFields nodeRelation={formData.node_relation} onChange={handleNodeRelationChange} t={t} />
+            )}
+
+            <div>
+              <Label htmlFor={isEdit ? 'edit-agg_time_dimension' : 'agg_time_dimension'}>{t('semanticModel:form.defaultTimeDimension')}</Label>
+              <Select
+                value={formData.defaults.agg_time_dimension || undefined}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, defaults: { ...prev.defaults, agg_time_dimension: value } }))}
+                disabled={!hasSelectedDataSource || timeDimensionOptions.length === 0}
+              >
+                <SelectTrigger id={isEdit ? 'edit-agg_time_dimension' : 'agg_time_dimension'}>
+                  <SelectValue placeholder={hasSelectedDataSource ? t('semanticModel:form.selectDefaultTimeDimension') : t('semanticModel:form.selectDataSourceFirst')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {timeDimensionOptions.map(dimensionName => (
+                    <SelectItem key={dimensionName} value={dimensionName}>{dimensionName}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">{t('semanticModel:form.defaultTimeDimensionHint')}</p>
+              {!hasSelectedDataSource && <p className="text-xs text-muted-foreground mt-1">{t('semanticModel:form.completeDataSourceFirst')}</p>}
+              {hasSelectedDataSource && timeDimensionOptions.length === 0 && <p className="text-xs text-destructive mt-1">{t('semanticModel:form.createTimeDimensionFirst')}</p>}
             </div>
-          </TabsContent>
+          </section>
 
-          <TabsContent value="entities">
-            <EntityTab formData={formData} addEntity={addEntity} removeEntity={removeEntity} updateEntity={updateEntity} t={t} />
-          </TabsContent>
+          <Separator />
 
-          <TabsContent value="measures">
-            <MeasureTab formData={formData} addMeasure={addMeasure} removeMeasure={removeMeasure} updateMeasure={updateMeasure} autoGenerateMeasures={autoGenerateMeasures} measuresEndRef={measuresEndRef} t={t} />
-          </TabsContent>
+          {/* Section 3: data definitions */}
+          <section className="space-y-6">
+            <SectionTitle index={3} title={t('semanticModel:form.sectionDataDefinitions')} />
+            <Tabs defaultValue="entities" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="entities">{t('semanticModel:form.definitionTabs.entity')}</TabsTrigger>
+                <TabsTrigger value="measures">{t('semanticModel:form.definitionTabs.measure')}</TabsTrigger>
+                <TabsTrigger value="dimensions">{t('semanticModel:form.definitionTabs.dimension')}</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="dimensions">
-            <DimensionTab formData={formData} addDimension={addDimension} removeDimension={removeDimension} updateDimension={updateDimension} autoGenerateDimensions={autoGenerateDimensions} dimensionsEndRef={dimensionsEndRef} t={t} />
-          </TabsContent>
-        </Tabs>
+              <TabsContent value="entities" className="space-y-4">
+                <p className="text-sm text-muted-foreground">{t('semanticModel:form.definitionDescriptions.entity')}</p>
+                <EntityTab formData={formData} addEntity={addEntity} removeEntity={removeEntity} updateEntity={updateEntity} t={t} />
+              </TabsContent>
+
+              <TabsContent value="measures" className="space-y-4">
+                <p className="text-sm text-muted-foreground">{t('semanticModel:form.definitionDescriptions.measure')}</p>
+                <MeasureTab formData={formData} addMeasure={addMeasure} removeMeasure={removeMeasure} updateMeasure={updateMeasure} autoGenerateMeasures={autoGenerateMeasures} measuresEndRef={measuresEndRef} t={t} />
+              </TabsContent>
+
+              <TabsContent value="dimensions" className="space-y-4">
+                <p className="text-sm text-muted-foreground">{t('semanticModel:form.definitionDescriptions.dimension')}</p>
+                <DimensionTab formData={formData} addDimension={addDimension} removeDimension={removeDimension} updateDimension={updateDimension} autoGenerateDimensions={autoGenerateDimensions} dimensionsEndRef={dimensionsEndRef} t={t} />
+              </TabsContent>
+            </Tabs>
+          </section>
+        </div>
 
         <div className="flex justify-end gap-2 mt-6">
           <Button variant="outline" onClick={() => handleClose(false)}>

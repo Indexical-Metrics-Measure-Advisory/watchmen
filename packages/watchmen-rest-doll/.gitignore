@@ -1,5 +1,6 @@
 /.idea
 /venv
+/venv1
 *.pyc
 .DS_Store
 .env
@@ -10,3 +11,5 @@
 *.LOG
 *.LoG
 *.log.*
+/log/*
+/docs/*

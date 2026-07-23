@@ -423,6 +423,19 @@ export const resources = {
 			tracing: "Tracing...",
 			suggested: "Suggested",
 			recent: "Recent",
+			pageTitle: "Metric Lineage",
+			summaryLine: {
+				type: "Type",
+				referencedMetrics: "Referenced Metrics",
+				routes: "Routes",
+				topics: "Topics",
+				pipelines: "Pipelines",
+				sources: "Sources",
+			},
+			graph: {
+				loading: "Loading lineage graph...",
+				diagnosticsTitle: "Diagnostics",
+			},
 			toast: {
 				metricRequiredTitle: "Metric name required",
 				metricRequiredDescription: "Enter a metric name to trace lineage.",
@@ -896,6 +909,35 @@ export const resources = {
 			form: {
 				modelName: "Model Name",
 				modelNamePlaceholder: "Enter model name",
+				displayLabel: "Display Label",
+				displayLabelPlaceholder: "e.g. Policy Semantic Model",
+				displayLabelHint: "Human-readable name shown in business views.",
+				sectionBasicInfo: "Basic Information",
+				sectionDataSource: "Data Source",
+				sectionDataDefinitions: "Data Definitions",
+				sourceTypeCards: {
+					topic: {
+						name: "Data Topic",
+						description: "Pick from connected data topics (recommended).",
+					},
+					dbSource: {
+						name: "Direct Database",
+						description: "Configure the database connection and table directly.",
+					},
+				},
+				definitionTabs: {
+					entity: "Join Keys",
+					measure: "Metrics",
+					dimension: "Analysis Perspectives",
+				},
+				definitionDescriptions: {
+					entity:
+						"Fields used to join data tables, e.g. policy number (primary key) or customer number (foreign key).",
+					measure:
+						"Numeric fields that can be aggregated, with their aggregation method, e.g. premium amount → sum.",
+					dimension:
+						"Fields used for grouping and filtering, e.g. issue date (time) or region (categorical).",
+				},
 				description: "Description",
 				descriptionPlaceholder: "Enter model description",
 				sourceConfiguration: "Source Configuration",
@@ -937,6 +979,7 @@ export const resources = {
 				relationNamePlaceholder: "Enter full relation name",
 				defaultSettings: "Default Settings",
 				defaultTimeDimension: "Default Time Dimension",
+				defaultTimeDimensionHint: "Time dimension used by default for new measures.",
 				selectDefaultTimeDimension: "Select default time dimension",
 				selectDataSourceFirst: "Please select data source first",
 				completeDataSourceFirst:
@@ -968,6 +1011,8 @@ export const resources = {
 				sum: "Sum",
 				average: "Average",
 				countDistinct: "Count Distinct",
+				min: "Min",
+				max: "Max",
 				time: "Time",
 				categorical: "Categorical",
 				timeGranularity: "Time Granularity",
@@ -1483,6 +1528,19 @@ export const resources = {
 			tracing: "追踪中...",
 			suggested: "建议",
 			recent: "最近使用",
+			pageTitle: "指标血缘",
+			summaryLine: {
+				type: "类型",
+				referencedMetrics: "引用指标",
+				routes: "路由",
+				topics: "主题",
+				pipelines: "管道",
+				sources: "源头",
+			},
+			graph: {
+				loading: "血缘图加载中...",
+				diagnosticsTitle: "诊断信息",
+			},
 			toast: {
 				metricRequiredTitle: "需要指标名称",
 				metricRequiredDescription: "请输入要追踪血缘的指标名称。",
@@ -1940,6 +1998,32 @@ export const resources = {
 			form: {
 				modelName: "模型名称",
 				modelNamePlaceholder: "输入模型名称",
+				displayLabel: "显示名",
+				displayLabelPlaceholder: "例如：保单语义模型",
+				displayLabelHint: "在业务界面中展示的可读名称。",
+				sectionBasicInfo: "基本信息",
+				sectionDataSource: "数据来源",
+				sectionDataDefinitions: "数据定义",
+				sourceTypeCards: {
+					topic: {
+						name: "数据主题",
+						description: "从已接入的数据主题选择（推荐）。",
+					},
+					dbSource: {
+						name: "直连数据库",
+						description: "直接配置数据库连接与表。",
+					},
+				},
+				definitionTabs: {
+					entity: "关联键",
+					measure: "统计指标",
+					dimension: "分析视角",
+				},
+				definitionDescriptions: {
+					entity: "用于数据表间关联的字段，如保单号（主键）、客户号（外键）。",
+					measure: "可统计的数值字段及其聚合方式，如：保费金额 → 求和。",
+					dimension: "用于分组和筛选的字段，如：签单日期（时间）、地区（分类）。",
+				},
 				description: "描述",
 				descriptionPlaceholder: "输入模型描述",
 				sourceConfiguration: "数据源配置",
@@ -1981,6 +2065,7 @@ export const resources = {
 				relationNamePlaceholder: "输入完整关系名",
 				defaultSettings: "默认设置",
 				defaultTimeDimension: "默认时间维度",
+				defaultTimeDimensionHint: "新度量默认使用的时间维度。",
 				selectDefaultTimeDimension: "选择默认时间维度",
 				selectDataSourceFirst: "请先选择数据源",
 				completeDataSourceFirst: "请先完成数据源选择，再设置默认时间维度。",
@@ -2011,6 +2096,8 @@ export const resources = {
 				sum: "求和",
 				average: "平均值",
 				countDistinct: "去重计数",
+				min: "最小值",
+				max: "最大值",
 				time: "时间",
 				categorical: "分类",
 				timeGranularity: "时间粒度",

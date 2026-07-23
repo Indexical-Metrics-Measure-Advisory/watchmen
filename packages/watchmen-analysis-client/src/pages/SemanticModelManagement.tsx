@@ -28,6 +28,8 @@ const getAggregationBadgeColor = (agg: string) => {
     case 'sum': return 'bg-green-100 text-green-800';
     case 'average': return 'bg-yellow-100 text-yellow-800';
     case 'count_distinct': return 'bg-purple-100 text-purple-800';
+    case 'min': return 'bg-orange-100 text-orange-800';
+    case 'max': return 'bg-pink-100 text-pink-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 };

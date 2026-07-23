@@ -4,20 +4,20 @@ export interface SemanticModelEntity {
   type: 'primary' | 'foreign';
   role?: string | null;
   expr: string;
-  metadata?: any;
+  metadata?: unknown;
   label?: string | null;
 }
 
 export interface SemanticModelMeasure {
   name: string;
-  agg: 'count' | 'sum' | 'average' | 'count_distinct';
+  agg: 'count' | 'sum' | 'average' | 'count_distinct' | 'min' | 'max';
   description?: string;
   create_metric?: boolean;
   expr: string;
-  agg_params?: any;
-  metadata?: any;
-  non_additive_dimension?: any;
-  agg_time_dimension?: any;
+  agg_params?: unknown;
+  metadata?: unknown;
+  non_additive_dimension?: unknown;
+  agg_time_dimension?: unknown;
   label?: string | null;
 }
 
@@ -28,10 +28,10 @@ export interface SemanticModelDimension {
   is_partition?: boolean;
   type_params?: {
     time_granularity?: string;
-    validity_params?: any;
+    validity_params?: unknown;
   };
   expr: string;
-  metadata?: any;
+  metadata?: unknown;
   label?: string | null;
 }
 
@@ -67,9 +67,9 @@ export interface SemanticModel {
   measures: SemanticModelMeasure[];
   dimensions: SemanticModelDimension[];
   label?: string | null;
-  metadata?: any;
+  metadata?: unknown;
   config?: {
-    meta?: any;
+    meta?: unknown;
   };
   topicId?: string;
   sourceType?: 'topic' | 'subject' | 'db_source';
