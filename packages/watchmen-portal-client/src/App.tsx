@@ -5,7 +5,7 @@ import Portal from "@/pages/Portal";
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.VITE_WEB_CONTEXT ?? '/'}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route
