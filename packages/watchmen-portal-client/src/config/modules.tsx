@@ -3,7 +3,6 @@ import {
   Database,
   BarChart3,
   Server,
-  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
