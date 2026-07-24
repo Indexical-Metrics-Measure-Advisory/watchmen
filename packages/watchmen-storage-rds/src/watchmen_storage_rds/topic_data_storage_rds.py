@@ -416,12 +416,11 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 
 	# noinspection PyMethodMayBeStatic
 	def extract_sql(self, sql_query) -> QueryPerformance:
+		query_performance = QueryPerformance()
 		if ask_sql_analyzer_on():
-			sql =self.clean_sql( str(sql_query))
-			query_performance = QueryPerformance()
+			sql = self.clean_sql(str(sql_query))
 			query_performance.sql = sql
-			# sql_parser = SqlParser()
-			return query_performance
+		return query_performance
 
 	def clean_sql(self,sql: str) -> str:
 		return sql.replace('\n', ' ')
