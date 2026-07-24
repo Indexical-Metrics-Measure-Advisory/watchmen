@@ -1,0 +1,22 @@
+CREATE TABLE kafka_collector_configs (
+    config_id            VARCHAR(50)   NOT NULL,
+    config_code          VARCHAR(100)  NOT NULL,
+    name                 VARCHAR(255),
+    batch_size           INT           NOT NULL DEFAULT 500,
+    bootstrap_servers    VARCHAR(500),
+    group_id             VARCHAR(100)  NOT NULL DEFAULT 'Batch-Collector-Worker',
+    enable_auto_commit   TINYINT(1)    NOT NULL DEFAULT 0,
+    auto_offset_reset    VARCHAR(20)   NOT NULL DEFAULT 'earliest',
+    topic_pattern        VARCHAR(500),
+    session_timeout_ms   INT           NOT NULL DEFAULT 30000,
+    max_poll_interval_ms INT           NOT NULL DEFAULT 300000,
+    tenant_id            VARCHAR(50)   NOT NULL,
+    created_at           DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by           VARCHAR(50),
+    last_modified_at     DATETIME,
+    last_modified_by     VARCHAR(50),
+    version              INT           NOT NULL DEFAULT 0,
+    PRIMARY KEY (config_id),
+    UNIQUE INDEX u_kafka_collector_configs_1 (config_code, tenant_id),
+    INDEX (tenant_id)
+);

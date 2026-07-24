@@ -50,6 +50,16 @@ table_external_writers = Table(
 	create_str('pat', 255), create_str('url', 255),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
+table_kafka_collector_configs = Table(
+	'kafka_collector_configs', meta_data,
+	create_pk('config_id'),
+	create_str('config_code', 100, False), create_str('name', 255),
+	create_int('batch_size', False), create_str('bootstrap_servers', 500),
+	create_str('group_id', 100, False), create_bool('enable_auto_commit', False),
+	create_str('auto_offset_reset', 20, False), create_str('topic_pattern', 500),
+	create_int('session_timeout_ms', False), create_int('max_poll_interval_ms', False),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
 table_ai_models = Table(
 	'ai_models', meta_data,
 	create_pk('model_id'),
@@ -792,6 +802,7 @@ tables: Dict[str, Table] = {
 	'plugins': table_plugins,
 	'data_sources': table_data_sources,
 	'key_stores': table_key_stores,
+	'kafka_collector_configs': table_kafka_collector_configs,
 	# admin
 	'users': table_users,
 	'user_groups': table_user_groups,

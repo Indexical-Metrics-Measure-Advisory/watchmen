@@ -121,6 +121,23 @@ export const resources = {
       collectorHealthOk: 'Reachable',
       collectorHealthError: 'Probe failed',
       collectorHealthSkipped: 'Probe skipped',
+      triggerOnline: {
+        title: 'Online Triggers (Latest 10)',
+        empty: 'No online triggers yet',
+        running: 'Running',
+        done: 'Done',
+        columns: {
+          status: 'Status',
+          code: 'Code',
+          traceId: 'Trace ID',
+          record: 'Record',
+          time: 'Time',
+        },
+      },
+      tabs: {
+        events: 'Trigger Events',
+        online: 'Online Triggers',
+      },
     },
     pipeline: {
       title: 'Pipeline Monitor',
@@ -325,6 +342,23 @@ export const resources = {
       collectorHealthOk: '可达',
       collectorHealthError: '探测失败',
       collectorHealthSkipped: '已跳过探测',
+      triggerOnline: {
+        title: '实时触发(最近 10 条)',
+        empty: '暂无实时触发记录',
+        running: '进行中',
+        done: '已完成',
+        columns: {
+          status: '状态',
+          code: '编码',
+          traceId: 'Trace ID',
+          record: '数据',
+          time: '时间',
+        },
+      },
+      tabs: {
+        events: '触发事件',
+        online: '实时触发',
+      },
     },
     pipeline: {
       title: '管道监控',

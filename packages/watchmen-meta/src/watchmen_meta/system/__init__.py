@@ -1,6 +1,7 @@
 from .ai_model_service import AIModelService
 from .data_source_service import DataSourceService
 from .external_writer_service import ExternalWriterService
+from .kafka_collector_config_service import KafkaCollectorConfigService
 from .key_store_service import KeyStoreService
 from .pat_service import PatService
 from .plugin_service import PluginService

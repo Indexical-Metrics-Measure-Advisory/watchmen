@@ -96,6 +96,11 @@ export const Apis = {
 	EXTERNAL_WRITER_SAVE: 'external_writer',
 	EXTERNAL_WRITER_LOAD_ALL: 'external_writer/all',
 
+	KAFKA_COLLECTOR_CONFIG_LIST_BY_NAME: 'kafka_collector_config/name?query_name=:search',
+	KAFKA_COLLECTOR_CONFIG_GET: 'kafka_collector_config?config_id=:configId',
+	KAFKA_COLLECTOR_CONFIG_SAVE: 'kafka_collector_config',
+	KAFKA_COLLECTOR_CONFIG_LOAD_ALL: 'kafka_collector_config/all',
+
 	PLUGIN_LIST_BY_NAME: 'plugin/name?query_name=:search',
 	PLUGIN_GET: 'plugin?plugin_id=:pluginId',
 	PLUGIN_CREATE: 'plugin',

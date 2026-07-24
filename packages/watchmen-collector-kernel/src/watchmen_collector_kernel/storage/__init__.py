@@ -12,6 +12,7 @@ from .trigger_event_service import get_trigger_event_service, TriggerEventServic
 from .trigger_module_service import get_trigger_module_service, TriggerModuleService
 from .trigger_model_service import get_trigger_model_service, TriggerModelService
 from .trigger_table_service import get_trigger_table_service, TriggerTableService
+from .trigger_online_service import get_trigger_online_service, TriggerOnlineService
 
 from .change_data_record_service import get_change_data_record_service, ChangeDataRecordService
 from .change_data_record_history_service import get_change_data_record_history_service, ChangeDataRecordHistoryService

@@ -24,6 +24,7 @@ const REACT_QUERY_KEYS = {
   dataSourcesAll: ['datasource', 'all'] as const,
   dataSourceHealth: ['datasource', 'health'] as const,
   ingestEventStats: ['ingest', 'event-stats'] as const,
+  recentTriggerOnlines: ['ingest', 'trigger-online'] as const,
   pipelineLogStats: (criteria: PipelineLogStatsCriteria) =>
     ['pipeline', 'log-stats', criteria] as const,
 } as const;
@@ -130,6 +131,15 @@ export const useIngestEventStats = (sampleSize = 200, enabled = true) =>
   useQuery({
     queryKey: REACT_QUERY_KEYS.ingestEventStats,
     queryFn: () => ingestMonitorService.getEventStats(sampleSize),
+    enabled,
+  });
+
+// ---- Online Triggers (realtime, latest 10) ----
+export const useRecentTriggerOnlines = (enabled = true) =>
+  useQuery({
+    queryKey: REACT_QUERY_KEYS.recentTriggerOnlines,
+    queryFn: () => ingestMonitorService.getRecentTriggerOnlines(),
+    refetchInterval: 10_000,
     enabled,
   });
 

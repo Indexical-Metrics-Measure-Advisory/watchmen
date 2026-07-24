@@ -12,7 +12,8 @@ from .tuple_ids import AchievementPluginTaskId, BreakdownTargetId, BucketId, Cha
 	CollectorModelConfigId, CollectorTableConfigId, CompetitiveLockId, ConnectedSpaceId, ConvergenceId, \
 	ConvergenceTargetId, ConvergenceTargetVariableMappingId, ConvergenceVariableId, DashboardId, DataSourceId, \
 	DerivedObjectiveId, EnumId, EnumItemId, EventDefinitionId, EventTriggerId, ExternalWriterId, FactorId, \
-	IndicatorId, ModelTriggerId, NotificationDefinitionId, ObjectiveFactorId, ObjectiveId, ObjectiveTargetId, PatId, \
+	IndicatorId, KafkaCollectorConfigId, ModelTriggerId, NotificationDefinitionId, ObjectiveFactorId, ObjectiveId, \
+	ObjectiveTargetId, PatId, \
 	PipelineActionId, PipelineGraphicId, PipelineId, PipelineStageId, PipelineUnitId, PluginId, ReportFunnelId, \
 	ReportId, ScheduledTaskId, SpaceId, SubjectDatasetColumnId, SubjectId, SubscriptionEventId, \
 	SubscriptionEventLockId, TableTriggerId, TenantId, TopicId, UserGroupId, UserId

@@ -10,6 +10,7 @@ import type {
   TriggerModule,
   TriggerModel,
   TriggerTable,
+  TriggerOnline,
   ProgressCounts,
 } from '@/models/monitor.models';
 
@@ -101,6 +102,15 @@ class IngestMonitorService {
   async getEventDetail(eventTriggerId: string | number): Promise<EventResultRecord[]> {
     const url = `${API_BASE_URL}/ingest/monitor/event/detail?trigger_event_id=${encodeURIComponent(eventTriggerId)}`;
     const res = await fetch(url, { method: 'GET', headers: getDefaultHeaders() });
+    return checkResponse(res);
+  }
+
+  /** GET /ingest/monitor/trigger-online — latest 10 online triggers (server-fixed limit). */
+  async getRecentTriggerOnlines(): Promise<TriggerOnline[]> {
+    const res = await fetch(`${API_BASE_URL}/ingest/monitor/trigger-online`, {
+      method: 'GET',
+      headers: getDefaultHeaders(),
+    });
     return checkResponse(res);
   }
 

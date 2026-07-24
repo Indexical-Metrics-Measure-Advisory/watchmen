@@ -4,6 +4,7 @@ TenantId = TypeVar('TenantId', bound=str)
 
 DataSourceId = TypeVar('DataSourceId', bound=str)
 ExternalWriterId = TypeVar('ExternalWriterId', bound=str)
+KafkaCollectorConfigId = TypeVar('KafkaCollectorConfigId', bound=str)
 PluginId = TypeVar('PluginId', bound=str)
 AIModelId= TypeVar('AIModelId', bound=str)
 

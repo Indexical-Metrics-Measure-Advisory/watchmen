@@ -11,6 +11,7 @@ import {
   TableRow,
   TableCell,
 } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ChevronLeft, ChevronRight, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StatusPill } from '@/components/monitor/StatusPill';
@@ -23,6 +24,7 @@ import {
   useIngestEventDetail,
   useIngestProgress,
   useIngestEventStats,
+  useRecentTriggerOnlines,
   useDataSources,
   useDataSourceHealth,
 } from '@/hooks/useMonitorQueries';
@@ -51,6 +53,7 @@ const IngestionMonitor: React.FC = () => {
   const recordsQ = useIngestProgress(selectedId, 'record', selectedId != null);
   const jsonQ = useIngestProgress(selectedId, 'json', selectedId != null);
   const tasksQ = useIngestProgress(selectedId, 'task', selectedId != null);
+  const triggerOnlineQ = useRecentTriggerOnlines();
 
   // The collector source databases: ingestion events originate from these.
   // Selected by the param collector=true (mirrors backend storage_helper.py). There can be several.
@@ -150,6 +153,14 @@ const IngestionMonitor: React.FC = () => {
         )}
       </Card>
 
+      {/* Tabs: trigger events | online triggers */}
+      <Tabs defaultValue="events">
+        <TabsList>
+          <TabsTrigger value="events">{t('monitor:tabs.events')}</TabsTrigger>
+          <TabsTrigger value="online">{t('monitor:tabs.online')}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="events" className="space-y-4">
       {/* Master-detail: trigger events | per-table results */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.2fr]">
         {/* Trigger events list */}
@@ -296,6 +307,64 @@ const IngestionMonitor: React.FC = () => {
           )}
         </div>
       </div>
+        </TabsContent>
+
+        <TabsContent value="online">
+      {/* Online triggers — realtime sync records, latest 10 only */}
+      <Card className="p-0">
+        <PanelHeader
+          title={t('monitor:triggerOnline.title')}
+          extra={triggerOnlineQ.data != null ? <span className="tabular-nums">{triggerOnlineQ.data.length}</span> : null}
+        />
+        {triggerOnlineQ.error ? (
+          <div className="p-4"><ErrorBanner message={String(triggerOnlineQ.error)} onRetry={() => triggerOnlineQ.refetch()} /></div>
+        ) : triggerOnlineQ.isLoading ? (
+          <div className="p-4"><Skeleton className="h-32 w-full" /></div>
+        ) : (triggerOnlineQ.data ?? []).length === 0 ? (
+          <EmptyState title={t('monitor:triggerOnline.empty')} />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableHead className="h-9 px-3 text-[11px] font-semibold uppercase tracking-wide">{t('monitor:triggerOnline.columns.status')}</TableHead>
+                <TableHead className="h-9 px-3 text-[11px] font-semibold uppercase tracking-wide">{t('monitor:triggerOnline.columns.code')}</TableHead>
+                <TableHead className="h-9 px-3 text-[11px] font-semibold uppercase tracking-wide">{t('monitor:triggerOnline.columns.traceId')}</TableHead>
+                <TableHead className="h-9 px-3 text-[11px] font-semibold uppercase tracking-wide">{t('monitor:triggerOnline.columns.record')}</TableHead>
+                <TableHead className="h-9 px-3 text-[11px] font-semibold uppercase tracking-wide">{t('monitor:triggerOnline.columns.time')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(triggerOnlineQ.data ?? []).map((r) => {
+                const running = r.status === 0 || r.status == null;
+                return (
+                  <TableRow key={r.onlineTriggerId} className="text-xs">
+                    <TableCell className="px-3 py-2">
+                      <StatusPill
+                        tone={running ? 'info' : 'success'}
+                        label={running ? t('monitor:triggerOnline.running') : t('monitor:triggerOnline.done')}
+                      />
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-muted-foreground">{r.code ?? '—'}</TableCell>
+                    <TableCell className="px-3 py-2">
+                      <MonoText className="block max-w-[180px] truncate text-muted-foreground">{r.traceId ?? '—'}</MonoText>
+                    </TableCell>
+                    <TableCell className="px-3 py-2">
+                      <MonoText className="block max-w-[280px] truncate text-muted-foreground">
+                        {r.record != null ? JSON.stringify(r.record) : '—'}
+                      </MonoText>
+                    </TableCell>
+                    <TableCell className="px-3 py-2 tabular-nums text-muted-foreground">
+                      {r.lastModifiedAt ? new Date(r.lastModifiedAt).toLocaleString() : '—'}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

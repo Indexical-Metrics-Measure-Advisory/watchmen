@@ -11,6 +11,7 @@ import {DerivedObjective} from './derived-objective-types';
 import {Enum} from './enum-types';
 import {ExternalWriter} from './external-writer-types';
 import {Indicator} from './indicator-types';
+import {KafkaCollectorConfig} from './kafka-collector-config-types';
 import {Objective} from './objective-types';
 import {Pipeline, PipelinesGraphics} from './pipeline-types';
 import {Plugin} from './plugin-types';
@@ -68,6 +69,9 @@ export const isDataSource = (tuple: Tuple): tuple is DataSource => {
 };
 export const isExternalWriter = (tuple: Tuple): tuple is ExternalWriter => {
 	return !!(tuple as any).writerId;
+};
+export const isKafkaCollectorConfig = (tuple: Tuple): tuple is KafkaCollectorConfig => {
+	return !!(tuple as any).configId;
 };
 export const isIndicator = (tuple: Tuple): tuple is Indicator => {
 	return !!(tuple as any).indicatorId;
@@ -151,6 +155,8 @@ export const isFakedUuid = (tuple: Tuple): boolean => {
 		return tuple.dataSourceId.startsWith(FAKE_ID_PREFIX);
 	} else if (isExternalWriter(tuple)) {
 		return tuple.writerId.startsWith(FAKE_ID_PREFIX);
+	} else if (isKafkaCollectorConfig(tuple)) {
+		return tuple.configId.startsWith(FAKE_ID_PREFIX);
 	} else if (isTenant(tuple)) {
 		// tenant base tuples always have tenantId
 		return tuple.tenantId.startsWith(FAKE_ID_PREFIX);

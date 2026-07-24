@@ -16,6 +16,7 @@ import AdminDataSources from './data-sources';
 import AdminEnums from './enums';
 import AdminExternalWriters from './external-writers';
 import AdminHome from './home';
+import AdminKafkaCollectorConfigs from './kafka-collector-configs';
 import {AdminMenu} from './menu';
 import AdminMonitorLogs from './monitor-log';
 import AdminPipelines from './pipelines';
@@ -83,9 +84,11 @@ const AdminIndex = () => {
 						{isMultipleDataSourcesEnabled()
 							? asRoute(Router.ADMIN_DATA_SOURCES, <AdminDataSources/>) : null}
 						{isAiModelEnabled() ? asRoute(Router.ADMIN_AI_MODELS, <AdminAiModels/>) : null}
-						{isWriteExternalEnabled()
-							? asRoute(Router.ADMIN_EXTERNAL_WRITERS, <AdminExternalWriters/>) : null}
-						{isPluginEnabled() ? asRoute(Router.ADMIN_PLUGINS, <AdminPlugins/>) : null}
+					{isWriteExternalEnabled()
+						? asRoute(Router.ADMIN_EXTERNAL_WRITERS, <AdminExternalWriters/>) : null}
+					{asRoute(Router.ADMIN_KAFKA_COLLECTOR_CONFIGS, <AdminKafkaCollectorConfigs/>)}
+					{isPluginEnabled() ? asRoute(Router.ADMIN_PLUGINS, <AdminPlugins/>) : null}
+						{asRoute(Router.ADMIN_SETTINGS, <AdminSettings/>)}
 						{asFallbackNavigate(Router.ADMIN_TENANTS)}
 					</Routes>
 					: <Routes>

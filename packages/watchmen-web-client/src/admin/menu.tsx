@@ -10,6 +10,7 @@ import {Router} from '@/routes/types';
 import {isSuperAdmin} from '@/services/data/account';
 import {
 	ICON_AI_MODEL,
+	ICON_CONNECTION,
 	ICON_CONSOLE,
 	ICON_DATA_SOURCE,
 	ICON_DQC,
@@ -149,6 +150,10 @@ export const AdminMenu = () => {
 		              active={!!matchPath({path: Router.ADMIN_EXTERNAL_WRITERS}, location.pathname)}
 		              onClick={navigateTo(Router.ADMIN_EXTERNAL_WRITERS)}
 		              visible={isSuperAdmin() && isWriteExternalEnabled()}/>
+		<SideMenuItem icon={ICON_CONNECTION} label="Kafka Configs" showTooltip={showTooltip}
+		              active={!!matchPath({path: Router.ADMIN_KAFKA_COLLECTOR_CONFIGS}, location.pathname)}
+		              onClick={navigateTo(Router.ADMIN_KAFKA_COLLECTOR_CONFIGS)}
+		              visible={isSuperAdmin()}/>
 		<SideMenuItem icon={ICON_PLUGINS} label="Plugins" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.ADMIN_PLUGINS}, location.pathname)}
 		              onClick={navigateTo(Router.ADMIN_PLUGINS)}
@@ -175,7 +180,7 @@ export const AdminMenu = () => {
 		<SideMenuItem icon={ICON_SETTINGS} label={'Settings'} showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.ADMIN_SETTINGS}, location.pathname)}
 		              onClick={navigateTo(Router.ADMIN_SETTINGS)}
-		              visible={!isSuperAdmin()}/>
+		              visible={true}/>
 		<SideMenuSwitchWorkbench icon={ICON_SWITCH_WORKBENCH} workbenches={workbenches} visible={!isSuperAdmin()}/>
 		<SideMenuSeparator width={menuWidth}/>
 		<SideMenuItem icon={ICON_LOGOUT} label={'Logout'} showTooltip={showTooltip} onClick={logout}/>

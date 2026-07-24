@@ -4,12 +4,13 @@ from fastapi import APIRouter, Depends, Body
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import TriggerEvent
+from watchmen_collector_kernel.model.trigger_online import TriggerOnline
 from watchmen_collector_kernel.model.monitor import EventResultRecord
 from watchmen_collector_kernel.service import ask_collector_storage, get_monitor_service
 from watchmen_collector_kernel.storage import get_trigger_event_service, get_trigger_module_service, \
     get_trigger_model_service, get_trigger_table_service, get_change_data_record_service, \
     get_change_data_record_history_service, get_change_data_json_service, get_change_data_json_history_service, \
-    get_scheduled_task_service, get_scheduled_task_history_service
+    get_scheduled_task_service, get_scheduled_task_history_service, get_trigger_online_service
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import UserRole
 from watchmen_model.common import Pageable, DataPage, TenantId
@@ -226,3 +227,19 @@ async def monitor_task_by_event(
     monitor_service = get_monitor_service(principal_service)
     
     return monitor_service.query_event_detail(trigger_event_id)
+
+
+@router.get('/ingest/monitor/trigger-online', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+async def find_recent_trigger_onlines(
+        principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> List[TriggerOnline]:
+    # online triggers are high-volume realtime records; always return the latest 10 only
+    tenant_id: TenantId = principal_service.get_tenant_id()
+    trigger_online_service = get_trigger_online_service(ask_collector_storage(tenant_id, principal_service),
+                                                        ask_snowflake_generator(),
+                                                        principal_service)
+
+    def action() -> List[TriggerOnline]:
+        return trigger_online_service.find_recent_triggers(tenant_id, 10)
+
+    return trans_readonly(trigger_online_service, action)

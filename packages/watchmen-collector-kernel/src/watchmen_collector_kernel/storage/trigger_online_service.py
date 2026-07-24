@@ -112,6 +112,21 @@ class TriggerOnlineService(TupleService):
 		finally:
 			self.close_transaction()
 
+	def find_recent_triggers(self, tenant_id: TenantId, limit: int = 10) -> List[TriggerOnline]:
+		try:
+			self.storage.connect()
+			return self.storage.find_limited(
+				EntityLimitedFinder(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)],
+					sort=[EntitySortColumn(name=self.get_storable_id_column_name(), method=EntitySortMethod.DESC)],
+					limit=limit
+				)
+			)
+		finally:
+			self.storage.close()
+
 
 def get_trigger_online_service(storage: TransactionalStorageSPI,
                               snowflake_generator: SnowflakeGenerator,

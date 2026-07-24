@@ -119,6 +119,24 @@ export interface ProgressCounts {
   finished: number;
 }
 
+/**
+ * Online trigger (TriggerOnline) — high-volume realtime sync records.
+ * Source: packages/watchmen-collector-kernel/.../model/trigger_online.py
+ * Endpoint: GET /ingest/monitor/trigger-online (server returns latest 10 only).
+ * status 0 = running (see TriggerOnlineService.find_unfinished_triggers), otherwise done.
+ */
+export interface TriggerOnline {
+  onlineTriggerId: string;
+  status: number | null;
+  code: string | null;
+  record: Record<string, any> | null;
+  traceId: string | null;
+  result: Record<string, any> | null;
+  createdAt: string;
+  lastModifiedAt: string;
+  tenantId: string;
+}
+
 /** Scheduled task (lightweight) for the Tasks sub-tab. */
 export interface ScheduledTask {
   taskId: string;
