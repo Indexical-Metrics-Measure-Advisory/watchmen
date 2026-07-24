@@ -1,10 +1,4 @@
-"""Path resolver：解析 derived.path 数组为 ``[(link, target_vo), ...]`` 序列。
 
-约定：
-- path 形如 ``[vo, link, vo, link, vo]``，第一段 vo 是当前查询对象，
-  后续每对 ``(link, vo)`` 表示一跳 join。
-- 旧版本简写 ``[link]`` 也兼容（视为"当前 vo 出发"）。
-"""
 
 import re
 from typing import List, Optional, Tuple

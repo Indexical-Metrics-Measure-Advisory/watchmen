@@ -1,18 +1,4 @@
-"""SQL 编译器入口：根据 VirtualOntology 查询请求生成 SQLAlchemy Select。
 
-组装流水线：
-1. TableFactory 构建/缓存 SQLAlchemy Table
-2. 主表 + 必需附属表 join
-3. attribute / filter / derived 各自编译
-4. PathResolver 解析 derived.path
-5. 拼装 Select，应用 WHERE / LIMIT / OFFSET
-
-详细实现分散到：
-- ``OntologyTableFactory``：表对象构造、复用、列类型推导
-- ``PathResolver``：derived.path → [(link, target_vo), ...]
-- ``FilterCompiler``：所有 FilterCondition → SQLAlchemy 表达式
-- ``_JoinBuilder``：把 physicalTable 列表和 derived.join 列表挂到 from_clause 上
-"""
 
 from typing import Any, Dict, List, Optional, Tuple
 

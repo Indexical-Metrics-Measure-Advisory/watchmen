@@ -1,12 +1,4 @@
-"""Filter 编译器：把 FilterCondition 编译为 SQLAlchemy 条件。
 
-支持三种 filter 来源：
-- 物理表级 filters（``PhysicalTableMapping.filters``）→ WHERE
-- 虚拟链接级 filters（``VirtualLink.filters``）→ ON 子句
-- 运行时 filters（``OntologyQueryRequest.filters``）→ WHERE
-
-所有 operator 共用一份处理逻辑；只差作用的列。
-"""
 
 from typing import Any, Callable, Dict, List, Optional
 
