@@ -149,7 +149,6 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
   // ── Metrics List ──
   const [metricsList, setMetricsList] = useState<MetricDefinition[]>([]);
   const [metricsLoading, setMetricsLoading] = useState<boolean>(false);
-  const [metricsRefreshNonce, setMetricsRefreshNonce] = useState(0);
 
   // ── Dimensions ──
   const [availableDimsDetailed, setAvailableDimsDetailed] = useState<MetricDimension[]>([]);
@@ -223,10 +222,13 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
     });
   }, [selectedMetric, chartConfig, hasSelectedTimeDimension]);
 
-  // ── Init categories ──
+  // ── Init categories (lazily, on first builder open) ──
+  const categoriesLoadedRef = useRef(false);
   useEffect(() => {
+    if (!metricBuilderOpen || categoriesLoadedRef.current) return;
+    categoriesLoadedRef.current = true;
     getRealCategories().then((list: Category[]) => setCategories(list.map(c => ({ id: c.id, name: c.name }))));
-  }, []);
+  }, [metricBuilderOpen]);
 
   // ── Load metrics for selection ──
   useEffect(() => {
@@ -255,18 +257,7 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
 
     const timer = setTimeout(load, 300);
     return () => { alive = false; clearTimeout(timer); };
-  }, [search, categoryId, metricBuilderOpen, metricsRefreshNonce]);
-
-  // ── Refresh metrics on window focus ──
-  useEffect(() => {
-    const onFocus = () => {
-      if (metricBuilderOpen) {
-        setMetricsRefreshNonce(v => v + 1);
-      }
-    };
-    window.addEventListener('focus', onFocus);
-    return () => { window.removeEventListener('focus', onFocus); };
-  }, [metricBuilderOpen]);
+  }, [search, categoryId, metricBuilderOpen]);
 
   // ── Load dimensions when metric changes ──
   useEffect(() => {

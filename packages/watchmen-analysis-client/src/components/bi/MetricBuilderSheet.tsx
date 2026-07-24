@@ -31,6 +31,7 @@ import type { MetricDimension } from '@/model/analysis';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import { inferType } from './utils';
 import { RechartsProvider } from './charts/RechartsContext';
+import { useTranslation } from 'react-i18next';
 
 export type MetricBuilderSheetProps = {
   open: boolean;
@@ -108,6 +109,7 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
   previewRawData,
   onAddToDashboard
 }: MetricBuilderSheetProps) {
+  const { t } = useTranslation(['biAnalysis', 'metricsParams']);
   // Memoize preview card object to avoid creating new reference on every render
   const previewCard = React.useMemo(() => selectedMetric ? {
     id: 'preview',
@@ -136,10 +138,10 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
           <SheetHeader className="px-6 pt-6 pb-4 border-b">
             <SheetTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-muted-foreground" />
-              Build a Chart
+              {t('biAnalysis:metricBuilder.title')}
             </SheetTitle>
             <SheetDescription>
-              Choose a metric, dimensions, and time range, then add it to the dashboard.
+              {t('biAnalysis:metricBuilder.description')}
             </SheetDescription>
           </SheetHeader>
 
@@ -151,28 +153,28 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
               <Card className="col-span-12 lg:col-span-4 h-fit border-l-4 border-l-primary/20">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center gap-2">
-                    Metric Configuration
+                    {t('biAnalysis:metricBuilder.configTitle')}
                   </CardTitle>
-                  <CardDescription>Select metrics and dimensions to analyze</CardDescription>
+                  <CardDescription>{t('biAnalysis:metricBuilder.configDescription')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-semibold text-muted-foreground uppercase">Metric Filter</Label>
+                      <Label className="text-xs font-semibold text-muted-foreground uppercase">{t('biAnalysis:metricBuilder.metricFilter')}</Label>
                       <div className="flex gap-2">
                         <div className="relative flex-1">
                           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                           <Input
-                            placeholder="Search metrics..."
+                            placeholder={t('biAnalysis:metricBuilder.searchMetrics')}
                             value={search}
                             onChange={(e) => onSearchChange(e.target.value)}
                             className="pl-8"
                           />
                         </div>
                         <Select value={categoryId === '' ? 'all' : categoryId} onValueChange={(v) => onCategoryIdChange(v === 'all' ? '' : v)}>
-                          <SelectTrigger className="w-[140px]"><SelectValue placeholder="Category" /></SelectTrigger>
+                          <SelectTrigger className="w-[140px]"><SelectValue placeholder={t('biAnalysis:metricBuilder.category')} /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">All Categories</SelectItem>
+                            <SelectItem value="all">{t('biAnalysis:metricBuilder.allCategories')}</SelectItem>
                             {categories.map(c => (
                               <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                             ))}
@@ -182,16 +184,16 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-semibold text-muted-foreground uppercase">Available Metrics</Label>
+                      <Label className="text-xs font-semibold text-muted-foreground uppercase">{t('biAnalysis:metricBuilder.availableMetrics')}</Label>
                       <ScrollArea className="h-[200px] rounded-md border p-2">
                         {metricsLoading ? (
                           <div className="flex items-center justify-center h-full text-muted-foreground">
                             <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                            Loading...
+                            {t('biAnalysis:metricBuilder.loading')}
                           </div>
                         ) : metricsList.length === 0 ? (
                           <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-                            No metrics found
+                            {t('biAnalysis:metricBuilder.noMetrics')}
                           </div>
                         ) : (
                           <div className="space-y-1">
@@ -231,19 +233,19 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                   {selectedMetric ? (
                     <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
                       <div className="flex items-center justify-between">
-                        <Label className="text-xs font-semibold text-muted-foreground uppercase">Dimensions</Label>
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase">{t('biAnalysis:metricBuilder.dimensions')}</Label>
                         {selectedDims.length > 0 && (
                           <Badge variant="secondary" className="text-xs">
-                            {selectedDims.length} selected
+                            {t('biAnalysis:metricBuilder.selectedCount', { count: selectedDims.length })}
                           </Badge>
                         )}
                       </div>
 
                       <Tabs value={selectedDimType || 'CATEGORICAL'} onValueChange={onSelectedDimTypeChange} className="w-full">
                         <TabsList className="w-full grid grid-cols-2 mb-2">
-                          {dimTypes.map(t => (
-                            <TabsTrigger key={t} value={t} className="text-xs">
-                              {t === 'TIME' ? 'Time' : 'Categorical'}
+                          {dimTypes.map(dimType => (
+                            <TabsTrigger key={dimType} value={dimType} className="text-xs">
+                              {dimType === 'TIME' ? t('biAnalysis:metricBuilder.dimTypeTime') : t('biAnalysis:metricBuilder.dimTypeCategorical')}
                             </TabsTrigger>
                           ))}
                         </TabsList>
@@ -253,7 +255,7 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                           <Input
                             value={dimSearch}
                             onChange={(e) => onDimSearchChange(e.target.value)}
-                            placeholder="Filter dimensions..."
+                            placeholder={t('biAnalysis:metricBuilder.filterDimensions')}
                             className="h-8 pl-7 text-xs"
                           />
                         </div>
@@ -286,34 +288,34 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
 
                       {selectedDimType === 'TIME' && (
                         <div className="space-y-2 mb-4">
-                          <Label className="text-xs font-semibold text-muted-foreground uppercase">Time Granularity</Label>
+                          <Label className="text-xs font-semibold text-muted-foreground uppercase">{t('biAnalysis:metricBuilder.timeGranularity')}</Label>
                           <Select value={timeGranularity} onValueChange={onTimeGranularityChange}>
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                               <SelectItem value="day">Day</SelectItem>
-                               <SelectItem value="week">Week</SelectItem>
-                               <SelectItem value="month">Month</SelectItem>
-                               <SelectItem value="quarter">Quarter</SelectItem>
-                               <SelectItem value="year">Year</SelectItem>
+                               <SelectItem value="day">{t('metricsParams:granularity.day')}</SelectItem>
+                               <SelectItem value="week">{t('metricsParams:granularity.week')}</SelectItem>
+                               <SelectItem value="month">{t('metricsParams:granularity.month')}</SelectItem>
+                               <SelectItem value="quarter">{t('metricsParams:granularity.quarter')}</SelectItem>
+                               <SelectItem value="year">{t('metricsParams:granularity.year')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                       )}
 
                       <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-muted-foreground uppercase">Time Range</Label>
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase">{t('biAnalysis:metricBuilder.timeRange')}</Label>
                         <Select value={timeRange} onValueChange={onTimeRangeChange}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Past 7 days">Past 7 days</SelectItem>
-                            <SelectItem value="Past 30 days">Past 30 days</SelectItem>
-                            <SelectItem value="Past 90 days">Past 90 days</SelectItem>
-                            <SelectItem value="Past year">Past year</SelectItem>
-                            <SelectItem value="Custom">Custom Range</SelectItem>
+                            <SelectItem value="Past 7 days">{t('biAnalysis:timeRange.past7Days')}</SelectItem>
+                            <SelectItem value="Past 30 days">{t('biAnalysis:timeRange.past30Days')}</SelectItem>
+                            <SelectItem value="Past 90 days">{t('biAnalysis:timeRange.past90Days')}</SelectItem>
+                            <SelectItem value="Past year">{t('biAnalysis:timeRange.pastYear')}</SelectItem>
+                            <SelectItem value="Custom">{t('biAnalysis:timeRange.custom')}</SelectItem>
                           </SelectContent>
                         </Select>
 
@@ -328,7 +330,7 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                               }}
                             >
                               <SelectTrigger className="h-8">
-                                <SelectValue placeholder="Select year..." />
+                                <SelectValue placeholder={t('biAnalysis:metricBuilder.selectYear')} />
                               </SelectTrigger>
                               <SelectContent>
                                 {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
@@ -348,43 +350,42 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-muted-foreground uppercase">Chart Type</Label>
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase">{t('biAnalysis:metricBuilder.chartType')}</Label>
                         <Select value={selectedChartType} onValueChange={(v) => onSelectedChartTypeChange(v as BIChartType | 'auto')}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="auto">Auto</SelectItem>
-                            <SelectItem value="line">Line Chart</SelectItem>
-                            <SelectItem value="bar">Bar Chart</SelectItem>
-                            <SelectItem value="groupedBar">Grouped Bar</SelectItem>
-                            <SelectItem value="stackedBar">Stacked Bar</SelectItem>
-                            <SelectItem value="pie">Pie Chart</SelectItem>
-                            <SelectItem value="area">Area Chart</SelectItem>
-                            <SelectItem value="kpi">KPI</SelectItem>
-                            <SelectItem value="table">Table</SelectItem>
+                            <SelectItem value="auto">{t('biAnalysis:metricBuilder.chartTypes.auto')}</SelectItem>
+                            <SelectItem value="line">{t('biAnalysis:metricBuilder.chartTypes.line')}</SelectItem>
+                            <SelectItem value="bar">{t('biAnalysis:metricBuilder.chartTypes.bar')}</SelectItem>
+                            <SelectItem value="groupedBar">{t('biAnalysis:metricBuilder.chartTypes.groupedBar')}</SelectItem>
+                            <SelectItem value="stackedBar">{t('biAnalysis:metricBuilder.chartTypes.stackedBar')}</SelectItem>
+                            <SelectItem value="pie">{t('biAnalysis:metricBuilder.chartTypes.pie')}</SelectItem>
+                            <SelectItem value="area">{t('biAnalysis:metricBuilder.chartTypes.area')}</SelectItem>
+                            <SelectItem value="kpi">{t('biAnalysis:metricBuilder.chartTypes.kpi')}</SelectItem>
+                            <SelectItem value="table">{t('biAnalysis:metricBuilder.chartTypes.table')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-muted-foreground uppercase">Top N Limit</Label>
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase">{t('biAnalysis:metricBuilder.topNLimit')}</Label>
                         <Select value={limit.toString()} onValueChange={(v) => onLimitChange(parseInt(v))}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="5">Top 5</SelectItem>
-                            <SelectItem value="10">Top 10</SelectItem>
-                            <SelectItem value="15">Top 15</SelectItem>
-                            <SelectItem value="20">Top 20</SelectItem>
+                            {[5, 10, 15, 20].map(n => (
+                              <SelectItem key={n} value={String(n)}>{t('biAnalysis:metricBuilder.topN', { count: n })}</SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
                   ) : (
                     <div className="text-center py-8 text-muted-foreground bg-muted/30 rounded-lg border border-dashed">
-                      <p className="text-sm">Select a metric above to configure dimensions</p>
+                      <p className="text-sm">{t('biAnalysis:metricBuilder.selectMetricHint')}</p>
                     </div>
                   )}
                 </CardContent>
@@ -399,10 +400,10 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                           previewType === 'pie' ? <PieChart className="h-5 w-5 text-purple-500" /> :
                           previewType === 'table' ? <TableIcon className="h-5 w-5 text-gray-500" /> :
                             <BarChart3 className="h-5 w-5 text-green-500" />}
-                        Preview
+                        {t('biAnalysis:metricBuilder.previewTitle')}
                       </CardTitle>
                       <CardDescription>
-                        Real-time preview based on selected metrics and dimensions
+                        {t('biAnalysis:metricBuilder.previewDescription')}
                       </CardDescription>
                     </div>
                     {selectedMetric && (
@@ -417,7 +418,7 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                   {selectedDims.length > 5 ? (
                     <div className="h-full w-full flex flex-col">
                       <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 text-xs text-yellow-600 dark:text-yellow-400 text-center border-b border-yellow-100 dark:border-yellow-900/30 mb-2 rounded-sm">
-                        Chart hidden: Too many dimensions selected (max 5)
+                        {t('biAnalysis:metricBuilder.tooManyDimensions')}
                       </div>
                       <div className="flex-1 overflow-hidden">
                         <DataTable data={previewData} sourceData={previewRawData ?? undefined} />
@@ -436,14 +437,14 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                       <div className="p-4 bg-muted rounded-full">
                         <BarChart3 className="h-8 w-8 opacity-50" />
                       </div>
-                      <p>Start by selecting a metric from the configuration panel</p>
+                      <p>{t('biAnalysis:metricBuilder.previewEmpty')}</p>
                     </div>
                   )}
                   </RechartsProvider>
                 </CardContent>
                 <CardFooter className="border-t bg-muted/10 py-4 flex justify-between items-center">
                   <div className="text-sm text-muted-foreground">
-                    {previewData.length > 0 ? `${previewData.length} data points loaded` : 'No data loaded'}
+                    {previewData.length > 0 ? t('biAnalysis:metricBuilder.dataPointsLoaded', { count: previewData.length }) : t('biAnalysis:metricBuilder.noDataLoaded')}
                   </div>
                   <Button
                     onClick={onAddToDashboard}
@@ -452,7 +453,7 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                     size="lg"
                   >
                     <Plus className="h-4 w-4" />
-                    Add to Dashboard
+                    {t('biAnalysis:metricBuilder.addToDashboard')}
                   </Button>
                 </CardFooter>
               </Card>

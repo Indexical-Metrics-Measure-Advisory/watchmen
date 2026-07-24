@@ -15,7 +15,7 @@ import { metricsService } from '@/services/metricsService';
 import { actionTypeService } from '@/services/actionTypeService';
 import { suggestedActionService } from '@/services/suggestedActionService';
 import { MetricType } from '@/model/Metric';
-import { ActionType, ActionTypeParameter, SuggestedAction } from '@/model/suggestedAction';
+import { ActionType, SuggestedAction } from '@/model/suggestedAction';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
@@ -55,7 +55,7 @@ const MetricSelector: React.FC<MetricSelectorProps> = ({ value, onChange, metric
         <Command>
           <CommandInput placeholder={t('common:search')} />
           <CommandList>
-            <CommandEmpty>No metric found.</CommandEmpty>
+            <CommandEmpty>{t('globalRules.noMetricFound')}</CommandEmpty>
             <CommandGroup>
               {metrics.map((metric) => (
                 <CommandItem
@@ -108,7 +108,12 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
     description: ''
   });
 
+  // Fetch dictionary data lazily — the modal stays mounted on the page, so only
+  // load metrics/action types/suggested actions the first time it is opened.
+  const dictionariesLoadedRef = React.useRef(false);
   useEffect(() => {
+    if (!open || dictionariesLoadedRef.current) return;
+    dictionariesLoadedRef.current = true;
     const fetchMetrics = async () => {
       try {
         const [metricsData, actionTypesData, suggestedActionsData] = await Promise.all([
@@ -124,7 +129,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
       }
     };
     fetchMetrics();
-  }, []);
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -177,7 +182,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
     }));
   };
 
-  const handleActionChange = (index: number, field: keyof AlertAction, value: any) => {
+  const handleActionChange = (index: number, field: keyof AlertAction, value: AlertAction[keyof AlertAction]) => {
     setConfig(prev => {
       const newActions = [...(prev.actions || [])];
       newActions[index] = { ...newActions[index], [field]: value };
@@ -202,7 +207,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
     }));
   };
 
-  const handleConditionChange = (index: number, field: keyof AlertCondition, value: any) => {
+  const handleConditionChange = (index: number, field: keyof AlertCondition, value: AlertCondition[keyof AlertCondition]) => {
     setConfig(prev => {
       const newConditions = [...(prev.conditions || [])];
       newConditions[index] = { ...newConditions[index], [field]: value };
@@ -212,47 +217,6 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
         conditions: newConditions
       };
     });
-  };
-
-  const renderParameterInput = (index: number, param: ActionTypeParameter) => {
-    const action = config.actions?.[index];
-    const value = action?.parameters?.[param.name] ?? '';
-
-    const handleChange = (val: any) => {
-        setConfig(prev => {
-            const newActions = [...(prev.actions || [])];
-            const currentAction = newActions[index];
-            newActions[index] = {
-                ...currentAction,
-                parameters: {
-                    ...(currentAction.parameters || {}),
-                    [param.name]: val
-                }
-            };
-            return { ...prev, actions: newActions };
-        });
-    };
-
-    if (param.type === 'boolean') {
-         return (
-             <div className="flex items-center space-x-2">
-                <Switch
-                    checked={!!value}
-                    onCheckedChange={handleChange}
-                />
-                <span className="text-sm text-muted-foreground">{value ? 'Yes' : 'No'}</span>
-             </div>
-         );
-    }
-
-    return (
-        <Input
-            type={param.type === 'number' ? 'number' : 'text'}
-            value={value}
-            onChange={(e) => handleChange(e.target.value)}
-            placeholder={`Enter ${param.name}...`}
-        />
-    );
   };
 
   const handleSave = () => {
@@ -265,7 +229,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
   };
 
   const runTest = () => {
-    const isTriggered = config.conditions?.every(c => {
+    const evaluate = (c: { operator: string; value: number | string }) => {
       const val = Number(testValue);
       const limit = Number(c.value);
       switch (c.operator) {
@@ -277,13 +241,17 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
         case '!=': return val !== limit;
         default: return false;
       }
-    }) ?? false;
+    };
+    const conditions = config.conditions || [];
+    const isTriggered = conditions.length > 0
+      ? (config.conditionLogic === 'or' ? conditions.some(evaluate) : conditions.every(evaluate))
+      : false;
 
     setTestResult({
       triggered: isTriggered,
-      message: isTriggered 
-        ? `Alert triggered! Value ${testValue} meets all conditions.` 
-        : `Alert not triggered. Value ${testValue} does not meet conditions.`
+      message: isTriggered
+        ? t('alertConfig:globalRules.triggeredMessage', { value: testValue })
+        : t('alertConfig:globalRules.notTriggeredMessage', { value: testValue })
     });
   };
 
@@ -320,14 +288,14 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                 <Input 
                   value={config.name} 
                   onChange={(e) => setConfig({...config, name: e.target.value})}
-                  placeholder="e.g. High Revenue Alert"
+                  placeholder={t('alertConfig:globalRules.ruleNamePlaceholder')}
                 />
               </div>
               <div className="space-y-2">
                 <Label>{t('alertConfig:globalRules.priority')}</Label>
                 <Select 
                   value={config.priority} 
-                  onValueChange={(val: any) => setConfig({...config, priority: val})}
+                  onValueChange={(val: GlobalAlertRule['priority']) => setConfig({...config, priority: val})}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -347,18 +315,18 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
               <Textarea 
                 value={config.description} 
                 onChange={(e) => setConfig({...config, description: e.target.value})}
-                placeholder="Describe the purpose of this alert rule..."
+                placeholder={t('alertConfig:globalRules.descriptionPlaceholder')}
               />
             </div>
 
             <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
               <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold">Trigger Conditions</Label>
+                <Label className="text-base font-semibold">{t('alertConfig:globalRules.triggerConditions')}</Label>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Logic:</span>
+                  <span className="text-sm text-muted-foreground">{t('alertConfig:globalRules.logicLabel')}</span>
                   <Select 
                     value={config.conditionLogic} 
-                    onValueChange={(val: any) => setConfig({...config, conditionLogic: val})}
+                    onValueChange={(val: GlobalAlertRule['conditionLogic']) => setConfig({...config, conditionLogic: val})}
                   >
                     <SelectTrigger className="w-24 h-8">
                       <SelectValue />
@@ -386,25 +354,25 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                     />
                     <Select 
                       value={condition.operator} 
-                      onValueChange={(val: any) => handleConditionChange(index, 'operator', val)}
+                      onValueChange={(val: AlertCondition['operator']) => handleConditionChange(index, 'operator', val)}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value=">">&gt; Greater than</SelectItem>
-                        <SelectItem value="<">&lt; Less than</SelectItem>
-                        <SelectItem value=">=">&ge; Greater or equal</SelectItem>
-                        <SelectItem value="<=">&le; Less or equal</SelectItem>
-                        <SelectItem value="==">= Equals</SelectItem>
-                        <SelectItem value="!=">&ne; Not equals</SelectItem>
+                        <SelectItem value=">">{t('alertConfig:globalRules.operatorOptions.gt')}</SelectItem>
+                        <SelectItem value="<">{t('alertConfig:globalRules.operatorOptions.lt')}</SelectItem>
+                        <SelectItem value=">=">{t('alertConfig:globalRules.operatorOptions.gte')}</SelectItem>
+                        <SelectItem value="<=">{t('alertConfig:globalRules.operatorOptions.lte')}</SelectItem>
+                        <SelectItem value="==">{t('alertConfig:globalRules.operatorOptions.eq')}</SelectItem>
+                        <SelectItem value="!=">{t('alertConfig:globalRules.operatorOptions.ne')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <Input
                       type="text"
                       value={condition.value}
                       onChange={(e) => handleConditionChange(index, 'value', e.target.value)}
-                      placeholder="Enter threshold value"
+                      placeholder={t('alertConfig:globalRules.thresholdPlaceholder')}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -420,14 +388,14 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
               ))}
 
               <Button type="button" variant="outline" size="sm" onClick={handleAddCondition} className="w-full">
-                <Plus className="w-4 h-4 mr-2" /> Add Condition
+                <Plus className="w-4 h-4 mr-2" /> {t('alertConfig:globalRules.addCondition')}
               </Button>
             </div>
 
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="space-y-0.5">
-                <Label>Rule Status</Label>
-                <p className="text-sm text-muted-foreground">Enable or disable this alert rule</p>
+                <Label>{t('alertConfig:globalRules.ruleStatus')}</Label>
+                <p className="text-sm text-muted-foreground">{t('alertConfig:globalRules.ruleStatusHint')}</p>
               </div>
               <Switch 
                 checked={config.enabled}
@@ -440,21 +408,21 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
             <div className="p-4 border rounded-lg bg-muted/30">
               <h3 className="font-medium mb-4 flex items-center">
                 <Beaker className="w-4 h-4 mr-2" />
-                Test Configuration
+                {t('alertConfig:globalRules.testTitle')}
               </h3>
               <div className="flex items-end gap-4">
                 <div className="flex-1 space-y-2">
-                  <Label>Simulate Metric Value</Label>
+                  <Label>{t('alertConfig:globalRules.simulateValue')}</Label>
                   <Input
                     type="text"
                     value={testValue}
-                    onChange={(e) => setTestValue(e.target.value as any)}
-                    placeholder="Enter a value to test..."
+                    onChange={(e) => setTestValue(e.target.value)}
+                    placeholder={t('alertConfig:globalRules.simulatePlaceholder')}
                   />
                 </div>
                 <Button onClick={runTest}>
                   <Play className="w-4 h-4 mr-2" />
-                  Run Test
+                  {t('alertConfig:globalRules.runTest')}
                 </Button>
               </div>
             </div>
@@ -470,7 +438,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                   <CheckCircle2 className="w-5 h-5 shrink-0" />
                 )}
                 <div>
-                  <p className="font-medium">{testResult.triggered ? "Alert Triggered" : "No Alert Triggered"}</p>
+                  <p className="font-medium">{testResult.triggered ? t('alertConfig:globalRules.triggeredResult') : t('alertConfig:globalRules.notTriggeredResult')}</p>
                   <p className="text-sm opacity-90">{testResult.message}</p>
                 </div>
               </div>
@@ -481,11 +449,11 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium flex items-center">
                 <Target className="w-5 h-5 mr-2 text-primary" />
-                Suggested Action Config
+                {t('alertConfig:globalRules.suggestedActionConfig')}
               </h3>
               <Button onClick={handleAddAction} size="sm">
                 <Plus className="w-4 h-4 mr-2" />
-                Add Action
+                {t('alertConfig:globalRules.addAction')}
               </Button>
             </div>
 
@@ -496,7 +464,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                       <div className="bg-primary/10 p-2 rounded-full">
                           <Bell className="w-4 h-4 text-primary" />
                       </div>
-                      <span className="font-medium bg-secondary px-2 py-1 rounded text-sm">Action #{index + 1}</span>
+                      <span className="font-medium bg-secondary px-2 py-1 rounded text-sm">{t('alertConfig:globalRules.actionIndex', { index: index + 1 })}</span>
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => handleRemoveAction(index)} className="absolute top-4 right-4">
                       <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
@@ -505,10 +473,10 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Suggested Action</Label>
+                    <Label>{t('alertConfig:globalRules.suggestedAction')}</Label>
                     <Select 
                       value={action.suggestedActionId} 
-                      onValueChange={(val: any) => {
+                      onValueChange={(val: string) => {
                         const selectedAction = suggestedActions.find(sa => sa.id === val);
                         if (selectedAction) {
                             const actionType = actionTypes.find(t => t.id === selectedAction.typeId);
@@ -532,7 +500,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                       }}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select Suggested Action" />
+                        <SelectValue placeholder={t('alertConfig:globalRules.selectSuggestedAction')} />
                       </SelectTrigger>
                       <SelectContent>
                         {(suggestedActions || []).map(sa => {
@@ -554,10 +522,10 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>Risk Level</Label>
+                    <Label>{t('alertConfig:globalRules.riskLevel')}</Label>
                     <Select 
                       value={action.riskLevel || 'medium'} 
-                      onValueChange={(val: any) => handleActionChange(index, 'riskLevel', val)}
+                      onValueChange={(val: AlertAction['riskLevel']) => handleActionChange(index, 'riskLevel', val)}
                     >
                       <SelectTrigger>
                           <div className={cn("px-2 py-0.5 rounded text-xs font-medium", 
@@ -566,36 +534,36 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                             action.riskLevel === 'high' ? "bg-orange-100 text-orange-700" :
                             "bg-red-100 text-red-700"
                           )}>
-                            {action.riskLevel === 'low' ? 'Low Risk' : 
-                            action.riskLevel === 'medium' ? 'Medium Risk' :
-                            action.riskLevel === 'high' ? 'High Risk' : 'Critical Risk'}
+                            {action.riskLevel === 'low' ? t('alertConfig:suggestedActions.lowRisk') : 
+                            action.riskLevel === 'medium' ? t('alertConfig:suggestedActions.mediumRisk') :
+                            action.riskLevel === 'high' ? t('alertConfig:suggestedActions.highRisk') : t('alertConfig:suggestedActions.criticalRisk')}
                           </div>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="low">Low Risk</SelectItem>
-                        <SelectItem value="medium">Medium Risk</SelectItem>
-                        <SelectItem value="high">High Risk</SelectItem>
-                        <SelectItem value="critical">Critical Risk</SelectItem>
+                        <SelectItem value="low">{t('alertConfig:suggestedActions.lowRisk')}</SelectItem>
+                        <SelectItem value="medium">{t('alertConfig:suggestedActions.mediumRisk')}</SelectItem>
+                        <SelectItem value="high">{t('alertConfig:suggestedActions.highRisk')}</SelectItem>
+                        <SelectItem value="critical">{t('alertConfig:suggestedActions.criticalRisk')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Action Name</Label>
+                  <Label>{t('alertConfig:globalRules.actionName')}</Label>
                   <Input 
                     value={action.name || ''} 
                     onChange={(e) => handleActionChange(index, 'name', e.target.value)}
-                    placeholder="e.g. Send High Payment Warning"
+                    placeholder={t('alertConfig:globalRules.actionNamePlaceholder')}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Execution Content</Label>
+                  <Label>{t('alertConfig:globalRules.executionContent')}</Label>
                   <Textarea 
                     value={action.content || ''} 
                     onChange={(e) => handleActionChange(index, 'content', e.target.value)}
-                    placeholder="Describe what this action will do..."
+                    placeholder={t('alertConfig:globalRules.executionContentPlaceholder')}
                     className="min-h-[80px]"
                   />
                 </div>
@@ -603,12 +571,12 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
                 <div className="space-y-2">
                     <Label className="flex items-center text-primary">
                       <Activity className="w-4 h-4 mr-2" />
-                      Expected Effect
+                      {t('alertConfig:globalRules.expectedEffect')}
                     </Label>
                     <Input 
                       value={action.expectedEffect || ''} 
                       onChange={(e) => handleActionChange(index, 'expectedEffect', e.target.value)}
-                      placeholder="e.g. Alert 24h in advance, reduce loss by 15%"
+                      placeholder={t('alertConfig:globalRules.expectedEffectPlaceholder')}
                     />
                 </div>
               </div>
@@ -616,7 +584,7 @@ export const GlobalAlertConfigurationModal: React.FC<GlobalAlertConfigurationMod
             
             {(!config.actions || config.actions.length === 0) && (
               <div className="text-center py-8 text-muted-foreground border rounded-lg border-dashed">
-                No actions configured. Click "Add Action" to start.
+                {t('alertConfig:globalRules.noActions')}
               </div>
             )}
           </TabsContent>

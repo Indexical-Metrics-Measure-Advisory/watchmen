@@ -46,8 +46,7 @@ import { useMetricBuilder } from '@/hooks/bi/useMetricBuilder';
 const BIAnalysisPage: React.FC = () => {
   const { toast } = useToast();
   const { collapsed } = useSidebar();
-  const { user } = useAuth();
-  const { token } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'biAnalysis']);
 
@@ -58,6 +57,7 @@ const BIAnalysisPage: React.FC = () => {
     isBoardRefreshing,
     setIsBoardRefreshing,
     loadCardDataFor,
+    loadCardsDataFor,
     refreshCardsWithContext,
     refreshData,
     clearCardDataMap,
@@ -184,24 +184,20 @@ const BIAnalysisPage: React.FC = () => {
   // so drag reorder (which changes array order but not IDs) does NOT trigger this.
   useEffect(() => {
     if (cards.length === 0) return;
-    let hasNewCards = false;
-    cards.forEach(c => {
-      if (cardDataMap[c.id] || loadedCardIdsRef.current.has(c.id)) return;
-      loadedCardIdsRef.current.add(c.id);
-      hasNewCards = true;
-      void loadCardDataFor(c, {
-        globalTimeRange,
-        globalCustomDateRange,
-        globalFilterValues,
-      });
+    const newCards = cards.filter(c => !cardDataMap[c.id] && !loadedCardIdsRef.current.has(c.id));
+    if (newCards.length === 0) return;
+    newCards.forEach(c => loadedCardIdsRef.current.add(c.id));
+    // Single batched load — one state update for all new cards instead of one per card
+    void loadCardsDataFor(newCards, {
+      globalTimeRange,
+      globalCustomDateRange,
+      globalFilterValues,
     });
     // Only clean up removed card IDs when the list actually changed
-    if (hasNewCards) {
-      const currentIds = new Set(cards.map(c => c.id));
-      loadedCardIdsRef.current.forEach(id => {
-        if (!currentIds.has(id)) loadedCardIdsRef.current.delete(id);
-      });
-    }
+    const currentIds = new Set(cards.map(c => c.id));
+    loadedCardIdsRef.current.forEach(id => {
+      if (!currentIds.has(id)) loadedCardIdsRef.current.delete(id);
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardIdsKey]);
 

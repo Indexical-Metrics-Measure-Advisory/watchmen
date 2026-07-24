@@ -352,6 +352,37 @@ export const performBulkCategoryOperation = async (
 
 // ===== Extension of Existing Metrics API =====
 
+// Module-level cache for the metrics list — consumers (BI builder, metric dialogs,
+// derived/cumulative param pickers) all call getMetrics/getAllMetrics on mount.
+// Only successful real-time results are cached; mock fallbacks are never cached.
+// Invalidated after a successful create/update/delete.
+let metricsCache: MetricDefinition[] | null = null;
+let metricsInFlight: Promise<MetricDefinition[]> | null = null;
+
+const invalidateMetricsCache = () => {
+	metricsCache = null;
+};
+
+const loadRealTimeMetrics = async (): Promise<MetricDefinition[]> => {
+	if (metricsCache) {
+		return metricsCache;
+	}
+	if (!metricsInFlight) {
+		metricsInFlight = (async () => {
+			const realTimeData = await fetchRealTimeMetrics();
+			// The API returns a raw array; tolerate a legacy { metrics: [...] } wrapper as well
+			const metrics = (Array.isArray(realTimeData)
+				? realTimeData
+				: ((realTimeData as { metrics?: MetricDefinition[] } | undefined)?.metrics ?? [])) as MetricDefinition[];
+			metricsCache = metrics;
+			return metrics;
+		})().finally(() => {
+			metricsInFlight = null;
+		});
+	}
+	return metricsInFlight;
+};
+
 // Get all metrics without any filter — used for dropdown selectors (e.g. ratio numerator/denominator)
 export const getAllMetrics = async (): Promise<MetricDefinition[]> => {
 	const isMockMode = import.meta.env.VITE_USE_MOCK_DATA === "true";
@@ -359,15 +390,7 @@ export const getAllMetrics = async (): Promise<MetricDefinition[]> => {
 		return getMockMetricDefinitions();
 	}
 	try {
-		const isAPIAvailable = await isRealTimeMetricsAvailable();
-		if (isAPIAvailable) {
-			const realTimeData = await fetchRealTimeMetrics();
-			// The API returns a raw array; tolerate a legacy { metrics: [...] } wrapper as well
-			const metrics = Array.isArray(realTimeData)
-				? realTimeData
-				: ((realTimeData as { metrics?: MetricDefinition[] } | undefined)?.metrics ?? []);
-			return metrics as MetricDefinition[];
-		}
+		return await loadRealTimeMetrics();
 	} catch {
 		// fall through to mock
 	}
@@ -376,7 +399,6 @@ export const getAllMetrics = async (): Promise<MetricDefinition[]> => {
 
 // Get all metrics with optional real-time data (extended support for category filtering)
 export const getMetrics = async (filter?: MetricFilter): Promise<MetricDefinition[]> => {
-	await delay(500);
 	// Prefer mock data when explicitly enabled via env flag
 	const isMockMode = import.meta.env.VITE_USE_MOCK_DATA === "true";
 	if (isMockMode) {
@@ -384,35 +406,11 @@ export const getMetrics = async (filter?: MetricFilter): Promise<MetricDefinitio
 		return filter ? applyMetricFilters(mock, filter) : mock;
 	}
 
-	console.log("Fetching metrics with filter:", filter);
-
 	try {
-		// Try to fetch real-time data first
-		const isAPIAvailable = await isRealTimeMetricsAvailable();
-
-		if (isAPIAvailable) {
-			try {
-				const realTimeData = await fetchRealTimeMetrics();
-				// The API returns a raw array; tolerate a legacy { metrics: [...] } wrapper as well
-				const metrics: MetricDefinition[] = (Array.isArray(realTimeData)
-					? realTimeData
-					: ((realTimeData as { metrics?: MetricDefinition[] } | undefined)?.metrics ?? [])) as MetricDefinition[];
-				const filtered = filter ? applyMetricFilters(metrics, filter) : metrics;
-				// If real-time returns empty list, fall back to mock to keep UI useful
-
-				// console.log('Real-time metrics:', filtered);
-
-				return filtered;
-				// const mock = getMockMetricDefinitions();
-				// return filter ? applyMetricFilters(mock, filter) : mock;
-			} catch (error) {
-				console.warn("Failed to fetch real-time metrics, falling back to mock data:", error);
-				// Fall through to mock data
-			}
-		}
+		const metrics = await loadRealTimeMetrics();
+		return filter ? applyMetricFilters(metrics, filter) : metrics;
 	} catch (error) {
-		console.warn("API availability check failed, using mock data:", error);
-		// Fall through to mock data
+		console.warn("Failed to fetch real-time metrics, falling back to mock data:", error);
 	}
 
 	// Fallback: provide mock metric definitions so UI can still function
@@ -704,6 +702,7 @@ export const createMetric = async (
 		});
 
 		const newMetric = await checkResponse(response);
+		invalidateMetricsCache();
 		return newMetric;
 	} catch (error) {
 		console.error("Failed to create metric:", error);
@@ -727,6 +726,7 @@ export const updateMetric = async (name: string, updates: Partial<MetricDefiniti
 		});
 
 		const updatedMetric = await checkResponse(response);
+		invalidateMetricsCache();
 		return updatedMetric;
 	} catch (error) {
 		console.error("Failed to update metric:", error);
@@ -748,6 +748,7 @@ export const deleteMetric = async (name: string): Promise<void> => {
 		});
 
 		await checkResponse(response);
+		invalidateMetricsCache();
 	} catch (error) {
 		console.error("Failed to delete metric:", error);
 		throw new MetricsAPIException(
@@ -1359,28 +1360,6 @@ const fetchRealTimeMetrics = async () => {
 	});
 };
 
-/**
- * Check if real-time metrics API is available
- */
-const isRealTimeMetricsAvailable = async (): Promise<boolean> => {
-	try {
-		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout for health check
-
-		const response = await fetch(`${API_BASE_URL}/metricflow/health`, {
-			method: "GET",
-			headers: getDefaultHeaders(),
-			signal: controller.signal,
-		});
-
-		clearTimeout(timeoutId);
-		return response.ok;
-	} catch (error) {
-		console.warn("Real-time metrics API health check failed:", error);
-		return false;
-	}
-};
-
 // ===== Metric Dimensions Lookup API (MCP) =====
 export interface DimensionListResponse {
 	dimensions: MetricDimension[];
@@ -1392,7 +1371,6 @@ export interface DimensionListResponse {
  * Backend: POST /watchmen/mcp/dimensions_by_metric
  */
 export const findDimensionsByMetric = async (metricName: string): Promise<DimensionListResponse> => {
-	await delay(250);
 	try {
 		const response = await fetch(`${API_BASE_URL}/metricflow/dimensions_by_metric?metric_name=${metricName}`, {
 			method: "GET",

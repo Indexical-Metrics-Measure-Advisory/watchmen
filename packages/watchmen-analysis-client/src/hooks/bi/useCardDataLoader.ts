@@ -35,6 +35,25 @@ export type FetchCardDataResult = {
 
 const CARD_QUERY_CACHE_TTL = 30_000;
 
+type CardQueryContext = {
+  globalTimeRange?: string;
+  globalCustomDateRange?: DateRange;
+  filtersOverride?: Record<string, string>;
+  globalFilterValues?: Record<string, string>;
+  timeRangeOverride?: string;
+};
+
+// Cache key must include the query context — a bare card.id would serve stale
+// data after the global time range or filters change.
+const buildCardCacheKey = (card: BIChartCard, context?: CardQueryContext): string => {
+  const timePart = context?.timeRangeOverride ?? context?.globalTimeRange ?? '';
+  const customPart = context?.globalCustomDateRange
+    ? `${context.globalCustomDateRange.from?.toISOString() ?? ''}~${context.globalCustomDateRange.to?.toISOString() ?? ''}`
+    : '';
+  const filterPart = JSON.stringify(context?.filtersOverride ?? context?.globalFilterValues ?? {});
+  return `${card.id}|${timePart}|${customPart}|${filterPart}`;
+};
+
 const resolveTimeRange = (
   card: BIChartCard,
   globalTimeRange: string,
@@ -172,49 +191,7 @@ export const useCardDataLoader = () => {
     }
   }, []);
 
-  // ── Load data for a single card (with cache & dedup) ──
-  const loadCardDataFor = useCallback(async (
-    card: BIChartCard,
-    context?: {
-      globalTimeRange?: string;
-      globalCustomDateRange?: DateRange;
-      filtersOverride?: Record<string, string>;
-      globalFilterValues?: Record<string, string>;
-      timeRangeOverride?: string;
-    }
-  ) => {
-    const cached = cardQueryCache.current.get(card.id);
-    if (cached && Date.now() - cached.timestamp < CARD_QUERY_CACHE_TTL && !context?.filtersOverride) {
-      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: cached.result.data, rawData: cached.result.rawData as MetricFlowResponse } }));
-      if (cached.result.type === 'alert' && cached.result.status) {
-        setAlertStatusMap(prev => ({ ...prev, [card.id]: cached.result.status! }));
-      }
-      return;
-    }
-    if (cardInFlightRequests.current.has(card.id)) return;
-    const requestId = Date.now();
-    cardInFlightRequests.current.set(card.id, requestId);
-    try {
-      const result = await fetchCardData(card, context);
-      if (cardInFlightRequests.current.get(card.id) !== requestId) return;
-      if (!result) return;
-
-      cardQueryCache.current.set(card.id, { result, timestamp: Date.now() });
-
-      if (result.type === 'alert') {
-        setCardDataMap(prev => ({ ...prev, [result.id]: { chartData: result.data, rawData: result.rawData } }));
-        if (result.status) {
-          setAlertStatusMap(prev => ({ ...prev, [result.id]: result.status! }));
-        }
-      } else {
-        setCardDataMap(prev => ({ ...prev, [result.id]: { chartData: result.data, rawData: result.rawData as MetricFlowResponse } }));
-      }
-    } finally {
-      cardInFlightRequests.current.delete(card.id);
-    }
-  }, [fetchCardData]);
-
-  // ── Batch-apply results from parallel fetches ──
+  // ── Batch-apply results from parallel fetches (single setState per map) ──
   const applyCardResults = useCallback((results: Awaited<ReturnType<typeof fetchCardData>>[]) => {
     setCardDataMap(prev => {
       const next = { ...prev };
@@ -237,6 +214,74 @@ export const useCardDataLoader = () => {
       return hasUpdates ? next : prev;
     });
   }, []);
+
+  // ── Load data for a single card (with cache & dedup) ──
+  const loadCardDataFor = useCallback(async (
+    card: BIChartCard,
+    context?: CardQueryContext
+  ) => {
+    const cacheKey = buildCardCacheKey(card, context);
+    const cached = cardQueryCache.current.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CARD_QUERY_CACHE_TTL && !context?.filtersOverride) {
+      applyCardResults([cached.result]);
+      return;
+    }
+    if (cardInFlightRequests.current.has(cacheKey)) return;
+    const requestId = Date.now();
+    cardInFlightRequests.current.set(cacheKey, requestId);
+    try {
+      const result = await fetchCardData(card, context);
+      if (cardInFlightRequests.current.get(cacheKey) !== requestId) return;
+      if (!result) return;
+
+      cardQueryCache.current.set(cacheKey, { result, timestamp: Date.now() });
+      applyCardResults([result]);
+    } finally {
+      cardInFlightRequests.current.delete(cacheKey);
+    }
+  }, [applyCardResults, fetchCardData]);
+
+  // ── Load data for many cards at once — fetches in parallel and applies all
+  // results with a single batched state update (used for the initial board load) ──
+  const loadCardsDataFor = useCallback(async (
+    cardsToLoad: BIChartCard[],
+    context?: CardQueryContext
+  ) => {
+    const now = Date.now();
+    const cachedResults: FetchCardDataResult[] = [];
+    const pending: BIChartCard[] = [];
+
+    cardsToLoad.forEach(card => {
+      const cacheKey = buildCardCacheKey(card, context);
+      const cached = cardQueryCache.current.get(cacheKey);
+      if (cached && now - cached.timestamp < CARD_QUERY_CACHE_TTL && !context?.filtersOverride) {
+        cachedResults.push(cached.result);
+        return;
+      }
+      if (cardInFlightRequests.current.has(cacheKey)) return;
+      pending.push(card);
+    });
+
+    if (cachedResults.length > 0) {
+      applyCardResults(cachedResults);
+    }
+    if (pending.length === 0) return;
+
+    const requestId = Date.now();
+    pending.forEach(card => cardInFlightRequests.current.set(buildCardCacheKey(card, context), requestId));
+    try {
+      const results = await Promise.all(pending.map(card => fetchCardData(card, context)));
+      const valid: FetchCardDataResult[] = [];
+      results.forEach((result, index) => {
+        if (!result) return;
+        cardQueryCache.current.set(buildCardCacheKey(pending[index], context), { result, timestamp: Date.now() });
+        valid.push(result);
+      });
+      applyCardResults(valid);
+    } finally {
+      pending.forEach(card => cardInFlightRequests.current.delete(buildCardCacheKey(card, context)));
+    }
+  }, [applyCardResults, fetchCardData]);
 
   // ── Refresh a set of cards with context ──
   const refreshCardsWithContext = useCallback(async (
@@ -285,6 +330,7 @@ export const useCardDataLoader = () => {
     setIsBoardRefreshing,
     fetchCardData,
     loadCardDataFor,
+    loadCardsDataFor,
     refreshCardsWithContext,
     refreshData,
     clearCardDataMap,

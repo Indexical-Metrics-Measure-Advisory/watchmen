@@ -30,8 +30,7 @@ const clearLegacyLastAnalysisStorageKey = (): void => {
 export const useAnalysisState = (options: UseAnalysisStateOptions) => {
   const { clearCardDataMap, setAlertStatusMap } = options;
   const { toast } = useToast();
-  const { user } = useAuth();
-  const { token } = useAuth();
+  const { user, token } = useAuth();
 
   // ── Analysis & Navigation ──
   const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(null);

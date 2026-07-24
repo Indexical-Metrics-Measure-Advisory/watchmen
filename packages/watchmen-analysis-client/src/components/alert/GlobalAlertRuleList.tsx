@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, Bell } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { GlobalAlertRule } from '@/model/biAnalysis';
 import { GlobalAlertConfigurationModal } from '@/components/bi/GlobalAlertConfigurationModal';
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +19,7 @@ export const GlobalAlertRuleList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<GlobalAlertRule | null>(null);
+  const [ruleToDelete, setRuleToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRules();
@@ -42,11 +47,11 @@ export const GlobalAlertRuleList: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm(t('alertConfig:globalRules.deleteConfirm'))) {
-      await globalAlertService.deleteGlobalAlertRule(id);
-      fetchRules();
-    }
+  const handleDelete = async () => {
+    if (!ruleToDelete) return;
+    await globalAlertService.deleteGlobalAlertRule(ruleToDelete);
+    setRuleToDelete(null);
+    fetchRules();
   };
 
   const handleSave = async (rule: GlobalAlertRule) => {
@@ -99,7 +104,7 @@ export const GlobalAlertRuleList: React.FC = () => {
               <Button variant="outline" size="sm" onClick={() => handleEdit(rule)} className="h-8">
                 <Edit className="h-3.5 w-3.5 mr-1.5" /> {t('common:edit')}
               </Button>
-              <Button variant="outline" size="sm" onClick={() => handleDelete(rule.id)} className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10">
+              <Button variant="outline" size="sm" onClick={() => setRuleToDelete(rule.id)} className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10">
                 <Trash2 className="h-3.5 w-3.5 mr-1.5" /> {t('common:delete')}
               </Button>
             </CardFooter>
@@ -122,6 +127,19 @@ export const GlobalAlertRuleList: React.FC = () => {
           onSave={handleSave}
         />
       </ErrorBoundary>
+
+      <AlertDialog open={!!ruleToDelete} onOpenChange={(open) => !open && setRuleToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('alertConfig:globalRules.deleteTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('alertConfig:globalRules.deleteConfirm')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common:cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void handleDelete()}>{t('common:delete')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

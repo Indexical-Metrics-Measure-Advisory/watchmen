@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation } from 'react-i18next';
 
 import type { ChartDatum, RechartsModule } from './charts/types';
 import { MAX_TIME_SERIES_POINTS, MAX_CATEGORY_POINTS, sampleDataByIndex } from './charts/utils';
@@ -120,6 +121,7 @@ export const ChartCard = React.memo(({
   sourceData,
 }: ChartCardProps) => {
   const { toast } = useToast();
+  const { t } = useTranslation('biAnalysis');
   const lib = useRechartsModule();
   const [activeTab, setActiveTab] = useState<string>("chart");
   
@@ -138,8 +140,8 @@ export const ChartCard = React.memo(({
     try {
       if (!copyEnabled) {
         toast({
-          title: "No data",
-          description: "There is no data to copy",
+          title: t('chartCard.copyNoDataTitle'),
+          description: t('chartCard.copyNoDataDescription'),
           variant: "destructive",
         });
         return;
@@ -158,13 +160,13 @@ export const ChartCard = React.memo(({
 
       await navigator.clipboard.writeText(tsvContent);
       toast({
-        title: "Copied to Clipboard",
-        description: "Data can be pasted directly into Excel",
+        title: t('chartCard.copiedTitle'),
+        description: t('chartCard.copiedDescription'),
       });
     } catch (err) {
       toast({
-        title: "Failed to copy",
-        description: "Could not copy data to clipboard",
+        title: t('chartCard.copyFailedTitle'),
+        description: t('chartCard.copyFailedDescription'),
         variant: "destructive",
       });
     }
@@ -200,14 +202,14 @@ export const ChartCard = React.memo(({
                   className="h-7 text-xs px-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >
                   <LineChartIcon className="w-3.5 h-3.5 mr-1.5" />
-                  Chart
+                  {t('chartCard.chartTab')}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="data" 
                   className="h-7 text-xs px-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >
                   <TableIcon className="w-3.5 h-3.5 mr-1.5" />
-                  Data
+                  {t('chartCard.dataTab')}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="insights" 
@@ -215,7 +217,7 @@ export const ChartCard = React.memo(({
                   className="h-7 text-xs px-2.5 opacity-50 cursor-not-allowed"
                 >
                   <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                  Insights
+                  {t('chartCard.insightsTab')}
                 </TabsTrigger>
               </TabsList>
             )}
@@ -226,20 +228,20 @@ export const ChartCard = React.memo(({
                 <>
                   {alertStatus?.triggered ? (
                     alertStatus.acknowledged ? (
-                      <div className="flex items-center gap-1 text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0" title="Alert Acknowledged">
+                      <div className="flex items-center gap-1 text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0" title={t('chartCard.acked')}>
                         <CheckCircle2 className="h-3 w-3" />
-                        <span className="hidden xl:inline">Acked</span>
+                        <span className="hidden xl:inline">{t('chartCard.acked')}</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1 text-destructive bg-destructive/10 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0" title="Alert Triggered">
+                      <div className="flex items-center gap-1 text-destructive bg-destructive/10 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0" title={t('chartCard.triggered')}>
                         <AlertTriangle className="h-3 w-3" />
-                        <span className="hidden xl:inline">Triggered</span>
+                        <span className="hidden xl:inline">{t('chartCard.triggered')}</span>
                       </div>
                     )
                   ) : (
-                    <div className="flex items-center gap-1 text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0" title="Monitoring Active">
+                    <div className="flex items-center gap-1 text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0" title={t('chartCard.monitoring')}>
                       <Activity className="h-3 w-3" />
-                      <span className="hidden xl:inline">Monitoring</span>
+                      <span className="hidden xl:inline">{t('chartCard.monitoring')}</span>
                     </div>
                   )}
                 </>
@@ -266,13 +268,13 @@ export const ChartCard = React.memo(({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => onResize('sm')}>
-                    <Minimize2 className="mr-2 h-4 w-4" /> Small
+                    <Minimize2 className="mr-2 h-4 w-4" /> {t('chartCard.sizeSmall')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onResize('md')}>
-                    <BarChart2 className="mr-2 h-4 w-4" /> Medium
+                    <BarChart2 className="mr-2 h-4 w-4" /> {t('chartCard.sizeMedium')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onResize('lg')}>
-                    <Maximize2 className="mr-2 h-4 w-4" /> Large
+                    <Maximize2 className="mr-2 h-4 w-4" /> {t('chartCard.sizeLarge')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -291,7 +293,7 @@ export const ChartCard = React.memo(({
             {chartViewEnabled && isTooManyDimensions ? (
                <div className="h-full w-full flex flex-col">
                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 text-xs text-yellow-600 dark:text-yellow-400 text-center border-b border-yellow-100 dark:border-yellow-900/30 mb-2 rounded-sm">
-                   Chart hidden: Too many dimensions selected (max 5)
+                   {t('chartCard.tooManyDimensions')}
                  </div>
                  <div className="flex-1 overflow-hidden">
                     <DataTable data={data} sourceData={sourceData} />
@@ -300,7 +302,7 @@ export const ChartCard = React.memo(({
             ) : chartViewEnabled && !lib ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground gap-2">
                 <BarChart2 className="w-8 h-8 opacity-20" />
-                <span className="text-xs font-medium">Loading visualization...</span>
+                <span className="text-xs font-medium">{t('chartCard.loadingVisualization')}</span>
               </div>
             ) : chartViewEnabled ? (
               <div className="h-full w-full min-h-[250px]">
