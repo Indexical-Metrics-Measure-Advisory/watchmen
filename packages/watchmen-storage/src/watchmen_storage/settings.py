@@ -10,7 +10,6 @@ class StorageSettings(ExtendedBaseSettings):
 	DISABLE_COMPILED_CACHE: bool = False
 	OBJECT_STORAGE_NEED_DATE_DIRECTORY: bool = False
 	S3_BUCKET_AUTH_IAM_ENABLE: bool = False
-
 	SQL_ANALYZER_ON: bool = True
 
 
