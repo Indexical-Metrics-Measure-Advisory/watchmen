@@ -1,6 +1,8 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Inbox, AlertCircle, RefreshCw } from 'lucide-react';
+import { Inbox, AlertCircle, RefreshCw, Copy } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
 /** Monospace text for identifiers / enum values / trace IDs (design's `.wm-mono`). */
@@ -10,6 +12,33 @@ export const MonoText: React.FC<{ children: React.ReactNode; className?: string 
 
 export const MonoTextProps = MonoText; // alias for clarity when importing
 export default MonoText;
+
+/** Icon-only copy-to-clipboard button with a toast confirmation. Stops event propagation (usable inside clickable rows). */
+export const CopyButton: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
+  const { t } = useTranslation(['common']);
+  const copy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(t('common:copied'));
+    } catch {
+      toast.error(t('common:copyFailed'));
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      title={t('common:copy')}
+      className={cn(
+        'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
+        className,
+      )}
+    >
+      <Copy className="h-3 w-3" />
+    </button>
+  );
+};
 
 /** Section header bar for border-first panels (`Card p-0`): title on the left, optional extra on the right. */
 export const PanelHeader: React.FC<{ title: React.ReactNode; extra?: React.ReactNode; className?: string }> = ({

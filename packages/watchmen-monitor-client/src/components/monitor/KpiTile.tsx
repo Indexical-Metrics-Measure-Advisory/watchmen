@@ -11,15 +11,18 @@ interface KpiTileProps {
   /** Optional trend chip e.g. "+8.3%" */
   trend?: { value: string; direction: 'up' | 'down' | 'flat' };
   onClick?: () => void;
+  /** Highlight the tile as the currently active filter (requires onClick to make sense). */
+  active?: boolean;
 }
 
 /** KPI tile: border-first card + 3px top accent bar (tone) + uppercase label + big tabular value + trend chip. */
-export const KpiTile: React.FC<KpiTileProps> = ({ label, value, caption, tone = 'neutral', trend, onClick }) => {
+export const KpiTile: React.FC<KpiTileProps> = ({ label, value, caption, tone = 'neutral', trend, onClick, active }) => {
   return (
     <Card
       className={cn(
         'relative overflow-hidden p-4',
         onClick && 'cursor-pointer transition-shadow hover:shadow-md',
+        active && 'ring-2 ring-inset ring-indigo-300',
       )}
       onClick={onClick}
     >

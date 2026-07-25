@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,17 +13,27 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
-import { ChevronDown, ChevronRight, Play } from 'lucide-react';
+import { ChevronDown, ChevronRight, ExternalLink, Play } from 'lucide-react';
 import { StatusPill } from '@/components/monitor/StatusPill';
 import { KpiTile } from '@/components/monitor/KpiTile';
-import { MonoText, EmptyState, ErrorBanner, PanelHeader } from '@/components/monitor/common';
+import { MonoText, EmptyState, ErrorBanner, PanelHeader, CopyButton } from '@/components/monitor/common';
 import { usePipelineLogs, useAllPipelines, usePipelineLogStats } from '@/hooks/useMonitorQueries';
 import { pipelineMonitorService } from '@/services/pipelineMonitorService';
 import { getPipelineLogStatusMeta, formatDuration, TONE_DOT_CLASS } from '@/utils/monitorConstants';
+import { timeRangeToDates } from '@/utils/timeRange';
+import type { MonitorOutletContext } from '@/components/Layout';
 import { MonitorLogStatus, type PipelineMonitorLog, type PipelineMonitorLogCriteria } from '@/models/pipeline.models';
 import { formatDistanceToNow } from 'date-fns';
 
 const PAGE_SIZE = 20;
+
+/** Small muted "label: value" line for node-level diagnostics (definedAs / findBy / touched / loop variable). */
+const DiagLine: React.FC<{ label: string; value: unknown }> = ({ label, value }) => (
+  <p className="text-[11px] text-muted-foreground">
+    <span className="font-medium">{label}: </span>
+    <MonoText className="break-all">{typeof value === 'string' ? value : JSON.stringify(value)}</MonoText>
+  </p>
+);
 
 /** Indented, collapsible node row for the stages→units→actions DAG. */
 const TreeNode: React.FC<{
@@ -32,9 +43,11 @@ const TreeNode: React.FC<{
   status?: MonitorLogStatus | string | null;
   duration?: number | null;
   error?: string | null;
+  /** Optional diagnostic lines rendered under the row (muted, indented like the error block). */
+  details?: React.ReactNode;
   defaultOpen?: boolean;
   children?: React.ReactNode;
-}> = ({ depth, label, meta, status, duration, error, defaultOpen = false, children }) => {
+}> = ({ depth, label, meta, status, duration, error, details, defaultOpen = false, children }) => {
   const [open, setOpen] = React.useState(defaultOpen);
   const sm = getPipelineLogStatusMeta(status);
   const hasChildren = !!children;
@@ -57,13 +70,18 @@ const TreeNode: React.FC<{
           <StatusPill tone={sm.tone} label={sm.label} />
         </span>
       </div>
+      {details && (
+        <div className="mb-1 mr-3 space-y-0.5" style={{ marginLeft: depth * 18 + 28 }}>
+          {details}
+        </div>
+      )}
       {error && (
-        <pre
-          className="mb-2 mr-3 max-h-32 overflow-auto rounded-md border border-red-200 bg-red-50 p-2.5 text-xs text-red-700"
-          style={{ marginLeft: depth * 18 + 28 }}
-        >
-          {error}
-        </pre>
+        <div className="relative mb-2 mr-3" style={{ marginLeft: depth * 18 + 28 }}>
+          <pre className="max-h-32 overflow-auto rounded-md border border-red-200 bg-red-50 p-2.5 pr-9 text-xs text-red-700">
+            {error}
+          </pre>
+          <CopyButton text={error} className="absolute right-1.5 top-1.5 hover:bg-red-100" />
+        </div>
       )}
       {open && hasChildren && <div>{children}</div>}
     </div>
@@ -72,6 +90,8 @@ const TreeNode: React.FC<{
 
 const PipelineMonitor: React.FC = () => {
   const { t } = useTranslation(['pipeline', 'common']);
+  const navigate = useNavigate();
+  const { timeRange, refreshKey } = useOutletContext<MonitorOutletContext>();
   const [filters, setFilters] = React.useState<PipelineMonitorLogCriteria>({
     pageNumber: 1,
     pageSize: PAGE_SIZE,
@@ -84,14 +104,19 @@ const PipelineMonitor: React.FC = () => {
   });
   const [selectedUid, setSelectedUid] = React.useState<string | null>(null);
 
-  const logsQ = usePipelineLogs(filters);
+  // Map the global top-bar time range onto the log/stats criteria. Recomputed on
+  // every refresh tick (refreshKey) so endDate advances with the auto-refresh.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const rangeDates = React.useMemo(() => timeRangeToDates(timeRange), [timeRange, refreshKey]);
+  const logCriteria = React.useMemo(() => ({ ...filters, ...rangeDates }), [filters, rangeDates]);
+
+  const logsQ = usePipelineLogs(logCriteria);
   const pipelinesQ = useAllPipelines();
   // Aggregated KPIs follow the same entity filters as the log list (status/trace excluded).
   const statsQ = usePipelineLogStats({
     pipelineId: filters.pipelineId ?? undefined,
     topicId: filters.topicId ?? undefined,
-    startDate: filters.startDate ?? undefined,
-    endDate: filters.endDate ?? undefined,
+    ...rangeDates,
   });
 
   const pipelineName = React.useMemo(() => {
@@ -122,6 +147,17 @@ const PipelineMonitor: React.FC = () => {
     } catch (e) {
       toast.error(t('pipeline:rerunFailed'), { description: String(e) });
     }
+  };
+
+  // Remediation path: hand the failed run's context over to the Ingestion Monitor,
+  // where the data can be re-triggered.
+  const goToIngestion = (log: PipelineMonitorLog) => {
+    const qs = new URLSearchParams();
+    if (log.traceId) qs.set('traceId', log.traceId);
+    if (log.pipelineId) qs.set('pipelineId', log.pipelineId);
+    if (log.topicId) qs.set('topicId', log.topicId);
+    if (log.dataId != null) qs.set('dataId', String(log.dataId));
+    navigate(`/ingestion?${qs.toString()}`);
   };
 
   return (
@@ -174,7 +210,7 @@ const PipelineMonitor: React.FC = () => {
         </div>
       </Card>
 
-      {/* KPI row */}
+      {/* KPI row — Total / Ignored / Errors act as one-click status filters for the log list. */}
       {statsQ.isLoading ? (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[92px] w-full" />)}
@@ -186,6 +222,8 @@ const PipelineMonitor: React.FC = () => {
             value={stats?.total ?? 0}
             tone="neutral"
             caption={stats?.avgDurationMs != null ? `${t('pipeline:kpi.avgDuration')} ${formatDuration(stats.avgDurationMs)}` : undefined}
+            onClick={() => setField('status', null)}
+            active={filters.status == null}
           />
           <KpiTile
             label={t('pipeline:kpi.successRate')}
@@ -193,8 +231,20 @@ const PipelineMonitor: React.FC = () => {
             tone="success"
             caption={stats != null ? <span className="tabular-nums">{doneCount} / {stats.total}</span> : undefined}
           />
-          <KpiTile label={t('pipeline:kpi.ignored')} value={ignoredCount} tone="warning" />
-          <KpiTile label={t('pipeline:kpi.errors')} value={errorCount} tone="error" />
+          <KpiTile
+            label={t('pipeline:kpi.ignored')}
+            value={ignoredCount}
+            tone="warning"
+            onClick={() => setField('status', MonitorLogStatus.IGNORED)}
+            active={filters.status === MonitorLogStatus.IGNORED}
+          />
+          <KpiTile
+            label={t('pipeline:kpi.errors')}
+            value={errorCount}
+            tone="error"
+            onClick={() => setField('status', MonitorLogStatus.ERROR)}
+            active={filters.status === MonitorLogStatus.ERROR}
+          />
         </div>
       )}
 
@@ -204,7 +254,20 @@ const PipelineMonitor: React.FC = () => {
         <Card className="p-0">
           <PanelHeader
             title={t('pipeline:sections.logs')}
-            extra={logsQ.data?.itemCount != null ? <span className="tabular-nums">{logsQ.data.itemCount}</span> : null}
+            extra={
+              <span className="flex items-center gap-2">
+                {errorCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setField('status', MonitorLogStatus.ERROR)}
+                    className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700 transition-colors hover:bg-red-100"
+                  >
+                    {errorCount} {t('pipeline:kpi.errors')}
+                  </button>
+                )}
+                {logsQ.data?.itemCount != null && <span className="tabular-nums">{logsQ.data.itemCount}</span>}
+              </span>
+            }
           />
           <div className="max-h-[640px] overflow-auto">
             {logsQ.error ? (
@@ -268,14 +331,24 @@ const PipelineMonitor: React.FC = () => {
                     </MonoText>
                   </div>
                   <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                    <MonoText>{selected.traceId}</MonoText>
+                    {selected.traceId && (
+                      <span className="flex items-center gap-0.5">
+                        <MonoText>{selected.traceId}</MonoText>
+                        <CopyButton text={selected.traceId} />
+                      </span>
+                    )}
                     <span>{selected.startTime ? formatDistanceToNow(new Date(selected.startTime), { addSuffix: true }) : ''}</span>
                     <span className="tabular-nums">{formatDuration(selected.spentInMills)}</span>
                   </div>
                 </div>
-                <Button size="sm" className="bg-indigo-600 text-white hover:bg-indigo-700" onClick={() => rerun(selected)}>
-                  <Play className="mr-1 h-3.5 w-3.5" />{t('pipeline:rerun')}
-                </Button>
+                <div className="flex shrink-0 gap-2">
+                  <Button size="sm" variant="outline" onClick={() => goToIngestion(selected)}>
+                    <ExternalLink className="mr-1 h-3.5 w-3.5" />{t('pipeline:goToIngestion')}
+                  </Button>
+                  <Button size="sm" className="bg-indigo-600 text-white hover:bg-indigo-700" onClick={() => rerun(selected)}>
+                    <Play className="mr-1 h-3.5 w-3.5" />{t('pipeline:rerun')}
+                  </Button>
+                </div>
               </div>
             )}
           </Card>
@@ -323,6 +396,14 @@ const PipelineMonitor: React.FC = () => {
                         status={unit.status}
                         duration={unit.spentInMills}
                         error={unit.error}
+                        details={
+                          unit.loopVariableName != null || unit.loopVariableValue != null ? (
+                            <DiagLine
+                              label={t('pipeline:detail.loopVariable')}
+                              value={`${unit.loopVariableName ?? ''} = ${typeof unit.loopVariableValue === 'string' ? unit.loopVariableValue : JSON.stringify(unit.loopVariableValue)}`}
+                            />
+                          ) : undefined
+                        }
                         defaultOpen={unit.status === MonitorLogStatus.ERROR}
                       >
                         {(unit.actions ?? []).map((action, ai) => (
@@ -342,6 +423,15 @@ const PipelineMonitor: React.FC = () => {
                             status={action.status}
                             duration={action.spentInMills}
                             error={action.error}
+                            details={
+                              action.definedAs != null || action.findBy != null || action.touched != null ? (
+                                <>
+                                  {action.definedAs != null && <DiagLine label={t('pipeline:detail.definedAs')} value={action.definedAs} />}
+                                  {action.findBy != null && <DiagLine label={t('pipeline:detail.findBy')} value={action.findBy} />}
+                                  {action.touched != null && <DiagLine label={t('pipeline:detail.touched')} value={action.touched} />}
+                                </>
+                              ) : undefined
+                            }
                           />
                         ))}
                       </TreeNode>

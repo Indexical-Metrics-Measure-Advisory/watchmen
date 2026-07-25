@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -46,6 +47,12 @@ const IngestionMonitor: React.FC = () => {
   const { t } = useTranslation(['monitor', 'common']);
   const [page, setPage] = React.useState(1);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const [tab, setTab] = React.useState('events');
+
+  // Deep-link context handed over from the Pipeline Monitor ("Handle in Ingestion").
+  const [searchParams] = useSearchParams();
+  const traceIdParam = searchParams.get('traceId');
+  const pipelineIdParam = searchParams.get('pipelineId');
 
   const statsQ = useIngestEventStats();
   const eventsQ = useIngestEvents({ pageNumber: page, pageSize: PAGE_SIZE });
@@ -86,6 +93,20 @@ const IngestionMonitor: React.FC = () => {
   React.useEffect(() => {
     if (selectedId == null && events.length > 0) setSelectedId(events[0].eventTriggerId);
   }, [events, selectedId]);
+
+  // Deep-link from Pipeline Monitor: if the failed run's traceId matches a recent
+  // online trigger, jump to the online tab (the row is highlighted via traceIdParam).
+  React.useEffect(() => {
+    if (!traceIdParam) return;
+    if ((triggerOnlineQ.data ?? []).some((r) => r.traceId === traceIdParam)) setTab('online');
+  }, [traceIdParam, triggerOnlineQ.data]);
+
+  // Deep-link from Pipeline Monitor: select the most recent event of the given pipeline.
+  React.useEffect(() => {
+    if (!pipelineIdParam) return;
+    const matched = events.find((e) => e.pipelineId === pipelineIdParam);
+    if (matched) setSelectedId(matched.eventTriggerId);
+  }, [pipelineIdParam, events]);
 
   const stats = statsQ.data;
   const countOf = (s: IngestStatus) => stats?.byStatus?.[String(s)] ?? 0;
@@ -154,7 +175,7 @@ const IngestionMonitor: React.FC = () => {
       </Card>
 
       {/* Tabs: trigger events | online triggers */}
-      <Tabs defaultValue="events">
+      <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="events">{t('monitor:tabs.events')}</TabsTrigger>
           <TabsTrigger value="online">{t('monitor:tabs.online')}</TabsTrigger>
@@ -337,7 +358,13 @@ const IngestionMonitor: React.FC = () => {
               {(triggerOnlineQ.data ?? []).map((r) => {
                 const running = r.status === 0 || r.status == null;
                 return (
-                  <TableRow key={r.onlineTriggerId} className="text-xs">
+                  <TableRow
+                    key={r.onlineTriggerId}
+                    className={cn(
+                      'text-xs',
+                      traceIdParam != null && r.traceId === traceIdParam && 'bg-indigo-50/60 ring-1 ring-inset ring-indigo-300',
+                    )}
+                  >
                     <TableCell className="px-3 py-2">
                       <StatusPill
                         tone={running ? 'info' : 'success'}
