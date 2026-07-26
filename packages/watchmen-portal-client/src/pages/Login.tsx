@@ -1,24 +1,28 @@
-import { useState, type FormEvent } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { SSOTypes } from "@/services/authService";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, type FormEvent } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/context/AuthContext';
+import { SSOTypes } from '@/services/authService';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { APP_TITLE, APP_TITLE_MONOGRAM } from '@/lib/appTitle';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 
 export default function Login() {
+  const { t } = useTranslation();
   const { user, login, loginConfig } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -27,7 +31,7 @@ export default function Login() {
 
   // Already signed in — go back where we came from, or to the portal
   if (user) {
-    return <Navigate to={from ?? "/"} replace />;
+    return <Navigate to={from ?? '/'} replace />;
   }
 
   const onSubmit = async (event: FormEvent) => {
@@ -39,9 +43,9 @@ export default function Login() {
     setIsSubmitting(true);
     try {
       await login({ username: username.trim(), password });
-      navigate(from ?? "/", { replace: true });
+      navigate(from ?? '/', { replace: true });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Login failed");
+      setError(e instanceof Error ? e.message : t('login.errorDefault'));
       setIsSubmitting(false);
     }
   };
@@ -54,27 +58,33 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted px-4">
+      {/* Language switcher - top-right, available before sign-in */}
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="mb-6 flex items-center justify-center gap-3">
           <div className="w-9 h-9 flex items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <span className="text-base font-bold font-heading">W</span>
+            <span className="text-base font-bold font-heading">{APP_TITLE_MONOGRAM}</span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-base font-semibold text-foreground">
-              Watchmen
+              {APP_TITLE}
             </span>
-            <span className="text-xs text-muted-foreground">Data Platform</span>
+            <span className="text-xs text-muted-foreground">
+              {t('common.dataPlatform')}
+            </span>
           </div>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Sign in</CardTitle>
+            <CardTitle>{t('login.title')}</CardTitle>
             <CardDescription>
               {loginConfig.method === SSOTypes.DOLL
-                ? "Sign in with your watchmen account"
-                : "Sign in with your organization's identity provider"}
+                ? t('login.dollHint')
+                : t('login.ssoHint')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -85,7 +95,7 @@ export default function Login() {
                     htmlFor="username"
                     className="text-sm font-medium text-foreground"
                   >
-                    Username
+                    {t('login.username')}
                   </label>
                   <Input
                     id="username"
@@ -103,7 +113,7 @@ export default function Login() {
                     htmlFor="password"
                     className="text-sm font-medium text-foreground"
                   >
-                    Password
+                    {t('login.password')}
                   </label>
                   <Input
                     id="password"
@@ -123,7 +133,7 @@ export default function Login() {
                   className="w-full"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Signing in…" : "Sign in"}
+                  {isSubmitting ? t('login.submitting') : t('login.submit')}
                 </Button>
               </form>
             ) : (
@@ -132,7 +142,7 @@ export default function Login() {
                 onClick={onSSOClick}
                 disabled={!loginConfig.url}
               >
-                Continue with {loginConfig.method.toUpperCase()}
+                {t('login.continueWith', { method: loginConfig.method.toUpperCase() })}
               </Button>
             )}
           </CardContent>

@@ -75,3 +75,9 @@ export interface QueryTopicDataPage {
   pageNumber?: number;
   pageSize?: number;
 }
+
+/** One factor-equals condition for POST /topic/data factor-level queries. */
+export interface TopicDataCondition {
+  factorId: string;
+  value: string;
+}

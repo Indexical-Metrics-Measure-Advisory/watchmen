@@ -17,6 +17,8 @@ import { ChevronDown, ChevronRight, ExternalLink, Play } from 'lucide-react';
 import { StatusPill } from '@/components/monitor/StatusPill';
 import { KpiTile } from '@/components/monitor/KpiTile';
 import { MonoText, EmptyState, ErrorBanner, PanelHeader, CopyButton } from '@/components/monitor/common';
+import LineagePanel from '@/components/monitor/pipeline/LineagePanel';
+import TopicDataPanel from '@/components/monitor/pipeline/TopicDataPanel';
 import { usePipelineLogs, useAllPipelines, usePipelineLogStats } from '@/hooks/useMonitorQueries';
 import { pipelineMonitorService } from '@/services/pipelineMonitorService';
 import { getPipelineLogStatusMeta, formatDuration, TONE_DOT_CLASS } from '@/utils/monitorConstants';
@@ -103,6 +105,13 @@ const PipelineMonitor: React.FC = () => {
     endDate: null,
   });
   const [selectedUid, setSelectedUid] = React.useState<string | null>(null);
+  // Upstream topic picked in the lineage panel for factor-level data inspection.
+  const [inspectTopicId, setInspectTopicId] = React.useState<string | null>(null);
+
+  // Reset the lineage-picked inspection topic when the selected log changes.
+  React.useEffect(() => {
+    setInspectTopicId(null);
+  }, [selectedUid]);
 
   // Map the global top-bar time range onto the log/stats criteria. Recomputed on
   // every refresh tick (refreshKey) so endDate advances with the auto-refresh.
@@ -440,6 +449,19 @@ const PipelineMonitor: React.FC = () => {
                 ))}
               </div>
             </Card>
+          )}
+
+          {/* Data-source lineage + factor-level topic data (needs the log's topicId) */}
+          {selected?.topicId && (
+            <>
+              <LineagePanel topicId={selected.topicId} onInspectTopic={setInspectTopicId} />
+              <TopicDataPanel
+                topicId={inspectTopicId ?? selected.topicId}
+                dataId={
+                  inspectTopicId == null || inspectTopicId === selected.topicId ? (selected.dataId ?? null) : null
+                }
+              />
+            </>
           )}
         </div>
       </div>

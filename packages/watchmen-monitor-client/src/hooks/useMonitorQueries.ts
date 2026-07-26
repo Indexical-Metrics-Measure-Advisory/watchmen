@@ -6,9 +6,11 @@ import { pipelineMonitorService } from '@/services/pipelineMonitorService';
 import type { PipelineLogStatsCriteria } from '@/services/pipelineMonitorService';
 import { pipelineMetaService } from '@/services/pipelineMetaService';
 import { topicService } from '@/services/topicService';
+import { lineageService } from '@/services/lineageService';
 import dataSourceService from '@/services/dataSourceService';
 import type { Pageable } from '@/models/api.models';
 import type { PipelineMonitorLogCriteria } from '@/models/pipeline.models';
+import type { TopicDataCondition } from '@/models/topic.models';
 
 const REACT_QUERY_KEYS = {
   ingestEvents: (p: Pageable) => ['ingest', 'events', p] as const,
@@ -21,6 +23,11 @@ const REACT_QUERY_KEYS = {
   topicsSearch: (query: string | null, p: Pageable) => ['topics', 'search', query ?? '', p] as const,
   topicsAll: ['topics', 'all'] as const,
   topic: (id: string) => ['topic', id] as const,
+  topicDataRow: (topicId: string, dataId: string | number) =>
+    ['topics', 'data-row', topicId, String(dataId)] as const,
+  topicDataQuery: (topicId: string, conditions: TopicDataCondition[], p: Pageable) =>
+    ['topics', 'data-query', topicId, conditions, p] as const,
+  topicConsanguinity: (topicId: string) => ['lineage', 'topic', topicId] as const,
   dataSourcesAll: ['datasource', 'all'] as const,
   dataSourceHealth: ['datasource', 'health'] as const,
   ingestEventStats: ['ingest', 'event-stats'] as const,
@@ -108,6 +115,39 @@ export const useTopic = (topicId: string | null | undefined, enabled = true) =>
   useQuery({
     queryKey: REACT_QUERY_KEYS.topic(topicId ?? ''),
     queryFn: () => topicService.getTopic(topicId as string),
+    enabled: enabled && !!topicId,
+  });
+
+/** Single topic data row by data id (read-only). */
+export const useTopicDataRow = (
+  topicId: string | null | undefined,
+  dataId: string | number | null | undefined,
+  enabled = true,
+) =>
+  useQuery({
+    queryKey: REACT_QUERY_KEYS.topicDataRow(topicId ?? '', dataId ?? ''),
+    queryFn: () => topicService.getTopicDataRow(topicId as string, dataId as string | number),
+    enabled: enabled && !!topicId && dataId != null && dataId !== '',
+  });
+
+/** Factor-level row query (AND of equals conditions). Enable only after the user submits conditions. */
+export const useTopicDataQuery = (
+  topicId: string | null | undefined,
+  conditions: TopicDataCondition[],
+  pageable: Pageable,
+  enabled = true,
+) =>
+  useQuery({
+    queryKey: REACT_QUERY_KEYS.topicDataQuery(topicId ?? '', conditions, pageable),
+    queryFn: () => topicService.queryTopicData(topicId as string, conditions, pageable),
+    enabled: enabled && !!topicId,
+  });
+
+// ---- Topic lineage (upstream data sources) ----
+export const useTopicConsanguinity = (topicId: string | null | undefined, enabled = true) =>
+  useQuery({
+    queryKey: REACT_QUERY_KEYS.topicConsanguinity(topicId ?? ''),
+    queryFn: () => lineageService.getTopicConsanguinity(topicId as string),
     enabled: enabled && !!topicId,
   });
 

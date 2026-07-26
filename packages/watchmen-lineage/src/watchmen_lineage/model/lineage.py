@@ -238,3 +238,32 @@ class LineageResult(ExtendedBaseModel):
 	buckets: List = []
 	enums: List = []
 	reports: List = []
+
+
+class TopicLineageFactorPair(ExtendedBaseModel):
+	"""One factor-to-factor upstream relation between two topics."""
+	sourceFactorId: Optional[FactorId] = None
+	sourceFactorName: Optional[str] = None
+	targetFactorId: Optional[FactorId] = None
+	targetFactorName: Optional[str] = None
+	relationType: Optional[str] = None
+	arithmetic: Optional[str] = None
+
+
+class TopicLineageLink(ExtendedBaseModel):
+	"""Topic-level upstream hop: source topic --(pipeline)--> target topic."""
+	level: Optional[int] = None
+	sourceTopicId: Optional[TopicId] = None
+	sourceTopicName: Optional[str] = None
+	targetTopicId: Optional[TopicId] = None
+	targetTopicName: Optional[str] = None
+	pipelineId: Optional[PipelineId] = None
+	pipelineName: Optional[str] = None
+	factors: List[TopicLineageFactorPair] = []
+
+
+class TopicConsanguinity(ExtendedBaseModel):
+	"""Upstream lineage chain of a topic, flattened as level-grouped links."""
+	topicId: Optional[TopicId] = None
+	topicName: Optional[str] = None
+	upstream: List[TopicLineageLink] = []

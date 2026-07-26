@@ -86,7 +86,7 @@ const LineagePanel: React.FC<{
   const { t } = useTranslation(['pipeline', 'common']);
   const consanguinityQ = useTopicConsanguinity(topicId);
 
-  const links = consanguinityQ.data?.upstream ?? [];
+  const links = React.useMemo(() => consanguinityQ.data?.upstream ?? [], [consanguinityQ.data]);
   const byLevel = React.useMemo(() => {
     const groups = new Map<number, TopicLineageLink[]>();
     for (const link of links) {

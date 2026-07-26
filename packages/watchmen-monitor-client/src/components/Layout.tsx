@@ -32,7 +32,7 @@ const TIME_RANGES = ['1h', '24h', '7d', '30d'] as const;
  * Query-key prefixes invalidated on every auto/manual refresh. Keep in sync
  * with the prefixes declared in `src/hooks/useMonitorQueries.ts`.
  */
-const REFRESH_QUERY_PREFIXES = ['ingest', 'pipeline', 'topics', 'datasource'] as const;
+const REFRESH_QUERY_PREFIXES = ['ingest', 'pipeline', 'topics', 'topic', 'lineage', 'datasource'] as const;
 
 export type MonitorOutletContext = {
   timeRange: (typeof TIME_RANGES)[number];

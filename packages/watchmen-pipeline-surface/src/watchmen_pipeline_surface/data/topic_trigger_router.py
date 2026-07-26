@@ -150,6 +150,30 @@ async def find_source_topic_schema(principal_service, tenant_id, topic_id, topic
 	return schema
 
 
+@router.get('/topic/data/row', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
+async def find_topic_data_row(
+		topic_name: Optional[str] = None, topic_id: Optional[str] = None,
+		data_id: Optional[int] = None, tenant_id: Optional[TenantId] = None,
+		principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> Dict[str, Any]:
+	"""Read a single topic data row by data id (read-only counterpart of /topic/data/rerun)."""
+	if is_blank(topic_name) and is_blank(topic_id):
+		raise_400('Topic id or name is required.')
+	if is_blank(data_id):
+		raise_400('Data id is required.')
+	tenant_id = validate_tenant_id(tenant_id, principal_service)
+	principal_service = fake_to_tenant(principal_service, tenant_id)
+
+	schema = await find_source_topic_schema(principal_service, tenant_id, topic_id, topic_name)
+	storage = ask_topic_storage(schema, principal_service)
+	service = ask_topic_data_service(schema, storage, principal_service)
+	# a missing row (deleted or never existed) is a normal case for monitoring, return null instead of raising
+	existing_data = service.find_previous_data_by_id(id_=data_id, raise_on_not_found=False, close_storage=True)
+	if existing_data is None:
+		return None
+	return service.try_to_unwrap_from_topic_data(existing_data)
+
+
 @router.get('/pipeline/log/rerun/uid', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
             response_model=PipelineTriggerResult)
 async def rerun_with_uid(uid: str, principal_service: PrincipalService = Depends(get_any_admin_principal)):

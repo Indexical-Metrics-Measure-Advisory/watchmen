@@ -39,6 +39,35 @@ const zh: TranslationKeys = {
   },
   common: {
     dataPlatform: '数据平台',
+    selectLanguage: '选择语言',
+  },
+  lastAccessed: {
+    justNow: '刚刚',
+    minutesAgo: '{{count}}分钟前',
+    hoursAgo: '{{count}}小时前',
+    daysAgo: '{{count}}天前',
+  },
+  modules: {
+    admin: {
+      title: '数据开发',
+      subtitle: 'Web Client',
+      description: '面向数据开发者 - 构建并管理数据管道、数据模型与数据资产',
+    },
+    ingest: {
+      title: '数据接入',
+      subtitle: 'Ingest Client',
+      description: '配置数据源，管理接入任务与数据访问流程',
+    },
+    analysis: {
+      title: '数据分析',
+      subtitle: 'Analysis Client',
+      description: '探索数据，构建指标体系，创建可视化分析',
+    },
+    ops: {
+      title: '数据运维',
+      subtitle: 'Monitor Client',
+      description: '监控平台健康状态，管理告警并实现运维自动化',
+    },
   },
 };
 

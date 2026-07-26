@@ -100,7 +100,7 @@ const TopicDataPanel: React.FC<{
           ) : rowQ.isLoading || topicQ.isLoading ? (
             <div className="space-y-2 p-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-7 w-full" />)}</div>
           ) : row == null ? (
-            <EmptyState title={t('pipeline:data.noResults')} />
+            <EmptyState title={t('pipeline:data.rowNotFound')} />
           ) : (
             <div className="max-h-[280px] overflow-auto p-3">
               <Table>

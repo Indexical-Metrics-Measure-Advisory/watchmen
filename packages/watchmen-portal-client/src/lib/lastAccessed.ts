@@ -1,3 +1,5 @@
+import i18n from '@/i18n';
+
 /**
  * Tracks when each portal module was last entered, in localStorage.
  * Keyed by module id, value is an epoch timestamp (ms).
@@ -23,22 +25,22 @@ export const markAccessed = (moduleId: string): Record<string, number> => {
   return map;
 };
 
-/** "just now" / "5m ago" / "2h ago" / "3d ago", falling back to a locale date. */
+/** Localized "just now" / "5m ago" / "2h ago" / "3d ago", falling back to a locale date. */
 export const formatRelativeTime = (timestamp: number): string => {
   const minutes = Math.floor((Date.now() - timestamp) / 60000);
   if (minutes < 1) {
-    return "just now";
+    return i18n.t('lastAccessed.justNow');
   }
   if (minutes < 60) {
-    return `${minutes}m ago`;
+    return i18n.t('lastAccessed.minutesAgo', { count: minutes });
   }
   const hours = Math.floor(minutes / 60);
   if (hours < 24) {
-    return `${hours}h ago`;
+    return i18n.t('lastAccessed.hoursAgo', { count: hours });
   }
   const days = Math.floor(hours / 24);
   if (days < 30) {
-    return `${days}d ago`;
+    return i18n.t('lastAccessed.daysAgo', { count: days });
   }
   return new Date(timestamp).toLocaleDateString();
 };

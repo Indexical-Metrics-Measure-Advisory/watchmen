@@ -4,18 +4,25 @@ import {
   BarChart3,
   Server,
   type LucideIcon,
-} from "lucide-react";
+} from 'lucide-react';
 
-export type ModuleStatus = "available" | "coming-soon";
+export type ModuleStatus = 'available' | 'coming-soon';
 
 export interface PortalModule {
   id: string;
-  title: string;
-  subtitle: string;
-  description: string;
+  /**
+   * Display text is resolved from the i18n bundle under `modules.<id>`
+   * (title / subtitle / description). These fields are kept optional for
+   * backward compatibility and as a fallback when a translation is missing.
+   */
+  title?: string;
+  subtitle?: string;
+  description?: string;
   icon: LucideIcon;
   status: ModuleStatus;
   url?: string;
+  /** When set, only users whose role is included can see this module */
+  requiredRoles?: string[];
   lastAccessed?: string;
 }
 
@@ -29,60 +36,54 @@ export interface PortalModule {
  */
 export const portalModules: PortalModule[] = [
   {
-    id: "admin",
-    title: "Data Development",
-    subtitle: "Web Client",
-    description:
-      "For data developers — build and manage data pipelines, data models, and data assets",
+    id: 'admin',
     icon: Code2,
-    status: "available",
-    url: "/admin",
+    status: 'available',
+    url: '/admin',
+    requiredRoles: ['admin', 'superadmin'],
   },
   {
-    id: "ingest",
-    title: "Data Ingestion",
-    subtitle: "Ingest Client",
-    description:
-      "Configure data sources, manage ingestion tasks and data access workflows",
+    id: 'ingest',
     icon: Database,
-    status: "available",
-    url: "/ingest",
+    status: 'available',
+    url: '/ingest',
   },
   {
-    id: "analysis",
-    title: "Data Analysis",
-    subtitle: "Analysis Client",
-    description:
-      "Explore data, build metric frameworks, and create visual analytics",
+    id: 'analysis',
     icon: BarChart3,
-    status: "available",
-    url: "/analysis",
+    status: 'available',
+    url: '/analysis',
   },
   {
-    id: "ops",
-    title: "Data Operations",
-    subtitle: "Monitor Client",
-    description:
-      "Monitor platform health, manage alerts, and automate operations",
+    id: 'ops',
     icon: Server,
-    status: "available",
-    url: "/monitor",
+    status: 'available',
+    url: '/monitor',
+    requiredRoles: ['admin', 'superadmin'],
   },
   // {
-  //   id: "ai-perception",
-  //   title: "AI Perception",
-  //   subtitle: "Intelligence Layer",
+  //   id: 'ai-perception',
+  //   title: 'AI Perception',
+  //   subtitle: 'Intelligence Layer',
   //   description:
-  //     "AI-powered data quality sensing, anomaly detection, and intelligent insights",
+  //     'AI-powered data quality sensing, anomaly detection, and intelligent insights',
   //   icon: Sparkles,
-  //   status: "coming-soon",
+  //   status: 'coming-soon',
   // },
 ];
 
+/** Check if a user role has access to a module */
+export const hasModuleAccess = (role: string, module: PortalModule): boolean => {
+  if (!module.requiredRoles || module.requiredRoles.length === 0) {
+    return true;
+  }
+  return module.requiredRoles.includes(role);
+};
+
 export const availableCount = portalModules.filter(
-  (m) => m.status === "available"
+  (m) => m.status === 'available'
 ).length;
 
 export const comingSoonCount = portalModules.filter(
-  (m) => m.status === "coming-soon"
+  (m) => m.status === 'coming-soon'
 ).length;

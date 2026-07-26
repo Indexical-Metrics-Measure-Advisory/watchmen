@@ -7,22 +7,32 @@ from pydantic import BaseModel
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.meta import ObjectiveService
 from watchmen_lineage.model.lineage import DatasetColumnFacet, LineageNode, LineageRelation, LineageType, \
-	RelationDirection, TopicFactorFacet, ObjectiveTargetFacet, LineageResult, RelationshipLineage, IndicatorFacet
+	RelationDirection, TopicFactorFacet, ObjectiveTargetFacet, LineageResult, RelationshipLineage, IndicatorFacet, \
+	TopicConsanguinity, TopicLineageLink, TopicLineageFactorPair
 from watchmen_lineage.service.builder.index import get_builder
 from watchmen_lineage.service.builder.loader import LineageBuilder
 from watchmen_lineage.service.lineage_cache import lineage_cache_manager
 from watchmen_lineage.utils.id_utils import build_node_id, parse_node_id
 from watchmen_lineage.utils.utils import get_source_and_target_key, trans_readonly
+from watchmen_meta.admin import TopicService, PipelineService
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
 from watchmen_model.admin import Topic
 from watchmen_model.common import FactorId, ObjectiveTargetId, SubjectDatasetColumnId, SubjectId, TopicId, ObjectiveId, \
-	IndicatorId
+	IndicatorId, PipelineId
 from watchmen_model.console import Subject
 from watchmen_model.indicator import Indicator, Objective
 
 
 def get_objective_service(principal_service: PrincipalService) -> ObjectiveService:
 	return ObjectiveService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_topic_service(principal_service: PrincipalService) -> TopicService:
+	return TopicService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_pipeline_service(principal_service: PrincipalService) -> PipelineService:
+	return PipelineService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
 class LineageService(object):
@@ -79,6 +89,84 @@ class LineageService(object):
 		factor_facet: TopicFactorFacet = TopicFactorFacet(parentId=topic_id, nodeId=factor_id)
 		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
 		return self.__get_lineage(factor_facet, RelationDirection.IN, tenant_node_graph)
+
+	def find_upstream_by_topic(self, topic_id: TopicId, principal_service: PrincipalService) -> TopicConsanguinity:
+		"""
+		Topic-level upstream lineage: source topic --(pipeline)--> current topic, level by level.
+		Factor node ids carry their topic id (FACTOR_{factorId}_{topicId}); edges into a topic's
+		factor nodes carry the pipeline attributes (pipelineId/stageId/unitId/actionId).
+		"""
+		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
+		topic_service = get_topic_service(principal_service)
+		pipeline_service = get_pipeline_service(principal_service)
+		topic_names: Dict[str, Optional[str]] = {}
+		pipeline_names: Dict[str, Optional[str]] = {}
+
+		def topic_name(a_topic_id: str) -> Optional[str]:
+			if a_topic_id not in topic_names:
+				topic: Optional[Topic] = trans_readonly(topic_service, lambda: topic_service.find_by_id(a_topic_id))
+				topic_names[a_topic_id] = topic.name if topic is not None else None
+			return topic_names[a_topic_id]
+
+		def pipeline_name(a_pipeline_id: str) -> Optional[str]:
+			if a_pipeline_id not in pipeline_names:
+				pipeline = trans_readonly(pipeline_service, lambda: pipeline_service.find_by_id(a_pipeline_id))
+				pipeline_names[a_pipeline_id] = pipeline.name if pipeline is not None else None
+			return pipeline_names[a_pipeline_id]
+
+		result = TopicConsanguinity(topicId=topic_id, topicName=topic_name(topic_id))
+		visited = {topic_id}
+		current_topics = [topic_id]
+		level = 0
+		max_level = 10
+		while len(current_topics) > 0 and level < max_level:
+			level += 1
+			next_topics = []
+			for current_topic_id in current_topics:
+				links = self.__find_upstream_links(tenant_node_graph, current_topic_id, level, topic_name,
+				                                   pipeline_name)
+				for link in links:
+					result.upstream.append(link)
+					if link.sourceTopicId not in visited:
+						visited.add(link.sourceTopicId)
+						next_topics.append(link.sourceTopicId)
+			current_topics = next_topics
+		return result
+
+	@staticmethod
+	def __find_upstream_links(tenant_node_graph: MultiDiGraph, topic_id: TopicId, level: int,
+	                          topic_name, pipeline_name) -> List[TopicLineageLink]:
+		factor_prefix = f'{LineageType.FACTOR.value}_'
+		grouped: Dict[tuple, TopicLineageLink] = {}
+		for node_id in list(tenant_node_graph.nodes):
+			if not node_id.startswith(factor_prefix):
+				continue
+			_, target_factor_id, parent_topic_id = node_id.split('_', 2)
+			if parent_topic_id != topic_id:
+				continue
+			for source_id, _, attributes in tenant_node_graph.in_edges(node_id, data=True):
+				if not source_id.startswith(factor_prefix):
+					continue
+				_, source_factor_id, source_topic_id = source_id.split('_', 2)
+				pipeline_id = attributes.get('pipelineId')
+				key = (source_topic_id, pipeline_id)
+				link = grouped.get(key)
+				if link is None:
+					link = TopicLineageLink(
+						level=level,
+						sourceTopicId=source_topic_id, sourceTopicName=topic_name(source_topic_id),
+						targetTopicId=topic_id, targetTopicName=topic_name(topic_id),
+						pipelineId=pipeline_id,
+						pipelineName=pipeline_name(pipeline_id) if pipeline_id is not None else None)
+					grouped[key] = link
+				link.factors.append(TopicLineageFactorPair(
+					sourceFactorId=source_factor_id,
+					sourceFactorName=tenant_node_graph.nodes[source_id].get('name'),
+					targetFactorId=target_factor_id,
+					targetFactorName=tenant_node_graph.nodes[node_id].get('name'),
+					relationType=attributes.get('relation_type'),
+					arithmetic=attributes.get('arithmetic')))
+		return list(grouped.values())
 
 	def find_lineage_by_objective_target(self, objective_target_id: ObjectiveTargetId, objective_id: ObjectiveId,
 	                                     principal_service: PrincipalService):
