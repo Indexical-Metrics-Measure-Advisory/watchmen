@@ -222,6 +222,12 @@ jobs:
         with:
           module-name: watchmen-metricflow
           target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-operation-cli]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-operation-cli
+        with:
+          module-name: watchmen-operation-cli
+          target-version: ${{ inputs.version }}
       - name: Change Version [watchmen-web-client]
         uses: ./.github/actions/change-node-version/
         id: change-node-version-web-client

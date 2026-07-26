@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "watchmen-operation-cli"
+version = "18.0.0"
+description = "Watchmen operation CLI for fetching latest pipeline and ingest error data"
+authors = ["imma-team"]
+packages = [
+	{ include = "operation_cli", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.32.3"
+
+[tool.poetry.scripts]
+operation-cli = "operation_cli.main:run"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
