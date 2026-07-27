@@ -34,8 +34,8 @@ def find_lineage_by_objective(objective_id: ObjectiveId,
 
 
 # find topic-level upstream lineage (source topics and the pipelines linking them)
+# resolved on demand from pipeline mappings; no tenant-wide graph build required
 @router.get("/lineage/topic/consanguinity", tags=[UserRole.ADMIN], response_model=None)
 def find_lineage_by_topic(topic_id: TopicId,
                           principal_service: PrincipalService = Depends(get_admin_principal)) -> TopicConsanguinity:
-	lineage_service.init_tenant_all_lineage_data(principal_service)
 	return lineage_service.find_upstream_by_topic(topic_id, principal_service)

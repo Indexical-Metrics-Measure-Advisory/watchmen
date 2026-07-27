@@ -8,17 +8,21 @@ from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.meta import ObjectiveService
 from watchmen_lineage.model.lineage import DatasetColumnFacet, LineageNode, LineageRelation, LineageType, \
 	RelationDirection, TopicFactorFacet, ObjectiveTargetFacet, LineageResult, RelationshipLineage, IndicatorFacet, \
-	TopicConsanguinity, TopicLineageLink, TopicLineageFactorPair
+	TopicConsanguinity, TopicLineageLink, TopicLineageFactorPair, RelationType
 from watchmen_lineage.service.builder.index import get_builder
 from watchmen_lineage.service.builder.loader import LineageBuilder
+from watchmen_lineage.service.builder.pipeline_lineage import is_valid_factor_id
 from watchmen_lineage.service.lineage_cache import lineage_cache_manager
 from watchmen_lineage.utils.id_utils import build_node_id, parse_node_id
-from watchmen_lineage.utils.utils import get_source_and_target_key, trans_readonly
+from watchmen_lineage.utils.utils import get_source_and_target_key, is_datetime_compute, is_number_calculate, \
+	trans_readonly
 from watchmen_meta.admin import TopicService, PipelineService
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
-from watchmen_model.admin import Topic
+from watchmen_model.admin import Topic, Pipeline, PipelineAction, WriteTopicAction, MappingRow, ToTopic, FromTopic, \
+	WriteFactorAction
 from watchmen_model.common import FactorId, ObjectiveTargetId, SubjectDatasetColumnId, SubjectId, TopicId, ObjectiveId, \
-	IndicatorId, PipelineId
+	IndicatorId, PipelineId, Parameter, ParameterKind, ParameterComputeType
+from watchmen_utilities import ArrayHelper
 from watchmen_model.console import Subject
 from watchmen_model.indicator import Indicator, Objective
 
@@ -93,26 +97,27 @@ class LineageService(object):
 	def find_upstream_by_topic(self, topic_id: TopicId, principal_service: PrincipalService) -> TopicConsanguinity:
 		"""
 		Topic-level upstream lineage: source topic --(pipeline)--> current topic, level by level.
-		Factor node ids carry their topic id (FACTOR_{factorId}_{topicId}); edges into a topic's
-		factor nodes carry the pipeline attributes (pipelineId/stageId/unitId/actionId).
+		Resolved on demand from structured pipeline mappings (metricflow style): no global graph
+		build, no constant-string parsing. Only enabled pipelines are scanned, and per-request
+		caches keep topic metadata lookups cheap.
 		"""
-		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
 		topic_service = get_topic_service(principal_service)
 		pipeline_service = get_pipeline_service(principal_service)
-		topic_names: Dict[str, Optional[str]] = {}
-		pipeline_names: Dict[str, Optional[str]] = {}
+		pipelines: List[Pipeline] = [
+			pipeline for pipeline in trans_readonly(
+				pipeline_service, lambda: pipeline_service.find_all(principal_service.tenantId))
+			if pipeline.enabled
+		]
+		topics: Dict[str, Optional[Topic]] = {}
+
+		def resolve_topic(a_topic_id: str) -> Optional[Topic]:
+			if a_topic_id not in topics:
+				topics[a_topic_id] = trans_readonly(topic_service, lambda: topic_service.find_by_id(a_topic_id))
+			return topics[a_topic_id]
 
 		def topic_name(a_topic_id: str) -> Optional[str]:
-			if a_topic_id not in topic_names:
-				topic: Optional[Topic] = trans_readonly(topic_service, lambda: topic_service.find_by_id(a_topic_id))
-				topic_names[a_topic_id] = topic.name if topic is not None else None
-			return topic_names[a_topic_id]
-
-		def pipeline_name(a_pipeline_id: str) -> Optional[str]:
-			if a_pipeline_id not in pipeline_names:
-				pipeline = trans_readonly(pipeline_service, lambda: pipeline_service.find_by_id(a_pipeline_id))
-				pipeline_names[a_pipeline_id] = pipeline.name if pipeline is not None else None
-			return pipeline_names[a_pipeline_id]
+			topic = resolve_topic(a_topic_id)
+			return topic.name if topic is not None else None
 
 		result = TopicConsanguinity(topicId=topic_id, topicName=topic_name(topic_id))
 		visited = {topic_id}
@@ -123,8 +128,7 @@ class LineageService(object):
 			level += 1
 			next_topics = []
 			for current_topic_id in current_topics:
-				links = self.__find_upstream_links(tenant_node_graph, current_topic_id, level, topic_name,
-				                                   pipeline_name)
+				links = self.__find_upstream_links(pipelines, current_topic_id, level, resolve_topic, topic_name)
 				for link in links:
 					result.upstream.append(link)
 					if link.sourceTopicId not in visited:
@@ -133,40 +137,93 @@ class LineageService(object):
 			current_topics = next_topics
 		return result
 
-	@staticmethod
-	def __find_upstream_links(tenant_node_graph: MultiDiGraph, topic_id: TopicId, level: int,
-	                          topic_name, pipeline_name) -> List[TopicLineageLink]:
-		factor_prefix = f'{LineageType.FACTOR.value}_'
+	def __find_upstream_links(self, pipelines: List[Pipeline], topic_id: TopicId, level: int,
+	                          resolve_topic, topic_name) -> List[TopicLineageLink]:
 		grouped: Dict[tuple, TopicLineageLink] = {}
-		for node_id in list(tenant_node_graph.nodes):
-			if not node_id.startswith(factor_prefix):
-				continue
-			_, target_factor_id, parent_topic_id = node_id.split('_', 2)
-			if parent_topic_id != topic_id:
-				continue
-			for source_id, _, attributes in tenant_node_graph.in_edges(node_id, data=True):
-				if not source_id.startswith(factor_prefix):
-					continue
-				_, source_factor_id, source_topic_id = source_id.split('_', 2)
-				pipeline_id = attributes.get('pipelineId')
-				key = (source_topic_id, pipeline_id)
-				link = grouped.get(key)
-				if link is None:
-					link = TopicLineageLink(
-						level=level,
-						sourceTopicId=source_topic_id, sourceTopicName=topic_name(source_topic_id),
-						targetTopicId=topic_id, targetTopicName=topic_name(topic_id),
-						pipelineId=pipeline_id,
-						pipelineName=pipeline_name(pipeline_id) if pipeline_id is not None else None)
-					grouped[key] = link
-				link.factors.append(TopicLineageFactorPair(
-					sourceFactorId=source_factor_id,
-					sourceFactorName=tenant_node_graph.nodes[source_id].get('name'),
-					targetFactorId=target_factor_id,
-					targetFactorName=tenant_node_graph.nodes[node_id].get('name'),
-					relationType=attributes.get('relation_type'),
-					arithmetic=attributes.get('arithmetic')))
+		for pipeline in pipelines:
+			for stage in pipeline.stages or []:
+				for unit in stage.units or []:
+					for action in unit.do or []:
+						for target_factor_id, source, relation_type, arithmetic in \
+								self.__iter_write_mappings(action, topic_id):
+							for source_topic_id, source_factor_id, pair_relation, pair_arithmetic in \
+									self.__extract_factor_dependencies(source, relation_type, arithmetic):
+								key = (source_topic_id, pipeline.pipelineId)
+								link = grouped.get(key)
+								if link is None:
+									link = TopicLineageLink(
+										level=level,
+										sourceTopicId=source_topic_id, sourceTopicName=topic_name(source_topic_id),
+										targetTopicId=topic_id, targetTopicName=topic_name(topic_id),
+										pipelineId=pipeline.pipelineId,
+										pipelineName=pipeline.name)
+									grouped[key] = link
+								link.factors.append(TopicLineageFactorPair(
+									sourceFactorId=source_factor_id,
+									sourceFactorName=self.__find_factor_name(
+										resolve_topic(source_topic_id), source_factor_id),
+									targetFactorId=target_factor_id,
+									targetFactorName=self.__find_factor_name(
+										resolve_topic(topic_id), target_factor_id),
+									relationType=pair_relation,
+									arithmetic=pair_arithmetic))
 		return list(grouped.values())
+
+	@staticmethod
+	def __iter_write_mappings(action: PipelineAction, topic_id: TopicId):
+		"""
+		Yield (targetFactorId, sourceParameter, relationType, arithmetic) for every factor mapping
+		a write action performs on the given topic. Malformed actions are skipped instead of
+		raising, so one bad pipeline cannot break the whole lineage query.
+		"""
+		if isinstance(action, WriteFactorAction):
+			if action.topicId == topic_id:
+				yield action.factorId, action.source, RelationType.Direct, action.arithmetic
+		elif isinstance(action, WriteTopicAction) and isinstance(action, MappingRow):
+			if not isinstance(action, (ToTopic, FromTopic)) or action.topicId != topic_id:
+				return
+			for mapping in action.mapping or []:
+				if is_valid_factor_id(mapping.factorId):
+					yield mapping.factorId, mapping.source, RelationType.Direct, mapping.arithmetic
+
+	@staticmethod
+	def __extract_factor_dependencies(source: Parameter, relation_type: RelationType, arithmetic):
+		"""
+		Walk a structured mapping source and return (topicId, factorId, relationType, arithmetic)
+		for every topic factor it references. Mirrors the graph builder semantics: computed
+		parameters re-tag the relation as Computed with the compute operator as arithmetic.
+		Free-form constant strings are skipped — parsing them was the crash source, and they
+		carry no structured factor references.
+		"""
+		if source is None:
+			return []
+		if source.kind == ParameterKind.TOPIC:
+			return [(source.topicId, source.factorId, relation_type, arithmetic)]
+		elif source.kind == ParameterKind.COMPUTED:
+			relation_type = RelationType.Computed
+			arithmetic = source.type
+			if is_number_calculate(source) or source.type == ParameterComputeType.CASE_THEN:
+				nested_parameters = source.parameters or []
+			elif is_datetime_compute(source):
+				nested = source.parameters or []
+				nested_parameters = nested if len(nested) == 1 else []
+			else:
+				nested_parameters = []
+			dependencies = []
+			for nested_parameter in nested_parameters:
+				dependencies.extend(
+					LineageService.__extract_factor_dependencies(nested_parameter, relation_type, arithmetic))
+			return dependencies
+		else:
+			# ParameterKind.CONSTANT and anything else: no structured factor references
+			return []
+
+	@staticmethod
+	def __find_factor_name(topic: Optional[Topic], factor_id: FactorId) -> Optional[str]:
+		if topic is None or factor_id is None:
+			return None
+		factor = ArrayHelper(topic.factors or []).find(lambda x: x.factorId == factor_id)
+		return factor.name if factor is not None else None
 
 	def find_lineage_by_objective_target(self, objective_target_id: ObjectiveTargetId, objective_id: ObjectiveId,
 	                                     principal_service: PrincipalService):
