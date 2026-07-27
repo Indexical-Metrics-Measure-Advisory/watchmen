@@ -1,0 +1,87 @@
+# Lambda -> Pipeline 性能报告
+
+- 场景: {{ meta.scenarioName }}
+- 生成时间: {{ meta.generatedAt }}
+- 租户: {{ meta.tenantId }}
+- Topic: {{ meta.topicCode }}
+- Pipeline ID: {{ meta.pipelineId or "(default route)" }}
+- Doll: {{ meta.dollBaseUrl }}
+- Lambda Function URL: {{ meta.lambdaFunctionUrl }}
+
+## 1. 压测驱动层 (Locust)
+
+{% if locust and locust.error %}
+> Locust stats 不可用: {{ locust.error }}
+{% elif locust and locust.stats %}
+| 指标 | 值 |
+|---|---|
+| 总请求数 | {{ locust.stats.num_requests }} |
+| 失败数 | {{ locust.stats.num_failures }} |
+| 失败率 | {{ "%.2f" | format(locust.stats.fail_ratio * 100) }}% |
+| RPS | {{ "%.2f" | format(locust.stats.total_rps) }} |
+| HTTP p50 (ms) | {{ locust.stats.median_response_time }} |
+| HTTP p95 (ms) | {{ locust.stats.get_response_time_percentile(0.95) }} |
+| HTTP p99 (ms) | {{ locust.stats.get_response_time_percentile(0.99) }} |
+| 并发用户 | {{ locust.stats.user_count }} |
+{% else %}
+> 未提供 Locust stats JSON (使用 --locust-stats 指向 locust 输出)
+{% endif %}
+
+## 2. 业务层 (doll /pipeline/log/stats)
+
+| 指标 | 值 |
+|---|---|
+| 总 Pipeline 执行数 | {{ business.pipelineLogStats.total }} |
+| DONE | {{ business.pipelineLogStats.byStatus.DONE }} |
+| ERROR | {{ business.pipelineLogStats.byStatus.ERROR }} |
+| IGNORED | {{ business.pipelineLogStats.byStatus.IGNORED }} |
+| 平均耗时 (ms) | {{ business.pipelineLogStats.avgDurationMs }} |
+| p95 耗时 (ms) | {{ business.pipelineLogStats.p95DurationMs }} |
+| insertCount | {{ business.pipelineLogStats.insertCount }} |
+| updateCount | {{ business.pipelineLogStats.updateCount }} |
+| deleteCount | {{ business.pipelineLogStats.deleteCount }} |
+| 采样数 | {{ business.pipelineLogStats.sampleSize }} |
+
+### 采集完成率 (场景 B/C/D)
+- 已完成: {{ business.collectorCompletion.finished }}
+- 未完成: {{ business.collectorCompletion.unfinished }}
+- 完成率: {{ "%.2f" | format(business.collectorCompletion.completionRate * 100) }}%
+
+### Pipeline Monitor Log 样本
+{% for log in business.sampleMonitorLogs %}
+- traceId=`{{ log.traceId }}` pipelineId=`{{ log.pipelineId }}` status=`{{ log.status }}` spentInMills={{ log.spentInMills }}
+{% endfor %}
+
+## 3. 资源层
+
+### 3.1 Prometheus (doll HTTP + LocalStack)
+| 指标 | 值 |
+|---|---|
+| doll HTTP 请求总数 | {{ resource.prometheus.httpRequestsTotal }} |
+| doll HTTP p95 (ms) | {{ "%.2f" | format(resource.prometheus.httpRequestDurationP95Ms) }} |
+| Lambda Invocations (LS) | {{ resource.prometheus.localstackLambdaInvocations }} |
+| Lambda Errors (LS) | {{ resource.prometheus.localstackLambdaErrors }} |
+
+### 3.2 SQS 队列深度
+{% for q in resource.sqs %}
+- `{{ q.queueUrl }}`: visible={{ q.visible }} notVisible={{ q.notVisible }} total={{ q.total }}
+{% else %}
+- (无队列配置)
+{% endfor %}
+
+### 3.3 Lambda CloudWatch Insights
+| 指标 | 值 |
+|---|---|
+| Function | {{ resource.lambda.functionName }} |
+| Invocations | {{ resource.lambda.invocations }} |
+| Errors | {{ resource.lambda.errors }} |
+| Throttles | {{ resource.lambda.throttles }} |
+| Duration Avg (ms) | {{ "%.2f" | format(resource.lambda.durationAvgMs) }} |
+| Duration Max (ms) | {{ "%.2f" | format(resource.lambda.durationMaxMs) }} |
+
+## 4. 洞察建议
+
+- **瓶颈识别**: 若 SQS visible 持续增长, 说明 coordinator/worker 跟不上入队速率 -> 提高 Lambda reserved concurrency 或增大 `SERVERLESS_*_BATCH_SIZE`。
+- **Pipeline 耗时**: 若 p95 >> avg, 存在长尾; 检查 `PipelineMonitorLog` 的 stage/unit/action 分解定位慢动作。
+- **错误率**: ERROR 计数 > 0 时, 通过 `/pipeline/log?status=ERROR` 拉取错误明细排查。
+- **冷启动**: 若 WARMUP=0, 首批请求 p99 会显著偏高; 生产压测建议保持 WARMUP=1。

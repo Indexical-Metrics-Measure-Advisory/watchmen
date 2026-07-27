@@ -1,0 +1,32 @@
+# Exclude heavy/irrelevant dirs from build context
+**/.venv
+**/.venv_new
+**/.venv_new1
+**/.venv_new2
+**/venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.idea
+**/node_modules
+**/dist
+**/build
+**/.next
+**/.vercel
+**/*.lockb
+**/yarn.lock
+**/package-lock.json
+**/.git
+# Keep only watchmen-* python package sources needed for the doll build
+# (everything else under packages/ is irrelevant to rest-doll deps)
+watchmen-analysis-client
+watchmen-data-asset-client
+watchmen-dqc-client
+watchmen-ingestion-client
+watchmen-monitor-client
+watchmen-next-client
+watchmen-portal-client
+watchmen-web-client
+watchmen-perf-lambda-pipeline
+watchmen-test-postman
+watchmen-quick-start

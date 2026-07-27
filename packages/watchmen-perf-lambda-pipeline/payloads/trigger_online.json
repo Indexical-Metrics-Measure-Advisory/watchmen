@@ -1,0 +1,8 @@
+{
+  "code": "{{PERF_TOPIC_CODE}}",
+  "record": {
+    "id": "{{ID}}",
+    "payload": "{{PAYLOAD}}",
+    "eventTime": "{{EVENT_TIME}}"
+  }
+}

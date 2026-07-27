@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+
+# Locust output
+reports/
+_locust.html
+*.csv
+
+# Local env artifacts produced by infra scripts
+.env.d/
+
+# LocalStack data (if running locally outside compose)
+.localstack/
+
+# IDE
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,158 @@
+# Performance test environment for Lambda -> pipeline ingestion paths.
+#
+# Brings up:
+#   - localstack        : mock Lambda / SQS / S3 / EventBridge / CloudWatch / IAM
+#   - postgresdb        : watchmen meta + collector storage
+#   - watchmen_doll     : main REST server (COLLECTOR_ON + PROMETHEUS enabled)
+#   - prometheus        : scrapes doll /metrics
+#   - grafana           : prebuilt dashboard
+#   - perf-runner       : this package (locust + metric collectors + report generator)
+#
+# Usage:
+#   docker compose -f docker/docker-compose-perf.yml up -d
+#   docker compose -f docker/docker-compose-perf.yml exec perf-runner bash
+#
+# The Lambda image is built separately by infra/lambda-deploy.sh (it reuses the
+# existing packages/watchmen-serverless-lambda/Dockerfile, which depends on the
+# source tree and is therefore built on the host, not inside this compose file).
+
+services:
+
+  localstack:
+    image: localstack/localstack:3.4
+    container_name: perf_localstack
+    environment:
+      SERVICES: lambda,sqs,s3,events,cloudwatch,iam,sts
+      LAMBDA_RUNTIME_EXECUTOR: docker-reuse
+      DASHBOARD: "true"
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  postgresdb:
+    image: postgres:14
+    container_name: perf_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: watchmen
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin-pwd
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d watchmen"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  watchmen_doll:
+    image: ghcr.io/indexical-metrics-measure-advisory/watchmen-matryoshka-doll-postgres:18.0.0
+    container_name: perf_watchmen_doll
+    depends_on:
+      postgresdb:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      # Postgres meta + storage
+      META_STORAGE_TYPE: postgresql
+      META_STORAGE_ECHO: "false"
+      META_STORAGE_HOST: postgresdb
+      META_STORAGE_PORT: "5432"
+      META_STORAGE_USER_NAME: admin
+      META_STORAGE_PASSWORD: admin-pwd
+      META_STORAGE_NAME: watchmen
+      USE_STORAGE_DIRECTLY: "true"
+      REPLACE_TOPIC_TO_STORAGE: "true"
+      SYNC_TOPIC_TO_STORAGE: "true"
+      CREATE_DQC_TOPICS_ON_TENANT_CREATE: "true"
+      ENGINE_INDEX: "false"
+      TUPLE_DELETABLE: "false"
+      # Enable collector surface (mounted by rest-doll when COLLECTOR_ON=true)
+      COLLECTOR_ON: "true"
+      # Enable the task listener that processes trigger events through the
+      # four-stage collector pipeline (ASSIGN_RECORD -> SAVE_RECORD -> BUILD_JSON
+      # -> POST_JSON -> RUN_TASK). Without this, trigger events stay in INITIAL.
+      TASK_LISTENER_ON: "true"
+      # Enable the CollectorEventListener + TableExtractor + RecordToJsonService
+      # + PostJsonService that drive the four-stage collector pipeline.
+      QUERY_BASED_CHANGE_DATA_CAPTURE: "true"
+      # Reduce poll interval from default 60s to 5s for faster perf test feedback
+      MONITOR_EVENT_WAIT: "5"
+      # Expose prometheus /metrics for the resource-layer collector
+      PROMETHEUS: "true"
+      PROMETHEUS_CONTEXT: /metrics
+      # Verbose logging for perf debugging; dial down in stable runs
+      LOGGER_LEVEL: INFO
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: perf_prometheus
+    depends_on:
+      - watchmen_doll
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: perf_grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ../dashboards/grafana-perf-dashboard.json:/etc/grafana/provisioning/dashboards/perf-dashboard.json:ro
+      - ./grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
+      - ./grafana/provisioning.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - grafana_data:/var/lib/grafana
+
+  perf-runner:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: perf_runner
+    depends_on:
+      localstack:
+        condition: service_healthy
+      watchmen_doll:
+        condition: service_started
+    environment:
+      AWS_ENDPOINT_URL: http://localstack:4566
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      DOLL_BASE_URL: http://watchmen_doll:8000
+      LAMBDA_FUNCTION_URL: http://localstack:4566
+      # Lambda-side batch/coordinator knobs (see watchmen-serverless-lambda/common/settings.py)
+      SERVERLESS_RECORD_BATCH_SIZE: "10"
+      SERVERLESS_POST_JSON_BATCH_SIZE: "100"
+      SERVERLESS_NUMBER_OF_RECORD_COORDINATOR: "10"
+      WARMUP: "1"
+    volumes:
+      - ..:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: ["sleep", "infinity"]
+
+volumes:
+  localstack_data:
+  pgdata:
+  prometheus_data:
+  grafana_data:

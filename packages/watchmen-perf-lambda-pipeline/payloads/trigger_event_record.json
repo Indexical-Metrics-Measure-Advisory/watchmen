@@ -1,0 +1,7 @@
+{
+  "tableName": "{{PERF_COLLECTOR_TABLE}}",
+  "records": [
+    {"id": "{{ID}}", "payload": "{{PAYLOAD}}", "eventTime": "{{EVENT_TIME}}"}
+  ],
+  "type": 3
+}

@@ -1,0 +1,6 @@
+{
+  "tableName": "{{PERF_COLLECTOR_TABLE}}",
+  "startTime": "{{START_TIME}}",
+  "endTime": "{{END_TIME}}",
+  "type": 2
+}

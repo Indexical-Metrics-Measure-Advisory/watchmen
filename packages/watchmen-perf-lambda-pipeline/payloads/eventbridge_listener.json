@@ -1,0 +1,4 @@
+{
+  "listener": "event",
+  "tenant_id": "{{PERF_TENANT_ID}}"
+}

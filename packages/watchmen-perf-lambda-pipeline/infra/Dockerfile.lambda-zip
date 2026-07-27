@@ -1,0 +1,96 @@
+# Build a zip-package for watchmen-serverless-lambda, deployable to
+# LocalStack community edition (which supports zip-based Lambda but not
+# container-image Lambda).
+#
+# Build context must be the packages/ directory so that path dependencies
+# in pyproject.toml (e.g. ../watchmen-pipeline-surface) resolve correctly.
+#
+# Usage:
+#   docker build -f infra/Dockerfile.lambda-zip -t lambda-zip-builder ../../
+#   docker create --name lambda-zip-temp lambda-zip-builder
+#   docker cp lambda-zip-temp:/tmp/function.zip ./build/function.zip
+#   docker rm lambda-zip-temp
+
+FROM public.ecr.aws/lambda/python:3.12
+
+# Install build dependencies for C extensions (pyodbc needs unixODBC-devel)
+# binutils provides 'strip' for reducing .so file size
+RUN dnf -y install gcc gcc-c++ unixODBC-devel zip findutils binutils && \
+    dnf clean all
+
+# Copy all watchmen packages (needed for poetry path dependencies)
+COPY . /build/packages/
+
+WORKDIR /build/packages/watchmen-serverless-lambda
+
+# Install poetry and all dependencies into the system site-packages
+RUN pip install --no-cache-dir poetry && \
+    poetry config virtualenvs.create false && \
+    poetry install --without dev
+
+# Poetry installs path dependencies (watchmen-*) as .pth files pointing to
+# /build/packages/xxx/src.  These paths won't exist in the Lambda runtime,
+# so resolve them now: copy the actual Python source into site-packages and
+# remove the .pth files.
+RUN SITE_PKG=$(python -c "import site; print(site.getsitepackages()[0])") && \
+    for pth in "$SITE_PKG"/watchmen_*.pth; do \
+        [ -f "$pth" ] || continue; \
+        src_dir=$(cat "$pth" | head -1); \
+        if [ -d "$src_dir" ]; then \
+            cp -r "$src_dir"/* "$SITE_PKG"/ 2>/dev/null || true; \
+            echo "    resolved $(basename $pth) -> $src_dir"; \
+        fi; \
+        rm -f "$pth"; \
+    done && \
+    echo "==> Path dependencies resolved into site-packages"
+
+# Remove packages that are NOT used at Lambda runtime to reduce zip size:
+#   aws_cdk, jsii, constructs — infrastructure-as-code, only used in CDK deployments
+#   rapidfuzz — fuzzy string matching, a poetry dependency, not used at runtime
+#   uvloop — uvicorn event loop, Lambda does not run uvicorn
+#   pyodbc, oracledb — lazy-imported storage drivers, never loaded with META_STORAGE_TYPE=postgresql
+#   oss2, aliyun-python-sdk-*, crcmod, pycryptodome — Aliyun OSS SDK, not used with postgresql
+# NOTE: dask/distributed/cloudpickle/tornado are kept — watchmen_pipeline_kernel imports dask at top level.
+RUN SITE_PKG=$(python -c "import site; print(site.getsitepackages()[0])") && \
+    find "$SITE_PKG" -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null; \
+    find "$SITE_PKG" -type d -name "tests" -exec rm -rf {} + 2>/dev/null; \
+    find "$SITE_PKG" -name "*.pyc" -delete 2>/dev/null; \
+    rm -rf "$SITE_PKG"/pip* "$SITE_PKG"/poetry* "$SITE_PKG"/setuptools* "$SITE_PKG"/wheel* \
+           "$SITE_PKG"/_distutils_hack "$SITE_PKG"/distutils 2>/dev/null; \
+    rm -rf "$SITE_PKG"/aws_cdk* "$SITE_PKG"/jsii* "$SITE_PKG"/constructs* \
+           "$SITE_PKG"/rapidfuzz* \
+           "$SITE_PKG"/uvloop* \
+           "$SITE_PKG"/pyodbc* "$SITE_PKG"/oracledb* \
+           "$SITE_PKG"/oss2* "$SITE_PKG"/aliyun* "$SITE_PKG"/crcmod* \
+           "$SITE_PKG"/pycryptodome* 2>/dev/null; \
+    # Keep only SQS, S3, and STS botocore service models (needed for SQS + S3 clients)
+    find "$SITE_PKG"/botocore/data -mindepth 1 -maxdepth 1 -type d \
+        ! -name 'sqs' ! -name 's3' ! -name 'sts' -exec rm -rf {} + 2>/dev/null; \
+    # NOTE: Do NOT strip .so files — strip corrupts shared libraries like
+    #   libscipy_openblas (ELF load command alignment error at runtime).
+    # Remove .pyi stub files (only used by IDEs, not at runtime)
+    find "$SITE_PKG" -name "*.pyi" -delete 2>/dev/null; \
+    # Remove dist-info metadata files not needed at runtime
+    find "$SITE_PKG" -path "*/dist-info/LICENSE*" -delete 2>/dev/null; \
+    find "$SITE_PKG" -path "*/dist-info/METADATA" -delete 2>/dev/null; \
+    find "$SITE_PKG" -path "*/dist-info/entry_points.txt" -delete 2>/dev/null; \
+    true
+
+# Fix file permissions: Lambda runtime needs all files world-readable.
+# Poetry path-dependency copies (cp -r) may preserve restrictive umask.
+RUN SITE_PKG=$(python -c "import site; print(site.getsitepackages()[0])") && \
+    chmod -R a+rX "$SITE_PKG" && \
+    chmod -R a+rX /build/packages/watchmen-serverless-lambda/src
+
+# Build the function zip:
+# 1. Add Lambda handler source code (src/ contents go to zip root)
+# 2. Add installed site-packages
+RUN SITE_PKG=$(python -c "import site; print(site.getsitepackages()[0])") && \
+    cd /build/packages/watchmen-serverless-lambda/src && \
+    zip -r /tmp/function.zip . -x "*.pyc" "*/__pycache__/*" && \
+    cd "$SITE_PKG" && \
+    zip -r /tmp/function.zip . \
+        -x "*.pyc" "*/__pycache__/*" "*/tests/*" "*.dist-info/RECORD" \
+           "boto3/data/*" && \
+    echo "==> function.zip built" && \
+    ls -lh /tmp/function.zip

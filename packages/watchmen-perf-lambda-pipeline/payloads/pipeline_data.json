@@ -1,0 +1,9 @@
+{
+  "code": "{{PERF_TOPIC_CODE}}",
+  "data": {
+    "id": "{{ID}}",
+    "payload": "{{PAYLOAD}}",
+    "eventTime": "{{EVENT_TIME}}"
+  },
+  "triggerType": "insert"
+}
