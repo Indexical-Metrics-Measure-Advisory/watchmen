@@ -18,6 +18,7 @@ interface Props {
 	ptIdx: number;
 	primaryFields: string[];
 	topicMap: Map<string, Topic>;
+	topicByName: Map<string, Topic>;
 	onUpdate: (voId: string, idx: number, patch: Partial<PhysicalTableMapping>) => void;
 	onRemove: (voId: string, idx: number) => void;
 	onAddJoinCondition: (voId: string, tableIdx: number) => void;
@@ -32,24 +33,26 @@ interface Props {
 }
 
 const PhysicalTableEditorImpl: React.FC<Props> = ({
-	voId, pt, ptIdx, primaryFields, topicMap,
+	voId, pt, ptIdx, primaryFields, topicMap, topicByName,
 	onUpdate, onRemove, onAddJoinCondition, onUpdateJoinCondition, onRemoveJoinCondition,
 	onAddFilter, onUpdateFilter, onRemoveFilter,
 }) => {
 	const isPrimary = pt.kind === 'primary';
-	const tableFields = pt.fields.length > 0 ? pt.fields : (topicMap.get(pt.topicId)?.factors?.map(f => f.name) ?? []);
+	// Fall back to the name lookup when topicId is missing/stale (e.g. YAML-imported data).
+	const topic = topicMap.get(pt.topicId) ?? topicByName.get(pt.topicName.toLowerCase());
+	const tableFields = pt.fields.length > 0 ? pt.fields : (topic?.factors?.map(f => f.name) ?? []);
 	// memoize: toggling one field button or typing an alias must not recompute
 	// factor grouping for the whole topic on every render
 	const fieldSet = useMemo(() => new Set(pt.fields), [pt.fields]);
 	const factorGroups = useMemo(() => {
-		const factors = topicMap.get(pt.topicId)?.factors ?? [];
+		const factors = topic?.factors ?? [];
 		const groups: Record<string, typeof factors> = {};
 		factors.forEach(f => {
 			const key = factorTypeGroup(f.type);
 			(groups[key] = groups[key] || []).push(f);
 		});
 		return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
-	}, [topicMap, pt.topicId]);
+	}, [topic]);
 
 	return (
 		<div className="space-y-2 p-2 rounded-md bg-muted/20">
@@ -84,6 +87,11 @@ const PhysicalTableEditorImpl: React.FC<Props> = ({
 					</Select>
 				)}
 				<div className="flex-1 space-y-1">
+					{!topic && (
+						<div className="text-[10px] text-amber-600">
+							Topic "{pt.topicName}" not found in datamart topics; fields cannot be edited.
+						</div>
+					)}
 					{factorGroups.map(([groupName, items]) => (
 						<div key={groupName} className="flex items-center gap-1 flex-wrap">
 							<span className={cn('text-[9px] px-1 py-0.5 rounded font-mono uppercase shrink-0', factorTypeBadgeClass(groupName))}>{groupName}</span>

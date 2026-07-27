@@ -49,6 +49,27 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 		return map;
 	}, [topics]);
 
+	// Secondary lookup by topic name (lowercased), used to repair physical tables
+	// whose topicId is missing/stale (e.g. written by YAML import, which keeps topicName only).
+	const topicByName = useMemo(() => {
+		const map = new Map<string, Topic>();
+		topics.forEach(t => map.set(t.name.toLowerCase(), t));
+		return map;
+	}, [topics]);
+
+	// Backfill a resolvable topicId into broken physical tables so factor selection
+	// renders again; the repaired id persists on the next save.
+	useEffect(() => {
+		if (!open || topics.length === 0) return;
+		draft.virtualObjects.forEach(vo => {
+			vo.physicalTables.forEach((pt, idx) => {
+				if (topicMap.has(pt.topicId)) return;
+				const topic = topicByName.get(pt.topicName.toLowerCase());
+				if (topic) actions.updatePhysicalTable(vo.id, idx, { topicId: topic.id });
+			});
+		});
+	}, [open, topics, topicMap, topicByName]);
+
 	const handleSave = () => {
 		onSave(getSavePayload());
 		onOpenChange(false);
@@ -71,7 +92,7 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 				<div className="flex-1 min-h-0 overflow-y-auto pr-2">
 					{activeTab === 'meta' && <MetaTab draft={draft} update={actions.update} />}
 					{activeTab === 'objects' && (
-						<ObjectsTab api={api} topics={topics} dataSources={dataSources} topicMap={topicMap} />
+						<ObjectsTab api={api} topics={topics} dataSources={dataSources} topicMap={topicMap} topicByName={topicByName} />
 					)}
 					{activeTab === 'links' && <LinksTab api={api} />}
 				</div>

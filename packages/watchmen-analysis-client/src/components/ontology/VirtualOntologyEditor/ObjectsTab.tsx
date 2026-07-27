@@ -12,7 +12,8 @@ export const ObjectsTab: React.FC<{
 	topics: Topic[];
 	dataSources: DataSource[];
 	topicMap: Map<string, Topic>;
-}> = ({ api, topics, dataSources, topicMap }) => {
+	topicByName: Map<string, Topic>;
+}> = ({ api, topics, dataSources, topicMap, topicByName }) => {
 	const { draft, expandedObjects, actions } = api;
 	// key 只覆盖卡片真正消费的字段（对象 id/name、link 的 id/name/两端对象），
 	// 其它编辑不会改变引用，React.memo 的卡片即可跳过无关重渲染。
@@ -34,6 +35,7 @@ export const ObjectsTab: React.FC<{
 					topics={topics}
 					dataSources={dataSources}
 					topicMap={topicMap}
+					topicByName={topicByName}
 				/>
 			))}
 			<Button variant="outline" className="w-full gap-2" onClick={actions.addObject}>
