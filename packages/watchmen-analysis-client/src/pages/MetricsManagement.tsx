@@ -66,7 +66,7 @@ const MetricsManagement: React.FC = () => {
 
   const {
     metrics, categories, availableMeasures, selectedMetric, setSelectedMetric,
-    isLoading, isEditDialogOpen, setIsEditDialogOpen, isCreateDialogOpen, setIsCreateDialogOpen,
+    isLoading, setIsLoading, isEditDialogOpen, setIsEditDialogOpen, isCreateDialogOpen, setIsCreateDialogOpen,
     metricToEdit, setMetricToEdit, editForm, setEditForm, createForm, setCreateForm,
     showCategoryManagement, setShowCategoryManagement, viewMode, setViewMode,
     validatingSet, filter, setFilter, allMetricsForSelect,
