@@ -21,6 +21,11 @@ interface Props {
 
 type TabKey = 'objects' | 'links' | 'meta';
 
+// Module-level cache: reopening the dialog renders instantly with cached
+// topics / data sources while a background refresh keeps them fresh.
+let topicsCache: Topic[] | null = null;
+let dataSourcesCache: DataSource[] | null = null;
+
 export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChange, mode, ontology, onSave }) => {
 	const api = useOntologyDraft(open, ontology);
 	const { draft, getSavePayload, actions } = api;
@@ -30,11 +35,12 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 	const [activeTab, setActiveTab] = useState<TabKey>('objects');
 
 	useEffect(() => {
-		if (open) {
-			setActiveTab('objects');
-			topicService.getDatamartTopics().then(setTopics).catch(() => setTopics([]));
-			getAllDataSources().then(setDataSources).catch(() => setDataSources([]));
-		}
+		if (!open) return;
+		setActiveTab('objects');
+		if (topicsCache) setTopics(topicsCache);
+		if (dataSourcesCache) setDataSources(dataSourcesCache);
+		topicService.getDatamartTopics().then(t => { topicsCache = t; setTopics(t); }).catch(() => setTopics([]));
+		getAllDataSources().then(d => { dataSourcesCache = d; setDataSources(d); }).catch(() => setDataSources([]));
 	}, [open]);
 
 	const topicMap = useMemo(() => {

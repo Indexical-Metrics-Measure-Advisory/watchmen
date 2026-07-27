@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Plus, Trash2, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +38,18 @@ const PhysicalTableEditorImpl: React.FC<Props> = ({
 }) => {
 	const isPrimary = pt.kind === 'primary';
 	const tableFields = pt.fields.length > 0 ? pt.fields : (topicMap.get(pt.topicId)?.factors?.map(f => f.name) ?? []);
+	// memoize: toggling one field button or typing an alias must not recompute
+	// factor grouping for the whole topic on every render
+	const fieldSet = useMemo(() => new Set(pt.fields), [pt.fields]);
+	const factorGroups = useMemo(() => {
+		const factors = topicMap.get(pt.topicId)?.factors ?? [];
+		const groups: Record<string, typeof factors> = {};
+		factors.forEach(f => {
+			const key = factorTypeGroup(f.type);
+			(groups[key] = groups[key] || []).push(f);
+		});
+		return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+	}, [topicMap, pt.topicId]);
 
 	return (
 		<div className="space-y-2 p-2 rounded-md bg-muted/20">
@@ -72,40 +84,31 @@ const PhysicalTableEditorImpl: React.FC<Props> = ({
 					</Select>
 				)}
 				<div className="flex-1 space-y-1">
-					{(() => {
-						const factors = topicMap.get(pt.topicId)?.factors ?? [];
-						const groups: Record<string, typeof factors> = {};
-						factors.forEach(f => {
-							const key = factorTypeGroup(f.type);
-							(groups[key] = groups[key] || []).push(f);
-						});
-						const sortedGroups = Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
-						return sortedGroups.map(([groupName, items]) => (
-							<div key={groupName} className="flex items-center gap-1 flex-wrap">
-								<span className={cn('text-[9px] px-1 py-0.5 rounded font-mono uppercase shrink-0', factorTypeBadgeClass(groupName))}>{groupName}</span>
-								{items.map(f => (
-									<button
-										key={f.factorId}
-										title={`${f.name} · ${f.type}`}
-										onClick={() => {
-											const fields = pt.fields.includes(f.name)
-												? pt.fields.filter(x => x !== f.name)
-												: [...pt.fields, f.name];
-											onUpdate(voId, ptIdx, { fields });
-										}}
-										className={cn(
-											'text-[10px] px-1.5 py-0.5 rounded border transition-colors',
-											pt.fields.includes(f.name)
-												? 'bg-indigo-100 text-indigo-700 border-indigo-300'
-												: 'bg-background text-muted-foreground border-muted hover:bg-muted',
-										)}
-									>
-										{f.name}
-									</button>
-								))}
-							</div>
-						));
-					})()}
+					{factorGroups.map(([groupName, items]) => (
+						<div key={groupName} className="flex items-center gap-1 flex-wrap">
+							<span className={cn('text-[9px] px-1 py-0.5 rounded font-mono uppercase shrink-0', factorTypeBadgeClass(groupName))}>{groupName}</span>
+							{items.map(f => (
+								<button
+									key={f.factorId}
+									title={`${f.name} · ${f.type}`}
+									onClick={() => {
+										const fields = fieldSet.has(f.name)
+											? pt.fields.filter(x => x !== f.name)
+											: [...pt.fields, f.name];
+										onUpdate(voId, ptIdx, { fields });
+									}}
+									className={cn(
+										'text-[10px] px-1.5 py-0.5 rounded border transition-colors',
+										fieldSet.has(f.name)
+											? 'bg-indigo-100 text-indigo-700 border-indigo-300'
+											: 'bg-background text-muted-foreground border-muted hover:bg-muted',
+									)}
+								>
+									{f.name}
+								</button>
+							))}
+						</div>
+					))}
 				</div>
 				<Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onRemove(voId, ptIdx)}>
 					<Trash2 className="w-3.5 h-3.5 text-red-500" />

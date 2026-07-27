@@ -1,4 +1,22 @@
+import { useRef } from 'react';
 import { VirtualLink, VirtualObject } from '@/model/ontology';
+
+/**
+ * 保持数组引用稳定：仅当 keyOf 算出的逐项 key 序列变化时才返回新数组。
+ * 用于把 draft.virtualObjects / virtualLinks 传给 React.memo 的子组件——
+ * 与展示无关的编辑（如修改 filter 值）不会改变 id/name 等 key，memo 即可跳过重渲染。
+ * 注意：返回旧数组时元素也是旧引用，消费方只能读取 keyOf 覆盖到的字段。
+ */
+export const useStableArray = <T>(arr: T[], keyOf: (item: T) => string): T[] => {
+	const ref = useRef<{ keys: string[]; arr: T[] } | null>(null);
+	const keys = arr.map(keyOf);
+	const prev = ref.current;
+	if (prev && prev.keys.length === keys.length && prev.keys.every((k, i) => k === keys[i])) {
+		return prev.arr;
+	}
+	ref.current = { keys, arr };
+	return arr;
+};
 
 /**
  * Factor type 把 watchmen 原始 type 归并成 UI 友好的分组标签（数字、时间、文本等）。
