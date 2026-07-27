@@ -68,8 +68,9 @@ async def get_topic_list(
         # Apply classification to each topic
         classified_topics = []
         for topic in topics:
-            ## if name start with dm or datamart
-            if topic.name and (topic.name.lower().startswith('dm') or 'dm_' in topic.name.lower() or 'datamart_' in topic.name.lower()):
+            ## if name start with dm or datamart, or topic type is meta
+            if (topic.name and (topic.name.lower().startswith('dm') or 'dm_' in topic.name.lower() or 'datamart_' in topic.name.lower())) \
+                    or topic.type == TopicType.META:
                 # classification = classify_topic(topic)
                 classified_topics.append(TopicWithClassification(
                 topic=topic,
