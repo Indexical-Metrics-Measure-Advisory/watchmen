@@ -25,6 +25,22 @@ const RealVariableEditor = (props: {
 	const [selectedVariableTopic, setSelectedVariableTopic] = useState<Topic | undefined>(undefined);
 	const [valid, setValid] = useState<boolean>(true);
 
+	const computeValid = useCallback((vars: DeclaredVariables) => {
+		if (!parameter.variableName) {
+			setValid(false);
+			return;
+		}
+		const found = vars.find(v => v.name === parameter.variableName);
+		if (!found) {
+			setValid(false);
+			return;
+		}
+		const types = computeParameterTypes(parameter, topics, vars);
+		const isValid = expectedTypes.some(t => t === AnyFactorType.ANY)
+			|| types.some(t => t.type !== AnyFactorType.ERROR && expectedTypes.some(e => e === t.type || e === AnyFactorType.ANY));
+		isValid ? setValid(true) : setValid(false);
+	}, [parameter, topics, expectedTypes]);
+
 	const refreshVariables = useCallback(() => {
 		fireVariables(VariablesEventTypes.ASK_VARIABLES, (variables: DeclaredVariables) => {
 			setDeclaredVariables(variables);
@@ -34,7 +50,7 @@ const RealVariableEditor = (props: {
 			computeValid(variables);
 			forceUpdate();
 		});
-	}, [fireVariables, parameter.variableName, expectedTypes]);
+	}, [fireVariables, parameter.variableName, computeValid, forceUpdate]);
 
 	// ask variables from VariablesHelper
 	useEffect(() => {
@@ -49,22 +65,6 @@ const RealVariableEditor = (props: {
 			offVariables(VariablesEventTypes.VARIABLE_CHANGED, onVariableChanged);
 		};
 	}, [onVariables, offVariables, refreshVariables]);
-
-	const computeValid = (vars: DeclaredVariables) => {
-		if (!parameter.variableName) {
-			setValid(false);
-			return;
-		}
-		const found = vars.find(v => v.name === parameter.variableName);
-		if (!found) {
-			setValid(false);
-			return;
-		}
-		const types = computeParameterTypes(parameter, topics, vars);
-		const isValid = expectedTypes.some(t => t === AnyFactorType.ANY)
-			|| types.some(t => t.type !== AnyFactorType.ERROR && expectedTypes.some(e => e === t.type || e === AnyFactorType.ANY));
-		isValid ? setValid(true) : setValid(false);
-	};
 
 	const onVariableChange = ({value}: DropdownOption) => {
 		const selected = value as string;

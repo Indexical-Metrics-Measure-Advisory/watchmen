@@ -16,7 +16,6 @@ import {TupleWorkbench} from '@/widgets/tuple-workbench';
 import {TupleEventBusProvider, useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import React, {useEffect} from 'react';
-import {useNavigate} from 'react-router-dom';
 import ExternalWriterBackground from '../../assets/external-writer-background.svg';
 import {renderCard} from './card';
 import {renderEditor} from './editor';
