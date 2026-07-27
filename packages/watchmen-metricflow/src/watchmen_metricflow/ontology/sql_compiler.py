@@ -12,11 +12,35 @@ from watchmen_model.admin import (
 from .errors import OntologySqlCompileError
 from .filter_compiler import FilterCompiler
 from .path_resolver import PathResolver, safe_alias
-from .schema import OntologyQueryRequest
+from .schema import OntologyGroupBy, OntologyQueryRequest
 from .table_factory import OntologyTableFactory
 
 
 __all__ = ['OntologySqlCompiler', 'OntologySqlCompileError', 'CompiledOntologyQuery']
+
+
+def _build_time_trunc_expression(granularity: str, column: Any, dialect_name: Optional[str]) -> Any:
+	"""按数据库方言生成时间粒度截断表达式。
+
+	dialect_name 为空（无引擎的 compile-preview 场景）时按 postgresql 渲染。
+	"""
+	dialect = (dialect_name or 'postgresql').lower()
+	if dialect in ('mysql', 'mariadb'):
+		if granularity == 'day':
+			return func.date(column)
+		if granularity == 'week':
+			# %x-%v：ISO 周年 + ISO 周，保证跨年同一周聚合到一起
+			return func.date_format(column, '%x-%v')
+		if granularity == 'month':
+			return func.date_format(column, '%Y-%m')
+		if granularity == 'quarter':
+			return func.concat(func.year(column), '-Q', func.quarter(column))
+		# year
+		return func.date_format(column, '%Y')
+	if dialect == 'postgresql':
+		return func.date_trunc(granularity, column)
+	raise OntologySqlCompileError(
+		f'Group by granularity [{granularity}] is not supported on dialect [{dialect}].')
 
 
 class CompiledOntologyQuery:
@@ -41,7 +65,10 @@ class OntologySqlCompiler:
 		self._path_resolver = PathResolver()
 		self._filter_compiler = FilterCompiler(self._table_factory.find_table_for_mapping)
 
-	def compile(self, ontology: VirtualOntology, request: OntologyQueryRequest) -> CompiledOntologyQuery:
+	def compile(
+			self, ontology: VirtualOntology, request: OntologyQueryRequest,
+			dialect_name: Optional[str] = None
+	) -> CompiledOntologyQuery:
 		# 每次编译使用新的 MetaData，避免同一个服务实例重复编译时表定义冲突。
 		self.metadata = MetaData()
 		self._table_factory = OntologyTableFactory(self.metadata)
@@ -67,9 +94,24 @@ class OntologySqlCompiler:
 			from_clause = join_builder.join_physical_table(from_clause, primary_table, table, mapping)
 			tables_by_alias.update(self._table_factory.build_table_lookup(mapping, table))
 
-		# 2) attribute / filter / derived 各自编译
-		attribute_columns, attribute_labels, attribute_group_keys = self._compile_attributes(
-			virtual_object, request.fields, tables_by_alias)
+		# 2) attribute / groupBy / derived 各自编译
+		group_entries = getattr(request, 'groupBy', None) or []
+		group_names = {entry.field for entry in group_entries}
+		if group_entries:
+			# 分组维度总是出现在 SELECT 中；fields 里与分组重复的列不再重复输出，
+			# 未分组的普通列按 only_full_group_by 自动并入 GROUP BY。
+			# fields 为空（或过滤后为空）时不展开为全部 attribute，只返回分组维度 + 聚合列。
+			requested_fields = [field for field in (request.fields or []) if field not in group_names]
+			if requested_fields:
+				attribute_columns, attribute_labels, attribute_group_keys = self._compile_attributes(
+					virtual_object, requested_fields, tables_by_alias)
+			else:
+				attribute_columns, attribute_labels, attribute_group_keys = [], [], []
+		else:
+			attribute_columns, attribute_labels, attribute_group_keys = self._compile_attributes(
+				virtual_object, request.fields, tables_by_alias)
+		group_columns, group_labels, request_group_keys = self._compile_group_by(
+			virtual_object, group_entries, tables_by_alias, dialect_name)
 
 		derived_compiler = _DerivedAttributeCompiler(
 			ontology=ontology,
@@ -83,8 +125,8 @@ class OntologySqlCompiler:
 		derived_columns, derived_labels, derived_join_list = derived_compiler.compile(
 			virtual_object, request.includeDerived)
 
-		select_columns = [*attribute_columns, *derived_columns]
-		labels = [*attribute_labels, *derived_labels]
+		select_columns = [*group_columns, *attribute_columns, *derived_columns]
+		labels = [*group_labels, *attribute_labels, *derived_labels]
 		if not select_columns:
 			# 没有 attribute / derived 时退化：优先用 primary 表第一列；都没有用 count(*)
 			first_col = next(iter(primary_table.c), None)
@@ -98,17 +140,22 @@ class OntologySqlCompiler:
 		# 3) 把 derived 的 join 链挂到 from_clause 上
 		statement = select(*select_columns).select_from(from_clause)
 		all_group_keys: List[Any] = []
+		for key in request_group_keys:
+			if key not in all_group_keys:
+				all_group_keys.append(key)
 		if derived_join_list:
 			for join_table, on_clause, group_keys in derived_join_list:
 				from_clause = from_clause.outerjoin(join_table, on_clause)
 				for key in group_keys:
 					if key not in all_group_keys:
 						all_group_keys.append(key)
+			statement = statement.select_from(from_clause)
+		if all_group_keys:
 			# SELECT 中所有业务属性列都要进入 GROUP BY，满足 MySQL only_full_group_by。
 			for col in attribute_group_keys:
 				if col not in all_group_keys:
 					all_group_keys.append(col)
-			statement = statement.select_from(from_clause).group_by(*all_group_keys)
+			statement = statement.group_by(*all_group_keys)
 
 		# 4) WHERE
 		where = self._filter_compiler.compile_request_filters(
@@ -146,6 +193,10 @@ class OntologySqlCompiler:
 			attr = attributes.get(entry.field)
 			if attr is not None:
 				required_attrs.append(attr)
+		for entry in (getattr(request, 'groupBy', None) or []):
+			attr = attributes.get(entry.field)
+			if attr is not None:
+				required_attrs.append(attr)
 		return {attr.sourceTable for attr in required_attrs if attr.sourceTable}
 
 	def _mapping_required(self, mapping: PhysicalTableMapping, required_aliases: set) -> bool:
@@ -165,6 +216,7 @@ class OntologySqlCompiler:
 		if not order_by:
 			return statement
 		attributes = {attr.name: attr for attr in virtual_object.attributes or []}
+		group_names = {entry.field for entry in (getattr(request, 'groupBy', None) or [])}
 		# 仅 includeDerived 中实际被请求的衍生属性可排序
 		derived_names = {
 			derived.name for derived in virtual_object.derivedAttributes or []
@@ -173,7 +225,10 @@ class OntologySqlCompiler:
 		for entry in order_by:
 			field = entry.field
 			is_desc = (entry.direction or 'asc').lower() == 'desc'
-			if field in attributes:
+			if field in group_names:
+				# 分组维度（可能被粒度截断）按 label 引用，与 SELECT 中的分组表达式对应
+				statement = statement.order_by(desc(field) if is_desc else asc(field))
+			elif field in attributes:
 				column = self._resolve_attribute_column(attributes[field], tables_by_alias)
 				statement = statement.order_by(column.desc() if is_desc else column.asc())
 			elif field in derived_names:
@@ -196,6 +251,33 @@ class OntologySqlCompiler:
 			if mapping.kind == 'primary':
 				return mapping
 		raise OntologySqlCompileError(f'Virtual object [{virtual_object.name}] has no primary table.')
+
+	def _compile_group_by(
+			self, virtual_object: VirtualObject, group_entries: List[OntologyGroupBy],
+			tables_by_alias: Dict[str, Table], dialect_name: Optional[str]
+	) -> Tuple[List[Any], List[str], List[Any]]:
+		"""编译 groupBy 分组维度：解析属性列，时间维度按需做粒度截断。
+
+		返回 (SELECT 列 list, label list, GROUP BY 键 list)。
+		"""
+		if not group_entries:
+			return [], [], []
+		attributes = {attr.name: attr for attr in virtual_object.attributes or []}
+		columns: List[Any] = []
+		labels: List[str] = []
+		group_keys: List[Any] = []
+		for entry in group_entries:
+			attr = attributes.get(entry.field)
+			if attr is None:
+				raise OntologySqlCompileError(
+					f'Group by field [{entry.field}] is not an attribute of virtual object [{virtual_object.name}].')
+			column = self._resolve_attribute_column(attr, tables_by_alias)
+			if entry.granularity:
+				column = _build_time_trunc_expression(entry.granularity.lower(), column, dialect_name)
+			columns.append(column.label(entry.field))
+			labels.append(entry.field)
+			group_keys.append(column)
+		return columns, labels, group_keys
 
 	def _compile_attributes(
 			self, virtual_object: VirtualObject, requested_fields: List[str], tables_by_alias: Dict[str, Table]

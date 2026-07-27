@@ -11,6 +11,18 @@ class OntologyOrderBy(BaseModel):
 	direction: str = Field(default='asc', pattern='^(asc|desc)$', description='排序方向：asc / desc')
 
 
+class OntologyGroupBy(BaseModel):
+	"""分组维度。
+
+	仅允许 text / 日期时间类型属性（类型校验在 service 层执行，无法解析类型时宽容放行）。
+	granularity 仅允许用于日期时间类型字段；不区分大小写。
+	"""
+	field: str = Field(..., description='虚拟对象属性名（text / 日期时间类型）')
+	granularity: Optional[str] = Field(
+		default=None, pattern='^(day|week|month|quarter|year)$',
+		description='时间粒度截断：day / week / month / quarter / year；仅允许用于日期时间类型字段')
+
+
 class OntologyQueryRequest(BaseModel):
 	"""虚拟本体查询请求。
 
@@ -29,6 +41,11 @@ class OntologyQueryRequest(BaseModel):
 		            '其中 between 的 value 为 2 个元素的列表 [下限, 上限]；'
 		            'gt/gte/lt/lte/between 仅允许用于数值或日期时间类型字段')
 	fields: List[str] = Field(default_factory=list, description='需返回的属性名；空=返回全部')
+	groupBy: List[OntologyGroupBy] = Field(
+		default_factory=list,
+		description='分组维度（text / 日期时间类型属性）。指定后按维度分组返回；'
+		            'fields 中未出现在 groupBy 的普通列会自动并入 GROUP BY；'
+		            'fields 为空时只返回分组维度与 includeDerived 聚合列')
 	includeDerived: List[str] = Field(default_factory=list, description='需计算的衍生属性名')
 	orderBy: List[OntologyOrderBy] = Field(
 		default_factory=list, description='排序条件；field 为属性名或 includeDerived 中的衍生属性名')

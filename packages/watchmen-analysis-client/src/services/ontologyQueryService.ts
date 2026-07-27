@@ -14,6 +14,15 @@ export interface OntologyOrderBy {
 	direction: "asc" | "desc";
 }
 
+/** 时间粒度：仅允许用于日期时间类型的分组维度。 */
+export type OntologyGroupByGranularity = "day" | "week" | "month" | "quarter" | "year";
+
+/** 分组维度：field 为 text / 时间类型 attribute 名；granularity 仅用于时间类型。 */
+export interface OntologyGroupBy {
+	field: string;
+	granularity?: OntologyGroupByGranularity;
+}
+
 /** 运行时查询请求（对应后端 OntologyQueryRequest）。 */
 export interface OntologyQueryRequest {
 	/** 虚拟对象 ID（VirtualObject.id）。 */
@@ -25,8 +34,10 @@ export interface OntologyQueryRequest {
 	filters?: Record<string, unknown>;
 	/** 排序规则；数组顺序即排序优先级。 */
 	orderBy?: OntologyOrderBy[];
-	/** 需返回的属性名；空 = 返回全部 attribute。 */
+	/** 需返回的属性名；空 = 返回全部 attribute（指定 groupBy 时空 = 只返回分组维度与聚合列）。 */
 	fields?: string[];
+	/** 分组维度（text / 时间类型属性）；时间维度可带 granularity 粒度截断。 */
+	groupBy?: OntologyGroupBy[];
 	/** 需计算的衍生属性名。 */
 	includeDerived?: string[];
 	/** 最大返回行数，1..10000。 */

@@ -16,7 +16,7 @@ for package_dir in PACKAGES_ROOT.iterdir():
         sys.path.insert(0, str(src_dir))
 
 
-from sqlalchemy.dialects import sqlite
+from sqlalchemy.dialects import mysql, postgresql, sqlite
 
 from watchmen_metricflow.ontology.schema import OntologyQueryRequest
 from watchmen_metricflow.ontology.sql_compiler import OntologySqlCompileError, OntologySqlCompiler
@@ -46,7 +46,7 @@ def _make_ontology() -> VirtualOntology:
         physicalTables=[
             PhysicalTableMapping(
                 topicName='dm_policy', alias='c', kind='primary',
-                fields=['id', 'amount', 'holder_id']),
+                fields=['id', 'amount', 'holder_id', 'created']),
             PhysicalTableMapping(
                 topicName='dm_holder', alias='h', kind='detail',
                 fields=['id', 'region'],
@@ -55,6 +55,7 @@ def _make_ontology() -> VirtualOntology:
         attributes=[
             VirtualObjectAttribute(name='id', sourceTable='c', sourceField='id'),
             VirtualObjectAttribute(name='amount', sourceTable='c', sourceField='amount'),
+            VirtualObjectAttribute(name='created', sourceTable='c', sourceField='created'),
             VirtualObjectAttribute(name='region', sourceTable='h', sourceField='region'),
         ],
         derivedAttributes=[
@@ -79,9 +80,9 @@ def _make_ontology() -> VirtualOntology:
         ontologyId='o1', name='ins', virtualObjects=[policy, holder], virtualLinks=[link])
 
 
-def _compile_sql(request: OntologyQueryRequest) -> str:
-    compiled = OntologySqlCompiler().compile(_make_ontology(), request)
-    return str(compiled.statement.compile(dialect=sqlite.dialect()))
+def _compile_sql(request: OntologyQueryRequest, dialect_name: Optional[str] = None, render_dialect=None) -> str:
+    compiled = OntologySqlCompiler().compile(_make_ontology(), request, dialect_name=dialect_name)
+    return str(compiled.statement.compile(dialect=render_dialect or sqlite.dialect()))
 
 
 def _request(**kwargs) -> OntologyQueryRequest:
@@ -176,6 +177,86 @@ class TestOrderBy(unittest.TestCase):
         with self.assertRaises(OntologySqlCompileError):
             _compile_sql(_request(
                 fields=['id'], filters={'amount': 10}, orderBy=[{'field': 'holder_cnt'}]))
+
+
+# --------------------------------------------------------------------------- #
+# Group by
+# --------------------------------------------------------------------------- #
+
+class TestGroupBy(unittest.TestCase):
+    def test_group_by_text_dimension(self):
+        sql = _compile_sql(_request(filters={'amount': 10}, groupBy=[{'field': 'region'}]))
+        self.assertIn('GROUP BY', sql)
+        # region lives on the non-primary detail table, which must be joined
+        self.assertIn('topic_dm_holder', sql)
+        self.assertIn('JOIN', sql.upper())
+
+    def test_group_by_auto_merges_plain_fields(self):
+        # fields not listed in groupBy are merged into GROUP BY (only_full_group_by)
+        sql = _compile_sql(_request(
+            fields=['id'], filters={'amount': 10}, groupBy=[{'field': 'region'}]))
+        self.assertIn('GROUP BY', sql)
+        group_clause = sql.split('GROUP BY', 1)[1]
+        self.assertIn('id', group_clause)
+        self.assertIn('region', group_clause)
+
+    def test_group_by_field_duplicated_in_fields_selected_once(self):
+        sql = _compile_sql(_request(
+            fields=['region'], filters={'amount': 10}, groupBy=[{'field': 'region'}]))
+        self.assertEqual(sql.lower().count('as region'), 1)
+
+    def test_group_by_empty_fields_selects_dimensions_only(self):
+        sql = _compile_sql(_request(filters={'amount': 10}, groupBy=[{'field': 'region'}]))
+        self.assertNotIn('amount AS', sql)
+
+    def test_group_by_with_derived(self):
+        sql = _compile_sql(_request(
+            filters={'amount': 10}, groupBy=[{'field': 'region'}], includeDerived=['holder_cnt']))
+        self.assertIn('GROUP BY', sql)
+        self.assertIn('holder_cnt', sql)
+
+    def test_group_by_time_granularity_postgresql(self):
+        sql = _compile_sql(
+            _request(filters={'amount': 10}, groupBy=[{'field': 'created', 'granularity': 'month'}]),
+            dialect_name='postgresql', render_dialect=postgresql.dialect())
+        self.assertIn('date_trunc', sql)
+        self.assertIn('GROUP BY', sql)
+
+    def test_group_by_time_granularity_mysql(self):
+        sql = _compile_sql(
+            _request(filters={'amount': 10}, groupBy=[{'field': 'created', 'granularity': 'month'}]),
+            dialect_name='mysql', render_dialect=mysql.dialect())
+        self.assertIn('DATE_FORMAT', sql.upper())
+
+    def test_group_by_time_granularity_quarter_mysql(self):
+        sql = _compile_sql(
+            _request(filters={'amount': 10}, groupBy=[{'field': 'created', 'granularity': 'quarter'}]),
+            dialect_name='mysql', render_dialect=mysql.dialect())
+        self.assertIn('QUARTER', sql.upper())
+
+    def test_group_by_without_granularity_selects_plain_column(self):
+        sql = _compile_sql(
+            _request(filters={'amount': 10}, groupBy=[{'field': 'created'}]),
+            dialect_name='postgresql', render_dialect=postgresql.dialect())
+        self.assertNotIn('date_trunc', sql)
+        self.assertIn('GROUP BY', sql)
+
+    def test_group_by_granularity_unsupported_dialect_raises(self):
+        with self.assertRaises(OntologySqlCompileError):
+            _compile_sql(
+                _request(filters={'amount': 10}, groupBy=[{'field': 'created', 'granularity': 'month'}]),
+                dialect_name='oracle')
+
+    def test_unknown_group_by_field_raises(self):
+        with self.assertRaises(OntologySqlCompileError):
+            _compile_sql(_request(filters={'amount': 10}, groupBy=[{'field': 'no_such_field'}]))
+
+    def test_order_by_grouped_dimension_uses_label(self):
+        sql = _compile_sql(
+            _request(filters={'amount': 10}, groupBy=[{'field': 'created', 'granularity': 'month'}],
+                     orderBy=[{'field': 'created', 'direction': 'desc'}]),
+            dialect_name='postgresql', render_dialect=postgresql.dialect())
+        self.assertIn('ORDER BY created DESC', sql)
 
 
 if __name__ == '__main__':

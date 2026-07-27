@@ -16,7 +16,8 @@ import { cn } from '@/lib/utils';
 import { VirtualOntology, physicalTableKindConfig, aggregateConfig, FilterOperator, filterOperatorConfig } from '@/model/ontology';
 import { ontologyService, resolvePhysicalTableLabel } from '@/services/ontologyService';
 import {
-	ontologyQueryService, OntologyQueryRequest, OntologyOrderBy, OntologyCompileResult, OntologyQueryResult,
+	ontologyQueryService, OntologyQueryRequest, OntologyOrderBy, OntologyGroupBy, OntologyGroupByGranularity,
+	OntologyCompileResult, OntologyQueryResult,
 } from '@/services/ontologyQueryService';
 import { topicService } from '@/services/topicService';
 
@@ -52,6 +53,7 @@ const OntologyDataTester: React.FC = () => {
 	const [selectedFields, setSelectedFields] = useState<string[]>([]); // 空 = 全部 attribute
 	const [selectedDerived, setSelectedDerived] = useState<string[]>([]);
 	const [filters, setFilters] = useState<Record<string, FilterValue>>({});
+	const [groupBy, setGroupBy] = useState<OntologyGroupBy[]>([]);
 	const [orderBy, setOrderBy] = useState<OntologyOrderBy[]>([]);
 	const [limit, setLimit] = useState<number>(100);
 	const [offset, setOffset] = useState<number>(0);
@@ -139,6 +141,7 @@ const OntologyDataTester: React.FC = () => {
 		setSelectedFields([]);
 		setSelectedDerived([]);
 		setFilters({});
+		setGroupBy([]);
 		setOrderBy([]);
 		setOffset(0);
 		setCompileResult(null);
@@ -167,6 +170,7 @@ const OntologyDataTester: React.FC = () => {
 			fields: selectedFields,
 			includeDerived: selectedDerived,
 			filters: cleanFilters,
+			...(groupBy.length > 0 ? { groupBy } : {}),
 			...(orderBy.length > 0 ? { orderBy } : {}),
 			limit,
 			offset,
@@ -424,6 +428,19 @@ const OntologyDataTester: React.FC = () => {
 														)}
 													</>
 												)}
+											</div>
+
+											{/* Group By */}
+											<div className="space-y-2">
+												<label className="text-xs font-medium text-muted-foreground">{t('groupBy')}</label>
+												<p className="text-[11px] text-muted-foreground/80">{t('groupByHint')}</p>
+												<GroupByEditor
+													attributeNames={allAttributeNames}
+													attributeKind={attributeKind}
+													groupBy={groupBy}
+													onChange={setGroupBy}
+													t={t}
+												/>
 											</div>
 
 											{/* Order By */}
@@ -688,6 +705,84 @@ const FilterEditor: React.FC<{
 					</Select>
 					<Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={addFilter} disabled={!pendingField}>
 						<Plus className="w-3 h-3" />{t('add')}
+					</Button>
+				</div>
+			)}
+		</div>
+	);
+};
+
+// ============================================================================
+// Group By editor: field + optional time granularity rows
+// ============================================================================
+const GROUP_BY_GRANULARITIES: OntologyGroupByGranularity[] = ['day', 'week', 'month', 'quarter', 'year'];
+
+const GroupByEditor: React.FC<{
+	attributeNames: string[];
+	attributeKind: (name: string) => AttributeKind;
+	groupBy: OntologyGroupBy[];
+	onChange: (next: OntologyGroupBy[]) => void;
+	t: (key: string, options?: Record<string, unknown>) => string;
+}> = ({ attributeNames, attributeKind, groupBy, onChange, t }) => {
+	const [pendingField, setPendingField] = useState<string>('');
+
+	// backend only allows text / datetime dimensions to be grouped
+	const groupableNames = attributeNames.filter((n) => attributeKind(n) !== 'number');
+	const available = groupableNames.filter((n) => !groupBy.some((g) => g.field === n));
+
+	const addGroup = () => {
+		if (!pendingField || groupBy.some((g) => g.field === pendingField)) return;
+		onChange([...groupBy, { field: pendingField }]);
+		setPendingField('');
+	};
+	const updateGroup = (index: number, patch: Partial<OntologyGroupBy>) =>
+		onChange(groupBy.map((g, i) => (i === index ? { ...g, ...patch } : g)));
+	const removeGroup = (index: number) => onChange(groupBy.filter((_, i) => i !== index));
+
+	const granularityLabel = (g: OntologyGroupByGranularity): string =>
+		t(`granularity${g.charAt(0).toUpperCase()}${g.slice(1)}`);
+
+	return (
+		<div className="space-y-2">
+			{groupBy.map((group, index) => {
+				const isDatetime = attributeKind(group.field) === 'datetime';
+				return (
+					<div key={group.field} className="flex items-center gap-2">
+						<Select value={group.field} onValueChange={(v) => updateGroup(index, { field: v, granularity: undefined })}>
+							<SelectTrigger className="h-7 text-xs flex-1"><SelectValue placeholder={t('groupField')} /></SelectTrigger>
+							<SelectContent>
+								{[group.field, ...available].map((n) => (<SelectItem key={n} value={n}>{n}</SelectItem>))}
+							</SelectContent>
+						</Select>
+						{isDatetime && (
+							<Select
+								value={group.granularity ?? 'none'}
+								onValueChange={(v) => updateGroup(index, { granularity: v === 'none' ? undefined : v as OntologyGroupByGranularity })}>
+								<SelectTrigger className="h-7 text-xs w-[110px] shrink-0"><SelectValue placeholder={t('granularity')} /></SelectTrigger>
+								<SelectContent>
+									<SelectItem value="none">{t('granularityNone')}</SelectItem>
+									{GROUP_BY_GRANULARITIES.map((g) => (
+										<SelectItem key={g} value={g}>{granularityLabel(g)}</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						)}
+						<Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeGroup(index)}>
+							<X className="w-3.5 h-3.5" />
+						</Button>
+					</div>
+				);
+			})}
+			{available.length > 0 && (
+				<div className="flex items-center gap-2">
+					<Select value={pendingField} onValueChange={setPendingField}>
+						<SelectTrigger className="h-7 text-xs"><SelectValue placeholder={t('groupField')} /></SelectTrigger>
+						<SelectContent>
+							{available.map((n) => (<SelectItem key={n} value={n}>{n}</SelectItem>))}
+						</SelectContent>
+					</Select>
+					<Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={addGroup} disabled={!pendingField}>
+						<Plus className="w-3 h-3" />{t('addGroupBy')}
 					</Button>
 				</div>
 			)}

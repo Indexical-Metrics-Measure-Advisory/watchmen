@@ -55,14 +55,21 @@ class OntologyDataAccessService:
 			raise_403()
 		self._check_filters(request)
 		self._prepare_filters(ontology, request)
+		self._prepare_group_by(ontology, request)
 
+		# resolve engine before compiling so that time-granularity expressions can be
+		# rendered for the target dialect; a missing virtual object falls back to the
+		# compiler's not-found error
+		virtual_object: Optional[VirtualObject] = next(
+			(obj for obj in ontology.virtualObjects or [] if obj.id == request.virtualObjectId), None)
+		engine = self._resolve_engine(virtual_object.datasourceId if virtual_object is not None else None)
+		dialect_name = engine.dialect.name if engine is not None else None
 		try:
-			compiled = self.compiler.compile(ontology, request)
+			compiled = self.compiler.compile(ontology, request, dialect_name=dialect_name)
 		except OntologySqlCompileError as e:
 			self._log_compile_error(ontology_id, ontology, request, e)
 			raise_400(str(e))
 
-		engine = self._resolve_engine(compiled.virtual_object.datasourceId)
 		rows = self._execute(compiled, engine)
 		rows = self.security.mask_rows(ontology, compiled.virtual_object, rows, self.principal_service)
 		return OntologyQueryResponse(
@@ -80,6 +87,7 @@ class OntologyDataAccessService:
 			raise_403()
 		self._check_filters(request)
 		self._prepare_filters(ontology, request)
+		self._prepare_group_by(ontology, request)
 		try:
 			compiled = self.compiler.compile(ontology, request)
 		except OntologySqlCompileError as e:
@@ -142,6 +150,39 @@ class OntologyDataAccessService:
 				value['value'] = [coerce(field, operator, item) for item in raw]
 			else:
 				value['value'] = coerce(field, operator, value.get('value'))
+
+	# group-by is allowed on text / datetime fields only
+	_GROUPABLE_TEXT_FACTOR_TYPES = (FactorType.TEXT, FactorType.ENUM)
+
+	def _prepare_group_by(self, ontology, request: OntologyQueryRequest) -> None:
+		"""Validate groupBy fields against factor types.
+
+		Only text / datetime attributes are groupable, and granularity is allowed only
+		on datetime fields. When the factor cannot be resolved (topic service missing,
+		etc.), the entry passes through unvalidated, matching the fallback philosophy
+		of _prepare_filters.
+		"""
+		group_entries = getattr(request, 'groupBy', None) or []
+		if not group_entries:
+			return
+		virtual_object: Optional[VirtualObject] = next(
+			(obj for obj in ontology.virtualObjects or [] if obj.id == request.virtualObjectId), None)
+		if virtual_object is None:
+			# let the compiler raise the not-found error as before
+			return
+		resolved = self._factor_resolver.resolve_attributes(virtual_object)
+		for entry in group_entries:
+			factor = resolved.get(entry.field)
+			if factor is None or not factor.resolved or factor.factor_type is None:
+				continue
+			if factor.factor_type in self._DATETIME_FACTOR_TYPES:
+				continue
+			if entry.granularity:
+				raise_400(f'granularity is only supported for datetime field [{entry.field}].')
+			if factor.factor_type not in self._GROUPABLE_TEXT_FACTOR_TYPES:
+				raise_400(
+					f'group by field [{entry.field}] type [{factor.factor_type}] is not supported; '
+					f'only text or datetime fields can be grouped.')
 
 	@staticmethod
 	def _coerce_numeric_value(field: str, operator: str, value: Any) -> Any:
