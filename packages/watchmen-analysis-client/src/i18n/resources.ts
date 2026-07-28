@@ -435,6 +435,9 @@ export const resources = {
 			graph: {
 				loading: "Loading lineage graph...",
 				diagnosticsTitle: "Diagnostics",
+				moreNodes: "+{{count}} more",
+				showAll: "Show all",
+				showActivePathOnly: "Active path only",
 			},
 			toast: {
 				metricRequiredTitle: "Metric name required",
@@ -1702,6 +1705,9 @@ export const resources = {
 			graph: {
 				loading: "血缘图加载中...",
 				diagnosticsTitle: "诊断信息",
+				moreNodes: "+{{count}} 个节点",
+				showAll: "显示全部",
+				showActivePathOnly: "只看当前路径",
 			},
 			toast: {
 				metricRequiredTitle: "需要指标名称",

@@ -31,10 +31,11 @@ type LineageNodeData = {
   dimmed: boolean;
 };
 type LineageFlowNode = Node<LineageNodeData, 'lineageNode'>;
-type LaneHeaderNode = Node<{ title: string; count: number }, 'laneHeader'>;
-type GraphNode = LineageFlowNode | LaneHeaderNode;
+type LaneHeaderNode = Node<{ title: string; count: string }, 'laneHeader'>;
+type MoreNode = Node<{ label: string }, 'moreNode'>;
+type GraphNode = LineageFlowNode | LaneHeaderNode | MoreNode;
 
-const LineageNodeView = ({ data, selected }: NodeProps<LineageFlowNode>) => {
+const LineageNodeView = React.memo(function LineageNodeView({ data, selected }: NodeProps<LineageFlowNode>) {
   const { lineageNode, stageClassName, dimmed } = data;
   return (
     <div
@@ -56,16 +57,27 @@ const LineageNodeView = ({ data, selected }: NodeProps<LineageFlowNode>) => {
       <Handle type="source" position={Position.Right} className="!h-2 !w-2 !bg-muted-foreground/50" />
     </div>
   );
-};
+});
 
-const LaneHeaderView = ({ data }: NodeProps<LaneHeaderNode>) => (
-  <div className="flex w-[220px] items-center justify-between rounded-md border border-dashed bg-muted/50 px-3 py-1.5 text-xs font-medium">
-    <span>{data.title}</span>
-    <span className="text-muted-foreground">{data.count}</span>
-  </div>
-);
+const LaneHeaderView = React.memo(function LaneHeaderView({ data }: NodeProps<LaneHeaderNode>) {
+  return (
+    <div className="flex w-[220px] items-center justify-between rounded-md border border-dashed bg-muted/50 px-3 py-1.5 text-xs font-medium">
+      <span>{data.title}</span>
+      <span className="text-muted-foreground">{data.count}</span>
+    </div>
+  );
+});
 
-const nodeTypes = { lineageNode: LineageNodeView, laneHeader: LaneHeaderView };
+// Aggregate chip shown at the bottom of a lane when its non-active-path nodes are collapsed
+const MoreNodeView = React.memo(function MoreNodeView({ data }: NodeProps<MoreNode>) {
+  return (
+    <div className="flex w-[220px] cursor-pointer items-center justify-center rounded-md border border-dashed bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground">
+      {data.label}
+    </div>
+  );
+});
+
+const nodeTypes = { lineageNode: LineageNodeView, laneHeader: LaneHeaderView, moreNode: MoreNodeView };
 
 interface MetricLineageGraphProps {
   data: MetricLineageViewData | null;
@@ -89,14 +101,22 @@ const MetricLineageGraph: React.FC<MetricLineageGraphProps> = ({
 }) => {
   const { t } = useTranslation('metricLineage');
   const stageMeta = React.useMemo(() => buildStageMeta(t), [t]);
+  // Collapsed mode (default): only the active path is rendered, other paths'
+  // nodes are folded into per-lane "+N more" chips to keep the graph readable
+  // and the DOM small when lineage data is large.
+  const [showAll, setShowAll] = React.useState(false);
+  React.useEffect(() => {
+    setShowAll(false);
+  }, [data, activePathId]);
 
-  const { nodes, edges } = React.useMemo(() => {
+  const { nodes, edges, collapsed } = React.useMemo(() => {
     if (!data) {
-      return { nodes: [] as GraphNode[], edges: [] as Edge[] };
+      return { nodes: [] as GraphNode[], edges: [] as Edge[], collapsed: false };
     }
 
     const activePath = data.paths.find(path => path.id === activePathId) || null;
     const activeNodeIds = activePath ? new Set(activePath.nodeIds) : null;
+    const collapsed = !!activeNodeIds && !showAll;
     // Row index of each node within the active path, used to align the main flow
     const activePathOrder = new Map((activePath?.nodeIds || []).map((nodeId, index) => [nodeId, index]));
     const nodeStageById = new Map(data.nodes.map(node => [node.id, node.stage]));
@@ -114,15 +134,21 @@ const MetricLineageGraph: React.FC<MetricLineageGraphProps> = ({
         if (bIndex !== undefined) return 1;
         return 0;
       });
+      const visibleStageNodes = collapsed
+        ? orderedStageNodes.filter(node => activeNodeIds.has(node.id))
+        : orderedStageNodes;
       nodes.push({
         id: `lane-${stage}`,
         type: 'laneHeader',
         position: { x: columnIndex * (NODE_WIDTH + COLUMN_GAP), y: -LANE_HEADER_OFFSET },
-        data: { title: stageMeta[stage].title, count: stageNodes.length },
+        data: {
+          title: stageMeta[stage].title,
+          count: collapsed ? `${visibleStageNodes.length}/${stageNodes.length}` : `${stageNodes.length}`,
+        },
         draggable: false,
         selectable: false,
       });
-      orderedStageNodes.forEach((node, rowIndex) => {
+      visibleStageNodes.forEach((node, rowIndex) => {
         nodes.push({
           id: node.id,
           type: 'lineageNode',
@@ -135,31 +161,54 @@ const MetricLineageGraph: React.FC<MetricLineageGraphProps> = ({
           selected: node.id === selectedNodeId,
         });
       });
+      const hiddenCount = stageNodes.length - visibleStageNodes.length;
+      if (collapsed && hiddenCount > 0) {
+        nodes.push({
+          id: `more-${stage}`,
+          type: 'moreNode',
+          position: {
+            x: columnIndex * (NODE_WIDTH + COLUMN_GAP),
+            y: visibleStageNodes.length * ROW_GAP,
+          },
+          data: { label: t('graph.moreNodes', { count: hiddenCount }) },
+          draggable: false,
+          selectable: false,
+        });
+      }
     });
 
-    const edges: Edge[] = data.edges.map(edge => {
-      const isActive = !activePath || edge.pathId === activePath.id;
-      // Data edges point from the metric towards its sources (right to left in the
-      // lane layout). Normalize the visual direction so a line always leaves the
-      // right handle of the left-side node and enters the left handle of the
-      // right-side node — no looping lines that swing around a node.
-      const fromColumn = COLUMN_ORDER.indexOf(nodeStageById.get(edge.from) ?? 'metric');
-      const toColumn = COLUMN_ORDER.indexOf(nodeStageById.get(edge.to) ?? 'metric');
-      const [source, target] = fromColumn <= toColumn ? [edge.from, edge.to] : [edge.to, edge.from];
-      return {
-        id: edge.id,
-        source,
-        target,
-        type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed, color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))' },
-        style: isActive
-          ? { stroke: 'hsl(var(--primary))', strokeWidth: 2 }
-          : { stroke: 'hsl(var(--muted-foreground))', opacity: 0.15 },
-      };
-    });
+    const renderedNodeIds = new Set(nodes.map(node => node.id));
+    const edges: Edge[] = data.edges
+      .filter(edge => {
+        if (!renderedNodeIds.has(edge.from) || !renderedNodeIds.has(edge.to)) {
+          return false;
+        }
+        // collapsed mode renders the active path's edges only
+        return !collapsed || !edge.pathId || edge.pathId === activePath?.id;
+      })
+      .map(edge => {
+        const isActive = !activePath || edge.pathId === activePath.id;
+        // Data edges point from the metric towards its sources (right to left in the
+        // lane layout). Normalize the visual direction so a line always leaves the
+        // right handle of the left-side node and enters the left handle of the
+        // right-side node — no looping lines that swing around a node.
+        const fromColumn = COLUMN_ORDER.indexOf(nodeStageById.get(edge.from) ?? 'metric');
+        const toColumn = COLUMN_ORDER.indexOf(nodeStageById.get(edge.to) ?? 'metric');
+        const [source, target] = fromColumn <= toColumn ? [edge.from, edge.to] : [edge.to, edge.from];
+        return {
+          id: edge.id,
+          source,
+          target,
+          type: 'smoothstep',
+          markerEnd: { type: MarkerType.ArrowClosed, color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))' },
+          style: isActive
+            ? { stroke: 'hsl(var(--primary))', strokeWidth: 2 }
+            : { stroke: 'hsl(var(--muted-foreground))', opacity: 0.15 },
+        };
+      });
 
-    return { nodes, edges };
-  }, [data, activePathId, selectedNodeId, stageMeta]);
+    return { nodes, edges, collapsed };
+  }, [data, activePathId, selectedNodeId, stageMeta, showAll, t]);
 
   return (
     <div className="space-y-3">
@@ -183,7 +232,10 @@ const MetricLineageGraph: React.FC<MetricLineageGraphProps> = ({
             <button
               key={path.id}
               type="button"
-              onClick={() => onSelectPath(path)}
+              onClick={() => {
+                setShowAll(false);
+                onSelectPath(path);
+              }}
               className={cn(
                 'rounded-full border px-3 py-1 text-xs transition-colors',
                 path.id === activePathId
@@ -194,6 +246,20 @@ const MetricLineageGraph: React.FC<MetricLineageGraphProps> = ({
               {path.title}
             </button>
           ))}
+          {activePathId && (
+            <button
+              type="button"
+              onClick={() => setShowAll(value => !value)}
+              className={cn(
+                'rounded-full border border-dashed px-3 py-1 text-xs transition-colors',
+                showAll
+                  ? 'border-primary/60 text-primary hover:bg-primary/5'
+                  : 'border-border/60 text-muted-foreground hover:bg-muted'
+              )}
+            >
+              {showAll ? t('graph.showActivePathOnly') : t('graph.showAll')}
+            </button>
+          )}
         </div>
       )}
 
@@ -227,11 +293,16 @@ const MetricLineageGraph: React.FC<MetricLineageGraphProps> = ({
             onNodeClick={(_, node) => {
               if (node.type === 'lineageNode') {
                 onSelectNode(node.id);
+              } else if (node.type === 'moreNode') {
+                setShowAll(true);
               }
             }}
             nodesDraggable={false}
             nodesConnectable={false}
             fitView
+            fitViewOptions={collapsed ? { padding: 0.2, maxZoom: 1 } : { padding: 0.1 }}
+            minZoom={0.2}
+            onlyRenderVisibleElements
             attributionPosition="bottom-right"
           >
             <Background gap={16} />
