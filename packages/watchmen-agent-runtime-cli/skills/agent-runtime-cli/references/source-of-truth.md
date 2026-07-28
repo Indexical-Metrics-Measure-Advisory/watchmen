@@ -21,6 +21,12 @@
 - `POST /metricflow/find_dimensions`
 - `POST /metricflow/get_metric_value`
 - `POST /metricflow/query_metrics`
+- `GET /metricflow/ontology/list?query=<text>&pageNumber=<n>&pageSize=<n>`
+- `GET /metricflow/ontology/get?ontologyId=<id>`
+- `GET /metricflow/ontology/all/yaml/agent-view` (YAML text)
+- `GET /metricflow/ontology/name/yaml/agent-view?name=<name>` (YAML text)
+- `POST /metricflow/ontology/{ontology_id}/query`
+- `POST /metricflow/ontology/{ontology_id}/query/compile`
 
 ## get_metric_value Request Shape
 - `metric:str`
@@ -44,6 +50,15 @@
   - `limit:int|None`
   - `time_granularity:str|None`
 
+## ontology query Request Shape
+- `virtualObjectId:str` (required; VirtualObject.id from `ontology get`)
+- `filters:dict` — field name to value; scalar means equals, or `{"operator": "gte", "value": ...}`; operators: eq/ne/in/not_in/gt/gte/lt/lte/between/is_null/is_not_null; `between` value is a 2-element list
+- `fields:list[str]` — attribute names to return; empty = all
+- `groupBy:list[dict]` — `{field:str, granularity:day|week|month|quarter|year|None}`
+- `includeDerived:list[str]` — derived attribute names to compute
+- `orderBy:list[dict]` — `{field:str, direction:asc|desc}`
+- `limit:int` (default 100, max 10000), `offset:int` (default 0)
+
 ## Output
-- Successful commands print formatted JSON to stdout.
+- Successful commands print formatted JSON to stdout (`ontology meta` prints raw YAML).
 - Errors print plain text to stderr.

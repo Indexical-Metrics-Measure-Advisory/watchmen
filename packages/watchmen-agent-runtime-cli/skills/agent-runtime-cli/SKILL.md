@@ -1,6 +1,6 @@
 ---
 name: "agent-runtime-cli"
-description: "Queries Watchmen MetricFlow runtime APIs via CLI. Invoke when user wants runtime health checks, metric discovery, dimensions lookup, or metric value/query-file execution."
+description: "Queries Watchmen MetricFlow runtime APIs via CLI. Invoke when user wants runtime health checks, metric discovery, dimensions lookup, metric value/query-file execution, or ontology meta/data queries."
 ---
 
 # Agent Runtime CLI
@@ -16,6 +16,8 @@ Invoke this skill when the user wants to:
 - list metrics or inspect metric dimensions
 - query metric values with filters, grouping, ordering, or time granularity
 - run batch metric queries from a JSON file
+- discover ontology graphs (agent-view YAML or full JSON with IDs)
+- query business data through a defined ontology (filters, grouping, derived attributes)
 
 ## Install CLI And Init
 
@@ -68,6 +70,16 @@ Configuration is stored in:
   - Args: `metric_name`, `--group-by`, `--where`, `--start-time`, `--end-time`, `--order`, `--limit`, `--time-granularity`, `--vault`
 - `metrics query-file`
   - Args: `file_path`, `--vault`
+- `ontology list`
+  - Args: `--query`, `--page`, `--size`, `--vault`
+- `ontology meta`
+  - Args: `--name`, `--vault`
+- `ontology get`
+  - Args: `ontology_id`, `--vault`
+- `ontology query`
+  - Args: `ontology_id`, `--virtual-object`, `--filters`, `--fields`, `--group-by`, `--include-derived`, `--order-by`, `--limit`, `--offset`, `--file`, `--vault`
+- `ontology compile`
+  - Args: same as `ontology query`
 
 ## Common Usage
 
@@ -107,10 +119,42 @@ Run from JSON file:
 poetry run agent-runtime-cli metrics query-file ./queries.json --vault ./runtime-vault
 ```
 
+Discover ontologies and query business data through the ontology graph:
+
+```bash
+# business-level graph as YAML (no internal IDs)
+poetry run agent-runtime-cli ontology meta --vault ./runtime-vault
+
+# full JSON with virtual object/link IDs
+poetry run agent-runtime-cli ontology get <ontology_id> --vault ./runtime-vault
+
+# query data rows of a virtual object
+poetry run agent-runtime-cli ontology query <ontology_id> \
+  --virtual-object <virtual_object_id> \
+  --filters '{"status": "active"}' \
+  --fields name,amount \
+  --group-by region,order_date:month \
+  --order-by amount:desc \
+  --limit 100 \
+  --vault ./runtime-vault
+
+# preview the compiled SQL without executing
+poetry run agent-runtime-cli ontology compile <ontology_id> \
+  --virtual-object <virtual_object_id> \
+  --vault ./runtime-vault
+```
+
 ## Query File Notes
 
 - The file used by `metrics query-file` must be a top-level JSON array.
 - Each item should be a metric query payload accepted by `/metricflow/query_metrics`.
+
+## Ontology Notes
+
+- `ontology meta` prints agent-view YAML (business names only); it answers "what does the graph look like".
+- `ontology query` needs `VirtualObject.id`, which only appears in `ontology list` / `ontology get` JSON output — resolve IDs before querying.
+- Typical agent flow: `ontology meta`/`ontology list` to understand the graph → `ontology get` for IDs and attribute names → `ontology query` for data.
+- `--filters` is a JSON object; scalar values mean equals, object values use `{"operator": ..., "value": ...}` (eq/ne/in/not_in/gt/gte/lt/lte/between/is_null/is_not_null).
 
 ## Authentication Notes
 

@@ -35,6 +35,35 @@ DISCOVER_COMMANDS = {
         "--vault",
     ],
     "metrics query-file": ["file_path", "--vault"],
+    "ontology list": ["--query", "--page", "--size", "--vault"],
+    "ontology meta": ["--name", "--vault"],
+    "ontology get": ["ontology_id", "--vault"],
+    "ontology query": [
+        "ontology_id",
+        "--virtual-object",
+        "--filters",
+        "--fields",
+        "--group-by",
+        "--include-derived",
+        "--order-by",
+        "--limit",
+        "--offset",
+        "--file",
+        "--vault",
+    ],
+    "ontology compile": [
+        "ontology_id",
+        "--virtual-object",
+        "--filters",
+        "--fields",
+        "--group-by",
+        "--include-derived",
+        "--order-by",
+        "--limit",
+        "--offset",
+        "--file",
+        "--vault",
+    ],
 }
 
 
@@ -69,6 +98,7 @@ def build_parser() -> argparse.ArgumentParser:
     register_discover_command(subparsers)
     register_runtime_commands(subparsers)
     register_metrics_commands(subparsers)
+    register_ontology_commands(subparsers)
     return parser
 
 
@@ -141,6 +171,102 @@ def handle_metrics_query_file(args: argparse.Namespace) -> None:
     if not isinstance(payload, list):
         raise AgentRuntimeCliException("Query file must be a JSON array for /metricflow/query_metrics.")
     run_with_runtime_service(args, lambda svc: svc.query_metrics(payload))
+
+
+def handle_ontology_list(args: argparse.Namespace) -> None:
+    run_with_runtime_service(
+        args,
+        lambda svc: svc.list_ontologies(query=args.query, page_number=args.page, page_size=args.size),
+    )
+
+
+def handle_ontology_meta(args: argparse.Namespace) -> None:
+    def action(svc: RuntimeService) -> str:
+        if args.name:
+            return svc.get_ontology_agent_view(args.name)
+        return svc.list_ontologies_agent_view()
+
+    # agent-view is YAML text, print as-is instead of JSON wrapping
+    print(action(build_runtime_service(args.vault)))
+
+
+def handle_ontology_get(args: argparse.Namespace) -> None:
+    run_with_runtime_service(args, lambda svc: svc.get_ontology(args.ontology_id))
+
+
+def handle_ontology_query(args: argparse.Namespace) -> None:
+    request = build_ontology_query_request(args)
+    run_with_runtime_service(args, lambda svc: svc.query_ontology(args.ontology_id, request))
+
+
+def handle_ontology_compile(args: argparse.Namespace) -> None:
+    request = build_ontology_query_request(args)
+    run_with_runtime_service(args, lambda svc: svc.compile_ontology_query(args.ontology_id, request))
+
+
+def build_ontology_query_request(args: argparse.Namespace) -> Dict[str, Any]:
+    request: Dict[str, Any] = {}
+    if args.file:
+        payload = json.loads(Path(args.file).read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            raise AgentRuntimeCliException("Ontology query file must be a JSON object.")
+        request.update(payload)
+    if args.virtual_object:
+        request["virtualObjectId"] = args.virtual_object
+    if args.filters:
+        filters = json.loads(args.filters)
+        if not isinstance(filters, dict):
+            raise AgentRuntimeCliException("--filters must be a JSON object, e.g. '{\"status\": \"active\"}'.")
+        request["filters"] = filters
+    fields = parse_csv_list(args.fields)
+    if fields:
+        request["fields"] = fields
+    group_by = parse_group_by(args.group_by)
+    if group_by:
+        request["groupBy"] = group_by
+    include_derived = parse_csv_list(args.include_derived)
+    if include_derived:
+        request["includeDerived"] = include_derived
+    order_by = parse_order_by(args.order_by)
+    if order_by:
+        request["orderBy"] = order_by
+    if args.limit is not None:
+        request["limit"] = args.limit
+    if args.offset is not None:
+        request["offset"] = args.offset
+    if not request.get("virtualObjectId"):
+        raise AgentRuntimeCliException("--virtual-object is required (or provide virtualObjectId in --file).")
+    return request
+
+
+def parse_group_by(raw: Optional[str]) -> Optional[List[Dict[str, str]]]:
+    """Parse 'field,field2:month' into group-by items with optional granularity."""
+    values = parse_csv_list(raw)
+    if values is None:
+        return None
+    result = []
+    for value in values:
+        if ":" in value:
+            field, granularity = value.split(":", 1)
+            result.append({"field": field.strip(), "granularity": granularity.strip()})
+        else:
+            result.append({"field": value})
+    return result
+
+
+def parse_order_by(raw: Optional[str]) -> Optional[List[Dict[str, str]]]:
+    """Parse 'field,field2:desc' into order-by items with optional direction."""
+    values = parse_csv_list(raw)
+    if values is None:
+        return None
+    result = []
+    for value in values:
+        if ":" in value:
+            field, direction = value.split(":", 1)
+            result.append({"field": field.strip(), "direction": direction.strip()})
+        else:
+            result.append({"field": value})
+    return result
 
 
 def build_runtime_service(vault: Optional[str]) -> RuntimeService:
@@ -268,6 +394,70 @@ def register_metrics_commands(subparsers: argparse._SubParsersAction) -> None:
     query_file.add_argument("file_path")
     add_vault_arg(query_file)
     query_file.set_defaults(handler=handle_metrics_query_file)
+
+
+def register_ontology_commands(subparsers: argparse._SubParsersAction) -> None:
+    ontology_parser = create_subparser(subparsers, "ontology", "Ontology meta and data query commands")
+    ontology_sub = ontology_parser.add_subparsers(dest="ontology_cmd", required=True)
+
+    ontology_list = create_subparser(ontology_sub, "list", "Call /metricflow/ontology/list (paged, includes IDs)")
+    ontology_list.add_argument("--query", required=False, help="Fuzzy search on ontology name")
+    ontology_list.add_argument("--page", required=False, type=int, help="Page number")
+    ontology_list.add_argument("--size", required=False, type=int, help="Page size")
+    add_vault_arg(ontology_list)
+    ontology_list.set_defaults(handler=handle_ontology_list)
+
+    meta = create_subparser(
+        ontology_sub,
+        "meta",
+        "Print agent-view YAML of ontologies (business names only, no internal IDs)",
+    )
+    meta.add_argument("--name", required=False, help="Ontology name; omit to print all ontologies")
+    add_vault_arg(meta)
+    meta.set_defaults(handler=handle_ontology_meta)
+
+    get = create_subparser(
+        ontology_sub,
+        "get",
+        "Call /metricflow/ontology/get (full JSON, includes virtual object/link IDs)",
+    )
+    get.add_argument("ontology_id")
+    add_vault_arg(get)
+    get.set_defaults(handler=handle_ontology_get)
+
+    def add_query_args(parser: argparse.ArgumentParser) -> None:
+        parser.add_argument("ontology_id")
+        parser.add_argument("--virtual-object", required=False, help="VirtualObject.id to query")
+        parser.add_argument(
+            "--filters",
+            required=False,
+            help='JSON object of field filters, e.g. \'{"status": "active", "age": {"operator": "gte", "value": 18}}\'',
+        )
+        parser.add_argument("--fields", required=False, help="Comma-separated attribute names to return")
+        parser.add_argument(
+            "--group-by",
+            required=False,
+            help="Comma-separated group-by fields, optional granularity suffix, e.g. 'region,order_date:month'",
+        )
+        parser.add_argument("--include-derived", required=False, help="Comma-separated derived attribute names")
+        parser.add_argument(
+            "--order-by",
+            required=False,
+            help="Comma-separated order fields, optional direction suffix, e.g. 'amount:desc,name:asc'",
+        )
+        parser.add_argument("--limit", required=False, type=int)
+        parser.add_argument("--offset", required=False, type=int)
+        parser.add_argument("--file", required=False, help="JSON file with full OntologyQueryRequest body")
+        add_vault_arg(parser)
+
+    query = create_subparser(ontology_sub, "query", "Call /metricflow/ontology/{id}/query")
+    add_query_args(query)
+    query.set_defaults(handler=handle_ontology_query)
+
+    compile_parser = create_subparser(
+        ontology_sub, "compile", "Call /metricflow/ontology/{id}/query/compile (SQL preview only)")
+    add_query_args(compile_parser)
+    compile_parser.set_defaults(handler=handle_ontology_compile)
 
 
 if __name__ == "__main__":

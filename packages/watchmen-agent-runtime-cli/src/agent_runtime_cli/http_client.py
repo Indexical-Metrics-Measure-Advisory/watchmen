@@ -42,6 +42,17 @@ class RestClient:
             return None
         return response.json()
 
+    def get_text(self, path: str, params: Optional[Dict[str, Any]] = None) -> str:
+        url = self._url(path)
+        headers = self.auth_header()
+        try:
+            response = requests.get(url, params=params, headers=headers, timeout=self.timeout_seconds)
+        except requests.RequestException as e:
+            raise ApiException(f"GET {path} failed: {e}") from e
+        if response.status_code >= 400:
+            raise ApiException(f"GET {path} failed with {response.status_code}: {response.text}")
+        return response.text
+
     def post_json(self, path: str, payload: Any) -> Any:
         url = self._url(path)
         headers = self.auth_header()
