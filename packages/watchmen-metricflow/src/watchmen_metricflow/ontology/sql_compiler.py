@@ -416,8 +416,10 @@ class _DerivedAttributeCompiler:
 	def _compile_one(self, derived: DerivedAttribute) -> Tuple[Any, List[Tuple[Table, Any]], Tuple]:
 		aggregate = (derived.aggregate or 'count').lower()
 		if not derived.path:
-			raise OntologySqlCompileError(
-				f'Derived attribute [{derived.name}] path is required.')
+			# path 为空：直接聚合主表自身列（不产生 join），
+			# 用于"单表 measure 聚合"这类无关联场景的衍生属性。
+			agg_col = self._build_aggregate(aggregate, derived, self._primary_table, {}, None)
+			return agg_col, [], ()
 
 		path_segments = self._path_resolver.parse(self._ontology, derived.path, derived.name)
 		final_vo = path_segments[-1][1]
@@ -515,6 +517,11 @@ class _DerivedAttributeCompiler:
 			# 正好符合"只数命中行"的语义）；找不到时退化为 count(*)。
 			if count_ref_col is not None:
 				return func.count(count_ref_col)
+			# 无 join（path 为空）且显式给出 targetField 时，按目标列计数。
+			if derived.targetField:
+				target_col = target_table.c.get(derived.targetField)
+				if target_col is not None:
+					return func.count(target_col)
 			fallback = target_table.c.get('id')
 			if fallback is not None:
 				return func.count(fallback)

@@ -29,11 +29,17 @@ class OntologyTableFactory:
 	def __init__(self, metadata: MetaData) -> None:
 		self.metadata = metadata
 
+	# topicName 以此前缀开头时按显式物理表名处理（如 DB_DIRECT 语义模型的
+	# relation_name），不再套用 topic_ 前缀约定。
+	EXPLICIT_TABLE_PREFIX = 'raw:'
+
 	@staticmethod
 	def physical_table_name(topic_name: str) -> str:
 		"""``dm_policy_contract`` → ``topic_dm_policy_contract``。"""
 		if not topic_name:
 			raise OntologySqlCompileError('Physical table topicName is required.')
+		if topic_name.startswith(OntologyTableFactory.EXPLICIT_TABLE_PREFIX):
+			return topic_name[len(OntologyTableFactory.EXPLICIT_TABLE_PREFIX):]
 		return topic_name if topic_name.startswith('topic_') else f'topic_{topic_name}'
 
 	@staticmethod

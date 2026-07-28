@@ -19,6 +19,7 @@ from watchmen_metricflow.model.metrics import Metric
 from watchmen_metricflow.model.semantic import SemanticModel
 from watchmen_metricflow.service.meta_service import load_metrics_by_tenant_id, load_semantic_models_by_tenant_id, \
     build_profile
+from watchmen_metricflow.service.mysql_metric_query_service import try_mysql_metric_query
 from watchmen_rest import get_admin_principal, get_any_principal
 from watchmen_utilities import ExtendedBaseModel
 from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
@@ -139,6 +140,11 @@ async def convert_request(request: Request):
 async def get_metric_value(req :MetricQueryRequest,
                         principal_service: PrincipalService = Depends(get_any_principal))->MetricFlowResponse:
 
+    # MySQL data sources bypass dbt (dbt-metricflow has no MySQL support)
+    mysql_result = await try_mysql_metric_query(req, principal_service)
+    if mysql_result is not None:
+        return mysql_result
+
     config = await build_metric_config(principal_service)
 
     ## check topic and subject space acesss
@@ -168,6 +174,11 @@ async def query_metrics(request_list: List[MetricQueryRequest],
 
     response_list = []
     for request in request_list:
+        # MySQL data sources bypass dbt (dbt-metricflow has no MySQL support)
+        mysql_result = await try_mysql_metric_query(request, principal_service)
+        if mysql_result is not None:
+            response_list.append(mysql_result)
+            continue
         query_result: MetricFlowQueryResult = query(
             cfg=config,
             metrics=[request.metric],
