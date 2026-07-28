@@ -26,7 +26,7 @@ import type {
   DataSourceItem,
   DataSourceHealthItem,
 } from '@/services/dataSourceService';
-import { isCollectorDataSource } from '@/services/dataSourceService';
+import { isSourceDataSource } from '@/services/dataSourceService';
 
 const HEALTH_STATUS_VALUES: ReadonlyArray<DataSourceHealthStatus> = ['ok', 'error', 'skipped', 'timeout'];
 
@@ -44,7 +44,7 @@ const DataSourceMonitor: React.FC = () => {
   const [search, setSearch] = React.useState('');
   const [typeFilter, setTypeFilter] = React.useState<string>('all');
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
-  const [collectorOnly, setCollectorOnly] = React.useState(false);
+  const [sourceOnly, setSourceOnly] = React.useState(false);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
 
   const sourcesQ = useDataSources();
@@ -67,7 +67,7 @@ const DataSourceMonitor: React.FC = () => {
   const filtered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
     return (sourcesQ.data ?? []).filter((s) => {
-      if (collectorOnly && !isCollectorDataSource(s)) return false;
+      if (sourceOnly && !isSourceDataSource(s)) return false;
       if (typeFilter !== 'all' && s.dataSourceType !== typeFilter) return false;
       const h = s.dataSourceId ? healthById[s.dataSourceId] : undefined;
       if (statusFilter !== 'all' && (h?.status ?? 'skipped') !== statusFilter) return false;
@@ -76,7 +76,7 @@ const DataSourceMonitor: React.FC = () => {
         .filter(Boolean)
         .some((v) => (v as string).toLowerCase().includes(q));
     });
-  }, [sourcesQ.data, healthById, search, typeFilter, statusFilter, collectorOnly]);
+  }, [sourcesQ.data, healthById, search, typeFilter, statusFilter, sourceOnly]);
 
   const selected = filtered.find((s) => s.dataSourceId === selectedId) ?? filtered[0] ?? null;
   const selectedHealth = selected?.dataSourceId ? healthById[selected.dataSourceId] : undefined;
@@ -85,7 +85,7 @@ const DataSourceMonitor: React.FC = () => {
     setSearch('');
     setTypeFilter('all');
     setStatusFilter('all');
-    setCollectorOnly(false);
+    setSourceOnly(false);
   };
 
   return (
@@ -133,15 +133,15 @@ const DataSourceMonitor: React.FC = () => {
             <input
               type="checkbox"
               className="h-3.5 w-3.5 accent-blue-600"
-              checked={collectorOnly}
-              onChange={(e) => setCollectorOnly(e.target.checked)}
+              checked={sourceOnly}
+              onChange={(e) => setSourceOnly(e.target.checked)}
             />
-            {t('common:collectorOnly')}
+            {t('common:sourceOnly')}
           </label>
           <Button variant="outline" size="sm" className="h-9" onClick={() => sourcesQ.refetch()}>
             {t('common:refresh')}
           </Button>
-          {(search || typeFilter !== 'all' || statusFilter !== 'all' || collectorOnly) && (
+          {(search || typeFilter !== 'all' || statusFilter !== 'all' || sourceOnly) && (
             <Button variant="ghost" size="sm" className="h-9" onClick={resetFilters}>
               {t('common:cancel')}
             </Button>
@@ -180,7 +180,7 @@ const DataSourceMonitor: React.FC = () => {
                         <span className="truncate text-sm font-medium text-foreground">
                           {s.name || s.dataSourceCode || s.dataSourceId}
                         </span>
-                        {isCollectorDataSource(s) && (
+                        {isSourceDataSource(s) && (
                           <span
                             className="shrink-0 rounded border border-amber-200 bg-amber-50 px-1.5 py-0 text-[10px] font-semibold text-amber-700"
                             title={t('common:collectorSourceHelp')}
@@ -253,7 +253,7 @@ const DataSourceDetail: React.FC<{
             <span className="truncate text-sm font-semibold text-foreground">
               {source.name || source.dataSourceCode || source.dataSourceId}
             </span>
-            {isCollectorDataSource(source) && (
+            {isSourceDataSource(source) && (
               <span
                 className="shrink-0 rounded border border-amber-200 bg-amber-50 px-1.5 py-0 text-[10px] font-semibold text-amber-700"
                 title={t('common:collectorSourceHelp')}

@@ -2,8 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, ChevronDown, ChevronRight, Database } from 'lucide-react';
+import { ArrowRight, ChevronDown, ChevronRight } from 'lucide-react';
 import { MonoText, EmptyState, ErrorBanner, PanelHeader } from '@/components/monitor/common';
 import { useTopicConsanguinity } from '@/hooks/useMonitorQueries';
 import type { TopicLineageLink } from '@/models/lineage.models';
@@ -11,9 +10,7 @@ import type { TopicLineageLink } from '@/models/lineage.models';
 /** One upstream hop: source topic --(pipeline)--> target topic, expandable to factor pairs. */
 const LinkRow: React.FC<{
   link: TopicLineageLink;
-  onInspectTopic: (topicId: string) => void;
-  inspectLabel: string;
-}> = ({ link, onInspectTopic, inspectLabel }) => {
+}> = ({ link }) => {
   const [open, setOpen] = React.useState(false);
   const factorPairs = link.factors ?? [];
   return (
@@ -42,17 +39,6 @@ const LinkRow: React.FC<{
         <MonoText className="text-sm text-muted-foreground">
           {link.targetTopicName ?? link.targetTopicId ?? '—'}
         </MonoText>
-        {link.sourceTopicId && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="ml-auto h-7 text-xs"
-            onClick={() => onInspectTopic(link.sourceTopicId!)}
-          >
-            <Database className="mr-1 h-3 w-3" />
-            {inspectLabel}
-          </Button>
-        )}
       </div>
       {open && factorPairs.length > 0 && (
         <div className="ml-7 mt-1.5 space-y-0.5">
@@ -81,8 +67,7 @@ const LinkRow: React.FC<{
  */
 const LineagePanel: React.FC<{
   topicId: string;
-  onInspectTopic: (topicId: string) => void;
-}> = ({ topicId, onInspectTopic }) => {
+}> = ({ topicId }) => {
   const { t } = useTranslation(['pipeline', 'common']);
   const consanguinityQ = useTopicConsanguinity(topicId);
 
@@ -123,8 +108,6 @@ const LineagePanel: React.FC<{
                 <LinkRow
                   key={`${link.sourceTopicId}-${link.pipelineId}-${i}`}
                   link={link}
-                  onInspectTopic={onInspectTopic}
-                  inspectLabel={t('pipeline:lineage.inspect')}
                 />
               ))}
             </div>

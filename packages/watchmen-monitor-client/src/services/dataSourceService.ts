@@ -26,19 +26,19 @@ export interface DataSourceItem {
   createdBy?: string;
   /**
    * Arbitrary name/value params. Backend `GET /datasource/all` returns this list
-   * verbatim (only `password` is hidden). Used to flag collector source databases.
+   * verbatim (only `password` is hidden). Used to flag source databases.
    */
   params?: DataSourceParam[];
 }
 
 /**
- * A data source is the collector source database when one of its params has
- * name === 'collector' and value === 'true' (string, case-sensitive). Mirrors
+ * A data source is a source database when one of its params has
+ * name === 'isSource' and value === 'true' (string, case-sensitive). Mirrors
  * `ask_datasource_by_param_name` in watchmen-collector-kernel/storage_helper.py.
  */
-export const isCollectorDataSource = (ds: { params?: DataSourceParam[] } | undefined | null): boolean => {
+export const isSourceDataSource = (ds: { params?: DataSourceParam[] } | undefined | null): boolean => {
   if (!ds?.params) return false;
-  return ds.params.some((p) => p.name === 'collector' && p.value === 'true');
+  return ds.params.some((p) => p.name === 'isSource' && p.value === 'true');
 };
 
 /**
@@ -100,7 +100,7 @@ export class DataSourceService {
           tenantId: 'tenant-1',
           createdAt: '2024-01-01T00:00:00Z',
           createdBy: 'admin',
-          params: [{ name: 'collector', value: 'true' }],
+          params: [{ name: 'isSource', value: 'true' }],
         },
         {
           dataSourceId: 'ds-2',

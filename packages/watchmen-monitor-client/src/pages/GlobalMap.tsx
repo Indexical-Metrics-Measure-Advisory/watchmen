@@ -45,7 +45,7 @@ import {
 } from '@/models/pipeline.models';
 import { TopicType } from '@/models/topic.models';
 import type { DataSourceItem, DataSourceHealthItem } from '@/services/dataSourceService';
-import { isCollectorDataSource } from '@/services/dataSourceService';
+import { isSourceDataSource } from '@/services/dataSourceService';
 import { formatDistanceToNow } from 'date-fns';
 
 type StageId = 'sources' | 'ingestion' | 'topics' | 'pipeline';
@@ -1109,12 +1109,12 @@ const GlobalMap: React.FC = () => {
                               <MonoText className="truncate text-xs font-semibold text-foreground">
                                 {src.name ?? src.dataSourceCode ?? src.dataSourceId}
                               </MonoText>
-                              {isCollectorDataSource(src) && (
+                              {isSourceDataSource(src) && (
                                 <span
-                                  title="Data source flagged as the ingestion collector (param collector=true)"
+                                  title="Data source flagged as a source database (param isSource=true)"
                                   className="inline-flex h-4 shrink-0 items-center rounded border border-amber-200 bg-amber-50 px-1.5 text-[9px] font-semibold text-amber-700"
                                 >
-                                  collector
+                                  source
                                 </span>
                               )}
                             </div>

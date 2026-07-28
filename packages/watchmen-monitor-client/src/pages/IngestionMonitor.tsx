@@ -39,7 +39,7 @@ import {
 } from '@/utils/monitorConstants';
 import { IngestStatus } from '@/models/monitor.models';
 import { pipelineMetaService } from '@/services/pipelineMetaService';
-import { isCollectorDataSource, type DataSourceHealthItem } from '@/services/dataSourceService';
+import { isSourceDataSource, type DataSourceHealthItem } from '@/services/dataSourceService';
 
 const PAGE_SIZE = 12;
 
@@ -62,15 +62,15 @@ const IngestionMonitor: React.FC = () => {
   const tasksQ = useIngestProgress(selectedId, 'task', selectedId != null);
   const triggerOnlineQ = useRecentTriggerOnlines();
 
-  // The collector source databases: ingestion events originate from these.
-  // Selected by the param collector=true (mirrors backend storage_helper.py). There can be several.
+  // The source databases: ingestion events originate from these.
+  // Selected by the param isSource=true (mirrors backend storage_helper.py). There can be several.
   const dataSourcesQ = useDataSources();
   const dataSourceHealthQ = useDataSourceHealth();
-  const collectorSources = React.useMemo(
-    () => (dataSourcesQ.data ?? []).filter(isCollectorDataSource),
+  const sourceDbs = React.useMemo(
+    () => (dataSourcesQ.data ?? []).filter(isSourceDataSource),
     [dataSourcesQ.data],
   );
-  const collectorHealthById = React.useMemo(() => {
+  const sourceHealthById = React.useMemo(() => {
     const map: Record<string, DataSourceHealthItem> = {};
     for (const s of dataSourceHealthQ.data?.sources ?? []) map[s.dataSourceId] = s;
     return map;
@@ -128,18 +128,18 @@ const IngestionMonitor: React.FC = () => {
         </div>
       )}
 
-      {/* Collector source databases — where ingestion events originate (there can be several). */}
+      {/* Source databases — where ingestion events originate (there can be several). */}
       <Card className="p-0">
         <PanelHeader
           title={t('monitor:collectorSourceTitle')}
-          extra={collectorSources.length > 0 ? <span className="tabular-nums">{collectorSources.length}</span> : null}
+          extra={sourceDbs.length > 0 ? <span className="tabular-nums">{sourceDbs.length}</span> : null}
         />
-        {collectorSources.length === 0 ? (
+        {sourceDbs.length === 0 ? (
           <p className="px-4 py-3 text-xs text-muted-foreground">{t('monitor:collectorSourceNone')}</p>
         ) : (
           <div className="divide-y">
-            {collectorSources.map((ds) => {
-              const health = collectorHealthById[ds.dataSourceId];
+            {sourceDbs.map((ds) => {
+              const health = sourceHealthById[ds.dataSourceId];
               return (
                 <div key={ds.dataSourceId} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-indigo-600">

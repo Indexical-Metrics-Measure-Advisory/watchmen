@@ -2,7 +2,7 @@
 // Source router: packages/watchmen-rest-doll/.../admin/topic_router.py (+ topic_yaml_router)
 import { API_BASE_URL, getDefaultHeaders, checkResponse } from '@/utils/apiConfig';
 import type { Pageable, DataPage } from '@/models/api.models';
-import type { Topic, QueryTopicDataPage, TopicDataCondition } from '@/models/topic.models';
+import type { Topic, QueryTopicDataPage } from '@/models/topic.models';
 
 class TopicService {
   /** GET /topic — load one topic by id. */
@@ -66,43 +66,6 @@ class TopicService {
   async listAll(): Promise<DataPage<Topic>> {
     const data = await this.getAllTopics();
     return { data, itemCount: data.length, pageCount: 1 };
-  }
-
-  /** GET /topic/data/row — read a single topic data row by data id; returns null when the row no longer exists. */
-  async getTopicDataRow(topicId: string, dataId: string | number): Promise<Record<string, unknown> | null> {
-    const qs = new URLSearchParams({ topic_id: topicId, data_id: String(dataId) });
-    const res = await fetch(`${API_BASE_URL}/topic/data/row?${qs.toString()}`, {
-      method: 'GET',
-      headers: getDefaultHeaders(),
-    });
-    return checkResponse(res);
-  }
-
-  /**
-   * POST /topic/data — factor-level row query: AND of equals conditions on factors.
-   * Body mirrors TopicPageable (ParameterJoint + pageNumber/pageSize).
-   */
-  async queryTopicData(
-    topicId: string,
-    conditions: TopicDataCondition[],
-    pageable: Pageable,
-  ): Promise<DataPage<Record<string, unknown>>> {
-    const filters = conditions.map((c) => ({
-      left: { kind: 'topic', topicId, factorId: c.factorId },
-      operator: 'equals',
-      right: { kind: 'constant', value: c.value },
-    }));
-    const res = await fetch(`${API_BASE_URL}/topic/data?topic_id=${encodeURIComponent(topicId)}`, {
-      method: 'POST',
-      headers: getDefaultHeaders(),
-      body: JSON.stringify({
-        jointType: 'and',
-        filters,
-        pageNumber: pageable.pageNumber,
-        pageSize: pageable.pageSize,
-      }),
-    });
-    return checkResponse(res);
   }
 }
 
