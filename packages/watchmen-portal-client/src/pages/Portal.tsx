@@ -34,23 +34,15 @@ export default function Portal() {
     (m) => m.status === 'coming-soon'
   ).length;
 
-  // Merge lastAccessed timestamps, then sort by most recently used first
+  // Merge lastAccessed timestamps; keep the configured module order (no re-sorting)
   const modules = useMemo(
     () =>
-      visibleModules
-        .map((module) => ({
-          ...module,
-          lastAccessed: lastAccessed[module.id]
-            ? formatRelativeTime(lastAccessed[module.id])
-            : undefined,
-        }))
-        .sort((a, b) => {
-          const aTime = lastAccessed[a.id] ?? 0;
-          const bTime = lastAccessed[b.id] ?? 0;
-          if (bTime !== aTime) return bTime - aTime;
-          // Stable sort: preserve original order for modules with no access time
-          return 0;
-        }),
+      visibleModules.map((module) => ({
+        ...module,
+        lastAccessed: lastAccessed[module.id]
+          ? formatRelativeTime(lastAccessed[module.id])
+          : undefined,
+      })),
     [visibleModules, lastAccessed]
   );
 
