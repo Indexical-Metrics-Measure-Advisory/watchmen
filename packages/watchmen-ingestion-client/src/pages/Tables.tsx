@@ -19,6 +19,7 @@ import { tableService, TableServiceError } from '@/services/tableService';
 import dataSourceService from '@/services/dataSourceService';
 import { modelService } from '@/services/modelService';
 import { systemService } from '@/services/systemService';
+import { API_BASE_URL, checkResponse, getDefaultHeaders } from '@/utils/apiConfig';
 import { useTranslation } from 'react-i18next';
 
 // Helper components for complex data structures
@@ -634,6 +635,46 @@ const Tables = () => {
   // Unique model names for filter options
   const [modelNames, setModelNames] = useState<string[]>([]);
 
+  // User id -> name map, for displaying audit fields in view dialog
+  const [userNames, setUserNames] = useState<Record<string, string>>({});
+
+  // Resolve data source id to its display name
+  const getDataSourceLabel = (dataSourceId?: string) => {
+    if (!dataSourceId) return 'Default';
+    const dataSource = dataSources.find(ds => String(ds.dataSourceId ?? ds.id) === String(dataSourceId));
+    return dataSource ? (dataSource.name || dataSource.dataSourceCode || dataSourceId) : dataSourceId;
+  };
+
+  // Fetch user names by ids and cache into userNames
+  const fetchUserNames = async (userIds: (string | undefined)[]) => {
+    const ids = Array.from(new Set(userIds.filter((id): id is string => !!id)));
+    if (ids.length === 0) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/ids`, {
+        method: 'POST',
+        headers: getDefaultHeaders(),
+        body: JSON.stringify(ids)
+      });
+      if (!response.ok) return;
+      const users: any[] = await checkResponse(response);
+      const names: Record<string, string> = {};
+      (users || []).forEach(user => {
+        if (user.userId != null && user.name) {
+          names[String(user.userId)] = user.name;
+        }
+      });
+      setUserNames(prev => ({ ...prev, ...names }));
+    } catch (error) {
+      console.error('Failed to fetch user names:', error);
+    }
+  };
+
+  // Resolve user id to its display name, fallback to id itself
+  const getUserName = (userId?: string) => {
+    if (!userId) return 'N/A';
+    return userNames[String(userId)] || userId;
+  };
+
   useEffect(() => {
     const fetchSystemEnv = async () => {
       const env = (await systemService.fetchSystemEnv()).trim().toUpperCase();
@@ -834,6 +875,7 @@ const Tables = () => {
   const handleViewTable = (table: CollectorTableConfig) => {
     setSelectedTable(table);
     setViewDialogOpen(true);
+    fetchUserNames([table.createdBy, table.lastModifiedBy]);
   };
 
   const handleEditTable = (table: CollectorTableConfig) => {
@@ -1550,7 +1592,7 @@ const Tables = () => {
                   </div>
                   <div>
                     <p className="text-gray-500">Created By</p>
-                    <p className="font-medium">{selectedTable.createdBy || 'N/A'}</p>
+                    <p className="font-medium">{getUserName(selectedTable.createdBy)}</p>
                   </div>
                   <div>
                     <p className="text-gray-500">Last Modified</p>
@@ -1558,7 +1600,7 @@ const Tables = () => {
                   </div>
                   <div>
                     <p className="text-gray-500">Modified By</p>
-                    <p className="font-medium">{selectedTable.lastModifiedBy || 'N/A'}</p>
+                    <p className="font-medium">{getUserName(selectedTable.lastModifiedBy)}</p>
                   </div>
                 </div>
               </div>
@@ -1589,7 +1631,7 @@ const Tables = () => {
                   </div>
                   <div className="grid grid-cols-3 gap-4 p-3 border-t text-sm">
                     <div className="font-medium">Data Source</div>
-                    <div className="text-gray-600">{selectedTable.dataSourceId || 'Default'}</div>
+                    <div className="text-gray-600">{getDataSourceLabel(selectedTable.dataSourceId)}</div>
                     <div className="text-gray-600">Data source identifier</div>
                   </div>
                   <div className="grid grid-cols-3 gap-4 p-3 border-t text-sm">
