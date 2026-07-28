@@ -4,8 +4,8 @@ from typing import List, Optional
 from watchmen_meta.common import ask_datasource_aes_enabled, ask_datasource_aes_params, TupleService, TupleShaper
 from watchmen_model.common import DataPage, DataSourceId, Pageable, TenantId
 from watchmen_model.system import DataSource, DataSourceParam
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
-	EntityShaper
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
+	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper, is_empty
 
 
@@ -107,8 +107,16 @@ class DataSourceService(TupleService):
 			self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text))
+			criteria.append(EntityCriteriaJoint(
+				conjunction=EntityCriteriaJointConjunction.OR,
+				children=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text),
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='data_source_code'), operator=EntityCriteriaOperator.LIKE,
+						right=text)
+				]
+			))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		return self.storage.page(self.get_entity_pager(criteria, pageable))
