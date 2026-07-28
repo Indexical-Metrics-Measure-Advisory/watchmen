@@ -1,5 +1,6 @@
 import os
 import sys
+import asyncio
 import unittest
 from datetime import datetime
 from pathlib import Path
@@ -184,6 +185,7 @@ class TestBypassDetection(unittest.TestCase):
         context = svc.resolve_mysql_context(metric, [metric], models, lambda model: None)
         self.assertIsNone(context)
 
+
     def test_cross_datasource_chain_returns_none(self):
         ratio = _ratio_metric()
         models = [
@@ -203,6 +205,42 @@ class TestBypassDetection(unittest.TestCase):
         models = [_make_semantic_model()]
         context = svc.resolve_mysql_context(metric, [metric], models, _mysql_resolver())
         self.assertIsNone(context)
+
+
+# --------------------------------------------------------------------------- #
+# Dimensions bypass
+# --------------------------------------------------------------------------- #
+class TestMysqlDimensionsBypass(unittest.TestCase):
+    def _run_bypass(self, metric_names, metrics, models, resolver):
+        async def fake_load_metrics(principal_service):
+            return metrics
+
+        async def fake_load_models(principal_service):
+            return models
+
+        with mock.patch.object(svc, 'load_metrics_by_tenant_id', fake_load_metrics), \
+                mock.patch.object(svc, 'load_semantic_models_by_tenant_id', fake_load_models), \
+                mock.patch.object(svc, '_production_binding_resolver', lambda ps: resolver):
+            return asyncio.run(svc.try_mysql_dimensions_by_metrics(metric_names, None))
+
+    def test_dimensions_from_mysql_metric(self):
+        metric = _simple_metric()
+        models = [_make_semantic_model()]
+        result = self._run_bypass(['total_sales'], [metric], models, _mysql_resolver())
+        self.assertIsNotNone(result)
+        types = {d.name: d.type for d in result.dimensions}
+        self.assertEqual(types, {'region': 'CATEGORICAL', 'order_date': 'TIME', 'metric_time': 'TIME'})
+        self.assertEqual(result.total_count, 3)
+
+    def test_unknown_metric_falls_back_to_dbt(self):
+        result = self._run_bypass(
+            ['missing'], [_simple_metric()], [_make_semantic_model()], _mysql_resolver())
+        self.assertIsNone(result)
+
+    def test_non_mysql_falls_back_to_dbt(self):
+        result = self._run_bypass(
+            ['total_sales'], [_simple_metric()], [_make_semantic_model()], lambda model: None)
+        self.assertIsNone(result)
 
     def test_production_resolver_topic_mysql(self):
         model = _make_semantic_model()

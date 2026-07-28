@@ -26,11 +26,12 @@ from watchmen_model.system import DataSource, DataSourceParam, DataSourceType
 from watchmen_rest.util import raise_400
 
 from watchmen_metricflow.model.metric_request import MetricQueryRequest
+from watchmen_metricflow.model.dimension_response import DimensionInfo, DimensionListResponse
 from watchmen_metricflow.model.metrics import (
 	MeasureReference, Metric, MetricRef, MetricType, MetricTypeParams, OffsetWindow)
 from watchmen_metricflow.model.semantic import (
-	AggregationType, Dimension, Entity, Measure, NodeRelation, SemanticModel, SemanticModelSourceType,
-	TimeGranularity)
+	AggregationType, Dimension, DimensionType, Entity, Measure, NodeRelation, SemanticModel,
+	SemanticModelSourceType, TimeGranularity)
 from watchmen_metricflow.ontology.engine_provider import OntologyRdsEngineProvider
 from watchmen_metricflow.ontology.schema import OntologyGroupBy, OntologyQueryRequest
 from watchmen_metricflow.ontology.sql_compiler import OntologySqlCompiler
@@ -1050,3 +1051,58 @@ async def try_mysql_metric_query(req: MetricQueryRequest, principal_service: Pri
 	if context is None:
 		return None
 	return MySQLMetricQueryRunner(context, principal_service).run(req)
+
+
+async def try_mysql_dimensions_by_metrics(
+		metric_names: List[str], principal_service: PrincipalService) -> Optional[DimensionListResponse]:
+	"""Answer dimension discovery from metadata when every requested metric resolves to MySQL.
+
+	Returns a DimensionListResponse built from the semantic models backing the metrics,
+	otherwise None (caller falls through to the dbt path).
+	"""
+	metrics: List[Metric] = await load_metrics_by_tenant_id(principal_service)
+	metrics_by_name = {item.name: item for item in metrics}
+	requested = [metrics_by_name.get(name) for name in metric_names]
+	if any(item is None for item in requested):
+		return None
+	semantic_models: List[SemanticModel] = await load_semantic_models_by_tenant_id(principal_service)
+	resolver = _production_binding_resolver(principal_service)
+	binding_key: Optional[str] = None
+	models: Dict[str, SemanticModel] = {}
+	for metric in requested:
+		context = resolve_mysql_context(metric, metrics, semantic_models, resolver)
+		if context is None:
+			return None
+		if binding_key is None:
+			binding_key = context.binding.key
+		elif binding_key != context.binding.key:
+			# metrics spread over different connections are not supported
+			return None
+		# only the models owning the measures actually referenced by this metric
+		measure_names: set = set()
+		if not _collect_tree_measures(metric.name, context.metrics_by_name, set(), measure_names):
+			return None
+		for name in measure_names:
+			model = context.measure_models.get(name)
+			if model is not None:
+				models.setdefault(model.name, model)
+
+	dimension_infos: List[DimensionInfo] = []
+	seen: set = set()
+	for model in models.values():
+		for dimension in (model.dimensions or []):
+			if dimension.name in seen:
+				continue
+			seen.add(dimension.name)
+			dimension_type = dimension.type
+			type_name = dimension_type.name if isinstance(dimension_type, DimensionType) \
+				else str(dimension_type).upper()
+			dimension_infos.append(DimensionInfo(
+				name=dimension.name, qualified_name=dimension.name,
+				description=dimension.description, type=type_name))
+	# metric_time is always available on the MySQL path (see _parse_group_specs)
+	if 'metric_time' not in seen:
+		dimension_infos.append(DimensionInfo(
+			name='metric_time', qualified_name='metric_time',
+			description='Event time for the metric', type=DimensionType.TIME.name))
+	return DimensionListResponse(dimensions=dimension_infos, total_count=len(dimension_infos))

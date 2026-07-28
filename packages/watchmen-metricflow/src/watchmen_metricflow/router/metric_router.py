@@ -19,7 +19,8 @@ from watchmen_metricflow.model.metrics import Metric
 from watchmen_metricflow.model.semantic import SemanticModel
 from watchmen_metricflow.service.meta_service import load_metrics_by_tenant_id, load_semantic_models_by_tenant_id, \
     build_profile
-from watchmen_metricflow.service.mysql_metric_query_service import try_mysql_metric_query
+from watchmen_metricflow.service.mysql_metric_query_service import try_mysql_dimensions_by_metrics, \
+    try_mysql_metric_query
 from watchmen_rest import get_admin_principal, get_any_principal
 from watchmen_utilities import ExtendedBaseModel
 from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
@@ -83,6 +84,11 @@ async def find_dimensions_by_metric(metric_name: str,principal_service: Principa
     """
     Find common dimensions between a list of metrics and a list of dimensions.
     """
+    # MySQL data sources bypass dbt (dbt-metricflow has no MySQL support)
+    mysql_result = await try_mysql_dimensions_by_metrics([metric_name], principal_service)
+    if mysql_result is not None:
+        return mysql_result
+
     config = await build_metric_config(principal_service)
 
     return load_dimensions_by_metrics([metric_name], config)
@@ -95,6 +101,11 @@ async def find_dimensions(metrics: List[str],principal_service: PrincipalService
     """
     Find common dimensions between a list of metrics and a list of dimensions.
     """
+
+    # MySQL data sources bypass dbt (dbt-metricflow has no MySQL support)
+    mysql_result = await try_mysql_dimensions_by_metrics(metrics, principal_service)
+    if mysql_result is not None:
+        return mysql_result
 
     config = await build_metric_config(principal_service)
 
