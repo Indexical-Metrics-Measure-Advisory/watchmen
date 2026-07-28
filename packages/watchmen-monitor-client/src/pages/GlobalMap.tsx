@@ -361,7 +361,11 @@ const GlobalMap: React.FC = () => {
   const events = React.useMemo(() => eventsQ.data?.data ?? [], [eventsQ.data]);
   const topics = React.useMemo(() => topicsQ.data ?? [], [topicsQ.data]);
   const pipelineErrorLogs = React.useMemo(() => pipelineErrorLogsQ.data?.data ?? [], [pipelineErrorLogsQ.data]);
-  const dataSources = React.useMemo(() => dataSourcesQ.data ?? [], [dataSourcesQ.data]);
+  // Only source databases (param isSource=true) are shown on the data flow page.
+  const dataSources = React.useMemo(
+    () => (dataSourcesQ.data ?? []).filter(isSourceDataSource),
+    [dataSourcesQ.data],
+  );
   const eventCount = eventsQ.data?.itemCount ?? events.length;
   const topicCount = topics.length;
   const errorLogCount = pipelineErrorLogsQ.data?.itemCount ?? 0;
