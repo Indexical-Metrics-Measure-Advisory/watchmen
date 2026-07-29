@@ -9,6 +9,8 @@ from watchmen_model.admin import Factor, Pipeline, Topic
 from .metric_lineage_assembler import MetricLineageAssembler
 from .metric_lineage_models import LineageEdgeKind, LineageNodeType, LineageStage, MetricLineageBranch, \
     MetricLineageViewData
+from .metric_lineage_pruner import DEFAULT_MAX_FIELDS_PER_TABLE, apply_fanout_limit, apply_max_nodes, \
+    apply_path_projection
 
 if TYPE_CHECKING:
     from .metric_lineage_resolver import MetricLineageResolver, UpstreamTraceRoute, UpstreamTraceStep
@@ -22,7 +24,20 @@ class MetricLineageService:
             resolver = MetricLineageResolver(principal_service)
         self.resolver = resolver
 
-    def get_metric_lineage(self, metric_name: str, tenant_id: str, include_diagnostics: bool = True) -> MetricLineageViewData:
+    def get_metric_lineage(
+            self, metric_name: str, tenant_id: str, include_diagnostics: bool = True,
+            path_id: Optional[str] = None, max_nodes: Optional[int] = None,
+            max_fields_per_table: int = DEFAULT_MAX_FIELDS_PER_TABLE
+    ) -> MetricLineageViewData:
+        view = self._assemble_lineage(metric_name, tenant_id, include_diagnostics)
+        view = apply_fanout_limit(view, max_fields_per_table)
+        view = apply_path_projection(view, path_id)
+        view = apply_max_nodes(view, max_nodes)
+        return view
+
+    def _assemble_lineage(
+            self, metric_name: str, tenant_id: str, include_diagnostics: bool = True
+    ) -> MetricLineageViewData:
         assembler = MetricLineageAssembler()
         metric = self.resolver.resolve_metric(metric_name, tenant_id)
         if metric is None:

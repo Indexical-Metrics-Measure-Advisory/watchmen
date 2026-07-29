@@ -16,7 +16,9 @@ for package_dir in PACKAGES_ROOT.iterdir():
     if src_dir.exists() and str(src_dir) not in sys.path:
         sys.path.insert(0, str(src_dir))
 
-from watchmen_metricflow.lineage.metric_lineage_models import MetricLineageBranch
+from watchmen_metricflow.lineage.metric_lineage_models import LineageEdge, LineageNode, LineagePath, MetricLineageBranch, \
+    MetricLineageSummary, MetricLineageViewData
+from watchmen_metricflow.lineage.metric_lineage_pruner import apply_fanout_limit
 from watchmen_metricflow.lineage.metric_lineage_service import MetricLineageService
 from watchmen_metricflow.model.metrics import MeasureReference, MetricRef, MetricType, MetricTypeParams, MetricWithCategory
 from watchmen_metricflow.model.semantic import AggregationType, Measure, NodeRelation, SemanticModel
@@ -200,6 +202,85 @@ def _build_pipeline(name: str = "claims_ingestion_pipeline", topic_id: str = "to
         enabled=True,
         validated=True,
         stages=[]
+    )
+
+
+def _build_two_branch_loss_ratio_service() -> MetricLineageService:
+    """Ratio metric with a partial numerator branch and a complete denominator branch."""
+    metric = _build_metric(
+        name="loss_ratio",
+        metric_type=MetricType.RATIO,
+        type_params=MetricTypeParams(
+            numerator=MeasureReference(name="paid_amount"),
+            denominator=MeasureReference(name="earned_premium")
+        )
+    )
+    numerator_branch = MetricLineageBranch(
+        id="primary-numerator",
+        title="Numerator lineage",
+        branchType="numerator",
+        measureName="paid_amount",
+        isPrimaryCandidate=True
+    )
+    denominator_branch = MetricLineageBranch(
+        id="primary-denominator",
+        title="Denominator lineage",
+        branchType="denominator",
+        measureName="earned_premium"
+    )
+    numerator_semantic = _build_semantic_model(
+        name="claims_finance",
+        measure_name="paid_amount",
+        expr="paid_amount",
+        topic_id=None,
+        relation_name="finance.claims_paid"
+    )
+    denominator_semantic = _build_semantic_model(
+        name="premium_finance",
+        measure_name="earned_premium",
+        expr="earned_premium",
+        topic_id="topic-premium",
+        relation_name="finance.earned_premium"
+    )
+    denominator_topic = _build_topic(
+        name="premium_topic",
+        topic_id="topic-premium",
+        factor_name="earned_premium"
+    )
+    denominator_factor = denominator_topic.factors[0]
+    denominator_pipeline = _build_pipeline(
+        name="premium_pipeline",
+        topic_id="topic-premium"
+    )
+
+    return MetricLineageService(
+        _FakePrincipal(),
+        resolver=_FakeResolver(
+            metric,
+            branches=[numerator_branch, denominator_branch],
+            semantic_results={
+                numerator_branch.id: (numerator_semantic, numerator_semantic.measures[0], []),
+                denominator_branch.id: (denominator_semantic, denominator_semantic.measures[0], [])
+            },
+            topics={
+                "claims_finance": None,
+                "premium_finance": denominator_topic
+            },
+            factors={
+                "paid_amount": None,
+                "earned_premium": denominator_factor
+            },
+            pipelines={
+                "premium_topic": [denominator_pipeline]
+            },
+            pipeline_matches={
+                "premium_topic": ([denominator_pipeline], [])
+            },
+            sources={
+                "paid_amount": (None, None),
+                "earned_premium": ("finance.earned_premium", "earned_premium")
+            }
+        )
     )
 
 
@@ -480,6 +561,107 @@ class MetricLineageFlowTest(unittest.TestCase):
             ],
             result.paths[0].nodeIds
         )
+
+
+class MetricLineagePrunerTest(unittest.TestCase):
+    @staticmethod
+    def _build_fanout_view(field_count: int = 25) -> MetricLineageViewData:
+        nodes = [
+            LineageNode(id="metric-m", stage="metric", type="metric", name="m"),
+            LineageNode(id="source-table-t", stage="source", type="source_table", name="t")
+        ]
+        edges = []
+        for index in range(field_count):
+            field_id = f"source-field-t-f{index:02d}"
+            nodes.append(LineageNode(id=field_id, stage="source", type="source_field", name=f"f{index:02d}"))
+            edges.append(LineageEdge(
+                id=f"e{index}", **{"from": "source-table-t"}, to=field_id, kind="maps_to", pathId="path-1"
+            ))
+        paths = [LineagePath(
+            id="path-1",
+            title="Primary path",
+            nodeIds=["metric-m", "source-table-t", "source-field-t-f07"],
+            isPrimary=True
+        )]
+        return MetricLineageViewData(
+            metricName="m",
+            status="resolved",
+            summary=MetricLineageSummary(),
+            nodes=nodes,
+            edges=edges,
+            paths=paths
+        )
+
+    def test_fanout_limit_keeps_primary_path_field_and_counts_hidden(self):
+        view = self._build_fanout_view(25)
+
+        result = apply_fanout_limit(view, 20)
+
+        field_node_ids = {node.id for node in result.nodes if node.type == "source_field"}
+        self.assertEqual(20, len(field_node_ids))
+        self.assertIn("source-field-t-f07", field_node_ids)
+        table_node = next(node for node in result.nodes if node.id == "source-table-t")
+        self.assertEqual(5, table_node.metadata["hiddenFieldCount"])
+        self.assertEqual(20, len(result.edges))
+        self.assertEqual(
+            ["metric-m", "source-table-t", "source-field-t-f07"],
+            result.paths[0].nodeIds
+        )
+
+    def test_fanout_limit_leaves_small_fanout_untouched(self):
+        view = self._build_fanout_view(3)
+
+        result = apply_fanout_limit(view, 20)
+
+        self.assertIs(result, view)
+
+
+class MetricLineageOnDemandTest(unittest.TestCase):
+    def test_default_request_returns_primary_path_and_summaries(self):
+        service = _build_two_branch_loss_ratio_service()
+
+        result = service.get_metric_lineage("loss_ratio", "t-test")
+
+        self.assertEqual(["path-primary-denominator"], [path.id for path in result.paths])
+        self.assertIsNotNone(result.pathSummaries)
+        self.assertEqual(["path-primary-numerator"], [summary.id for summary in result.pathSummaries])
+        self.assertEqual(3, result.pathSummaries[0].nodeCount)
+        node_ids = {node.id for node in result.nodes}
+        self.assertIn("source-field-finance.earned_premium-earned_premium", node_ids)
+        self.assertNotIn("semantic-claims_finance", node_ids)
+        self.assertFalse(result.truncated)
+
+    def test_path_id_request_returns_requested_path_detail(self):
+        service = _build_two_branch_loss_ratio_service()
+
+        result = service.get_metric_lineage("loss_ratio", "t-test", path_id="path-primary-numerator")
+
+        self.assertEqual(
+            ["path-primary-denominator", "path-primary-numerator"],
+            sorted(path.id for path in result.paths)
+        )
+        self.assertIsNone(result.pathSummaries)
+        node_ids = {node.id for node in result.nodes}
+        self.assertIn("semantic-claims_finance", node_ids)
+        self.assertIn("semantic-measure-claims_finance-paid_amount", node_ids)
+        numerator_path = next(path for path in result.paths if path.id == "path-primary-numerator")
+        self.assertEqual(3, len(numerator_path.nodeIds))
+
+    def test_max_nodes_truncates_but_keeps_primary_path(self):
+        service = _build_two_branch_loss_ratio_service()
+
+        result = service.get_metric_lineage("loss_ratio", "t-test", path_id="path-primary-numerator", max_nodes=6)
+
+        self.assertTrue(result.truncated)
+        self.assertEqual(10, result.totalNodeCount)
+        primary_path = next(path for path in result.paths if path.isPrimary)
+        self.assertEqual("path-primary-denominator", primary_path.id)
+        node_ids = {node.id for node in result.nodes}
+        self.assertEqual(set(primary_path.nodeIds), node_ids)
+        self.assertIn("source-field-finance.earned_premium-earned_premium", node_ids)
+        self.assertNotIn("semantic-claims_finance", node_ids)
+        numerator_path = next(path for path in result.paths if path.id == "path-primary-numerator")
+        self.assertEqual(["metric-loss_ratio"], numerator_path.nodeIds)
 
 
 if __name__ == "__main__":

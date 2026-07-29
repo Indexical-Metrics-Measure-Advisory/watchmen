@@ -70,6 +70,15 @@ class LineagePath(BaseModel):
     isPrimary: Optional[bool] = None
 
 
+class LineagePathSummary(BaseModel):
+    model_config = ConfigDict(use_enum_values=True)
+
+    id: str
+    title: str
+    nodeCount: int = 0
+    isPrimary: Optional[bool] = None
+
+
 class LineageRoute(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
@@ -125,10 +134,13 @@ class MetricLineageViewData(BaseModel):
     nodes: List[LineageNode]
     edges: List[LineageEdge]
     paths: List[LineagePath]
+    pathSummaries: Optional[List[LineagePathSummary]] = None
     routes: Optional[List[LineageRoute]] = None
     groups: Optional[List[LineageGroup]] = None
     roots: Optional[List[LineageRoot]] = None
     diagnostics: Optional[List[str]] = None
+    truncated: bool = False
+    totalNodeCount: Optional[int] = None
 
 
 class MetricLineageBranch(BaseModel):

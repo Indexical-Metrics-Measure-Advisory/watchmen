@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends
 
 from watchmen_auth import PrincipalService
@@ -15,6 +17,8 @@ router = APIRouter()
 async def get_metric_lineage(
         metric: str,
         includeDiagnostics: bool = True,
+        pathId: Optional[str] = None,
+        maxNodes: Optional[int] = None,
         principal_service: PrincipalService = Depends(get_console_principal)
 ) -> MetricLineageViewData:
     if is_blank(metric):
@@ -22,4 +26,5 @@ async def get_metric_lineage(
 
     service = MetricLineageService(principal_service)
     return service.get_metric_lineage(metric_name=metric, tenant_id=principal_service.get_tenant_id(),
-                                      include_diagnostics=includeDiagnostics)
+                                      include_diagnostics=includeDiagnostics, path_id=pathId,
+                                      max_nodes=maxNodes if maxNodes is not None and maxNodes > 0 else None)

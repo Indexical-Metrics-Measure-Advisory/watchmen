@@ -14,7 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type {
-  MetricLineageViewData, LineageNode, LineageEdge, LineagePath,
+  MetricLineageViewData, LineageNode, LineageEdge,
 } from '@/model/metricLineage';
 import {
   getMetricLineage,
@@ -28,11 +28,41 @@ import {
   Layers3,
   Route,
   Search,
+  TriangleAlert,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getRecentMetricsStorageKey, buildStageMeta, buildStatusMeta, getNodeIcon, getEdgeKindLabel } from '@/utils/lineageHelpers';
 import { useRecentMetrics } from '@/hooks/useRecentMetrics';
 import MetricLineageGraph from '@/components/lineage/MetricLineageGraph';
+
+/** Merge a lazily loaded path detail response into the current lineage view. */
+const mergePathDetail = (
+  current: MetricLineageViewData,
+  detail: MetricLineageViewData
+): MetricLineageViewData => {
+  if (current.metricName !== detail.metricName) {
+    return current;
+  }
+  const nodeMap = new Map(current.nodes.map(node => [node.id, node]));
+  detail.nodes.forEach(node => nodeMap.set(node.id, node));
+  const edgeMap = new Map(current.edges.map(edge => [edge.id, edge]));
+  detail.edges.forEach(edge => edgeMap.set(edge.id, edge));
+  const detailPathIds = new Set(detail.paths.map(path => path.id));
+  const paths = [
+    ...current.paths.filter(path => !detailPathIds.has(path.id)),
+    ...detail.paths,
+  ];
+  const pathSummaries = (current.pathSummaries || []).filter(summary => !detailPathIds.has(summary.id));
+  return {
+    ...current,
+    nodes: Array.from(nodeMap.values()),
+    edges: Array.from(edgeMap.values()),
+    paths,
+    pathSummaries: pathSummaries.length > 0 ? pathSummaries : undefined,
+    truncated: current.truncated || detail.truncated,
+    totalNodeCount: detail.totalNodeCount ?? current.totalNodeCount,
+  };
+};
 
 const MetricLineagePage: React.FC = () => {
   const { collapsed } = useSidebar();
@@ -46,6 +76,7 @@ const MetricLineagePage: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
   const [selectedNodeId, setSelectedNodeId] = React.useState<string | null>(null);
   const [selectedPathId, setSelectedPathId] = React.useState<string | null>(null);
+  const [pathLoadingId, setPathLoadingId] = React.useState<string | null>(null);
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
   const recentMetricsStorageKey = React.useMemo(() => getRecentMetricsStorageKey(user?.tenantId), [user?.tenantId]);
   const { recentMetrics, addRecentMetric } = useRecentMetrics(recentMetricsStorageKey);
@@ -129,10 +160,36 @@ const MetricLineagePage: React.FC = () => {
     [data?.nodes]
   );
 
-  const selectPath = React.useCallback((path: LineagePath) => {
-    setSelectedPathId(path.id);
-    setSelectedNodeId(path.nodeIds[0] || null);
-  }, []);
+  const selectPath = React.useCallback((pathId: string) => {
+    const loadedPath = data?.paths.find(path => path.id === pathId);
+    if (loadedPath) {
+      setSelectedPathId(loadedPath.id);
+      setSelectedNodeId(loadedPath.nodeIds[0] || null);
+      return;
+    }
+    // Path is only a summary so far: fetch its detail on demand and merge it in.
+    const summary = data?.pathSummaries?.find(item => item.id === pathId);
+    if (!data || !summary || pathLoadingId) {
+      return;
+    }
+    setPathLoadingId(pathId);
+    getMetricLineage(data.metricName, pathId)
+      .then(detail => {
+        setData(current => (current ? mergePathDetail(current, detail) : current));
+        setSelectedPathId(pathId);
+        const detailPath = detail.paths.find(path => path.id === pathId);
+        setSelectedNodeId(detailPath?.nodeIds[0] || null);
+      })
+      .catch(error => {
+        console.error('Failed to load lineage path detail:', error);
+        toast({
+          title: t('toast.failedTitle'),
+          description: t('toast.failedDescription'),
+          variant: 'destructive',
+        });
+      })
+      .finally(() => setPathLoadingId(null));
+  }, [data, pathLoadingId, t, toast]);
 
   const selectNodeAndSyncPath = React.useCallback((nodeId: string) => {
     setSelectedNodeId(nodeId);
@@ -303,6 +360,17 @@ const MetricLineagePage: React.FC = () => {
             <p className="text-sm text-muted-foreground">{summaryLine}</p>
           )}
 
+          {/* Truncation notice when the backend applied the maxNodes fallback */}
+          {data?.truncated && (
+            <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/70 p-3 text-sm text-amber-900">
+              <TriangleAlert className="h-4 w-4" />
+              {t('truncatedNotice', {
+                shown: data.nodes.length,
+                total: data.totalNodeCount ?? data.nodes.length,
+              })}
+            </div>
+          )}
+
           {/* Lineage flow graph + inspector */}
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <MetricLineageGraph
@@ -310,6 +378,7 @@ const MetricLineagePage: React.FC = () => {
               loading={loading}
               activePathId={activePath?.id || null}
               selectedNodeId={selectedNodeId}
+              pathLoadingId={pathLoadingId}
               diagnostics={data?.diagnostics || []}
               onSelectNode={selectNodeAndSyncPath}
               onSelectPath={selectPath}

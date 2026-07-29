@@ -37,6 +37,13 @@ export interface LineagePath {
   isPrimary?: boolean;
 }
 
+export interface LineagePathSummary {
+  id: string;
+  title: string;
+  nodeCount: number;
+  isPrimary?: boolean;
+}
+
 export interface LineageRoute {
   id: string;
   title: string;
@@ -82,8 +89,11 @@ export interface MetricLineageViewData {
   nodes: LineageNode[];
   edges: LineageEdge[];
   paths: LineagePath[];
+  pathSummaries?: LineagePathSummary[];
   routes?: LineageRoute[];
   groups?: LineageGroup[];
   roots?: LineageRoot[];
   diagnostics?: string[];
+  truncated?: boolean;
+  totalNodeCount?: number;
 }

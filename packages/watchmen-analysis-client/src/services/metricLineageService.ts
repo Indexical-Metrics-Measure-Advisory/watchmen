@@ -87,7 +87,135 @@ const normalizeMetricLineageViewData = (data: MetricLineageViewData): MetricLine
   };
 };
 
+const buildWideFanoutMock = (): MetricLineageViewData => {
+  const tableId = 'source-table-ods_claim.claim_wide';
+  const pathId = 'path-primary';
+  const fieldNodes = Array.from({ length: 20 }, (_, index) => {
+    const fieldName = `claim_attr_${String(index + 1).padStart(2, '0')}`;
+    return {
+      id: `source-field-claim-wide-${fieldName}`,
+      stage: 'source' as const,
+      type: 'source_field' as const,
+      name: fieldName,
+      label: fieldName,
+      badge: 'field',
+      metadata: { dataType: 'varchar' },
+    };
+  });
+  const baseNodeIds = [
+    'metric-wide_claim_table',
+    'semantic-claims-wide-model',
+    'semantic-measure-claim-wide-count',
+    'topic-claims-wide',
+    'topic-factor-claim-wide-id',
+    'pipeline-claims-wide-ingestion',
+    tableId,
+  ];
+  return {
+    metricName: 'wide_claim_table',
+    status: 'resolved',
+    summary: {
+      metricType: 'simple',
+      semanticModelCount: 1,
+      topicCount: 1,
+      pipelineCount: 1,
+      sourceFieldCount: 20,
+      sourceTableCount: 1,
+    },
+    nodes: [
+      {
+        id: 'metric-wide_claim_table',
+        stage: 'metric',
+        type: 'metric',
+        name: 'wide_claim_table',
+        label: 'Wide Claim Table',
+        badge: 'simple',
+        description: 'Mock metric backed by a wide source table to demonstrate fan-out pruning.',
+      },
+      {
+        id: 'semantic-claims-wide-model',
+        stage: 'semantic',
+        type: 'semantic_model',
+        name: 'claims_wide_model',
+        label: 'Claims Wide Model',
+        badge: 'semantic model',
+      },
+      {
+        id: 'semantic-measure-claim-wide-count',
+        stage: 'semantic',
+        type: 'semantic_measure',
+        name: 'claim_wide_count',
+        label: 'Claim Wide Count',
+        badge: 'measure',
+      },
+      {
+        id: 'topic-claims-wide',
+        stage: 'topic',
+        type: 'topic',
+        name: 'claims_wide_topic',
+        label: 'Claims Wide Topic',
+        badge: 'topic',
+      },
+      {
+        id: 'topic-factor-claim-wide-id',
+        stage: 'topic',
+        type: 'topic_factor',
+        name: 'claim_wide_id',
+        label: 'Claim Wide Id',
+        badge: 'factor',
+      },
+      {
+        id: 'pipeline-claims-wide-ingestion',
+        stage: 'pipeline',
+        type: 'pipeline',
+        name: 'claims_wide_ingestion',
+        label: 'Claims Wide Ingestion',
+        badge: 'batch',
+      },
+      {
+        id: tableId,
+        stage: 'source',
+        type: 'source_table',
+        name: 'ods_claim.claim_wide',
+        label: 'claim_wide',
+        badge: 'table',
+        description: 'Wide source table; the backend pruned 5 fields beyond the fan-out limit.',
+        metadata: { database: 'ods_claim', hiddenFieldCount: 5 },
+      },
+      ...fieldNodes,
+    ],
+    edges: [
+      { id: 'e1', from: 'metric-wide_claim_table', to: 'semantic-claims-wide-model', kind: 'defines', pathId },
+      { id: 'e2', from: 'semantic-claims-wide-model', to: 'semantic-measure-claim-wide-count', kind: 'defines', pathId },
+      { id: 'e3', from: 'semantic-measure-claim-wide-count', to: 'topic-claims-wide', kind: 'maps_to', pathId },
+      { id: 'e4', from: 'topic-claims-wide', to: 'topic-factor-claim-wide-id', kind: 'maps_to', pathId },
+      { id: 'e5', from: 'topic-factor-claim-wide-id', to: 'pipeline-claims-wide-ingestion', kind: 'reads_from', pathId },
+      { id: 'e6', from: 'pipeline-claims-wide-ingestion', to: tableId, kind: 'produces', pathId },
+      ...fieldNodes.map((fieldNode, index) => ({
+        id: `e-field-${index}`,
+        from: tableId,
+        to: fieldNode.id,
+        kind: 'maps_to' as const,
+        pathId,
+      })),
+    ],
+    paths: [
+      {
+        id: pathId,
+        title: 'Primary lineage path',
+        nodeIds: [...baseNodeIds, fieldNodes[0].id],
+        isPrimary: true,
+      },
+    ],
+    diagnostics: [
+      'Resolved end-to-end using mock data.',
+      'Fan-out limit applied: 20 of 25 source fields returned, table node carries hiddenFieldCount=5.',
+    ],
+  };
+};
+
 const mockLineageMap: Record<string, MetricLineageViewData> = {
+  wide_claim_table: buildWideFanoutMock(),
   total_claim_cases: {
     metricName: 'total_claim_cases',
     status: 'resolved',
@@ -663,8 +791,12 @@ const getMetricLineageMock = async (metricName: string): Promise<MetricLineageVi
   });
 };
 
-const getMetricLineageFromApi = async (metricName: string): Promise<MetricLineageViewData> => {
-  const response = await fetch(`${LINEAGE_BASE_URL}?metric=${encodeURIComponent(metricName)}`, {
+const getMetricLineageFromApi = async (metricName: string, pathId?: string): Promise<MetricLineageViewData> => {
+  const params = new URLSearchParams({ metric: metricName });
+  if (pathId) {
+    params.set('pathId', pathId);
+  }
+  const response = await fetch(`${LINEAGE_BASE_URL}?${params.toString()}`, {
     method: 'GET',
     headers: getDefaultHeaders(),
   });
@@ -678,10 +810,10 @@ type MetricLineageDataSource = 'api' | 'mock';
 class MetricLineageService {
   constructor(private readonly dataSource: MetricLineageDataSource = 'api') {}
 
-  async getLineage(metricName: string): Promise<MetricLineageViewData> {
+  async getLineage(metricName: string, pathId?: string): Promise<MetricLineageViewData> {
     switch (this.dataSource) {
       case 'api':
-        return await getMetricLineageFromApi(metricName);
+        return await getMetricLineageFromApi(metricName, pathId);
       case 'mock':
       default:
         return getMetricLineageMock(metricName);
@@ -706,8 +838,8 @@ class MetricLineageService {
 
 export const metricLineageService = new MetricLineageService();
 
-export const getMetricLineage = async (metricName: string): Promise<MetricLineageViewData> => (
-  metricLineageService.getLineage(metricName)
+export const getMetricLineage = async (metricName: string, pathId?: string): Promise<MetricLineageViewData> => (
+  metricLineageService.getLineage(metricName, pathId)
 );
 
 export const getMetricLineageSuggestions = async (): Promise<string[]> => metricLineageService.getSuggestions();
