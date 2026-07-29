@@ -1,0 +1,1 @@
+from .semantic_pipeline_service import create_semantic_pipeline

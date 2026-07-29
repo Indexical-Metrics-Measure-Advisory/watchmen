@@ -1,0 +1,4 @@
+
+
+class MissingModelConfigException(Exception):
+	pass

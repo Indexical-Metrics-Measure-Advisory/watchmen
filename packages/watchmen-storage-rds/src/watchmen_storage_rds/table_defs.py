@@ -478,6 +478,37 @@ table_change_data_json_history = Table(
 	create_int('module_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
+table_collector_semantic_pipelines = Table(
+	'collector_semantic_pipelines', meta_data,
+	create_pk('pipeline_id'),
+	create_tuple_id_column('topic_id', False),
+	create_str('name', 50, False),
+	create_json('actions'),
+	create_json('sources'),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+table_collector_batch_table_config = Table(
+	'collector_batch_table_config', meta_data,
+	create_pk('config_id'),
+	create_str('source_table_name', 100), create_str('target_table_name', 100),
+	create_json('fields_mapping'),
+	create_json('primary_key'),
+	create_str('action_type', 100),
+	create_tuple_id_column('pipeline_id', False), create_str('loop_entity_name', 100),
+	create_str('name', 100, False),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+table_collector_batch_config_log = Table(
+	'collector_batch_config_log', meta_data,
+	create_pk('log_id'),
+	create_tuple_id_column('tran_id', False),
+	create_int('status'),
+	create_json('action'),
+	create_json('error'),
+	create_tuple_id_column('pipeline_id', False), create_tuple_id_column('action_id', True),
+	create_str('name', 100, False),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
 table_operations = Table(
 	'operations', meta_data,
 	create_pk('record_id'), create_str('operation_type', 20),
@@ -841,8 +872,6 @@ tables: Dict[str, Table] = {
 	'competitive_lock': table_competitive_lock,
 	'scheduled_task': table_scheduled_task,
 	'scheduled_task_history': table_scheduled_task_history,
-	'action_types': table_action_types,
-	'suggested_actions': table_suggested_actions,
 	'operations': table_operations,
 	'package_versions': table_package_versions,
 	# webhook
@@ -862,6 +891,10 @@ tables: Dict[str, Table] = {
 	'change_data_record_history': table_change_data_record_history,
 	'change_data_json': table_change_data_json,
 	'change_data_json_history': table_change_data_json_history,
+	'collector_semantic_pipelines': table_collector_semantic_pipelines,
+	'collector_batch_table_config': table_collector_batch_table_config,
+	'collector_batch_config_log': table_collector_batch_config_log,
+	
 	"business_challenges": table_business_challenges,
 	"business_problems": table_business_problems,
 	"hypotheses": table_hypotheses,

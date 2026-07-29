@@ -9,7 +9,7 @@ from watchmen_model.common import DataModel
 from watchmen_utilities import ArrayHelper, ExtendedBaseModel
 
 
-class Condition(DataModel, ExtendedBaseModel):
+class Condition(ExtendedBaseModel):
 	pass
 
 

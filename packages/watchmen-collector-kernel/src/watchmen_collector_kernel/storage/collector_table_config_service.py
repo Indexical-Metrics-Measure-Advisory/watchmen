@@ -195,6 +195,34 @@ class CollectorTableConfigService(TupleService):
 			]
 		))
 
+	def find_configs_by_model_name(self, model_name: str, tenant_id: str) -> Optional[List[CollectorTableConfig]]:
+		try:
+			self.storage.connect()
+		
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='triggered'), right=True)
+				]
+			))
+		finally:
+			self.storage.close()
+	
+	def find_all_configs_by_model_name(self, model_name: str, tenant_id: str) -> Optional[List[CollectorTableConfig]]:
+		try:
+			self.storage.connect()
+			
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name)
+				]
+			))
+		finally:
+			self.storage.close()
 
 	def find_root_table_config(self, model_name: str, tenant_id: str) -> Optional[CollectorTableConfig]:
 		try:
@@ -239,7 +267,6 @@ class CollectorTableConfigService(TupleService):
 			return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
 		finally:
 			self.storage.close()
-
 
 
 def get_collector_table_config_service(storage: TransactionalStorageSPI,

@@ -1,0 +1,12 @@
+/.idea
+/venv
+*.pyc
+.DS_Store
+.env
+/src/dask-worker-space
+.icloud
+/src/temp
+*.log
+*.LOG
+*.LoG
+*.log.*

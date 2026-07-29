@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from watchmen_meta.common import TupleService, TupleShaper
-from watchmen_model.admin import Factor, Topic, TopicType
+from watchmen_model.admin import Factor, Topic, TopicType, TopicKind
 from watchmen_model.common import DataPage, FactorId, Pageable, TenantId, TopicId
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityDistinctValuesFinder, EntityRow, EntityShaper, \
@@ -167,3 +167,39 @@ class TopicService(TupleService):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria))
+
+	# noinspection DuplicatedCode
+	def find_topics_by_type(
+			self, topic_type: TopicType,
+			tenant_id: TenantId) -> List[Topic]:
+		
+		criteria = []
+		criteria.append(
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='type'), operator=EntityCriteriaOperator.EQUALS,
+				right=topic_type))
+		
+		criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
+	
+	# noinspection DuplicatedCode
+	def find_topics_by_type_and_kind(
+			self, topic_type: TopicType,
+			kind: TopicKind,
+			tenant_id: TenantId) -> List[Topic]:
+		
+		criteria = []
+		criteria.append(
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='type'), operator=EntityCriteriaOperator.EQUALS,
+				right=topic_type))
+		criteria.append(
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='kind'), operator=EntityCriteriaOperator.EQUALS,
+				right=kind))
+		criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
