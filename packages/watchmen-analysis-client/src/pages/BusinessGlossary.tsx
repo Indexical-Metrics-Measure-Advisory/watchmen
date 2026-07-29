@@ -555,11 +555,11 @@ function GlossaryForm({
     <div className="space-y-3 mt-2">
       <div>
         <label className="text-sm font-medium">Name *</label>
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. EAST" />
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. ACORD" />
       </div>
       <div>
         <label className="text-sm font-medium">Display Name</label>
-        <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="e.g. EAST 人身保险公司版" />
+        <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="e.g. ACORD Life Insurance" />
       </div>
       <div>
         <label className="text-sm font-medium">Description</label>
