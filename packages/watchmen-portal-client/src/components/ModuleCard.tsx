@@ -108,6 +108,8 @@ export function ModuleCard({ module, onEnter, health }: ModuleCardProps) {
             )}
             <a
               href={module.url}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => onEnter?.(module.id)}
               data-dom-id={`enter-${module.id}`}
               className={cn(
