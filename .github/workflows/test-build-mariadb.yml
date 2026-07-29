@@ -117,7 +117,7 @@ jobs:
           path: ./packages/watchmen-rest-doll/temp
       - name: Send email
         if: always()
-        uses: dawidd6/action-send-mail@v3.2.0
+        uses: dawidd6/action-send-mail@v17
         with:
           server_address: smtp.feishu.cn
           server_port: 465
