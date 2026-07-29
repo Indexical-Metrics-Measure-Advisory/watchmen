@@ -1085,10 +1085,10 @@ const Tables = () => {
       errors.sequenceKey = 'Sequence key can only contain letters, numbers and underscores';
     }
 
-    // Validate audit column format if provided
-    if (formData.auditColumn && !/^[a-zA-Z0-9_]+$/.test(formData.auditColumn)) {
-      errors.auditColumn = 'Audit column can only contain letters, numbers and underscores';
-    }
+    // // Validate audit column format if provided
+    // if (formData.auditColumn && !/^[a-zA-Z0-9_]+$/.test(formData.auditColumn)) {
+    //   errors.auditColumn = 'Audit column can only contain letters, numbers and underscores';
+    // }
 
     // Validate ignored columns format if provided
     if (formData.ignoredColumns && Array.isArray(formData.ignoredColumns) && formData.ignoredColumns.length > 0) {
