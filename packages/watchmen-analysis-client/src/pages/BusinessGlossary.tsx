@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Search, BookOpen, Tag, FolderTree, Hash, Plus, Trash2, Edit2, Save, X, ChevronRight, Globe, User } from "lucide-react";
+import { Search, BookOpen, FolderTree, Hash, Plus, Trash2, Edit2, Save, ChevronRight, Globe, User } from "lucide-react";
 import { useSidebar } from "@/contexts/SidebarContext";
 import Sidebar from "@/components/layout/Sidebar";
 
@@ -41,7 +41,7 @@ const BusinessGlossary: React.FC = () => {
   const [termQuery, setTermQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState<"glossary" | "category" | "term" | null>(null);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<Glossary | Category | Term | null>(null);
 
   // Load bundles on mount
   useEffect(() => {
@@ -56,8 +56,8 @@ const BusinessGlossary: React.FC = () => {
       if (data.length > 0 && !activeGlossaryId) {
         setActiveGlossaryId(data[0].glossary.id);
       }
-    } catch (err: any) {
-      toast.error(`Failed to load glossaries: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Failed to load glossaries: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -94,8 +94,8 @@ const BusinessGlossary: React.FC = () => {
       toast.success("Glossary created");
       setDialogOpen(false);
       loadBundles();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -106,8 +106,8 @@ const BusinessGlossary: React.FC = () => {
       setEditMode(null);
       setEditingItem(null);
       loadBundles();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -118,8 +118,8 @@ const BusinessGlossary: React.FC = () => {
       toast.success("Glossary deleted");
       if (activeGlossaryId === id) setActiveGlossaryId("");
       loadBundles();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -133,8 +133,8 @@ const BusinessGlossary: React.FC = () => {
       toast.success("Category created");
       setDialogOpen(false);
       loadBundles();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -146,8 +146,8 @@ const BusinessGlossary: React.FC = () => {
       setEditMode(null);
       setEditingItem(null);
       loadBundles();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -158,8 +158,8 @@ const BusinessGlossary: React.FC = () => {
       await businessGlossaryService.deleteCategory(activeGlossaryId, id);
       toast.success("Category deleted");
       loadBundles();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -173,8 +173,8 @@ const BusinessGlossary: React.FC = () => {
       toast.success("Term created");
       setDialogOpen(false);
       loadBundles();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -186,8 +186,8 @@ const BusinessGlossary: React.FC = () => {
       setEditMode(null);
       setEditingItem(null);
       loadBundles();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -198,8 +198,8 @@ const BusinessGlossary: React.FC = () => {
       await businessGlossaryService.deleteTerm(activeGlossaryId, id);
       toast.success("Term deleted");
       loadBundles();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -572,7 +572,7 @@ function GlossaryForm({
         </div>
         <div>
           <label className="text-sm font-medium">Status</label>
-          <select className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm" value={status} onChange={(e) => setStatus(e.target.value as any)}>
+          <select className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm" value={status} onChange={(e) => setStatus(e.target.value as GlossaryUpsert["status"])}>
             <option value="active">Active</option>
             <option value="draft">Draft</option>
             <option value="deprecated">Deprecated</option>
@@ -699,7 +699,7 @@ function TermForm({
         </div>
         <div>
           <label className="text-sm font-medium">Status</label>
-          <select className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm" value={status} onChange={(e) => setStatus(e.target.value as any)}>
+          <select className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm" value={status} onChange={(e) => setStatus(e.target.value as TermUpsert["status"])}>
             <option value="active">Active</option>
             <option value="draft">Draft</option>
             <option value="deprecated">Deprecated</option>

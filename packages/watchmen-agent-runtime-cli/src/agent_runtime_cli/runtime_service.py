@@ -64,19 +64,19 @@ class RuntimeService:
             params["pageNumber"] = page_number
         if page_size is not None:
             params["pageSize"] = page_size
-        return self.client.get_json("/metricflow/ontology/list", params=params or None)
+        return self.client.get_json("/ontology/list", params=params or None)
 
     def get_ontology(self, ontology_id: str) -> Dict[str, Any]:
-        return self.client.get_json("/metricflow/ontology/get", params={"ontologyId": ontology_id})
+        return self.client.get_json("/ontology/get", params={"ontologyId": ontology_id})
 
     def list_ontologies_agent_view(self) -> str:
-        return self.client.get_text("/metricflow/ontology/all/yaml/agent-view")
+        return self.client.get_text("/ontology/all/yaml/agent-view")
 
     def get_ontology_agent_view(self, name: str) -> str:
-        return self.client.get_text("/metricflow/ontology/name/yaml/agent-view", params={"name": name})
+        return self.client.get_text("/ontology/name/yaml/agent-view", params={"name": name})
 
     def query_ontology(self, ontology_id: str, request: Dict[str, Any]) -> Dict[str, Any]:
-        return self.client.post_json(f"/metricflow/ontology/{ontology_id}/query", payload=request)
+        return self.client.post_json(f"/ontology/{ontology_id}/query", payload=request)
 
     def compile_ontology_query(self, ontology_id: str, request: Dict[str, Any]) -> Dict[str, Any]:
-        return self.client.post_json(f"/metricflow/ontology/{ontology_id}/query/compile", payload=request)
+        return self.client.post_json(f"/ontology/{ontology_id}/query/compile", payload=request)
