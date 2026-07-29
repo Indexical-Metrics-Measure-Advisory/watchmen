@@ -46,7 +46,7 @@ const Layout: React.FC = () => {
   const { t } = useTranslation(['common', 'nav']);
   const { language, setLanguage } = useLocale();
   const { title, subtitle } = usePageTitle();
-  const [timeRange, setTimeRange] = React.useState<(typeof TIME_RANGES)[number]>('24h');
+  const [timeRange, setTimeRange] = React.useState<(typeof TIME_RANGES)[number]>('1h');
   const [globalSearch, setGlobalSearch] = React.useState('');
   const queryClient = useQueryClient();
   const { interval: refreshInterval, setInterval: setRefreshInterval } = useRefreshInterval();
