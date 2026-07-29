@@ -21,6 +21,21 @@ import { modelService } from '@/services/modelService';
 import { systemService } from '@/services/systemService';
 import { API_BASE_URL, checkResponse, getDefaultHeaders } from '@/utils/apiConfig';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
+
+/** Minimal representation of a data source record returned by the backend */
+interface DataSourceListItem {
+  dataSourceId?: string;
+  id?: string;
+  name?: string;
+  dataSourceCode?: string;
+}
+
+/** User record returned by /user/ids endpoint */
+interface UserRecord {
+  userId?: string;
+  name?: string;
+}
 
 // Helper components for complex data structures
 const ConditionEditor = ({ 
@@ -38,7 +53,7 @@ const ConditionEditor = ({
     }]);
   };
 
-  const updateCondition = (index: number, field: keyof Condition, value: any) => {
+  const updateCondition = (index: number, field: keyof Condition, value: Condition[keyof Condition]) => {
     const updated = [...conditions];
     updated[index] = { ...updated[index], [field]: value };
     onChange(updated);
@@ -178,7 +193,7 @@ const JsonColumnEditor = ({
     }]);
   };
 
-  const updateJsonColumn = (index: number, field: keyof JsonColumn, value: any) => {
+  const updateJsonColumn = (index: number, field: keyof JsonColumn, value: JsonColumn[keyof JsonColumn]) => {
     const updated = [...jsonColumns];
     updated[index] = { ...updated[index], [field]: value };
     onChange(updated);
@@ -281,13 +296,13 @@ const TableForm = ({
   setJoinKeysJson: (json: string) => void;
   modelNames: string[];
   tables: CollectorTableConfig[];
-  dataSources: any[];
+  dataSources: DataSourceListItem[];
   isEdit?: boolean;
   onSubmit: () => void;
   onCancel: () => void;
   loading: boolean;
   disableSubmit?: boolean;
-  t: (key: string, options?: any) => string;
+  t: TFunction;
 }) => {
   return (
     <div className="space-y-6">
@@ -627,7 +642,7 @@ const Tables = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Data sources for dropdown
-  const [dataSources, setDataSources] = useState<any[]>([]);
+  const [dataSources, setDataSources] = useState<DataSourceListItem[]>([]);
   const [dataSourcesLoading, setDataSourcesLoading] = useState<boolean>(false);
   const [dataSourcesError, setDataSourcesError] = useState<string | null>(null);
   const [isRuntimeEnv, setIsRuntimeEnv] = useState<boolean>(false);
@@ -656,7 +671,7 @@ const Tables = () => {
         body: JSON.stringify(ids)
       });
       if (!response.ok) return;
-      const users: any[] = await checkResponse(response);
+      const users: UserRecord[] = await checkResponse(response);
       const names: Record<string, string> = {};
       (users || []).forEach(user => {
         if (user.userId != null && user.name) {
