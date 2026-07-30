@@ -1,17 +1,15 @@
-from typing import Optional, List, Tuple
+from typing import Optional, List
 
 from watchmen_auth import PrincipalService
-from watchmen_collector_batch.model.batch_config_log import BatchConfigLog
-from watchmen_collector_batch.model.batch_table_config import BatchTableConfig, FieldsMapping
-from watchmen_collector_batch.model.semantic_pipeline import SemanticPipeline, SemanticFieldMapping, SemanticAction, \
-    SemanticSource
+from watchmen_collector_batch.model import BatchConfigLog, BatchTableConfig, FieldsMapping, SemanticPipeline, \
+    SemanticFieldMapping, SemanticAction, SemanticSource
 from watchmen_collector_batch.storage.batch_config_log_service import get_batch_config_log_service
 from watchmen_collector_kernel.model import CollectorTableConfig
 from watchmen_collector_kernel.storage import get_collector_table_config_service, get_collector_model_config_service
 from watchmen_data_kernel.meta import TopicService
-from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
+from watchmen_meta.common import ask_meta_storage
 from watchmen_model.admin import Topic
-from watchmen_storage import SnowflakeGenerator, EntityCriteriaExpression
+from watchmen_storage import SnowflakeGenerator
 
 
 def new_table_config_log(snowflake_generator: SnowflakeGenerator,
