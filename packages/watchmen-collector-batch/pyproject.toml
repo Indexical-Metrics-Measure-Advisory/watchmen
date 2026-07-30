@@ -1,13 +1,11 @@
 [tool.poetry]
-name = "watchmen-batch-writer"
+name = "watchmen-collector-batch"
 version = "18.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
-packages = [{ include = "watchmen_batch_writer", from = "src" }]
+packages = [{ include = "watchmen_collector_batch", from = "src" }]
 
-[tool.poetry.scripts]
-watchmen-batch-writer = "watchmen_batch_writer.app:main"
 
 [tool.poetry.dependencies]
 python = "~3.12"
