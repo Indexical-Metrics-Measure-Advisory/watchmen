@@ -18,6 +18,7 @@ from .model_config_service import get_model_config_service
 
 from .trigger_collector import get_trigger_module_action, get_trigger_model_action, get_model_configs_by_module, \
 	get_trigger_table_action, save_trigger_table, save_trigger_model, save_trigger_module
+from ..common import ask_trigger_event_schedule_start_time_back_time
 
 
 def trigger_event_by_default(trigger_event: TriggerEvent):
@@ -382,7 +383,7 @@ def trigger_event_by_schedule(trigger_event: TriggerEvent):
 	if not trigger_event.startTime:
 		last_event = trigger_event_service.find_last_finished_schedule_event_by_tenant_id(trigger_event.tenantId)
 		if last_event:
-			trigger_event.startTime = last_event.endTime
+			trigger_event.startTime = last_event.endTime - timedelta(seconds=ask_trigger_event_schedule_start_time_back_time())
 		else:
 			yesterday = date.today() - timedelta(days=1)
 			trigger_event.startTime = datetime(
