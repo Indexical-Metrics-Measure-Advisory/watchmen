@@ -9,7 +9,8 @@ from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, Trig
     Condition, Status, CollectorTableConfig
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, CriteriaBuilder, \
     build_audit_column_criteria, get_table_config_service, ask_source_extractor
-from watchmen_collector_kernel.service.extract_utils import cal_array2d_diff, build_data_id, get_data_id
+from watchmen_collector_kernel.service.extract_utils import cal_array2d_diff, build_data_id, get_data_id, \
+    build_audit_columns_criteria
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_trigger_table_service, get_competitive_lock_service, \
     get_collector_table_config_service, get_trigger_event_service, get_change_data_record_service
@@ -327,7 +328,19 @@ class TableExtractor:
         if table_config.auditColumn:
             start_time, end_time = self.get_time_window(trigger_event)
             if start_time and end_time:
-                criteria.extend(build_audit_column_criteria(table_config.auditColumn, start_time, end_time))
+                
+                audit_col_raw = table_config.auditColumn.strip()
+                audit_col_list = [c.strip() for c in audit_col_raw.split(",") if c.strip()]
+                
+                if len(audit_col_list) == 1:
+                    criteria.extend(build_audit_column_criteria(table_config.auditColumn, start_time, end_time))
+                elif len(audit_col_list) == 2:
+                    date_col, time_col = audit_col_list
+                    criteria.extend(build_audit_columns_criteria(date_col, time_col, start_time, end_time))
+                else:
+                    raise ValueError(
+                        f"Invalid auditColumn configuration：{table_config.auditColumn}")
+
                 variables["start_time"] = start_time
                 variables["end_time"] = end_time
 

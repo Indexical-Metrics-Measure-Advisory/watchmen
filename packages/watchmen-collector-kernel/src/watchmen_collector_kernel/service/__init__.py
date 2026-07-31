@@ -6,7 +6,7 @@ from .data_capture import DataCaptureService
 from .extract_source import SourceTableExtractor, ask_source_extractor
 from .task_service import get_task_service
 from .criteria_builder import CriteriaBuilder
-from .extract_utils import build_audit_column_criteria, cal_array2d_diff, build_data_id, get_data_id
+from .extract_utils import build_audit_column_criteria, cal_array2d_diff, build_data_id, get_data_id, build_audit_columns_criteria
 from .table_config_service import get_table_config_service
 from .model_config_service import get_model_config_service
 from .module_config_service import get_module_config_service
