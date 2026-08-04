@@ -66,6 +66,7 @@ const Analysis: React.FC = () => {
     return analysisData.analysis_metrics.map(metric => ({
       name: metric.name,
       category: metric.category,
+      format: metric.format,
       data: metric.dataset.dataset.data,
       columns: metric.dataset.dataset.column_names,
       dimensions: metric.dimensions

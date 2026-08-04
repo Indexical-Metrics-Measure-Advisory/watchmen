@@ -51,6 +51,7 @@ export interface AnalysisMetric {
   name: string;
   category: string;
   categoryId?: string;
+  format?: string;
   dataset: AnalysisDataset;
   dimensions: MetricDimension[]
 }

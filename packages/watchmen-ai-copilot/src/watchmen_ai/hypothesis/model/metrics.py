@@ -33,6 +33,7 @@ class MetricFlowMetric(ExtendedBaseModel):
     label: Optional[str] = None
     description: Optional[str] = None
     type: Optional[str] = None
+    format: Optional[str] = None
 
 
 
@@ -78,6 +79,7 @@ class MetricType(ExtendedBaseModel, UserBasedTuple, OptimisticLock, Auditable):
     value: Optional[float] = None
     valueReadable: Optional[str] = None
     unit: Optional[str] = None
+    format: Optional[str] = None
     change: Optional[float] = None
     changeReadable: Optional[str] = None
     status: Optional[MetricStatus] = None

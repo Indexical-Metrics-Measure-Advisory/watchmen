@@ -610,6 +610,8 @@ table_metrics = Table(
     create_str('filter', 1024),
     create_json('metadata'),
     create_str('label', 255),
+    create_str('format', 50),
+    create_str('unit', 50),
     create_json('config'),
     create_str('time_granularity', 50),
     create_str('validation_status', 50),

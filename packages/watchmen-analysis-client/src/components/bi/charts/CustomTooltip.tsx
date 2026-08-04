@@ -1,7 +1,8 @@
 import React from 'react';
 import type { TooltipProps } from './types';
+import { formatMetricValue } from '@/utils/metricValueFormat';
 
-export const CustomTooltip = React.memo(({ active, payload, label }: TooltipProps) => {
+export const CustomTooltip = React.memo(({ active, payload, label, format }: TooltipProps & { format?: string }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-popover border border-border px-3 py-2 rounded-lg shadow-lg text-xs outline-none z-50">
@@ -16,7 +17,7 @@ export const CustomTooltip = React.memo(({ active, payload, label }: TooltipProp
               <span className="text-muted-foreground">{entry.name}:</span>
               <span className="font-medium text-popover-foreground tabular-nums">
                 {typeof entry.value === 'number' 
-                  ? entry.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) 
+                  ? formatMetricValue(entry.value, format) 
                   : (entry.value ?? '-')}
               </span>
             </div>

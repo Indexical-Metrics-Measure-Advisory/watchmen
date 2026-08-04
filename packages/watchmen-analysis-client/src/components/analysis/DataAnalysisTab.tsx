@@ -12,6 +12,7 @@ import { DrillDownPanel } from './DrillDownPanel';
 interface MetricData {
   name: string;
   category: string;
+  format?: string;
   data: any[][];
   columns: string[];
   dimensions: MetricDimension[];
@@ -310,19 +311,33 @@ const DataAnalysisTab: React.FC<DataAnalysisTabProps> = ({ analysisMethod, metri
     return name.includes('rate') || name.includes('ratio') || name.includes('margin');
   };
 
+  // Resolve the display format of a metric: the format configured on the metric
+  // wins; the legacy name heuristics are only a fallback for analysis data that
+  // predates the format field.
+  const resolveMetricFormat = (metric: MetricData | undefined, name: string): string | undefined => {
+    return metric?.format ?? (isCurrencyMetric(name) ? 'currency' : isPercentageMetric(name) ? 'percentage' : undefined);
+  };
+
+  const formatByFormat = (value: number, format?: string, type: string = 'default') => {
+    if (format === 'currency') {
+      return formatNumber(value, 'currency');
+    }
+    if (format === 'percentage') {
+      return formatNumber(value / 100, 'percentage');
+    }
+    return formatNumber(value, type);
+  };
+
   // Custom tooltip formatter
   const customTooltipFormatter = (value: any, name: string, props: any) => {
     const metricName = props.payload?.metricName || name;
+    const metric = metricsData?.find(m => m.name === metricName);
     let formattedValue = value;
-    
-    if (isCurrencyMetric(metricName)) {
-      formattedValue = formatNumber(value, 'currency');
-    } else if (isPercentageMetric(metricName)) {
-      formattedValue = formatNumber(value / 100, 'percentage');
-    } else if (typeof value === 'number') {
-      formattedValue = formatNumber(value);
+
+    if (typeof value === 'number' || metric) {
+      formattedValue = formatByFormat(value, resolveMetricFormat(metric, metricName));
     }
-    
+
     return [formattedValue, name];
   };
 
@@ -449,11 +464,7 @@ const DataAnalysisTab: React.FC<DataAnalysisTabProps> = ({ analysisMethod, metri
               tick={{ fontSize: 10 }}
             />
             <YAxis 
-              tickFormatter={(value) => 
-                isCurrencyMetric(metric.name) ? formatNumber(value, 'currency') :
-                isPercentageMetric(metric.name) ? formatNumber(value / 100, 'percentage') :
-                formatNumber(value)
-              }
+              tickFormatter={(value) => formatByFormat(value, resolveMetricFormat(metric, metric.name))}
               fontSize={10}
               tick={{ fontSize: 10 }}
             />
@@ -493,11 +504,7 @@ const DataAnalysisTab: React.FC<DataAnalysisTabProps> = ({ analysisMethod, metri
             tick={{ fontSize: 10 }}
           />
           <YAxis 
-            tickFormatter={(value) => 
-              isCurrencyMetric(metric.name) ? formatNumber(value, 'currency') :
-              isPercentageMetric(metric.name) ? formatNumber(value / 100, 'percentage') :
-              formatNumber(value)
-            }
+            tickFormatter={(value) => formatByFormat(value, resolveMetricFormat(metric, metric.name))}
             fontSize={10}
             tick={{ fontSize: 10 }}
           />
@@ -547,9 +554,7 @@ const DataAnalysisTab: React.FC<DataAnalysisTabProps> = ({ analysisMethod, metri
           </Pie>
           <Tooltip 
             formatter={(value, name) => [
-              isCurrencyMetric(metric.name) ? formatNumber(Number(value), 'currency') :
-              isPercentageMetric(metric.name) ? formatNumber(Number(value) / 100, 'percentage') :
-              formatNumber(Number(value)),
+              formatByFormat(Number(value), resolveMetricFormat(metric, metric.name)),
               getDimensionDisplayName(currentMeasure)
             ]}
             contentStyle={{ 
@@ -638,9 +643,7 @@ const DataAnalysisTab: React.FC<DataAnalysisTabProps> = ({ analysisMethod, metri
                       {key}
                     </div>
                     <div className="text-sm font-semibold text-gray-900">
-                      {isCurrencyMetric(key) ? formatNumber(value.avg, 'currency') :
-                       isPercentageMetric(key) ? formatNumber(value.avg / 100, 'percentage') :
-                       formatNumber(value.avg, 'decimal')}
+                      {formatByFormat(value.avg, resolveMetricFormat(metric, key), 'decimal')}
                     </div>
                     <div className="text-xs text-gray-400">
                       Average

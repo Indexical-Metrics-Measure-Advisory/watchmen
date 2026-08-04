@@ -123,6 +123,10 @@ class Metric(ExtendedBaseModel, TenantBasedTuple, Auditable,OptimisticLock):
     filter: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
     label: Optional[str] = None
+    # display format of the metric value: number / currency / percentage
+    format: Optional[str] = None
+    # display unit of the metric value, free text (e.g. CNY, persons)
+    unit: Optional[str] = None
     config: Optional[MetricConfig] = None
     time_granularity: Optional[str] = None
 

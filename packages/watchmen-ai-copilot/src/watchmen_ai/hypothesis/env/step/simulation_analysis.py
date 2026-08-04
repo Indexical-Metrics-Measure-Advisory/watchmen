@@ -810,7 +810,7 @@ class SimulationAnalysisStep(SimulationStepInterface):
                 # print(f"Analyzing hypothesis: {hypothesis}")
                 hypothesis_with_metrics:HypothesisWithMetrics = hypothesis
                 for metric_detail in hypothesis_with_metrics.metrics_details:
-                    analysis_metric = AnalysisMetric(name=metric_detail.metric.name,category=metric_detail.metric.category)
+                    analysis_metric = AnalysisMetric(name=metric_detail.metric.name,category=metric_detail.metric.category,format=metric_detail.metric.format)
 
                     result_json =  get_metrics_value(metric_detail.metric.name,hypothesis_with_metrics.dimensions)
 

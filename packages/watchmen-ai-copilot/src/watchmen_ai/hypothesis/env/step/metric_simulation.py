@@ -65,7 +65,7 @@ class MetricSimulationStep(SimulationStepInterface):
             metric_detail = self.find_suitable_metric(match_result, context.all_metrics)
             # print("metric_detail", metric_detail)
             if metric_detail is not None:
-                metric_metric_result.append(MetricDetailType(metric=MetricType(name=metric_detail.name,  createAt=datetime.now().replace(tzinfo=None, microsecond=0),
+                metric_metric_result.append(MetricDetailType(metric=MetricType(name=metric_detail.name, format=metric_detail.format,  createAt=datetime.now().replace(tzinfo=None, microsecond=0),
                         lastModifiedAt=datetime.now().replace(tzinfo=None, microsecond=0))))
 
         hypothesis.metrics_details = metric_metric_result

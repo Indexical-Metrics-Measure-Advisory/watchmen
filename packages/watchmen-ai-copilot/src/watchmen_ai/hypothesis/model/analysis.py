@@ -124,6 +124,7 @@ def construct_metric_dimension(value):
 class AnalysisMetric(ExtendedBaseModel):
     name: Optional[str]
     category: Optional[str]
+    format: Optional[str] = None
     dataset: Optional[AnalysisDataset] = None
     dimensions: Optional[List[MetricDimension]] = None
 

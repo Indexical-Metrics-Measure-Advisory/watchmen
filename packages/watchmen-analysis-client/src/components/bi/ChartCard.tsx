@@ -23,6 +23,7 @@ import { DataTable } from './charts/DataTable';
 import { useChartAxis } from './charts/useChartAxis';
 import { KPIView, BarChartView, PieChartView, AreaChartView, LineChartView } from './charts/ChartViews';
 import { useRechartsModule } from './charts/RechartsContext';
+import { useMetricFormat } from './charts/useMetricFormat';
 
 export type { ChartDatum, ChartDatumValue } from './charts/types';
 export { DataTable } from './charts/DataTable';
@@ -58,11 +59,12 @@ type ChartInnerProps = {
   card: BIChartCard;
   data: ChartDatum[];
   sourceData?: MetricFlowResponse;
+  format?: string;
   alertStatus?: AlertStatus;
   onAcknowledge?: (alertId: string) => void;
 };
 
-const Chart = React.memo(({ lib, card, data, sourceData, alertStatus, onAcknowledge }: ChartInnerProps) => {
+const Chart = React.memo(({ lib, card, data, sourceData, format, alertStatus, onAcknowledge }: ChartInnerProps) => {
   const { type: chartType } = { type: card.chartType };
   
   const sampledData = useMemo(() => {
@@ -87,23 +89,23 @@ const Chart = React.memo(({ lib, card, data, sourceData, alertStatus, onAcknowle
   }
 
   if (chartType === 'kpi') {
-    return <KPIView data={sampledData} />;
+    return <KPIView data={sampledData} format={format} />;
   }
 
   if (['bar', 'groupedBar', 'stackedBar'].includes(chartType)) {
-    return <BarChartView lib={lib} data={sampledData} chartType={chartType} axisProps={axisProps} />;
+    return <BarChartView lib={lib} data={sampledData} chartType={chartType} axisProps={axisProps} format={format} />;
   }
 
   if (chartType === 'pie' && !axisProps.isTime) {
-    return <PieChartView lib={lib} data={sampledData} />;
+    return <PieChartView lib={lib} data={sampledData} format={format} />;
   }
 
   if (chartType === 'area') {
-    return <AreaChartView lib={lib} data={sampledData} axisProps={axisProps} />;
+    return <AreaChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} />;
   }
 
   // Default to line
-  return <LineChartView lib={lib} data={sampledData} axisProps={axisProps} />;
+  return <LineChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} />;
 });
 
 export const ChartCard = React.memo(({
@@ -124,6 +126,8 @@ export const ChartCard = React.memo(({
   const { t } = useTranslation('biAnalysis');
   const lib = useRechartsModule();
   const [activeTab, setActiveTab] = useState<string>("chart");
+  // display format configured on the metric (BIChartCard.metricId is the metric name)
+  const metricFormat = useMetricFormat(card.metricId);
   
   const dimensionsCount = card.selection?.dimensions?.length || 0;
   const isTooManyDimensions = dimensionsCount > 5;
@@ -311,6 +315,7 @@ export const ChartCard = React.memo(({
                   card={card} 
                   data={data} 
                   sourceData={sourceData}
+                  format={metricFormat}
                   alertStatus={alertStatus} 
                   onAcknowledge={onAcknowledge} 
                 />

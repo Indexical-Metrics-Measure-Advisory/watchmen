@@ -70,6 +70,7 @@ class MetricInfo(BaseModel):
     label: Optional[str] = Field(None, description="指标标签")
     description: Optional[str] = Field(None, description="指标描述")
     type: str = Field(..., description="指标类型")
+    format: Optional[str] = Field(None, description="指标数值展示格式: number / currency / percentage")
     
     # class Config:
     #     json_schema_extra = {

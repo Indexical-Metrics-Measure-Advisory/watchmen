@@ -73,10 +73,16 @@ async def list_metrics(principal_service: PrincipalService = Depends(get_admin_p
     """
     config = await build_metric_config(principal_service)
 
+    response = find_all_metrics(config)
 
+    # enrich with the display format configured on the meta metric (dbt metrics
+    # do not carry it), so downstream consumers can format values correctly
+    meta_metrics = await load_metrics_by_tenant_id(principal_service)
+    format_by_name = {metric.name: metric.format for metric in meta_metrics if metric.format}
+    for metric_info in response.metrics:
+        metric_info.format = format_by_name.get(metric_info.name)
 
-    # Placeholder for actual implementation
-    return find_all_metrics(config)
+    return response
 
 
 @router.get("/metricflow/dimensions_by_metric", tags =["mcp"],operation_id="find_dimensions_by_metric",response_model=DimensionListResponse)
