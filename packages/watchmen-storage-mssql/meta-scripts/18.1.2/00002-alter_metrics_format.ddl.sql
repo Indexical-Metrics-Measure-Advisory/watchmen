@@ -1,0 +1,1 @@
+ALTER TABLE metrics ADD format NVARCHAR(50);
