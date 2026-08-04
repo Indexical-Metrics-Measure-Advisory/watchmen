@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { Plus, Trash2, Database } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Plus, Trash2, Database, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,6 +20,7 @@ interface Props {
 	primaryFields: string[];
 	topicMap: Map<string, Topic>;
 	topicByName: Map<string, Topic>;
+	spaceSelected: boolean;
 	onUpdate: (voId: string, idx: number, patch: Partial<PhysicalTableMapping>) => void;
 	onRemove: (voId: string, idx: number) => void;
 	onAddJoinCondition: (voId: string, tableIdx: number) => void;
@@ -33,10 +35,11 @@ interface Props {
 }
 
 const PhysicalTableEditorImpl: React.FC<Props> = ({
-	voId, pt, ptIdx, primaryFields, topicMap, topicByName,
+	voId, pt, ptIdx, primaryFields, topicMap, topicByName, spaceSelected,
 	onUpdate, onRemove, onAddJoinCondition, onUpdateJoinCondition, onRemoveJoinCondition,
 	onAddFilter, onUpdateFilter, onRemoveFilter,
 }) => {
+	const { t } = useTranslation('ontology');
 	const isPrimary = pt.kind === 'primary';
 	// Fall back to the name lookup when topicId is missing/stale (e.g. YAML-imported data).
 	const topic = topicMap.get(pt.topicId) ?? topicByName.get(pt.topicName.toLowerCase());
@@ -88,8 +91,11 @@ const PhysicalTableEditorImpl: React.FC<Props> = ({
 				)}
 				<div className="flex-1 space-y-1">
 					{!topic && (
-						<div className="text-[10px] text-amber-600">
-							Topic "{pt.topicName}" not found in datamart topics; fields cannot be edited.
+						<div className="flex items-center gap-1 text-[10px] text-amber-600">
+							<AlertTriangle className="w-3 h-3 shrink-0" />
+							{spaceSelected
+								? t('topicOutsideSpace', { name: pt.topicName })
+								: `Topic "${pt.topicName}" not found in datamart topics; fields cannot be edited.`}
 						</div>
 					)}
 					{factorGroups.map(([groupName, items]) => (

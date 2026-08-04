@@ -3,6 +3,7 @@ import { Boxes, Link2, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { topicService, Topic } from '@/services/topicService';
+import { ontologyService } from '@/services/ontologyService';
 import { getAllDataSources, DataSource } from '@/services/dataSourceService';
 import { VirtualOntology } from '@/model/ontology';
 import { useOntologyDraft } from './VirtualOntologyEditor/useOntologyDraft';
@@ -42,6 +43,17 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 		topicService.getDatamartTopics().then(t => { topicsCache = t; setTopics(t); }).catch(() => setTopics([]));
 		getAllDataSources().then(d => { dataSourcesCache = d; setDataSources(d); }).catch(() => setDataSources([]));
 	}, [open]);
+
+	// When a space is bound, topic candidates come from that space instead of
+	// the datamart list; clearing the space falls back to the cached mart topics.
+	useEffect(() => {
+		if (!open) return;
+		if (draft.spaceId) {
+			ontologyService.fetchSpaceTopics(draft.spaceId).then(setTopics).catch(() => setTopics([]));
+		} else {
+			setTopics(topicsCache ?? []);
+		}
+	}, [open, draft.spaceId]);
 
 	const topicMap = useMemo(() => {
 		const map = new Map<string, Topic>();
@@ -90,7 +102,7 @@ export const VirtualOntologyEditorDialog: React.FC<Props> = ({ open, onOpenChang
 				</div>
 
 				<div className="flex-1 min-h-0 overflow-y-auto pr-2">
-					{activeTab === 'meta' && <MetaTab draft={draft} update={actions.update} />}
+					{activeTab === 'meta' && <MetaTab draft={draft} update={actions.update} setSpace={actions.setSpace} />}
 					{activeTab === 'objects' && (
 						<ObjectsTab api={api} topics={topics} dataSources={dataSources} topicMap={topicMap} topicByName={topicByName} />
 					)}

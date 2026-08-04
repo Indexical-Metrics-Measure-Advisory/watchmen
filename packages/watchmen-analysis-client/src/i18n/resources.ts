@@ -1277,6 +1277,17 @@ export const resources = {
 			compilationFailed: "Compilation failed",
 			queryFailed: "Query failed",
 		},
+		ontology: {
+			space: "Data Space",
+			spaceUnrestricted: "(no space restriction)",
+			spaceSwitchTitle: "Switch Data Space?",
+			spaceSwitchConfirm:
+				"There are {{count}} topic mapping(s) outside the new space; they will be marked as stale.",
+			spaceSwitchProceed: "Switch Anyway",
+			topicOutsideSpace: 'Topic "{{name}}" is not in the current space.',
+			filterBySpace: "Filter by space",
+			allSpaces: "All Spaces",
+		},
 	},
 	"zh-CN": {
 		common: {
@@ -2529,6 +2540,16 @@ export const resources = {
 			queryReturnedZeroRows: "查询返回 0 行",
 			compilationFailed: "编译失败",
 			queryFailed: "查询失败",
+		},
+		ontology: {
+			space: "数据空间",
+			spaceUnrestricted: "（不限制空间）",
+			spaceSwitchTitle: "切换数据空间？",
+			spaceSwitchConfirm: "存在 {{count}} 个不在新空间内的 topic 映射，将被标记为失效。",
+			spaceSwitchProceed: "仍然切换",
+			topicOutsideSpace: 'Topic "{{name}}" 不在当前空间内。',
+			filterBySpace: "按空间筛选",
+			allSpaces: "全部空间",
 		},
 	},
 } as const;

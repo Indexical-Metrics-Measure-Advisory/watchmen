@@ -112,10 +112,20 @@ export interface VirtualOntology {
 	technicalOwner: string;
 	tags: string[];
 	sensitivity: OntologySensitivity;
+	/** Data space this ontology is bound to; empty means unrestricted. */
+	spaceId?: string;
 	virtualObjects: VirtualObject[];
 	virtualLinks: VirtualLink[];
 	createdAt: string;
 	updatedAt: string;
+}
+
+/** A data space option offered to ontology editors, from GET /ontology/spaces/available. */
+export interface OntologySpaceOption {
+	spaceId: string;
+	name: string;
+	description?: string;
+	topicIds: string[];
 }
 
 // ============================================================================

@@ -1,7 +1,7 @@
-"""Ontology 查询使用的 RDS Engine Provider。
+"""RDS Engine Provider for ontology queries.
 
-复用 Watchmen 现有 DataSource 元数据和各 RDS storage 包的 DataSourceHelper，
-为 Ontology SQL 编译器提供裸 SQLAlchemy Engine。
+Reuses existing Watchmen DataSource metadata and RDS storage helper packages
+to provide a raw SQLAlchemy Engine for the ontology SQL compiler.
 """
 
 from typing import Dict, Optional
@@ -18,7 +18,7 @@ from watchmen_storage import TransactionalStorageSPI
 
 
 class OntologyRdsEngineProvider:
-	"""按 DataSourceType 分发到现有 RDS helper。"""
+	"""Dispatches to existing RDS helpers by DataSourceType."""
 
 	def __init__(
 			self,
@@ -26,8 +26,9 @@ class OntologyRdsEngineProvider:
 			storage: Optional[TransactionalStorageSPI] = None,
 	) -> None:
 		self.principal_service = principal_service
-		# 复用调用方（通常是 OntologyService）的 storage 实例，避免 ask_meta_storage()
-		# 每次返回新实例导致 connection/事务与外层 trans_readonly 不一致。
+		# Reuse the caller's (typically OntologyService) storage instance to avoid
+		# ask_meta_storage() returning a new instance each time, which would cause
+		# connection/transaction inconsistency with the outer trans_readonly.
 		self.data_source_service = DataSourceService(
 			storage or ask_meta_storage(), ask_snowflake_generator(), principal_service)
 		self._engines: Dict[DataSourceId, Engine] = {}

@@ -12,10 +12,8 @@ service (ask_meta_storage() creates a fresh storage instance per call, whose
 connection would otherwise stay None inside the outer transaction).
 """
 
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING
 
-from watchmen_meta.admin import SpaceService, TopicService
-from watchmen_meta.common import TupleService
 from watchmen_model.admin import FilterCondition, Space, Topic, VirtualOntology
 from watchmen_model.common import (
 	ConstantParameter, ParameterCondition, ParameterExpression, ParameterExpressionOperator,
@@ -23,6 +21,11 @@ from watchmen_model.common import (
 )
 from watchmen_rest.util import raise_400, raise_404
 from watchmen_utilities import is_blank, is_not_blank
+
+if TYPE_CHECKING:
+	# lazy: importing watchmen_meta at module level triggers a DB connection in
+	# meta settings (snowflake worker), which breaks DB-less unit tests
+	from watchmen_meta.common import TupleService
 
 
 # ParameterExpressionOperator -> FilterCondition operator
@@ -144,7 +147,9 @@ def build_filter_conditions_by_topic(
 class OntologySpaceScope:
 	"""Space-related operations for an ontology, sharing the primary service's storage."""
 
-	def __init__(self, primary_service: TupleService) -> None:
+	def __init__(self, primary_service: 'TupleService') -> None:
+		from watchmen_meta.admin import SpaceService, TopicService
+
 		self.principal_service = primary_service.principalService
 		self.space_service = SpaceService(
 			primary_service.storage, primary_service.snowflakeGenerator, primary_service.principalService)

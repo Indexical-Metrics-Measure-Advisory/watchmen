@@ -737,6 +737,7 @@ table_metric_categories = Table(
 table_virtual_ontologies = Table(
     'virtual_ontologies', meta_data,
     create_pk('ontology_id'),
+    create_str('space_id', 60),
     create_str('name', 128, False),
     create_str('description', 1024),
     create_str('owner', 128),

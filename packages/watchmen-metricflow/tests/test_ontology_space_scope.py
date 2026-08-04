@@ -21,7 +21,8 @@ from watchmen_metricflow.ontology.space_scope import (
     build_filter_conditions_by_topic,
     joint_to_filter_conditions,
 )
-from watchmen_model.admin import Factor, FactorType, Space, SpaceFilter, Topic
+from watchmen_model.admin import Factor, FactorType, Space, Topic
+from watchmen_model.admin.space import SpaceFilter
 from watchmen_model.common import (
     ConstantParameter,
     ParameterExpression,

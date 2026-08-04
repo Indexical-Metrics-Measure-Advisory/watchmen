@@ -3,7 +3,7 @@ from typing import List, Optional
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.admin import VirtualOntology, OntologySensitivity
-from watchmen_model.common import DataPage, Pageable, TenantId
+from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId
 from watchmen_storage import (
 	ColumnNameLiteral, EntityCriteriaExpression, EntityFinder, EntityRow,
 	EntityShaper, SnowflakeGenerator, TransactionalStorageSPI
@@ -25,6 +25,7 @@ class OntologyShaper(EntityShaper):
 			sensitivity_value = 'internal'
 		return TupleShaper.serialize_tenant_based(ontology, {
 			'ontology_id': ontology.ontologyId,
+			'space_id': ontology.spaceId,
 			'name': ontology.name,
 			'description': ontology.description,
 			'owner': ontology.owner,
@@ -40,6 +41,7 @@ class OntologyShaper(EntityShaper):
 		# noinspection PyTypeChecker
 		return TupleShaper.deserialize_tenant_based(row, VirtualOntology(
 			ontologyId=row.get('ontology_id'),
+			spaceId=row.get('space_id'),
 			name=row.get('name'),
 			description=row.get('description'),
 			owner=row.get('owner'),
@@ -98,13 +100,25 @@ class OntologyService(TupleService):
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria=criteria))
 
+	def find_by_space_id(self, space_id: SpaceId, tenant_id: TenantId) -> List[VirtualOntology]:
+		criteria = [
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='space_id'), right=space_id),
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
+		]
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
+
 	def find_page_by_text(
-		self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable
+		self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable,
+		space_id: Optional[SpaceId] = None
 	) -> DataPage:
 		criteria = []
 		if is_not_blank(text):
 			criteria.append(EntityCriteriaExpression(
 				left=ColumnNameLiteral(columnName='name'), operator='like', right=text))
+		if is_not_blank(space_id):
+			criteria.append(
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='space_id'), right=space_id))
 		if is_not_blank(tenant_id):
 			criteria.append(
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))

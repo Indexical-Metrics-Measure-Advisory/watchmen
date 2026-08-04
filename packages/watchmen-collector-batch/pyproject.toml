@@ -1,4 +1,4 @@
-[tool.poetry]
+7[tool.poetry]
 name = "watchmen-collector-batch"
 version = "18.0.0"
 description = ""

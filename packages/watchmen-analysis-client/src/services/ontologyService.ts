@@ -1,10 +1,11 @@
-import { Topic } from "./topicService";
+import { Topic, TopicFactor } from "./topicService";
 import {
 	VirtualOntology,
 	VirtualObject,
 	VirtualLink,
 	DerivedAttribute,
 	PhysicalTableMapping,
+	OntologySpaceOption,
 	virtualObjectColors,
 } from "@/model/ontology";
 import { API_BASE_URL, getDefaultHeaders, checkResponse } from "@/utils/apiConfig";
@@ -329,6 +330,7 @@ const normalizeOntology = (
 		technicalOwner: raw.technicalOwner ?? "",
 		tags: raw.tags ?? [],
 		sensitivity: (raw.sensitivity as VirtualOntology["sensitivity"]) ?? "internal",
+		spaceId: raw.spaceId,
 		virtualObjects,
 		virtualLinks: raw.virtualLinks ?? [],
 		createdAt: raw.createdAt ?? "",
@@ -345,9 +347,9 @@ const normalizeOntology = (
  * Falls back to local cache (if any) and finally to seed data when the API is unreachable.
  */
 export const ontologyService = {
-	async list(pageNumber = 1, pageSize = 200): Promise<VirtualOntology[]> {
+	async list(pageNumber = 1, pageSize = 200, spaceId?: string): Promise<VirtualOntology[]> {
 		try {
-			const page = await getJson<DataPage<VirtualOntology>>("/list", { pageNumber, pageSize });
+			const page = await getJson<DataPage<VirtualOntology>>("/list", { pageNumber, pageSize, spaceId });
 			const list = (page.data ?? []).map(normalizeOntology);
 			cacheOntologies(list);
 			return list;
@@ -383,6 +385,31 @@ export const ontologyService = {
 
 	async remove(id: string): Promise<void> {
 		await deleteJson("/delete", { ontologyId: id });
+	},
+
+	/** Load data spaces available for ontology binding. */
+	async fetchAvailableSpaces(): Promise<OntologySpaceOption[]> {
+		return getJson<OntologySpaceOption[]>("/spaces/available");
+	},
+
+	/**
+	 * Load topics of a space. When spaceId is empty the backend returns all
+	 * topics of the tenant. Response items are raw backend topics; they are
+	 * normalized into the simplified Topic shape used by the UI.
+	 */
+	async fetchSpaceTopics(spaceId?: string): Promise<Topic[]> {
+		const raw = await getJson<Array<Record<string, unknown>>>("/space/topics", { spaceId });
+		return (raw ?? []).map((t) => ({
+			id: String(t.topicId ?? t.id ?? ""),
+			name: String(t.name ?? ""),
+			description: String(t.description ?? ""),
+			type: String(t.type ?? ""),
+			kind: String(t.kind ?? ""),
+			classification: String(t.classification ?? ""),
+			createdAt: String(t.createdAt ?? ""),
+			lastModifiedAt: String(t.lastModifiedAt ?? ""),
+			factors: (t.factors as TopicFactor[]) ?? [],
+		}));
 	},
 };
 

@@ -36,6 +36,7 @@ export const ObjectsTab: React.FC<{
 					dataSources={dataSources}
 					topicMap={topicMap}
 					topicByName={topicByName}
+					spaceSelected={!!draft.spaceId}
 				/>
 			))}
 			<Button variant="outline" className="w-full gap-2" onClick={actions.addObject}>

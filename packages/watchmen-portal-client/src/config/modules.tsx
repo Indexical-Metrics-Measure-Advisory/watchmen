@@ -23,6 +23,8 @@ export interface PortalModule {
   url?: string;
   /** When set, only users whose role is included can see this module */
   requiredRoles?: string[];
+  /** When set, users whose role is included can never see this module (wins over requiredRoles) */
+  excludedRoles?: string[];
   lastAccessed?: string;
 }
 
@@ -47,12 +49,14 @@ export const portalModules: PortalModule[] = [
     icon: Database,
     status: 'available',
     url: '/ingest/',
+    excludedRoles: ['superadmin'],
   },
   {
     id: 'analysis',
     icon: BarChart3,
     status: 'available',
     url: '/analysis/',
+    excludedRoles: ['superadmin'],
   },
   {
     id: 'ops',
@@ -60,6 +64,7 @@ export const portalModules: PortalModule[] = [
     status: 'available',
     url: '/monitor/',
     requiredRoles: ['admin', 'superadmin'],
+    excludedRoles: ['superadmin'],
   },
   // {
   //   id: 'ai-perception',
@@ -74,6 +79,9 @@ export const portalModules: PortalModule[] = [
 
 /** Check if a user role has access to a module */
 export const hasModuleAccess = (role: string, module: PortalModule): boolean => {
+  if (module.excludedRoles && module.excludedRoles.includes(role)) {
+    return false;
+  }
   if (!module.requiredRoles || module.requiredRoles.length === 0) {
     return true;
   }

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
 	Search, Plus, Layers, Grid3x3, Eye, Tag, Network,
 	Pencil, X, Keyboard, Boxes, Link2, Sigma, Table2, ArrowRight, Workflow,
@@ -19,6 +20,7 @@ import { VirtualOntologyDetailDialog } from '@/components/ontology/VirtualOntolo
 import { VirtualOntologyGraph } from '@/components/ontology/VirtualOntologyGraph';
 import {
 	VirtualOntology,
+	OntologySpaceOption,
 	sensitivityConfig,
 	joinTypeConfig,
 } from '@/model/ontology';
@@ -26,10 +28,13 @@ import { ontologyService } from '@/services/ontologyService';
 
 const BusinessDomainMap: React.FC = () => {
 	const { collapsed } = useSidebar();
+	const { t } = useTranslation('ontology');
 	const [ontologies, setOntologies] = useState<VirtualOntology[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [filterTag, setFilterTag] = useState('all');
+	const [filterSpace, setFilterSpace] = useState('all');
+	const [spaces, setSpaces] = useState<OntologySpaceOption[]>([]);
 	const [viewMode, setViewMode] = useState<'grid' | 'graph'>('graph');
 	const [selectedOntology, setSelectedOntology] = useState<VirtualOntology | null>(null);
 	const [detailOpen, setDetailOpen] = useState(false);
@@ -42,6 +47,13 @@ const BusinessDomainMap: React.FC = () => {
 	const [isSearchFocused, setIsSearchFocused] = useState(false);
 
 	const allTags = useMemo(() => Array.from(new Set(ontologies.flatMap(o => o.tags))).sort(), [ontologies]);
+
+	// spaceId → display name, used to label cards whose list item only carries the id
+	const spaceNameById = useMemo(() => {
+		const map = new Map<string, string>();
+		spaces.forEach(s => map.set(s.spaceId, s.name));
+		return map;
+	}, [spaces]);
 
 	const filteredOntologies = useMemo(() => {
 		const q = searchQuery.trim().toLowerCase();
@@ -77,10 +89,10 @@ const BusinessDomainMap: React.FC = () => {
 	}, [viewMode]);
 
 	// Load ontologies from backend service
-	const reloadOntologies = async () => {
+	const reloadOntologies = async (spaceId?: string) => {
 		setLoading(true);
 		try {
-			const list = await ontologyService.list();
+			const list = await ontologyService.list(1, 200, spaceId);
 			setOntologies(list);
 		} catch (e) {
 			console.error('[BusinessDomainMap] failed to load ontologies', e);
@@ -91,7 +103,11 @@ const BusinessDomainMap: React.FC = () => {
 	};
 
 	useEffect(() => {
-		reloadOntologies();
+		reloadOntologies(filterSpace === 'all' ? undefined : filterSpace);
+	}, [filterSpace]);
+
+	useEffect(() => {
+		ontologyService.fetchAvailableSpaces().then(setSpaces).catch(() => setSpaces([]));
 	}, []);
 
 	const openOntologyDetail = (ontology: VirtualOntology) => {
@@ -267,6 +283,21 @@ const BusinessDomainMap: React.FC = () => {
 										</SelectContent>
 									</Select>
 								</div>
+								<div className="w-full md:w-56">
+									<Select value={filterSpace} onValueChange={setFilterSpace}>
+										<SelectTrigger>
+											<SelectValue placeholder={t('filterBySpace')} />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="all">{t('allSpaces')}</SelectItem>
+											{spaces.map(s => (
+												<SelectItem key={s.spaceId} value={s.spaceId}>
+													{s.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -313,6 +344,7 @@ const BusinessDomainMap: React.FC = () => {
 								<OntologyCard
 									key={ontology.id}
 									ontology={ontology}
+									spaceName={ontology.spaceId ? spaceNameById.get(ontology.spaceId) : undefined}
 									onView={() => openOntologyDetail(ontology)}
 									onEdit={() => openEditOntology(ontology)}
 									onDelete={() => handleDeleteOntology(ontology)}
@@ -422,10 +454,11 @@ const StatCard: React.FC<{ icon: React.ReactNode; bg: string; label: string; val
 
 const OntologyCard: React.FC<{
 	ontology: VirtualOntology;
+	spaceName?: string;
 	onView: () => void;
 	onEdit: () => void;
 	onDelete: () => void;
-}> = ({ ontology, onView, onEdit, onDelete }) => {
+}> = ({ ontology, spaceName, onView, onEdit, onDelete }) => {
 	const totalPhysical = ontology.virtualObjects.reduce((s, vo) => s + vo.physicalTables.length, 0);
 
 	return (
@@ -441,9 +474,16 @@ const OntologyCard: React.FC<{
 						</div>
 						<CardDescription className="line-clamp-2">{ontology.description}</CardDescription>
 					</div>
-					<Badge className={`${sensitivityConfig[ontology.sensitivity].className} border-0`}>
-						{sensitivityConfig[ontology.sensitivity].icon} {sensitivityConfig[ontology.sensitivity].label}
-					</Badge>
+					<div className="flex flex-col items-end gap-1 shrink-0">
+						<Badge className={`${sensitivityConfig[ontology.sensitivity].className} border-0`}>
+							{sensitivityConfig[ontology.sensitivity].icon} {sensitivityConfig[ontology.sensitivity].label}
+						</Badge>
+						{spaceName && (
+							<Badge variant="outline" className="text-[10px]">
+								{spaceName}
+							</Badge>
+						)}
+					</div>
 				</div>
 			</CardHeader>
 			<CardContent className="space-y-4">

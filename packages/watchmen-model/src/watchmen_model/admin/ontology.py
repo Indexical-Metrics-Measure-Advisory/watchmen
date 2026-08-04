@@ -2,7 +2,7 @@ from enum import Enum
 from typing import List, Optional, Union, Dict, Any
 
 from watchmen_utilities import ArrayHelper, ExtendedBaseModel
-from watchmen_model.common import TenantBasedTuple, OptimisticLock, TopicId, DataSourceId
+from watchmen_model.common import TenantBasedTuple, OptimisticLock, TopicId, DataSourceId, SpaceId
 from ..common.tuple_ids import OntologyId
 
 
@@ -170,6 +170,8 @@ class VirtualLink(ExtendedBaseModel):
 
 class VirtualOntology(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	ontologyId: Optional[OntologyId] = None
+	# linked data space; restricts the selectable topic scope of physical tables. None means unrestricted.
+	spaceId: Optional[SpaceId] = None
 	name: Optional[str] = None
 	description: Optional[str] = None
 	owner: Optional[str] = None

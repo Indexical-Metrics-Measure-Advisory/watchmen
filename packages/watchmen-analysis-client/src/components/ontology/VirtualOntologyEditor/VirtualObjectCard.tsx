@@ -26,7 +26,8 @@ export const VirtualObjectCard = React.memo<{
 	dataSources: DataSource[];
 	topicMap: Map<string, Topic>;
 	topicByName: Map<string, Topic>;
-}>(({ vo, expanded, actions, allObjects, allLinks, topics, dataSources, topicMap, topicByName }) => {
+	spaceSelected: boolean;
+}>(({ vo, expanded, actions, allObjects, allLinks, topics, dataSources, topicMap, topicByName, spaceSelected }) => {
 	const {
 		toggleObject, removeObject, updateObject,
 		addPhysicalTable, updatePhysicalTable, removePhysicalTable,
@@ -126,6 +127,7 @@ export const VirtualObjectCard = React.memo<{
 								primaryFields={primaryFields}
 								topicMap={topicMap}
 								topicByName={topicByName}
+								spaceSelected={spaceSelected}
 								onUpdate={updatePhysicalTable}
 								onRemove={removePhysicalTable}
 								onAddJoinCondition={addPhysicalTableJoinCondition}

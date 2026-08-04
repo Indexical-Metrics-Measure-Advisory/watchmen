@@ -8,7 +8,7 @@ from sqlalchemy import Engine
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import OntologyService, TopicService
-from watchmen_model.admin import FactorType, VirtualObject
+from watchmen_model.admin import FactorType, VirtualObject, VirtualOntology
 from watchmen_rest.util import raise_400, raise_403, raise_404
 
 from watchmen_metricflow.settings import ask_ontology_query_require_filters
@@ -17,6 +17,7 @@ from .engine_provider import OntologyRdsEngineProvider
 from .factor_type_resolver import FactorTypeResolver
 from .schema import OntologyQueryRequest, OntologyQueryResponse
 from .security_layer import OntologySecurityLayer
+from .space_scope import OntologySpaceScope
 from .sql_compiler import CompiledOntologyQuery, OntologySqlCompileError, OntologySqlCompiler
 
 logger = logging.getLogger(__name__)
@@ -46,16 +47,12 @@ class OntologyDataAccessService:
 		# heuristic when topic_service is not provided
 		self._factor_resolver = FactorTypeResolver(topic_service, principal_service)
 		self.security = OntologySecurityLayer(principal_service, topic_resolver=self._factor_resolver)
+		# space scope shares the ontology service's storage/transaction
+		self.space_scope = OntologySpaceScope(ontology_service)
 
 	def query(self, ontology_id: str, request: OntologyQueryRequest) -> OntologyQueryResponse:
-		ontology = self.ontology_service.find_by_id(ontology_id)
-		if ontology is None:
-			raise_404(f'Ontology [{ontology_id}] not found.')
-		if ontology.tenantId != self.principal_service.get_tenant_id():
-			raise_403()
-		self._check_filters(request)
-		self._prepare_filters(ontology, request)
-		self._prepare_group_by(ontology, request)
+		ontology = self._load_ontology(ontology_id)
+		self._prepare_request(ontology, request)
 
 		# resolve engine before compiling so that time-granularity expressions can be
 		# rendered for the target dialect; a missing virtual object falls back to the
@@ -80,14 +77,8 @@ class OntologyDataAccessService:
 
 	def compile_preview(self, ontology_id: str, request: OntologyQueryRequest) -> Dict[str, Any]:
 		"""Compile SQL only, do not execute. Used for debugging and verification in database-less environments."""
-		ontology = self.ontology_service.find_by_id(ontology_id)
-		if ontology is None:
-			raise_404(f'Ontology [{ontology_id}] not found.')
-		if ontology.tenantId != self.principal_service.get_tenant_id():
-			raise_403()
-		self._check_filters(request)
-		self._prepare_filters(ontology, request)
-		self._prepare_group_by(ontology, request)
+		ontology = self._load_ontology(ontology_id)
+		self._prepare_request(ontology, request)
 		try:
 			compiled = self.compiler.compile(ontology, request)
 		except OntologySqlCompileError as e:
@@ -98,6 +89,22 @@ class OntologyDataAccessService:
 			'sql': str(compiled.statement),
 			'labels': compiled.labels,
 		}
+
+	def _load_ontology(self, ontology_id: str) -> VirtualOntology:
+		ontology = self.ontology_service.find_by_id(ontology_id)
+		if ontology is None:
+			raise_404(f'Ontology [{ontology_id}] not found.')
+		if ontology.tenantId != self.principal_service.get_tenant_id():
+			raise_403()
+		return ontology
+
+	def _prepare_request(self, ontology: VirtualOntology, request: OntologyQueryRequest) -> None:
+		"""Shared query preamble: inject linked-space filters, then validate/coerce
+		request filters and group-by against factor types."""
+		self.space_scope.apply_space_filters(ontology)
+		self._check_filters(request)
+		self._prepare_filters(ontology, request)
+		self._prepare_group_by(ontology, request)
 
 	@staticmethod
 	def _check_filters(request: OntologyQueryRequest) -> None:

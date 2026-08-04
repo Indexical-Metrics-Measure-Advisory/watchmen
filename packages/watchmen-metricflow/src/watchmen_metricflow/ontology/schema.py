@@ -1,4 +1,4 @@
-"""输入请求/响应模型。"""
+"""Request/response models for ontology query."""
 
 from typing import Any, Dict, List, Optional
 
@@ -6,55 +6,59 @@ from pydantic import BaseModel, Field
 
 
 class OntologyOrderBy(BaseModel):
-	"""排序条件。"""
-	field: str = Field(..., description='属性名或被请求的衍生属性名')
-	direction: str = Field(default='asc', pattern='^(asc|desc)$', description='排序方向：asc / desc')
+	"""Order-by clause."""
+	field: str = Field(..., description='Attribute name or requested derived attribute name')
+	direction: str = Field(default='asc', pattern='^(asc|desc)$', description='Sort direction: asc / desc')
 
 
 class OntologyGroupBy(BaseModel):
-	"""分组维度。
+	"""Group-by dimension.
 
-	仅允许 text / 日期时间类型属性（类型校验在 service 层执行，无法解析类型时宽容放行）。
-	granularity 仅允许用于日期时间类型字段；不区分大小写。
+	Only text / datetime attributes are allowed (type validation is performed
+	in the service layer; unresolvable types are leniently accepted).
+	granularity is only valid for datetime fields; case-insensitive.
 	"""
-	field: str = Field(..., description='虚拟对象属性名（text / 日期时间类型）')
+	field: str = Field(..., description='Virtual object attribute name (text / datetime type)')
 	granularity: Optional[str] = Field(
 		default=None, pattern='^(day|week|month|quarter|year)$',
-		description='时间粒度截断：day / week / month / quarter / year；仅允许用于日期时间类型字段')
+		description='Datetime truncation: day / week / month / quarter / year; only valid for datetime fields')
 
 
 class OntologyQueryRequest(BaseModel):
-	"""虚拟本体查询请求。
+	"""Virtual ontology query request.
 
-	对应文档 §4.1 的运行时查询接口。客户端只需指定虚拟对象 ID 与业务过滤条件，
-	不需要感知底层物理表的 JOIN 逻辑。
+	The caller only needs to specify the virtual object ID and business filter
+	conditions, without needing to know the underlying physical table JOIN logic.
 
-	注意：filters 是否必填由系统配置 ONTOLOGY_QUERY_REQUIRE_FILTERS 控制（默认 True），
-	校验在 service 层执行。
+	Note: whether filters are required is controlled by the system config
+	ONTOLOGY_QUERY_REQUIRE_FILTERS (default True); validation is performed
+	in the service layer.
 	"""
-	virtualObjectId: str = Field(..., description='虚拟对象 ID（VirtualObject.id）')
+	virtualObjectId: str = Field(..., description='Virtual object ID (VirtualObject.id)')
 	filters: Dict[str, Any] = Field(
 		default_factory=dict,
-		description='字段名 → 过滤值。值为标量时按等值过滤；也可传对象 '
-		            '{"operator": "gt", "value": ...}，operator 取 FilterCondition 操作符集合'
-		            '（eq/ne/in/not_in/gt/gte/lt/lte/between/is_null/is_not_null），'
-		            '其中 between 的 value 为 2 个元素的列表 [下限, 上限]；'
-		            'gt/gte/lt/lte/between 仅允许用于数值或日期时间类型字段')
-	fields: List[str] = Field(default_factory=list, description='需返回的属性名；空=返回全部')
+		description='Field name -> filter value. A scalar value applies equality filter; '
+		            'an object {"operator": "gt", "value": ...} is also accepted, '
+		            'where operator is from the FilterCondition operator set '
+		            '(eq/ne/in/not_in/gt/gte/lt/lte/between/is_null/is_not_null). '
+		            'For between, value is a 2-element list [low, high]; '
+		            'gt/gte/lt/lte/between are only allowed on numeric or datetime fields')
+	fields: List[str] = Field(default_factory=list, description='Attribute names to return; empty = return all')
 	groupBy: List[OntologyGroupBy] = Field(
 		default_factory=list,
-		description='分组维度（text / 日期时间类型属性）。指定后按维度分组返回；'
-		            'fields 中未出现在 groupBy 的普通列会自动并入 GROUP BY；'
-		            'fields 为空时只返回分组维度与 includeDerived 聚合列')
-	includeDerived: List[str] = Field(default_factory=list, description='需计算的衍生属性名')
+		description='Group-by dimensions (text / datetime attributes). When specified, '
+		            'results are grouped by these dimensions; fields not present in groupBy '
+		            'are auto-merged into GROUP BY; when fields is empty, only group '
+		            'dimensions and includeDerived aggregate columns are returned')
+	includeDerived: List[str] = Field(default_factory=list, description='Derived attribute names to compute')
 	orderBy: List[OntologyOrderBy] = Field(
-		default_factory=list, description='排序条件；field 为属性名或 includeDerived 中的衍生属性名')
-	limit: int = Field(default=100, ge=1, le=10000, description='最大返回行数')
-	offset: int = Field(default=0, ge=0, description='分页偏移')
+		default_factory=list, description='Order-by conditions; field is an attribute name or a derived attribute name from includeDerived')
+	limit: int = Field(default=100, ge=1, le=10000, description='Maximum number of rows to return')
+	offset: int = Field(default=0, ge=0, description='Pagination offset')
 
 
 class OntologyQueryResponse(BaseModel):
-	"""虚拟本体查询响应。"""
-	virtualObject: str = Field(..., description='虚拟对象名称')
-	rows: List[Dict[str, Any]] = Field(default_factory=list, description='业务数据行（已脱敏）')
-	total: Optional[int] = Field(None, description='满足条件的总行数（可选）')
+	"""Virtual ontology query response."""
+	virtualObject: str = Field(..., description='Virtual object name')
+	rows: List[Dict[str, Any]] = Field(default_factory=list, description='Data rows (masked)')
+	total: Optional[int] = Field(None, description='Total number of matching rows (optional)')

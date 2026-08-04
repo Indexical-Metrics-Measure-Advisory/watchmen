@@ -58,6 +58,14 @@ export function useOntologyDraft(open: boolean, ontology: VirtualOntology | null
 		setDraft((prev) => ({ ...prev, ...patch }));
 	}, []);
 
+	/**
+	 * Switch the bound data space. Existing physical tables are kept untouched;
+	 * mappings whose topicId falls outside the new space are flagged at render time.
+	 */
+	const setSpace = useCallback((spaceId?: string) => {
+		setDraft((prev) => ({ ...prev, spaceId: spaceId || undefined }));
+	}, []);
+
 	// ---- Virtual Object ----
 	const addObject = useCallback(() => {
 		const vo = createEmptyVirtualObject(draftRef.current.virtualObjects.length);
@@ -444,6 +452,7 @@ export function useOntologyDraft(open: boolean, ontology: VirtualOntology | null
 		() => ({
 			toggleObject,
 			update,
+			setSpace,
 			addObject,
 			updateObject,
 			removeObject,
@@ -473,6 +482,7 @@ export function useOntologyDraft(open: boolean, ontology: VirtualOntology | null
 		[
 			toggleObject,
 			update,
+			setSpace,
 			addObject,
 			updateObject,
 			removeObject,
