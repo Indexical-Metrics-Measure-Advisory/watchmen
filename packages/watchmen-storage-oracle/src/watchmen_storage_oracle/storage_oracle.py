@@ -1,14 +1,16 @@
 from logging import getLogger
 from typing import Any, Callable, List, Optional, Tuple
 
-from sqlalchemy import Table, text, select
+from sqlalchemy import Table, text, select, insert
 
 from watchmen_model.admin import FactorType, Topic
-from watchmen_storage import as_table_name, EntityCriteria, EntitySort, Literal, EntityLimitedFinder, EntityList
+from watchmen_storage import as_table_name, EntityCriteria, EntitySort, Literal, EntityLimitedFinder, EntityList, \
+	Entity, EntityHelper
 from watchmen_storage_rds import build_sort_for_statement, SQLAlchemyStatement, StorageRDS, TopicDataStorageRDS
 from watchmen_utilities import ArrayHelper
 from .table_creator import build_columns_script, build_indexes_script, build_unique_indexes_script, build_table_script
 from .where_build import build_criteria_for_statement, build_literal
+
 
 # noinspection DuplicatedCode
 logger = getLogger(__name__)
@@ -16,6 +18,13 @@ logger = getLogger(__name__)
 
 class StorageOracle(StorageRDS):
 	
+	def insert_all(self, data: List[Entity], helper: EntityHelper) -> None:
+		table = self.find_table(helper.name)
+		rows = ArrayHelper(data).map(lambda one: helper.shaper.serialize(one)).to_list()
+		stmt = insert(table)
+		self.connection.execute(stmt, rows)
+
+		
 	def find_for_update_skip_locked(self, finder: EntityLimitedFinder) -> EntityList:
 		table = self.find_table(finder.name)
 		statement = select(table).with_for_update(skip_locked=True)
