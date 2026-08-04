@@ -5,7 +5,6 @@ from typing import List, Dict, Optional, Union
 from .condition import Condition, construct_conditions
 from watchmen_model.common import TenantBasedTuple, DataModel
 from watchmen_utilities import ExtendedBaseModel, ArrayHelper
-from watchmen_collector_kernel.common import str_to_datetime
 
 
 class EventType(int, Enum):
@@ -27,7 +26,7 @@ class QueryParam(DataModel, ExtendedBaseModel):
 			super().__setattr__(name, value)
 
 
-class TriggerEvent(ExtendedBaseModel, TenantBasedTuple):
+class TriggerEvent(TenantBasedTuple, ExtendedBaseModel):
 	eventTriggerId: Optional[int] = None
 	startTime: Optional[datetime] = None
 	endTime: Optional[datetime] = None
@@ -43,10 +42,6 @@ class TriggerEvent(ExtendedBaseModel, TenantBasedTuple):
 	def __setattr__(self, name, value):
 		if name == 'params':
 			super().__setattr__(name, construct_params(value))
-		elif name == 'startTime':
-			super().__setattr__(name, str_to_datetime(value))
-		elif name == 'endTime':
-			super().__setattr__(name, str_to_datetime(value))
 		else:
 			super().__setattr__(name, value)
 

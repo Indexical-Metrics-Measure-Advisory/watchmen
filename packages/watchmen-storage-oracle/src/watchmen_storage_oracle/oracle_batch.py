@@ -2,7 +2,7 @@ from typing import Sequence, Dict, List, Optional
 
 from sqlalchemy import Engine
 
-from watchmen_storage_oracle import StorageOracle
+from .storage_oracle import StorageOracle
 
 
 class TopicDataStorageOracleBatchWriter(StorageOracle):

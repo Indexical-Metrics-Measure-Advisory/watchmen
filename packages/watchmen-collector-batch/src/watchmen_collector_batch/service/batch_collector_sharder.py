@@ -4,6 +4,8 @@ from traceback import format_exc
 from typing import Tuple, Dict, List, Any, Optional
 
 import numpy as np
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 
 from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, TriggerTable, \
     Condition, Status, CollectorTableConfig
@@ -29,12 +31,18 @@ def init_table_extractor():
     TableExtractor().create_thread()
 
 
-class TableExtractor:
-
+class BatchCollectorSharder:
+    
     def __init__(self):
         self.meta_storage = ask_meta_storage()
         self.snowflake_generator = ask_snowflake_generator()
         self.principal_service = ask_super_admin()
+        self.collector_table_config_service = get_collector_table_config_service(self.meta_storage,
+                                                                                 self.snowflake_generator,
+                                                                                 self.principal_service)
+        
+        
+        
         self.trigger_event_service = get_trigger_event_service(self.meta_storage,
                                                                self.snowflake_generator,
                                                                self.principal_service)
@@ -42,41 +50,63 @@ class TableExtractor:
                                                                self.snowflake_generator,
                                                                self.principal_service)
         self.competitive_lock_service = get_competitive_lock_service(self.meta_storage)
-        self.collector_table_config_service = get_collector_table_config_service(self.meta_storage,
-                                                                                 self.snowflake_generator,
-                                                                                 self.principal_service)
+
         self.table_config_service = get_table_config_service(self.principal_service)
         self.change_data_record_service = get_change_data_record_service(self.meta_storage,
                                                                          self.snowflake_generator,
                                                                          self.principal_service)
-
-    def create_thread(self, scheduler=None) -> None:
-        scheduler.add_job(TableExtractor.event_loop_run, 'interval', seconds=ask_table_extract_wait(), args=(self,))
-
+    
+    def create_thread(self, scheduler: BackgroundScheduler=None) -> None:
+        wait_sec = ask_table_extract_wait()
+        trigger = IntervalTrigger(seconds=wait_sec)
+        scheduler.add_job(
+            BatchCollectorSharder.event_loop_run,
+            trigger=trigger,
+            args=(self,),
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=0)
+    
     def event_loop_run(self):
         try:
             self.trigger_table_listener_v2()
         except Exception as e:
             logger.error(e, exc_info=True, stack_info=True)
-
+    
+    def trigger_table_listener_v2(self):
+        unfinished_trigger_tables = self.trigger_table_service.find_unfinished()
+        for unfinished_trigger_table in unfinished_trigger_tables:
+            lock = get_resource_lock(self.snowflake_generator.next_id(),
+                                     self.trigger_table_lock_resource_id(unfinished_trigger_table),
+                                     unfinished_trigger_table.tenantId)
+            try:
+                if try_lock_nowait(self.competitive_lock_service, lock):
+                    trigger_table = self.trigger_table_service.find_by_id(unfinished_trigger_table.tableTriggerId)
+                    if self.is_extracted(trigger_table):
+                        continue
+                    else:
+                        self.process_trigger_table(trigger_table)
+            finally:
+                unlock(self.competitive_lock_service, lock)
+    
     # noinspection PyMethodMayBeStatic
     def is_extracted(self, trigger_table: TriggerTable) -> bool:
         return trigger_table.isExtracted
-
+    
     # noinspection PyMethodMayBeStatic
     def set_extracted(self, trigger_table: TriggerTable, count: int) -> TriggerTable:
         trigger_table.isExtracted = True
         trigger_table.dataCount = count
         return trigger_table
-
+    
     # noinspection PyMethodMayBeStatic
     def get_time_window(self, event: TriggerEvent) -> Tuple[datetime, datetime]:
         return event.startTime, event.endTime
-
+    
     # noinspection PyMethodMayBeStatic
     def trigger_table_lock_resource_id(self, trigger_table: TriggerTable) -> str:
         return f'trigger_table_{trigger_table.tableTriggerId}'
-
+    
     def trigger_table_listener(self):
         unfinished_trigger_tables = self.trigger_table_service.find_unfinished()
         for unfinished_trigger_table in unfinished_trigger_tables:
@@ -195,28 +225,13 @@ class TableExtractor:
             trigger_table.result = {'error': error}
         return trigger_table
     
-    
-    def trigger_table_listener_v2(self):
-        unfinished_trigger_tables = self.trigger_table_service.find_unfinished()
-        for unfinished_trigger_table in unfinished_trigger_tables:
-            lock = get_resource_lock(self.snowflake_generator.next_id(),
-                                     self.trigger_table_lock_resource_id(unfinished_trigger_table),
-                                     unfinished_trigger_table.tenantId)
-            try:
-                if try_lock_nowait(self.competitive_lock_service, lock):
-                    trigger_table = self.trigger_table_service.find_by_id(unfinished_trigger_table.tableTriggerId)
-                    if self.is_extracted(trigger_table):
-                        continue
-                    else:
-                        self.process_trigger_table(trigger_table)
-            finally:
-                unlock(self.competitive_lock_service, lock)
-    
+
     def process_records(self, trigger_table, records: Optional[List[Dict[str, Any]]]):
         config = self.table_config_service.find_by_name(trigger_table.tableName, trigger_table.tenantId)
-        change_records = ArrayHelper(records).map(lambda record: self.source_to_change(trigger_table, get_data_id(config.primaryKey, record))).to_list()
+        change_records = ArrayHelper(records).map(
+            lambda record: self.source_to_change(trigger_table, get_data_id(config.primaryKey, record))).to_list()
         self.change_data_record_service.create_change_records(change_records)
-        
+    
     def process_trigger_table(self, trigger_table: TriggerTable):
         try:
             state = self.query_state(trigger_table)
@@ -266,13 +281,13 @@ class TableExtractor:
             trigger_table.dataCount = 0
             trigger_table = self.save_error(trigger_table, format_exc())
             self.trigger_table_service.update_table_trigger(trigger_table)
-
+    
     def save_change_data_record(self,
                                 trigger_table: TriggerTable,
                                 data_id: Dict) -> None:
         change_data_record = self.source_to_change(trigger_table, data_id)
         self.change_data_record_service.create_change_record(change_data_record)
-
+    
     def source_to_change(self, trigger_table: TriggerTable, data_id: Dict) -> ChangeDataRecord:
         return self.get_change_data_record(
             trigger_table.modelName,
@@ -284,7 +299,7 @@ class TableExtractor:
             trigger_table.moduleTriggerId,
             trigger_table.eventTriggerId
         )
-
+    
     def get_change_data_record(self,
                                model_name: str,
                                table_name: str,
@@ -307,7 +322,7 @@ class TableExtractor:
             eventTriggerId=event_trigger_id,
             tenantId=tenant_id
         )
-
+    
     # noinspection PyMethodMayBeStatic
     def get_diff(self, source_records, existed_records) -> Any:
         source_array = np.asarray(
@@ -317,14 +332,14 @@ class TableExtractor:
             ArrayHelper(existed_records).map(lambda existed_record: list(existed_record.values())[:]).to_list()
         )
         return cal_array2d_diff(source_array, existed_array).tolist()
-
+    
     def get_criteria(self, trigger_event: TriggerEvent, table_config: CollectorTableConfig) -> List:
         criteria = []
         variables = {}
-
+        
         def prepare_query_criteria(variables_: Dict, conditions: List[Condition]) -> EntityCriteria:
             return CriteriaBuilder(variables_).build_criteria(conditions)
-
+        
         if table_config.auditColumn:
             start_time, end_time = self.get_time_window(trigger_event)
             if start_time and end_time:
@@ -340,18 +355,18 @@ class TableExtractor:
                 else:
                     raise ValueError(
                         f"Invalid auditColumn configuration：{table_config.auditColumn}")
-
+                
                 variables["start_time"] = start_time
                 variables["end_time"] = end_time
-
+        
         if table_config.conditions:
             criteria.extend(prepare_query_criteria(variables, table_config.conditions))
-
+        
         if trigger_event.params:
             for param in trigger_event.params:
                 if param.name == table_config.name:
                     criteria.extend(prepare_query_criteria(variables, param.filter))
-
+        
         return criteria
     
     def count_data_volume(self, trigger_event: TriggerEvent, table_config: CollectorTableConfig) -> int:

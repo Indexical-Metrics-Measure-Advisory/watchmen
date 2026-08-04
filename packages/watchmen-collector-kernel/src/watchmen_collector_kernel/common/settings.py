@@ -20,6 +20,7 @@ class CollectorSettings(ExtendedBaseSettings):
 	GROUPED_TASK_DATA_SIZE_THRESHOLD: int = 100
 	TASK_PARTIAL_SIZE: int = 100
 	RECORD_PERFORMANCE_MONITOR_ENABLED: bool = False
+	TRIGGER_EVENT_SCHEDULE_START_TIME_BACK_TIME: int = 30
 
 
 collector_settings = CollectorSettings()
@@ -84,3 +85,6 @@ def ask_task_partial_size() -> int:
 
 def ask_record_performance_monitor_enabled() -> bool:
 	return collector_settings.RECORD_PERFORMANCE_MONITOR_ENABLED
+
+def ask_trigger_event_schedule_start_time_back_time() -> int:
+	return collector_settings.TRIGGER_EVENT_SCHEDULE_START_TIME_BACK_TIME

@@ -7,6 +7,7 @@ from .free_storage_types import FreeAggregateArithmetic, FreeAggregateColumn, Fr
 from .settings import ask_decimal_fraction_digits, ask_decimal_integral_digits, ask_disable_compiled_cache, \
 	ask_object_storage_need_date_directory, ask_s3_bucket_auth_iam_enable
 from .snowflake import InvalidSystemClockException, SnowflakeGenerator
+from .snowflake_remote import RemoteSnowflakeGenerator
 from .snowflake_worker_id_generator import immutable_worker_id, WorkerIdGenerator
 # from .sql_analysis import QueryPerformance
 from .storage_based_worker_id_service import get_storage_based_worker_id_service

@@ -7,7 +7,7 @@ from watchmen_model.common import TenantId, UserId
 from watchmen_model.system import DataSourceType
 from watchmen_storage import competitive_worker_id, CompetitiveWorkerRestarter, CompetitiveWorkerShutdownSignal, \
 	immutable_worker_id, SnowflakeGenerator, StorageBasedWorkerIdGenerator, TransactionalStorageSPI, SnowflakeWorker, \
-	DBConfig
+	DBConfig, RemoteSnowflakeGenerator
 from watchmen_utilities import ExtendedBaseSettings
 from .exception import InitialMetaAppException
 
@@ -51,7 +51,8 @@ class MetaSettings(ExtendedBaseSettings):
 	PACKAGE_VERSION_DEFAULT_VALUE: str = '50.0.0'
 	
 	IN_SERVERLESS_PLATFORM: bool = False
-
+	SNOWFLAKE_REMOTE_ENABLE: bool = False
+	SNOWFLAKE_REMOTE_URL: str = ""
 
 settings = MetaSettings()
 logger.debug(f'Meta settings[{settings.dict()}].')
@@ -216,11 +217,14 @@ def build_snowflake_generator(storage: TransactionalStorageSPI) -> SnowflakeGene
 				generate_worker_id=worker_id_generator
 			)
 	else:
-		# fix worker id
-		return SnowflakeGenerator(
-			data_center_id=settings.SNOWFLAKE_DATA_CENTER_ID,
-			generate_worker_id=immutable_worker_id(settings.SNOWFLAKE_WORKER_ID)
-		)
+		if settings.SNOWFLAKE_REMOTE_ENABLE:
+			return RemoteSnowflakeGenerator(base_url=settings.SNOWFLAKE_REMOTE_URL)
+		else:
+			# fix worker id
+			return SnowflakeGenerator(
+				data_center_id=settings.SNOWFLAKE_DATA_CENTER_ID,
+				generate_worker_id=immutable_worker_id(settings.SNOWFLAKE_WORKER_ID)
+			)
 
 
 snowflake_generator_holder = SnowflakeGeneratorHolder()
