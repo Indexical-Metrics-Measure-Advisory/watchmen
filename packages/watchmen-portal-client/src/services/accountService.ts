@@ -2,7 +2,8 @@
  * Session storage convention shared by all watchmen web clients
  * (web-client, monitor-client, ingestion-client). Since every UI is served
  * from the same origin behind the gateway, a token stored here by the portal
- * login is picked up by the other clients in the same tab.
+ * login is picked up by the other clients in the same tab, and in tabs opened
+ * from the portal with an opener (sessionStorage is cloned on open).
  */
 const ACCOUNT_KEY_IN_SESSION = 'IMMA-ACCOUNT';
 const ACCOUNT_TOKEN = 'IMMA-ACCOUNT-TOKEN';
