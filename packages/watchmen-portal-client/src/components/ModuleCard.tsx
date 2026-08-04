@@ -109,8 +109,14 @@ export function ModuleCard({ module, onEnter, health }: ModuleCardProps) {
             <a
               href={module.url}
               target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => onEnter?.(module.id)}
+              onClick={(event) => {
+                onEnter?.(module.id);
+                // Open via window.open with opener preserved: plain target="_blank" implies
+                // noopener in modern browsers, which would block the new tab from cloning this
+                // tab's sessionStorage (where the shared login session lives).
+                event.preventDefault();
+                window.open(module.url, '_blank');
+              }}
               data-dom-id={`enter-${module.id}`}
               className={cn(
                 'portal-btn-primary inline-flex items-center gap-1.5 h-9 px-4 rounded-md',

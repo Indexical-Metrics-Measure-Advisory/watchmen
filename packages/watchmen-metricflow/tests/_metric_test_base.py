@@ -93,6 +93,122 @@ def make_metric_dict(name='m1', metric_type='simple', **overrides):
     return data
 
 
+# ---- Type-specific fixtures (cover all 5 MetricType values) ---- #
+
+def make_simple_metric(name='simple_sales', measure='order_total', **overrides):
+    """Simple metric: type_params.measure."""
+    data = {
+        'name': name,
+        'type': 'simple',
+        'type_params': {'measure': {'name': measure}},
+    }
+    data.update(overrides)
+    return MetricWithCategory.model_validate(data)
+
+
+def make_ratio_metric(name='avg_order', numerator='order_total', denominator='order_count',
+                      numerator_fill=None, **overrides):
+    """Ratio metric: type_params.numerator + denominator."""
+    num = {'name': numerator}
+    if numerator_fill is not None:
+        num['fill_Nones_with'] = numerator_fill
+    data = {
+        'name': name,
+        'type': 'ratio',
+        'type_params': {
+            'numerator': num,
+            'denominator': {'name': denominator},
+        },
+    }
+    data.update(overrides)
+    return MetricWithCategory.model_validate(data)
+
+
+def make_cumulative_metric(name='ytd_sales', measure='order_total',
+                           grain_to_date='year', window=None, **overrides):
+    """Cumulative metric: type_params.measure + grain_to_date or window."""
+    type_params = {'measure': {'name': measure}}
+    if grain_to_date:
+        type_params['grain_to_date'] = grain_to_date
+    if window:
+        type_params['window'] = window
+    data = {
+        'name': name,
+        'type': 'cumulative',
+        'type_params': type_params,
+    }
+    data.update(overrides)
+    return MetricWithCategory.model_validate(data)
+
+
+def make_derived_metric(name='doubled_sales', expr='total * 2',
+                        metric_refs=None, **overrides):
+    """Derived metric: type_params.expr + type_params.metrics (MetricRef list)."""
+    if metric_refs is None:
+        metric_refs = [{'name': 'total'}]
+    data = {
+        'name': name,
+        'type': 'derived',
+        'type_params': {
+            'expr': expr,
+            'metrics': metric_refs,
+        },
+    }
+    data.update(overrides)
+    return MetricWithCategory.model_validate(data)
+
+
+def make_conversion_metric(name='conv_rate', **overrides):
+    """Conversion metric: type_params.conversion_type_params."""
+    data = {
+        'name': name,
+        'type': 'conversion',
+        'type_params': {
+            'conversion_type_params': {},
+        },
+    }
+    data.update(overrides)
+    return MetricWithCategory.model_validate(data)
+
+
+def make_metric_with_all_fields(name='full_metric', **overrides):
+    """A metric with every optional field populated (filter, metadata, label,
+    config, time_granularity, categoryId, validationStatus, validationResult).
+
+    Useful for testing MetricShaper serialize/deserialize completeness.
+    """
+    data = {
+        'name': name,
+        'type': 'simple',
+        'description': 'metric with all fields',
+        'type_params': {
+            'measure': {'name': 'order_total', 'filter': None, 'alias': 'm1',
+                        'join_to_timespine': False, 'fill_Nones_with': None},
+            'input_measures': [{'name': 'order_total'}, {'name': 'order_count'}],
+        },
+        'filter': "{{ Dimension('region') }} = 'APAC'",
+        'metadata': {'owner': 'team-a', 'priority': 'high'},
+        'label': 'sales',
+        'config': {'meta': {'unit': 'USD', 'decimal': 2}},
+        'time_granularity': 'day',
+        'categoryId': 'cat-1',
+        'validationStatus': 'validated',
+        'validationResult': {
+            'status': 'validated',
+            'logs': [
+                {'step': 'init', 'status': 'ok', 'message': 'started',
+                 'timestamp': '2024-01-01T00:00:00'},
+            ],
+            'dimension_count': 3,
+            'sample_value': 99.5,
+            'last_validated_at': '2024-01-01T00:00:00',
+            'error': None,
+        },
+    }
+    data.update(overrides)
+    return MetricWithCategory.model_validate(data)
+
+
 def make_category(name='c1', **overrides):
     """Build a Category instance with sensible defaults."""
     data = {'id': 'cat-1', 'name': name}
@@ -162,13 +278,14 @@ def build_client(*routers, principal=None, admin=None, console=None):
     """Mount the given routers on a throwaway FastAPI app and return a TestClient.
 
     Dependency overrides wire every principal resolver to the supplied stubs
-    so no real auth/storage layer is invoked.
+    so no real auth/storage layer is invoked.  Values must be callables
+    because FastAPI invokes the override to obtain the dependency value.
     """
     app = FastAPI()
     for router in routers:
         app.include_router(router)
     p = principal or admin_principal()
-    app.dependency_overrides[get_admin_principal] = admin or p
-    app.dependency_overrides[get_console_principal] = console or p
-    app.dependency_overrides[get_any_principal] = p
+    app.dependency_overrides[get_admin_principal] = lambda: admin or p
+    app.dependency_overrides[get_console_principal] = lambda: console or p
+    app.dependency_overrides[get_any_principal] = lambda: p
     return TestClient(app)

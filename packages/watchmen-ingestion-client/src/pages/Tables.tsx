@@ -1059,7 +1059,7 @@ const Tables = () => {
   };
 
   // Validate form data
-  const validateForm = (formData: any, isEdit: boolean = false): boolean => {
+  const validateForm = (formData: Partial<CollectorTableConfig>, isEdit: boolean = false): boolean => {
     const errors: {[key: string]: string} = {};
 
     // Validate required fields
@@ -1125,7 +1125,7 @@ const Tables = () => {
 
     // Validate complex structures
     if (formData.conditions && Array.isArray(formData.conditions)) {
-      formData.conditions.forEach((condition: any, index: number) => {
+      formData.conditions.forEach((condition: Condition, index: number) => {
         // console.log(condition)
         if (!condition.columnName?.trim()) {
           errors[`condition_${index}_field`] = `Condition ${index + 1}: Field is required`;
@@ -1140,7 +1140,7 @@ const Tables = () => {
     }
 
     if (formData.dependOn && Array.isArray(formData.dependOn)) {
-      formData.dependOn.forEach((dep: any, index: number) => {
+      formData.dependOn.forEach((dep: Dependence, index: number) => {
         if (!dep.modelName?.trim()) {
           errors[`dependency_${index}_modelName`] = `Dependency ${index + 1}: Model name is required`;  
         }
@@ -1153,7 +1153,7 @@ const Tables = () => {
     
 
     if (formData.jsonColumns && Array.isArray(formData.jsonColumns)) {
-      formData.jsonColumns.forEach((col: any, index: number) => {
+      formData.jsonColumns.forEach((col: JsonColumn, index: number) => {
         
         if (!col.columnName?.trim()) {
           errors[`json_column_${index}_name`] = `JSON Column ${index + 1}: Name is required`;

@@ -227,13 +227,14 @@ class TestListAllMetrics(unittest.TestCase):
         # partial match: both 'rev' and 'revenue' contain 'rev'
         self.assertEqual(2, len(response.json()))
 
-    def test_find_metrics_by_name_list_no_query(self):
+    def test_find_metrics_by_name_list_empty_query(self):
         metrics = [make_metric('a'), make_metric('b')]
         service = mock_metric_service()
         service.find_all.return_value = metrics
         with self._patch_service(service):
             client = build_client(metric_meta_router.router)
-            response = client.get('/metricflow/metrics/list/name')
+            # query_name has no default in the route signature; pass empty string
+            response = client.get('/metricflow/metrics/list/name?query_name=')
         self.assertEqual(200, response.status_code)
         self.assertEqual(2, len(response.json()))
 
@@ -282,7 +283,7 @@ class TestPagination(unittest.TestCase):
         with self._patch_service(service):
             client = build_client(metric_meta_router.router)
             response = client.post(
-                '/metricflow/metrics/name',
+                '/metricflow/metrics/name?query_name=',
                 json={'pageNumber': 5, 'pageSize': 2})
         self.assertEqual(200, response.status_code)
         self.assertEqual([], response.json()['data'])
