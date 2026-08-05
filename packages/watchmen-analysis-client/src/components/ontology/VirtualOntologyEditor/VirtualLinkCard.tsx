@@ -72,7 +72,7 @@ export const VirtualLinkCard = React.memo<{
 					<div className="flex items-baseline justify-between">
 						<div className="text-xs font-semibold uppercase text-muted-foreground">Join Conditions</div>
 						<div className="text-[10px] text-muted-foreground">
-							source 用 <code className="bg-muted px-1 rounded">alias.column</code> 跨表 join；target 是 derived 终点的 primary 字段
+							Use <code className="bg-muted px-1 rounded">alias.column</code> for cross-table join on source side; target is the primary field of the derived endpoint
 						</div>
 					</div>
 					{link.joinConditions.map((jc, jcIdx) => (
