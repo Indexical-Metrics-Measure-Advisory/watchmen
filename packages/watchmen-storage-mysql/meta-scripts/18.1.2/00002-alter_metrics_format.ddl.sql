@@ -1,1 +1,0 @@
-ALTER TABLE metrics ADD COLUMN format VARCHAR(50);
