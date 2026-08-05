@@ -1,0 +1,2 @@
+ALTER TABLE metrics ADD format VARCHAR2(50);
+ALTER TABLE metrics ADD unit VARCHAR2(50);
