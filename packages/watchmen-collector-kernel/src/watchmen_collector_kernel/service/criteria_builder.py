@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Dict, Any
 from watchmen_collector_kernel.common import LEFT_BRACE, RIGHT_BRACE
 from watchmen_collector_kernel.model import Condition, ConditionJoint, ConditionExpression
@@ -14,6 +15,18 @@ def has_illegal_char(s: str) -> bool:
             return True
     return False
 
+
+def is_valid_datetime_str(s: str) -> bool:
+    if has_illegal_char(s):
+        return False
+    try:
+        dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        _ = dt.timestamp()
+        return True
+    except (ValueError, OverflowError):
+        return False
+    
+    
 class CriteriaBuilder:
 
     def __init__(self, variables: Dict):
@@ -52,7 +65,7 @@ class CriteriaBuilder:
                 if isinstance(variable_value, str):
                     if variable_value.isdigit():
                         return variable_value
-                    elif has_illegal_char(variable_value):
+                    elif not is_valid_datetime_str(variable_value):
                         return variable_value
                     else:
                         parsed, value = is_date(variable_value, ask_all_date_formats())
