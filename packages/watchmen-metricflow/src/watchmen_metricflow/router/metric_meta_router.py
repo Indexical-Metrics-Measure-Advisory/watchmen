@@ -6,7 +6,7 @@ from typing import List, Optional
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
-from watchmen_metricflow.model.metrics import Metric, MetricWithCategory
+from watchmen_metricflow.model.metrics import Metric, MetricWithCategory, MetricPublishStatus
 from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_rest import get_admin_principal, get_console_principal
 from watchmen_rest.util import raise_400, raise_404
@@ -257,7 +257,9 @@ async def get_all_metrics_yaml_agent_view(
 
     def action() -> List[MetricWithCategory]:
         tenant_id: TenantId = principal_service.get_tenant_id()
-        return metric_service.find_all(tenant_id)
+        metrics = metric_service.find_all(tenant_id)
+        # only published metrics can be exported to runtime
+        return [m for m in metrics if m.publishStatus == MetricPublishStatus.PUBLISHED]
 
     metrics = trans_readonly(metric_service, action)
     yaml_str = yaml.dump([m.model_dump(mode='json', by_alias=True, exclude_none=True) for m in metrics], sort_keys=False)

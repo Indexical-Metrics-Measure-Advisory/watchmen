@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   MetricDefinition,
   MetricFilter,
+  MetricPublishStatus,
   MetricTypeParams,
   Category,
 } from '@/model/metricsManagement';
@@ -152,6 +153,31 @@ const useMetricsData = () => {
     }
   }, [validatingSet, toast]);
 
+  const handleTogglePublish = useCallback(async (metric: MetricDefinition) => {
+    const metricName = metric.name;
+    const publishStatus: MetricPublishStatus = metric.publishStatus === 'published' ? 'draft' : 'published';
+
+    try {
+      // Persist full metric with updated publish status back to backend
+      await updateMetric(metricName, { ...metric, publishStatus });
+
+      // Update the metric in local state
+      setMetrics(prev => prev.map(m =>
+        m.name === metricName
+          ? { ...m, publishStatus }
+          : m
+      ));
+
+      toast({
+        title: t('common:success'),
+        description: t(publishStatus === 'published' ? 'metricsManagement:publishSuccess' : 'metricsManagement:unpublishSuccess', { name: metricName })
+      });
+    } catch (error) {
+      console.error('Failed to toggle publish status:', error);
+      toast({ title: t('common:error'), description: t('metricsManagement:publishFailed'), variant: "destructive" });
+    }
+  }, [toast]);
+
   // ===== useEffect (4 个) =====
 
   useEffect(() => {
@@ -211,6 +237,7 @@ const useMetricsData = () => {
     loadCategories,
     loadSemanticModels,
     handleValidateMetric,
+    handleTogglePublish,
   };
 };
 

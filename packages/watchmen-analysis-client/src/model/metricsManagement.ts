@@ -142,6 +142,9 @@ export interface MetricDefinition {
   // Validation fields
   validationStatus?: MetricValidationStatus;
   validationResult?: MetricValidationResult;
+
+  // Publish status; undefined is treated as draft
+  publishStatus?: MetricPublishStatus;
 }
 
 // Compatible configuration placeholder, specific structure defined by backend
@@ -240,6 +243,9 @@ export interface CategoryImportResult {
 
 /** Validation status enum */
 export type MetricValidationStatus = 'pending' | 'validated' | 'failed';
+
+/** Publish status enum */
+export type MetricPublishStatus = 'draft' | 'published';
 
 /** Single step validation log entry */
 export interface ValidationLogEntry {

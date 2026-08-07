@@ -85,6 +85,11 @@ class MetricValidationStatus(Enum):
     FAILED = "failed"
 
 
+class MetricPublishStatus(str, Enum):
+    DRAFT = "draft"
+    PUBLISHED = "published"
+
+
 class ValidationLogEntry(BaseModel):
 
     model_config = ConfigDict(use_enum_values=True)
@@ -129,6 +134,8 @@ class Metric(ExtendedBaseModel, TenantBasedTuple, Auditable,OptimisticLock):
     unit: Optional[str] = None
     config: Optional[MetricConfig] = None
     time_granularity: Optional[str] = None
+    # publish status of the metric: draft / published; None is treated as draft
+    publishStatus: Optional[MetricPublishStatus] = None
 
 
 

@@ -1,0 +1,1 @@
+ALTER TABLE metrics ADD publish_status VARCHAR2(50) DEFAULT NULL;

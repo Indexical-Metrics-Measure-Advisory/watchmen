@@ -22,6 +22,7 @@ import {
 import {
   MetricDefinition,
   MetricFilter,
+  MetricPublishStatus,
   MetricValidationStatus
 } from '@/model/metricsManagement';
 import { deleteMetric, updateMetric, createMetric } from '@/services/metricsManagementService';
@@ -58,6 +59,23 @@ const ValidationBadge = ({ status, size = 'default' }: { status?: MetricValidati
   );
 };
 
+/** Publish status badge — standalone sub-component */
+const PublishBadge = ({ status, size = 'default' }: { status?: MetricPublishStatus; size?: 'sm' | 'default' }) => {
+  const { t } = useTranslation('metricsEnum');
+  if (status === 'published') {
+    return (
+      <Badge className={cn("bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100", size === 'sm' && "text-[10px] px-1.5 py-0")}>
+        <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> {t('publishStatus.published')}
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="outline" className={cn("border-muted-foreground/30 text-muted-foreground", size === 'sm' && "text-[10px] px-1.5 py-0")}>
+      <CircleDot className="mr-1 h-3 w-3" /> {t('publishStatus.draft')}
+    </Badge>
+  );
+};
+
 const MetricsManagement: React.FC = () => {
   const { collapsed } = useSidebar();
   const navigate = useNavigate();
@@ -70,7 +88,7 @@ const MetricsManagement: React.FC = () => {
     metricToEdit, setMetricToEdit, editForm, setEditForm, createForm, setCreateForm,
     showCategoryManagement, setShowCategoryManagement, viewMode, setViewMode,
     validatingSet, filter, setFilter, allMetricsForSelect,
-    loadData, loadCategories, loadSemanticModels, handleValidateMetric,
+    loadData, loadCategories, loadSemanticModels, handleValidateMetric, handleTogglePublish,
     metricNamePattern, locale
   } = useMetricsData();
 
@@ -497,7 +515,10 @@ const MetricsManagement: React.FC = () => {
                                 <span className="text-xs">{t('metricsEnum:validationStatus.validating')}</span>
                               </div>
                             ) : (
-                              <ValidationBadge status={metric.validationStatus} />
+                              <div className="flex flex-col items-start gap-1">
+                                <ValidationBadge status={metric.validationStatus} />
+                                <PublishBadge status={metric.publishStatus} />
+                              </div>
                             )}
                           </TableCell>
                           <TableCell>
@@ -521,6 +542,11 @@ const MetricsManagement: React.FC = () => {
                                 <DropdownMenuLabel>{t('common:actions')}</DropdownMenuLabel>
                                 <DropdownMenuItem onClick={() => handleValidateMetric(metric)}>
                                   <RefreshCcw className="mr-2 h-4 w-4" /> {t('metricsManagement:revalidate')}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleTogglePublish(metric)}>
+                                  {metric.publishStatus === 'published'
+                                    ? <><XCircle className="mr-2 h-4 w-4" /> {t('metricsManagement:unpublish')}</>
+                                    : <><CheckCircle2 className="mr-2 h-4 w-4" /> {t('metricsManagement:publish')}</>}
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => setSelectedMetric(metric)}>
@@ -559,6 +585,7 @@ const MetricsManagement: React.FC = () => {
                                             {getTypeLabel(metric.type, t)}
                                         </Badge>
                                         <ValidationBadge status={metric.validationStatus} size="sm" />
+                                        <PublishBadge status={metric.publishStatus} size="sm" />
                                         {metric.categoryId && (
                                             <span className="text-[10px] text-muted-foreground border px-1.5 rounded-sm bg-muted/20">
                                                 {getCategoryName(metric.categoryId)}
@@ -576,6 +603,9 @@ const MetricsManagement: React.FC = () => {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleTogglePublish(metric)}>
+                                      {metric.publishStatus === 'published' ? t('metricsManagement:unpublish') : t('metricsManagement:publish')}
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => setSelectedMetric(metric)}>{t('metricsManagement:viewDetails')}</DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleViewLineage(metric)}>{t('metricsManagement:viewLineage')}</DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleEditMetric(metric)}>{t('common:edit')}</DropdownMenuItem>

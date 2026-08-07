@@ -5,7 +5,7 @@ from watchmen_model.common import TenantId
 from watchmen_storage import EntityShaper, EntityRow, EntityCriteriaExpression, ColumnNameLiteral
 from watchmen_utilities import ArrayHelper
 from ..model.metrics import MetricWithCategory, MetricConfig, MetricTypeParams, MeasureReference, WindowParams, \
-    ConversionTypeParams, CumulativeTypeParams, MetricValidationStatus, MetricValidationResult
+    ConversionTypeParams, CumulativeTypeParams, MetricValidationStatus, MetricValidationResult, MetricPublishStatus
 
 
 class MetricShaper(UserBasedTupleShaper):
@@ -101,6 +101,12 @@ class MetricShaper(UserBasedTupleShaper):
             return result
         return result.model_dump()
 
+    @staticmethod
+    def serialize_publish_status(status: MetricPublishStatus) -> Optional[str]:
+        if status is None:
+            return None
+        return status.value if hasattr(status, 'value') else status
+
     def serialize(self, metric: MetricWithCategory) -> EntityRow:
 
         row = {
@@ -118,7 +124,8 @@ class MetricShaper(UserBasedTupleShaper):
             'config': MetricShaper.serialize_metric_config(metric.config) if metric.config else None,
             'time_granularity': metric.time_granularity,
             'validation_status': MetricShaper.serialize_validation_status(metric.validationStatus),
-            'validation_result': MetricShaper.serialize_validation_result(metric.validationResult)
+            'validation_result': MetricShaper.serialize_validation_result(metric.validationResult),
+            'publish_status': MetricShaper.serialize_publish_status(metric.publishStatus)
         }
 
         row = TupleShaper.serialize_tenant_based(metric,row)
@@ -143,7 +150,8 @@ class MetricShaper(UserBasedTupleShaper):
             'config': row.get('config'),
             'time_granularity': row.get('time_granularity'),
             'validationStatus': row.get('validation_status'),
-            'validationResult': row.get('validation_result')
+            'validationResult': row.get('validation_result'),
+            'publishStatus': row.get('publish_status')
         }
 
 
