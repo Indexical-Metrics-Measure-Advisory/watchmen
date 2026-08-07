@@ -7,10 +7,11 @@ import numpy as np
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
+from watchmen_collector_batch.storage import get_data_shard_service
 from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, TriggerTable, \
     Condition, Status, CollectorTableConfig
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, CriteriaBuilder, \
-    build_audit_column_criteria, get_table_config_service, ask_source_extractor
+    build_audit_column_criteria, get_table_config_service, ask_source_extractor, ask_collector_storage
 from watchmen_collector_kernel.service.extract_utils import cal_array2d_diff, build_data_id, get_data_id, \
     build_audit_columns_criteria
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
@@ -27,8 +28,8 @@ logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
 
 
-def init_table_extractor():
-    TableExtractor().create_thread()
+def init_batch_table_sharder():
+    BatchCollectorSharder().create_thread()
 
 
 class BatchCollectorSharder:
@@ -37,10 +38,10 @@ class BatchCollectorSharder:
         self.meta_storage = ask_meta_storage()
         self.snowflake_generator = ask_snowflake_generator()
         self.principal_service = ask_super_admin()
+        self.collector_storage = ask_collector_storage()
         self.collector_table_config_service = get_collector_table_config_service(self.meta_storage,
                                                                                  self.snowflake_generator,
                                                                                  self.principal_service)
-        
         
         
         self.trigger_event_service = get_trigger_event_service(self.meta_storage,
@@ -55,6 +56,9 @@ class BatchCollectorSharder:
         self.change_data_record_service = get_change_data_record_service(self.meta_storage,
                                                                          self.snowflake_generator,
                                                                          self.principal_service)
+        self.data_shard_service = get_data_shard_service(self.collector_storage,
+                                                         self.snowflake_generator,
+                                                         self.principal_service)
     
     def create_thread(self, scheduler: BackgroundScheduler=None) -> None:
         wait_sec = ask_table_extract_wait()
@@ -69,11 +73,11 @@ class BatchCollectorSharder:
     
     def event_loop_run(self):
         try:
-            self.trigger_table_listener_v2()
+            self.shard_listener()
         except Exception as e:
             logger.error(e, exc_info=True, stack_info=True)
     
-    def trigger_table_listener_v2(self):
+    def shard_listener(self):
         unfinished_trigger_tables = self.trigger_table_service.find_unfinished()
         for unfinished_trigger_table in unfinished_trigger_tables:
             lock = get_resource_lock(self.snowflake_generator.next_id(),
@@ -105,47 +109,8 @@ class BatchCollectorSharder:
     
     # noinspection PyMethodMayBeStatic
     def trigger_table_lock_resource_id(self, trigger_table: TriggerTable) -> str:
-        return f'trigger_table_{trigger_table.tableTriggerId}'
+        return f'batch_trigger_table_{trigger_table.tableTriggerId}'
     
-    def trigger_table_listener(self):
-        unfinished_trigger_tables = self.trigger_table_service.find_unfinished()
-        for unfinished_trigger_table in unfinished_trigger_tables:
-            lock = get_resource_lock(self.snowflake_generator.next_id(),
-                                     self.trigger_table_lock_resource_id(unfinished_trigger_table),
-                                     unfinished_trigger_table.tenantId)
-            try:
-                if try_lock_nowait(self.competitive_lock_service, lock):
-                    trigger = self.trigger_table_service.find_by_id(unfinished_trigger_table.tableTriggerId)
-                    if self.is_extracted(trigger):
-                        continue
-                    else:
-                        config = self.table_config_service.find_by_name(trigger.tableName, trigger.tenantId)
-                        trigger_event = self.trigger_event_service.find_event_by_id(trigger.eventTriggerId)
-                        criteria = self.get_criteria(trigger_event, config)
-                        source_records = ask_source_extractor(config).find_primary_keys_by_criteria(
-                            criteria
-                        )
-                        existed_records = self.change_data_record_service.find_existed_records(
-                            trigger.tableTriggerId)
-                        if existed_records:
-                            diff_records: List[List] = self.get_diff(source_records, existed_records)
-                            logger.info(
-                                f'table_name: {config.tableName}, source_records: {len(source_records)}, existed_records: {len(existed_records)}, diffs: {len(diff_records)}'
-                            )
-                            for diff_record in diff_records:
-                                self.save_change_data_record(trigger, build_data_id(config.primaryKey, diff_record))
-                        else:
-                            logger.info(
-                                f'table_name: {config.tableName}, source_records: {len(source_records)}, existed_records: {len(existed_records)}'
-                            )
-                            ArrayHelper(source_records).map(
-                                lambda record: self.save_change_data_record(trigger,
-                                                                            get_data_id(config.primaryKey, record)))
-                        data_count = ArrayHelper(source_records).size()
-                        self.trigger_table_service.update_table_trigger(self.set_extracted(trigger, data_count))
-                        break
-            finally:
-                unlock(self.competitive_lock_service, lock)
     
     # noinspection PyMethodMayBeStatic
     def set_data_count(self, trigger_table: TriggerTable, count: int) -> TriggerTable:
@@ -163,8 +128,6 @@ class BatchCollectorSharder:
                 "event_trigger_id": trigger_table.eventTriggerId,
                 "table_trigger_id": trigger_table.tableTriggerId,
                 "last_max_pk": None,
-                "data_count": 0,
-                "remaining_count": 0,
                 "is_complete": False
             }
     

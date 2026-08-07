@@ -1,18 +1,98 @@
 from typing import Sequence, Dict, List, Optional
-
-from sqlalchemy import Engine
-
-from .storage_oracle import StorageOracle
+from typing import Sequence, List, Optional, Tuple
+from sqlalchemy import Engine, text
 
 
-class TopicDataStorageOracleBatchWriter(StorageOracle):
-    
-    def __init__(self, engine: Engine, batch_size: int = 500):
-        super().__init__(engine)
+class CollectorBatchStorageOracle:
+    def __init__(
+        self,
+        engine: Engine,
+        table_name: str,
+        pk_columns: List[str],
+        shard_step_rows: int = 400_000,
+    ):
+        """
+        :param engine: sqlalchemy engine instance
+        :param table_name: target table name
+        :param pk_columns: primary key column list, support composite key
+        :param shard_step_rows: expected row count for each logical shard
+        """
         self.engine = engine
-        self.batch_size = batch_size
+        self.table_name = table_name
+        self.pk_columns = pk_columns
+        self.shard_step_rows = shard_step_rows
+
+
+    def get_shard_split_points(self, cursor: Optional[Tuple]) -> Optional[Tuple]:
+        """
+        Sample primary keys to get next shard split point for ONE single shard step.
+        Shard range semantic: (prev_split, current_split].
+        :param cursor: previous split point tuple; None means start from first record.
+        :return: next split‑point tuple, return None if reach end of table.
+        """
+        pk_col_str = ", ".join(self.pk_columns)
+        order_by_str = ", ".join(self.pk_columns)
+        step = self.shard_step_rows
+        
+        # Dynamically assemble inner where clause for tuple comparison
+        if cursor is None:
+            where_inner = ""
+            bind_params = {}
+        else:
+            # Build oracle tuple comparison: (col1, col2) > (:v0, :v1)
+            col_tuple = f"({pk_col_str})"
+            param_names = [f":v{i}" for i in range(len(self.pk_columns))]
+            val_tuple = f"({','.join(param_names)})"
+            where_inner = f"WHERE {col_tuple} > {val_tuple}"
+            bind_params = {f"v{i}": cursor[i] for i in range(len(self.pk_columns))}
+        
+        sql_text = f"""
+       SELECT {pk_col_str}
+       FROM (
+           SELECT {pk_col_str}, ROWNUM AS rn
+           FROM (
+               SELECT {pk_col_str}
+               FROM {self.table_name}
+               {where_inner}
+               ORDER BY {order_by_str}
+           ) t
+           WHERE ROWNUM <= :step
+       )
+       WHERE rn = :step
+           """.strip()
+        
+        bind_params["step"] = step
+        
+        with self.engine.connect() as conn:
+            result = conn.execute(text(sql_text), bind_params)
+            row = result.first()
+        
+        if row is None:
+            # No matched row, reach end of table
+            return None
+        
+        split_tuple = tuple(row)
+        return split_tuple
+
+
+    def build_shard_ranges(self, split_points: List[Tuple]) -> List[Tuple[Optional[Tuple], Optional[Tuple]]]:
+        """
+        Construct complete shard boundary list from split‑point collection.
+        Each item: (lower_bound, upper_bound).
+        lower = None means no lower limit; upper = None means no upper limit.
+        Query semantic: lower_bound < primary_key <= upper_bound
+        """
+        ranges = []
+        prev: Optional[Tuple] = None
+        for sp in split_points:
+            ranges.append((prev, sp))
+            prev = sp
+        # Append last open‑ended shard
+        ranges.append((prev, None))
+        return ranges
     
-    def write(
+    
+    def batch_write(
             self,
             table: str,
             pk: Sequence[str],

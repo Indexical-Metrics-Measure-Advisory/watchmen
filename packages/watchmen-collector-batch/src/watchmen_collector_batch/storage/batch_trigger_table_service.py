@@ -1,0 +1,156 @@
+from typing import Optional, List
+
+from watchmen_auth import PrincipalService
+from watchmen_collector_batch.model import BatchTriggerTable
+from watchmen_collector_kernel.model import TriggerTable
+from watchmen_meta.common import TupleShaper, TupleService
+from watchmen_meta.common.storage_service import StorableId
+from watchmen_model.common import Storable, TableTriggerId, Pageable, DataPage
+from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
+	EntityCriteriaJoint, EntityCriteriaExpression, ColumnNameLiteral, EntitySortColumn, EntitySortMethod
+
+
+class BatchTriggerTableShaper(EntityShaper):
+
+	def serialize(self, entity: BatchTriggerTable) -> EntityRow:
+		return TupleShaper.serialize_tenant_based(entity, {
+			'table_trigger_id': entity.tableTriggerId,
+			'table_name': entity.tableName,
+			'model_name': entity.modelName,
+			'is_extracted': entity.isExtracted,
+			'data_count': entity.dataCount,
+			'result': entity.result,
+			'model_trigger_id': entity.modelTriggerId,
+			'module_trigger_id': entity.moduleTriggerId,
+			'event_trigger_id': entity.eventTriggerId
+		})
+
+	def deserialize(self, row: EntityRow) -> BatchTriggerTable:
+		# noinspection PyTypeChecker
+		return TupleShaper.deserialize_tenant_based(row, BatchTriggerTable(
+			tableTriggerId=row.get('table_trigger_id'),
+			tableName=row.get('table_name'),
+			modelName=row.get('model_name'),
+			isExtracted=row.get('is_extracted'),
+			dataCount=row.get('data_count'),
+			result=row.get('result'),
+			modelTriggerId=row.get('model_trigger_id'),
+			moduleTriggerId=row.get('module_trigger_id'),
+			eventTriggerId=row.get('event_trigger_id')
+		))
+
+
+BATCH_TRIGGER_TABLE_TABLE = 'batch_trigger_table'
+BATCH_TRIGGER_TABLE_ENTITY_SHAPER = BatchTriggerTableShaper()
+
+
+class BatchTriggerTableService(TupleService):
+
+	def should_record_operation(self) -> bool:
+		return False
+
+	def get_entity_name(self) -> EntityName:
+		return BATCH_TRIGGER_TABLE_TABLE
+
+	def get_entity_shaper(self) -> EntityShaper:
+		return BATCH_TRIGGER_TABLE_ENTITY_SHAPER
+
+	def get_storable_id_column_name(self) -> EntityName:
+		return 'table_trigger_id'
+
+	def get_storable_id(self, storable: TriggerTable) -> StorableId:
+		# noinspection PyTypeChecker
+		return storable.tableTriggerId
+
+	def set_storable_id(
+			self, storable: TriggerTable, storable_id: TableTriggerId) -> Storable:
+		storable.tableTriggerId = storable_id
+		return storable
+
+	def update_table_trigger(self, trigger: TriggerTable):
+		self.begin_transaction()
+		try:
+			result = self.update(trigger)
+			self.commit_transaction()
+			return result
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
+		finally:
+			self.close_transaction()
+
+	def find_unfinished(self) -> Optional[List[TriggerTable]]:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.find_distinct_values(
+				self.get_entity_finder_for_columns(
+					criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_extracted'), right=False)],
+					distinctColumnNames=['table_trigger_id',
+					                     'tenant_id'],
+					distinctValueOnSingleColumn=False,
+					sort=[EntitySortColumn(name='table_trigger_id', method=EntitySortMethod.ASC)]
+				)
+			)
+		finally:
+			self.close_transaction()
+	
+	def count_unfinished_by_event_trigger_id(self, event_trigger_id: int) -> int:
+		try:
+			self.storage.connect()
+			return self.storage.count(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
+					                         right=event_trigger_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_extracted'), right=0)
+				]
+			))
+		finally:
+			self.storage.close()
+			
+
+	def find_by_id(self, trigger_id: TableTriggerId) -> Optional[TriggerTable]:
+		self.begin_transaction()
+		try:
+			return self.storage.find_by_id(trigger_id, self.get_entity_id_helper())
+		finally:
+			self.close_transaction()
+
+	def find_by_model_trigger_id(self, model_trigger_id: int) -> List[TriggerTable]:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'), right=model_trigger_id)
+				]
+			))
+		finally:
+			self.close_transaction()
+			
+	def find_by_event_trigger_id(self, event_trigger_id: int) -> Optional[List[TriggerTable]]:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)
+				]
+			))
+		finally:
+			self.close_transaction()
+	
+	def find_page_by_event_trigger_id(self, event_trigger_id: int, pageable: Pageable) -> DataPage:
+		try:
+			self.storage.connect()
+			criteria = [EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)]
+			return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
+		finally:
+			self.storage.close()
+
+
+def get_batch_trigger_table_service(storage: TransactionalStorageSPI,
+                              snowflake_generator: SnowflakeGenerator,
+                              principal_service: PrincipalService
+                              ) -> BatchTriggerTableService:
+	return BatchTriggerTableService(storage, snowflake_generator, principal_service)

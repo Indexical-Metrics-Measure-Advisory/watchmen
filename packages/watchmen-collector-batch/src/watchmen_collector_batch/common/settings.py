@@ -14,6 +14,9 @@ class BatchCollectorSettings(ExtendedBaseSettings):
 	KAFKA_SESSION_TIMEOUT_MS: int = 30000
 	KAFKA_MAX_POLL_INTERVAL_MS: int = 300000
 	
+	TABLE_EXTRACTOR_WAIT: int = 3
+	BATCH_COLLECTOR_MONITOR_EVENT_WAIT: int = 60
+	
 
 batch_collector_settings = BatchCollectorSettings()
 logger.info(f'batch_collector settings[{batch_collector_settings.dict()}].')
@@ -49,3 +52,7 @@ def ask_kafka_session_timeout_ms() -> int:
 	
 def ask_kafka_max_poll_interval_ms() -> int:
 	return batch_collector_settings.KAFKA_MAX_POLL_INTERVAL_MS
+
+
+def ask_batch_collector_monitor_event_wait() -> int:
+	return batch_collector_settings.BATCH_COLLECTOR_MONITOR_EVENT_WAIT

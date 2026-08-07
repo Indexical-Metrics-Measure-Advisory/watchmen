@@ -402,6 +402,16 @@ table_trigger_event = Table(
     create_json('params'), create_json('result'),
     create_tenant_id(), *create_tuple_audit_columns()
 )
+table_batch_trigger_event = Table(
+    'batch_trigger_event', meta_data,
+    create_pk('event_trigger_id', Integer),
+    create_datetime('start_time'), create_datetime('end_time'),
+    create_bool('is_finished', False), create_int('status', False),
+    create_int('type', False),
+    create_str('table_name', 50), create_json('records'), create_str('pipeline_id', 50),
+    create_json('params'), create_json('result'),
+    create_tenant_id(), *create_tuple_audit_columns()
+)
 table_trigger_online = Table(
     'trigger_online', meta_data,
     create_pk('online_trigger_id', Integer),
@@ -435,6 +445,17 @@ table_trigger_table = Table(
     create_json('result'),
     create_int('model_trigger_id', False),
     create_int('module_trigger_id', False),
+    create_int('event_trigger_id', False),
+    create_tenant_id(), *create_tuple_audit_columns()
+)
+table_batch_trigger_table = Table(
+    'batch_trigger_table', meta_data,
+    create_pk('table_trigger_id', Integer), create_str('table_name', 50),
+    create_str('model_name', 50), create_int('data_count'),
+    create_bool('is_extracted', False),
+    create_json('result'),
+    create_int('model_trigger_id', True),
+    create_int('module_trigger_id', True),
     create_int('event_trigger_id', False),
     create_tenant_id(), *create_tuple_audit_columns()
 )
