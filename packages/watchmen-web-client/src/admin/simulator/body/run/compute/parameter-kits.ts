@@ -192,7 +192,7 @@ const computeVariable = (options: {
 	}
 
 	// eslint-disable-next-line
-	return variable.split('.').map(x => x.trim()).reduce((value: any, part, index) => {
+	return splitVariableParts(variable).reduce((value: any, part, index) => {
 		if (index === 0 && part === VariablePredefineFunctions.NEXT_SEQ) {
 			return currentSnowflakeId++;
 		} else if (index === 0 && part === VariablePredefineFunctions.NOW) {
@@ -223,6 +223,8 @@ const computeVariable = (options: {
 			return typeAwareMin(value)
 		} else if (part === VariablePredefineFunctions.MAX && Array.isArray(value)) {
 			return typeAwareMax(value)
+		} else if (part.startsWith(`${VariablePredefineFunctions.FIRST_ROW}(`) && part.endsWith(')')) {
+			return computeFirstRow(value, part)
 		} else if (part === VariablePredefineFunctions.LENGTH && typeof value === 'string') {
 			return value.length;
 		} else if (typeof value === 'object') {
@@ -399,3 +401,90 @@ function typeAwareMax<T extends Sortable>(array: T[], comparator?: Comparator<T>
   return array.reduce((max, current) =>
     compareFn(current, max) > 0 ? current : max, array[0]);
 }
+
+// split variable chain by dot, dots inside function parentheses
+// (such as nested sort key path of &firstRow) are kept
+const splitVariableParts = (variable: string): Array<string> => {
+	const parts: Array<string> = [];
+	let part = '';
+	let depth = 0;
+	for (const c of variable) {
+		if (c === '(') {
+			depth++;
+		} else if (c === ')') {
+			depth--;
+		}
+		if (c === '.' && depth === 0) {
+			parts.push(part.trim());
+			part = '';
+		} else {
+			part += c;
+		}
+	}
+	parts.push(part.trim());
+	return parts;
+};
+
+// parse sort keys of &firstRow, each key is "path[:asc|desc]", asc by default
+const parseFirstRowSortKeys = (part: string): Array<{ path: Array<string>, desc: boolean }> => {
+	const params = part.substring(part.indexOf('(') + 1, part.length - 1);
+	return params.split(',').map(p => p.trim()).filter(p => p.length !== 0).map(p => {
+		const [path, direction] = p.split(':').map(x => x.trim());
+		return {path: path.split('.').map(x => x.trim()), desc: direction?.toLowerCase() === 'desc'};
+	});
+};
+
+// retrieve value by nested path, null when any level is missing or not an object
+const getFirstRowKeyValue = (row: any, path: Array<string>): any => {
+	// eslint-disable-next-line
+	return path.reduce((value, name) => {
+		if (value != null && typeof value === 'object' && !Array.isArray(value)) {
+			return value[name];
+		} else {
+			return null;
+		}
+	}, row);
+};
+
+// compare two non-null values, numeric strings are compared as numbers, others as strings
+const compareFirstRowValues = (a: any, b: any): number => {
+	if (isXaNumber(a) && isXaNumber(b)) {
+		return Number(a) - Number(b);
+	}
+	return a.toString().localeCompare(b.toString());
+};
+
+// sort list of objects by given keys and return the first row,
+// null when input is not a list, list is empty or any element is not an object
+const computeFirstRow = (value: any, part: string): any => {
+	if (!Array.isArray(value) || value.length === 0) {
+		return null;
+	}
+	if (value.some(item => item == null || typeof item !== 'object' || Array.isArray(item))) {
+		return null;
+	}
+	const sortKeys = parseFirstRowSortKeys(part);
+	if (sortKeys.length === 0) {
+		return value[0];
+	}
+	const sorted = [...value].sort((rowA, rowB) => {
+		for (const {path, desc} of sortKeys) {
+			const valueA = getFirstRowKeyValue(rowA, path);
+			const valueB = getFirstRowKeyValue(rowB, path);
+			// null is always last, no matter the sort direction
+			if (valueA == null && valueB == null) {
+				continue;
+			} else if (valueA == null) {
+				return 1;
+			} else if (valueB == null) {
+				return -1;
+			}
+			const ret = compareFirstRowValues(valueA, valueB);
+			if (ret !== 0) {
+				return desc ? -ret : ret;
+			}
+		}
+		return 0;
+	});
+	return sorted[0];
+};

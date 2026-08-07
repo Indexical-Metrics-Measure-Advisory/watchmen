@@ -175,6 +175,7 @@ export enum VariablePredefineFunctions {
     JOIN = '&join',
 	MIN = '&min',
 	MAX = '&max',
+	FIRST_ROW = '&firstRow',
 	FROM_PREVIOUS_TRIGGER_DATA = '&old',
 
 	DAY_DIFF = '&dayDiff',
