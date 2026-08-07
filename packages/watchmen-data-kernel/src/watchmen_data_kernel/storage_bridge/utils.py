@@ -10,9 +10,33 @@ from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.common import VariablePredefineFunctions
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_date, month_diff, \
 	truncate_time, try_to_decimal, year_diff
+from .first_row import first_row_value, is_first_row_function
 from .min_max import min_value, max_value
 from .str_utils import check_supported_function_with_params, execute_string_operations
 from .variables import PipelineVariables
+
+
+def split_variable_segments(name: str) -> List[str]:
+	"""
+	Split variable name into segments by dot.
+	Dots inside parentheses (e.g. function parameters of &firstRow(address.city:desc)) are ignored.
+	Behaves exactly same as name.strip().split('.') when no parentheses given.
+	"""
+	segments = []
+	depth = 0
+	segment = ''
+	for char in name.strip():
+		if char == '.' and depth == 0:
+			segments.append(segment)
+			segment = ''
+		else:
+			if char == '(':
+				depth = depth + 1
+			elif char == ')' and depth > 0:
+				depth = depth - 1
+			segment = segment + char
+	segments.append(segment)
+	return segments
 
 
 def get_value_from(
@@ -73,6 +97,9 @@ def get_value_from(
 				return ArrayHelper(data).reduce(lambda sum_value, value: sum_value + to_decimal(value), Decimal(0))
 			else:
 				raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
+		elif is_first_row_function(current_name):
+			# sort and pick the first row, keep chaining on following segments
+			data = first_row_value(name, current_name, data)
 		elif check_supported_function_with_params(current_name):
 			if isinstance(data, str):
 				return execute_string_operations(data, current_name)
@@ -148,7 +175,7 @@ def create_previous_trigger_data() -> Callable[[PipelineVariables, PrincipalServ
 
 
 def create_from_previous_trigger_data(prefix, name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
-	names = name.strip().split('.')
+	names = split_variable_segments(name)
 
 	# noinspection PyUnusedLocal
 	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
@@ -184,7 +211,7 @@ def create_is_list_from_variables(variables: PipelineVariables) -> Callable[[Lis
 
 
 def create_get_from_variables_with_prefix(prefix, name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
-	names = name.strip().split('.')
+	names = split_variable_segments(name)
 
 	# noinspection PyUnusedLocal
 	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
@@ -207,7 +234,7 @@ def get_date_from_variables(
 		variables: PipelineVariables, principal_service: PrincipalService, variable_name: str
 ) -> Tuple[bool, Any, date]:
 	value = get_value_from(
-		variable_name, variable_name.strip().split('.'),
+		variable_name, split_variable_segments(variable_name),
 		create_get_value_from_variables(variables), create_is_list_from_variables(variables))
 	if isinstance(value, date):
 		return True, value, value
@@ -220,7 +247,7 @@ def get_value_from_variables(
 		variables: PipelineVariables, principal_service: PrincipalService, variable_name: str
 ) -> Tuple[bool, Any, Any]:
 	value = get_value_from(
-		variable_name, variable_name.strip().split('.'),
+		variable_name, split_variable_segments(variable_name),
 		create_get_value_from_variables(variables), create_is_list_from_variables(variables))
 	return True, value, value
 

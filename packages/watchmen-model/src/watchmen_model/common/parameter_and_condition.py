@@ -42,6 +42,7 @@ class VariablePredefineFunctions(str, Enum):
 	MIN = '&min',
 	FROM_PREVIOUS_TRIGGER_DATA = '&old',
 	DISTINCT = "&distinct"
+	FIRST_ROW = '&firstRow'
 
 	DAY_DIFF = '&dayDiff',
 	MONTH_DIFF = '&monthDiff',
