@@ -23,7 +23,7 @@ from watchmen_utilities import ArrayHelper, date_might_with_prefix, get_current_
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
 	create_get_from_variables_with_prefix, create_previous_trigger_data, create_snowflake_generator, \
 	create_static_str, get_date_from_variables, get_value_from, test_date, create_get_value_from_variables, \
-	create_is_list_from_variables
+	create_is_list_from_variables, split_variable_segments
 from .variables import PipelineVariables
 
 
@@ -381,7 +381,7 @@ def create_ask_factor_value(topic: Topic, factor: Factor) -> Callable[[PipelineV
 	name = factor.name
 	if is_blank(name):
 		raise DataKernelException(f'Name of factor[id={factor.factorId}, topicId={topic.topicId}] not declared.')
-	names = name.strip().split('.')
+	names = split_variable_segments(name)
 
 	# topic factor parameter always retrieve data from current trigger data
 	if len(names) == 1:
@@ -431,7 +431,7 @@ class ParsedMemoryVariableParameter(ParsedMemoryParameter):
 			self.askValue = create_get_from_variables_with_prefix('', parameter.variableName)
 		else:
 			full_name = f'{parameter.variableName}.{parameter.factorName}'
-			names = full_name.strip().split('.')
+			names = split_variable_segments(full_name)
 			self.askValue = lambda variables, principal_service: get_value_from(
 				full_name, names,
 				create_get_value_from_variables(variables), create_is_list_from_variables(variables))

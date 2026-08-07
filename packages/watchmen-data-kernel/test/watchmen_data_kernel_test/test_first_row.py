@@ -126,7 +126,7 @@ class FirstRowFunctionTest(TestCase):
 			ask_value(variables, 'rows.&firstRow(createdTime:asc)'))
 		# date is normalized to datetime at midnight, less than datetime of same day
 		self.assertEqual(
-			{'createdTime': date(2024, 1, 2)},
+			{'createdTime': datetime(2024, 1, 2, 10, 30, 0)},
 			ask_value(variables, 'rows.&firstRow(createdTime:desc)'))
 
 	def test_chain_continues_after_first_row(self):
