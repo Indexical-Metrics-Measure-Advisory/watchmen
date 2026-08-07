@@ -183,6 +183,7 @@ export enum VariablePredefineFunctions {
 	YEAR_DIFF = '&yearDiff',
 	MOVE_DATE = '&moveDate',
 	DATE_FORMAT = '&fmtDate',
+	COMBINE_DATETIME = '&combineDateTime',
 	NOW = '&now'
 }
 

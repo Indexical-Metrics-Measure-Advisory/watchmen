@@ -22,8 +22,8 @@ from watchmen_utilities import ArrayHelper, date_might_with_prefix, get_current_
 	value_equals, value_not_equals
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
 	create_get_from_variables_with_prefix, create_previous_trigger_data, create_snowflake_generator, \
-	create_static_str, get_date_from_variables, get_value_from, test_date, create_get_value_from_variables, \
-	create_is_list_from_variables, split_variable_segments
+	create_static_str, get_date_from_variables, get_time_from_variables, get_value_from, test_date, test_time, \
+	create_get_value_from_variables, create_is_list_from_variables, split_variable_segments
 from .variables import PipelineVariables
 
 
@@ -532,6 +532,49 @@ def create_date_format(prefix: str, variable_name: str) -> Callable[[PipelineVar
 	return run
 
 
+# noinspection DuplicatedCode
+def create_combine_datetime(prefix: str, variable_name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	# noinspection PyTypeChecker
+	parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.COMBINE_DATETIME.value, 2)
+	date_variable_name = parsed_params[0]
+	time_variable_name = parsed_params[1]
+	date_parsed, parsed_date = test_date(date_variable_name)
+	if date_parsed and isinstance(parsed_date, datetime):
+		# datetime instance(includes &now), use date part only
+		parsed_date = parsed_date.date()
+	time_parsed, parsed_time = test_time(time_variable_name)
+
+	def combine(a_date: date, a_time: time) -> datetime:
+		return datetime.combine(a_date, a_time).replace(microsecond=0)
+
+	if date_parsed and time_parsed:
+		# noinspection PyUnusedLocal
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			return combine(parsed_date, parsed_time)
+	else:
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			if not date_parsed:
+				d_parsed, d_value, d_date = get_date_from_variables(variables, principal_service, date_variable_name)
+				if not d_parsed:
+					raise DataKernelException(f'Value[{d_value}] cannot be parsed to date or datetime.')
+			else:
+				d_date = parsed_date
+			if isinstance(d_date, datetime):
+				d_date = d_date.date()
+			if not time_parsed:
+				t_parsed, t_value, t_time = get_time_from_variables(variables, principal_service, time_variable_name)
+				if not t_parsed:
+					raise DataKernelException(f'Value[{t_value}] cannot be parsed to time.')
+			else:
+				t_time = parsed_time
+			return combine(d_date, t_time)
+
+	def run(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		return date_might_with_prefix(prefix, action(variables, principal_service))
+
+	return run
+
+
 # noinspection DuplicatedCode,PyTypeChecker
 def create_run_constant_segment(variable: MightAVariable) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	prefix = variable.text
@@ -557,6 +600,9 @@ def create_run_constant_segment(variable: MightAVariable) -> Callable[[PipelineV
 	elif variable_name.startswith(VariablePredefineFunctions.DATE_FORMAT.value):
 		# date format
 		return create_date_format(prefix, variable_name)
+	elif variable_name.startswith(VariablePredefineFunctions.COMBINE_DATETIME.value):
+		# combine date and time
+		return create_combine_datetime(prefix, variable_name)
 	elif variable_name.startswith(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value):
 		# from previous trigger data
 		if variable_name == VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value:

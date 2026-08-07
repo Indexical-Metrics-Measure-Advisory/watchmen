@@ -302,6 +302,24 @@ export const isDateFormatConstant = (statement: string): { is: boolean, parsed?:
 		return {is: true, parsed: parsed[0] as ParsedVariablePredefineFunctions};
 	}
 };
+export const isCombineDateTimeConstant = (statement: string): { is: boolean, parsed?: ParsedVariablePredefineFunctions } => {
+	const parsed = [
+		VariablePredefineFunctions.COMBINE_DATETIME
+	].map((func: VariablePredefineFunctions) => {
+		const matched = (statement || '').trim().match(new RegExp(`^(${func})\\s*\\((.+),(.+)\\)$`));
+		if (matched) {
+			const [, f, p1, p2] = matched;
+			return {f: f as VariablePredefineFunctions, params: [p1.trim(), p2.trim()]};
+		} else {
+			return false;
+		}
+	}).filter(x => x !== false);
+	if (parsed.length === 0) {
+		return {is: false};
+	} else {
+		return {is: true, parsed: parsed[0] as ParsedVariablePredefineFunctions};
+	}
+};
 const SUPPORTED_FUNCTION_NAMES = new Set([
   'len',
   'slice',
@@ -427,6 +445,8 @@ export const computeParameterTypes = (
 			} else if (isDateDiffConstant(name).is) {
 				return [{array: false, type: FactorType.NUMBER}];
 			} else if (isMoveDateConstant(name).is) {
+				return [{array: false, type: FactorType.DATETIME}];
+			} else if (isCombineDateTimeConstant(name).is) {
 				return [{array: false, type: FactorType.DATETIME}];
 			} else if (isDateFormatConstant(name).is) {
 				return [{array: false, type: FactorType.TEXT}];

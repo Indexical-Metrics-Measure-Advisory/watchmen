@@ -8,6 +8,7 @@ import {
 	VariablePredefineFunctions
 } from '@/services/data/tuples/factor-calculator-types';
 import {
+	isCombineDateTimeConstant,
 	isDateDiffConstant,
 	isDateFormatConstant,
 	isMoveDateConstant
@@ -153,7 +154,7 @@ const computeVariable = (options: {
 	}
 
 	const parsedFunction = [
-		isDateDiffConstant, isMoveDateConstant, isDateFormatConstant
+		isDateDiffConstant, isMoveDateConstant, isDateFormatConstant, isCombineDateTimeConstant
 	].reduce((ret: { is: boolean, parsed?: ParsedVariablePredefineFunctions }, parse) => {
 		if (!ret.is) {
 			return parse(variable);
@@ -185,6 +186,20 @@ const computeVariable = (options: {
 			case VariablePredefineFunctions.DATE_FORMAT: {
 				const [p1, p2] = params;
 				return dayjs(p1).format(translate_date_format(p2));
+			}
+			case VariablePredefineFunctions.COMBINE_DATETIME: {
+				const [p1, p2] = params;
+				// tolerate SQL-literal style values, e.g. date'2024-03-21' or time'09:12:23'
+				const normalize = (v: any): any => {
+					return typeof v === 'string' ? v.trim().replace(/^[a-zA-Z]+'/, '').replace(/'$/, '') : v;
+				};
+				const datePart = dayjs(normalize(p1));
+				const timeText = dayjs.isDayjs(p2) || p2 instanceof Date ? dayjs(p2).format('HH:mm:ss') : normalize(p2);
+				const combined = dayjs(`${datePart.isValid() ? datePart.format('YYYY-MM-DD') : normalize(p1)} ${timeText}`);
+				if (!combined.isValid()) {
+					throws();
+				}
+				return combined;
 			}
 			default:
 				throws();

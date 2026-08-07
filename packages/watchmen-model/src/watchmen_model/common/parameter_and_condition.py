@@ -50,6 +50,7 @@ class VariablePredefineFunctions(str, Enum):
 	MOVE_DATE = '&moveDate'
 	DATE_FORMAT = '&fmtDate'
 	NOW = '&now'
+	COMBINE_DATETIME = '&combineDateTime'
 	
 	
 	

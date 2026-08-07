@@ -1,5 +1,6 @@
 import {Parameter, VariablePredefineFunctions} from '@/services/data/tuples/factor-calculator-types';
 import {
+	isCombineDateTimeConstant,
 	isDateDiffConstant,
 	isDateFormatConstant,
 	isMoveDateConstant
@@ -81,6 +82,11 @@ const computeParameterFrom = (parameter: Parameter, variables: { [key in string]
 				const dateFormat = isDateFormatConstant(name);
 				if (dateFormat.is) {
 					const params = dateDiff.parsed?.params;
+					return (params || []).map(param => tryToComputeToVariable(param, variables));
+				}
+				const combineDateTime = isCombineDateTimeConstant(name);
+				if (combineDateTime.is) {
+					const params = combineDateTime.parsed?.params;
 					return (params || []).map(param => tryToComputeToVariable(param, variables));
 				}
 				return tryToComputeToVariable(name, variables);

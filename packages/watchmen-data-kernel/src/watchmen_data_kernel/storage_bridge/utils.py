@@ -5,10 +5,10 @@ from decimal import Decimal
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.common import ask_all_date_formats, DataKernelException
+from watchmen_data_kernel.common import ask_all_date_formats, ask_time_formats, DataKernelException
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.common import VariablePredefineFunctions
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_date, month_diff, \
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_date, is_time, month_diff, \
 	truncate_time, try_to_decimal, year_diff
 from .first_row import first_row_value, is_first_row_function
 from .min_max import min_value, max_value
@@ -229,6 +229,10 @@ def test_date(variable_name: str) -> Tuple[bool, Optional[date]]:
 		return is_date(variable_name, ask_all_date_formats())
 
 
+def test_time(variable_name: str) -> Tuple[bool, Optional[time]]:
+	return is_time(variable_name, ask_time_formats())
+
+
 # noinspection PyUnusedLocal
 def get_date_from_variables(
 		variables: PipelineVariables, principal_service: PrincipalService, variable_name: str
@@ -240,6 +244,21 @@ def get_date_from_variables(
 		return True, value, value
 	parsed, parsed_date = is_date(value, ask_all_date_formats())
 	return parsed, value, parsed_date
+
+
+# noinspection PyUnusedLocal
+def get_time_from_variables(
+		variables: PipelineVariables, principal_service: PrincipalService, variable_name: str
+) -> Tuple[bool, Any, Optional[time]]:
+	value = get_value_from(
+		variable_name, split_variable_segments(variable_name),
+		create_get_value_from_variables(variables), create_is_list_from_variables(variables))
+	if isinstance(value, datetime):
+		return True, value, value.time()
+	if isinstance(value, time):
+		return True, value, value
+	parsed, parsed_time = is_time(value, ask_time_formats())
+	return parsed, value, parsed_time
 
 
 # noinspection PyUnusedLocal
