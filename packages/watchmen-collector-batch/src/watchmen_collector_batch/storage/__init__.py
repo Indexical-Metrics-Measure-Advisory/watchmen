@@ -1,1 +1,2 @@
 from .semantic_pipeline_service import get_collector_semantic_pipeline_service
+from .table_shard_service import get_data_shard_service

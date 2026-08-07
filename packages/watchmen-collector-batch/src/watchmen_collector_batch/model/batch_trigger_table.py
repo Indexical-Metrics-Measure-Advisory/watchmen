@@ -3,7 +3,7 @@ from typing import Dict
 from watchmen_model.common import TenantBasedTuple
 
 
-class TriggerTable(TenantBasedTuple):
+class BatchTriggerTable(TenantBasedTuple):
 	tableTriggerId: int
 	tableName: str
 	dataCount: int
