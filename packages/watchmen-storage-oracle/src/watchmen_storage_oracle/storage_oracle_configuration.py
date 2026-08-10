@@ -3,7 +3,7 @@ from __future__ import annotations
 from watchmen_model.system import DataSource, DataSourceType, DataSourceParam
 
 from .data_source_oracle import OracleDataSourceHelper, OracleDataSourceParams
-from .oracle_batch import TopicDataStorageOracleBatchWriter
+from .oracle_batch import CollectorBatchStorageOracle
 from .storage_oracle import StorageOracle, TopicDataStorageOracle
 
 
@@ -75,7 +75,7 @@ class StorageOracleConfiguration:
 	def create_topic_data_storage(self) -> TopicDataStorageOracle:
 		return self.helper.acquire_topic_data_storage()
 	
-	def create_topic_data_storage_batch_writer(self) -> TopicDataStorageOracleBatchWriter:
+	def create_topic_data_storage_batch_writer(self) -> CollectorBatchStorageOracle:
 		return self.helper.acquire_topic_data_storage_batch_writer()
 
 	@staticmethod
