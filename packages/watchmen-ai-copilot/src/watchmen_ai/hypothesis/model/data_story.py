@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from watchmen_ai.hypothesis.model.data_result import HypothesisDataResult
 from watchmen_model.common import TenantBasedTuple, OptimisticLock, Storable
@@ -13,6 +13,7 @@ class DataExplain(ExtendedBaseModel, Storable):
     hypothesisValidationFlag: bool = False
     keyMetricChange :str = None
     summaryFinding:str = None
+    confidence: float = Field(default=0, description="Confidence 0-100 in the validation conclusion based on the strength of the data evidence")
 
 
 
@@ -133,9 +134,3 @@ class DataStory(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
     subQuestions: Optional[List[SubQuestion]] = []
     status: DataStoryStatus = DataStoryStatus.DRAFT
     dimensions: Optional[List[Dimension]] = []
-
-
-class BusinessProblemForDspy(ExtendedBaseModel):
-    reason: Optional[str] = None
-    title: str = None
-    description: Optional[str] = None

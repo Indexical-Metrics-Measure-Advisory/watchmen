@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from logging import getLogger
 
 from watchmen_ai.hypothesis.model.common import SimulationResult, ChallengeAnalysisResult
-from watchmen_ai.hypothesis.model.analysis import BusinessChallengeWithProblems
+from watchmen_ai.hypothesis.model.analysis import BusinessChallengeWithHypotheses
 from watchmen_ai.hypothesis.report.markdown_report import build_analysis_report_md
 from watchmen_ai.hypothesis.rag.azure_openai_register import AzureOpenAIEmbeddings
 
@@ -521,7 +521,7 @@ class RAGEmbeddingService:
                 markdown_content = simulation_result.result.challengeMarkdown
 
             # Extract basic information
-            challenge = BusinessChallengeWithProblems.model_validate(simulation_result["challenge"])
+            challenge = BusinessChallengeWithHypotheses.model_validate(simulation_result["challenge"])
             result = ChallengeAnalysisResult.model_validate(simulation_result["result"])
 
             simulation_id = simulation_result["simulationId"] or str(uuid.uuid4())
@@ -551,7 +551,7 @@ class RAGEmbeddingService:
                     char_end=chunk_data.get('char_end'),
                     metadata={
                         "environment_status": simulation_result["environmentStatus"],
-                        "total_problems": len(challenge.problems) if challenge.problems else 0,
+                        "total_hypotheses": len(challenge.hypotheses) if challenge.hypotheses else 0,
                         "has_insight_result": bool(result.challengeInsightResult),
                         "semantic_section": chunk_data.get('semantic_section'),
                         "section_title": chunk_data.get('section_title'),
@@ -595,60 +595,29 @@ class RAGEmbeddingService:
                 document_ids.append(doc_id)
 
             # 3. Store hypothesis analysis markdown if available
-            if result.hypothesisAnalysisMarkdownDict:
-                for problem_id, hypothesis_markdown in result.hypothesisAnalysisMarkdownDict.items():
-                    hypothesis_chunks_with_metadata = self._chunk_text_semantic(hypothesis_markdown)
-                    for i, chunk_data in enumerate(hypothesis_chunks_with_metadata):
-                        doc_id = f"{simulation_id}_hypothesis_{problem_id}_{i}"
-                        document = ChallengeDocument(
-                            id=doc_id,
-                            simulation_id=simulation_id,
-                            challenge_title=challenge.title,
-                            challenge_description=challenge.description,
-                            markdown_content=chunk_data['content'],
-                            content_type="hypothesis_analysis",
-                            chunk_index=i,
-                            total_chunks=len(hypothesis_chunks_with_metadata),
-                            created_at=datetime.now(),
-                            semantic_section=chunk_data.get('semantic_section', 'hypothesis'),
-                            section_title=chunk_data.get('section_title'),
-                            token_count=chunk_data.get('token_count'),
-                            char_start=chunk_data.get('char_start'),
-                            char_end=chunk_data.get('char_end'),
-                            metadata={
-                                "problem_id": problem_id,
-                                "analysis_type": "hypothesis",
-                                "semantic_section": chunk_data.get('semantic_section', 'hypothesis'),
-                                "section_title": chunk_data.get('section_title'),
-                                "token_count": chunk_data.get('token_count')
-                            }
-                        )
-                        documents_to_store.append(document)
-                        document_ids.append(doc_id)
-
-            # 4. Store question answer markdown if available
-            if result.questionAnswerMarkdown:
-                qa_chunks_with_metadata = self._chunk_text_semantic(result.questionAnswerMarkdown)
-                for i, chunk_data in enumerate(qa_chunks_with_metadata):
-                    doc_id = f"{simulation_id}_qa_{i}"
+            if result.hypothesisAnalysisMarkdown:
+                hypothesis_chunks_with_metadata = self._chunk_text_semantic(result.hypothesisAnalysisMarkdown)
+                for i, chunk_data in enumerate(hypothesis_chunks_with_metadata):
+                    doc_id = f"{simulation_id}_hypothesis_{i}"
                     document = ChallengeDocument(
                         id=doc_id,
                         simulation_id=simulation_id,
                         challenge_title=challenge.title,
                         challenge_description=challenge.description,
                         markdown_content=chunk_data['content'],
-                        content_type="question_answer",
+                        content_type="hypothesis_analysis",
                         chunk_index=i,
-                        total_chunks=len(qa_chunks_with_metadata),
+                        total_chunks=len(hypothesis_chunks_with_metadata),
                         created_at=datetime.now(),
-                        semantic_section=chunk_data.get('semantic_section', 'question_answer'),
+                        semantic_section=chunk_data.get('semantic_section', 'hypothesis'),
                         section_title=chunk_data.get('section_title'),
                         token_count=chunk_data.get('token_count'),
                         char_start=chunk_data.get('char_start'),
                         char_end=chunk_data.get('char_end'),
                         metadata={
-                            "analysis_type": "question_answer",
-                            "semantic_section": chunk_data.get('semantic_section', 'question_answer'),
+                            "challenge_id": str(challenge.id),
+                            "analysis_type": "hypothesis",
+                            "semantic_section": chunk_data.get('semantic_section', 'hypothesis'),
                             "section_title": chunk_data.get('section_title'),
                             "token_count": chunk_data.get('token_count')
                         }

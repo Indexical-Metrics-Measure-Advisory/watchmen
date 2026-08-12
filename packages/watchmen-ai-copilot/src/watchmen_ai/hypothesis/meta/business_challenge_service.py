@@ -12,7 +12,6 @@ class BusinessChallengeShaper(UserBasedTupleShaper):
             'id': challenge.id,
             'title': challenge.title,
             'description': challenge.description,
-            'problemIds': challenge.problemIds,
         }
 
         row = AuditableShaper.serialize(challenge, row)
@@ -24,7 +23,6 @@ class BusinessChallengeShaper(UserBasedTupleShaper):
                 id=row.get('id'),
                 title=row.get('title'),
                 description=row.get('description'),
-                problemIds=row.get('problemIds'),
 
             )
         # noinspection PyTypeChecker

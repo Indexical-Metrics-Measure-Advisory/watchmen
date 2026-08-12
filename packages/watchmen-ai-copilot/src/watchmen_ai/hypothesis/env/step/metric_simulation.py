@@ -7,7 +7,7 @@ from watchmen_ai.hypothesis.model.data_story import HypothesisForDspy, MarkdownO
 from watchmen_ai.dspy.module.metircs_suggestion import MetricSuggestion, MetricMatchResult
 from watchmen_ai.dspy.module.suggestion_dimensions import SuggestingDimensionsModule, SuggestedDimensionResult
 from watchmen_ai.hypothesis.env.step.step_interface import SimulationStepInterface
-from watchmen_ai.hypothesis.model.analysis import BusinessChallengeWithProblems, HypothesisWithMetrics
+from watchmen_ai.hypothesis.model.analysis import BusinessChallengeWithHypotheses, HypothesisWithMetrics
 from watchmen_ai.hypothesis.model.common import ChallengeAgentContext
 from watchmen_ai.hypothesis.model.metrics import MetricDetailType, MetricFlowMetric, MetricType, MetricDimension
 from watchmen_ai.hypothesis.service.metric_service import load_dimensions_by_metrics
@@ -86,7 +86,7 @@ class MetricSimulationStep(SimulationStepInterface):
             markdown_list.append(MarkdownObjectiveTarget(objective_name=objective.name, markdown_table=markdown_table))
         return markdown_list
 
-    def execute(self, challenge: BusinessChallengeWithProblems, context: ChallengeAgentContext, *args, **kwargs):
+    def execute(self, challenge: BusinessChallengeWithHypotheses, context: ChallengeAgentContext, *args, **kwargs):
         metric_suggestion = MetricSuggestion()
         suggestion_dimensions  = SuggestingDimensionsModule()
 
@@ -97,21 +97,18 @@ class MetricSimulationStep(SimulationStepInterface):
 
         # print(metrics_md_table)
 
-        for problem in challenge.problems:
-            # Simulate the metric for each problem
-            # This is where you would implement the logic to simulate the metric
-            # For now, we will just print the problem
-            for hypothesis in problem.hypotheses:
-                # print(f"Simulating metric for hypothesis: {hypothesis.title}")
-                metrics_details,dimensions = self.find_metric_details(context, hypothesis, metric_suggestion, metrics_md_table)
-                # for metric_detail in metrics_details:
+        for hypothesis in challenge.hypotheses:
+            # Simulate the metric for each hypothesis
+            # print(f"Simulating metric for hypothesis: {hypothesis.title}")
+            metrics_details,dimensions = self.find_metric_details(context, hypothesis, metric_suggestion, metrics_md_table)
+            # for metric_detail in metrics_details:
 
-                result = suggestion_dimensions(business_question = problem.description,hypothesis = hypothesis.description
-                                      ,metrics=[metric_detail.metric.name for metric_detail in metrics_details],
-                                      dimensions=[dimension.name for dimension in dimensions])
-                # print("suggestion_dimensions result", result)
-                suggestion_dimension_list:List[SuggestedDimensionResult] = result.response
-                hypothesis.dimensions= self.find_result_in_dimension_list(dimensions, suggestion_dimension_list)
+            result = suggestion_dimensions(business_question = challenge.description or challenge.title,hypothesis = hypothesis.description
+                                  ,metrics=[metric_detail.metric.name for metric_detail in metrics_details],
+                                  dimensions=[dimension.name for dimension in dimensions])
+            # print("suggestion_dimensions result", result)
+            suggestion_dimension_list:List[SuggestedDimensionResult] = result.response
+            hypothesis.dimensions= self.find_result_in_dimension_list(dimensions, suggestion_dimension_list)
 
     def find_result_in_dimension_list(self, dimensions, suggestion_dimension_list):
         # filter the dimensions by suggestion

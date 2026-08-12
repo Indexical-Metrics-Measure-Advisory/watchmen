@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -35,6 +35,15 @@ class RelatedHypothesis(BaseModel):
     confidence: float
 
 
+class HypothesisContext(ExtendedBaseModel):
+    source: str = 'manual'  # manual | chart | alert | chat
+    sourceId: Optional[str] = None  # for chart source, the analysis (board) id
+    metrics: Optional[List[str]] = None
+    dimensions: Optional[List[str]] = None
+    timeRange: Optional[str] = None
+    filters: Optional[Dict[str, str]] = None
+
+
 class Hypothesis(ExtendedBaseModel, UserBasedTuple, OptimisticLock,Auditable):
     id: Optional[str] = None
     title: str
@@ -42,9 +51,10 @@ class Hypothesis(ExtendedBaseModel, UserBasedTuple, OptimisticLock,Auditable):
     status: Optional[HypothesisStatus] = HypothesisStatus.DRAFTED
     confidence: Optional[float] = 0.0
     metrics: Optional[List[str]] = []
-    businessProblemId: Optional[str] = None
+    businessChallengeId: Optional[str] = None
     relatedHypothesesIds: List[str] = []
     analysisMethod: Optional[EmulativeAnalysisMethod] = None
+    context: Optional[HypothesisContext] = None
 
 
 

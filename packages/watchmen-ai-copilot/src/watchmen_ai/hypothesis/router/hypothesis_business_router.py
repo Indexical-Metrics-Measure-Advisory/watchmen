@@ -1,14 +1,16 @@
 from logging import getLogger
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
+from watchmen_ai.hypothesis.meta.analysis_meta_service import AnalysisService
 from watchmen_ai.hypothesis.meta.business_challenge_service import BusinessChallengeService
-from watchmen_ai.hypothesis.meta.business_problem_service import BusinessProblemService
 from watchmen_ai.hypothesis.meta.hypothesis_service import HypothesisService
-from watchmen_ai.hypothesis.model.analysis import BusinessChallengeWithProblems
-from watchmen_ai.hypothesis.model.business import BusinessChallenge, BusinessProblem
-from watchmen_ai.hypothesis.model.hypothesis import Hypothesis
-from watchmen_ai.hypothesis.service.ai_service import generate_hypothesis_by_ai, generate_problem_by_ai
+from watchmen_ai.hypothesis.model.analysis import BusinessChallengeWithHypotheses
+from watchmen_ai.hypothesis.model.business import BusinessChallenge
+from watchmen_ai.hypothesis.model.hypothesis import Hypothesis, HypothesisContext, HypothesisStatus
+from watchmen_ai.hypothesis.model.metrics import EmulativeAnalysisMethod
+from watchmen_ai.hypothesis.service.ai_service import generate_hypothesis_by_ai, draft_hypothesis_by_ai
 from watchmen_ai.hypothesis.service.challenge_service import add_metric_to_hypothesis, load_full_challenge
 from watchmen_ai.hypothesis.service.hypothesis_service import suggest_analysis_method
 from watchmen_auth import PrincipalService
@@ -21,11 +23,12 @@ router = APIRouter()
 logger = getLogger(__name__)
 
 
+class GenerateHypothesisRequest(BaseModel):
+    challengeId: str
+
+
 def ask_business_challenge_service(principal_service: PrincipalService) -> BusinessChallengeService:
     return BusinessChallengeService(ask_meta_storage(), ask_snowflake_generator(),principal_service)
-
-def ask_business_problem_service(principal_service: PrincipalService) -> BusinessProblemService:
-    return BusinessProblemService(ask_meta_storage(), ask_snowflake_generator(),principal_service)
 
 
 def ask_hypothesis_service(principal_service: PrincipalService) -> HypothesisService:
@@ -84,90 +87,13 @@ async  def get_challenge_by_id(challenge_id: str,
 
 
 
-
-
-@router.get("/problems", tags=["hypothesis"])
-async  def get_problems(
-        principal_service: PrincipalService = Depends(get_any_principal)):
-    business_problem_service: BusinessProblemService = ask_business_problem_service(principal_service)
-    hypothesis_service: HypothesisService = ask_hypothesis_service(principal_service)
-    def action():
-        # Get all problems for the current tenant
-        return business_problem_service.find_all(principal_service.get_tenant_id())
-    problems =  trans_readonly(business_problem_service, action)
-
-    def read_hypotheses(problem_id):
-        return hypothesis_service.find_by_problem_id(problem_id)
-
-    ## loop problem for load hypothesis and set hypothesis id list to problem
-    for problem in problems:
-
-        hypothesis_list = trans_readonly(hypothesis_service, lambda: read_hypotheses(problem.id))
-
-        problem.hypothesisIds = []
-        for hypothesis in hypothesis_list:
-                problem.hypothesisIds.append(hypothesis.id)
-
-    return  problems
-
-
-
-@router.get("/problems/{problem_id}", tags=["hypothesis"])
-async def get_problem_by_id(problem_id: str,
-                            principal_service: PrincipalService = Depends(get_any_principal)):
-    business_problem_service: BusinessProblemService = ask_business_problem_service(principal_service)
-    def action():
-        return business_problem_service.find_by_id(problem_id)
-    return trans(business_problem_service, action)
-
-
-
-@router.post("/problem/create", tags=["hypothesis"],response_model=None)
-async def create_problem(business_problem: BusinessProblem,
-                         principal_service: PrincipalService = Depends(get_any_principal)):
-
-    business_problem_service: BusinessProblemService = ask_business_problem_service(principal_service)
-    if business_problem.id is None:
-        business_problem.id = str(business_problem_service.snowflakeGenerator.next_id())
-        business_problem.userId = principal_service.get_user_id()
-        business_problem.tenantId = principal_service.get_tenant_id()
-
-    def action():
-        return business_problem_service.create(business_problem)
-
-
-    return trans(business_problem_service, action)
-
-@router.post("/problem/update", tags=["hypothesis"])
-async def update_problem(business_problem: BusinessProblem,
-                         principal_service: PrincipalService = Depends(get_any_principal)):
-    business_problem_service: BusinessProblemService = ask_business_problem_service(principal_service)
-    def action():
-        return business_problem_service.update(business_problem)
-
-    return trans(business_problem_service, action)
-
-
-
-@router.get("/challenges/{challenge_id}/problems", tags=["hypothesis"],response_model=None)
-async def get_problems_by_challenge_id(challenge_id: str,
-                                   principal_service: PrincipalService = Depends(get_any_principal)):
-
-    business_problem_service: BusinessProblemService = ask_business_problem_service(principal_service)
-    def action():
-        return business_problem_service.find_by_challenge_id(challenge_id)
-
-    return trans(business_problem_service, action)
-
-
-@router.get("/problems/{problem_id}/hypotheses", tags=["hypothesis"],response_model=None)
-async def get_hypotheses_by_problem_id(problem_id: str,
+@router.get("/challenges/{challenge_id}/hypotheses", tags=["hypothesis"],response_model=None)
+async def get_hypotheses_by_challenge_id(challenge_id: str,
                                  principal_service: PrincipalService = Depends(get_any_principal)):
-    # Get all hypotheses for the given problem ID
-    # This is a placeholder implementation. You need to implement the logic to fetch hypotheses by problem ID.
+    # Get all hypotheses for the given challenge ID
     hypothesis_service: HypothesisService = ask_hypothesis_service(principal_service)
     def action():
-        return hypothesis_service.find_by_problem_id(problem_id)
+        return hypothesis_service.find_by_challenge_id(challenge_id)
 
     return trans(hypothesis_service, action)
 
@@ -219,7 +145,17 @@ async def create_hypothesis(hypothesis: Hypothesis,
 async def update_hypothesis(hypothesis: Hypothesis,
                             principal_service: PrincipalService = Depends(get_any_principal)):
 
+    # a hypothesis can only be marked as validated/rejected after an analysis run produced a validation record
+    if hypothesis.status in (HypothesisStatus.VALIDATED, HypothesisStatus.REJECTED):
+        analysis_service = AnalysisService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
+        def load_analysis_records():
+            return analysis_service.find_by_hypothesis_id(hypothesis.id, principal_service.get_tenant_id())
+
+        analysis_records = trans_readonly(analysis_service, load_analysis_records)
+        if analysis_records is None or len(analysis_records) == 0:
+            raise HTTPException(status_code=400,
+                                detail='Hypothesis must be validated by running analysis first')
 
     hypothesis_service = ask_hypothesis_service(principal_service)
 
@@ -256,7 +192,7 @@ async def find_recent_hypotheses(
     return trans(hypothesis_service, action)
 
 
-@router.get("/hypothesis/related/{hypothesis_id}", tags=["hypothesis"],response_model=None)
+@router.delete("/hypothesis/{hypothesis_id}", tags=["hypothesis"], response_model=None)
 async def delete_hypothesis(hypothesis_id: str,
                             principal_service: PrincipalService = Depends(get_any_principal)):
 
@@ -277,41 +213,55 @@ async def delete_hypothesis(hypothesis_id: str,
 
 @router.post("/ai/generate-hypothesis", tags=["hypothesis"],response_model=None)
 async  def  ai_generate_hypothesis(
-        business_problem: BusinessProblem,
+        body: GenerateHypothesisRequest,
         principal_service: PrincipalService = Depends(get_any_principal)
 ):
-    # Get the business problem by ID
-    # business_problem_service: BusinessProblemService = ask_business_problem_service(principal_service)
+    # Get the business challenge by ID
     hypothesis_service: HypothesisService = ask_hypothesis_service(principal_service)
     business_challenge_service: BusinessChallengeService = ask_business_challenge_service(principal_service)
 
 
     def read_challenge():
-        return business_challenge_service.find_by_id(business_problem.businessChallengeId)
+        return business_challenge_service.find_by_id(body.challengeId)
 
     business_challenge:BusinessChallenge = trans_readonly(business_challenge_service, read_challenge)
 
     def read_hypotheses():
-        return hypothesis_service.find_by_problem_id(business_problem.id)
-    # Get the hypotheses for the given problem ID
+        return hypothesis_service.find_by_challenge_id(body.challengeId)
+    # Get the hypotheses for the given challenge ID
     hypotheses = trans_readonly(hypothesis_service,read_hypotheses)
 
-    return await generate_hypothesis_by_ai(business_challenge,business_problem,hypotheses)
+    return await generate_hypothesis_by_ai(business_challenge,hypotheses)
 
 
+@router.post("/ai/draft-hypothesis", tags=["hypothesis"], response_model=None)
+async def draft_hypothesis(body: HypothesisContext, principal_service: PrincipalService = Depends(get_any_principal)):
+    """
+    Draft a hypothesis (title, description, analysis method) from a chart/alert/chat context using AI.
+    LLM errors are returned as a failure payload instead of raising.
+    """
+    try:
+        result = await draft_hypothesis_by_ai(body)
 
-@router.post("/ai/generate-problem", tags=["hypothesis"],response_model=None)
-async def generate_problem(challenge:BusinessChallenge,principal_service: PrincipalService = Depends(get_any_principal)):
-    business_problem_service: BusinessProblemService = ask_business_problem_service(principal_service)
+        # normalize the analysis method to one of the EmulativeAnalysisMethod values
+        analysis_method = str(getattr(result, 'analysisMethod', '') or '')
+        normalized_method = next(
+            (method.value for method in EmulativeAnalysisMethod
+             if method.value.lower() == analysis_method.strip().lower()),
+            analysis_method)
 
-
-    def read_problems():
-        return business_problem_service.find_by_challenge_id(challenge.id)
-
-
-    problems = trans_readonly(business_problem_service,read_problems)
-
-    return await generate_problem_by_ai(challenge,problems)
+        return {
+            "success": True,
+            "title": str(getattr(result, 'title', '') or ''),
+            "description": str(getattr(result, 'description', '') or ''),
+            "analysisMethod": normalized_method
+        }
+    except Exception as e:
+        logger.error(f"Failed to draft hypothesis by AI: {str(e)}")
+        return {
+            "success": False,
+            "message": str(e)
+        }
 
 
 
@@ -320,7 +270,7 @@ async def generate_problem(challenge:BusinessChallenge,principal_service: Princi
 @router.get("/challenge/full/{challenge_id}", tags=["hypothesis"],response_model=None)
 async def load_full_challenge_by_id(challenge_id: str, principal_service: PrincipalService = Depends(get_any_principal)):
     """
-    Load a full challenge by its ID, including associated problems and hypotheses.
+    Load a full challenge by its ID, including associated hypotheses.
     """
-    challenge_with_problems: BusinessChallengeWithProblems = await load_full_challenge(challenge_id, principal_service)
-    return challenge_with_problems
+    challenge_with_hypotheses: BusinessChallengeWithHypotheses = await load_full_challenge(challenge_id, principal_service)
+    return challenge_with_hypotheses

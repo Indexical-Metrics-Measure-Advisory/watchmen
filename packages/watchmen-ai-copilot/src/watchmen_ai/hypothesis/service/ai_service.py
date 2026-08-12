@@ -4,27 +4,9 @@ import dspy
 
 from watchmen_ai.dspy.module.generate_hypothesis_with_current_hypothesis import \
     GenerateHypothesisWithCurrentHypothesisModule
-from watchmen_ai.dspy.module.generate_problem_with_current_problems import GenerateProblemWithCurrentProblemsModule
-from watchmen_ai.hypothesis.model.business import BusinessProblem, BusinessChallenge
-from watchmen_ai.hypothesis.model.hypothesis import Hypothesis
-
-
-def generate_markdown_table_for_problem(problem_list:List[BusinessProblem]):
-
-    """
-
-    :param problem_list:
-    :return:
-    """
-
-    markdown = "| Problem | Description | \n"
-    markdown += "|------------|-------------|\n"
-    for problem in problem_list:
-
-        markdown += f"| {problem.title} | {problem.description} | \n"
-    return markdown
-
-
+from watchmen_ai.dspy.module.draft_hypothesis_from_context import DraftHypothesisFromContextModule
+from watchmen_ai.hypothesis.model.business import BusinessChallenge
+from watchmen_ai.hypothesis.model.hypothesis import Hypothesis, HypothesisContext
 
 
 def generate_markdown_table_for_hypothesis(hypothesis_list):
@@ -46,7 +28,7 @@ def generate_markdown_table_for_hypothesis(hypothesis_list):
 
 
 
-async def generate_hypothesis_by_ai(challenge:BusinessChallenge,business_problem:BusinessProblem,hypothesis_list:List[Hypothesis]):
+async def generate_hypothesis_by_ai(challenge:BusinessChallenge,hypothesis_list:List[Hypothesis]):
     generate_hypothesis = GenerateHypothesisWithCurrentHypothesisModule()
 
     current_hypothesis_markdown_table =  generate_markdown_table_for_hypothesis(hypothesis_list)
@@ -55,7 +37,7 @@ async def generate_hypothesis_by_ai(challenge:BusinessChallenge,business_problem
 
     result = generate_hypothesis(
         challenge=challenge.title,
-        question_description=business_problem.title,
+        question_description=challenge.description or challenge.title,
         current_hypothesis_markdown_table=current_hypothesis_markdown_table
     )
 
@@ -63,20 +45,26 @@ async def generate_hypothesis_by_ai(challenge:BusinessChallenge,business_problem
     return result
 
 
-async def generate_problem_by_ai(challenge:BusinessChallenge,business_problem_list:List[BusinessProblem]):
+async def draft_hypothesis_by_ai(context: HypothesisContext):
     """
-    Generate new business problem using AI
-    :param challenge:
-    :param business_problem_list:
+    Draft a hypothesis (title, description, analysis method) from a chart/alert/chat context using AI
+    :param context:
     :return:
     """
-    generate_problem = GenerateProblemWithCurrentProblemsModule()
+    draft_hypothesis = DraftHypothesisFromContextModule()
 
-    markdown = generate_markdown_table_for_problem(business_problem_list)
+    dimensions = ', '.join(context.dimensions) if context.dimensions else ''
+    if context.filters:
+        filters = ', '.join([f'{key}={value}' for key, value in context.filters.items()])
+    else:
+        filters = ''
 
-    # Generate new hypothesis using AI
-
-    result = generate_problem(challenge=challenge.title,challenge_description=challenge.description,current_problem_list = markdown)
+    result = draft_hypothesis(
+        metrics=', '.join(context.metrics or []),
+        dimensions=dimensions,
+        time_range=context.timeRange or '',
+        filters=filters
+    )
 
     dspy.inspect_history(n=1)
     return result

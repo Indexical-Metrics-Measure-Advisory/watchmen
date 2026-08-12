@@ -3,6 +3,8 @@ from typing import List
 import re
 
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+
 from watchmen_ai.hypothesis.model.analysis_report import AnalysisReport, AnalysisReportHeader
 from watchmen_ai.hypothesis.rag.rag_emb_service import get_rag_embedding_service
 from watchmen_ai.hypothesis.report.markdown_report import build_analysis_report_md
@@ -11,13 +13,17 @@ from datetime import datetime
 
 from watchmen_ai.hypothesis.meta.analysis_meta_service import AnalysisService
 from watchmen_ai.hypothesis.meta.analysis_report_service import AnalysisReportService
+from watchmen_ai.hypothesis.meta.business_challenge_service import BusinessChallengeService
+from watchmen_ai.hypothesis.meta.hypothesis_service import HypothesisService
 from watchmen_ai.hypothesis.meta.metric_meta_service import MetricService
-from watchmen_ai.hypothesis.model.analysis import BusinessChallengeWithProblems, AnalysisData, BusinessProblemWithHypotheses, HypothesisWithMetrics
+from watchmen_ai.hypothesis.env.step.simulation_analysis import SimulationAnalysisStep
+from watchmen_ai.hypothesis.model.analysis import BusinessChallengeWithHypotheses, AnalysisData, HypothesisWithMetrics
 from watchmen_ai.hypothesis.model.analysis_report import AnalysisReport
 from watchmen_ai.hypothesis.model.common import SimulationResult
+from watchmen_ai.hypothesis.model.hypothesis import HypothesisStatus
 from watchmen_ai.hypothesis.model.metrics import MetricType
 from watchmen_ai.hypothesis.service.analysis_service import load_objective_by_metric
-from watchmen_ai.hypothesis.service.challenge_service import save_full_challenge
+from watchmen_ai.hypothesis.service.challenge_service import save_full_challenge, add_metric_to_hypothesis
 from watchmen_ai.hypothesis.service.metric_service import find_dimension_by_metric, find_indicator_by_objective
 from watchmen_ai.hypothesis.utils.unicode_utils import sanitize_object_unicode
 from watchmen_auth import PrincipalService
@@ -31,6 +37,10 @@ from watchmen_rest import get_any_principal
 router = APIRouter()
 
 logger = getLogger(__name__)
+
+
+class HypothesisAnalysisStartRequest(BaseModel):
+    hypothesisId: str
 
 from watchmen_ai.hypothesis.service.analysis_service import (
     save_simulation_result,
@@ -134,6 +144,24 @@ def get_analysis_data_service(principal_service: PrincipalService) -> AnalysisSe
     return AnalysisService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
+def get_hypothesis_service(principal_service: PrincipalService) -> HypothesisService:
+    """
+    Get the hypothesis service for managing hypotheses.
+    :param principal_service: The principal service for authentication and authorization.
+    :return: An instance of the hypothesis service.
+    """
+    return HypothesisService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_business_challenge_service(principal_service: PrincipalService) -> BusinessChallengeService:
+    """
+    Get the business challenge service for managing business challenges.
+    :param principal_service: The principal service for authentication and authorization.
+    :return: An instance of the business challenge service.
+    """
+    return BusinessChallengeService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
 async def find_all_indicator_by_target_list(objective_target_list: List[ObjectiveTarget],
                                             principal_service: PrincipalService) -> List[Indicator]:
     """
@@ -194,7 +222,7 @@ def find_indicator_by_hypothesis(principal_service: PrincipalService):
     return trans_readonly(indicator_service, action)
 
 
-async def save_challenge_data(challenge: BusinessChallengeWithProblems, principal_service: PrincipalService):
+async def save_challenge_data(challenge: BusinessChallengeWithHypotheses, principal_service: PrincipalService):
     """
     Save challenge data to the database.
     :param challenge: The challenge data to save.
@@ -206,47 +234,41 @@ async def save_challenge_data(challenge: BusinessChallengeWithProblems, principa
     return await save_full_challenge(challenge, principal_service)
 
 
-def build_analysis_report(challenge: BusinessChallengeWithProblems, simulation_result: SimulationResult,
+def build_analysis_report(challenge: BusinessChallengeWithHypotheses, simulation_result: SimulationResult,
                         principal_service: PrincipalService) -> AnalysisReport:
     """
     Build an analysis report based on the challenge and simulation result.
-    :param challenge: The business challenge with problems.
+    :param challenge: The business challenge with hypotheses.
     :param simulation_result: The simulation result to include in the report.
     :param principal_service: The principal service for authentication and authorization.
     :return: The constructed analysis report.
     """
-    challenge = BusinessChallengeWithProblems.model_validate(challenge)
+    challenge = BusinessChallengeWithHypotheses.model_validate(challenge)
     
     # Generate unique analysis report ID
     current_time = get_current_time_in_seconds()
     analysis_report_id = f"analysis_report_{challenge.id}_{current_time}"
     
-    # Count problems and hypotheses
-    total_problems = len(challenge.problems) if challenge.problems else 0
-    total_hypotheses = 0
+    # Count hypotheses and metrics
+    total_hypotheses = len(challenge.hypotheses) if challenge.hypotheses else 0
     total_metrics = 0
     
-    # Count hypotheses and metrics from the challenge
-    for problem in challenge.problems or []:
-        problem = BusinessProblemWithHypotheses.model_validate(problem)
-        if problem.hypotheses:
-            total_hypotheses += len(problem.hypotheses)
-            # Count metrics from hypothesis results if available
-            for hypothesis in problem.hypotheses:
-                hypothesis = HypothesisWithMetrics.model_validate(hypothesis)
-                if (simulation_result.result and 
-                    simulation_result.result["hypothesisResultDict"] and
-                    hypothesis.id in simulation_result.result["hypothesisResultDict"]):
-                    hypothesis_result = simulation_result.result["hypothesisResultDict"][hypothesis.id]
-                    if hasattr(hypothesis_result, 'analysis_metrics') and hypothesis_result["analysis_metrics"]:
-                        total_metrics += len(hypothesis_result["analysis_metrics"])
+    # Count metrics from hypothesis results if available
+    for hypothesis in challenge.hypotheses or []:
+        hypothesis = HypothesisWithMetrics.model_validate(hypothesis)
+        if (simulation_result.result and 
+            simulation_result.result["hypothesisResultDict"] and
+            hypothesis.id in simulation_result.result["hypothesisResultDict"]):
+            hypothesis_result = simulation_result.result["hypothesisResultDict"][hypothesis.id]
+            if hasattr(hypothesis_result, 'analysis_metrics') and hypothesis_result["analysis_metrics"]:
+                total_metrics += len(hypothesis_result["analysis_metrics"])
     
     # Create analysis report header
     current_date = datetime.now().strftime("%Y-%m-%d")
     header = AnalysisReportHeader(
         timePeriod=current_date,
         challengeName=challenge.title,
-        questionCount=total_problems,
+        questionCount=total_hypotheses,
         hypothesisCount=total_hypotheses,
         metricCount=total_metrics
     )
@@ -385,7 +407,7 @@ async def load_analysis_data_by_hypothesis(
     Load analysis data by hypothesis ID.
     :param hypothesis_id: The ID of the hypothesis.
     :param principal_service: The principal service for authentication and authorization.
-    :return: The loaded business challenge with problems.
+    :return: The loaded business challenge with hypotheses.
     """
 
     analysis_service = get_analysis_data_service(principal_service)
@@ -402,6 +424,104 @@ async def load_analysis_data_by_hypothesis(
         return result
     else:
         return None
+
+
+@router.post("/analysis/hypothesis/start", tags=["hypothesis"])
+async def start_hypothesis_analysis(
+        body: HypothesisAnalysisStartRequest,
+        principal_service: PrincipalService = Depends(get_any_principal)):
+    """
+    Run the analysis pipeline for a single hypothesis and persist the result.
+    :param body: The request body containing the hypothesis ID.
+    :param principal_service: The principal service for authentication and authorization.
+    :return: The analysis result with the validation flag and the new hypothesis status.
+    """
+    hypothesis_service = get_hypothesis_service(principal_service)
+
+    def load_hypothesis():
+        return hypothesis_service.find_by_id(body.hypothesisId)
+
+    hypothesis: HypothesisWithMetrics = trans_readonly(hypothesis_service, load_hypothesis)
+    if hypothesis is None:
+        return {
+            "success": False,
+            "message": f"Hypothesis not found: {body.hypothesisId}"
+        }
+
+    try:
+        # enrich metrics details from metric definitions
+        hypothesis_with_metrics: HypothesisWithMetrics = await add_metric_to_hypothesis(hypothesis, principal_service)
+
+        # resolve the challenge title for the analysis context
+        challenge_title = ""
+        if hypothesis.businessChallengeId is not None and len(hypothesis.businessChallengeId) > 0:
+            business_challenge_service = get_business_challenge_service(principal_service)
+
+            def load_challenge():
+                return business_challenge_service.find_by_id(hypothesis.businessChallengeId)
+
+            challenge = trans_readonly(business_challenge_service, load_challenge)
+            if challenge is not None:
+                challenge_title = challenge.title or ""
+
+        # run the analysis pipeline for the single hypothesis
+        analysis_step = SimulationAnalysisStep()
+        analysis_data: AnalysisData = analysis_step.run_for_hypothesis(challenge_title, challenge_title,
+                                                                       hypothesis_with_metrics)
+        analysis_data.hypothesis_id = hypothesis.id
+        analysis_data.userId = principal_service.get_user_id()
+        analysis_data.tenantId = principal_service.get_tenant_id()
+
+        # persist the analysis data, update the existing one or create a new one
+        analysis_service = get_analysis_data_service(principal_service)
+
+        def save_analysis_data():
+            existing_list = analysis_service.find_by_hypothesis_id(hypothesis.id, principal_service.get_tenant_id())
+            if existing_list and len(existing_list) > 0:
+                return analysis_service.update_by_hypothesis_id(hypothesis.id, analysis_data)
+            else:
+                analysis_data.analysis_id = str(analysis_service.snowflakeGenerator.next_id())
+                return analysis_service.create(analysis_data)
+
+        trans(analysis_service, save_analysis_data)
+
+        # update hypothesis status according to the validation flag
+        validation_flag = None
+        explains = analysis_data.data_explain_dict or []
+        if len(explains) > 0:
+            validation_flag = any(
+                explain.get('hypothesisValidationFlag', False) if isinstance(explain, dict)
+                else getattr(explain, 'hypothesisValidationFlag', False)
+                for explain in explains)
+            hypothesis.status = HypothesisStatus.VALIDATED if validation_flag else HypothesisStatus.REJECTED
+
+            # take the system confidence from the first explain, coerced and clamped to 0-100
+            first_explain = explains[0]
+            confidence_value = first_explain.get('confidence', 0) if isinstance(first_explain, dict) \
+                else getattr(first_explain, 'confidence', 0)
+            try:
+                confidence_value = float(confidence_value or 0)
+            except (TypeError, ValueError):
+                confidence_value = 0.0
+            hypothesis.confidence = max(0.0, min(100.0, confidence_value))
+
+            def update_hypothesis_status():
+                return hypothesis_service.update(hypothesis)
+
+            trans(hypothesis_service, update_hypothesis_status)
+
+        return {
+            "success": True,
+            "hypothesisId": hypothesis.id,
+            "hypothesisValidationFlag": validation_flag,
+            "status": hypothesis.status
+        }
+    except Exception as e:
+        logger.error(f"Failed to run hypothesis analysis: {str(e)}")
+        return {
+            "success": False,
+            "message": str(e)
+        }
 
 
 @router.get("/analysis/challenge/{challenge_id}", tags=["hypothesis"])

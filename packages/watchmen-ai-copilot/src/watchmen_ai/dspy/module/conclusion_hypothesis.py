@@ -11,6 +11,7 @@ class ConclusionHypothesisSign(dspy.Signature):
     - conclusion: Data-driven summary referencing specific metrics
     - insight: How metrics impact business
     - recommendation: Concrete actions based on data
+    - confidence: Confidence 0-100 in the validation conclusion based on the strength of the data evidence
     
     Use simple business language and focus on business implications.
     """

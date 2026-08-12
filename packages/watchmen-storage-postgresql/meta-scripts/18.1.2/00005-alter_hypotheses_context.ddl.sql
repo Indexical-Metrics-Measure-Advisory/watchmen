@@ -1,0 +1,1 @@
+ALTER TABLE hypotheses ADD COLUMN IF NOT EXISTS context JSONB;

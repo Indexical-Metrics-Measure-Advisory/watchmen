@@ -1,8 +1,7 @@
 from datetime import datetime
 
 from watchmen_ai.hypothesis.model.data_story import DataExplain
-from watchmen_ai.hypothesis.model.analysis import BusinessChallengeWithProblems, BusinessProblemWithHypotheses, \
-    AnalysisMetric, HypothesisWithMetrics
+from watchmen_ai.hypothesis.model.analysis import BusinessChallengeWithHypotheses, AnalysisMetric, HypothesisWithMetrics
 from watchmen_ai.hypothesis.model.common import SimulationResult, ChallengeAnalysisResult
 from watchmen_ai.markdown.document import MarkdownDocument
 
@@ -15,7 +14,7 @@ def build_analysis_report_md(simulation_result: SimulationResult):
     md = MarkdownDocument()
 
     # Get challenge and result data
-    challenge = BusinessChallengeWithProblems.model_validate(simulation_result.challenge)
+    challenge = BusinessChallengeWithHypotheses.model_validate(simulation_result.challenge)
     result = ChallengeAnalysisResult.model_validate(simulation_result.result)
 
     # Add report generation timestamp
@@ -46,7 +45,7 @@ def build_analysis_report_md(simulation_result: SimulationResult):
     else:
         md.append_text("> ### **⏳ Analysis in progress...** Key conclusions will be available upon completion.")
 
-    # 3. Key insights — based on problem analysis results
+    # 3. Key insights — based on hypothesis analysis results
     md.append_heading("✅ 2️⃣ Key Insights", level=2)
     _add_key_insights(md, challenge, result)
 
@@ -119,26 +118,14 @@ def build_analysis_report_md(simulation_result: SimulationResult):
     return md.contents()
 
 
-def _add_analysis_overview(md: MarkdownDocument, challenge: BusinessChallengeWithProblems,
+def _add_analysis_overview(md: MarkdownDocument, challenge: BusinessChallengeWithHypotheses,
                            result: ChallengeAnalysisResult, simulation_result: SimulationResult):
     """Add analysis overview statistics"""
-    total_problems = len(challenge.problems) if challenge.problems else 0
-    completed_problems = 0
-    total_hypotheses = 0
+    total_hypotheses = len(challenge.hypotheses) if challenge.hypotheses else 0
     completed_hypotheses = 0
-
-    # Count completed problem analyses
-    if result and result.questionResultDict:
-        for problem in challenge.problems or []:
-            problem = BusinessProblemWithHypotheses.model_validate(problem)
-            question_result = result.questionResultDict.get(problem.id)
-            if question_result and hasattr(question_result,
-                                           'answerForConclusion') and question_result.answerForConclusion:
-                completed_problems += 1
 
     # Count hypothesis analyses
     if result and result.hypothesisResultDict:
-        total_hypotheses = len(result.hypothesisResultDict)
         for hypothesis_result in result.hypothesisResultDict.values():
             if hypothesis_result and hasattr(hypothesis_result,
                                              'answerForConclusion') and hypothesis_result.answerForConclusion:
@@ -147,7 +134,6 @@ def _add_analysis_overview(md: MarkdownDocument, challenge: BusinessChallengeWit
     # Create overview table
     overview_headers = ["Metric", "Count", "Status"]
     overview_rows = [
-        ["Total Problems", str(total_problems), f"{completed_problems}/{total_problems} Analyzed"],
         ["Total Hypotheses", str(total_hypotheses), f"{completed_hypotheses}/{total_hypotheses} Analyzed"],
         ["Challenge Title", challenge.title, "📋 Active"],
         ["Analysis Status", getattr(simulation_result, 'environmentStatus', 'In Progress'), "🔄 Processing"]
@@ -156,80 +142,75 @@ def _add_analysis_overview(md: MarkdownDocument, challenge: BusinessChallengeWit
     md.append_table(overview_headers, overview_rows)
 
 
-def _add_key_insights(md: MarkdownDocument, challenge: BusinessChallengeWithProblems, result: ChallengeAnalysisResult):
+def _add_key_insights(md: MarkdownDocument, challenge: BusinessChallengeWithHypotheses, result: ChallengeAnalysisResult):
     """Add key insights"""
-    if result and result.questionResultDict:
+    if result and result.hypothesisResultDict:
         insights_found = False
         
-        for problem in challenge.problems or []:
-            problem = BusinessProblemWithHypotheses.model_validate(problem)
-            question_result = result.questionResultDict.get(problem.id)
+        for hypothesis in challenge.hypotheses or []:
+            hypothesis = HypothesisWithMetrics.model_validate(hypothesis)
+            hypothesis_result = result.hypothesisResultDict.get(hypothesis.id)
             
-            if question_result and hasattr(question_result, 'answerForConclusion') and question_result.answerForConclusion:
+            if hypothesis_result and hasattr(hypothesis_result, 'answerForConclusion') and hypothesis_result.answerForConclusion:
                 insights_found = True
-                md.append_text(f"**📋 {problem.title}**")
+                md.append_text(f"**📋 {hypothesis.title}**")
                 md.append_text(f"> ✅ **Status:** Completed")
-                md.append_text(f"> **Key Insight:** {question_result.answerForConclusion}")
+                md.append_text(f"> **Key Insight:** {hypothesis_result.answerForConclusion}")
                 md.append_text("")
             else:
                 insights_found = True
-                md.append_text(f"**📋 {problem.title}**")
+                md.append_text(f"**📋 {hypothesis.title}**")
                 md.append_text(f"> ⏳ **Status:** Pending")
                 md.append_text(f"> **Key Insight:** Analysis in progress...")
                 md.append_text("")
 
         if not insights_found:
-            md.append_text("*Key insights are being generated based on question analysis results.*")
+            md.append_text("*Key insights are being generated based on hypothesis analysis results.*")
     else:
         md.append_text("*Key insights are being generated based on hypothesis analysis results.*")
 
 
-def _add_hypothesis_analysis(md: MarkdownDocument, challenge: BusinessChallengeWithProblems,
+def _add_hypothesis_analysis(md: MarkdownDocument, challenge: BusinessChallengeWithHypotheses,
                              result: ChallengeAnalysisResult):
     """Add hypothesis analysis details"""
     if result and result.hypothesisResultDict:
         analysis_found = False
         
-        for problem in challenge.problems or []:
-            problem = BusinessProblemWithHypotheses.model_validate(problem)
+        for hypothesis in challenge.hypotheses or []:
+            hypothesis = HypothesisWithMetrics.model_validate(hypothesis)
+            hypothesis_result = result.hypothesisResultDict.get(hypothesis.id)
+            analysis_found = True
             
-            # Show hypothesis analyses under this problem
-            for hypothesis in problem.hypotheses or []:
-                hypothesis = HypothesisWithMetrics.model_validate(hypothesis)
-                hypothesis_result = result.hypothesisResultDict.get(hypothesis.id)
-                analysis_found = True
-                
-                md.append_text(f"**🧪 Problem:** {problem.title}")
-                md.append_text(f"**📋 Hypothesis:** {hypothesis.description}")
-                
-                if hypothesis_result:
-                    # Extract conclusion text
-                    if hasattr(hypothesis_result, 'answerForConclusion') and hypothesis_result.answerForConclusion:
-                        result_text = hypothesis_result.answerForConclusion
-                    else:
-                        result_text = "Analysis completed"
-                    
-                    # Extract AnalysisData information
-                    metrics_count = "0"
-                    data_points = "0"
-                    
-                    if hasattr(hypothesis_result, 'analysis_metrics') and hypothesis_result.analysis_metrics:
-                        metrics_count = str(len(hypothesis_result.analysis_metrics))
-                    
-                    if hasattr(hypothesis_result, 'data_explain_dict') and hypothesis_result.data_explain_dict:
-                        data_points = str(len(hypothesis_result.data_explain_dict))
-                    
-                    md.append_text(f"> ✅ **Status:** Completed")
-                    md.append_text(f"> **Analysis Result:** {result_text}")
-                    md.append_text(f"> **Metrics Count:** {metrics_count}")
-                    md.append_text(f"> **Data Points:** {data_points}")
+            md.append_text(f"**📋 Hypothesis:** {hypothesis.description}")
+            
+            if hypothesis_result:
+                # Extract conclusion text
+                if hasattr(hypothesis_result, 'answerForConclusion') and hypothesis_result.answerForConclusion:
+                    result_text = hypothesis_result.answerForConclusion
                 else:
-                    md.append_text(f"> ⏳ **Status:** Pending")
-                    md.append_text(f"> **Analysis Result:** Analysis in progress...")
-                    md.append_text(f"> **Metrics Count:** N/A")
-                    md.append_text(f"> **Data Points:** N/A")
+                    result_text = "Analysis completed"
                 
-                md.append_text("")
+                # Extract AnalysisData information
+                metrics_count = "0"
+                data_points = "0"
+                
+                if hasattr(hypothesis_result, 'analysis_metrics') and hypothesis_result.analysis_metrics:
+                    metrics_count = str(len(hypothesis_result.analysis_metrics))
+                
+                if hasattr(hypothesis_result, 'data_explain_dict') and hypothesis_result.data_explain_dict:
+                    data_points = str(len(hypothesis_result.data_explain_dict))
+                
+                md.append_text(f"> ✅ **Status:** Completed")
+                md.append_text(f"> **Analysis Result:** {result_text}")
+                md.append_text(f"> **Metrics Count:** {metrics_count}")
+                md.append_text(f"> **Data Points:** {data_points}")
+            else:
+                md.append_text(f"> ⏳ **Status:** Pending")
+                md.append_text(f"> **Analysis Result:** Analysis in progress...")
+                md.append_text(f"> **Metrics Count:** N/A")
+                md.append_text(f"> **Data Points:** N/A")
+            
+            md.append_text("")
         
         if analysis_found:
             # Add detailed AnalysisData content
@@ -241,7 +222,7 @@ def _add_hypothesis_analysis(md: MarkdownDocument, challenge: BusinessChallengeW
         md.append_text("*No hypothesis analysis data available.*")
 
 
-def _add_further_analysis(md: MarkdownDocument, challenge: BusinessChallengeWithProblems,
+def _add_further_analysis(md: MarkdownDocument, challenge: BusinessChallengeWithHypotheses,
                           result: ChallengeAnalysisResult):
     """Add recommended further analysis"""
     # Prefer using futureAnalysisForConclusion
@@ -272,7 +253,7 @@ def _add_further_analysis(md: MarkdownDocument, challenge: BusinessChallengeWith
         md.append_text("**3.** Conduct deeper analysis on high-impact metrics.")
 
 
-def _add_business_actions(md: MarkdownDocument, challenge: BusinessChallengeWithProblems,
+def _add_business_actions(md: MarkdownDocument, challenge: BusinessChallengeWithHypotheses,
                           result: ChallengeAnalysisResult):
     """Add next business actions"""
     # Prefer using futureBusinessActionForConclusion
@@ -373,7 +354,7 @@ def _add_evaluation_results(md: MarkdownDocument, result: ChallengeAnalysisResul
         md.append_text("*Evaluation results are being generated...*")
 
 
-def _add_summary(md: MarkdownDocument, challenge: BusinessChallengeWithProblems, result: ChallengeAnalysisResult):
+def _add_summary(md: MarkdownDocument, challenge: BusinessChallengeWithHypotheses, result: ChallengeAnalysisResult):
     """Add one-sentence summary"""
     if result and result.challengeInsightResult and result.challengeInsightResult.answerForConclusion:
         # Extract conclusion's first sentence as summary
@@ -386,7 +367,7 @@ def _add_summary(md: MarkdownDocument, challenge: BusinessChallengeWithProblems,
 
 
 def _add_detailed_analysis_data(md: MarkdownDocument, result: ChallengeAnalysisResult,
-                                challenge: BusinessChallengeWithProblems = None):
+                                challenge: BusinessChallengeWithHypotheses = None):
     """Add detailed AnalysisData content"""
     # Add hypothesis title as sub-heading
     # Display data explanations
@@ -413,12 +394,10 @@ def _add_detailed_analysis_data(md: MarkdownDocument, result: ChallengeAnalysisR
 
     # Create a mapping from hypothesis_id to hypothesis title
     hypothesis_id_to_title = {}
-    if challenge and challenge.problems:
-        for problem in challenge.problems:
-            problem = BusinessProblemWithHypotheses.model_validate(problem)
-            for hypothesis in problem.hypotheses or []:
-                hypothesis = HypothesisWithMetrics.model_validate(hypothesis)
-                hypothesis_id_to_title[hypothesis.id] = hypothesis.title
+    if challenge and challenge.hypotheses:
+        for hypothesis in challenge.hypotheses:
+            hypothesis = HypothesisWithMetrics.model_validate(hypothesis)
+            hypothesis_id_to_title[hypothesis.id] = hypothesis.title
 
     analysis_data_found = False
 
@@ -742,13 +721,13 @@ def _add_dataset_details(md: MarkdownDocument, result: ChallengeAnalysisResult):
         md.append_text("*No detailed dataset information found in analysis metrics.*")
 
 
-def _add_key_data_points(md: MarkdownDocument, challenge: BusinessChallengeWithProblems,
+def _add_key_data_points(md: MarkdownDocument, challenge: BusinessChallengeWithHypotheses,
                          result: ChallengeAnalysisResult, simulation_result: SimulationResult):
     """Add key data points"""
     # Basic statistics
     md.append_text("**📋 Basic Information:**")
     md.append_text(f"> **Challenge Title:** {challenge.title}")
-    md.append_text(f"> **Total Problems:** {len(challenge.problems) if challenge.problems else 0}")
+    md.append_text(f"> **Total Hypotheses:** {len(challenge.hypotheses) if challenge.hypotheses else 0}")
     md.append_text(f"> **Analysis Status:** {getattr(simulation_result, 'environmentStatus', 'In Progress')}")
     md.append_text("")
 

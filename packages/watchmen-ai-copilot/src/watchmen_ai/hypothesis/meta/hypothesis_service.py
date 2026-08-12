@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from watchmen_ai.hypothesis.model.analysis import HypothesisWithMetrics
-from watchmen_ai.hypothesis.model.hypothesis import Hypothesis
+from watchmen_ai.hypothesis.model.hypothesis import Hypothesis, HypothesisContext
 from watchmen_ai.hypothesis.model.metrics import MetricDetailType
 from watchmen_meta.common import TupleService, UserBasedTupleShaper, AuditableShaper
 from watchmen_model.common import TenantId
@@ -24,6 +24,15 @@ class HypothesisShaper(UserBasedTupleShaper):
             return None
         return ArrayHelper(metric_details).map(lambda x: HypothesisShaper.serialize_metric_detail(x)).to_list()
 
+    @staticmethod
+    def serialize_context(context: Optional[HypothesisContext]) -> Optional[dict]:
+        if context is None:
+            return None
+        if isinstance(context, dict):
+            return context
+        else:
+            return context.model_dump()
+
 
 
 
@@ -35,9 +44,10 @@ class HypothesisShaper(UserBasedTupleShaper):
             'status': hypothesis.status,
             'metrics': hypothesis.metrics,
             'analysis_method':hypothesis.analysisMethod,
-            'business_problem_id': hypothesis.businessProblemId,
+            'business_challenge_id': hypothesis.businessChallengeId,
             'confidence': hypothesis.confidence,
             'related_hypotheses_ids': hypothesis.relatedHypothesesIds,
+            'context': HypothesisShaper.serialize_context(hypothesis.context),
             "metrics_details":HypothesisShaper.serialize_metric_details(hypothesis.metrics_details)
         }
 
@@ -54,9 +64,10 @@ class HypothesisShaper(UserBasedTupleShaper):
             status=row.get('status'),
             analysisMethod=row.get('analysis_method'),
             metrics = row.get('metrics'),
-            businessProblemId = row.get('business_problem_id'),
+            businessChallengeId = row.get('business_challenge_id'),
             confidence = row.get('confidence'),
             relatedHypothesesIds = row.get('related_hypotheses_ids'),
+            context = row.get('context'),
             metrics_details= row.get('metrics_details')
         )
         # noinspection PyTypeChecker
@@ -108,11 +119,11 @@ class HypothesisService(TupleService):
         return self.storage.find(self.get_entity_finder(criteria=criteria).limit(limit))
 
 
-    def find_by_problem_id(self, problem_id: str, tenant_id: Optional[TenantId] = None) -> List[HypothesisWithMetrics]:
+    def find_by_challenge_id(self, challenge_id: str, tenant_id: Optional[TenantId] = None) -> List[HypothesisWithMetrics]:
         criteria = []
         if tenant_id is not None and len(tenant_id.strip()) != 0:
             criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
-        criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='business_problem_id'), right=problem_id))
+        criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='business_challenge_id'), right=challenge_id))
         # noinspection PyTypeChecker
         return self.storage.find(self.get_entity_finder(criteria=criteria))
 

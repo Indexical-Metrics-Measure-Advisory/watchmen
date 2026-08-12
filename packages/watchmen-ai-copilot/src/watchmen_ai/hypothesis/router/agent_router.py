@@ -10,7 +10,7 @@ from watchmen_ai.dspy.module.evaluation_challenge_answer import EvaluationChalle
 from watchmen_ai.hypothesis.env.challenge_simulate_env import ChallengeSimulateEnv
 from watchmen_ai.hypothesis.meta.analysis_meta_service import AnalysisService
 from watchmen_ai.hypothesis.meta.metric_meta_service import MetricService
-from watchmen_ai.hypothesis.model.analysis import BusinessChallengeWithProblems, AnalysisData
+from watchmen_ai.hypothesis.model.analysis import BusinessChallengeWithHypotheses, AnalysisData
 from watchmen_ai.hypothesis.model.business import BusinessChallenge
 from watchmen_ai.hypothesis.model.common import ChallengeAgentContext, QueryHistoricalExperienceResult, \
     QueryKnowledgeBaseResult, ChallengeAnalysisResult, SimulationResult
@@ -83,9 +83,9 @@ async def query_historical_experience(
     ## find business challenge from vector db for historical experience
     ## if find similar challenge, return them limit is 2
 
-    ## result is list of BusinessChallengeWithProblems
-    # Load the full challenge with problems
-    challenge_with_problems: BusinessChallengeWithProblems = await load_full_challenge(challenge.id, principal_service)
+    ## result is list of BusinessChallengeWithHypotheses
+    # Load the full challenge with hypotheses
+    challenge_with_hypotheses: BusinessChallengeWithHypotheses = await load_full_challenge(challenge.id, principal_service)
 
     return QueryHistoricalExperienceResult(hasSimilar=False, similarChallenges=[])
 
@@ -123,7 +123,7 @@ async def query_knowledge_base(
 
 # Build Business Problem Simulation Environment
 @router.post("/challenge/agent/simulate", tags=["hypothesis"])
-async def build_business_problem_simulation_environment(
+async def build_business_challenge_simulation_environment(
         challenge: BusinessChallenge,
         principal_service: PrincipalService = Depends(get_any_principal)) -> SimulationResult:
     """
@@ -145,9 +145,9 @@ async def build_business_problem_simulation_environment(
         challenge_result=ChallengeAnalysisResult(challengeTitle=challenge.title)
     )
 
-    challenge_from_db: BusinessChallengeWithProblems = await load_full_challenge(challenge.id, principal_service)
+    challenge_from_db: BusinessChallengeWithHypotheses = await load_full_challenge(challenge.id, principal_service)
     # print(challenge_from_db)
-    # Load the full challenge with problems
+    # Load the full challenge with hypotheses
     simulate_env = ChallengeSimulateEnv(challenge=challenge_from_db, context=context)
 
     context: ChallengeAgentContext = simulate_env.execute_steps()
@@ -200,7 +200,7 @@ async def attempt_to_answer_business_challenge(
 
     evaluation_challenge_answer = EvaluationChallengeAnswerModule()
 
-    result_response =  evaluation_challenge_answer(challenge = result["challengeTitle"],conclusion=convert_challenge_insight_to_markdown(result["challengeInsightResult"]),question_evaluation_markdown=result["questionAnswerMarkdown"])
+    result_response =  evaluation_challenge_answer(challenge = result["challengeTitle"],conclusion=convert_challenge_insight_to_markdown(result["challengeInsightResult"]),question_evaluation_markdown=result["hypothesisAnalysisMarkdown"])
 
     result["evaluation"]= result_response.response
 

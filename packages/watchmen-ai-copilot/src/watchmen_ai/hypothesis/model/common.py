@@ -4,8 +4,7 @@ from pydantic import BaseModel
 
 from watchmen_ai.dspy.module.challenge_conclusion import ChallengeInsightResult
 from watchmen_ai.dspy.module.evaluation_challenge_answer import EvaluationChallengeAnswerResult
-from watchmen_ai.dspy.module.problem_conclusion import QuestionInsightResult
-from watchmen_ai.hypothesis.model.analysis import BusinessChallengeWithProblems, AnalysisData
+from watchmen_ai.hypothesis.model.analysis import BusinessChallengeWithHypotheses, AnalysisData
 from watchmen_ai.hypothesis.model.metrics import MetricFlowMetric
 from watchmen_auth import PrincipalService
 from watchmen_utilities import ExtendedBaseModel
@@ -18,10 +17,7 @@ class ChallengeAnalysisResult(BaseModel):
     challengeTitle: str = None
     challengeInsightResult: Optional[ChallengeInsightResult] = None
     challengeMarkdown: Optional[str] = None
-    hypothesisAnalysisMarkdownDict: Optional[Dict[str, str]] = {}
-    # hypothesisAnalysisResult = Optional[Dict[str, AnalysisData]] = None
-    questionAnswerMarkdown: Optional[str] = None
-    questionResultDict: Optional[Dict[str, QuestionInsightResult]] = {}
+    hypothesisAnalysisMarkdown: Optional[str] = None
     hypothesisResultDict  :Optional[Dict[str, AnalysisData]] = {}
     evaluation: Optional[EvaluationChallengeAnswerResult] = None
 
@@ -56,7 +52,7 @@ class QueryHistoricalExperienceResult(BaseModel):
     Result of querying historical experience.
     """
     hasSimilar: bool = False
-    similarChallenges: Optional[List[BusinessChallengeWithProblems]] = []
+    similarChallenges: Optional[List[BusinessChallengeWithHypotheses]] = []
 
 
 class QueryKnowledgeBaseResult(BaseModel):
@@ -75,5 +71,5 @@ class SimulationResult(ExtendedBaseModel):
     """
     simulationId: Optional[str] = None
     environmentStatus: Optional[str] = None
-    challenge: BusinessChallengeWithProblems = None
+    challenge: BusinessChallengeWithHypotheses = None
     result: ChallengeAnalysisResult = None

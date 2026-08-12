@@ -12,7 +12,7 @@ from sklearn.metrics import mean_squared_error, accuracy_score
 from watchmen_ai.dspy.module.conclusion_hypothesis import ExplainDataHypothesisMetricModule
 from watchmen_ai.hypothesis.env.step.step_interface import SimulationStepInterface
 from watchmen_ai.hypothesis.model.analysis import HypothesisWithMetrics, AnalysisData, AnalysisMetric, AnalysisDataset, \
-    BusinessChallengeWithProblems
+    BusinessChallengeWithHypotheses
 from watchmen_ai.hypothesis.model.common import ChallengeAgentContext
 from watchmen_ai.hypothesis.service.metric_service import get_metrics_value, MetricFlowResponse
 from watchmen_ai.markdown.document import MarkdownDocument
@@ -792,65 +792,72 @@ class SimulationAnalysisStep(SimulationStepInterface):
         
         return str_value
 
-    def execute(self, challenge:BusinessChallengeWithProblems, context:ChallengeAgentContext, *args, **kwargs):
-
-
-
+    def run_for_hypothesis(self, challenge_title: str, question_title: str,
+                           hypothesis: HypothesisWithMetrics) -> AnalysisData:
+        """
+        Run the analysis pipeline for a single hypothesis.
+        Builds the analysis data by querying each metric value, builds the metrics markdown,
+        and invokes the DSPy module to explain the hypothesis.
+        """
         explain_hypothesis = ExplainDataHypothesisMetricModule()
 
+        analysis_data = AnalysisData()
+        # print("hypothesis",hypothesis)
+        # analysis_data.hypotheses = [hypothesis]
+        analysis_data.hypothesis_id = hypothesis.id
+
+        # print(f"Analyzing hypothesis: {hypothesis}")
+        hypothesis_with_metrics:HypothesisWithMetrics = hypothesis
+        for metric_detail in hypothesis_with_metrics.metrics_details:
+            analysis_metric = AnalysisMetric(name=metric_detail.metric.name,category=metric_detail.metric.category,format=metric_detail.metric.format)
+
+            result_json =  get_metrics_value(metric_detail.metric.name,hypothesis_with_metrics.dimensions)
+
+            metric_flow_res =  MetricFlowResponse(data= result_json['data'], column_names=result_json['column_names'])
+
+            analysis_metric.dataset = AnalysisDataset(dataset=metric_flow_res)
+            analysis_metric.dimensions = hypothesis_with_metrics.dimensions
+
+            analysis_data.analysis_metrics.append(analysis_metric)
+
+        # 构建增强的分析输入，包含数据profile和特征重要性
+        enhanced_analysis_input = self.build_metrics_markdown(analysis_data)
+
+        # 获取完整的分析摘要并保存到context中
+        analysis_summary = self.get_all_metrics_analysis_summary(analysis_data)
+
+        print("enhanced_analysis_input",enhanced_analysis_input)
+
+        result = explain_hypothesis(challenge=challenge_title, question=question_title,
+                               hypothesis=hypothesis_with_metrics.title,
+                               analysis_method=hypothesis_with_metrics.analysisMethod,
+                               metrics_markdown=enhanced_analysis_input)
+
+        # dspy.inspect_history(1)
+
+        analysis_data.data_explain_dict.append(result.dataExplain)
+
+        # 将分析摘要添加到analysis_data中，供后续使用
+        if not hasattr(analysis_data, 'analysis_summary'):
+            analysis_data.analysis_summary = analysis_summary
+
+        # 打印分析摘要的关键信息（用于调试）
+        print(f"分析摘要 - 假设ID: {hypothesis.id}")
+        print(f"指标数量: {analysis_summary['overall_statistics']['total_metrics']}")
+        print(f"总数据行数: {analysis_summary['overall_statistics']['total_data_rows']}")
+        print(f"总特征数: {analysis_summary['overall_statistics']['total_features_analyzed']}")
+
+        return analysis_data
+
+    def execute(self, challenge:BusinessChallengeWithHypotheses, context:ChallengeAgentContext, *args, **kwargs):
+
         analysis_result ={}
-        for problem in challenge.problems:
+        for hypothesis in challenge.hypotheses:
+            analysis_data = self.run_for_hypothesis(challenge.title, challenge.title, hypothesis)
 
-            for hypothesis in problem.hypotheses:
-                analysis_data = AnalysisData()
-                # print("hypothesis",hypothesis)
-                # analysis_data.hypotheses = [hypothesis]
-                analysis_data.hypothesis_id = hypothesis.id
+            analysis_result[hypothesis.id]=analysis_data
 
-                # print(f"Analyzing hypothesis: {hypothesis}")
-                hypothesis_with_metrics:HypothesisWithMetrics = hypothesis
-                for metric_detail in hypothesis_with_metrics.metrics_details:
-                    analysis_metric = AnalysisMetric(name=metric_detail.metric.name,category=metric_detail.metric.category,format=metric_detail.metric.format)
-
-                    result_json =  get_metrics_value(metric_detail.metric.name,hypothesis_with_metrics.dimensions)
-
-                    metric_flow_res =  MetricFlowResponse(data= result_json['data'], column_names=result_json['column_names'])
-
-                    analysis_metric.dataset = AnalysisDataset(dataset=metric_flow_res)
-                    analysis_metric.dimensions = hypothesis_with_metrics.dimensions
-
-                    analysis_data.analysis_metrics.append(analysis_metric)
-
-                # 构建增强的分析输入，包含数据profile和特征重要性
-                enhanced_analysis_input = self.build_metrics_markdown(analysis_data)
-                
-                # 获取完整的分析摘要并保存到context中
-                analysis_summary = self.get_all_metrics_analysis_summary(analysis_data)
-
-                print("enhanced_analysis_input",enhanced_analysis_input)
-                
-                result = explain_hypothesis(challenge=challenge.title, question=problem.title,
-                                       hypothesis=hypothesis_with_metrics.title,
-                                       analysis_method=hypothesis_with_metrics.analysisMethod,
-                                       metrics_markdown=enhanced_analysis_input)
-
-                # dspy.inspect_history(1)
-
-                analysis_data.data_explain_dict.append(result.dataExplain)
-                
-                # 将分析摘要添加到analysis_data中，供后续使用
-                if not hasattr(analysis_data, 'analysis_summary'):
-                    analysis_data.analysis_summary = analysis_summary
-                
-                analysis_result[hypothesis.id]=analysis_data
-
-                context.challenge_result.hypothesisResultDict[hypothesis.id] = analysis_data
-                
-                # 打印分析摘要的关键信息（用于调试）
-                print(f"分析摘要 - 假设ID: {hypothesis.id}")
-                print(f"指标数量: {analysis_summary['overall_statistics']['total_metrics']}")
-                print(f"总数据行数: {analysis_summary['overall_statistics']['total_data_rows']}")
-                print(f"总特征数: {analysis_summary['overall_statistics']['total_features_analyzed']}")
+            context.challenge_result.hypothesisResultDict[hypothesis.id] = analysis_data
 
         context.result_data = analysis_result
         # sent to trigger for save

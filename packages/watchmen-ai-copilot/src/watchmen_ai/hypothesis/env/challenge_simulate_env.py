@@ -1,7 +1,6 @@
 from typing import List
 
 from watchmen_ai.hypothesis.env.step.challenge_conclusions import ChallengeConclusionStep
-from watchmen_ai.hypothesis.env.step.define_simulation_problems import DefineSimulationProblemsStep
 from watchmen_ai.hypothesis.env.step.hypothesis_simulation import HypothesisSimulationStep
 from watchmen_ai.hypothesis.env.step.metric_simulation import MetricSimulationStep
 from watchmen_ai.hypothesis.env.step.simulation_analysis import SimulationAnalysisStep
@@ -57,7 +56,7 @@ class ChallengeSimulateEnv:
         Load the steps for the challenge simulation.
         This method should be overridden by subclasses to provide specific step loading logic.
         """
-        steps:List = [DefineSimulationProblemsStep(),HypothesisSimulationStep(),MetricSimulationStep(),SimulationAnalysisStep(),ChallengeConclusionStep()]
+        steps:List = [HypothesisSimulationStep(),MetricSimulationStep(),SimulationAnalysisStep(),ChallengeConclusionStep()]
         return steps
 
 

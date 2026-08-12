@@ -2,7 +2,7 @@ from typing import List, Literal, Union
 from typing import Optional, Dict
 
 from watchmen_ai.hypothesis.model.data_story import DataExplain
-from watchmen_ai.hypothesis.model.business import BusinessProblem, BusinessChallenge
+from watchmen_ai.hypothesis.model.business import BusinessChallenge
 from watchmen_ai.hypothesis.model.hypothesis import Hypothesis
 from watchmen_ai.hypothesis.model.metrics import MetricDetailType, MetricDimension
 from watchmen_ai.hypothesis.service.metric_service import MetricFlowResponse
@@ -220,11 +220,7 @@ class HypothesisWithMetrics(Hypothesis, UserBasedTuple, OptimisticLock, Auditabl
             super().__setattr__(name, value)
 
 
-class BusinessProblemWithHypotheses(BusinessProblem):
+class BusinessChallengeWithHypotheses(BusinessChallenge):
     hypotheses: Optional[List[HypothesisWithMetrics]] = []
-
-
-class BusinessChallengeWithProblems(BusinessChallenge):
-    problems: Optional[List[BusinessProblemWithHypotheses]]= []
 
 
