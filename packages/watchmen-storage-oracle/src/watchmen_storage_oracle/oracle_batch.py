@@ -6,10 +6,7 @@ from sqlalchemy import Engine, text
 class CollectorBatchStorageOracle:
     def __init__(
         self,
-        engine: Engine,
-        table_name: str,
-        pk_columns: List[str],
-        shard_step_rows: int = 400_000,
+        engine: Engine
     ):
         """
         :param engine: sqlalchemy engine instance
@@ -18,21 +15,18 @@ class CollectorBatchStorageOracle:
         :param shard_step_rows: expected row count for each logical shard
         """
         self.engine = engine
-        self.table_name = table_name
-        self.pk_columns = pk_columns
-        self.shard_step_rows = shard_step_rows
+        
 
-
-    def get_shard_split_points(self, cursor: Optional[Tuple]) -> Optional[Tuple]:
+    def get_shard_split_points(self, table_name: str, pk_columns: List[str], shard_step_rows: int, cursor: Optional[Tuple]) -> Optional[Tuple]:
         """
         Sample primary keys to get next shard split point for ONE single shard step.
         Shard range semantic: (prev_split, current_split].
         :param cursor: previous split point tuple; None means start from first record.
         :return: next split‑point tuple, return None if reach end of table.
         """
-        pk_col_str = ", ".join(self.pk_columns)
-        order_by_str = ", ".join(self.pk_columns)
-        step = self.shard_step_rows
+        pk_col_str = ", ".join(pk_columns)
+        order_by_str = ", ".join(pk_columns)
+        step = shard_step_rows
         
         # Dynamically assemble inner where clause for tuple comparison
         if cursor is None:
@@ -41,10 +35,10 @@ class CollectorBatchStorageOracle:
         else:
             # Build oracle tuple comparison: (col1, col2) > (:v0, :v1)
             col_tuple = f"({pk_col_str})"
-            param_names = [f":v{i}" for i in range(len(self.pk_columns))]
+            param_names = [f":v{i}" for i in range(len(pk_columns))]
             val_tuple = f"({','.join(param_names)})"
             where_inner = f"WHERE {col_tuple} > {val_tuple}"
-            bind_params = {f"v{i}": cursor[i] for i in range(len(self.pk_columns))}
+            bind_params = {f"v{i}": cursor[i] for i in range(len(pk_columns))}
         
         sql_text = f"""
        SELECT {pk_col_str}
@@ -52,7 +46,7 @@ class CollectorBatchStorageOracle:
            SELECT {pk_col_str}, ROWNUM AS rn
            FROM (
                SELECT {pk_col_str}
-               FROM {self.table_name}
+               FROM {table_name}
                {where_inner}
                ORDER BY {order_by_str}
            ) t

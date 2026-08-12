@@ -11,7 +11,7 @@ from watchmen_model.system import DataSource, DataSourceParam
 from watchmen_storage import DataSourceHelper, UnexpectedStorageException
 from watchmen_utilities import is_decimal, is_not_blank
 from .storage_oracle import StorageOracle, TopicDataStorageOracle
-from .oracle_batch import TopicDataStorageOracleBatchWriter
+from .oracle_batch import CollectorBatchStorageOracle
 
 
 init_oracle_client(lib_dir=r"/opt/oracle/instantclient_23_26")
@@ -93,5 +93,5 @@ class OracleDataSourceHelper(DataSourceHelper):
     def acquire_topic_data_storage(self) -> TopicDataStorageOracle:
         return TopicDataStorageOracle(self.engine)
 
-    def acquire_topic_data_storage_batch_writer(self) -> TopicDataStorageOracleBatchWriter:
-        return TopicDataStorageOracleBatchWriter(self.engine)
+    def acquire_topic_data_storage_batch_writer(self) -> CollectorBatchStorageOracle:
+        return CollectorBatchStorageOracle(self.engine)
