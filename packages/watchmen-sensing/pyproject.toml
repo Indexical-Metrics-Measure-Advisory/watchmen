@@ -1,0 +1,44 @@
+[tool.poetry]
+name = "watchmen-sensing"
+version = "18.0.0"
+description = "Watchmen sensing system - continuously senses the data environment and turns raw changes into structured signals with ontology context for AI reasoning and action."
+authors = ["luke0623 <luke0623@outlook.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [
+	{ include = "watchmen_sensing", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "~3.12"
+pydantic-ai = ">=0.0.13,<2.0.0"
+APScheduler = "^3.10.4"
+watchmen-model = { path = "../watchmen-model", develop = true }
+watchmen-meta = { path = "../watchmen-meta", develop = true }
+watchmen-rest = { path = "../watchmen-rest", develop = true }
+watchmen-auth = { path = "../watchmen-auth", develop = true }
+watchmen-utilities = { path = "../watchmen-utilities", develop = true }
+watchmen-indicator-surface = { path = "../watchmen-indicator-surface", develop = true }
+watchmen-dqc = { path = "../watchmen-dqc", develop = true }
+watchmen-lineage = { path = "../watchmen-lineage", develop = true }
+watchmen-pipeline-kernel = { path = "../watchmen-pipeline-kernel", develop = true }
+watchmen-collector-kernel = { path = "../watchmen-collector-kernel", develop = true }
+watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
+watchmen-storage = { path = "../watchmen-storage", develop = true }
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true }
+watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
+watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
+watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
+watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
+
+[tool.poetry.group.dev.dependencies]
+
+[tool.poetry.extras]
+oracle = ["watchmen-storage-oracle"]
+postgresql = ["watchmen-storage-postgresql"]
+mssql = ["watchmen-storage-mssql"]
+mongodb = ["watchmen-storage-mongodb"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
