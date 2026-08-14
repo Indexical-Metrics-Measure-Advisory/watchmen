@@ -11,6 +11,8 @@ export const resources = {
       search: 'Search...',
       retry: 'Retry',
       selectLanguage: 'Language',
+      simplifiedChinese: 'Simplified Chinese',
+      traditionalChinese: 'Traditional Chinese',
       previous: 'Previous',
       next: 'Next',
       rowsPerPage: 'Rows per page',
@@ -245,6 +247,8 @@ export const resources = {
       search: '搜索...',
       retry: '重试',
       selectLanguage: '语言',
+      simplifiedChinese: '简体中文',
+      traditionalChinese: '繁體中文',
       previous: '上一页',
       next: '下一页',
       rowsPerPage: '每页行数',
@@ -468,6 +472,242 @@ export const resources = {
       statusTimeout: '超时',
       empty: '尚未配置数据源',
     },
+  },
+  'zh-TW': {
+    common: {
+      loading: '載入中...',
+      refresh: '重新整理',
+      refreshing: '重新整理中...',
+      refreshInterval: '自動重新整理間隔',
+      refreshIntervalManual: '手動',
+      search: '搜尋...',
+      retry: '重試',
+      selectLanguage: '語言',
+      previous: '上一頁',
+      next: '下一頁',
+      rowsPerPage: '每頁列數',
+      viewDetails: '檢視詳細資料',
+      empty: '暫無資料',
+      errorTitle: '出錯了',
+      cancel: '取消',
+      confirm: '確認',
+      copy: '複製',
+      copied: '已複製到剪貼簿',
+      copyFailed: '複製失敗',
+      all: '全部',
+      status: '狀態',
+      type: '類型',
+      name: '名稱',
+      time: '時間',
+      duration: '耗時',
+      collectorSource: '來源庫',
+      collectorOnly: '僅看來源庫',
+      collectorSourceHelp: '被標記為來源資料庫的資料來源（參數 isSource=true）',
+      traditionalChinese: '繁體中文',
+      simplifiedChinese: '簡體中文'
+    },
+    nav: {
+      platform: '資料監控',
+      navigation: '監控',
+      overview: '總覽',
+      overviewSubtitle: '跨服務系統健康總覽',
+      ingestion: '擷取監控',
+      ingestionSubtitle: '擷取觸發事件與分表進度',
+      pipeline: '管線監控',
+      pipelineSubtitle: '管線執行日誌與重跑',
+      datasource: '資料來源',
+      datasourceSubtitle: '資料來源連通性與健康探測',
+      alerts: '告警與質量',
+      settings: '設定',
+      logout: '登出'
+    },
+    auth: {
+      title: '登入',
+      descriptionCredentials: '輸入帳號資訊以存取你的帳戶',
+      descriptionSso: '使用組織的認證系統登入',
+      username: '使用者名稱',
+      usernamePlaceholder: '請輸入使用者名稱',
+      password: '密碼',
+      passwordPlaceholder: '請輸入密碼',
+      signIn: '登入',
+      signingIn: '登入中...',
+      loginSuccessfulTitle: '登入成功',
+      loginSuccessfulDescription: '歡迎回來！',
+      loginFailedTitle: '登入失敗',
+      loginFailedDescription: '登入過程中發生錯誤',
+      ssoLoginFailedTitle: 'SSO 登入失敗',
+      ssoLoginFailedDescription: 'SSO 登入過程中發生錯誤',
+      loadingConfiguration: '正在載入登入設定...',
+      saml2Description: '目前應用使用 SAML2 認證',
+      oidcDescription: '目前應用使用 OpenID Connect 認證',
+      signInWithSaml2: '使用 SAML2 登入',
+      signInWithOidc: '使用 OIDC 登入',
+      validation: {
+        usernameRequired: '使用者名稱不能為空',
+        passwordRequired: '密碼不能為空'
+      }
+    },
+    monitor: {
+      title: '擷取監控',
+      subtitle: '即時追蹤擷取事件與分表進度',
+      triggerEvents: '觸發事件',
+      eventDetail: '事件詳細資料',
+      kpi: {
+        total: '事件總數',
+        executing: '執行中',
+        success: '成功',
+        fail: '失敗',
+        waiting: '等待中'
+      },
+      sections: {
+        results: '分表結果',
+        progress: '完成進度'
+      },
+      gauge: {
+        records: '記錄',
+        json: 'JSON',
+        tasks: '任務'
+      },
+      columns: {
+        eventId: '事件 ID',
+        type: '類型',
+        status: '狀態',
+        table: '資料表',
+        start: '開始',
+        end: '結束',
+        progress: '進度',
+        errors: '錯誤'
+      },
+      detailColumns: {
+        module: '模組',
+        model: '模型',
+        table: '資料表',
+        dataCount: '資料量',
+        jsonCount: 'JSON',
+        jsonFinished: 'JSON 完成',
+        percent: '進度',
+        status: '狀態',
+        errors: '錯誤'
+      },
+      empty: '暫無觸發事件',
+      selectEvent: '選擇一個事件以檢視分表結果',
+      unfinished: '未完成',
+      finished: '已完成',
+      collectorSourceTitle: '來源資料庫',
+      collectorSourceNone: '目前沒有資料來源被標記為來源庫（參數 isSource=true）。擷取將回退到中繼資料儲存。',
+      collectorHealthOk: '可達',
+      collectorHealthError: '探測失敗',
+      collectorHealthSkipped: '已跳過探測',
+      triggerOnline: {
+        title: '即時觸發(最近 10 筆)',
+        empty: '暫無即時觸發記錄',
+        running: '進行中',
+        done: '已完成',
+        columns: {
+          status: '狀態',
+          code: '編碼',
+          traceId: 'Trace ID',
+          record: '資料',
+          time: '時間'
+        }
+      },
+      tabs: {
+        events: '觸發事件',
+        online: '即時觸發'
+      }
+    },
+    pipeline: {
+      title: '管線監控',
+      subtitle: '檢視管線執行日誌並重跑失敗項',
+      filters: {
+        topic: 'Topic',
+        pipeline: '管線',
+        status: '狀態',
+        dateRange: '時間範圍',
+        traceId: 'Trace ID'
+      },
+      columns: {
+        pipeline: '管線',
+        status: '狀態',
+        traceId: 'Trace ID',
+        duration: '耗時',
+        topic: 'Topic',
+        dataId: '資料 ID'
+      },
+      detail: {
+        stages: '階段',
+        actions: '動作',
+        oldValue: '舊值',
+        newValue: '新值',
+        error: '錯誤',
+        insert: '新增',
+        update: '更新',
+        delete: '刪除',
+        definedAs: '寫回變數',
+        findBy: '查詢條件',
+        touched: '影響資料',
+        loopVariable: '迴圈變數'
+      },
+      rerun: '重跑',
+      rerunAllErrors: '重跑全部錯誤',
+      goToIngestion: '前往擷取監控處理',
+      kpi: {
+        total: '執行總數',
+        successRate: '成功率',
+        ignored: '已忽略',
+        errors: '失敗',
+        avgDuration: '平均耗時'
+      },
+      sections: {
+        logs: '執行日誌',
+        detail: '執行詳細資料',
+        valueDiff: '值變更'
+      },
+      lineage: {
+        title: '資料來源血緣',
+        noUpstream: '該 topic 沒有上游資料來源',
+        level: '第 {{n}} 層'
+      },
+      empty: '目前篩選條件下沒有管線日誌',
+      rerunStarted: '已開始重跑',
+      rerunFailed: '重跑失敗'
+    },
+    datasource: {
+      title: '資料來源監控',
+      subtitle: '檢視資料來源連通性與健康探測結果',
+      filters: {
+        type: '類型',
+        status: '狀態',
+        search: '搜尋名稱 / 編碼 / 主機'
+      },
+      columns: {
+        name: '名稱',
+        type: '類型',
+        host: '主機',
+        status: '狀態',
+        latency: '延遲'
+      },
+      detail: {
+        id: '資料來源 ID',
+        code: '編碼',
+        type: '類型',
+        host: '主機',
+        port: '連接埠',
+        tenant: '租戶',
+        createdAt: '建立時間',
+        createdBy: '建立者',
+        status: '探測狀態',
+        latency: '探測延遲',
+        checkedAt: '上次檢查',
+        error: '錯誤',
+        noHealth: '暫無健康探測結果'
+      },
+      statusOk: '正常',
+      statusError: '錯誤',
+      statusSkipped: '跳過',
+      statusTimeout: '逾時',
+      empty: '尚未設定資料來源'
+    }
   },
 } as const;
 

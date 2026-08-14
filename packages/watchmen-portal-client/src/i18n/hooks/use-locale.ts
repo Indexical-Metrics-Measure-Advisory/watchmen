@@ -2,10 +2,10 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n, { I18N_LANGUAGE_STORAGE_KEY } from '@/i18n';
 
-export type AppLanguage = 'en' | 'zh';
+export type AppLanguage = 'en' | 'zh' | 'zh-TW';
 
 const isSupportedLanguage = (language: string): language is AppLanguage =>
-	language === 'en' || language === 'zh';
+	language === 'en' || language === 'zh' || language === 'zh-TW';
 
 export const useLocale = () => {
 	const { i18n: i18nInstance } = useTranslation();

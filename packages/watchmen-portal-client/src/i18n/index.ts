@@ -3,6 +3,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 import en from './locales/en';
 import zh from './locales/zh';
+import zhTW from './locales/zh-TW';
 
 /**
  * localStorage key under which the user's language choice is persisted.
@@ -17,9 +18,10 @@ void i18n
 		resources: {
 			en: { translation: en },
 			zh: { translation: zh },
+			'zh-TW': { translation: zhTW },
 		},
 		fallbackLng: 'en',
-		supportedLngs: ['en', 'zh'],
+		supportedLngs: ['en', 'zh', 'zh-TW'],
 		interpolation: {
 			escapeValue: false,
 		},

@@ -19,6 +19,7 @@ export function LanguageSwitcher() {
     >
       <option value="en">EN</option>
       <option value="zh">中</option>
+      <option value="zh-TW">繁</option>
     </select>
   );
 }

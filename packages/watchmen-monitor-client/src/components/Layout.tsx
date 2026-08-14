@@ -127,12 +127,13 @@ const Layout: React.FC = () => {
                     <>
                       <select
                         value={language}
-                        onChange={(e) => void setLanguage(e.target.value as 'en' | 'zh-CN')}
+                        onChange={(e) => void setLanguage(e.target.value as 'en' | 'zh-CN' | 'zh-TW')}
                         className="h-8 rounded border bg-background px-1.5 text-xs"
                         aria-label={t('common:selectLanguage')}
                       >
                         <option value="en">EN</option>
                         <option value="zh-CN">中</option>
+                        <option value="zh-TW">繁</option>
                       </select>
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white">
                         {getUserAvatar(user.name)}
