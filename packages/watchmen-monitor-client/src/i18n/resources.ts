@@ -144,6 +144,128 @@ export const resources = {
         online: 'Online Triggers',
       },
     },
+    overview: {
+        context: {
+          adminView: 'Platform Admin View',
+          description: 'Deep data flow inspection across sources, ingestion, topics, and pipelines with real-time drill-down',
+          live: 'LIVE',
+          refreshNow: 'Refresh now'
+        },
+        kpi: {
+          flowHealth: 'Flow Health',
+          anomalies: '{{count}} anomalies',
+          allHealthy: 'All healthy',
+          dataSources: 'Data Sources',
+          connectedFailed: '{{ok}} connected · {{failed}} failed',
+          registeredSources: 'Registered sources',
+          ingestionEvents: 'Ingestion Events',
+          eventsOk: '{{ok}} ok · {{run}} run · {{fail}} fail',
+          topics: 'Topics',
+          topicKinds: '{{biz}} biz · {{sys}} sys · {{syn}} syn',
+          pipelineRuns: 'Pipeline Runs',
+          runsDone: '{{done}} done · {{err}} err',
+          avgDuration: 'Avg Duration',
+          avgCaptionPipeline: 'pipeline runs avg',
+          avgCaptionRecent: 'recent events'
+        },
+        flow: {
+          title: 'Data Flow',
+          subtitle: 'Sources → Ingestion → Topics → Pipeline',
+          sources: 'Sources',
+          ingestion: 'Ingestion',
+          topics: 'Topics',
+          pipeline: 'Pipeline',
+          unitSources: 'sources',
+          unitEvents: 'events',
+          unitTopics: 'topics',
+          unitRuns: 'runs',
+          registered: '{{count}} registered',
+          none: 'none',
+          healthy: 'healthy',
+          executingFailed: '{{executing}} executing · {{failed}} failed',
+          errors: '{{count}} errors',
+          noEvents: 'No events',
+          factorsTotal: '{{count}} factors total',
+          insUpdDel: '+{{ins}} ins · ~{{upd}} upd · -{{del}} del'
+        },
+        lineage: {
+          title: 'Cross-Stage Lineage',
+          volumeByHealth: 'Volume by health',
+          events: 'Events',
+          runs: 'Runs',
+          legendSuccess: 'Success / Connected',
+          legendExecuting: 'Executing',
+          legendWaiting: 'Idle / Waiting / Ignored',
+          legendError: 'Error / Failed'
+        },
+        tabs: {
+          sources: 'Sources',
+          ingestion: 'Ingestion',
+          topics: 'Topics',
+          pipeline: 'Pipeline'
+        },
+        ingestion: {
+          title: 'Ingestion Events',
+          countEvents: '{{count}} events',
+          viewAll: 'View All',
+          filterByType: 'Filter by type',
+          filterByStatus: 'Filter by status',
+          typeAll: 'Type: All',
+          statusAll: 'Status: All',
+          running: 'Running',
+          failed: 'Failed',
+          success: 'Success',
+          queued: 'Queued',
+          shownOf: '{{shown}} of {{total}} shown',
+          empty: 'No ingestion events'
+        },
+        eventRow: {
+          running: 'Running',
+          failed: 'Failed',
+          queued: 'Queued',
+          err: '{{count}} err',
+          failSuffix: ' FAIL'
+        },
+        pipeline: {
+          title: 'Pipeline Logs',
+          countErrors: '{{count}} errors',
+          viewAll: 'View All',
+          emptyTitle: 'No pipeline errors',
+          emptyDescription: 'All runs completed successfully'
+        },
+        topics: {
+          title: 'Topics',
+          countTopics: '{{count}} topics',
+          src: 'src: {{id}}',
+          countFactors: '{{count}} factors'
+        },
+        sources: {
+          title: 'Data Sources',
+          countSources: '{{count}} sources',
+          sourceBadge: 'source',
+          connected: 'Connected',
+          connectedLatency: 'Connected · {{latency}}ms',
+          probeSkipped: 'Probe skipped (non-SQL source)',
+          registered: 'Registered',
+          empty: 'No data sources registered'
+        },
+        eventDetail: {
+          title: 'Event Detail',
+          executing: '{{count}} executing',
+          records: 'Records',
+          json: 'JSON',
+          tasks: 'Tasks',
+          empty: 'No table detail for this event',
+          rows: '{{count}} rows'
+        },
+        executionStats: {
+          title: 'Execution Stats',
+          runs: '{{count}} runs',
+          p95: '· p95 {{duration}}',
+          done: 'Done',
+          errors: 'Errors'
+        }
+    },
     pipeline: {
       title: 'Pipeline Monitor',
       subtitle: 'Inspect pipeline execution logs and rerun failures',
@@ -380,6 +502,128 @@ export const resources = {
         online: '实时触发',
       },
     },
+    overview: {
+        context: {
+          adminView: '平台管理员视图',
+          description: '深入查看跨数据源、采集、主题和管道的数据流，并支持实时下钻',
+          live: '实时',
+          refreshNow: '立即刷新'
+        },
+        kpi: {
+          flowHealth: '流程健康度',
+          anomalies: '{{count}} 个异常',
+          allHealthy: '全部正常',
+          dataSources: '数据源',
+          connectedFailed: '{{ok}} 已连接 · {{failed}} 失败',
+          registeredSources: '已注册数据源',
+          ingestionEvents: '采集事件',
+          eventsOk: '{{ok}} 成功 · {{run}} 执行中 · {{fail}} 失败',
+          topics: '主题',
+          topicKinds: '{{biz}} 业务 · {{sys}} 系统 · {{syn}} 同义词',
+          pipelineRuns: '管道运行',
+          runsDone: '{{done}} 完成 · {{err}} 错误',
+          avgDuration: '平均耗时',
+          avgCaptionPipeline: '管道运行平均',
+          avgCaptionRecent: '近期事件'
+        },
+        flow: {
+          title: '数据流',
+          subtitle: '数据源 → 采集 → 主题 → 管道',
+          sources: '数据源',
+          ingestion: '采集',
+          topics: '主题',
+          pipeline: '管道',
+          unitSources: '个数据源',
+          unitEvents: '个事件',
+          unitTopics: '个主题',
+          unitRuns: '次运行',
+          registered: '{{count}} 个已注册',
+          none: '无',
+          healthy: '正常',
+          executingFailed: '{{executing}} 执行中 · {{failed}} 失败',
+          errors: '{{count}} 个错误',
+          noEvents: '暂无事件',
+          factorsTotal: '共 {{count}} 个因子',
+          insUpdDel: '+{{ins}} 新增 · ~{{upd}} 更新 · -{{del}} 删除'
+        },
+        lineage: {
+          title: '跨阶段血缘',
+          volumeByHealth: '按健康状况统计',
+          events: '事件',
+          runs: '运行',
+          legendSuccess: '成功 / 已连接',
+          legendExecuting: '执行中',
+          legendWaiting: '空闲 / 等待 / 忽略',
+          legendError: '错误 / 失败'
+        },
+        tabs: {
+          sources: '数据源',
+          ingestion: '采集',
+          topics: '主题',
+          pipeline: '管道'
+        },
+        ingestion: {
+          title: '采集事件',
+          countEvents: '{{count}} 个事件',
+          viewAll: '查看全部',
+          filterByType: '按类型筛选',
+          filterByStatus: '按状态筛选',
+          typeAll: '类型：全部',
+          statusAll: '状态：全部',
+          running: '运行中',
+          failed: '失败',
+          success: '成功',
+          queued: '排队中',
+          shownOf: '显示 {{shown}} / {{total}} 条',
+          empty: '暂无采集事件'
+        },
+        eventRow: {
+          running: '运行中',
+          failed: '失败',
+          queued: '排队中',
+          err: '{{count}} 个错误',
+          failSuffix: ' 失败'
+        },
+        pipeline: {
+          title: '管道日志',
+          countErrors: '{{count}} 个错误',
+          viewAll: '查看全部',
+          emptyTitle: '暂无管道错误',
+          emptyDescription: '所有运行均已完成'
+        },
+        topics: {
+          title: '主题',
+          countTopics: '{{count}} 个主题',
+          src: '来源：{{id}}',
+          countFactors: '{{count}} 个因子'
+        },
+        sources: {
+          title: '数据源',
+          countSources: '{{count}} 个数据源',
+          sourceBadge: '来源',
+          connected: '已连接',
+          connectedLatency: '已连接 · {{latency}}ms',
+          probeSkipped: '已跳过探测（非 SQL 数据源）',
+          registered: '已注册',
+          empty: '暂无已注册数据源'
+        },
+        eventDetail: {
+          title: '事件详情',
+          executing: '{{count}} 个执行中',
+          records: '记录',
+          json: 'JSON',
+          tasks: '任务',
+          empty: '该事件暂无表详情',
+          rows: '{{count}} 行'
+        },
+        executionStats: {
+          title: '执行统计',
+          runs: '{{count}} 次运行',
+          p95: '· p95 {{duration}}',
+          done: '完成',
+          errors: '错误'
+        }
+    },
     pipeline: {
       title: '管道监控',
       subtitle: '查看管道执行日志并重跑失败项',
@@ -615,6 +859,128 @@ export const resources = {
         events: '觸發事件',
         online: '即時觸發'
       }
+    },
+    overview: {
+        context: {
+          adminView: '平台管理員檢視',
+          description: '深入檢視跨資料來源、擷取、主題與管線的資料流，並支援即時下鑽',
+          live: '即時',
+          refreshNow: '立即重新整理'
+        },
+        kpi: {
+          flowHealth: '流程健康度',
+          anomalies: '{{count}} 個異常',
+          allHealthy: '全部正常',
+          dataSources: '資料來源',
+          connectedFailed: '{{ok}} 已連線 · {{failed}} 失敗',
+          registeredSources: '已註冊資料來源',
+          ingestionEvents: '擷取事件',
+          eventsOk: '{{ok}} 成功 · {{run}} 執行中 · {{fail}} 失敗',
+          topics: '主題',
+          topicKinds: '{{biz}} 業務 · {{sys}} 系統 · {{syn}} 同義詞',
+          pipelineRuns: '管線執行',
+          runsDone: '{{done}} 完成 · {{err}} 錯誤',
+          avgDuration: '平均耗時',
+          avgCaptionPipeline: '管線執行平均',
+          avgCaptionRecent: '近期事件'
+        },
+        flow: {
+          title: '資料流',
+          subtitle: '資料來源 → 擷取 → 主題 → 管線',
+          sources: '資料來源',
+          ingestion: '擷取',
+          topics: '主題',
+          pipeline: '管線',
+          unitSources: '個資料來源',
+          unitEvents: '個事件',
+          unitTopics: '個主題',
+          unitRuns: '次執行',
+          registered: '{{count}} 個已註冊',
+          none: '無',
+          healthy: '正常',
+          executingFailed: '{{executing}} 執行中 · {{failed}} 失敗',
+          errors: '{{count}} 個錯誤',
+          noEvents: '暫無事件',
+          factorsTotal: '共 {{count}} 個因子',
+          insUpdDel: '+{{ins}} 新增 · ~{{upd}} 更新 · -{{del}} 刪除'
+        },
+        lineage: {
+          title: '跨階段血緣',
+          volumeByHealth: '依健康狀況統計',
+          events: '事件',
+          runs: '執行',
+          legendSuccess: '成功 / 已連線',
+          legendExecuting: '執行中',
+          legendWaiting: '閒置 / 等待 / 忽略',
+          legendError: '錯誤 / 失敗'
+        },
+        tabs: {
+          sources: '資料來源',
+          ingestion: '擷取',
+          topics: '主題',
+          pipeline: '管線'
+        },
+        ingestion: {
+          title: '擷取事件',
+          countEvents: '{{count}} 個事件',
+          viewAll: '檢視全部',
+          filterByType: '依類型篩選',
+          filterByStatus: '依狀態篩選',
+          typeAll: '類型：全部',
+          statusAll: '狀態：全部',
+          running: '執行中',
+          failed: '失敗',
+          success: '成功',
+          queued: '排隊中',
+          shownOf: '顯示 {{shown}} / {{total}} 筆',
+          empty: '暫無擷取事件'
+        },
+        eventRow: {
+          running: '執行中',
+          failed: '失敗',
+          queued: '排隊中',
+          err: '{{count}} 個錯誤',
+          failSuffix: ' 失敗'
+        },
+        pipeline: {
+          title: '管線日誌',
+          countErrors: '{{count}} 個錯誤',
+          viewAll: '檢視全部',
+          emptyTitle: '暫無管線錯誤',
+          emptyDescription: '所有執行皆已完成'
+        },
+        topics: {
+          title: '主題',
+          countTopics: '{{count}} 個主題',
+          src: '來源：{{id}}',
+          countFactors: '{{count}} 個因子'
+        },
+        sources: {
+          title: '資料來源',
+          countSources: '{{count}} 個資料來源',
+          sourceBadge: '來源',
+          connected: '已連線',
+          connectedLatency: '已連線 · {{latency}}ms',
+          probeSkipped: '已跳過探測（非 SQL 資料來源）',
+          registered: '已註冊',
+          empty: '暫無已註冊資料來源'
+        },
+        eventDetail: {
+          title: '事件詳細資料',
+          executing: '{{count}} 個執行中',
+          records: '記錄',
+          json: 'JSON',
+          tasks: '任務',
+          empty: '該事件暫無資料表詳細資料',
+          rows: '{{count}} 列'
+        },
+        executionStats: {
+          title: '執行統計',
+          runs: '{{count}} 次執行',
+          p95: '· p95 {{duration}}',
+          done: '完成',
+          errors: '錯誤'
+        }
     },
     pipeline: {
       title: '管線監控',

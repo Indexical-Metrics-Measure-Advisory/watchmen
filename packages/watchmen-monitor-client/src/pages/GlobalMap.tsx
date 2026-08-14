@@ -47,6 +47,7 @@ import { TopicType } from '@/models/topic.models';
 import type { DataSourceItem, DataSourceHealthItem } from '@/services/dataSourceService';
 import { isSourceDataSource } from '@/services/dataSourceService';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 type StageId = 'sources' | 'ingestion' | 'topics' | 'pipeline';
 type StatusFilter = 'all' | 'running' | 'failed' | 'success' | 'queued';
@@ -194,6 +195,7 @@ const EventRow: React.FC<{
   selected: boolean;
   onClick: () => void;
 }> = ({ event, selected, onClick }) => {
+  const { t } = useTranslation('overview');
   const meta = getIngestStatusMeta(event.status);
   const isExecuting = event.status === IngestStatus.EXECUTING;
   // Real per-event progress, only fetched while the event is executing.
@@ -233,11 +235,11 @@ const EventRow: React.FC<{
           </MonoText>
         </div>
         {isExecuting ? (
-          <span className="shrink-0 text-[10px] font-semibold text-blue-600">Running</span>
+          <span className="shrink-0 text-[10px] font-semibold text-blue-600">{t('eventRow.running')}</span>
         ) : meta.tone === 'error' ? (
-          <span className="shrink-0 text-[10px] font-semibold text-red-600">Failed</span>
+          <span className="shrink-0 text-[10px] font-semibold text-red-600">{t('eventRow.failed')}</span>
         ) : meta.tone === 'warning' ? (
-          <span className="shrink-0 text-[10px] font-semibold text-orange-500">Queued</span>
+          <span className="shrink-0 text-[10px] font-semibold text-orange-500">{t('eventRow.queued')}</span>
         ) : (
           event.startTime && (
             <span className="shrink-0 text-[10px] text-muted-foreground">
@@ -270,7 +272,7 @@ const EventRow: React.FC<{
             )}
           >
             {event.startTime ? `${formatDuration(duration)}` : '—'}
-            {meta.tone === 'error' && ' FAIL'}
+            {meta.tone === 'error' && t('eventRow.failSuffix')}
           </span>
         )}
       </div>
@@ -325,6 +327,7 @@ const ProgressMeter: React.FC<{
 
 /* ── Main GlobalMap v2 page ───────────────────────────────────────── */
 const GlobalMap: React.FC = () => {
+  const { t } = useTranslation('overview');
   const navigate = useNavigate();
   const [activeStage, setActiveStage] = React.useState<StageId>('ingestion');
   const [selectedEventId, setSelectedEventId] = React.useState<string | null>(null);
@@ -543,7 +546,7 @@ const GlobalMap: React.FC = () => {
     pipelineRunCount > 0 ? Math.round(((pipelineRunCount - errorLogCount) / pipelineRunCount) * 100) : 100;
   // Avg duration: prefer pipeline-run stats (server-side sample), fall back to finished events on this page.
   const effAvgDurationMs = pipelineStatsQ.data?.avgDurationMs ?? avgDurationMs;
-  const avgDurationCaption = pipelineStatsQ.data?.avgDurationMs != null ? 'pipeline runs avg' : 'recent events';
+  const avgDurationCaption = pipelineStatsQ.data?.avgDurationMs != null ? t('kpi.avgCaptionPipeline') : t('kpi.avgCaptionRecent');
 
   return (
     <div className="space-y-5">
@@ -551,16 +554,16 @@ const GlobalMap: React.FC = () => {
       <div className="flex items-center gap-2.5 rounded-lg border border-indigo-100 bg-indigo-50/50 px-4 py-2.5">
         <HeartPulse className="h-4 w-4 shrink-0 text-indigo-500" />
         <span className="text-xs text-indigo-700">
-          <span className="font-semibold">Platform Admin View</span>
+          <span className="font-semibold">{t('context.adminView')}</span>
           {' · '}
-          Deep data flow inspection across sources, ingestion, topics, and pipelines with real-time drill-down
+          {t('context.description')}
         </span>
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
           </span>
-          <span className="text-[10px] font-semibold text-green-600">LIVE</span>
+          <span className="text-[10px] font-semibold text-green-600">{t('context.live')}</span>
           {eventsQ.dataUpdatedAt > 0 && (
             <span className="hidden text-[10px] text-indigo-400 sm:inline">
               {formatDistanceToNow(eventsQ.dataUpdatedAt, { addSuffix: true })}
@@ -569,7 +572,7 @@ const GlobalMap: React.FC = () => {
           <button
             type="button"
             onClick={refresh}
-            aria-label="Refresh now"
+            aria-label={t('context.refreshNow')}
             className="inline-flex h-5 w-5 items-center justify-center rounded text-indigo-500 transition-colors hover:bg-indigo-100"
           >
             <RefreshCw className={cn('h-3 w-3', isRefreshing && 'animate-spin')} />
@@ -580,44 +583,44 @@ const GlobalMap: React.FC = () => {
       {/* Enriched KPI Row (6 tiles) */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         <KpiTile
-          label="Flow Health"
+          label={t('kpi.flowHealth')}
           value={`${healthPct}%`}
-          caption={errorLogCount > 0 ? `${fmtNum(errorLogCount)} anomalies` : 'All healthy'}
+          caption={errorLogCount > 0 ? t('kpi.anomalies', { count: errorLogCount }) : t('kpi.allHealthy')}
           tone={errorLogCount > 0 ? 'error' : 'success'}
         />
         <KpiTile
-          label="Data Sources"
+          label={t('kpi.dataSources')}
           value={dataSourcesQ.isLoading ? '…' : fmtNum(dataSources.length)}
           caption={
             dsHealthCounts.checked
-              ? `${dsHealthCounts.ok} connected · ${dsHealthCounts.failed} failed`
+              ? t('kpi.connectedFailed', { ok: dsHealthCounts.ok, failed: dsHealthCounts.failed })
               : Object.entries(dsTypeCounts)
                   .slice(0, 2)
                   .map(([type, count]) => `${type.toLowerCase()} ×${count}`)
-                  .join(' · ') || 'Registered sources'
+                  .join(' · ') || t('kpi.registeredSources')
           }
           tone={dsHealthCounts.failed > 0 ? 'error' : 'neutral'}
         />
         <KpiTile
-          label="Ingestion Events"
+          label={t('kpi.ingestionEvents')}
           value={fmtNum(eventCount)}
-          caption={`${effStatusCounts.success} ok · ${effStatusCounts.executing} run · ${effStatusCounts.failed} fail`}
+          caption={t('kpi.eventsOk', { ok: effStatusCounts.success, run: effStatusCounts.executing, fail: effStatusCounts.failed })}
           tone={effStatusCounts.failed > 0 ? 'warning' : 'success'}
         />
         <KpiTile
-          label="Topics"
+          label={t('kpi.topics')}
           value={fmtNum(topicCount)}
-          caption={`${topicKindCounts['business'] ?? 0} biz · ${topicKindCounts['system'] ?? 0} sys · ${topicKindCounts['synonym'] ?? 0} syn`}
+          caption={t('kpi.topicKinds', { biz: topicKindCounts['business'] ?? 0, sys: topicKindCounts['system'] ?? 0, syn: topicKindCounts['synonym'] ?? 0 })}
           tone="neutral"
         />
         <KpiTile
-          label="Pipeline Runs"
+          label={t('kpi.pipelineRuns')}
           value={fmtNum(pipelineRunCount)}
-          caption={`${fmtNum(pipelineRunCount - errorLogCount)} done · ${fmtNum(errorLogCount)} err`}
+          caption={t('kpi.runsDone', { done: fmtNum(pipelineRunCount - errorLogCount), err: fmtNum(errorLogCount) })}
           tone={errorLogCount > 0 ? 'error' : 'success'}
         />
         <KpiTile
-          label="Avg Duration"
+          label={t('kpi.avgDuration')}
           value={effAvgDurationMs != null ? formatDuration(effAvgDurationMs) : '—'}
           caption={avgDurationCaption}
           tone="info"
@@ -631,11 +634,11 @@ const GlobalMap: React.FC = () => {
           {/* Enriched Flow Diagram */}
           <Card className="p-5">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-foreground">Data Flow</h2>
+              <h2 className="text-base font-semibold text-foreground">{t('flow.title')}</h2>
               <div className="flex items-center gap-1.5">
                 <Activity className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="whitespace-nowrap text-xs text-muted-foreground">
-                  Sources → Ingestion → Topics → Pipeline
+                  {t('flow.subtitle')}
                 </span>
               </div>
             </div>
@@ -651,14 +654,14 @@ const GlobalMap: React.FC = () => {
                 {/* Stage 1: Sources */}
                 <StageCard
                   icon={<Database className="h-3.5 w-3.5 text-indigo-600" />}
-                  name="Sources"
+                  name={t('flow.sources')}
                   count={fmtNum(dataSources.length)}
-                  unit="sources"
+                  unit={t('flow.unitSources')}
                   healthTone={!dsHealthCounts.checked ? 'neutral' : dsHealthCounts.failed > 0 ? 'error' : 'success'}
                   healthLabel={
                     dsHealthCounts.checked
-                      ? `${dsHealthCounts.ok} connected · ${dsHealthCounts.failed} failed`
-                      : `${fmtNum(dataSources.length)} registered`
+                      ? t('kpi.connectedFailed', { ok: dsHealthCounts.ok, failed: dsHealthCounts.failed })
+                      : t('flow.registered', { count: dataSources.length })
                   }
                   active={activeStage === 'sources'}
                   onClick={() => setActiveStage('sources')}
@@ -671,7 +674,7 @@ const GlobalMap: React.FC = () => {
                           {type} ×{count}
                         </ConnPill>
                       ))}
-                    {Object.keys(dsTypeCounts).length === 0 && <ConnPill>none</ConnPill>}
+                    {Object.keys(dsTypeCounts).length === 0 && <ConnPill>{t('flow.none')}</ConnPill>}
                   </div>
                 </StageCard>
 
@@ -680,17 +683,17 @@ const GlobalMap: React.FC = () => {
                 {/* Stage 2: Ingestion */}
                 <StageCard
                   icon={<ArrowDownToLine className="h-3.5 w-3.5 text-indigo-600" />}
-                  name="Ingestion"
+                  name={t('flow.ingestion')}
                   count={fmtNum(eventCount)}
-                  unit="events"
+                  unit={t('flow.unitEvents')}
                   healthTone={effStatusCounts.failed > 0 ? 'warning' : 'success'}
-                  healthLabel={`${effStatusCounts.executing} executing · ${effStatusCounts.failed} failed`}
+                  healthLabel={t('flow.executingFailed', { executing: effStatusCounts.executing, failed: effStatusCounts.failed })}
                   pulse={effStatusCounts.executing > 0}
                   active={activeStage === 'ingestion'}
                   onClick={() => setActiveStage('ingestion')}
                 >
                   <MiniBreakdown>
-                    {Object.entries(eventTypeCounts).map(([label, count]) => `${label} ${count}`).join(' · ') || 'No events'}
+                    {Object.entries(eventTypeCounts).map(([label, count]) => `${label} ${count}`).join(' · ') || t('flow.noEvents')}
                   </MiniBreakdown>
                   {eventCount > 0 && (
                     <StackBar
@@ -709,11 +712,11 @@ const GlobalMap: React.FC = () => {
                 {/* Stage 3: Topics */}
                 <StageCard
                   icon={<Layers className="h-3.5 w-3.5 text-indigo-600" />}
-                  name="Topics"
+                  name={t('flow.topics')}
                   count={fmtNum(topicCount)}
-                  unit="topics"
+                  unit={t('flow.unitTopics')}
                   healthTone="success"
-                  healthLabel="healthy"
+                  healthLabel={t('flow.healthy')}
                   active={activeStage === 'topics'}
                   onClick={() => setActiveStage('topics')}
                 >
@@ -726,7 +729,7 @@ const GlobalMap: React.FC = () => {
                     <ConnPill>SYN {topicKindCounts['synonym'] ?? 0}</ConnPill>
                   </div>
                   <div className="mb-1 font-mono text-[10px] text-muted-foreground">
-                    {fmtNum(totalFactors)} factors total
+                    {t('flow.factorsTotal', { count: totalFactors })}
                   </div>
                 </StageCard>
 
@@ -735,11 +738,11 @@ const GlobalMap: React.FC = () => {
                 {/* Stage 4: Pipeline */}
                 <StageCard
                   icon={<GitBranch className="h-3.5 w-3.5 text-indigo-600" />}
-                  name="Pipeline"
+                  name={t('flow.pipeline')}
                   count={fmtNum(pipelineRunCount)}
-                  unit="runs"
+                  unit={t('flow.unitRuns')}
                   healthTone={errorLogCount > 0 ? 'error' : 'success'}
-                  healthLabel={errorLogCount > 0 ? `${fmtNum(errorLogCount)} errors` : 'healthy'}
+                  healthLabel={errorLogCount > 0 ? t('flow.errors', { count: errorLogCount }) : t('flow.healthy')}
                   active={activeStage === 'pipeline'}
                   onClick={() => setActiveStage('pipeline')}
                 >
@@ -752,7 +755,7 @@ const GlobalMap: React.FC = () => {
                     />
                   )}
                   <MiniBreakdown>
-                    +{fmtNum(effPipelineActionTotals.inserts)} ins · ~{fmtNum(effPipelineActionTotals.updates)} upd · -{fmtNum(effPipelineActionTotals.deletes)} del
+                    {t('flow.insUpdDel', { ins: fmtNum(effPipelineActionTotals.inserts), upd: fmtNum(effPipelineActionTotals.updates), del: fmtNum(effPipelineActionTotals.deletes) })}
                   </MiniBreakdown>
                 </StageCard>
               </div>
@@ -762,12 +765,12 @@ const GlobalMap: React.FC = () => {
           {/* Cross-Stage Data Lineage */}
           <Card className="p-5">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-foreground">Cross-Stage Lineage</h2>
-              <span className="text-xs text-muted-foreground">Volume by health</span>
+              <h2 className="text-base font-semibold text-foreground">{t('lineage.title')}</h2>
+              <span className="text-xs text-muted-foreground">{t('lineage.volumeByHealth')}</span>
             </div>
             <div className="flex items-end gap-1">
               <LineageCol
-                label="Sources"
+                label={t('flow.sources')}
                 value={dataSources.length}
                 segments={[{ flex: dataSources.length || 1, tone: 'success' as Tone }]}
               />
@@ -775,7 +778,7 @@ const GlobalMap: React.FC = () => {
                 <ChevronRight className="h-4 w-4" />
               </div>
               <LineageCol
-                label="Events"
+                label={t('lineage.events')}
                 value={eventCount}
                 segments={[
                   { flex: effStatusCounts.success || 1, tone: 'success' as Tone },
@@ -788,7 +791,7 @@ const GlobalMap: React.FC = () => {
                 <ChevronRight className="h-4 w-4" />
               </div>
               <LineageCol
-                label="Topics"
+                label={t('flow.topics')}
                 value={topicCount}
                 segments={[{ flex: topicCount || 1, tone: 'success' as Tone }]}
               />
@@ -796,7 +799,7 @@ const GlobalMap: React.FC = () => {
                 <ChevronRight className="h-4 w-4" />
               </div>
               <LineageCol
-                label="Runs"
+                label={t('lineage.runs')}
                 value={pipelineRunCount}
                 segments={[
                   { flex: pipelineRunCount - errorLogCount || 1, tone: 'success' as Tone },
@@ -807,10 +810,10 @@ const GlobalMap: React.FC = () => {
             {/* Legend */}
             <div className="mt-4 flex items-center gap-4 border-t border-slate-100 pt-3">
               {[
-                { tone: 'success' as Tone, label: 'Success / Connected' },
-                { tone: 'info' as Tone, label: 'Executing' },
-                { tone: 'warning' as Tone, label: 'Idle / Waiting / Ignored' },
-                { tone: 'error' as Tone, label: 'Error / Failed' },
+                { tone: 'success' as Tone, label: t('lineage.legendSuccess') },
+                { tone: 'info' as Tone, label: t('lineage.legendExecuting') },
+                { tone: 'warning' as Tone, label: t('lineage.legendWaiting') },
+                { tone: 'error' as Tone, label: t('lineage.legendError') },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-1.5">
                   <span className={cn('h-1.5 w-1.5 rounded-full', TONE_DOT_CLASS[item.tone])} />
@@ -827,10 +830,10 @@ const GlobalMap: React.FC = () => {
             {/* Tab bar */}
             <div className="flex items-center border-b border-slate-100 px-2">
               {([
-                { id: 'sources' as const, label: 'Sources' },
-                { id: 'ingestion' as const, label: 'Ingestion' },
-                { id: 'topics' as const, label: 'Topics' },
-                { id: 'pipeline' as const, label: 'Pipeline' },
+                { id: 'sources' as const, label: t('tabs.sources') },
+                { id: 'ingestion' as const, label: t('tabs.ingestion') },
+                { id: 'topics' as const, label: t('tabs.topics') },
+                { id: 'pipeline' as const, label: t('tabs.pipeline') },
               ]).map((tab) => (
                 <button
                   key={tab.id}
@@ -853,16 +856,16 @@ const GlobalMap: React.FC = () => {
                 {/* Panel header */}
                 <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-5 py-3.5">
                   <div className="flex min-w-0 items-center gap-2">
-                    <h2 className="truncate text-base font-semibold text-foreground">Ingestion Events</h2>
+                    <h2 className="truncate text-base font-semibold text-foreground">{t('ingestion.title')}</h2>
                     <span className="inline-flex shrink-0 items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">
-                      {fmtNum(eventCount)} events
+                      {t('ingestion.countEvents', { count: eventCount })}
                     </span>
                   </div>
                   <button
                     onClick={() => navigate('/ingestion')}
                     className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs font-medium text-indigo-600 hover:text-indigo-700"
                   >
-                    View All
+                    {t('ingestion.viewAll')}
                     <ChevronRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -870,28 +873,28 @@ const GlobalMap: React.FC = () => {
                 {/* Filters */}
                 <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-2.5">
                   <FilterSelect
-                    ariaLabel="Filter by type"
+                    ariaLabel={t('ingestion.filterByType')}
                     value={typeFilter}
                     onChange={setTypeFilter}
                     options={[
-                      { value: 'all', label: 'Type: All' },
+                      { value: 'all', label: t('ingestion.typeAll') },
                       ...Object.keys(eventTypeCounts).map((label) => ({ value: label, label })),
                     ]}
                   />
                   <FilterSelect
-                    ariaLabel="Filter by status"
+                    ariaLabel={t('ingestion.filterByStatus')}
                     value={statusFilter}
                     onChange={(v) => setStatusFilter(v as StatusFilter)}
                     options={[
-                      { value: 'all', label: 'Status: All' },
-                      { value: 'running', label: 'Running' },
-                      { value: 'failed', label: 'Failed' },
-                      { value: 'success', label: 'Success' },
-                      { value: 'queued', label: 'Queued' },
+                      { value: 'all', label: t('ingestion.statusAll') },
+                      { value: 'running', label: t('ingestion.running') },
+                      { value: 'failed', label: t('ingestion.failed') },
+                      { value: 'success', label: t('ingestion.success') },
+                      { value: 'queued', label: t('ingestion.queued') },
                     ]}
                   />
                   <span className="ml-auto text-[10px] text-muted-foreground">
-                    {filteredEvents.length} of {fmtNum(eventCount)} shown
+                    {t('ingestion.shownOf', { shown: filteredEvents.length, total: fmtNum(eventCount) })}
                   </span>
                 </div>
 
@@ -908,7 +911,7 @@ const GlobalMap: React.FC = () => {
                   </div>
                 ) : filteredEvents.length === 0 ? (
                   <div className="p-4">
-                    <EmptyState title="No ingestion events" />
+                    <EmptyState title={t('ingestion.empty')} />
                   </div>
                 ) : (
                   <div className="flex max-h-[420px] flex-col gap-0.5 overflow-y-auto p-3">
@@ -930,10 +933,10 @@ const GlobalMap: React.FC = () => {
                 {/* Panel header */}
                 <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-5 py-3.5">
                   <div className="flex min-w-0 items-center gap-2">
-                    <h2 className="truncate text-base font-semibold text-foreground">Pipeline Logs</h2>
+                    <h2 className="truncate text-base font-semibold text-foreground">{t('pipeline.title')}</h2>
                     {errorLogCount > 0 && (
                       <span className="inline-flex shrink-0 items-center rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600">
-                        {fmtNum(errorLogCount)} errors
+                        {t('pipeline.countErrors', { count: errorLogCount })}
                       </span>
                     )}
                   </div>
@@ -941,7 +944,7 @@ const GlobalMap: React.FC = () => {
                     onClick={() => navigate('/pipeline')}
                     className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs font-medium text-indigo-600 hover:text-indigo-700"
                   >
-                    View All
+                    {t('pipeline.viewAll')}
                     <ChevronRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -959,7 +962,7 @@ const GlobalMap: React.FC = () => {
                   </div>
                 ) : pipelineErrorLogs.length === 0 ? (
                   <div className="p-4">
-                    <EmptyState title="No pipeline errors" description="All runs completed successfully" />
+                    <EmptyState title={t('pipeline.emptyTitle')} description={t('pipeline.emptyDescription')} />
                   </div>
                 ) : (
                   <div className="flex max-h-[420px] flex-col gap-0.5 overflow-y-auto p-3">
@@ -1009,9 +1012,9 @@ const GlobalMap: React.FC = () => {
               <div className="flex min-w-0 flex-col">
                 <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-5 py-3.5">
                   <div className="flex items-center gap-2">
-                    <h2 className="truncate text-base font-semibold text-foreground">Topics</h2>
+                    <h2 className="truncate text-base font-semibold text-foreground">{t('topics.title')}</h2>
                     <span className="inline-flex shrink-0 items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-                      {fmtNum(topicCount)} topics
+                      {t('topics.countTopics', { count: topicCount })}
                     </span>
                   </div>
                 </div>
@@ -1044,12 +1047,12 @@ const GlobalMap: React.FC = () => {
                           </div>
                           {topic.dataSourceId && (
                             <MonoText className="text-[10px] text-muted-foreground">
-                              src: {topic.dataSourceId}
+                              {t('topics.src', { id: topic.dataSourceId })}
                             </MonoText>
                           )}
                         </div>
                         <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                          {topic.factors?.length ?? 0} factors
+                          {t('topics.countFactors', { count: topic.factors?.length ?? 0 })}
                         </span>
                       </div>
                     ))}
@@ -1062,9 +1065,9 @@ const GlobalMap: React.FC = () => {
               <div className="flex min-w-0 flex-col">
                 <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-5 py-3.5">
                   <div className="flex min-w-0 items-center gap-2">
-                    <h2 className="truncate text-base font-semibold text-foreground">Data Sources</h2>
+                    <h2 className="truncate text-base font-semibold text-foreground">{t('sources.title')}</h2>
                     <span className="inline-flex shrink-0 items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-                      {fmtNum(dataSources.length)} sources
+                      {t('sources.countSources', { count: dataSources.length })}
                     </span>
                   </div>
                 </div>
@@ -1080,7 +1083,7 @@ const GlobalMap: React.FC = () => {
                   </div>
                 ) : dataSources.length === 0 ? (
                   <div className="p-4">
-                    <EmptyState title="No data sources registered" />
+                    <EmptyState title={t('sources.empty')} />
                   </div>
                 ) : (
                   <div className="flex max-h-[420px] flex-col gap-0.5 overflow-y-auto p-3">
@@ -1095,9 +1098,9 @@ const GlobalMap: React.FC = () => {
                       const healthTitle =
                         health == null ? undefined
                         : health.status === 'ok'
-                          ? `Connected${health.latencyMs != null ? ` · ${health.latencyMs}ms` : ''}`
+                          ? health.latencyMs != null ? t('sources.connectedLatency', { latency: health.latencyMs }) : t('sources.connected')
                           : health.status === 'skipped'
-                            ? 'Probe skipped (non-SQL source)'
+                            ? t('sources.probeSkipped')
                             : health.error ?? health.status;
                       return (
                         <div
@@ -1115,10 +1118,10 @@ const GlobalMap: React.FC = () => {
                               </MonoText>
                               {isSourceDataSource(src) && (
                                 <span
-                                  title="Data source flagged as a source database (param isSource=true)"
+                                  title={t('common:collectorSourceHelp')}
                                   className="inline-flex h-4 shrink-0 items-center rounded border border-amber-200 bg-amber-50 px-1.5 text-[9px] font-semibold text-amber-700"
                                 >
-                                  source
+                                  {t('sources.sourceBadge')}
                                 </span>
                               )}
                             </div>
@@ -1142,7 +1145,7 @@ const GlobalMap: React.FC = () => {
                               <span className={cn('h-1.5 w-1.5 rounded-full', TONE_DOT_CLASS[healthTone])} />
                             </span>
                           ) : (
-                            <span className="shrink-0 text-[10px] text-muted-foreground">Registered</span>
+                            <span className="shrink-0 text-[10px] text-muted-foreground">{t('sources.registered')}</span>
                           )}
                         </div>
                       );
@@ -1158,7 +1161,7 @@ const GlobalMap: React.FC = () => {
             <Card className="p-5">
               <div className="mb-3.5 flex items-center justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-2">
-                  <h3 className="text-sm font-semibold text-foreground">Event Detail</h3>
+                  <h3 className="text-sm font-semibold text-foreground">{t('eventDetail.title')}</h3>
                   <MonoText className="truncate text-[10px] text-muted-foreground">
                     #{selectedEventId}
                     {selectedEvent?.tableName ? ` · ${selectedEvent.tableName}` : ''}
@@ -1166,7 +1169,7 @@ const GlobalMap: React.FC = () => {
                 </div>
                 <span className="inline-flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground">
                   <Loader className="h-3 w-3" />
-                  {effStatusCounts.executing} executing
+                  {t('eventDetail.executing', { count: effStatusCounts.executing })}
                 </span>
               </div>
 
@@ -1181,17 +1184,17 @@ const GlobalMap: React.FC = () => {
                 ) : (
                   <>
                     <ProgressMeter
-                      label="Records"
+                      label={t('eventDetail.records')}
                       finished={recordCountsQ.data?.finished ?? 0}
                       unfinished={recordCountsQ.data?.unfinished ?? 0}
                     />
                     <ProgressMeter
-                      label="JSON"
+                      label={t('eventDetail.json')}
                       finished={jsonCountsQ.data?.finished ?? 0}
                       unfinished={jsonCountsQ.data?.unfinished ?? 0}
                     />
                     <ProgressMeter
-                      label="Tasks"
+                      label={t('eventDetail.tasks')}
                       finished={taskCountsQ.data?.finished ?? 0}
                       unfinished={taskCountsQ.data?.unfinished ?? 0}
                     />
@@ -1209,7 +1212,7 @@ const GlobalMap: React.FC = () => {
                   ))}
                 </div>
               ) : eventDetailRows.length === 0 ? (
-                <EmptyState title="No table detail for this event" />
+                <EmptyState title={t('eventDetail.empty')} />
               ) : (
                 <div className="flex max-h-[220px] flex-col gap-0.5 overflow-y-auto">
                   {eventDetailRows.map((row) => {
@@ -1227,7 +1230,7 @@ const GlobalMap: React.FC = () => {
                           {row.tableName ?? '—'}
                         </MonoText>
                         <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
-                          {fmtNum(row.dataCount)} rows
+                          {t('eventDetail.rows', { count: row.dataCount })}
                         </span>
                         <div className="h-1 w-16 shrink-0 overflow-hidden rounded-full bg-slate-100">
                           <div
@@ -1240,7 +1243,7 @@ const GlobalMap: React.FC = () => {
                         </span>
                         {(row.errors ?? 0) > 0 && (
                           <span className="shrink-0 rounded bg-red-50 px-1 text-[9px] font-semibold text-red-600">
-                            {row.errors} err
+                            {t('eventRow.err', { count: row.errors })}
                           </span>
                         )}
                       </div>
@@ -1255,12 +1258,12 @@ const GlobalMap: React.FC = () => {
           {activeStage === 'pipeline' && !pipelineErrorLogsQ.isLoading && pipelineRunCount > 0 && (
             <Card className="p-5">
               <div className="mb-3.5 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-foreground">Execution Stats</h3>
+                <h3 className="text-sm font-semibold text-foreground">{t('executionStats.title')}</h3>
                 <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
                   <Clock className="h-3 w-3" />
-                  {fmtNum(pipelineRunCount)} runs
+                  {t('executionStats.runs', { count: pipelineRunCount })}
                   {pipelineStatsQ.data?.p95DurationMs != null && (
-                    <span className="ml-1">· p95 {formatDuration(pipelineStatsQ.data.p95DurationMs)}</span>
+                    <span className="ml-1">{t('executionStats.p95', { duration: formatDuration(pipelineStatsQ.data.p95DurationMs) })}</span>
                   )}
                 </span>
               </div>
@@ -1273,11 +1276,11 @@ const GlobalMap: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                    <span className="text-[10px] text-muted-foreground">Done</span>
+                    <span className="text-[10px] text-muted-foreground">{t('executionStats.done')}</span>
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                    <span className="text-[10px] text-muted-foreground">Errors</span>
+                    <span className="text-[10px] text-muted-foreground">{t('executionStats.errors')}</span>
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-[10px]">
