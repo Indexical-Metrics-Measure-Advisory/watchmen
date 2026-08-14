@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from enum import Enum
+from logging import getLogger
 from typing import Optional, List, Union, Dict
 
 from watchmen_storage import EntityCriteriaOperator
 from watchmen_model.common import DataModel
 from watchmen_utilities import ArrayHelper, ExtendedBaseModel
+
+logger = getLogger(__name__)
 
 
 class Condition(ExtendedBaseModel):
@@ -44,8 +47,14 @@ def construct_condition(condition: Optional[Union[Condition, Dict]]) -> Optional
 		return condition
 	elif isinstance(condition, ConditionJoint):
 		return condition
+	elif not isinstance(condition, Dict):
+		logger.warning(f'Invalid condition[{condition}] is ignored.')
+		return None
 	elif condition.get('conjunction'):
 		return ConditionJoint(**condition)
+	elif not condition.get('columnName'):
+		logger.warning(f'Invalid condition[{condition}] is ignored, since columnName is required.')
+		return None
 	else:
 		return ConditionExpression(**condition)
 
@@ -54,4 +63,7 @@ def construct_conditions(conditions: Optional[List[Union[Condition, Dict]]]) -> 
 	if conditions is None:
 		return None
 	else:
-		return ArrayHelper(conditions).map(lambda x: construct_condition(x)).to_list()
+		return ArrayHelper(conditions) \
+			.map(lambda x: construct_condition(x)) \
+			.filter(lambda x: x is not None) \
+			.to_list()
