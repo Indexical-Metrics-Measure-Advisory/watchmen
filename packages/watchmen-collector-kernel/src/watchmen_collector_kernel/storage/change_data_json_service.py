@@ -145,7 +145,22 @@ class ChangeDataJsonService(TupleService):
 				# sort=[EntitySortColumn(name='created_at', method=EntitySortMethod.ASC)],
 				limit=limit if limit is not None else ask_partial_size()
 			))
-
+	
+	def find_json_and_locked_exclude_lob(self, model_trigger_id: int, columns: List, limit: int = None) -> List:
+		return self.storage.find_for_update_skip_locked_exclude_columns(
+			EntityLimitedFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=STATUS), right=0),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=MODEL_TRIGGER_ID),
+					                         right=model_trigger_id)
+				],
+				# sort=[EntitySortColumn(name='created_at', method=EntitySortMethod.ASC)],
+				limit=limit if limit is not None else ask_partial_size()
+			),
+		columns)
+	
 	def find_json(self, model_trigger_id: int, limit: int = None) -> List:
 		try:
 			self.begin_transaction()
@@ -510,7 +525,8 @@ class ChangeDataJsonService(TupleService):
 			))
 		finally:
 			self.storage.close()
-
+			
+		
 def get_change_data_json_service(storage: TransactionalStorageSPI,
                                  snowflake_generator: SnowflakeGenerator,
                                  principal_service: PrincipalService
