@@ -361,17 +361,6 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = self.build_offset_for_statement(statement, finder.limit, 1)
 		results = self.connection.execute(statement).mappings().all()
 		return ArrayHelper(results).map(lambda x: self.row_to_dict(x)).map(finder.shaper.deserialize).to_list()
-	
-	def find_for_update_skip_locked_exclude_columns(self, finder: EntityLimitedFinder, columns: List[str]) -> EntityList:
-		table = self.find_table(finder.name)
-		exclude_set = set(columns)
-		select_cols = [c for c in table.columns if c.name not in exclude_set]
-		statement = select(*select_cols).with_for_update(skip_locked=True)
-		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
-		statement = self.build_sort_for_statement(statement, finder.sort)
-		statement = self.build_offset_for_statement(statement, finder.limit, 1)
-		results = self.connection.execute(statement).mappings().all()
-		return ArrayHelper(results).map(lambda x: self.row_to_dict(x)).map(finder.shaper.deserialize).to_list()
 
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		table = self.find_table(finder.name)

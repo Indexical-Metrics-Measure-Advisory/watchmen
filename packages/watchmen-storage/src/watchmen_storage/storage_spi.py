@@ -132,10 +132,6 @@ class StorageSPI(ABC):
 		pass
 
 	@abstractmethod
-	def find_for_update_skip_locked_exclude_columns(self, finder: EntityLimitedFinder, columns: List) -> EntityList:
-		pass
-	
-	@abstractmethod
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		"""
 		filled values with given distinct columns, returns an entity list.

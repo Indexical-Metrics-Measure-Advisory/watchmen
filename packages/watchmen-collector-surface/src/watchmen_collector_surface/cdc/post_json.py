@@ -64,8 +64,7 @@ class ModelExecutor(ModelExecutorSPI):
 
 	def process_change_data_json(self, trigger_event: TriggerEvent, trigger_model: TriggerModel,
 	                             model_config: CollectorModelConfig):
-		# jsons = self.find_json_and_locked(trigger_model.modelTriggerId)
-		jsons = self.find_json_and_locked_exclude_columns(trigger_model.modelTriggerId, ["content"])
+		jsons = self.find_json_and_locked(trigger_model.modelTriggerId)
 		for change_data_json in jsons:
 			if self.is_duplicated(change_data_json):
 				change_data_json.isPosted = True
@@ -106,17 +105,6 @@ class ModelExecutor(ModelExecutorSPI):
 		try:
 			self.change_json_service.begin_transaction()
 			records = self.change_json_service.find_json_and_locked(model_trigger_id)
-			results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value)).map(
-				lambda record: self.change_json_service.update(record)).to_list()
-			self.change_json_service.commit_transaction()
-			return results
-		finally:
-			self.change_json_service.close_transaction()
-			
-	def find_json_and_locked_exclude_columns(self, model_trigger_id: int, columns: List) -> List[ChangeDataJson]:
-		try:
-			self.change_json_service.begin_transaction()
-			records = self.change_json_service.find_json_and_locked_exclude_lob(model_trigger_id, columns)
 			results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value)).map(
 				lambda record: self.change_json_service.update(record)).to_list()
 			self.change_json_service.commit_transaction()
