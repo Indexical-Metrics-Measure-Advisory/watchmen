@@ -19,9 +19,9 @@ export const SeverityBadge: React.FC<{ severity?: MonitorRuleSeverity | string }
 	const { t } = useTranslation('dqc');
 	if (!severity) return null;
 	const styles: Record<string, string> = {
-		fatal: 'border-red-500/40 bg-red-500/15 text-red-400',
-		warn: 'border-amber-500/40 bg-amber-500/15 text-amber-400',
-		trace: 'border-blue-500/40 bg-blue-500/15 text-blue-400',
+		fatal: 'border-red-500/40 bg-red-500/15 text-red-600 dark:text-red-400',
+		warn: 'border-amber-500/40 bg-amber-500/15 text-amber-600 dark:text-amber-400',
+		trace: 'border-blue-500/40 bg-blue-500/15 text-blue-600 dark:text-blue-400',
 	};
 	return (
 		<Badge variant="outline" className={cn('capitalize', styles[severity] ?? '')}>

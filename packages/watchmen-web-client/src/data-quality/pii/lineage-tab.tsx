@@ -45,7 +45,7 @@ const nodeColor = (node: { type?: string; sensitivity?: string }): string => {
 	if (node.sensitivity === PiiSensitivityLevel.LEVEL_2) {
 		return COLOR_LEVEL_2;
 	}
-	if (node.type === 'pipeline' || node.type === 'metric') {
+	if (node.type === 'pipeline') {
 		return COLOR_PIPELINE;
 	}
 	return COLOR_NEUTRAL;
@@ -140,7 +140,6 @@ export const PiiLineageTab = (props: { terms: Array<PiiClassificationTerm> }) =>
 	const relatedTopics = Object.keys(topicMap).map(name => ({name, factorCount: topicMap[name]}));
 	// pipelines from graph nodes
 	const relatedPipelines = (report?.graphData?.nodes ?? []).filter(node => node.type === 'pipeline');
-	const relatedMetrics = report?.metrics ?? [];
 	const coverage = report?.encryptionCoverage;
 	const coverageRatio = coverage && coverage.total > 0 ? Math.round(coverage.encrypted / coverage.total * 100) : 0;
 
@@ -195,21 +194,6 @@ export const PiiLineageTab = (props: { terms: Array<PiiClassificationTerm> }) =>
 								: relatedPipelines.map(node => {
 									return <PiiLineageListItem key={node.id}>
 										<PiiMonoText>{node.name}</PiiMonoText>
-									</PiiLineageListItem>;
-								})}
-						</PiiLineageList>
-					</PiiCard>
-					<PiiCard>
-						<PiiCardTitle>
-							Related Metrics
-							<PiiCardTitleBadge>{relatedMetrics.length}</PiiCardTitleBadge>
-						</PiiCardTitle>
-						<PiiLineageList>
-							{relatedMetrics.length === 0
-								? <PiiNoData>None</PiiNoData>
-								: relatedMetrics.map(metric => {
-									return <PiiLineageListItem key={metric.metricId ?? metric.metricName}>
-										<PiiMonoText>{metric.metricName}</PiiMonoText>
 									</PiiLineageListItem>;
 								})}
 						</PiiLineageList>

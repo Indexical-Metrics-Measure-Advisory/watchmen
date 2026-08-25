@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { BusinessChallengeWithProblems } from '@/model/business';
+import { BusinessChallenge } from '@/model/business';
 import { AgentCard } from '@/model/A2ASpec';
 import { a2aService } from '@/services/a2aService';
 import { businessService } from '@/services/businessService';
 
 export interface AgentResources {
   currentAgent: AgentCard | null;
-  businessChallenge: BusinessChallengeWithProblems | null;
+  businessChallenge: BusinessChallenge | null;
   resourcesLoaded: { agentLoaded: boolean; challengeLoaded: boolean };
   addLog: (type: string, title: string, description: string, status: string) => void;
 }
@@ -16,7 +16,7 @@ export function useAgentResources(
   setIsRunning: (running: boolean) => void
 ): AgentResources {
   const [currentAgent, setCurrentAgent] = useState<AgentCard | null>(null);
-  const [businessChallenge, setBusinessChallenge] = useState<BusinessChallengeWithProblems | null>(null);
+  const [businessChallenge, setBusinessChallenge] = useState<BusinessChallenge | null>(null);
   const [resourcesLoaded, setResourcesLoaded] = useState({
     agentLoaded: false,
     challengeLoaded: false

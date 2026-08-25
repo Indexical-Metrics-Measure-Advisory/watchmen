@@ -21,25 +21,31 @@ interface MetricData {
 interface DataAnalysisTabProps {
   analysisMethod?: EmulativeAnalysisMethod;
   metricsData?: MetricData[] | null;
+  onRunAnalysis?: () => void;
+  isAnalyzing?: boolean;
 }
 
-const DataAnalysisTab: React.FC<DataAnalysisTabProps> = ({ analysisMethod, metricsData }) => {
+const DataAnalysisTab: React.FC<DataAnalysisTabProps> = ({ analysisMethod, metricsData, onRunAnalysis, isAnalyzing }) => {
   const [selectedDimensions, setSelectedDimensions] = useState<{[key: string]: string}>({});
   const [selectedMeasures, setSelectedMeasures] = useState<{[key: string]: string}>({});
   const [drillDownData, setDrillDownData] = useState<any>(null);
   const [showDrillDown, setShowDrillDown] = useState(false);
   // console.log('metricsData', metricsData);
-  // Early return with error handling if data is invalid
-  if (!metricsData) {
+  // Empty state when no analysis has been run yet
+  if (!metricsData || metricsData.length === 0) {
     return (
       <Card className="shadow-sm">
         <CardContent className="flex flex-col items-center justify-center h-64 text-center">
-          <div className="p-4 rounded-full bg-red-100 mb-4">
-            <AlertCircle className="h-8 w-8 text-red-400" />
+          <div className="p-4 rounded-full bg-gray-100 mb-4">
+            <BarChart3 className="h-8 w-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-semibold text-red-700 mb-2">Data Loading Error</h3>
-          <p className="text-red-500 mb-1">Unable to load analysis data</p>
-          <p className="text-sm text-red-400">Please refresh the page or contact support</p>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Not validated yet</h3>
+          <p className="text-gray-500 mb-4">Run the analysis first to see metric data.</p>
+          {onRunAnalysis && (
+            <Button onClick={onRunAnalysis} disabled={isAnalyzing}>
+              {isAnalyzing ? 'Analyzing...' : 'Run Analysis'}
+            </Button>
+          )}
         </CardContent>
       </Card>
     );
@@ -657,29 +663,6 @@ const DataAnalysisTab: React.FC<DataAnalysisTabProps> = ({ analysisMethod, metri
       </Card>
     );
   };
-
-  if (!metricsData || metricsData.length === 0) {
-    const analysisInfo = getAnalysisInfo(analysisMethod);
-    const IconComponent = analysisInfo.icon;
-    
-    return (
-      <Card className="shadow-sm">
-        <CardContent className="flex flex-col items-center justify-center h-64 text-center">
-          <div className="p-4 rounded-full bg-gray-100 mb-4">
-            <IconComponent className="h-8 w-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">No Data Available</h3>
-          <p className="text-gray-500 mb-1">No {analysisInfo.title.toLowerCase()} data available</p>
-          <p className="text-sm text-gray-400">Please ensure analysis data is loaded or select another analysis method</p>
-          <div className="mt-4">
-            <Badge variant="outline" className="text-gray-500">
-              {analysisInfo.title}
-            </Badge>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <div className="space-y-6">

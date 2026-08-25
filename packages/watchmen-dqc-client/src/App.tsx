@@ -12,6 +12,7 @@ import DataHealthPage from '@/pages/health/DataHealthPage';
 import TopicProfilePage from '@/pages/profile/TopicProfilePage';
 import PiiPage from '@/pages/pii/PiiPage';
 import NotFoundPage from '@/pages/NotFoundPage';
+import { ThemeProvider } from '@/context/ThemeContext';
 import { isPiiEnabled } from '@/utils/utils';
 
 const queryClient = new QueryClient({
@@ -26,31 +27,33 @@ const queryClient = new QueryClient({
 
 function App() {
 	return (
-		<QueryClientProvider client={queryClient}>
-			<Routes>
-				{/* Login page — no auth required */}
-				<Route path="/login" element={<LoginPage />} />
+		<ThemeProvider>
+			<QueryClientProvider client={queryClient}>
+				<Routes>
+					{/* Login page - no auth required */}
+					<Route path="/login" element={<LoginPage />} />
 
-				{/* Protected routes */}
-				<Route
-					path="/"
-					element={
-						<AuthGuard>
-							<AppShell />
-						</AuthGuard>
-					}
-				>
-					<Route index element={<DashboardPage />} />
-					<Route path="rules" element={<RulesPage />} />
-					<Route path="results" element={<ResultsPage />} />
-					<Route path="catalog" element={<CatalogPage />} />
-					<Route path="health" element={<DataHealthPage />} />
-					<Route path="profile" element={<TopicProfilePage />} />
-					{isPiiEnabled() && <Route path="pii" element={<PiiPage />} />}
-					<Route path="*" element={<NotFoundPage />} />
-				</Route>
-			</Routes>
-		</QueryClientProvider>
+					{/* Protected routes */}
+					<Route
+						path="/"
+						element={
+							<AuthGuard>
+								<AppShell />
+							</AuthGuard>
+						}
+					>
+						<Route index element={<DashboardPage />} />
+						<Route path="rules" element={<RulesPage />} />
+						<Route path="results" element={<ResultsPage />} />
+						<Route path="catalog" element={<CatalogPage />} />
+						<Route path="health" element={<DataHealthPage />} />
+						<Route path="profile" element={<TopicProfilePage />} />
+						{isPiiEnabled() && <Route path="pii" element={<PiiPage />} />}
+						<Route path="*" element={<NotFoundPage />} />
+					</Route>
+				</Routes>
+			</QueryClientProvider>
+		</ThemeProvider>
 	);
 }
 

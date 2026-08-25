@@ -6,6 +6,7 @@ import {
 	DerivedAttribute,
 	PhysicalTableMapping,
 	OntologySpaceOption,
+	OntologyGovernanceMap,
 	virtualObjectColors,
 } from "@/model/ontology";
 import { API_BASE_URL, getDefaultHeaders, checkResponse } from "@/utils/apiConfig";
@@ -390,6 +391,24 @@ export const ontologyService = {
 	/** Load data spaces available for ontology binding. */
 	async fetchAvailableSpaces(): Promise<OntologySpaceOption[]> {
 		return getJson<OntologySpaceOption[]>("/spaces/available");
+	},
+
+	/**
+	 * Load the governance projection (PII terms / masking / monitor rules) of a saved ontology.
+	 * The endpoint reads saved state only, so unsaved drafts have no governance data;
+	 * returns null when there is no ontologyId or the backend is unreachable — the caller
+	 * treats null as "no governance data" and must not block editing on it.
+	 */
+	async getGovernanceMap(ontologyId?: string): Promise<OntologyGovernanceMap | null> {
+		if (!ontologyId) {
+			return null;
+		}
+		try {
+			return await getJson<OntologyGovernanceMap>("/governance/map", { ontologyId });
+		} catch (e) {
+			console.warn("[ontologyService.getGovernanceMap] failed to load governance map", e);
+			return null;
+		}
 	},
 
 	/**

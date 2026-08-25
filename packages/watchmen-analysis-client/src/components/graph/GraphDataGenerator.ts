@@ -11,7 +11,6 @@ const MIN_NODE_WIDTH = 300; // Minimum width for a node
 export const generateGraphData = async (hypotheses: HypothesisType[]) => {
   const businessService = new BusinessService();
   const challenges = await businessService.getChallenges();
-  const problems = await businessService.getProblems();
   const nodes = [];
   const edges = [];
 
@@ -20,35 +19,22 @@ export const generateGraphData = async (hypotheses: HypothesisType[]) => {
   
   // First pass: Calculate widths and positions
   const challengeWidths = new Map();
-  const problemWidths = new Map();
   
   challenges.forEach(challenge => {
-    let totalWidth = 0;
-    const problemsForChallenges = problems.filter(p => challenge.id == p.businessChallengeId);
-
-    for (let index = 0; index < problemsForChallenges.length; index++) {
-      const problem = problemsForChallenges[index];
-      if (problem) {
-        const hypothesisCount = problem.hypothesisIds.length;
-        const problemWidth = Math.max(MIN_NODE_WIDTH, hypothesisCount * NODE_SPACING * 1.2);
-        problemWidths.set(problem.id, problemWidth);
-        totalWidth += problemWidth;
-      }
-    }
-      
-    
-    challengeWidths.set(challenge.id, Math.max(MIN_NODE_WIDTH, totalWidth));
+    const hypothesesForChallenge = hypotheses.filter(h => h.businessChallengeId == challenge.id);
+    const challengeWidth = Math.max(MIN_NODE_WIDTH, hypothesesForChallenge.length * NODE_SPACING * 1.2);
+    challengeWidths.set(challenge.id, challengeWidth);
   });
   
   // Track positions
   let challengeX = CANVAS_PADDING;
   
-  // Create challenge nodes and their connected problems and hypotheses
+  // Create challenge nodes and their connected hypotheses
   challenges.forEach(challenge => {
     const challengeWidth = challengeWidths.get(challenge.id);
     const challengeCenterX = challengeX + (challengeWidth / 2);
     
-    // Add challenge node centered above its problems
+    // Add challenge node centered above its hypotheses
     nodes.push({
       id: `challenge_${challenge.id}`,
       type: 'challenge',
@@ -60,83 +46,42 @@ export const generateGraphData = async (hypotheses: HypothesisType[]) => {
       position: { x: challengeCenterX, y: 0 },
     });
     
-    // Calculate initial problem X position for this challenge
-    let problemX = challengeX;
+    // Calculate initial hypothesis X position for this challenge
+    const hypothesesForChallenge = hypotheses.filter(h => h.businessChallengeId == challenge.id);
+    const totalHypothesisWidth = hypothesesForChallenge.length * NODE_SPACING;
+    let hypothesisX = challengeCenterX - (totalHypothesisWidth / 2);
     
-    // Create problem nodes for this challenge
-    const problemsForChallenges = problems.filter(p => challenge.id == p.businessChallengeId);
-    for (let index = 0; index < problemsForChallenges.length; index++) {
-      const problem = problemsForChallenges[index];
-      if (problem) {
-        const problemWidth = problemWidths.get(problem.id);
-        const problemCenterX = problemX + (problemWidth / 2);
-        
-        // Add problem node centered above its hypotheses
-        nodes.push({
-          id: `problem_${problem.id}`,
-          type: 'problem',
-          data: { 
-            label: problem.title, 
-            description: problem.description,
-            status: problem.status,
-            id: problem.id
-          },
-          position: { x: problemCenterX, y: LEVEL_HEIGHT },
-        });
-        
-        // Connect challenge to problem
-        edges.push({
-          id: `edge_challenge_${challenge.id}_problem_${problem.id}`,
-          source: `challenge_${challenge.id}`,
-          target: `problem_${problem.id}`,
-          type: 'smoothstep',
-          animated: false,
-        });
-        
-        // Calculate initial hypothesis X position for this problem
-        const hypothesisCount = problem.hypothesisIds.length;
-        const totalHypothesisWidth = hypothesisCount * NODE_SPACING;
-        let hypothesisX = problemCenterX - (totalHypothesisWidth / 2);
-        
-        // Create hypothesis nodes for this problem
-        problem.hypothesisIds.forEach(hypothesisId => {
-          const hypothesis = hypotheses.find(h => h.id === hypothesisId);
-          if (hypothesis) {
-            // Add hypothesis node
-            nodes.push({
-              id: `hypothesis_${hypothesis.id}`,
-              type: 'hypothesis',
-              data: { 
-                label: hypothesis.title, 
-                description: hypothesis.description,
-                status: hypothesis.status,
-                confidence: hypothesis.confidence,
-                id: hypothesis.id
-              },
-              position: { x: hypothesisX, y: LEVEL_HEIGHT * 2 },
-            });
-            
-            // Connect problem to hypothesis
-            edges.push({
-              id: `edge_problem_${problem.id}_hypothesis_${hypothesis.id}`,
-              source: `problem_${problem.id}`,
-              target: `hypothesis_${hypothesis.id}`,
-              type: 'smoothstep',
-              animated: false,
-            });
-            
-            // Increment hypothesis X position
-            hypothesisX += NODE_SPACING;
-          }
-        });
-        
-        // Increment problem X position by the problem's width plus spacing
-        problemX += problemWidth + NODE_SPACING * 1.5;
-      }
-  
-    }
-    // Increment challenge X position based on its problems
-    challengeX = problemX + NODE_SPACING;
+    // Create hypothesis nodes for this challenge
+    hypothesesForChallenge.forEach(hypothesis => {
+      // Add hypothesis node
+      nodes.push({
+        id: `hypothesis_${hypothesis.id}`,
+        type: 'hypothesis',
+        data: { 
+          label: hypothesis.title, 
+          description: hypothesis.description,
+          status: hypothesis.status,
+          confidence: hypothesis.confidence,
+          id: hypothesis.id
+        },
+        position: { x: hypothesisX, y: LEVEL_HEIGHT },
+      });
+      
+      // Connect challenge to hypothesis
+      edges.push({
+        id: `edge_challenge_${challenge.id}_hypothesis_${hypothesis.id}`,
+        source: `challenge_${challenge.id}`,
+        target: `hypothesis_${hypothesis.id}`,
+        type: 'smoothstep',
+        animated: false,
+      });
+      
+      // Increment hypothesis X position
+      hypothesisX += NODE_SPACING;
+    });
+    
+    // Increment challenge X position based on its hypotheses
+    challengeX += challengeWidth + NODE_SPACING;
   });
   
   // Add connections between related hypotheses

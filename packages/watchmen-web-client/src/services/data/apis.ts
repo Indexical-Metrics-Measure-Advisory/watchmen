@@ -185,6 +185,7 @@ export const Apis = {
 	PII_TERM_DELETE: 'dqc/pii-terms/:termId',
 	PII_TERM_DISCOVER: 'dqc/pii-terms/:termId/discover',
 	PII_TERM_CONFIRM: 'dqc/pii-terms/:termId/confirm',
+	PII_TERM_LINK_FACTOR: 'dqc/pii-terms/:termId/factors',
 	PII_TERM_LINEAGE: 'dqc/pii-terms/:termId/lineage',
 	PII_REPORT: 'dqc/pii-report',
 	PII_REPORT_EXPORT: 'dqc/pii-report/export/:format',

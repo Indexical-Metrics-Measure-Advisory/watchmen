@@ -1,4 +1,8 @@
+import {fetchMockAllTopics} from '../pipeline/mock-all-topics';
+import {FactorId} from '../../tuples/factor-types';
+import {TopicId} from '../../tuples/topic-types';
 import {
+	asPiiLinkedFactorKey,
 	PiiCategory,
 	PiiClassificationTerm,
 	PiiDiscoverResult,
@@ -6,7 +10,6 @@ import {
 	PiiLineageReport,
 	PiiLinkedFactor,
 	PiiMatchSource,
-	PiiMatchStrategy,
 	PiiSensitivityLevel,
 	PiiTermOverview
 } from '../../data-quality/pii-types';
@@ -26,7 +29,7 @@ const createMockTerm = (options: {
 	name: string;
 	category: PiiCategory;
 	sensitivityLevel: PiiSensitivityLevel;
-	matchStrategy?: PiiMatchStrategy;
+	topicIds?: Array<string>;
 	factorTypePatterns?: Array<string>;
 	keywordPatterns?: Array<string>;
 	linkedFactors?: Array<PiiLinkedFactor>;
@@ -37,7 +40,7 @@ const createMockTerm = (options: {
 		name: options.name,
 		category: options.category,
 		sensitivityLevel: options.sensitivityLevel,
-		matchStrategy: options.matchStrategy ?? PiiMatchStrategy.LOGIC_AND_AI,
+		topicIds: options.topicIds ?? [],
 		factorTypePatterns: options.factorTypePatterns ?? [],
 		keywordPatterns: options.keywordPatterns ?? [],
 		linkedFactors: options.linkedFactors ?? [],
@@ -48,25 +51,31 @@ const createMockTerm = (options: {
 };
 
 // the 11 built-in seed terms, mirrors backend watchmen_pii.seed.pii_term_seed
+// topicIds refer to mock demo topics (see mock-data-topics.ts)
 let mockTerms: Array<PiiClassificationTerm> = [
 	createMockTerm({
 		termId: '1', name: '证件号码', category: PiiCategory.CUSTOMER, sensitivityLevel: PiiSensitivityLevel.LEVEL_1,
+		topicIds: ['3'],
 		factorTypePatterns: ['id-no'], keywordPatterns: ['证件号', 'id_card', 'id_no', 'identity']
 	}),
 	createMockTerm({
 		termId: '2', name: '客户姓名', category: PiiCategory.CUSTOMER, sensitivityLevel: PiiSensitivityLevel.LEVEL_1,
+		topicIds: ['3'],
 		keywordPatterns: ['姓名', 'name', 'customer_name', 'full_name']
 	}),
 	createMockTerm({
 		termId: '3', name: '出生日期', category: PiiCategory.CUSTOMER, sensitivityLevel: PiiSensitivityLevel.LEVEL_1,
+		topicIds: ['3'],
 		factorTypePatterns: ['date-of-birth'], keywordPatterns: ['出生日期', 'birth', 'birthday', 'dob']
 	}),
 	createMockTerm({
 		termId: '4', name: '手机号码', category: PiiCategory.CUSTOMER, sensitivityLevel: PiiSensitivityLevel.LEVEL_1,
+		topicIds: ['3'],
 		factorTypePatterns: ['mobile', 'phone'], keywordPatterns: ['手机', 'mobile', 'phone', 'cell']
 	}),
 	createMockTerm({
 		termId: '5', name: '家庭住址', category: PiiCategory.CUSTOMER, sensitivityLevel: PiiSensitivityLevel.LEVEL_1,
+		topicIds: ['2'],
 		factorTypePatterns: ['address', 'province', 'city', 'district'], keywordPatterns: ['住址', 'address', 'home']
 	}),
 	createMockTerm({
@@ -75,6 +84,7 @@ let mockTerms: Array<PiiClassificationTerm> = [
 	}),
 	createMockTerm({
 		termId: '7', name: '保费', category: PiiCategory.BUSINESS, sensitivityLevel: PiiSensitivityLevel.LEVEL_2,
+		topicIds: ['1', '2'],
 		keywordPatterns: ['保费', 'premium', 'premium_amount']
 	}),
 	createMockTerm({
@@ -98,16 +108,15 @@ let mockTerms: Array<PiiClassificationTerm> = [
 // latest discovery result per term, in-memory
 const mockDiscoveries: Record<string, Array<PiiLinkedFactor>> = {};
 
+// factors of mock demo topics (see mock-data-topics.ts)
 const buildMockDiscoveryFactors = (): Array<PiiLinkedFactor> => {
 	return [
-		{topicId: '101', topicName: 'policy_raw', factorId: '1001', factorName: 'id_card_no', factorType: 'id-no', matchConfidence: 1.0, matchSource: PiiMatchSource.TYPE, confirmed: true},
-		{topicId: '101', topicName: 'policy_raw', factorId: '1002', factorName: 'customer_name', matchConfidence: 0.9, matchSource: PiiMatchSource.KEYWORD, confirmed: true},
-		{topicId: '102', topicName: 'customer_info', factorId: '1003', factorName: 'identity_number', factorType: 'id-no', matchConfidence: 1.0, matchSource: PiiMatchSource.TYPE, confirmed: true},
-		{topicId: '102', topicName: 'customer_info', factorId: '1004', factorName: 'mobile_phone', factorType: 'mobile', matchConfidence: 1.0, matchSource: PiiMatchSource.TYPE, confirmed: true},
-		{topicId: '102', topicName: 'customer_info', factorId: '1005', factorName: 'email_addr', factorType: 'email', matchConfidence: 1.0, matchSource: PiiMatchSource.TYPE, confirmed: true},
-		{topicId: '102', topicName: 'customer_info', factorId: '1006', factorName: 'birth_date', factorType: 'date-of-birth', matchConfidence: 1.0, matchSource: PiiMatchSource.TYPE, confirmed: true},
-		{topicId: '103', topicName: 'policy_summary', factorId: '1007', factorName: 'holder_name', matchConfidence: 0.87, matchSource: PiiMatchSource.AI, confirmed: false},
-		{topicId: '104', topicName: 'address_book', factorId: '1008', factorName: 'contact_id', matchConfidence: 0.85, matchSource: PiiMatchSource.KEYWORD, confirmed: false}
+		{topicId: '3', topicName: 'Participant', factorId: '304', factorName: 'fullName', factorLabel: 'Full Name', matchConfidence: 0.9, matchSource: PiiMatchSource.KEYWORD, confirmed: true},
+		{topicId: '3', topicName: 'Participant', factorId: '305', factorName: 'dateOfBirth', factorLabel: 'Birth Date', factorType: 'datetime', matchConfidence: 1.0, matchSource: PiiMatchSource.TYPE, confirmed: true},
+		{topicId: '3', topicName: 'Participant', factorId: '302', factorName: 'firstName', factorLabel: 'First Name', matchConfidence: 0.85, matchSource: PiiMatchSource.KEYWORD, confirmed: false},
+		{topicId: '2', topicName: 'Order', factorId: '207', factorName: 'premium', factorLabel: 'Premium', matchConfidence: 0.95, matchSource: PiiMatchSource.KEYWORD, confirmed: false},
+		{topicId: '2', topicName: 'Order', factorId: '208', factorName: 'ensureProvince', factorLabel: 'Ensure Province', factorType: 'province', matchConfidence: 1.0, matchSource: PiiMatchSource.TYPE, confirmed: false},
+		{topicId: '1', topicName: 'Quotation', factorId: '105', factorName: 'premium', factorLabel: 'Premium', matchConfidence: 1.0, matchSource: PiiMatchSource.MANUAL, confirmed: true}
 	];
 };
 
@@ -145,16 +154,15 @@ export const deleteMockPiiTerm = async (termId: string): Promise<void> => {
 	return delayed(void 0);
 };
 
-export const discoverMockPiiTerm = async (options: {
-	termId: string;
-	strategy?: PiiMatchStrategy | string;
-}): Promise<PiiDiscoverResult> => {
-	const {termId, strategy} = options;
+export const discoverMockPiiTerm = async (termId: string): Promise<PiiDiscoverResult> => {
 	let factors = mockDiscoveries[termId];
 	if (!factors) {
-		factors = buildMockDiscoveryFactors();
-		// keep previously confirmed links, like backend does
 		const term = mockTerms.find(t => t.termId === termId);
+		const scopeTopicIds = term?.topicIds ?? [];
+		factors = buildMockDiscoveryFactors()
+			// discovery is scoped by topics linked to the term
+			.filter(lf => scopeTopicIds.length === 0 || scopeTopicIds.includes(lf.topicId));
+		// keep previously confirmed links, like backend does
 		const confirmed = (term?.linkedFactors ?? []).filter(lf => lf.confirmed);
 		factors = factors.map(lf => {
 			return confirmed.some(c => c.topicId === lf.topicId && c.factorId === lf.factorId)
@@ -162,13 +170,7 @@ export const discoverMockPiiTerm = async (options: {
 		});
 		mockDiscoveries[termId] = factors;
 	}
-	let filtered = factors;
-	if (strategy === PiiMatchStrategy.LOGIC) {
-		filtered = factors.filter(lf => lf.matchSource !== PiiMatchSource.AI);
-	} else if (strategy === PiiMatchStrategy.AI) {
-		filtered = factors.filter(lf => lf.matchSource === PiiMatchSource.AI);
-	}
-	return delayed({termId, linkedFactors: filtered, totalCount: filtered.length});
+	return delayed({termId, linkedFactors: factors, totalCount: factors.length});
 };
 
 export const confirmMockPiiTerm = async (options: {
@@ -179,8 +181,8 @@ export const confirmMockPiiTerm = async (options: {
 	const {termId, factorIds, removeFactorIds} = options;
 	const discovered = mockDiscoveries[termId] ?? [];
 	const surviving = discovered
-		.filter(lf => !removeFactorIds.includes(lf.factorId))
-		.map(lf => factorIds.includes(lf.factorId) || lf.confirmed ? {...lf, confirmed: true} : lf);
+		.filter(lf => !removeFactorIds.includes(asPiiLinkedFactorKey(lf)))
+		.map(lf => factorIds.includes(asPiiLinkedFactorKey(lf)) || lf.confirmed ? {...lf, confirmed: true} : lf);
 	mockDiscoveries[termId] = surviving;
 	mockTerms = mockTerms.map(t => {
 		if (t.termId !== termId) {
@@ -189,6 +191,40 @@ export const confirmMockPiiTerm = async (options: {
 		// backend keeps confirmed links on the term itself
 		return {...t, linkedFactors: surviving.filter(lf => lf.confirmed), lastModifiedAt: now()};
 	});
+	return delayed(mockTerms.find(t => t.termId === termId)!);
+};
+
+export const linkMockPiiFactor = async (options: {
+	termId: string;
+	topicId: TopicId;
+	factorId: FactorId;
+}): Promise<PiiClassificationTerm> => {
+	const {termId, topicId, factorId} = options;
+	const topics = await fetchMockAllTopics();
+	const topic = topics.find(t => t.topicId === topicId);
+	const factor = (topic?.factors ?? []).find(f => f.factorId === factorId);
+	const linked: PiiLinkedFactor = {
+		topicId,
+		topicName: topic?.name,
+		factorId,
+		factorName: factor?.name,
+		factorLabel: factor?.label,
+		factorType: factor?.type,
+		matchConfidence: 1.0,
+		matchSource: PiiMatchSource.MANUAL,
+		confirmed: true
+	};
+	mockTerms = mockTerms.map(t => {
+		if (t.termId !== termId) {
+			return t;
+		}
+		const exists = (t.linkedFactors ?? []).some(lf => lf.topicId === topicId && lf.factorId === factorId);
+		return exists ? t : {...t, linkedFactors: [...(t.linkedFactors ?? []), linked], lastModifiedAt: now()};
+	});
+	const discovered = mockDiscoveries[termId];
+	if (discovered != null && !discovered.some(lf => lf.topicId === topicId && lf.factorId === factorId)) {
+		mockDiscoveries[termId] = [...discovered, linked];
+	}
 	return delayed(mockTerms.find(t => t.termId === termId)!);
 };
 
@@ -201,7 +237,6 @@ export const fetchMockPiiLineage = async (options: { termId: string }): Promise<
 		linkedFactors: term?.linkedFactors ?? [],
 		upstreamRoutes: [],
 		downstreamRoutes: [],
-		metrics: [{metricId: 'm1', metricName: 'metric_holder_count', topicId: '103'}],
 		graphData: {
 			nodes: [
 				{id: 'topic:policy_raw', type: 'topic', name: 'policy_raw', sensitivity: PiiSensitivityLevel.LEVEL_1},
@@ -211,8 +246,7 @@ export const fetchMockPiiLineage = async (options: { termId: string }): Promise<
 				{id: 'pipeline:pipeline_etl_01', type: 'pipeline', name: 'pipeline_etl_01'},
 				{id: 'topic:policy_summary', type: 'topic', name: 'policy_summary', sensitivity: PiiSensitivityLevel.LEVEL_2},
 				{id: 'factor:holder_name', type: 'topic_factor', name: 'holder_name', sensitivity: PiiSensitivityLevel.LEVEL_2},
-				{id: 'pipeline:pipeline_agg', type: 'pipeline', name: 'pipeline_agg'},
-				{id: 'metric:metric_holder_count', type: 'metric', name: 'metric_holder_count'}
+				{id: 'pipeline:pipeline_agg', type: 'pipeline', name: 'pipeline_agg'}
 			],
 			edges: [
 				{from: 'topic:policy_raw', to: 'factor:id_card_no', kind: 'maps_to'},
@@ -220,8 +254,7 @@ export const fetchMockPiiLineage = async (options: { termId: string }): Promise<
 				{from: 'pipeline:pipeline_etl_01', to: 'topic:customer_info', kind: 'reads_from'},
 				{from: 'topic:customer_info', to: 'factor:identity_number', kind: 'maps_to'},
 				{from: 'pipeline:pipeline_agg', to: 'topic:policy_summary', kind: 'produces'},
-				{from: 'topic:policy_summary', to: 'factor:holder_name', kind: 'maps_to'},
-				{from: 'topic:policy_summary', to: 'metric:metric_holder_count', kind: 'produces'}
+				{from: 'topic:policy_summary', to: 'factor:holder_name', kind: 'maps_to'}
 			]
 		},
 		encryptionCoverage: {total: 15, encrypted: 8, plaintext: 7},
@@ -243,7 +276,6 @@ const buildMockOverviewRow = (options: {
 		linkedFactorCount: options.factors,
 		topicCount: options.topics,
 		pipelineCount: options.pipelines,
-		metricCount: 0,
 		encryptedFactorCount: encrypted,
 		plaintextFactorCount: options.factors - encrypted,
 		maxUpstreamDepth: 2,

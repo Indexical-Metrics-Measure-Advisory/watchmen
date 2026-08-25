@@ -9,7 +9,6 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import Index from "./pages/Index";
 import BusinessChallenges from "./pages/BusinessChallenges";
-import BusinessProblems from "./pages/BusinessProblems";
 import Hypotheses from "./pages/Hypotheses";
 // import MetricDetail from "./pages/MetricDetail";
 import Analysis from "./pages/Analysis";
@@ -60,7 +59,6 @@ const App = () => (
               <Routes>
                 <Route path="/" element={< BIAnalysisPage/>} />
                 <Route path="/challenges" element={<BusinessChallenges />} />
-                <Route path="/problems" element={<BusinessProblems />} />
                 <Route path="/hypotheses" element={<Hypotheses />} />
                 {/* <Route path="/metrics" element={<Metrics />} /> */}
                 <Route path="/metrics/semantic-models" element={<SemanticModelManagement />} />

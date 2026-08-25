@@ -30,14 +30,18 @@ import { MetricBuilderSheet } from '@/components/bi/MetricBuilderSheet';
 import { AcknowledgeAlertDialog } from '@/components/bi/AcknowledgeAlertDialog';
 const LazySubscriptionModal = lazy(() => import('@/components/bi/SubscriptionModal').then(m => ({ default: m.SubscriptionModal })));
 import { BIChartCard, GlobalAlertRule } from '@/model/biAnalysis';
+import type { HypothesisContext } from '@/model/Hypothesis';
 import type { DateRange } from 'react-day-picker';
 import { useAuth } from '@/contexts/AuthContext';
+import { format } from 'date-fns';
 
 // ── Custom hooks ──
 import { useAnalysisState } from '@/hooks/bi/useAnalysisState';
 import { useCardDataLoader } from '@/hooks/bi/useCardDataLoader';
 import { useGlobalFilters, GLOBAL_TIME_RANGE_PER_CARD } from '@/hooks/bi/useGlobalFilters';
 import { useMetricBuilder } from '@/hooks/bi/useMetricBuilder';
+import { useHypothesisBadges } from '@/hooks/useHypothesisBadges';
+import { HypothesisQuickCreateSheet } from '@/components/hypothesis/HypothesisQuickCreateSheet';
 
 // ─────────────────────────────────────────────────────────────
 // Page Component
@@ -137,6 +141,56 @@ const BIAnalysisPage: React.FC = () => {
     onRefreshCards: refreshCardsWithContext,
     setIsBoardRefreshing,
   });
+
+  // ── Hypothesis badges + quick-create sheet ──
+  const { badges: hypothesisBadges, refresh: refreshHypothesisBadges } = useHypothesisBadges();
+  const [hypothesisContext, setHypothesisContext] = React.useState<HypothesisContext | null>(null);
+  const [hypothesisInitialMetric, setHypothesisInitialMetric] = React.useState<string | undefined>(undefined);
+
+  // Resolve the metric name a card represents — alert cards use the first alert condition
+  const resolveCardMetric = React.useCallback((card: BIChartCard) => (
+    card.chartType === 'alert'
+      ? (card.alert?.conditions?.[0]?.metricName ?? card.alert?.conditions?.[0]?.metricId ?? card.metricId)
+      : card.metricId
+  ), []);
+
+  // Hypotheses associate to the whole analysis board: context.metrics lists every
+  // distinct metric on the board and sourceId is the analysis id (undefined for an
+  // unsaved board). When invoked from a card button, that card's metric is
+  // preselected via initialMetric; alert cards keep source 'alert' with the card id.
+  const handleProposeHypothesis = React.useCallback((card?: BIChartCard) => {
+    const isAlert = card?.chartType === 'alert';
+
+    const metrics = Array.from(new Set(
+      cards.map(c => resolveCardMetric(c)).filter(m => m && m.length > 0)
+    ));
+
+    let timeRange: string | undefined;
+    if (globalTimeRange === GLOBAL_TIME_RANGE_PER_CARD) {
+      timeRange = card?.selection?.timeRange;
+    } else if (globalTimeRange === 'Custom') {
+      timeRange = globalCustomDateRange?.from && globalCustomDateRange?.to
+        ? `Custom:${format(globalCustomDateRange.from, 'yyyy-MM-dd')}:${format(globalCustomDateRange.to, 'yyyy-MM-dd')}`
+        : 'Custom';
+    } else {
+      timeRange = globalTimeRange;
+    }
+
+    const filterEntries = Object.entries(globalFilterValues ?? {}).filter(([, v]) => v);
+
+    setHypothesisInitialMetric(card ? resolveCardMetric(card) : undefined);
+    setHypothesisContext({
+      source: isAlert ? 'alert' : 'chart',
+      sourceId: isAlert ? card.id : (currentAnalysisId ?? undefined),
+      metrics,
+      dimensions: card?.selection?.dimensions,
+      timeRange,
+      filters: filterEntries.length > 0 ? Object.fromEntries(filterEntries) : undefined,
+    });
+  }, [cards, currentAnalysisId, globalTimeRange, globalCustomDateRange, globalFilterValues, resolveCardMetric]);
+
+  // Board-level entry point — all board metrics, nothing preselected
+  const handleProposeBoardHypothesis = React.useCallback(() => handleProposeHypothesis(), [handleProposeHypothesis]);
 
   // ── Stable callbacks for AnalysisBoard ──
   const handleAddAlert = React.useCallback(() => setAddAlertOpen(true), []);
@@ -283,6 +337,9 @@ const BIAnalysisPage: React.FC = () => {
                   onGlobalCustomDateRangeChange={handleGlobalCustomDateRangeChange}
                   onRefresh={onRefreshData}
                   isRefreshing={isBoardRefreshing}
+                  onProposeHypothesis={handleProposeBoardHypothesis}
+                  onCardProposeHypothesis={handleProposeHypothesis}
+                  hypothesisBadges={hypothesisBadges}
                 />
               </div>
             </TabsContent>
@@ -395,6 +452,16 @@ const BIAnalysisPage: React.FC = () => {
             onOpenChange={(open) => !open && setAckAlertId(null)}
             onConfirm={confirmAcknowledge}
           />
+
+          {hypothesisContext && (
+            <HypothesisQuickCreateSheet
+              open={!!hypothesisContext}
+              context={hypothesisContext}
+              initialMetric={hypothesisInitialMetric}
+              onOpenChange={(open) => { if (!open) setHypothesisContext(null); }}
+              onCreated={() => { void refreshHypothesisBadges(); }}
+            />
+          )}
 
           <Suspense fallback={null}>
             <LazySubscriptionModal

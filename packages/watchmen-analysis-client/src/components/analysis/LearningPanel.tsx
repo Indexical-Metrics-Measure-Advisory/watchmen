@@ -18,8 +18,8 @@ const LearningPanel: React.FC<LearningPanelProps> = ({
   const navigate = useNavigate();
   
   const handleNavigate = (tab: string) => {
-    if (hypothesis.businessProblemId) {
-      navigate(`/learning?businessProblemId=${hypothesis.businessProblemId}&tab=${tab}`);
+    if (hypothesis.businessChallengeId) {
+      navigate(`/learning?challengeId=${hypothesis.businessChallengeId}&tab=${tab}`);
     } else {
       navigate(`/learning?hypothesis=${hypothesis.id}&tab=${tab}`);
     }
@@ -33,7 +33,7 @@ const LearningPanel: React.FC<LearningPanelProps> = ({
           学习与优化
         </CardTitle>
         <CardDescription>
-          基于业务问题的持续学习与优化功能
+          基于业务挑战的持续学习与优化功能
         </CardDescription>
       </CardHeader>
       
@@ -66,7 +66,7 @@ const LearningPanel: React.FC<LearningPanelProps> = ({
               <div className="text-left">
                 <h3 className="font-medium mb-1">用户反馈收集</h3>
                 <p className="text-sm text-muted-foreground">
-                  记录与此业务问题相关的用户反馈和决策结果
+                  记录与此业务挑战相关的用户反馈和决策结果
                 </p>
               </div>
             </div>

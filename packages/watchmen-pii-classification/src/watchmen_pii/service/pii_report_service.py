@@ -50,14 +50,14 @@ class PiiReportService:
 		writer = csv.writer(buf)
 		writer.writerow([
 			'termId', 'termName', 'sensitivityLevel', 'category',
-			'linkedFactorCount', 'topicCount', 'pipelineCount', 'metricCount',
+			'linkedFactorCount', 'topicCount', 'pipelineCount',
 			'encryptedFactorCount', 'plaintextFactorCount',
 			'maxUpstreamDepth', 'maxDownstreamDepth',
 		])
 		for row in dashboard.terms:
 			writer.writerow([
 				row.termId, row.termName, row.sensitivityLevel, row.category,
-				row.linkedFactorCount, row.topicCount, row.pipelineCount, row.metricCount,
+				row.linkedFactorCount, row.topicCount, row.pipelineCount,
 				row.encryptedFactorCount, row.plaintextFactorCount,
 				row.maxUpstreamDepth, row.maxDownstreamDepth,
 			])
@@ -74,7 +74,7 @@ class PiiReportService:
 		ws.title = "PII Overview"
 		headers = [
 			'termId', 'termName', 'sensitivityLevel', 'category',
-			'linkedFactorCount', 'topicCount', 'pipelineCount', 'metricCount',
+			'linkedFactorCount', 'topicCount', 'pipelineCount',
 			'encryptedFactorCount', 'plaintextFactorCount',
 			'maxUpstreamDepth', 'maxDownstreamDepth',
 		]
@@ -82,7 +82,7 @@ class PiiReportService:
 		for row in dashboard.terms:
 			ws.append([
 				row.termId, row.termName, row.sensitivityLevel, row.category,
-				row.linkedFactorCount, row.topicCount, row.pipelineCount, row.metricCount,
+				row.linkedFactorCount, row.topicCount, row.pipelineCount,
 				row.encryptedFactorCount, row.plaintextFactorCount,
 				row.maxUpstreamDepth, row.maxDownstreamDepth,
 			])
@@ -95,7 +95,7 @@ class PiiReportService:
 	def _term_overview(self, term: PIIClassificationTerm) -> PiiTermOverview:
 		linked = term.linkedFactors or []
 		topics = {lf.topicId for lf in linked if lf.topicId}
-		# Depth + pipeline/metric counts require the lineage service. If one is
+		# Depth + pipeline counts require the lineage service. If one is
 		# available, reuse it; otherwise fall back to cheap local aggregates.
 		overview = PiiTermOverview(
 			termId=term.termId,
@@ -107,9 +107,8 @@ class PiiReportService:
 		)
 		if self._lineage_report_service is not None and term.termId:
 			try:
-				report = self._lineage_report_service.analyze(term.termId, include_metrics=True)
+				report = self._lineage_report_service.analyze(term.termId)
 				overview.pipelineCount = self._unique_pipeline_count(report)
-				overview.metricCount = len(report.metrics)
 				overview.encryptedFactorCount = report.encryptionCoverage.encrypted
 				overview.plaintextFactorCount = report.encryptionCoverage.plaintext
 				overview.maxUpstreamDepth = report.maxUpstreamDepth
@@ -143,7 +142,7 @@ class PiiReportService:
 		high_risk.sort(key=lambda ov: (-ov.plaintextFactorCount, ov.termName))
 		top_impact = sorted(
 			overviews,
-			key=lambda ov: (-(ov.pipelineCount + ov.metricCount), ov.termName),
+			key=lambda ov: (-ov.pipelineCount, ov.termName),
 		)
 		return PiiGlobalDashboard(
 			totalTerms=len(overviews),

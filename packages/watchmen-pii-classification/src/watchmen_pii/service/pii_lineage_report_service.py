@@ -1,36 +1,33 @@
 """PII lineage report aggregator.
 
 Given a term, walks each linked factor in both directions (upstream via
-:class:`UpstreamLineageAdapter`, downstream via
-:class:`DownstreamLineageResolver`), collects referencing metrics, computes
-encryption coverage and assembles a single :class:`PiiLineageReport` plus a
-graph payload shaped like ``MetricLineageViewData``'s nodes + edges.
+:class:`UpstreamLineageResolver`, downstream via
+:class:`DownstreamLineageResolver`), computes encryption coverage and
+assembles a single :class:`PiiLineageReport` plus a nodes + edges graph
+payload for the frontend.
 """
 from logging import getLogger
 from typing import Dict, List, Optional, Set
 
 from watchmen_auth import PrincipalService
+from watchmen_meta.admin import TopicService
 
 from watchmen_pii.meta import PIITermService
 from watchmen_pii.model import (
+	EDGE_MAPS_TO,
+	EDGE_PRODUCES,
+	EDGE_READS_FROM,
 	LinkedFactor,
 	PiiEncryptionCoverage,
 	PiiGraphData,
 	PiiLineageReport,
-	PiiMetricRef,
 	PiiTraceRoute,
 	PiiTraceStep,
 )
 from watchmen_pii.service.downstream_lineage import DownstreamLineageResolver
-from watchmen_pii.service.upstream_lineage import UpstreamLineageAdapter
+from watchmen_pii.service.upstream_lineage import UpstreamLineageResolver
 
 logger = getLogger(__name__)
-
-# Edge kinds (string values match watchmen-metricflow LineageEdgeKind so the
-# frontend renderer treats them uniformly).
-EDGE_READS_FROM = 'reads_from'
-EDGE_PRODUCES = 'produces'
-EDGE_MAPS_TO = 'maps_to'
 
 
 class PIILineageReportService:
@@ -50,7 +47,6 @@ class PIILineageReportService:
 			self,
 			term_id: str,
 			max_depth: Optional[int] = None,
-			include_metrics: bool = True,
 	) -> PiiLineageReport:
 		term = self._pii_term_service.find_by_id(term_id)
 		if term is None:
@@ -61,9 +57,8 @@ class PIILineageReportService:
 
 		linked = term.linkedFactors or []
 		upstream_routes, downstream_routes = self._trace_linked(linked, tenant_id, depth)
-		metrics = self._collect_metrics(linked, upstream_routes, downstream_routes) if include_metrics else []
 		coverage = self._encryption_coverage(linked)
-		graph = self._build_graph(term_id, linked, upstream_routes, downstream_routes, metrics)
+		graph = self._build_graph(term_id, term.name, linked, upstream_routes, downstream_routes)
 
 		max_up = self._max_depth_of(upstream_routes)
 		max_down = self._max_depth_of(downstream_routes)
@@ -75,7 +70,6 @@ class PIILineageReportService:
 			linkedFactors=linked,
 			upstreamRoutes=upstream_routes,
 			downstreamRoutes=downstream_routes,
-			metrics=metrics,
 			graphData=graph,
 			encryptionCoverage=coverage,
 			maxUpstreamDepth=max_up,
@@ -87,15 +81,19 @@ class PIILineageReportService:
 	def _trace_linked(
 			self, linked: List[LinkedFactor], tenant_id: str, depth: int
 	):
-		upstream_adapter = UpstreamLineageAdapter(self._principal_service)
-		downstream_resolver = DownstreamLineageResolver(self._principal_service, max_depth=depth)
+		# Resolvers share this request's storage (and its transaction) via the
+		# request-scoped PIITermService.
+		upstream_resolver = UpstreamLineageResolver(
+			self._principal_service, max_depth=depth, pii_term_service=self._pii_term_service)
+		downstream_resolver = DownstreamLineageResolver(
+			self._principal_service, max_depth=depth, pii_term_service=self._pii_term_service)
 
 		all_upstream: List[PiiTraceRoute] = []
 		all_downstream: List[PiiTraceRoute] = []
 		for lf in linked:
 			try:
 				all_upstream.extend(
-					upstream_adapter.trace_upstream(lf.topicId, lf.factorId, tenant_id, depth)
+					upstream_resolver.trace_upstream(lf.topicId, lf.factorId, tenant_id, depth)
 				)
 			except Exception:
 				logger.exception("Upstream trace failed for %s:%s", lf.topicId, lf.factorId)
@@ -119,102 +117,25 @@ class PIILineageReportService:
 			deduped.append(route)
 		return deduped
 
-	# ------------------------------------------------------------------ metrics
-
-	def _collect_metrics(
-			self,
-			linked: List[LinkedFactor],
-			upstream: List[PiiTraceRoute],
-			downstream: List[PiiTraceRoute],
-	) -> List[PiiMetricRef]:
-		"""Find metrics that reference any topic touched by the trace.
-
-		Metric -> SemanticModel.topicId matching is done defensively: we import
-		the metricflow services lazily and tolerate any failure (e.g. no
-		semantic models defined) by returning an empty list.
-		"""
-		topics_touched: Set[str] = {lf.topicId for lf in linked if lf.topicId}
-		for route in upstream + downstream:
-			for step in route.steps:
-				if step.topicId:
-					topics_touched.add(step.topicId)
-		if not topics_touched:
-			return []
-
-		try:
-			from watchmen_metricflow.meta.semantic_meta_service import SemanticModelService
-			from watchmen_metricflow.meta.metrics_meta_service import MetricService
-			from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-			from watchmen_metricflow.util import trans_readonly
-		except Exception:  # pragma: no cover
-			logger.debug("metricflow services unavailable; skipping metric collection.", exc_info=True)
-			return []
-
-		try:
-			semantic_service = SemanticModelService(
-				ask_meta_storage(), ask_snowflake_generator(), self._principal_service
-			)
-			metric_service = MetricService(
-				ask_meta_storage(), ask_snowflake_generator(), self._principal_service
-			)
-			# SemanticModel.topicId is the join key.
-			semantic_models = trans_readonly(
-				semantic_service, lambda: semantic_service.find_all(self._principal_service.get_tenant_id())
-			)
-			semantic_topic_to_model = {
-				str(sm.topicId): sm for sm in (semantic_models or []) if getattr(sm, 'topicId', None)
-			}
-			refs: List[PiiMetricRef] = []
-			seen_metrics: Set[str] = set()
-			metrics = trans_readonly(
-				metric_service, lambda: metric_service.find_all(self._principal_service.get_tenant_id())
-			)
-			for metric in metrics or []:
-				name = getattr(metric, 'name', None)
-				if not name or name in seen_metrics:
-					continue
-				# Match if the metric's semantic model references a touched topic.
-				metric_semantic_id = getattr(getattr(metric, 'type_params', None), 'model', None) or \
-					getattr(metric, 'semanticModelId', None)
-				semantic_model = None
-				if metric_semantic_id:
-					semantic_model = next(
-						(sm for sm in (semantic_models or []) if str(getattr(sm, 'id', '')) == str(metric_semantic_id)),
-						None,
-					)
-				topic_id = getattr(semantic_model, 'topicId', None) if semantic_model else None
-				if topic_id and str(topic_id) in topics_touched:
-					seen_metrics.add(name)
-					refs.append(PiiMetricRef(
-						metricId=str(getattr(metric, 'id', '') or ''),
-						metricName=name,
-						topicId=str(topic_id),
-					))
-			_ = semantic_topic_to_model  # kept for clarity / future joins
-			return refs
-		except Exception:
-			logger.debug("Metric collection failed; returning empty list.", exc_info=True)
-			return []
-
 	# ------------------------------------------------------------------ encryption
 
 	def _encryption_coverage(self, linked: List[LinkedFactor]) -> PiiEncryptionCoverage:
 		total = len(linked)
 		# LinkedFactor does not carry an encrypt flag directly; we resolve the
-		# underlying Factor.encrypt via the topic service when possible.
+		# underlying Factor.encrypt via the topic service when possible. The
+		# topic service shares the request's storage and transaction.
 		encrypted_count = 0
 		try:
-			from watchmen_meta.admin import TopicService
-			from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-			from watchmen_metricflow.util import trans_readonly
 			topic_service = TopicService(
-				ask_meta_storage(), ask_snowflake_generator(), self._principal_service
+				self._pii_term_service.storage,
+				self._pii_term_service.snowflakeGenerator,
+				self._principal_service,
 			)
 			by_topic: Dict[str, Set[str]] = {}
 			for lf in linked:
 				by_topic.setdefault(lf.topicId, set()).add(lf.factorId)
 			for topic_id, factor_ids in by_topic.items():
-				topic = trans_readonly(topic_service, lambda: topic_service.find_by_id(topic_id))
+				topic = topic_service.find_by_id(topic_id)
 				if topic is None:
 					continue
 				for factor in topic.factors or []:
@@ -231,10 +152,10 @@ class PIILineageReportService:
 	def _build_graph(
 			self,
 			term_id: str,
+			term_name: Optional[str],
 			linked: List[LinkedFactor],
 			upstream: List[PiiTraceRoute],
 			downstream: List[PiiTraceRoute],
-			metrics: List[PiiMetricRef],
 	) -> PiiGraphData:
 		nodes: List[Dict] = []
 		edges: List[Dict] = []
@@ -252,7 +173,7 @@ class PIILineageReportService:
 			})
 
 		term_node = f"term:{term_id}"
-		add_node(term_node, 'term', term_id, {'kind': 'pii_term'})
+		add_node(term_node, 'term', term_name or term_id, {'kind': 'pii_term'})
 
 		for lf in linked:
 			factor_node = f"topic_factor:{lf.topicId}:{lf.factorId}"
@@ -275,15 +196,6 @@ class PIILineageReportService:
 
 		walk(upstream, EDGE_READS_FROM)
 		walk(downstream, EDGE_PRODUCES)
-
-		for metric in metrics:
-			metric_node = f"metric:{metric.metricName}"
-			add_node(metric_node, 'metric', metric.metricName, {'metricId': metric.metricId})
-			if metric.topicId:
-				# connect to any topic_factor node on that topic
-				for n in list(seen_nodes):
-					if n.startswith(f"topic_factor:{metric.topicId}:"):
-						edges.append({'from': metric_node, 'to': n, 'kind': EDGE_MAPS_TO})
 
 		return PiiGraphData(nodes=nodes, edges=edges)
 

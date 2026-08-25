@@ -6,6 +6,7 @@ set follows the design doc (section 10):
 
 * Term CRUD:           GET/POST /dqc/pii-terms, PUT/DELETE /dqc/pii-terms/{termId}
 * Factor discovery:    POST /dqc/pii-terms/{termId}/discover
+                       POST /dqc/pii-terms/{termId}/factors
                        POST /dqc/pii-terms/{termId}/confirm
 * Lineage analysis:    POST /dqc/pii-terms/{termId}/lineage
 * Reports:             GET  /dqc/pii-report
@@ -26,14 +27,12 @@ from watchmen_utilities import is_blank
 from watchmen_pii.meta import PIITermService
 from watchmen_pii.model import (
 	ConfirmRequest,
-	DiscoverRequest,
 	DiscoverResult,
 	PIIClassificationTerm,
 	PiiGlobalDashboard,
 	PiiLineageReport,
 )
 from watchmen_pii.service import (
-	AIRecommender,
 	FactorDiscoveryService,
 	PIILineageReportService,
 	PiiReportService,
@@ -46,70 +45,36 @@ router = APIRouter()
 # service factories (mirror watchmen-rest-dqc/admin/catalog_router.py)
 # ---------------------------------------------------------------------------
 
-# Lazily-built AI recommender. The concrete SemanticSearchService is created on
-# demand from environment configuration; if Azure OpenAI is not configured the
-# AI channel is simply disabled and only logic matching runs.
-_ai_recommender: Optional[AIRecommender] = None
-
-
-def _ai_channel_enabled() -> bool:
-	# The AI (watchmen-search) channel is off in the first version — discovery
-	# is logic matching plus manual mapping only. Set PII_AI_CHANNEL_ENABLED=true
-	# to turn it on once watchmen-search is deployed.
-	import os
-	return os.environ.get('PII_AI_CHANNEL_ENABLED', 'false').strip().lower() == 'true'
-
-
-def _maybe_ai_recommender() -> Optional[AIRecommender]:
-	global _ai_recommender
-	if _ai_recommender is not None:
-		return _ai_recommender
-	if not _ai_channel_enabled():
-		return None
-	try:
-		from watchmen_search import AzureOpenAIProvider, LanceVectorStore, SemanticSearchService
-		provider = AzureOpenAIProvider()  # raises if Azure is not configured
-		store = LanceVectorStore(
-			db_path=_search_db_path(),
-			table_name="pii_factors",
-			dimension=provider.dimension,
-		)
-		_ai_recommender = AIRecommender(SemanticSearchService(provider, store))
-		return _ai_recommender
-	except Exception:
-		# AI is optional; degrade silently to logic-only matching.
-		return None
-
-
-def _search_db_path() -> str:
-	import os
-	return os.environ.get("PII_SEARCH_DB_PATH", "./data/pii_vectors")
-
 
 def get_pii_term_service(principal_service: PrincipalService) -> PIITermService:
 	return PIITermService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-def get_discovery_service(principal_service: PrincipalService) -> FactorDiscoveryService:
+def get_discovery_service(
+		pii_term_service: PIITermService, principal_service: PrincipalService
+) -> FactorDiscoveryService:
 	return FactorDiscoveryService(
-		pii_term_service=get_pii_term_service(principal_service),
+		pii_term_service=pii_term_service,
 		principal_service=principal_service,
-		ai_recommender=_maybe_ai_recommender(),
 	)
 
 
-def get_lineage_report_service(principal_service: PrincipalService) -> PIILineageReportService:
+def get_lineage_report_service(
+		pii_term_service: PIITermService, principal_service: PrincipalService
+) -> PIILineageReportService:
 	return PIILineageReportService(
-		pii_term_service=get_pii_term_service(principal_service),
+		pii_term_service=pii_term_service,
 		principal_service=principal_service,
 	)
 
 
-def get_report_service(principal_service: PrincipalService) -> PiiReportService:
+def get_report_service(
+		pii_term_service: PIITermService, principal_service: PrincipalService
+) -> PiiReportService:
 	return PiiReportService(
-		pii_term_service=get_pii_term_service(principal_service),
+		pii_term_service=pii_term_service,
 		principal_service=principal_service,
-		lineage_report_service=get_lineage_report_service(principal_service),
+		lineage_report_service=get_lineage_report_service(pii_term_service, principal_service),
 	)
 
 
@@ -142,8 +107,14 @@ async def save_pii_term(
 			pii_term_service.redress_storable_id(term)
 			return pii_term_service.create(term)
 		existing = pii_term_service.find_by_id(term.termId)
-		if existing is not None and existing.tenantId != term.tenantId:
+		if existing is None:
+			raise_404()
+		if existing.tenantId != term.tenantId:
 			raise_403()
+		# discovery/confirm write back the term behind the editor's back, which
+		# bumps the version; reconcile with the stored one to avoid stale
+		# optimistic-lock failures on save
+		term.version = existing.version
 		return pii_term_service.update(term)
 
 	return trans(pii_term_service, action)
@@ -165,6 +136,8 @@ async def update_pii_term(
 			raise_404()
 		if existing.tenantId != term.tenantId:
 			raise_403()
+		# reconcile optimistic-lock version with the stored one, see save_pii_term
+		term.version = existing.version
 		return pii_term_service.update(term)
 
 	return trans(pii_term_service, action)
@@ -223,18 +196,47 @@ async def delete_pii_term(
 
 @router.post('/dqc/pii-terms/{term_id}/discover', tags=[UserRole.ADMIN], response_model=None)
 async def discover_factors(
-		term_id: str, body: Optional[DiscoverRequest] = None,
+		term_id: str,
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> DiscoverResult:
 	if is_blank(term_id):
 		raise_400('termId is required.')
-	discovery_service = get_discovery_service(principal_service)
-	strategy = body.strategy if body is not None else None
-	threshold = body.score_threshold if body is not None and body.score_threshold is not None else 0.75
-	# Discovery runs the (async) AI channel and then writes back linkedFactors.
-	# We let it manage its own transaction (PIITermService.update commits), so
-	# the handler stays async-friendly.
-	return await discovery_service.discover(term_id, strategy=strategy, score_threshold=threshold)
+	# One PIITermService (hence one storage instance) per request; the
+	# transaction and all reads/writes inside action share it.
+	pii_term_service = get_pii_term_service(principal_service)
+	discovery_service = get_discovery_service(pii_term_service, principal_service)
+
+	def action() -> DiscoverResult:
+		# Discovery writes back linkedFactors, so it runs in a real transaction.
+		try:
+			return discovery_service.discover(term_id)
+		except LookupError:
+			raise_404()
+
+	return trans(pii_term_service, action)
+
+
+@router.post('/dqc/pii-terms/{term_id}/factors', tags=[UserRole.ADMIN], response_model=None)
+async def add_term_factor(
+		term_id: str, body: Optional[dict] = None,
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> PIIClassificationTerm:
+	if is_blank(term_id):
+		raise_400('termId is required.')
+	topic_id = (body or {}).get('topicId')
+	factor_id = (body or {}).get('factorId')
+	if is_blank(topic_id) or is_blank(factor_id):
+		raise_400('topicId and factorId are required.')
+	pii_term_service = get_pii_term_service(principal_service)
+	discovery_service = get_discovery_service(pii_term_service, principal_service)
+
+	def action() -> PIIClassificationTerm:
+		try:
+			return discovery_service.add_factor(term_id, topic_id, factor_id)
+		except LookupError:
+			raise_404()
+
+	return trans(pii_term_service, action)
 
 
 @router.post('/dqc/pii-terms/{term_id}/confirm', tags=[UserRole.ADMIN], response_model=None)
@@ -244,11 +246,14 @@ async def confirm_factors(
 ) -> PIIClassificationTerm:
 	if is_blank(term_id):
 		raise_400('termId is required.')
-	discovery_service = get_discovery_service(principal_service)
 	pii_term_service = get_pii_term_service(principal_service)
+	discovery_service = get_discovery_service(pii_term_service, principal_service)
 
 	def action() -> PIIClassificationTerm:
-		return discovery_service.confirm(term_id, body.factorIds, body.removeFactorIds)
+		try:
+			return discovery_service.confirm(term_id, body.factorIds, body.removeFactorIds)
+		except LookupError:
+			raise_404()
 
 	return trans(pii_term_service, action)
 
@@ -265,15 +270,12 @@ async def analyze_lineage(
 ) -> PiiLineageReport:
 	if is_blank(term_id):
 		raise_400('termId is required.')
-	report_service = get_lineage_report_service(principal_service)
-	max_depth = (body or {}).get('maxDepth', 3)
-	include_metrics = (body or {}).get('includeMetrics', True)
 	pii_term_service = get_pii_term_service(principal_service)
+	report_service = get_lineage_report_service(pii_term_service, principal_service)
+	max_depth = (body or {}).get('maxDepth', 3)
 
 	def action() -> PiiLineageReport:
-		return report_service.analyze(
-			term_id, max_depth=max_depth, include_metrics=include_metrics
-		)
+		return report_service.analyze(term_id, max_depth=max_depth)
 
 	return trans_readonly(pii_term_service, action)
 
@@ -286,8 +288,8 @@ async def analyze_lineage(
 async def get_pii_report(
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> PiiGlobalDashboard:
-	report_service = get_report_service(principal_service)
 	pii_term_service = get_pii_term_service(principal_service)
+	report_service = get_report_service(pii_term_service, principal_service)
 
 	def action() -> PiiGlobalDashboard:
 		return report_service.get_overview_report()
@@ -303,8 +305,8 @@ async def export_pii_report(
 	fmt_norm = (fmt or '').strip().lower()
 	if fmt_norm not in ('csv', 'xlsx'):
 		raise_400('Unsupported export format. Use csv or xlsx.')
-	report_service = get_report_service(principal_service)
 	pii_term_service = get_pii_term_service(principal_service)
+	report_service = get_report_service(pii_term_service, principal_service)
 
 	def action():
 		if fmt_norm == 'csv':

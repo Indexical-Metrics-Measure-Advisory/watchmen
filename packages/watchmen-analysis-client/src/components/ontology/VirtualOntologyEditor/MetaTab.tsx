@@ -57,32 +57,32 @@ export const MetaTab: React.FC<{
 
 	return (
 		<div className="space-y-4 p-1">
-			<Field label="Ontology Name">
-				<Input value={draft.name} onChange={e => update({ name: e.target.value })} placeholder="e.g. Customer Virtual Ontology" />
+			<Field label={t('ontologyName')}>
+				<Input value={draft.name} onChange={e => update({ name: e.target.value })} placeholder={t('ontologyNamePlaceholder')} />
 			</Field>
-			<Field label="Description">
-				<Input value={draft.description} onChange={e => update({ description: e.target.value })} placeholder="Brief description" />
+			<Field label={t('description')}>
+				<Input value={draft.description} onChange={e => update({ description: e.target.value })} placeholder={t('descriptionPlaceholder')} />
 			</Field>
 			<div className="grid grid-cols-2 gap-3">
-				<Field label="Business Owner">
+				<Field label={t('businessOwner')}>
 					<Input value={draft.owner} onChange={e => update({ owner: e.target.value })} />
 				</Field>
-				<Field label="Technical Owner">
+				<Field label={t('technicalOwner')}>
 					<Input value={draft.technicalOwner} onChange={e => update({ technicalOwner: e.target.value })} />
 				</Field>
 			</div>
 			<div className="grid grid-cols-2 gap-3">
-				<Field label="Sensitivity">
+				<Field label={t('sensitivity')}>
 					<Select value={draft.sensitivity} onValueChange={v => update({ sensitivity: v as OntologySensitivity })}>
 						<SelectTrigger><SelectValue /></SelectTrigger>
 						<SelectContent>
 							{Object.entries(sensitivityConfig).map(([key, cfg]) => (
-								<SelectItem key={key} value={key}>{cfg.icon} {cfg.label}</SelectItem>
+								<SelectItem key={key} value={key}>{cfg.icon} {t(`sensitivity.${key}`)}</SelectItem>
 							))}
 						</SelectContent>
 					</Select>
 				</Field>
-				<Field label="Tags (comma separated)">
+				<Field label={t('tagsCommaSeparated')}>
 					<Input
 						value={draft.tags.join(', ')}
 						onChange={e => update({ tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}

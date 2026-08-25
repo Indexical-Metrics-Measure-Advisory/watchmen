@@ -7,16 +7,18 @@ import {
 	fetchMockPiiLineage,
 	fetchMockPiiReport,
 	fetchMockPiiTerms,
+	linkMockPiiFactor,
 	saveMockPiiTerm
 } from '../mock/data-quality/mock-pii';
 import {buildMockPiiReportCsv} from '../mock/data-quality/mock-pii';
 import {doFetch, getServiceHost, isMockService} from '../utils';
+import {TopicId} from '../tuples/topic-types';
+import {FactorId} from '../tuples/factor-types';
 import {
 	PiiClassificationTerm,
 	PiiDiscoverResult,
 	PiiGlobalDashboard,
 	PiiLineageReport,
-	PiiMatchStrategy,
 	PiiTermId
 } from './pii-types';
 
@@ -44,22 +46,17 @@ export const deletePiiTerm = async (termId: PiiTermId): Promise<void> => {
 	}
 };
 
-export const discoverPiiTerm = async (options: {
-	termId: PiiTermId;
-	strategy?: PiiMatchStrategy | string;
-}): Promise<PiiDiscoverResult> => {
-	const {termId, strategy} = options;
+export const discoverPiiTerm = async (termId: PiiTermId): Promise<PiiDiscoverResult> => {
 	if (isMockService()) {
-		return await discoverMockPiiTerm({termId, strategy});
+		return await discoverMockPiiTerm(termId);
 	} else {
-		return post({
-			api: Apis.PII_TERM_DISCOVER,
-			search: {termId},
-			data: {strategy, score_threshold: 0.75}
-		});
+		return post({api: Apis.PII_TERM_DISCOVER, search: {termId}});
 	}
 };
 
+/**
+ * factor keys are in format "topicId|factorId"
+ */
 export const confirmPiiTerm = async (options: {
 	termId: PiiTermId;
 	factorIds: Array<string>;
@@ -77,6 +74,23 @@ export const confirmPiiTerm = async (options: {
 	}
 };
 
+export const linkPiiFactor = async (options: {
+	termId: PiiTermId;
+	topicId: TopicId;
+	factorId: FactorId;
+}): Promise<PiiClassificationTerm> => {
+	const {termId, topicId, factorId} = options;
+	if (isMockService()) {
+		return await linkMockPiiFactor({termId, topicId, factorId});
+	} else {
+		return post({
+			api: Apis.PII_TERM_LINK_FACTOR,
+			search: {termId},
+			data: {topicId, factorId}
+		});
+	}
+};
+
 export const fetchPiiLineage = async (options: {
 	termId: PiiTermId;
 	maxDepth?: number;
@@ -88,7 +102,7 @@ export const fetchPiiLineage = async (options: {
 		return post({
 			api: Apis.PII_TERM_LINEAGE,
 			search: {termId},
-			data: {maxDepth, includeMetrics: true}
+			data: {maxDepth}
 		});
 	}
 };

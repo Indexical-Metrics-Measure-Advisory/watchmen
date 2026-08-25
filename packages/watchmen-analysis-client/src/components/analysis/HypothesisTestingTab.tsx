@@ -1,106 +1,91 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import PValueSignificance from './PValueSignificance';
-import { TestResult } from '@/model/TestResult';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { CheckCircle2, XCircle, FlaskConical } from 'lucide-react';
+import { DataExplain } from '@/model/analysis';
 
 
 
 interface HypothesisTestingTabProps {
-  testResults: TestResult[];
+  dataExplanations?: DataExplain[];
+  onRunAnalysis?: () => void;
+  isAnalyzing?: boolean;
 }
 
-const HypothesisTestingTab: React.FC<HypothesisTestingTabProps> = ({ testResults }) => {
-  return (
-    <div className="space-y-6">
+const HypothesisTestingTab: React.FC<HypothesisTestingTabProps> = ({ dataExplanations = [], onRunAnalysis, isAnalyzing }) => {
+  if (dataExplanations.length === 0) {
+    return (
       <Card className="shadow-none">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">A/B Test Results</CardTitle>
-          <CardDescription>Marketing message test results for different age groups</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4">Customer Group</th>
-                  <th className="text-left py-3 px-4">Standard Message Conversion</th>
-                  <th className="text-left py-3 px-4">Age-Targeted Message Conversion</th>
-                  <th className="text-left py-3 px-4">Improvement</th>
-                  <th className="text-left py-3 px-4">Sample Size</th>
-                  <th className="text-left py-3 px-4">Significance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {testResults.map((result, index) => (
-                  <tr key={index} className="border-b">
-                    <td className="py-3 px-4">{result.name}</td>
-                    <td className="py-3 px-4">{result.conversionA}%</td>
-                    <td className="py-3 px-4">{result.conversionB}%</td>
-                    <td className="py-3 px-4">
-                      <div className="text-green-600">
-                        +{((result.conversionB - result.conversionA) / result.conversionA * 100).toFixed(1)}%
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">{result.sampleSize.toLocaleString()}</td>
-                    <td className="py-3 px-4">
-                      <PValueSignificance pValue={result.pValue} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <CardContent className="flex flex-col items-center justify-center h-64 text-center">
+          <div className="p-4 rounded-full bg-muted mb-4">
+            <FlaskConical className="h-8 w-8 text-muted-foreground" />
           </div>
+          <h3 className="text-lg font-semibold mb-2">Not validated yet</h3>
+          <p className="text-sm text-muted-foreground mb-4">Run the analysis first to validate this hypothesis.</p>
+          {onRunAnalysis && (
+            <Button onClick={onRunAnalysis} disabled={isAnalyzing}>
+              {isAnalyzing ? 'Analyzing...' : 'Run Analysis'}
+            </Button>
+          )}
         </CardContent>
       </Card>
-      
-      <div className="glass-panel p-4 rounded-lg">
-        <h3 className="text-lg font-medium mb-4">Statistical Analysis Summary</h3>
-        
-        <div className="space-y-4">
-          <div className="p-3 bg-muted/50 rounded-md">
-            <h4 className="font-medium mb-2">Hypothesis Testing</h4>
-            <div className="text-sm text-muted-foreground">
-              <p className="mb-2">
-                <span className="font-medium">Null Hypothesis (H0):</span> No significant correlation between customer age groups and insurance purchase intent.
-              </p>
-              <p className="mb-2">
-                <span className="font-medium">Alternative Hypothesis (H1):</span> Significant correlation exists between customer age groups and insurance purchase intent.
-              </p>
-              <p className="mb-2">
-                <span className="font-medium">Test Result:</span> Reject null hypothesis (p=0.0012), accept alternative hypothesis.
-              </p>
-              <p>
-                <span className="font-medium">Conclusion:</span> Sufficient statistical evidence shows significant correlation between customer age groups and insurance purchase intent.
-              </p>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {dataExplanations.map((explain, index) => (
+        <Card key={index} className="shadow-none">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Hypothesis Validation</CardTitle>
+              <div className="flex items-center gap-2">
+                {typeof explain.confidence === 'number' && (
+                  <div className="flex items-center gap-1.5" title={`System confidence: ${explain.confidence}%`}>
+                    <Progress value={explain.confidence} className="h-1.5 w-16" />
+                    <span className="text-xs text-muted-foreground">{explain.confidence}%</span>
+                  </div>
+                )}
+                {explain.hypothesisValidationFlag === true ? (
+                  <Badge className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                    Validated
+                  </Badge>
+                ) : explain.hypothesisValidationFlag === false ? (
+                  <Badge className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">
+                    <XCircle className="mr-1 h-3 w-3" />
+                    Rejected
+                  </Badge>
+                ) : (
+                  <Badge variant="outline">Not Validated</Badge>
+                )}
+              </div>
             </div>
-          </div>
-          
-          <div className="p-3 bg-muted/50 rounded-md">
-            <h4 className="font-medium mb-2">Confidence Interval Analysis</h4>
-            <div className="text-sm text-muted-foreground">
-              <p className="mb-2">
-                Conversion rate improvement for customers aged 45-60 is 45%±8% (95% confidence interval).
-              </p>
-              <p>
-                This means we are 95% confident that the true improvement effect is between 37% and 53%.
-              </p>
+            {explain.hypothesisValidation && (
+              <CardDescription>{explain.hypothesisValidation}</CardDescription>
+            )}
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {explain.keyMetricChange && (
+                <div className="p-3 bg-muted/50 rounded-md">
+                  <h4 className="font-medium mb-2">Key Metric Changes</h4>
+                  <p className="text-sm text-muted-foreground">{explain.keyMetricChange}</p>
+                </div>
+              )}
+              {explain.summaryFinding && (
+                <div className="p-3 bg-muted/50 rounded-md">
+                  <h4 className="font-medium mb-2">Summary Findings</h4>
+                  <p className="text-sm text-muted-foreground">{explain.summaryFinding}</p>
+                </div>
+              )}
             </div>
-          </div>
-          
-          <div className="p-3 bg-muted/50 rounded-md">
-            <h4 className="font-medium mb-2">Effect Size</h4>
-            <div className="text-sm text-muted-foreground">
-              <p className="mb-2">
-                Cohen's d = 0.82, indicating a "large" association strength between age and purchase intent.
-              </p>
-              <p>
-                This suggests age has a substantial impact on purchase decisions, beyond mere statistical significance.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };

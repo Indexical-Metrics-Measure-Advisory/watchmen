@@ -4,7 +4,7 @@ import i18n, { I18N_LANGUAGE_STORAGE_KEY } from '@/i18n';
 import { AppLanguage, defaultLanguage } from '@/i18n/resources';
 
 const isSupportedLanguage = (language: string): language is AppLanguage =>
-  language === 'en' || language === 'zh-CN';
+  language === 'en' || language === 'zh-CN' || language === 'zh-TW';
 
 export const useLocale = () => {
   const { i18n: i18nInstance } = useTranslation();

@@ -1084,5 +1084,35 @@ export const VI = {
 		NONAME_TOPIC_FACTOR: 'Noname Topic Factor',
 		NONAME_BUCKET: 'Noname Bucket',
 		NONAME_ENUM: 'Noname Enum'
+	},
+	PII: {
+		RELATED_TOPICS: 'Chủ đề liên quan',
+		SCAN_SCOPE: 'Phạm vi quét',
+		NO_SCAN_TOPICS: 'Thuật ngữ này chưa liên kết chủ đề nào. Hãy chỉnh sửa thuật ngữ để liên kết chủ đề trước.',
+		ADD_FACTOR: 'Thêm yếu tố thủ công',
+		ADD_FACTOR_DIALOG_TITLE: 'Gắn yếu tố thủ công',
+		ADD_FACTOR_TOPIC_LABEL: 'Chủ đề',
+		ADD_FACTOR_FACTOR_LABEL: 'Yếu tố',
+		MATCH_SOURCE_TYPE: 'Kiểu',
+		MATCH_SOURCE_KEYWORD: 'Từ khóa',
+		MATCH_SOURCE_MANUAL: 'Thủ công'
+	},
+	TAG: {
+		LIST_TITLE: 'Quản lý thẻ',
+		CREATE_TAG: 'Tạo thẻ',
+		EDIT_TAG: 'Sửa thẻ',
+		SEARCH_PLACEHOLDER: 'Tìm theo tên, danh mục hoặc mô tả.',
+		NO_DATA: 'Không tìm thấy thẻ nào. Tạo thẻ đầu tiên để bắt đầu.',
+		DELETE_CONFIRM: 'Bạn có chắc muốn xóa thẻ "{name}" không?',
+		NAME: 'Tên',
+		NAME_PLACEHOLDER: 'Tên thẻ.',
+		NAME_REQUIRED: 'Tên là bắt buộc.',
+		COLOR: 'Màu sắc',
+		CATEGORY: 'Danh mục',
+		CATEGORY_PLACEHOLDER: 'Danh mục (tùy chọn).',
+		DESCRIPTION: 'Mô tả',
+		DESCRIPTION_PLACEHOLDER: 'Mô tả (tùy chọn).',
+		CREATED_AT: 'Ngày tạo',
+		LAST_MODIFIED_AT: 'Sửa lần cuối'
 	}
 };

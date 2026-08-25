@@ -2,22 +2,26 @@ import {deletePiiTerm, savePiiTerm} from '@/services/data/data-quality/pii';
 import {
 	asPiiCategoryLabel,
 	asPiiLevelLabel,
-	asPiiStrategyLabel,
 	PII_CATEGORY_LABELS,
 	PII_SENSITIVITY_LEVEL_LABELS,
 	PiiCategory,
 	PiiClassificationTerm,
-	PiiMatchStrategy,
 	PiiSensitivityLevel
 } from '@/services/data/data-quality/pii-types';
+import {fetchAllTopics} from '@/services/data/pipeline/all-topics';
+import {Topic} from '@/services/data/tuples/topic-types';
 import {Button} from '@/widgets/basic/button';
+import {CheckBox} from '@/widgets/basic/checkbox';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {Input} from '@/widgets/basic/input';
 import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
-import React, {useState} from 'react';
+import {Lang} from '@/widgets/langs';
+import React, {useEffect, useState} from 'react';
 import {
+	PiiCheckList,
+	PiiCheckListItem,
 	PiiEditorActions,
 	PiiEditorField,
 	PiiEditorInput,
@@ -49,10 +53,10 @@ interface EditorState {
 	description: string;
 	category: string;
 	sensitivityLevel: string;
+	topicIds: Array<string>;
 	factorTypePatterns: string;
 	keywordPatterns: string;
 	// carried through on edit so saving never clobbers existing mappings
-	matchStrategy: string;
 	linkedFactors: PiiClassificationTerm['linkedFactors'];
 }
 
@@ -61,9 +65,9 @@ const EMPTY_EDITOR: EditorState = {
 	description: '',
 	category: PiiCategory.CUSTOMER,
 	sensitivityLevel: PiiSensitivityLevel.LEVEL_1,
+	topicIds: [],
 	factorTypePatterns: '',
 	keywordPatterns: '',
-	matchStrategy: PiiMatchStrategy.LOGIC,
 	linkedFactors: []
 };
 
@@ -82,6 +86,13 @@ export const PiiTermsTab = (props: {
 	const [levelFilter, setLevelFilter] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('');
 	const [editing, setEditing] = useState<EditorState | null>(null);
+	const [topics, setTopics] = useState<Array<Topic>>([]);
+
+	useEffect(() => {
+		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
+			async () => await fetchAllTopics(),
+			(loaded: Array<Topic>) => setTopics(loaded ?? []));
+	}, [fireGlobal]);
 
 	const levelOptions: Array<DropdownOption> = [
 		{value: '', label: 'All Levels'},
@@ -117,9 +128,9 @@ export const PiiTermsTab = (props: {
 			description: term.description ?? '',
 			category: term.category ?? PiiCategory.CUSTOMER,
 			sensitivityLevel: term.sensitivityLevel ?? PiiSensitivityLevel.LEVEL_1,
+			topicIds: term.topicIds ?? [],
 			factorTypePatterns: (term.factorTypePatterns ?? []).join(', '),
 			keywordPatterns: (term.keywordPatterns ?? []).join(', '),
-			matchStrategy: term.matchStrategy ?? PiiMatchStrategy.LOGIC,
 			linkedFactors: term.linkedFactors ?? []
 		});
 	};
@@ -144,7 +155,7 @@ export const PiiTermsTab = (props: {
 			description: editing.description.trim() || (void 0),
 			category: editing.category,
 			sensitivityLevel: editing.sensitivityLevel,
-			matchStrategy: editing.matchStrategy,
+			topicIds: editing.topicIds,
 			factorTypePatterns: asPatterns(editing.factorTypePatterns),
 			keywordPatterns: asPatterns(editing.keywordPatterns),
 			linkedFactors: editing.linkedFactors
@@ -157,6 +168,19 @@ export const PiiTermsTab = (props: {
 			});
 	};
 
+	const topicNameOf = (topicId: string): string => {
+		return topics.find(topic => topic.topicId === topicId)?.name ?? topicId;
+	};
+	const onTopicToggled = (topicId: string) => {
+		if (!editing) {
+			return;
+		}
+		const topicIds = editing.topicIds.includes(topicId)
+			? editing.topicIds.filter(id => id !== topicId)
+			: [...editing.topicIds, topicId];
+		setEditing({...editing, topicIds});
+	};
+
 	const renderCard = (term: PiiClassificationTerm) => {
 		return <PiiTermCard key={term.termId}>
 			<PiiTermCardHeader>
@@ -167,12 +191,14 @@ export const PiiTermsTab = (props: {
 			</PiiTermCardHeader>
 			<PiiTermCardMeta>
 				<span>{asPiiCategoryLabel(term.category)}</span>
-				<PiiTag>{asPiiStrategyLabel(term.matchStrategy)}</PiiTag>
 			</PiiTermCardMeta>
 			<PiiTermCardStats>
 				<span>Linked Factors</span>
 				<span>{(term.linkedFactors ?? []).length}</span>
 			</PiiTermCardStats>
+			{(term.topicIds ?? []).length !== 0
+				? <PiiTermCardTags>{term.topicIds.map(t => <PiiTag key={t}>{topicNameOf(t)}</PiiTag>)}</PiiTermCardTags>
+				: null}
 			{(term.factorTypePatterns ?? []).length !== 0
 				? <PiiTermCardTags>{term.factorTypePatterns.map(t => <PiiTag key={t}>{t}</PiiTag>)}</PiiTermCardTags>
 				: null}
@@ -237,6 +263,21 @@ export const PiiTermsTab = (props: {
 							return {value: category, label: PII_CATEGORY_LABELS[category]};
 						})} value={editing.category}
 						          onChange={(option) => setEditing({...editing, category: option.value})}/>
+					</PiiEditorField>
+					<PiiEditorField>
+						<PiiEditorLabel>{Lang.PII.RELATED_TOPICS}</PiiEditorLabel>
+						<PiiCheckList>
+							{topics.length === 0
+								? <PiiNoData>{Lang.PLAIN.LOADING}</PiiNoData>
+								: topics.map(topic => {
+									return <PiiCheckListItem key={topic.topicId}
+									                         onClick={() => onTopicToggled(topic.topicId)}>
+										<CheckBox value={editing.topicIds.includes(topic.topicId)}
+										          onChange={() => onTopicToggled(topic.topicId)}/>
+										<span>{topic.name}</span>
+									</PiiCheckListItem>;
+								})}
+						</PiiCheckList>
 					</PiiEditorField>
 					<PiiEditorField>
 						<PiiEditorLabel>Factor Type Patterns (comma separated)</PiiEditorLabel>

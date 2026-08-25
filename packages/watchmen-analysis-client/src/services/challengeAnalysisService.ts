@@ -40,7 +40,7 @@ const mockChallengeAnalyses: ChallengeAnalysisResult[] = [
         confidence: 0.92,
         metrics: ['response_time', 'retention_rate'],
         createdAt: '2023-10-22T09:15:00Z',
-        businessProblemId: 'bp1'
+        businessChallengeId: 'bc1'
       }
     ],
     rejectedHypotheses: [
@@ -52,7 +52,7 @@ const mockChallengeAnalyses: ChallengeAnalysisResult[] = [
         confidence: 0.35,
         metrics: ['feature_count', 'churn_rate'],
         createdAt: '2023-10-23T11:30:00Z',
-        businessProblemId: 'bp1'
+        businessChallengeId: 'bc1'
       }
     ],
     keyMetrics: [
@@ -81,17 +81,6 @@ const mockChallengeAnalyses: ChallengeAnalysisResult[] = [
         description: 'Average revenue expected from a customer throughout their relationship',
         lastUpdated: '2023-11-24T00:00:00Z',
         category: 'Average'
-      }
-    ],
-    businessProblems: [
-      {
-        id: 'bp1',
-        title: 'High-value Customer Churn Issue',
-        description: 'High-value customer churn rate exceeds industry average, requiring root cause analysis and intervention strategies.',
-        status: 'in_progress',
-        hypothesisIds: ['1', '2'],
-        createdAt: '2023-10-20T10:15:00Z',
-        businessChallengeId: 'bc1'
       }
     ],
     recommendations: [
@@ -136,7 +125,7 @@ const mockChallengeAnalyses: ChallengeAnalysisResult[] = [
         confidence: 0.89,
         metrics: ['marketing_roi', 'cac'],
         createdAt: '2023-11-06T14:20:00Z',
-        businessProblemId: 'bp3'
+        businessChallengeId: 'bc2'
       }
     ],
     rejectedHypotheses: [],
@@ -166,17 +155,6 @@ const mockChallengeAnalyses: ChallengeAnalysisResult[] = [
         description: 'Average cost to acquire a new customer',
         lastUpdated: '2023-11-20T00:00:00Z',
         category: 'Average'
-      }
-    ],
-    businessProblems: [
-      {
-        id: 'bp3',
-        title: 'Marketing Channel Efficiency Variance',
-        description: 'Significant differences in customer acquisition costs and quality across marketing channels require resource allocation optimization.',
-        status: 'in_progress',
-        hypothesisIds: ['5'],
-        createdAt: '2023-11-05T11:45:00Z',
-        businessChallengeId: 'bc2'
       }
     ],
     recommendations: [
@@ -314,7 +292,6 @@ export class ChallengeAnalysisService {
         validatedHypotheses: [],
         rejectedHypotheses: [],
         keyMetrics: [],
-        businessProblems: [],
         recommendations: [
           'This is an automatically generated recommendation.'
         ],

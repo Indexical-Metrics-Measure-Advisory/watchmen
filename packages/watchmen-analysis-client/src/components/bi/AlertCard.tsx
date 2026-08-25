@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, PlayCircle, AlertTriangle, CheckCircle2, Clock, ChevronDown, ChevronUp, BarChart3, Loader2 } from 'lucide-react';
+import { Activity, PlayCircle, AlertTriangle, CheckCircle2, Clock, ChevronDown, ChevronUp, BarChart3, Loader2, Lightbulb } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
@@ -15,6 +15,7 @@ export interface AlertCardProps {
   data: Array<{ value?: unknown }>;
   alertStatus?: AlertStatus;
   onAcknowledge?: (alertId: string) => void;
+  onProposeHypothesis?: (card: BIChartCard) => void;
 }
 
 type AckHistoryItem = {
@@ -113,7 +114,7 @@ const RISK_COLOR: Record<string, string> = {
   low: "bg-blue-500 text-white",
 };
 
-export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }: AlertCardProps) => {
+export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge, onProposeHypothesis }: AlertCardProps) => {
   const value = data.length > 0 ? (typeof data[0].value === 'number' ? data[0].value : 0) : 0;
   const alertConfig = card.alert;
   const isAcknowledged = alertStatus?.acknowledged;
@@ -558,6 +559,18 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge }:
             </Badge>
           )}
         </div>
+        {onProposeHypothesis && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+            title="Create hypothesis"
+            onClick={() => onProposeHypothesis(card)}
+          >
+            <Lightbulb className="w-3.5 h-3.5" />
+            Create hypothesis
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
 	DerivedAttribute, VirtualLink, VirtualObject, aggregateConfig,
 } from '@/model/ontology';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
 	vo: VirtualObject;
@@ -16,12 +17,14 @@ interface Props {
 	onRemove: (voId: string, daId: string) => void;
 }
 
-export const DerivedAttributesEditor = React.memo<Props>(({ vo, virtualObjects, virtualLinks, onAdd, onUpdate, onRemove }) => (
+export const DerivedAttributesEditor = React.memo<Props>(({ vo, virtualObjects, virtualLinks, onAdd, onUpdate, onRemove }) => {
+	const { t } = useTranslation('ontology');
+	return (
 	<div className="space-y-2">
 		<div className="flex items-center justify-between">
-			<span className="text-xs font-semibold uppercase text-muted-foreground">Derived Attributes</span>
+			<span className="text-xs font-semibold uppercase text-muted-foreground">{t('derivedAttributes')}</span>
 			<Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => onAdd(vo.id)}>
-				<Plus className="w-3 h-3 mr-1" /> Add
+				<Plus className="w-3 h-3 mr-1" /> {t('add')}
 			</Button>
 		</div>
 		{vo.derivedAttributes.map(da => (
@@ -30,21 +33,21 @@ export const DerivedAttributesEditor = React.memo<Props>(({ vo, virtualObjects, 
 					<Input
 						value={da.name}
 						onChange={e => onUpdate(vo.id, da.id, { name: e.target.value })}
-						placeholder="derived name"
+						placeholder={t('derivedName')}
 						className="flex-1 h-7 text-xs"
 					/>
 					<Select value={da.aggregate} onValueChange={v => onUpdate(vo.id, da.id, { aggregate: v as DerivedAttribute['aggregate'] })}>
 						<SelectTrigger className="w-24 h-7 text-xs"><SelectValue /></SelectTrigger>
 						<SelectContent>
 							{Object.entries(aggregateConfig).map(([key, cfg]) => (
-								<SelectItem key={key} value={key}>{cfg.icon} {cfg.label}</SelectItem>
+								<SelectItem key={key} value={key}>{cfg.icon} {t(`aggregate.${key}`)}</SelectItem>
 							))}
 						</SelectContent>
 					</Select>
 					<Input
 						value={da.targetField || ''}
 						onChange={e => onUpdate(vo.id, da.id, { targetField: e.target.value })}
-						placeholder="target field"
+						placeholder={t('targetField')}
 						className="w-28 h-7 text-xs"
 					/>
 					<Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onRemove(vo.id, da.id)}>
@@ -54,11 +57,11 @@ export const DerivedAttributesEditor = React.memo<Props>(({ vo, virtualObjects, 
 				<Input
 					value={da.description || ''}
 					onChange={e => onUpdate(vo.id, da.id, { description: e.target.value })}
-					placeholder="description"
+					placeholder={t('description')}
 					className="h-7 text-xs"
 				/>
 				<div className="flex items-center gap-1 flex-wrap text-[10px]">
-				<span className="text-muted-foreground font-medium">Path:</span>
+				<span className="text-muted-foreground font-medium">{t('pathLabel')}</span>
 				{da.path.map((id, idx) => {
 					if (idx === 0) {
 						// First object is always the VO itself — read-only
@@ -99,10 +102,10 @@ export const DerivedAttributesEditor = React.memo<Props>(({ vo, virtualObjects, 
 										}
 									}}
 								>
-									<SelectTrigger className="w-32 h-6 text-[10px]"><SelectValue placeholder="link" /></SelectTrigger>
+									<SelectTrigger className="w-32 h-6 text-[10px]"><SelectValue placeholder={t('link')} /></SelectTrigger>
 									<SelectContent>
 										{validLinks.length === 0 ? (
-											<div className="px-2 py-1.5 text-[10px] text-muted-foreground">No links available</div>
+											<div className="px-2 py-1.5 text-[10px] text-muted-foreground">{t('noLinksAvailable')}</div>
 										) : (
 											validLinks.map(l => {
 												const destId = l.sourceObjectId === prevObjId ? l.targetObjectId : l.sourceObjectId;
@@ -136,7 +139,7 @@ export const DerivedAttributesEditor = React.memo<Props>(({ vo, virtualObjects, 
 					className="h-6 text-[10px] px-1"
 					onClick={() => onUpdate(vo.id, da.id, { path: [...da.path, '', ''] })}
 				>
-					<Plus className="w-2.5 h-2.5" /> hop
+					<Plus className="w-2.5 h-2.5" /> {t('hop')}
 				</Button>
 				{da.path.length > 1 && (
 					<Button
@@ -145,11 +148,12 @@ export const DerivedAttributesEditor = React.memo<Props>(({ vo, virtualObjects, 
 						className="h-6 text-[10px] px-1"
 						onClick={() => onUpdate(vo.id, da.id, { path: da.path.slice(0, -2) })}
 					>
-						<Trash2 className="w-2.5 h-2.5" /> hop
+						<Trash2 className="w-2.5 h-2.5" /> {t('hop')}
 					</Button>
 				)}
 			</div>
 			</div>
 		))}
 	</div>
-));
+	);
+});

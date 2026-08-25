@@ -1,113 +1,156 @@
 """Factor discovery orchestration service.
 
-Runs the logic and/or AI channels for a term and merges their results, per
-section 6 of the design doc. The merged list is written back to the term's
-``linkedFactors`` (all entries ``confirmed=False`` pending user review).
+Runs the logic channel for a term within the topics declared by the term's
+``topicIds`` (the scan scope) and merges the hits into the term's
+``linkedFactors``, per section 6 of the design doc. Manually added and
+user-confirmed links are never overwritten by automatic discovery.
 """
 from typing import List, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import TopicService
-from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_model.admin import Topic
+from watchmen_model.admin import Factor, Topic
 
 from watchmen_pii.meta import PIITermService
 from watchmen_pii.model import (
 	DiscoverResult,
 	LinkedFactor,
-	MATCH_STRATEGY_AI,
-	MATCH_STRATEGY_LOGIC,
-	MATCH_STRATEGY_LOGIC_AND_AI,
+	MATCH_SOURCE_MANUAL,
 	PIIClassificationTerm,
 )
-from watchmen_pii.service.ai_recommender import AIRecommender
 from watchmen_pii.service.logic_matcher import LogicMatcher
 
 
 class FactorDiscoveryService:
-	"""Discovers factors for a term using logic and/or AI matching."""
+	"""Discovers factors for a term using logic matching, scoped by topicIds."""
 
 	def __init__(
 			self,
 			pii_term_service: PIITermService,
 			principal_service: PrincipalService,
-			ai_recommender: Optional[AIRecommender] = None,
 			logic_matcher: Optional[LogicMatcher] = None,
 	) -> None:
 		self._pii_term_service = pii_term_service
 		self._principal_service = principal_service
-		self._ai_recommender = ai_recommender
 		self._logic_matcher = logic_matcher or LogicMatcher()
 
-	def _load_all_topics(self) -> List[Topic]:
-		"""Load all topics visible to the current principal."""
+	def _find_topic(self, topic_id: str) -> Optional[Topic]:
+		"""Load one topic by id; extracted so tests can stub the lookup."""
 		topic_service = TopicService(
 			self._pii_term_service.storage,
 			self._pii_term_service.snowflakeGenerator,
 			self._pii_term_service.principalService,
 		)
-		tenant_id = self._principal_service.get_tenant_id()
-		return topic_service.find_all(tenant_id) if tenant_id else []
+		return topic_service.find_by_id(topic_id)
 
-	async def discover(
-			self,
-			term_id: str,
-			strategy: Optional[str] = None,
-			score_threshold: float = 0.75,
-	) -> DiscoverResult:
+	def _load_scoped_topics(self, topic_ids: List[str]) -> List[Topic]:
+		"""Load the topics declared by the term; missing topics are skipped."""
+		topics: List[Topic] = []
+		for topic_id in topic_ids or []:
+			if not topic_id:
+				continue
+			topic = self._find_topic(topic_id)
+			if topic is not None:
+				topics.append(topic)
+		return topics
+
+	def discover(self, term_id: str) -> DiscoverResult:
+		"""Run logic discovery within the term's ``topicIds`` scope.
+
+		Raises ``LookupError`` when the term does not exist. When the term
+		declares no topics, discovery is a no-op and the existing linked
+		factors are returned unchanged.
+		"""
 		term = self._pii_term_service.find_by_id(term_id)
 		if term is None:
-			return DiscoverResult(termId=term_id, linkedFactors=[], totalCount=0)
+			raise LookupError(f"PII term '{term_id}' not found.")
 
-		effective_strategy = (strategy or term.matchStrategy or MATCH_STRATEGY_LOGIC).strip()
-		topics = self._load_all_topics()
+		if not term.topicIds:
+			existing = term.linkedFactors or []
+			return DiscoverResult(termId=term_id, linkedFactors=existing, totalCount=len(existing))
 
-		logic_hits: List[LinkedFactor] = []
-		ai_hits: List[LinkedFactor] = []
-
-		if effective_strategy in (MATCH_STRATEGY_LOGIC, MATCH_STRATEGY_LOGIC_AND_AI):
-			logic_hits = self._logic_matcher.match(term, topics)
-		if effective_strategy in (MATCH_STRATEGY_AI, MATCH_STRATEGY_LOGIC_AND_AI):
-			if self._ai_recommender is not None:
-				tenant_id = self._principal_service.get_tenant_id()
-				await self._ai_recommender.ensure_factor_index(topics, tenant_id)
-				ai_hits = await self._ai_recommender.recommend(
-					term, score_threshold=score_threshold
-				)
-
-		merged = self._merge(logic_hits, ai_hits)
-		# Preserve any previously confirmed links (don't clobber user work).
-		preserved_confirmed = [
-			lf for lf in (term.linkedFactors or []) if lf.confirmed
+		topics = self._load_scoped_topics(term.topicIds)
+		logic_hits = self._logic_matcher.match(term, topics)
+		# Confirmed and manually added links carry user intent; they are merged
+		# first so automatic hits never clobber them.
+		preserved = [
+			lf for lf in (term.linkedFactors or [])
+			if lf.confirmed or lf.matchSource == MATCH_SOURCE_MANUAL
 		]
-		new_linked = self._merge(merged, preserved_confirmed)
+		new_linked = self._merge(preserved, logic_hits)
 
 		term.linkedFactors = new_linked
 		self._pii_term_service.update(term)
 
 		return DiscoverResult(termId=term_id, linkedFactors=new_linked, totalCount=len(new_linked))
 
-	def confirm(self, term_id: str, factor_ids: List[str], remove_factor_ids: List[str]) -> PIIClassificationTerm:
-		"""Mark ``factor_ids`` confirmed and drop ``remove_factor_ids``.
+	def add_factor(self, term_id: str, topic_id: str, factor_id: str) -> PIIClassificationTerm:
+		"""Manually link one factor to the term.
 
-		Returns the updated term. Raises ``KeyError``-style ``LookupError`` if
-		the term does not exist.
+		The link is created with ``matchSource='manual'``, full confidence and
+		``confirmed=True``. Idempotent: an existing link with the same
+		topicId|factorId key is returned as-is. Raises ``LookupError`` when the
+		term, topic or factor does not exist.
+		"""
+		term = self._pii_term_service.find_by_id(term_id)
+		if term is None:
+			raise LookupError(f"PII term '{term_id}' not found.")
+		topic = self._find_topic(topic_id)
+		if topic is None:
+			raise LookupError(f"Topic '{topic_id}' not found.")
+		factor = self._find_factor(topic, factor_id)
+		if factor is None:
+			raise LookupError(f"Factor '{factor_id}' not found in topic '{topic_id}'.")
+
+		key = f"{topic_id}|{factor_id}"
+		linked = term.linkedFactors or []
+		for lf in linked:
+			if lf.key == key:
+				return term
+
+		factor_type = getattr(factor.type, 'value', factor.type)
+		linked.append(LinkedFactor(
+			topicId=topic_id,
+			topicName=topic.name,
+			factorId=factor_id,
+			factorName=factor.name,
+			factorLabel=factor.label,
+			factorType=str(factor_type) if factor_type is not None else None,
+			matchConfidence=1.0,
+			matchSource=MATCH_SOURCE_MANUAL,
+			confirmed=True,
+		))
+		term.linkedFactors = linked
+		return self._pii_term_service.update(term)
+
+	def confirm(self, term_id: str, factor_keys: List[str], remove_keys: List[str]) -> PIIClassificationTerm:
+		"""Mark ``factor_keys`` confirmed and drop ``remove_keys``.
+
+		Keys are LinkedFactor keys (``topicId|factorId``). Returns the updated
+		term. Raises ``LookupError`` if the term does not exist.
 		"""
 		term = self._pii_term_service.find_by_id(term_id)
 		if term is None:
 			raise LookupError(f"PII term '{term_id}' not found.")
 
-		confirm_set = set(factor_ids or [])
-		remove_set = set(remove_factor_ids or [])
+		confirm_set = set(factor_keys or [])
+		remove_set = set(remove_keys or [])
 		surviving: List[LinkedFactor] = []
 		for lf in (term.linkedFactors or []):
-			if lf.factorId in remove_set:
+			if lf.key in remove_set:
 				continue
-			if lf.factorId in confirm_set:
+			if lf.key in confirm_set:
 				lf.confirmed = True
 			surviving.append(lf)
 		term.linkedFactors = surviving
 		return self._pii_term_service.update(term)
+
+	@staticmethod
+	def _find_factor(topic: Topic, factor_id: str) -> Optional[Factor]:
+		for factor in topic.factors or []:
+			if factor.factorId == factor_id:
+				return factor
+		return None
 
 	@staticmethod
 	def _merge(*groups: List[LinkedFactor]) -> List[LinkedFactor]:

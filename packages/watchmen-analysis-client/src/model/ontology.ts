@@ -129,6 +129,65 @@ export interface OntologySpaceOption {
 }
 
 // ============================================================================
+// Governance projection — GET /ontology/governance/map?ontologyId=xxx
+// Read from saved ontology state only; unsaved drafts have no governance data.
+// ============================================================================
+
+/** A PII term matched to an attribute by the PII discovery pipeline. */
+export interface OntologyGovernancePiiTerm {
+	termId: string;
+	name: string;
+	category?: string;
+	sensitivityLevel?: string;
+	/** False means a candidate term still pending confirmation in PII Discovery. */
+	confirmed: boolean;
+}
+
+/** A monitor rule covering the attribute (or its topic / globally). */
+export interface OntologyGovernanceMonitorRule {
+	ruleId: string;
+	code: string;
+	grade: "GLOBAL" | "TOPIC" | "FACTOR";
+	severity?: string;
+	enabled: boolean;
+	/** Rule parameters (min/max/regexp/coverageRate etc.), null when not set. */
+	params?: Record<string, unknown> | null;
+}
+
+/** Governance projection of a single virtual object attribute. */
+export interface OntologyGovernanceAttribute {
+	name: string;
+	sourceTable?: string;
+	sourceField?: string;
+	topicId?: string;
+	topicName?: string;
+	factorId?: string;
+	factorLabel?: string;
+	factorType?: string;
+	/** Null / undefined means no encryption configured. */
+	encrypt?: string | null;
+	/** Whether factorType is a sensitive type (email / phone / id-no etc.). */
+	sensitiveType: boolean;
+	/** Whether the value will be masked at query time. */
+	masked: boolean;
+	piiTerms: OntologyGovernancePiiTerm[];
+	monitorRules: OntologyGovernanceMonitorRule[];
+}
+
+/** Governance projection of a single virtual object. */
+export interface OntologyGovernanceObject {
+	objectId: string;
+	objectName: string;
+	attributes: OntologyGovernanceAttribute[];
+}
+
+/** Governance projection map of a whole ontology. */
+export interface OntologyGovernanceMap {
+	ontologyId: string;
+	objects: OntologyGovernanceObject[];
+}
+
+// ============================================================================
 // Static UI display configs
 // ============================================================================
 

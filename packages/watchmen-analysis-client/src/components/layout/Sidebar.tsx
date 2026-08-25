@@ -7,7 +7,6 @@ import {
   Lightbulb,
   BarChart3, Settings,
   HelpCircle,
-  FileQuestion,
   Target, ChevronLeft,
   ChevronDown,
   ChevronRight, MessageSquare,
@@ -185,7 +184,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           onToggle={() => toggleGroup('dataInsights')}
         >
           <NavItem to="/challenges" icon={<Target size={16} />} label={t('nav:challenges')} collapsed={collapsed} isSubItem={true} />
-          <NavItem to="/problems" icon={<FileQuestion size={16} />} label={t('nav:problems')} collapsed={collapsed} isSubItem={true} />
           <NavItem to="/hypotheses" icon={<Lightbulb size={16} />} label={t('nav:hypothesis')} collapsed={collapsed} isSubItem={true} />
         </NavGroup>
         )}
@@ -223,9 +221,9 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           onToggle={() => toggleGroup('dataCatalog')}
         >
           {/* <NavItem to="/data-catalog" icon={<FolderOpen size={16} />} label="Data Catalog" collapsed={collapsed} isSubItem={true} /> */}
-          <NavItem to="/data-catalog/domain-map" icon={<Network size={16} />} label="Business Ontology" collapsed={collapsed} isSubItem={true} />
-          <NavItem to="/data-catalog/ontology-tester" icon={<FlaskConical size={16} />} label="Ontology Data Tester" collapsed={collapsed} isSubItem={true} />
-          <NavItem to="/data-catalog/business-glossary" icon={<BookOpen size={16} />} label="Business Glossary" collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/data-catalog/domain-map" icon={<Network size={16} />} label={t('nav:businessOntology')} collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/data-catalog/ontology-tester" icon={<FlaskConical size={16} />} label={t('nav:ontologyDataTester')} collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/data-catalog/business-glossary" icon={<BookOpen size={16} />} label={t('nav:businessGlossary')} collapsed={collapsed} isSubItem={true} />
           {/* <NavItem to="/data-profiles" icon={<Database size={16} />} label="Data Profile Management" collapsed={collapsed} isSubItem={true} /> */}
           
         </NavGroup>

@@ -32,7 +32,9 @@ export const getDefaultHeaders = () => {
 export const checkResponse = async (response: Response) => {
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    // FastAPI error responses carry the message in `detail` (string or validation error array)
+    const detail = typeof errorData.detail === 'string' ? errorData.detail : undefined;
+    throw new Error(errorData.message || detail || `HTTP error! status: ${response.status}`);
   }
   return response.json();
 };

@@ -9,6 +9,7 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { Layers } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
 	ontologies: VirtualOntology[];
@@ -81,6 +82,7 @@ const clampView = (vb: ViewBox, cw: number, ch: number, pad: number): ViewBox =>
 };
 
 export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOntology }) => {
+	const { t } = useTranslation('ontology');
 	const svgRef = useRef<SVGSVGElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const dragRef = useRef<DragState | null>(null);
@@ -422,13 +424,13 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 					<Layers className="w-10 h-10 text-indigo-600" />
 				</div>
 				<div className="text-center">
-					<div className="text-lg font-semibold text-slate-900 mb-1">Select an Ontology</div>
-					<div className="text-sm text-muted-foreground mb-4">Choose a virtual ontology to view its graph</div>
+					<div className="text-lg font-semibold text-slate-900 mb-1">{t('selectOntologyTitle')}</div>
+					<div className="text-sm text-muted-foreground mb-4">{t('selectOntologyHint')}</div>
 				</div>
 				<div className="w-full max-w-md">
 					<Select value={selectedOntologyId ?? ''} onValueChange={(val) => setSelectedOntologyId(val || null)}>
 						<SelectTrigger>
-							<SelectValue placeholder="Select a virtual ontology..." />
+							<SelectValue placeholder={t('selectVirtualOntology')} />
 						</SelectTrigger>
 						<SelectContent>
 							{ontologies.map(ontology => (
@@ -464,7 +466,7 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 						}}
 					>
 						<SelectTrigger className="bg-white/90 backdrop-blur-sm">
-							<SelectValue placeholder="Select a virtual ontology..." />
+							<SelectValue placeholder={t('selectVirtualOntology')} />
 						</SelectTrigger>
 						<SelectContent>
 							{ontologies.map(ontology => (
@@ -484,7 +486,7 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 							<polyline points="4 8 4 4 8 4" /><line x1="20" y1="4" x2="14" y2="10" />
 							<polyline points="20 16 20 20 16 20" /><line x1="4" y1="20" x2="10" y2="14" />
 						</svg>
-						Fullscreen
+						{t('fullscreen')}
 					</button>
 				) : (
 					<button
@@ -495,27 +497,27 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 							<polyline points="4 8 4 4 8 4" /><line x1="20" y1="4" x2="14" y2="10" />
 							<polyline points="20 16 20 20 16 20" /><line x1="4" y1="20" x2="10" y2="14" />
 						</svg>
-						Exit fullscreen
+						{t('exitFullscreen')}
 					</button>
 				)}
 			</div>
 
 			<div className="absolute bottom-4 left-4 z-10 rounded-lg border border-slate-200 bg-white/90 px-3 py-2 text-[11px] text-slate-500 shadow-sm backdrop-blur-sm">
-				Drag background to pan · Wheel to zoom · Drag cards to rearrange · Double-click to fit
+				{t('graphHint')}
 			</div>
 
 			{/* Zoom controls */}
 			<div className="absolute bottom-4 right-4 z-10 flex flex-col gap-1.5">
-				<ZoomButton onClick={() => zoomBy(1 / 1.22)} label="Zoom in">
+				<ZoomButton onClick={() => zoomBy(1 / 1.22)} label={t('zoomIn')}>
 					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
 				</ZoomButton>
-				<ZoomButton onClick={() => zoomBy(1.22)} label="Zoom out">
+				<ZoomButton onClick={() => zoomBy(1.22)} label={t('zoomOut')}>
 					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>
 				</ZoomButton>
-				<ZoomButton onClick={resetView} label="Fit to view">
+				<ZoomButton onClick={resetView} label={t('fitToView')}>
 					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M21 16v3a2 2 0 0 1-2 2h-3" /></svg>
 				</ZoomButton>
-				<ZoomButton onClick={resetLayout} label="Reset card positions">
+				<ZoomButton onClick={resetLayout} label={t('resetCardPositions')}>
 					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v6h6" /></svg>
 				</ZoomButton>
 			</div>
@@ -556,7 +558,7 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 							{group.name}
 						</text>
 						<text x={group.x + 28} y={group.y + 56} className="fill-slate-500 text-[12px]">
-							Business object graph · {group.ontology.virtualObjects.length} objects · {group.ontology.virtualLinks.length} links
+							{t('graphSubtitle', { count: group.ontology.virtualObjects.length, count2: group.ontology.virtualLinks.length })}
 						</text>
 					</g>
 				))}
@@ -587,10 +589,10 @@ export const VirtualOntologyGraph: React.FC<Props> = ({ ontologies, onSelectOnto
 								filter="url(#soft-shadow)"
 							/>
 							<text x={midX} y={midY - 7} textAnchor="middle" className="fill-slate-900 text-[12px] font-semibold">
-								{link.name || 'Business Link'}
+								{link.name || t('businessLink')}
 							</text>
 							<text x={midX} y={midY + 10} textAnchor="middle" className="fill-indigo-600 text-[10px] font-medium">
-								{link.label} · {link.conditionCount} condition{link.conditionCount > 1 ? 's' : ''}
+								{link.label} · {t('conditions', { count: link.conditionCount })}
 							</text>
 						</g>
 					);
@@ -629,6 +631,7 @@ const DraggableNode: React.FC<{
 	onMouseDown: (e: React.MouseEvent, nodeId: string, ontologyId: string) => void;
 	onClick: () => void;
 }> = ({ node, isDragging, onMouseDown, onClick }) => {
+	const { t } = useTranslation('ontology');
 	const vo = node.object;
 	const primaryTable = vo.physicalTables.find(t => t.kind === 'primary') || vo.physicalTables[0];
 	const fieldCount = vo.physicalTables.reduce((sum, table) => sum + table.fields.length, 0);
@@ -669,18 +672,18 @@ const DraggableNode: React.FC<{
 				{truncate(vo.name, 22)}
 			</text>
 			<text x={node.x + 68} y={node.y + 52} className="fill-slate-500 text-[11px]">
-				{primaryTable ? truncate(primaryTable.topicName, 24) : 'No physical table mapped'}
+				{primaryTable ? truncate(primaryTable.topicName, 24) : t('noPhysicalTableMapped')}
 			</text>
 
 			<g transform={`translate(${node.x + 16}, ${node.y + 76})`}>
-				<MetricPill icon="▦" label={`${vo.physicalTables.length} tables`} x={0} />
-				<MetricPill icon="ƒ" label={`${fieldCount} fields`} x={76} />
-				<MetricPill icon="Σ" label={`${vo.derivedAttributes.length} derived`} x={144} />
+				<MetricPill icon="▦" label={t('tablesCount', { count: vo.physicalTables.length })} x={0} />
+				<MetricPill icon="ƒ" label={t('fieldsCount', { count: fieldCount })} x={76} />
+				<MetricPill icon="Σ" label={t('derivedCount', { count: vo.derivedAttributes.length })} x={144} />
 			</g>
 
 			<line x1={node.x + 16} y1={node.y + 112} x2={node.x + node.width - 16} y2={node.y + 112} className="stroke-slate-100" />
 			<text x={node.x + 16} y={node.y + 130} className="fill-slate-400 text-[10px]">
-				Business projection of physical data
+				{t('projectionHint')}
 			</text>
 		</g>
 	);

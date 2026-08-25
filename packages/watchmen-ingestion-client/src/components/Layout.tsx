@@ -32,12 +32,13 @@ const Layout: React.FC = () => {
                       <span>{t('common:selectLanguage')}</span>
                       <select
                         value={language}
-                        onChange={(event) => void setLanguage(event.target.value as 'en' | 'zh-CN')}
+                        onChange={(event) => void setLanguage(event.target.value as 'en' | 'zh-CN' | 'zh-TW')}
                         className="rounded border border-gray-200 bg-white px-2 py-1 text-xs text-gray-700"
                         aria-label={t('common:selectLanguage')}
                       >
                         <option value="en">{t('common:english')}</option>
                         <option value="zh-CN">{t('common:simplifiedChinese')}</option>
+                        <option value="zh-TW">{t('common:traditionalChinese')}</option>
                       </select>
                     </label>
                     <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">

@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { HypothesisType } from '@/model/Hypothesis';
-import { BusinessProblem } from "@/model/business";
+import { BusinessChallenge } from "@/model/business";
 import { OptimizationSuggestion } from '@/services/optimizationService';
 import { Sparkles } from 'lucide-react';
 
@@ -32,17 +32,17 @@ if (typeof document !== 'undefined') {
   document.head.appendChild(style);
 }
 
-// Add an additional prop for businessProblem
+// Add an additional prop for businessChallenge
 interface OptimizationSuggestionsProps {
   hypothesis?: HypothesisType | null;
-  businessProblem?: BusinessProblem | null;
+  businessChallenge?: BusinessChallenge | null;
   onApplySuggestion?: (suggestion: OptimizationSuggestion) => void;
   className?: string;
 }
 
 const OptimizationSuggestions: React.FC<OptimizationSuggestionsProps> = ({
   hypothesis,
-  businessProblem,
+  businessChallenge,
   onApplySuggestion,
   className
 }) => {
@@ -58,7 +58,7 @@ const OptimizationSuggestions: React.FC<OptimizationSuggestionsProps> = ({
       confidence: 85,
       suggestionType: 'refine',
       createdAt: new Date().toISOString(),
-      hypothesisId: hypothesis?.id || businessProblem?.id || '',
+      hypothesisId: hypothesis?.id || businessChallenge?.id || '',
       basedOn: 'knowledge'
     },
     {
@@ -68,7 +68,7 @@ const OptimizationSuggestions: React.FC<OptimizationSuggestionsProps> = ({
       confidence: 72,
       suggestionType: 'extend',
       createdAt: new Date().toISOString(),
-      hypothesisId: hypothesis?.id || businessProblem?.id || '',
+      hypothesisId: hypothesis?.id || businessChallenge?.id || '',
       basedOn: 'feedback'
     }
   ];
@@ -110,9 +110,9 @@ const OptimizationSuggestions: React.FC<OptimizationSuggestionsProps> = ({
           <p className="text-sm text-muted-foreground">
             {hypothesis 
               ? `Optimization suggestions for hypothesis: ${hypothesis.title}`
-              : businessProblem
-                ? `Optimization suggestions for business problem: ${businessProblem.title}`
-                : 'No hypothesis or business problem selected.'}
+              : businessChallenge
+                ? `Optimization suggestions for business challenge: ${businessChallenge.title}`
+                : 'No hypothesis or business challenge selected.'}
           </p>
           
           {suggestions.map((suggestion) => (

@@ -4,21 +4,25 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Zap, BarChart2, AlertTriangle } from 'lucide-react';
+import { Zap, BarChart2, AlertTriangle, LineChart } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 
 // Import components
 import AIInsightsTab from '@/components/analysis/AIInsightsTab';
 import DataAnalysisTab from '@/components/analysis/DataAnalysisTab';
+import HypothesisTestingTab from '@/components/analysis/HypothesisTestingTab';
 import HypothesisAnalysisHeader from '@/components/analysis/HypothesisAnalysisHeader';
 import HypothesisNotFound from '@/components/analysis/HypothesisNotFound';
 import AlertPanel from '@/components/analysis/AlertPanel';
 import AlertRuleSettings from '@/components/analysis/AlertRuleSettings';
-import { HypothesisType } from '@/model/Hypothesis';
+import RelatedHypotheses from '@/components/analysis/RelatedHypotheses';
+import { HypothesisType, RelatedHypothesis } from '@/model/Hypothesis';
 import { analysis_service } from '@/services/analysisService';
+import { hypothesisService } from '@/services/hypothesisService';
 import { HypothesisAnalysisData, EmulativeAnalysisMethod } from '@/model/analysis';
 import { AnalysisProvider } from '@/contexts/AnalysisContext';
+import { useToast } from '@/components/ui/use-toast';
 
 
 
@@ -49,57 +53,125 @@ const Analysis: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [analysisData, setAnalysisData] = useState<HypothesisAnalysisData | null>(null);
   const [showAlertSettings, setShowAlertSettings] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [relatedHypotheses, setRelatedHypotheses] = useState<RelatedHypothesis[]>([]);
+  const { toast } = useToast();
 
 
   // Derived state from HypothesisAnalysisData
-  const hasValidAnalysisData = analysisData && analysisData.analysis_id && analysisData.hypothesis;
-  const analysisMetrics = analysisData?.analysis_metrics || [];
   const dataExplanations = analysisData?.data_explain_dict || [];
   const currentHypothesis = analysisData?.hypothesis || hypothesis;
-  
+
   // Extract metrics data based on analysis method
   const getMetricsData = () => {
     if (!analysisData?.analysis_metrics) {
       return null;
     }
-    
+
     return analysisData.analysis_metrics.map(metric => ({
       name: metric.name,
       category: metric.category,
       format: metric.format,
-      data: metric.dataset.dataset.data,
-      columns: metric.dataset.dataset.column_names,
+      data: metric.dataset?.dataset?.data,
+      columns: metric.dataset?.dataset?.column_names,
       dimensions: metric.dimensions
     }));
   };
 
   const metricsData = useMemo(() => getMetricsData(), [analysisData]);
 
-  useEffect(() => {
-    const fetchAnalysisData = async () => {
-      try {
-        const searchParams = new URLSearchParams(location.search);
-        const hypothesisId = searchParams.get('hypothesis');
+  const loadData = async () => {
+    try {
+      const searchParams = new URLSearchParams(location.search);
+      const hypothesisId = searchParams.get('hypothesis');
 
+      if (!hypothesisId) {
+        setLoading(false);
+        return;
+      }
 
-        const analysisData = await analysis_service.load_analysis_data(hypothesisId);
-       
-        // const hypothesis = hypothesisService.getHypothesisById(hypothesisId);
+      const analysisData = await analysis_service.load_analysis_data(hypothesisId);
+
+      if (analysisData) {
         setHypothesis(analysisData.hypothesis);
         setAnalysisData(analysisData);
-       
-          
-          
-        
+      } else {
+        // No persisted analysis yet: load the hypothesis itself so the page
+        // can offer to run the analysis from the empty states
+        const hypothesis = await hypothesisService.getHypothesisById(hypothesisId);
+        setHypothesis(hypothesis || null);
+        setAnalysisData(null);
+      }
+    } catch (error) {
+      console.error('Error fetching analysis data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [location.search]);
+
+  // Resolve related hypotheses from real data
+  useEffect(() => {
+    const resolveRelatedHypotheses = async () => {
+      const relatedIds = currentHypothesis?.relatedHypothesesIds;
+      if (!relatedIds || relatedIds.length === 0) {
+        setRelatedHypotheses([]);
+        return;
+      }
+
+      try {
+        const allHypotheses = await hypothesisService.getHypotheses();
+        const hypothesesById = new Map(allHypotheses.map(h => [h.id, h]));
+        setRelatedHypotheses(
+          relatedIds
+            .map(id => hypothesesById.get(id))
+            .filter((h): h is HypothesisType => !!h)
+            .map(h => ({
+              id: h.id,
+              title: h.title,
+              description: h.description,
+              status: h.status,
+              confidence: h.confidence
+            }))
+        );
       } catch (error) {
-        console.error('Error fetching analysis data:', error);
-      } finally {
-        setLoading(false);
+        console.error('Error fetching related hypotheses:', error);
       }
     };
 
-    fetchAnalysisData();
-  }, [location.search]);
+    resolveRelatedHypotheses();
+  }, [currentHypothesis?.id, currentHypothesis?.relatedHypothesesIds]);
+
+  const handleRunAnalysis = async () => {
+    if (!currentHypothesis?.id) {
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      const result = await analysis_service.start_analysis(currentHypothesis.id);
+      toast({
+        title: result.hypothesisValidationFlag === true
+          ? "Hypothesis validated"
+          : result.hypothesisValidationFlag === false
+            ? "Hypothesis rejected"
+            : "Analysis completed",
+        description: result.message,
+      });
+      await loadData();
+    } catch (error) {
+      toast({
+        title: "Analysis Failed",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const handleViewAnalysis = (hypothesisId: string) => {
     navigate(`/analysis?hypothesis=${hypothesisId}`);
@@ -142,11 +214,11 @@ const Analysis: React.FC = () => {
         
         <main className="container py-6">
           <AnalysisProvider initialHypothesis={currentHypothesis}>
-            {currentHypothesis && hasValidAnalysisData ? (
+            {currentHypothesis ? (
               <div className="space-y-6">
                 {/* Analysis Header Section */}
                 <Card className="glass-card border-0 shadow-lg">
-                  <HypothesisAnalysisHeader hypothesis={currentHypothesis} />
+                  <HypothesisAnalysisHeader hypothesis={currentHypothesis} onRunAnalysis={handleRunAnalysis} />
                 </Card>
 
                 {/* Analysis Controls Section */}
@@ -215,31 +287,11 @@ const Analysis: React.FC = () => {
                   </Card>
                 )}
 
-                {/* Metrics Overview Section */}
-                {/* <Card className="glass-card border-0 shadow-sm">
-                  <div className="p-6">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-foreground mb-2">Key Metrics</h3>
-                      <p className="text-sm text-muted-foreground">Statistical overview of your hypothesis analysis</p>
-                    </div>
-                    <MetricsCards 
-                        confidence={currentHypothesis?.confidence || 0}
-                        pValue={0.05}
-                        analysisData={{ sampleSize: 1000, duration: '30 days' }}
-                        lastAnalysis={{ date: new Date().toISOString(), daysAgo: '1 day ago' }}
-                        significanceLabel={'Significant'}
-                      />
-                  </div>
-                </Card> */}
-                    
-                
-                
-
                 {/* Analysis Tabs Section */}
                 <Card className="glass-card border-0 shadow-sm">
                   <div className="p-6">
                     <Tabs defaultValue="insights" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2 mb-6">
+                      <TabsList className="grid w-full grid-cols-3 mb-6">
                          <TabsTrigger value="insights" className="flex items-center gap-3">
                           <Zap className="h-4 w-4" />
                           AI Insights
@@ -248,14 +300,13 @@ const Analysis: React.FC = () => {
                           <BarChart2 className="h-4 w-4" />
                           Data Analysis
                         </TabsTrigger>
-                       
-                        {/* <TabsTrigger value="testing" className="flex items-center gap-2">
+                        <TabsTrigger value="testing" className="flex items-center gap-2">
                           <LineChart className="h-4 w-4" />
                           Hypothesis Testing
-                        </TabsTrigger> */}
+                        </TabsTrigger>
                       </TabsList>
-                     
-                      
+
+
                       <TabsContent value="insights" className="mt-0">
                         <AIInsightsTab dataExplanations={dataExplanations} />
                       </TabsContent>
@@ -263,75 +314,32 @@ const Analysis: React.FC = () => {
                         <DataAnalysisTab
                           analysisMethod={currentHypothesis?.analysisMethod as EmulativeAnalysisMethod}
                           metricsData={metricsData}
+                          onRunAnalysis={handleRunAnalysis}
+                          isAnalyzing={isAnalyzing}
                         />
                       </TabsContent>
-                      
-                    
-                      
-                      {/* <TabsContent value="testing" className="mt-0">
-                        <HypothesisTestingTab testResults={[]} />
-                      </TabsContent> */}
+                      <TabsContent value="testing" className="mt-0">
+                        <HypothesisTestingTab
+                          dataExplanations={dataExplanations}
+                          onRunAnalysis={handleRunAnalysis}
+                          isAnalyzing={isAnalyzing}
+                        />
+                      </TabsContent>
                     </Tabs>
                   </div>
                 </Card>
-                
+
                 {/* Related Content Section */}
-                {/* <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-                  <div className="lg:col-span-2">
-                    <Card className="glass-card border-0 shadow-sm">
-                      <div className="p-6">
-                        <div className="mb-4">
-                          <h3 className="text-lg font-semibold text-foreground mb-2">Related Hypotheses</h3>
-                          <p className="text-sm text-muted-foreground">Explore similar hypotheses and their analysis results</p>
-                        </div>
-                        <RelatedHypotheses 
-                          hypotheses={[
-                            {
-                              id: "h1",
-                              title: "Product Pricing Elasticity and Customer Age Relationship",
-                              description: "Hypothesis that price sensitivity varies among different age groups, with customers aged 45-60 showing lower price elasticity.",
-                              status: "validated",
-                              confidence: 82
-                            },
-                            {
-                              id: "h2",
-                              title: "Marketing Channel Preferences by Age Group",
-                              description: "Hypothesis that marketing channel preferences significantly differ by age group, with customers aged 45-60 preferring offline agent channels.",
-                              status: "testing",
-                              confidence: 68
-                            },
-                            {
-                              id: "h3",
-                              title: "Customer Lifetime Value and Age Correlation",
-                              description: "Hypothesis that customers acquired between ages 45-60 have significantly higher Customer Lifetime Value (CLV) than other age groups.",
-                              status: "drafted",
-                              confidence: 0
-                            }
-                          ]}
-                          handleViewAnalysis={handleViewAnalysis}
-                        />
-                      </div>
-                    </Card>
+                {relatedHypotheses.length > 0 && (
+                  <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+                    <div className="lg:col-span-2">
+                      <RelatedHypotheses
+                        hypotheses={relatedHypotheses}
+                        handleViewAnalysis={handleViewAnalysis}
+                      />
+                    </div>
                   </div>
-                  
-              
-                </div> */}
-              </div>
-            ) : currentHypothesis && !hasValidAnalysisData ? (
-              <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-                <Card className="glass-card border-0 shadow-sm p-8 text-center max-w-md">
-                  <div className="mb-4">
-                    <BarChart2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-foreground mb-2">No Analysis Data Available</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Analysis data for this hypothesis is not yet available. Please check back later or contact support.
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground">Hypothesis ID: {currentHypothesis?.id}</p>
-                    <p className="text-xs text-muted-foreground">Status: {currentHypothesis?.status}</p>
-                  </div>
-                </Card>
+                )}
               </div>
             ) : (
               <HypothesisNotFound />

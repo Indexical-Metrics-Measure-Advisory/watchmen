@@ -20,8 +20,8 @@ export class BuildSimulationProcessor extends BaseStepProcessor {
         'info'
       );
 
-      // 调用AI代理服务构建业务问题仿真环境
-      const simulation_result = await aiAgentService.build_business_problem_simulation_environment(
+      // 调用AI代理服务构建业务挑战仿真环境
+      const simulation_result = await aiAgentService.build_business_challenge_simulation_environment(
         context.businessChallenge
       );
       const challenge = simulation_result["challenge"]
@@ -33,11 +33,11 @@ export class BuildSimulationProcessor extends BaseStepProcessor {
       // 创建详细的日志信息基于 ChallengeAnalysisResult 结构
       const detailedLogs = [];
       
-      // 记录业务问题分析
-      if (analysisResult?.businessProblems && analysisResult.businessProblems.length > 0) {
+      // 记录假设识别
+      if (challenge?.hypotheses && challenge.hypotheses.length > 0) {
         detailedLogs.push(this.createLog(
-          'Business Problems Identified',
-          `Found ${analysisResult.businessProblems.length} business problems: ${analysisResult.businessProblems.map(p => p.title).join(', ')}`,
+          'Hypotheses Identified',
+          `Found ${challenge.hypotheses.length} hypotheses: ${challenge.hypotheses.map(h => h.title).join(', ')}`,
           'info'
         ));
       }
@@ -113,7 +113,7 @@ export class BuildSimulationProcessor extends BaseStepProcessor {
           challenge: challenge,
           result: simulation_result["result"],
           analysisDetails: {
-            businessProblemsCount: analysisResult?.businessProblems?.length || 0,
+            hypothesesCount: challenge?.hypotheses?.length || 0,
             validatedHypothesesCount: analysisResult?.validatedHypotheses?.length || 0,
             rejectedHypothesesCount: analysisResult?.rejectedHypotheses?.length || 0,
             keyMetricsCount: analysisResult?.keyMetrics?.length || 0,

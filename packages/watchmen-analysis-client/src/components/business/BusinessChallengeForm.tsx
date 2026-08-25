@@ -26,7 +26,6 @@ const BusinessChallengeForm: React.FC<BusinessChallengeFormProps> = ({
     initialData || {
       title: '',
       description: '',
-      problemIds: [],
       datasetStartDate: '',
       datasetEndDate: ''
     }
@@ -46,7 +45,6 @@ const BusinessChallengeForm: React.FC<BusinessChallengeFormProps> = ({
     setFormData(initialData || {
       title: '',
       description: '',
-      problemIds: [],
       datasetStartDate: '',
       datasetEndDate: ''
     });

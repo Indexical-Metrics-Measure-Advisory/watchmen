@@ -1,7 +1,7 @@
 
 import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { BrainCircuit, AlertCircle, Wrench } from 'lucide-react';
+import { BrainCircuit, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -20,39 +20,6 @@ export const ChallengeNode = memo(({ data, selected }: { data: any; selected?: b
       </div>
       
       <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-cyan-600" />
-    </div>
-  );
-});
-
-// Problem Node
-export const ProblemNode = memo(({ data, selected }: { data: any; selected?: boolean }) => {
-  return (
-    <div className={cn(
-      "p-4 bg-amber-100 dark:bg-amber-900 border border-amber-300 dark:border-amber-700 rounded-md min-w-[180px] shadow-md transition-all duration-200",
-      selected && "ring-2 ring-amber-500 dark:ring-amber-400 ring-offset-2 ring-offset-background scale-105"
-    )}>
-      <div className="flex items-start gap-2">
-        <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-        <div>
-          <div className="font-medium text-sm">{data.label}</div>
-          {data.status && (
-            <Badge 
-              variant="outline" 
-              className={cn(
-                "text-xs mt-2",
-                data.status === 'open' && "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300",
-                data.status === 'in_progress' && "bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300",
-                data.status === 'resolved' && "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300"
-              )}
-            >
-              {data.status === 'in_progress' ? 'In Progress' : data.status.charAt(0).toUpperCase() + data.status.slice(1)}
-            </Badge>
-          )}
-        </div>
-      </div>
-      
-      <Handle type="target" position={Position.Top} className="w-3 h-3 bg-amber-600" />
-      <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-amber-600" />
     </div>
   );
 });

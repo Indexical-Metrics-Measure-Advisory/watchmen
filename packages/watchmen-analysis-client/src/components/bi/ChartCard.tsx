@@ -6,7 +6,7 @@ import type { BIChartCard, BICardSize } from '@/model/biAnalysis';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import type { AlertStatus } from '@/model/AlertConfig';
 import { AlertCard } from './AlertCard';
-import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy, AlertTriangle, CheckCircle2, Activity } from 'lucide-react';
+import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy, AlertTriangle, CheckCircle2, Activity, Lightbulb } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +16,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import type { ChartDatum, RechartsModule } from './charts/types';
 import { MAX_TIME_SERIES_POINTS, MAX_CATEGORY_POINTS, sampleDataByIndex } from './charts/utils';
@@ -41,6 +42,8 @@ export interface ChartCardProps {
   onDrop?: (e: React.DragEvent<HTMLDivElement>) => void;
   alertStatus?: AlertStatus;
   onAcknowledge?: (alertId: string) => void;
+  onProposeHypothesis?: (card: BIChartCard) => void;
+  hypothesisBadge?: { total: number; worstStatus: string };
 }
 
 const sizeClass = (size: BICardSize) => {
@@ -62,9 +65,10 @@ type ChartInnerProps = {
   format?: string;
   alertStatus?: AlertStatus;
   onAcknowledge?: (alertId: string) => void;
+  onProposeHypothesis?: (card: BIChartCard) => void;
 };
 
-const Chart = React.memo(({ lib, card, data, sourceData, format, alertStatus, onAcknowledge }: ChartInnerProps) => {
+const Chart = React.memo(({ lib, card, data, sourceData, format, alertStatus, onAcknowledge, onProposeHypothesis }: ChartInnerProps) => {
   const { type: chartType } = { type: card.chartType };
   
   const sampledData = useMemo(() => {
@@ -81,7 +85,7 @@ const Chart = React.memo(({ lib, card, data, sourceData, format, alertStatus, on
   const axisProps = useChartAxis(card, sampledData);
 
   if (chartType === 'alert') {
-    return <AlertCard card={card} data={data} alertStatus={alertStatus} onAcknowledge={onAcknowledge} />;
+    return <AlertCard card={card} data={data} alertStatus={alertStatus} onAcknowledge={onAcknowledge} onProposeHypothesis={onProposeHypothesis} />;
   }
 
   if (chartType === 'table') {
@@ -108,6 +112,14 @@ const Chart = React.memo(({ lib, card, data, sourceData, format, alertStatus, on
   return <LineChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} />;
 });
 
+// Hypothesis badge pill colors by worst status (mirrors the alert pill styling)
+const HYPOTHESIS_STATUS_COLOR: Record<string, string> = {
+  testing: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400',
+  drafted: 'text-muted-foreground bg-muted',
+  validated: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400',
+  rejected: 'text-destructive bg-destructive/10',
+};
+
 export const ChartCard = React.memo(({
   card,
   data,
@@ -121,9 +133,12 @@ export const ChartCard = React.memo(({
   alertStatus,
   onAcknowledge,
   sourceData,
+  onProposeHypothesis,
+  hypothesisBadge,
 }: ChartCardProps) => {
   const { toast } = useToast();
   const { t } = useTranslation('biAnalysis');
+  const navigate = useNavigate();
   const lib = useRechartsModule();
   const [activeTab, setActiveTab] = useState<string>("chart");
   // display format configured on the metric (BIChartCard.metricId is the metric name)
@@ -250,6 +265,20 @@ export const ChartCard = React.memo(({
                   )}
                 </>
               )}
+              {hypothesisBadge && hypothesisBadge.total > 0 && (
+                <button
+                  type="button"
+                  className={cn(
+                    "flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity",
+                    HYPOTHESIS_STATUS_COLOR[hypothesisBadge.worstStatus] ?? HYPOTHESIS_STATUS_COLOR.drafted
+                  )}
+                  title={`${hypothesisBadge.total} hypothesis(es) — ${hypothesisBadge.worstStatus}`}
+                  onClick={() => navigate(`/hypotheses?metric=${encodeURIComponent(card.metricId)}`)}
+                >
+                  <Lightbulb className="h-3 w-3" />
+                  <span>{hypothesisBadge.total}</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -257,6 +286,11 @@ export const ChartCard = React.memo(({
             {card.chartType !== 'alert' && (
               <Button variant="ghost" size="icon" onClick={handleCopy} className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Copy Data">
                 <Copy className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            {card.chartType !== 'alert' && onProposeHypothesis && (
+              <Button variant="ghost" size="icon" onClick={() => onProposeHypothesis(card)} className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Propose hypothesis">
+                <Lightbulb className="h-3.5 w-3.5" />
               </Button>
             )}
             
@@ -317,7 +351,8 @@ export const ChartCard = React.memo(({
                   sourceData={sourceData}
                   format={metricFormat}
                   alertStatus={alertStatus} 
-                  onAcknowledge={onAcknowledge} 
+                  onAcknowledge={onAcknowledge}
+                  onProposeHypothesis={onProposeHypothesis}
                 />
               </div>
             ) : null}
@@ -342,7 +377,9 @@ export const ChartCard = React.memo(({
   prev.onDragOver === next.onDragOver &&
   prev.onDrop === next.onDrop &&
   prev.alertStatus === next.alertStatus &&
-  prev.onAcknowledge === next.onAcknowledge
+  prev.onAcknowledge === next.onAcknowledge &&
+  prev.onProposeHypothesis === next.onProposeHypothesis &&
+  prev.hypothesisBadge === next.hypothesisBadge
 ));
 
 export default ChartCard;

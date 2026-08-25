@@ -1,3 +1,4 @@
+from watchmen_pii.router import pii_router
 from watchmen_rest.system import health_router
 from watchmen_utilities import ArrayHelper
 from .admin import catalog_router, monitor_rules_router
@@ -51,11 +52,13 @@ routers = [
 	catalog_router.router, monitor_rules_router.router,
 	topic_monitor_router.router, topic_profile_router.router,
 	data_health_router.router,
+	pii_router.router,
+		
 ]
 
-if pii_classification_enabled():
-	from watchmen_pii.app import get_pii_router
-
-	routers.append(get_pii_router())
+# if pii_classification_enabled():
+# 	from watchmen_pii.app import get_pii_router
+#
+#
 
 ArrayHelper(routers).each(lambda x: app.include_router(x))

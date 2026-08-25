@@ -2,18 +2,18 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { HypothesisType } from '@/model/Hypothesis';
-import { BusinessProblem } from "@/model/business";
+import { BusinessChallenge } from "@/model/business";
 import { BookOpen } from 'lucide-react';
 
 interface KnowledgeBaseProps {
   relatedHypothesis?: HypothesisType | null;
-  relatedBusinessProblem?: BusinessProblem | null;
+  relatedBusinessChallenge?: BusinessChallenge | null;
   className?: string;
 }
 
 const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
   relatedHypothesis,
-  relatedBusinessProblem,
+  relatedBusinessChallenge,
   className
 }) => {
   return (
@@ -29,9 +29,9 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
           <p className="text-sm text-muted-foreground">
             {relatedHypothesis 
               ? `Showing knowledge related to hypothesis: ${relatedHypothesis.title}`
-              : relatedBusinessProblem
-                ? `Showing knowledge related to business problem: ${relatedBusinessProblem.title}`
-                : 'No related hypothesis or business problem selected.'}
+              : relatedBusinessChallenge
+                ? `Showing knowledge related to business challenge: ${relatedBusinessChallenge.title}`
+                : 'No related hypothesis or business challenge selected.'}
           </p>
           
           {/* Knowledge base content would go here */}

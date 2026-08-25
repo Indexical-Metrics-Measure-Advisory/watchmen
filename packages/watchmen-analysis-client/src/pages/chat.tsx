@@ -55,6 +55,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { getAssistants } from '@/services/analysisAssistantService';
 import type { AssistantProfile } from '@/model/analysisAssistant';
+import HypothesisArtifactCard, { type HypothesisArtifact } from '@/components/chat/HypothesisArtifactCard';
 
 // Types
 interface Message {
@@ -67,6 +68,7 @@ interface Message {
   data?: any[];
   insights?: string[];
   recommendations?: string[];
+  artifact?: HypothesisArtifact;
 }
 
 interface ChartDescriptor {
@@ -94,6 +96,7 @@ interface Assistant {
 const mapAssistantProfileToAssistant = (assistant: AssistantProfile, index: number): Assistant => {
   const primaryPurpose = assistant.config.purposes.find(item => item.language === 'en')?.text
     || assistant.config.purposes.find(item => item.language === 'zh-CN')?.text
+    || assistant.config.purposes.find(item => item.language === 'zh-TW')?.text
     || assistant.config.purposes[0]?.text
     || 'Analysis Assistant';
 
@@ -145,6 +148,25 @@ const parseNaturalLanguage = (query: string): MetricQuery => {
   result.dimensions = dimensions;
 
   return result;
+};
+
+// Detect why/cause-type questions that warrant a hypothesis draft
+const isHypothesisQuery = (query: string): boolean => {
+  return /為什麼|为何|為何|怎麼|怎么|原因/.test(query) || /\bwhy\b|how come/i.test(query);
+};
+
+const buildHypothesisArtifact = (queryInfo: MetricQuery): HypothesisArtifact => {
+  const metric = queryInfo.metric || 'Metric';
+  return {
+    kind: 'hypothesis',
+    draft: {
+      title: `${metric} Fluctuation Cause Hypothesis`,
+      description: `Investigate why ${metric} changed across ${queryInfo.dimensions?.join(', ') || 'key dimensions'} over ${queryInfo.period || 'the selected period'}.`,
+      metric: queryInfo.metric,
+      analysisMethod: 'Comparison Analysis'
+    },
+    state: 'draft'
+  };
 };
 
 const generateMockData = (metric: string, period: string, dimensions: string[]) => {
@@ -423,6 +445,10 @@ const ChatPage: React.FC = () => {
         insights: insights,
         recommendations: recommendations
       };
+
+      if (isHypothesisQuery(text) && queryInfo.metric) {
+        responseMsg.artifact = buildHypothesisArtifact(queryInfo);
+      }
 
       setMessages(prev => [...prev, responseMsg]);
       setIsLoading(false);
@@ -719,6 +745,14 @@ const ChatPage: React.FC = () => {
                                   </div>
                                 </Tabs>
                               </Card>
+                            )}
+
+                            {/* Hypothesis Artifact */}
+                            {message.artifact && (
+                              <HypothesisArtifactCard
+                                artifact={message.artifact}
+                                onStateChange={(next) => setMessages(prev => prev.map(m => m.id === message.id ? { ...m, artifact: next } : m))}
+                              />
                             )}
                           </div>
                         )}

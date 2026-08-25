@@ -149,7 +149,7 @@ const SimulationResult: React.FC<{ result: Record<string, unknown> }> = ({ resul
         <div className="border-t pt-2">
           <span className="font-medium block mb-2">Analysis Summary:</span>
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="flex justify-between"><span>Business Problems:</span><span className="font-medium">{r.analysisDetails.businessProblemsCount}</span></div>
+            <div className="flex justify-between"><span>Hypotheses:</span><span className="font-medium">{r.analysisDetails.hypothesesCount}</span></div>
             <div className="flex justify-between"><span>Validated Hypotheses:</span><span className="font-medium text-green-600">{r.analysisDetails.validatedHypothesesCount}</span></div>
             <div className="flex justify-between"><span>Rejected Hypotheses:</span><span className="font-medium text-red-600">{r.analysisDetails.rejectedHypothesesCount}</span></div>
             <div className="flex justify-between"><span>Key Metrics:</span><span className="font-medium">{r.analysisDetails.keyMetricsCount}</span></div>
@@ -162,7 +162,7 @@ const SimulationResult: React.FC<{ result: Record<string, unknown> }> = ({ resul
         <div className="border-t pt-2">
           <span className="font-medium block mb-1">Enhanced Challenge:</span>
           <p className="text-xs">{r.challenge.title}</p>
-          {r.challenge.problems?.length > 0 && <p className="text-xs text-muted-foreground mt-1">{r.challenge.problems.length} problems identified</p>}
+          {r.challenge.hypotheses?.length > 0 && <p className="text-xs text-muted-foreground mt-1">{r.challenge.hypotheses.length} hypotheses identified</p>}
         </div>
       )}
     </div>

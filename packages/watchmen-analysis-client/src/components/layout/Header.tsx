@@ -68,12 +68,13 @@ const Header: React.FC = () => {
           <span>{t('common:language')}</span>
           <select
             value={language}
-            onChange={(event) => void setLanguage(event.target.value as 'en' | 'zh-CN')}
+            onChange={(event) => void setLanguage(event.target.value as 'en' | 'zh-CN' | 'zh-TW')}
             className="rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
             aria-label={t('common:language')}
           >
             <option value="en">{t('common:english')}</option>
             <option value="zh-CN">{t('common:simplifiedChinese')}</option>
+            <option value="zh-TW">{t('common:traditionalChinese')}</option>
           </select>
         </label>
         {/* <div className="relative w-64">

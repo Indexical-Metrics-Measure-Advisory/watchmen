@@ -3,7 +3,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, RefreshCw, GitGraph } from 'lucide-react';
+import { Download, RefreshCw, GitGraph, BarChart2, Bell, MessageSquare } from 'lucide-react';
 import StatusIcon from './StatusIcon';
 import { cn } from '@/lib/utils';
 import { HypothesisType } from '@/model/Hypothesis';
@@ -11,15 +11,25 @@ import { useNavigate } from 'react-router-dom';
 
 interface HypothesisAnalysisHeaderProps {
   hypothesis: HypothesisType;
+  onRunAnalysis?: () => void;
 }
 
-const HypothesisAnalysisHeader: React.FC<HypothesisAnalysisHeaderProps> = ({ hypothesis }) => {
+const HypothesisAnalysisHeader: React.FC<HypothesisAnalysisHeaderProps> = ({ hypothesis, onRunAnalysis }) => {
   const navigate = useNavigate();
-  
+
   const handleViewGraph = () => {
     navigate(`/graph?hypothesis=${hypothesis.id}`);
   };
-  
+
+  const source = hypothesis.context?.source;
+  const sourceConfig = source && source !== 'manual'
+    ? {
+        chart: { icon: BarChart2, label: 'From chart' },
+        alert: { icon: Bell, label: 'From alert' },
+        chat: { icon: MessageSquare, label: 'From chat' },
+      }[source]
+    : undefined;
+
   return (
     <div>
       <CardHeader>
@@ -38,15 +48,21 @@ const HypothesisAnalysisHeader: React.FC<HypothesisAnalysisHeaderProps> = ({ hyp
                 {hypothesis.status === 'testing' && 'Testing'}
                 {hypothesis.status === 'drafted' && 'Draft'}
               </Badge>
+              {sourceConfig && (
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <sourceConfig.icon className="h-3 w-3" />
+                  {sourceConfig.label}
+                </Badge>
+              )}
             </div>
             <CardTitle className="text-xl">{hypothesis.title}</CardTitle>
             <CardDescription className="mt-2">{hypothesis.description}</CardDescription>
           </div>
-          
+
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="flex items-center gap-1"
               onClick={handleViewGraph}
             >
@@ -57,10 +73,12 @@ const HypothesisAnalysisHeader: React.FC<HypothesisAnalysisHeaderProps> = ({ hyp
               <Download className="h-4 w-4" />
               Export Analysis
             </Button>
-            <Button size="sm" className="flex items-center gap-1">
-              <RefreshCw className="h-4 w-4" />
-              Update Analysis
-            </Button>
+            {onRunAnalysis && (
+              <Button size="sm" className="flex items-center gap-1" onClick={onRunAnalysis}>
+                <RefreshCw className="h-4 w-4" />
+                Re-run Validation
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>

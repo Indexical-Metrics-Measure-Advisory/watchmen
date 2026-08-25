@@ -16,16 +16,10 @@ export enum PiiCategory {
 	REGULATORY = '监管数据'
 }
 
-export enum PiiMatchStrategy {
-	LOGIC = 'logic',
-	AI = 'ai',
-	LOGIC_AND_AI = 'logic+ai'
-}
-
 export enum PiiMatchSource {
 	TYPE = 'type',
 	KEYWORD = 'keyword',
-	AI = 'ai'
+	MANUAL = 'manual'
 }
 
 export interface PiiLinkedFactor {
@@ -50,7 +44,8 @@ export interface PiiClassificationTerm {
 	sensitivityLevel?: PiiSensitivityLevel | string;
 	dataLevel?: string;
 	ownerDepartment?: string;
-	matchStrategy: PiiMatchStrategy | string;
+	/** topics in scan scope of this term */
+	topicIds: Array<string>;
 	factorTypePatterns: Array<string>;
 	keywordPatterns: Array<string>;
 	linkedFactors: Array<PiiLinkedFactor>;
@@ -82,12 +77,6 @@ export interface PiiTraceRoute {
 	title: string;
 	steps: Array<PiiTraceStep>;
 	diagnostics: Array<string>;
-}
-
-export interface PiiMetricRef {
-	metricId?: string;
-	metricName: string;
-	topicId?: string;
 }
 
 export interface PiiGraphNode {
@@ -122,7 +111,6 @@ export interface PiiLineageReport {
 	linkedFactors: Array<PiiLinkedFactor>;
 	upstreamRoutes: Array<PiiTraceRoute>;
 	downstreamRoutes: Array<PiiTraceRoute>;
-	metrics: Array<PiiMetricRef>;
 	graphData: PiiGraphData;
 	encryptionCoverage: PiiEncryptionCoverage;
 	maxUpstreamDepth: number;
@@ -137,7 +125,6 @@ export interface PiiTermOverview {
 	linkedFactorCount: number;
 	topicCount: number;
 	pipelineCount: number;
-	metricCount: number;
 	encryptedFactorCount: number;
 	plaintextFactorCount: number;
 	maxUpstreamDepth: number;
@@ -165,16 +152,10 @@ export const PII_CATEGORY_LABELS: Record<string, string> = {
 	[PiiCategory.REGULATORY]: 'Regulatory Data'
 };
 
-export const PII_MATCH_STRATEGY_LABELS: Record<string, string> = {
-	[PiiMatchStrategy.LOGIC]: 'Logic',
-	[PiiMatchStrategy.AI]: 'AI',
-	[PiiMatchStrategy.LOGIC_AND_AI]: 'Logic + AI'
-};
-
 export const PII_MATCH_SOURCE_LABELS: Record<string, string> = {
 	[PiiMatchSource.TYPE]: 'Type',
 	[PiiMatchSource.KEYWORD]: 'Keyword',
-	[PiiMatchSource.AI]: 'AI'
+	[PiiMatchSource.MANUAL]: 'Manual'
 };
 
 export const asPiiLevelLabel = (level?: string): string => {
@@ -185,10 +166,11 @@ export const asPiiCategoryLabel = (category?: string): string => {
 	return (category && PII_CATEGORY_LABELS[category]) || category || '-';
 };
 
-export const asPiiStrategyLabel = (strategy?: string): string => {
-	return (strategy && PII_MATCH_STRATEGY_LABELS[strategy]) || strategy || '-';
-};
-
 export const asPiiMatchSourceLabel = (source?: string): string => {
 	return (source && PII_MATCH_SOURCE_LABELS[source]) || source || '-';
+};
+
+/** composite key of a linked factor, format is "topicId|factorId" */
+export const asPiiLinkedFactorKey = (factor: PiiLinkedFactor): string => {
+	return `${factor.topicId}|${factor.factorId}`;
 };

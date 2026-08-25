@@ -37,26 +37,26 @@ const HypothesisForm: React.FC<HypothesisFormProps> = ({
     status: 'drafted',
     confidence: 0,
     metrics: [],
-    businessProblemId: '',
+    businessChallengeId: '',
     relatedHypothesesIds: [],
     analysisMethod: EmulativeAnalysisMethod.TREND_ANALYSIS
   });
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [availableMetrics, setAvailableMetrics] = useState<string[]>([]);
-  const [businessProblems, setBusinessProblems] = useState<Array<{ id: string; title: string }>>([]);
+  const [businessChallenges, setBusinessChallenges] = useState<Array<{ id: string; title: string }>>([]);
 
-  // Fetch business problems when component mounts
+  // Fetch business challenges when component mounts
   useEffect(() => {
-    const fetchBusinessProblems = async () => {
+    const fetchBusinessChallenges = async () => {
       try {
-        const problems = await businessService.getProblems();
-        setBusinessProblems(problems.map(p => ({ id: p.id, title: p.title })));
+        const challenges = await businessService.getChallenges();
+        setBusinessChallenges(challenges.map(c => ({ id: c.id, title: c.title })));
       } catch (error) {
-        console.error('Error fetching business problems:', error);
+        console.error('Error fetching business challenges:', error);
       }
     };
 
-    fetchBusinessProblems();
+    fetchBusinessChallenges();
   }, []);
   
   // Suggest metrics when title or description changes
@@ -83,7 +83,7 @@ const HypothesisForm: React.FC<HypothesisFormProps> = ({
       status: 'drafted',
       confidence: 0,
       metrics: [],
-      businessProblemId: '',
+      businessChallengeId: '',
       relatedHypothesesIds: [],
       analysisMethod: EmulativeAnalysisMethod.TREND_ANALYSIS
     });
@@ -175,7 +175,7 @@ const HypothesisForm: React.FC<HypothesisFormProps> = ({
           <DialogHeader>
             <DialogTitle>{mode === 'edit' ? 'Edit Hypothesis' : 'Link Hypothesis'}</DialogTitle>
             <DialogDescription>
-              {mode === 'edit' ? 'Edit hypothesis details and relationships' : 'Link this business problem with existing hypotheses'}
+              {mode === 'edit' ? 'Edit hypothesis details and relationships' : 'Link this business challenge with existing hypotheses'}
             </DialogDescription>
           </DialogHeader>
 
@@ -322,16 +322,16 @@ const HypothesisForm: React.FC<HypothesisFormProps> = ({
             )}
 
             <div className="grid gap-2">
-              <Label htmlFor="businessProblemId">Related Business Problem</Label>
-              <Select value={formData.businessProblemId} onValueChange={value => handleSelectChange('businessProblemId', value)}>
-                <SelectTrigger id="businessProblemId">
-                  <SelectValue placeholder="Select business problem" />
+              <Label htmlFor="businessChallengeId">Related Business Challenge</Label>
+              <Select value={formData.businessChallengeId} onValueChange={value => handleSelectChange('businessChallengeId', value)}>
+                <SelectTrigger id="businessChallengeId">
+                  <SelectValue placeholder="Select business challenge" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No related business problem</SelectItem>
-                  {businessProblems.map(problem => (
-                    <SelectItem key={problem.id} value={problem.id}>
-                      {problem.title}
+                  <SelectItem value="none">No related business challenge</SelectItem>
+                  {businessChallenges.map(challenge => (
+                    <SelectItem key={challenge.id} value={challenge.id}>
+                      {challenge.title}
                     </SelectItem>
                   ))}
                 </SelectContent>

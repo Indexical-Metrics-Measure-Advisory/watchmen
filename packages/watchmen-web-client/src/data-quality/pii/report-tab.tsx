@@ -154,7 +154,7 @@ export const PiiReportTab = () => {
 				<PiiKpiLabel>Affected Pipelines</PiiKpiLabel>
 				<PiiKpiValue>{totalPipelines}</PiiKpiValue>
 				<PiiKpiSubtext>
-					Metrics: {terms.reduce((sum, t) => sum + (t.metricCount ?? 0), 0)}
+					Topics: {terms.reduce((sum, t) => sum + (t.topicCount ?? 0), 0)}
 				</PiiKpiSubtext>
 			</PiiCard>
 			<PiiCard>

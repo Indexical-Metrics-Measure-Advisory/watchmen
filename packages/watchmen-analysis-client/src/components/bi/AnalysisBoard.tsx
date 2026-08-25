@@ -5,7 +5,7 @@ import type { AlertStatus } from '@/model/AlertConfig';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import type { MetricDimension } from '@/model/analysis';
 import type { ChartDatum } from '@/components/bi/ChartCard';
-import { LayoutDashboard, PlusCircle, AlertCircle, BellPlus, SlidersHorizontal, ChevronRight, X, RefreshCw, Clock } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, AlertCircle, BellPlus, SlidersHorizontal, ChevronRight, X, RefreshCw, Clock, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -50,6 +50,11 @@ interface AnalysisBoardProps {
   onGlobalCustomDateRangeChange?: (range: DateRange) => void;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  /** Board-level: propose a hypothesis covering the whole analysis (all board metrics) */
+  onProposeHypothesis?: () => void;
+  /** Card-level trigger, threaded into each ChartCard */
+  onCardProposeHypothesis?: (card: BIChartCard) => void;
+  hypothesisBadges?: Record<string, { total: number; worstStatus: string }>;
 }
 
 interface BoardCardItemProps {
@@ -65,6 +70,8 @@ interface BoardCardItemProps {
   onResize: AnalysisBoardProps['onResize'];
   onRemove: AnalysisBoardProps['onRemove'];
   onAcknowledge?: AnalysisBoardProps['onAcknowledge'];
+  onProposeHypothesis?: AnalysisBoardProps['onCardProposeHypothesis'];
+  hypothesisBadge?: { total: number; worstStatus: string };
 }
 
 const getCardSizeClass = (size: BICardSize) => {
@@ -90,7 +97,9 @@ const BoardCardItem = React.memo(({
   onDrop,
   onResize,
   onRemove,
-  onAcknowledge
+  onAcknowledge,
+  onProposeHypothesis,
+  hypothesisBadge
 }: BoardCardItemProps) => {
   const { t } = useTranslation('biAnalysis');
   const [isVisible, setIsVisible] = React.useState(true);
@@ -159,6 +168,8 @@ const BoardCardItem = React.memo(({
           onRemove={handleRemove}
           alertStatus={alertStatus}
           onAcknowledge={onAcknowledge}
+          onProposeHypothesis={onProposeHypothesis}
+          hypothesisBadge={hypothesisBadge}
         />
       ) : (
         <div className="h-full min-h-[300px] border border-border/30 rounded-xl bg-muted/10" />
@@ -177,7 +188,9 @@ const BoardCardItem = React.memo(({
   prev.onDrop === next.onDrop &&
   prev.onResize === next.onResize &&
   prev.onRemove === next.onRemove &&
-  prev.onAcknowledge === next.onAcknowledge
+  prev.onAcknowledge === next.onAcknowledge &&
+  prev.onProposeHypothesis === next.onProposeHypothesis &&
+  prev.hypothesisBadge === next.hypothesisBadge
 ));
 
 export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
@@ -203,6 +216,9 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
   onGlobalCustomDateRangeChange,
   onRefresh,
   isRefreshing,
+  onProposeHypothesis,
+  onCardProposeHypothesis,
+  hypothesisBadges,
 }) => {
   const { t } = useTranslation(['common', 'biAnalysis']);
   const [filtersHidden, setFiltersHidden] = React.useState(true);
@@ -293,6 +309,12 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
               {isRefreshing ? t('biAnalysis:board.refreshing') : t('biAnalysis:board.refresh')}
             </Button>
           )}
+          {onProposeHypothesis && (
+            <Button variant="outline" size="sm" onClick={onProposeHypothesis} className="gap-2 h-8">
+              <Lightbulb className="w-4 h-4" />
+              Propose hypothesis
+            </Button>
+          )}
           {hasGlobalFilters && (
             <Button variant="outline" size="sm" onClick={handleToggleFilters} className="gap-2 h-8">
               <SlidersHorizontal className="w-4 h-4" />
@@ -351,6 +373,8 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
                     onResize={onResize}
                     onRemove={onRemove}
                     onAcknowledge={onAcknowledge}
+                    onProposeHypothesis={onCardProposeHypothesis}
+                    hypothesisBadge={hypothesisBadges?.[card.metricId]}
                   />
                 );
               })}

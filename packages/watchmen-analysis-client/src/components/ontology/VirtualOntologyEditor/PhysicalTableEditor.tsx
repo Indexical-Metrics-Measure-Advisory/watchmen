@@ -65,14 +65,14 @@ const PhysicalTableEditorImpl: React.FC<Props> = ({
 				<Input
 					value={pt.alias || ''}
 					onChange={e => onUpdate(voId, ptIdx, { alias: e.target.value })}
-					placeholder="alias"
+					placeholder={t('alias')}
 					className="w-20 h-7 text-xs"
 				/>
 				<Select value={pt.kind} onValueChange={v => onUpdate(voId, ptIdx, { kind: v as PhysicalTableMapping['kind'] })}>
 					<SelectTrigger className="w-28 h-7 text-xs"><SelectValue /></SelectTrigger>
 					<SelectContent>
 						{Object.entries(physicalTableKindConfig).map(([key, cfg]) => (
-							<SelectItem key={key} value={key}>{cfg.icon} {cfg.label}</SelectItem>
+							<SelectItem key={key} value={key}>{cfg.icon} {t(`kind.${key}`)}</SelectItem>
 						))}
 					</SelectContent>
 				</Select>
@@ -84,7 +84,7 @@ const PhysicalTableEditorImpl: React.FC<Props> = ({
 						<SelectTrigger className="w-24 h-7 text-xs"><SelectValue /></SelectTrigger>
 						<SelectContent>
 							{Object.entries(physicalTableJoinTypeConfig).map(([key, cfg]) => (
-								<SelectItem key={key} value={key}>{cfg.label}</SelectItem>
+								<SelectItem key={key} value={key}>{t(`ptJoinType.${key}`)}</SelectItem>
 							))}
 						</SelectContent>
 					</Select>
@@ -95,7 +95,7 @@ const PhysicalTableEditorImpl: React.FC<Props> = ({
 							<AlertTriangle className="w-3 h-3 shrink-0" />
 							{spaceSelected
 								? t('topicOutsideSpace', { name: pt.topicName })
-								: `Topic "${pt.topicName}" not found in datamart topics; fields cannot be edited.`}
+								: t('topicNotFound', { name: pt.topicName })}
 						</div>
 					)}
 					{factorGroups.map(([groupName, items]) => (
@@ -131,22 +131,22 @@ const PhysicalTableEditorImpl: React.FC<Props> = ({
 			{!isPrimary && (
 				<div className="ml-5 space-y-2 border-l pl-3">
 					<div className="flex items-center justify-between">
-						<span className="text-[10px] font-semibold uppercase text-muted-foreground">Join to primary</span>
+						<span className="text-[10px] font-semibold uppercase text-muted-foreground">{t('joinToPrimary')}</span>
 						<Button variant="outline" size="sm" className="h-6 text-[10px] px-2" onClick={() => onAddJoinCondition(voId, ptIdx)}>
-							<Plus className="w-2.5 h-2.5 mr-1" /> Condition
+							<Plus className="w-2.5 h-2.5 mr-1" /> {t('condition')}
 						</Button>
 					</div>
 					{(pt.joinConditions ?? []).map((jc, jcIdx) => (
 						<div key={jcIdx} className="flex items-center gap-2">
 							<Select value={jc.sourceField} onValueChange={v => onUpdateJoinCondition(voId, ptIdx, jcIdx, { sourceField: v })}>
-								<SelectTrigger className="flex-1 h-7 text-xs"><SelectValue placeholder="primary field" /></SelectTrigger>
+								<SelectTrigger className="flex-1 h-7 text-xs"><SelectValue placeholder={t('primaryField')} /></SelectTrigger>
 								<SelectContent>
 									{primaryFields.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
 								</SelectContent>
 							</Select>
 							<span className="text-xs text-muted-foreground">=</span>
 							<Select value={jc.targetField} onValueChange={v => onUpdateJoinCondition(voId, ptIdx, jcIdx, { targetField: v })}>
-								<SelectTrigger className="flex-1 h-7 text-xs"><SelectValue placeholder="current field" /></SelectTrigger>
+								<SelectTrigger className="flex-1 h-7 text-xs"><SelectValue placeholder={t('currentField')} /></SelectTrigger>
 								<SelectContent>
 									{pt.fields.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
 								</SelectContent>
@@ -157,16 +157,16 @@ const PhysicalTableEditorImpl: React.FC<Props> = ({
 						</div>
 					))}
 					{(pt.joinConditions ?? []).length === 0 && (
-						<div className="text-[10px] text-muted-foreground">Add a condition, e.g. primary.agent_code = current.agent_code.</div>
+						<div className="text-[10px] text-muted-foreground">{t('addConditionHint')}</div>
 					)}
 				</div>
 			)}
 			{/* Filters: row-level key-in constants, e.g. policy_status_code eq "issued" */}
 			<div className="ml-5 space-y-2 border-l pl-3">
 				<div className="flex items-center justify-between">
-					<span className="text-[10px] font-semibold uppercase text-muted-foreground">Filters (key-in constants)</span>
+					<span className="text-[10px] font-semibold uppercase text-muted-foreground">{t('filtersKeyIn')}</span>
 					<Button variant="outline" size="sm" className="h-6 text-[10px] px-2" onClick={() => onAddFilter(voId, ptIdx)}>
-						<Plus className="w-2.5 h-2.5 mr-1" /> Filter
+						<Plus className="w-2.5 h-2.5 mr-1" /> {t('filter')}
 					</Button>
 				</div>
 				{(pt.filters ?? []).map((flt, fltIdx) => (
@@ -177,7 +177,7 @@ const PhysicalTableEditorImpl: React.FC<Props> = ({
 						onRemove={() => onRemoveFilter(voId, ptIdx, fltIdx)}
 					>
 						<Select value={flt.field} onValueChange={v => onUpdateFilter(voId, ptIdx, fltIdx, { field: v })}>
-							<SelectTrigger className="flex-1 min-w-[120px] h-7 text-xs"><SelectValue placeholder="field" /></SelectTrigger>
+							<SelectTrigger className="flex-1 min-w-[120px] h-7 text-xs"><SelectValue placeholder={t('field')} /></SelectTrigger>
 							<SelectContent>
 								{tableFields.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
 							</SelectContent>
@@ -185,7 +185,7 @@ const PhysicalTableEditorImpl: React.FC<Props> = ({
 					</FilterRowEditor>
 				))}
 				{(pt.filters ?? []).length === 0 && (
-					<div className="text-[10px] text-muted-foreground">Optional: restrict rows, e.g. policy_status_code in "issued,active".</div>
+					<div className="text-[10px] text-muted-foreground">{t('filtersHint')}</div>
 				)}
 			</div>
 		</div>

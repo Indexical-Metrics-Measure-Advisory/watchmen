@@ -25,19 +25,15 @@ PII_CATEGORY_REGULATORY = '监管数据'
 SENSITIVITY_LEVEL_1 = '1级'
 SENSITIVITY_LEVEL_2 = '2级'
 
-#: Match strategies.
-MATCH_STRATEGY_LOGIC = 'logic'
-MATCH_STRATEGY_AI = 'ai'
-MATCH_STRATEGY_LOGIC_AND_AI = 'logic+ai'
-
 #: Match sources (where a LinkedFactor hit came from).
 MATCH_SOURCE_TYPE = 'type'
 MATCH_SOURCE_KEYWORD = 'keyword'
-MATCH_SOURCE_AI = 'ai'
+MATCH_SOURCE_MANUAL = 'manual'
 
 
 class LinkedFactor(ExtendedBaseModel):
-	"""A Factor that a term has been associated with (via logic or AI)."""
+	"""A Factor that a term has been associated with (via logic matching or
+	manual mapping)."""
 
 	topicId: str
 	topicName: Optional[str] = None
@@ -58,9 +54,11 @@ class LinkedFactor(ExtendedBaseModel):
 class PIIClassificationTerm(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	"""A user-defined sensitive business concept.
 
-	The term is the basic unit of PII classification. ``matchStrategy`` and the
-	``*Patterns`` fields drive the Factor discovery engine; ``linkedFactors``
-	holds the (possibly unconfirmed) matches produced by that engine.
+	The term is the basic unit of PII classification. ``topicIds`` declares the
+	scan scope (only these topics are searched by discovery); the ``*Patterns``
+	fields drive the Factor discovery engine; ``linkedFactors`` holds the
+	(possibly unconfirmed) matches produced by that engine plus manually added
+	factors.
 	"""
 
 	termId: Optional[PIITermId] = None
@@ -70,7 +68,7 @@ class PIIClassificationTerm(ExtendedBaseModel, TenantBasedTuple, OptimisticLock)
 	sensitivityLevel: Optional[str] = None
 	dataLevel: Optional[str] = None
 	ownerDepartment: Optional[str] = None
-	matchStrategy: Optional[str] = MATCH_STRATEGY_LOGIC
+	topicIds: List[str] = []
 	factorTypePatterns: Optional[List[str]] = []
 	keywordPatterns: Optional[List[str]] = []
 	linkedFactors: Optional[List[LinkedFactor]] = []

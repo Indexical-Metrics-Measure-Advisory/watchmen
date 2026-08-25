@@ -137,7 +137,7 @@ const BusinessDomainMap: React.FC = () => {
 			setSelectedOntology(result);
 		} catch (e) {
 			console.error('[BusinessDomainMap] failed to save ontology', e);
-			alert('保存失败，请重试');
+			alert(t('saveFailedAlert'));
 		}
 	};
 
@@ -164,7 +164,7 @@ const BusinessDomainMap: React.FC = () => {
 			setPendingDelete(null);
 		} catch (e) {
 			console.error('[BusinessDomainMap] failed to delete ontology', e);
-			alert('删除失败，请重试');
+			alert(t('deleteFailedAlert'));
 		} finally {
 			setDeleting(false);
 		}
@@ -190,9 +190,9 @@ const BusinessDomainMap: React.FC = () => {
 					{/* Header */}
 					<div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
 						<div>
-							<h1 className="text-2xl font-semibold">Virtual Ontology</h1>
+							<h1 className="text-2xl font-semibold">{t('pageTitle')}</h1>
 							<p className="text-muted-foreground mt-1">
-								Semantic layer mapping business objects to physical tables via virtual links
+								{t('pageSubtitle')}
 							</p>
 						</div>
 						<div className="flex flex-wrap gap-3 items-center">
@@ -207,7 +207,7 @@ const BusinessDomainMap: React.FC = () => {
 									)}
 								>
 									<Grid3x3 className="w-4 h-4" />
-									Grid
+									{t('grid')}
 								</button>
 								<button
 									onClick={() => setViewMode('graph')}
@@ -219,15 +219,15 @@ const BusinessDomainMap: React.FC = () => {
 									)}
 								>
 									<Network className="w-4 h-4" />
-									Graph
+									{t('graph')}
 								</button>
 							</div>
-							<Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setKeyboardShortcutsOpen(true)} title="Keyboard shortcuts">
+							<Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setKeyboardShortcutsOpen(true)} title={t('keyboardShortcuts')}>
 								<Keyboard className="w-4 h-4" />
 							</Button>
 							<Button className="gap-2 h-10" onClick={openCreateOntology}>
 								<Plus className="w-4 h-4" />
-								Create Virtual Ontology
+								{t('createVirtualOntology')}
 							</Button>
 						</div>
 					</div>
@@ -239,7 +239,7 @@ const BusinessDomainMap: React.FC = () => {
 								<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
 								<Input
 									id="ontology-search"
-									placeholder="Search virtual ontologies by name or description..."
+									placeholder={t('searchPlaceholder')}
 									value={searchQuery}
 									onChange={e => setSearchQuery(e.target.value)}
 									onFocus={() => setIsSearchFocused(true)}
@@ -265,16 +265,16 @@ const BusinessDomainMap: React.FC = () => {
 							<div className="flex items-center gap-3">
 								{(searchQuery || filterTag !== 'all') && (
 									<div className="text-sm text-muted-foreground whitespace-nowrap">
-										<span className="font-medium text-foreground">{filteredOntologies.length}</span> of {ontologies.length} ontologies
+										<span className="font-medium text-foreground">{filteredOntologies.length}</span> {t('searchResultCount', { shown: filteredOntologies.length, total: ontologies.length })}
 									</div>
 								)}
 								<div className="w-full md:w-64">
 									<Select value={filterTag} onValueChange={setFilterTag}>
 										<SelectTrigger>
-											<SelectValue placeholder="Filter by tag" />
+											<SelectValue placeholder={t('filterByTag')} />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="all">All Tags</SelectItem>
+											<SelectItem value="all">{t('allTags')}</SelectItem>
 											{allTags.map(tag => (
 												<SelectItem key={tag} value={tag}>
 													{tag}
@@ -309,19 +309,19 @@ const BusinessDomainMap: React.FC = () => {
 								<div className="p-2 bg-indigo-100 rounded-lg">
 									<Workflow className="w-5 h-5 text-indigo-600" />
 								</div>
-								Virtual Ontology Architecture
+								{t('architectureTitle')}
 							</CardTitle>
 							<CardDescription>
-								Business Object → Mapping (Link / Field) → Physical Table
+								{t('architectureSubtitle')}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-								<StatCard icon={<Boxes className="w-5 h-5 text-indigo-600" />} bg="bg-indigo-50" label="Virtual Objects" value={totalObjects} />
-								<StatCard icon={<Link2 className="w-5 h-5 text-emerald-600" />} bg="bg-emerald-50" label="Virtual Links" value={totalLinks} />
-								<StatCard icon={<Table2 className="w-5 h-5 text-purple-600" />} bg="bg-purple-50" label="Physical Tables" value={totalPhysicalTables} />
-								<StatCard icon={<Sigma className="w-5 h-5 text-amber-600" />} bg="bg-amber-50" label="Derived Attributes" value={totalDerived} />
-								<StatCard icon={<Layers className="w-5 h-5 text-blue-600" />} bg="bg-blue-50" label="Ontologies" value={ontologies.length} />
+								<StatCard icon={<Boxes className="w-5 h-5 text-indigo-600" />} bg="bg-indigo-50" label={t('statVirtualObjects')} value={totalObjects} />
+								<StatCard icon={<Link2 className="w-5 h-5 text-emerald-600" />} bg="bg-emerald-50" label={t('statVirtualLinks')} value={totalLinks} />
+								<StatCard icon={<Table2 className="w-5 h-5 text-purple-600" />} bg="bg-purple-50" label={t('statPhysicalTables')} value={totalPhysicalTables} />
+								<StatCard icon={<Sigma className="w-5 h-5 text-amber-600" />} bg="bg-amber-50" label={t('statDerivedAttributes')} value={totalDerived} />
+								<StatCard icon={<Layers className="w-5 h-5 text-blue-600" />} bg="bg-blue-50" label={t('statOntologies')} value={ontologies.length} />
 							</div>
 						</CardContent>
 					</Card>
@@ -331,7 +331,7 @@ const BusinessDomainMap: React.FC = () => {
 					<Card className="mt-6">
 						<CardContent className="flex flex-col items-center justify-center py-12">
 							<Loader2 className="w-8 h-8 animate-spin text-muted-foreground mb-3" />
-							<div className="text-sm text-muted-foreground">Loading ontologies...</div>
+							<div className="text-sm text-muted-foreground">{t('loadingOntologies')}</div>
 						</CardContent>
 					</Card>
 				) : viewMode === 'graph' ? (
@@ -360,11 +360,11 @@ const BusinessDomainMap: React.FC = () => {
 								<div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
 									<Layers className="w-8 h-8 text-muted-foreground" />
 								</div>
-								<div className="text-lg font-medium mb-1">No virtual ontologies found</div>
+								<div className="text-lg font-medium mb-1">{t('noOntologiesFound')}</div>
 								<div className="text-sm text-muted-foreground text-center max-w-sm mb-4">
 									{searchQuery || filterTag !== 'all'
-										? 'Try adjusting your search or filters to find what you\'re looking for.'
-										: 'Get started by creating your first virtual ontology to map business objects to physical tables.'}
+										? t('noOntologiesFilteredHint')
+										: t('noOntologiesEmptyHint')}
 								</div>
 								{(searchQuery || filterTag !== 'all') ? (
 									<Button
@@ -373,12 +373,12 @@ const BusinessDomainMap: React.FC = () => {
 										className="gap-2"
 									>
 										<X className="w-4 h-4" />
-										Clear filters
+										{t('clearFilters')}
 									</Button>
 								) : (
 									<Button onClick={openCreateOntology} className="gap-2">
 										<Plus className="w-4 h-4" />
-										Create Virtual Ontology
+										{t('createVirtualOntology')}
 									</Button>
 								)}
 							</CardContent>
@@ -406,17 +406,17 @@ const BusinessDomainMap: React.FC = () => {
 			<Dialog open={pendingDelete !== null} onOpenChange={(open) => { if (!open) cancelDeleteOntology(); }}>
 				<DialogContent className="max-w-md">
 					<DialogHeader>
-						<DialogTitle>删除虚拟本体</DialogTitle>
+						<DialogTitle>{t('deleteOntologyTitle')}</DialogTitle>
 					</DialogHeader>
 					<div className="text-sm text-muted-foreground py-2">
-						确定要删除 <span className="font-semibold text-foreground">"{pendingDelete?.name}"</span> 吗？该操作不可撤销。
+						{t('deleteOntologyConfirm', { name: pendingDelete?.name })}
 					</div>
 					<div className="flex justify-end gap-2 pt-2">
 						<Button variant="outline" onClick={cancelDeleteOntology} disabled={deleting}>
-							取消
+							{t('common:cancel')}
 						</Button>
 						<Button variant="destructive" onClick={confirmDeleteOntology} disabled={deleting}>
-							{deleting ? '删除中...' : '删除'}
+							{deleting ? t('deleting') : t('common:delete')}
 						</Button>
 					</div>
 				</DialogContent>
@@ -426,11 +426,11 @@ const BusinessDomainMap: React.FC = () => {
 			<Dialog open={keyboardShortcutsOpen} onOpenChange={setKeyboardShortcutsOpen}>
 				<DialogContent className="max-w-md">
 					<DialogHeader>
-						<DialogTitle>Keyboard Shortcuts</DialogTitle>
+						<DialogTitle>{t('keyboardShortcutsTitle')}</DialogTitle>
 					</DialogHeader>
 					<div className="space-y-3">
-						<ShortcutRow keys={['⌘', 'K']} desc="Focus search" />
-						<ShortcutRow keys={['⌘', '⇧', 'N']} desc="Create new virtual ontology" />
+						<ShortcutRow keys={['⌘', 'K']} desc={t('shortcutFocusSearch')} />
+						<ShortcutRow keys={['⌘', '⇧', 'N']} desc={t('shortcutCreateOntology')} />
 					</div>
 				</DialogContent>
 			</Dialog>
@@ -459,6 +459,7 @@ const OntologyCard: React.FC<{
 	onEdit: () => void;
 	onDelete: () => void;
 }> = ({ ontology, spaceName, onView, onEdit, onDelete }) => {
+	const { t } = useTranslation('ontology');
 	const totalPhysical = ontology.virtualObjects.reduce((s, vo) => s + vo.physicalTables.length, 0);
 
 	return (
@@ -476,7 +477,7 @@ const OntologyCard: React.FC<{
 					</div>
 					<div className="flex flex-col items-end gap-1 shrink-0">
 						<Badge className={`${sensitivityConfig[ontology.sensitivity].className} border-0`}>
-							{sensitivityConfig[ontology.sensitivity].icon} {sensitivityConfig[ontology.sensitivity].label}
+							{sensitivityConfig[ontology.sensitivity].icon} {t(`sensitivity.${ontology.sensitivity}`)}
 						</Badge>
 						{spaceName && (
 							<Badge variant="outline" className="text-[10px]">
@@ -488,9 +489,9 @@ const OntologyCard: React.FC<{
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<div className="grid grid-cols-3 gap-3 p-3 bg-muted/30 rounded-lg border">
-					<MiniStat icon={<Boxes className="w-4 h-4 text-indigo-500" />} value={ontology.virtualObjects.length} label="Objects" />
-					<MiniStat icon={<Link2 className="w-4 h-4 text-emerald-500" />} value={ontology.virtualLinks.length} label="Links" />
-					<MiniStat icon={<Table2 className="w-4 h-4 text-purple-500" />} value={totalPhysical} label="Tables" />
+					<MiniStat icon={<Boxes className="w-4 h-4 text-indigo-500" />} value={ontology.virtualObjects.length} label={t('objects')} />
+					<MiniStat icon={<Link2 className="w-4 h-4 text-emerald-500" />} value={ontology.virtualLinks.length} label={t('links')} />
+					<MiniStat icon={<Table2 className="w-4 h-4 text-purple-500" />} value={totalPhysical} label={t('tables')} />
 				</div>
 
 				<div className="flex flex-wrap gap-2">
@@ -506,7 +507,7 @@ const OntologyCard: React.FC<{
 				<div className="space-y-2">
 					<div className="flex items-center gap-2 text-sm font-semibold">
 						<Boxes className="w-4 h-4 text-indigo-500" />
-						Virtual Objects
+						{t('virtualObjects')}
 						<span className="text-muted-foreground font-normal">({ontology.virtualObjects.length})</span>
 					</div>
 					<div className="space-y-2">
@@ -515,7 +516,7 @@ const OntologyCard: React.FC<{
 								<span className="text-base">{vo.icon || '📦'}</span>
 								<span className="font-medium truncate flex-1" title={vo.name}>{vo.name}</span>
 								<Badge variant="outline" className="text-[10px]">
-									{vo.physicalTables.length} tables
+									{t('tablesCount', { count: vo.physicalTables.length })}
 								</Badge>
 								{vo.derivedAttributes.length > 0 && (
 									<Badge variant="outline" className="text-[10px]">
@@ -527,7 +528,7 @@ const OntologyCard: React.FC<{
 						))}
 						{ontology.virtualObjects.length > 4 && (
 							<div className="text-xs text-muted-foreground font-medium">
-								+{ontology.virtualObjects.length - 4} more...
+								{t('moreObjects', { count: ontology.virtualObjects.length - 4 })}
 							</div>
 						)}
 					</div>
@@ -538,7 +539,7 @@ const OntologyCard: React.FC<{
 					<div className="space-y-2">
 						<div className="flex items-center gap-2 text-sm font-semibold">
 							<Link2 className="w-4 h-4 text-emerald-500" />
-							Virtual Links
+							{t('virtualLinks')}
 							<span className="text-muted-foreground font-normal">({ontology.virtualLinks.length})</span>
 						</div>
 						<div className="space-y-1">
@@ -551,7 +552,7 @@ const OntologyCard: React.FC<{
 										<ArrowRight className="w-3 h-3 text-muted-foreground" />
 										<span className="font-medium">{target?.name || '?'}</span>
 										<Badge variant="outline" className="text-[10px] ml-auto">
-											{joinTypeConfig[link.joinType].label}
+											{t(`joinType.${link.joinType}`)}
 										</Badge>
 									</div>
 								);
@@ -563,15 +564,15 @@ const OntologyCard: React.FC<{
 				<div className="flex pt-3 border-t gap-2 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
 					<Button variant="outline" size="sm" className="flex-1 gap-2" onClick={onView}>
 						<Eye className="w-4 h-4" />
-						View
+						{t('view')}
 					</Button>
 					<Button variant="secondary" size="sm" className="flex-1 gap-2" onClick={onEdit}>
 						<Pencil className="w-4 h-4" />
-						Edit
+						{t('edit')}
 					</Button>
 					<Button variant="outline" size="sm" className="gap-2 text-red-600 hover:text-red-700" onClick={onDelete}>
 						<Trash2 className="w-4 h-4" />
-						Delete
+						{t('common:delete')}
 					</Button>
 				</div>
 			</CardContent>

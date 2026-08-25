@@ -4,18 +4,11 @@ These are the shapes returned by ``POST /dqc/pii-terms/{termId}/discover`` and
 consumed by ``POST /dqc/pii-terms/{termId}/confirm`` (see the design doc's
 section 10 API surface).
 """
-from typing import List, Optional
+from typing import List
 
 from pydantic import BaseModel
 
 from .pii_term import LinkedFactor
-
-
-class DiscoverRequest(BaseModel):
-	"""Body of ``POST /dqc/pii-terms/{termId}/discover``."""
-
-	strategy: Optional[str] = None  # 'logic' | 'ai' | 'logic+ai'
-	score_threshold: Optional[float] = 0.75
 
 
 class DiscoverResult(BaseModel):
@@ -29,5 +22,5 @@ class DiscoverResult(BaseModel):
 class ConfirmRequest(BaseModel):
 	"""Body of ``POST /dqc/pii-terms/{termId}/confirm``."""
 
-	factorIds: List[str] = []          # factor ids to mark confirmed
-	removeFactorIds: List[str] = []    # factor ids to drop entirely
+	factorIds: List[str] = []          # 'topicId|factorId' keys to mark confirmed
+	removeFactorIds: List[str] = []    # 'topicId|factorId' keys to drop entirely

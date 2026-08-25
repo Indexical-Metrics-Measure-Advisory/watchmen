@@ -1,4 +1,4 @@
-import { BusinessChallenge, BusinessChallengeWithProblems, BusinessProblem } from "./business";
+import { BusinessChallengeWithHypotheses } from "./business";
 import { HypothesisType } from "./Hypothesis";
 import { MetricType } from "./Metric";
 import { Insight } from "./Hypothesis";
@@ -34,6 +34,7 @@ export interface ChallengeAnalysisResult {
   id: string;
   businessChallengeId: string;
   challengeInsightResult?: any;
+  challengeTitle?: string; // backend field; older payloads/mocks use `title`
   title: string;
   summary: string;
   createdAt: string;
@@ -43,13 +44,12 @@ export interface ChallengeAnalysisResult {
   validatedHypotheses: HypothesisType[];
   rejectedHypotheses: HypothesisType[];
   keyMetrics: MetricType[];
-  businessProblems: BusinessProblem[];
   recommendations: string[];
   nextSteps: string[];
-  questionResultDict?: { [problemId: string]: QuestionResult };
   hypothesisResultDict?: { [hypothesisId: string]: any };
   evaluation?: EvaluationChallengeAnswerResult;
-  challengeMarkdown?: string; 
+  challengeMarkdown?: string;
+  hypothesisAnalysisMarkdown?: string; 
 }
 
 export interface HypothesisResult {
@@ -62,7 +62,7 @@ export interface HypothesisResult {
 export interface SimulationResult {
   simulationId: string;
   result: ChallengeAnalysisResult;
-  challenge: BusinessChallengeWithProblems
+  challenge: BusinessChallengeWithHypotheses
 }
 
 export interface ChallengeAnalysisSummary {

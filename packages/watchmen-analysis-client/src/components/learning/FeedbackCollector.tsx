@@ -5,19 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react';
 import { HypothesisType } from '@/model/Hypothesis';
-import { BusinessProblem } from "@/model/business";
+import { BusinessChallenge } from "@/model/business";
 import { feedbackService } from '@/services/feedbackService';
 import { useToast } from '@/components/ui/use-toast';
 
 interface FeedbackCollectorProps {
   hypothesis?: HypothesisType | null;
-  businessProblem?: BusinessProblem | null;
+  businessChallenge?: BusinessChallenge | null;
   onFeedbackSubmitted?: () => void;
 }
 
 const FeedbackCollector: React.FC<FeedbackCollectorProps> = ({
   hypothesis,
-  businessProblem,
+  businessChallenge,
   onFeedbackSubmitted,
 }) => {
   const [rating, setRating] = useState<number | null>(null);
@@ -61,7 +61,7 @@ const FeedbackCollector: React.FC<FeedbackCollectorProps> = ({
       setIsSubmitting(true);
       
       await feedbackService.addFeedback({
-        hypothesisId: hypothesis?.id || businessProblem?.id,
+        hypothesisId: hypothesis?.id || businessChallenge?.id,
         rating,
         comment,
         outcome
@@ -98,7 +98,7 @@ const FeedbackCollector: React.FC<FeedbackCollectorProps> = ({
       <CardHeader className="pb-3">
         <CardTitle className="text-base">Provide Hypothesis Feedback</CardTitle>
         <CardDescription>
-          How would you rate the hypothesis "<span className="font-medium">{hypothesis?.title || businessProblem?.title}</span>"?
+          How would you rate the hypothesis "<span className="font-medium">{hypothesis?.title || businessChallenge?.title}</span>"?
         </CardDescription>
       </CardHeader>
       

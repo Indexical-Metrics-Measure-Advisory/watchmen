@@ -1,6 +1,6 @@
 import { aiAgentService } from '@/services/aiAgentService';
 import { BaseStepProcessor, StepExecutionContext, StepExecutionResult } from './BaseStepProcessor';
-import { BusinessChallengeWithProblems } from '@/model/business';
+import { BusinessChallengeWithHypotheses } from '@/model/business';
 import { cleanMetadataFields } from '@/utils/dataCleaningUtils';
 
 /**

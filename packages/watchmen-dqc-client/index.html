@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DataMO - Enterprise Data Governance Platform</title>
+    <script>
+      // Apply stored theme before paint to avoid FOUC
+      (function () {
+        try {
+          var t = localStorage.getItem('watchmen_dqc_client_theme');
+          if (!t) {
+            t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+          }
+          if (t === 'dark') document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

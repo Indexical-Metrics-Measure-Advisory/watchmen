@@ -7,22 +7,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import BusinessChallengeCard from '@/components/business/BusinessChallengeCard';
 import BusinessChallengeForm from '@/components/business/BusinessChallengeForm';
-import AIProblemSuggester from '@/components/business/AIProblemSuggester';
+import AIHypothesisGenerator from '@/components/hypothesis/AIHypothesisGenerator';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import { useToast } from '@/components/ui/use-toast';
 import { BusinessChallenge } from "@/model/business";
+import { HypothesisType } from '@/model/Hypothesis';
 import { businessService } from '@/services/businessService';
+import { hypothesisService } from '@/services/hypothesisService';
 
 const BusinessChallenges: React.FC = () => {
   const { collapsed } = useSidebar();
   const [challenges, setChallenges] = useState<BusinessChallenge[]>([]);
+  const [hypotheses, setHypotheses] = useState<HypothesisType[]>([]);
   const [challengeFormOpen, setChallengeFormOpen] = useState(false);
   const [editingChallenge, setEditingChallenge] = useState<Partial<BusinessChallenge> | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [aiSuggesterOpen, setAiSuggesterOpen] = useState(false);
+  const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false);
   const [selectedChallengeForAI, setSelectedChallengeForAI] = useState<BusinessChallenge | null>(null);
   
   const navigate = useNavigate();
@@ -33,8 +36,12 @@ const BusinessChallenges: React.FC = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const challengesData = await businessService.getChallenges();
+        const [challengesData, hypothesesData] = await Promise.all([
+          businessService.getChallenges(),
+          hypothesisService.getHypotheses()
+        ]);
         setChallenges(challengesData);
+        setHypotheses(hypothesesData);
       } catch (err) {
         setError('Failed to load data. Please try again later.');
         toast({
@@ -63,11 +70,11 @@ const BusinessChallenges: React.FC = () => {
     }
   };
 
-  const handleGenerateProblem = (challengeId: string) => {
+  const handleGenerateHypotheses = (challengeId: string) => {
     const challenge = challenges.find(c => c.id === challengeId);
     if (challenge) {
       setSelectedChallengeForAI(challenge);
-      setAiSuggesterOpen(true);
+      setAiGeneratorOpen(true);
     }
   };
   
@@ -75,30 +82,32 @@ const BusinessChallenges: React.FC = () => {
     navigate(`/challenge-analysis?challengeId=${challengeId}`);
   };
 
-  const handleSubmitGeneratedProblem = async (data: { title: string; description: string; businessChallengeId?: string }) => {
+  const handleSubmitGeneratedHypothesis = async (data: { title: string; description: string; businessChallengeId?: string; analysisMethod?: string }) => {
     try {
-      const newProblem = await businessService.createProblem({
+      await hypothesisService.createHypothesis({
         title: data.title,
         description: data.description,
         businessChallengeId: data.businessChallengeId,
-        status: 'open',
-        hypothesisIds: [],
+        analysisMethod: data.analysisMethod,
+        status: 'drafted',
+        confidence: 0,
+        metrics: [],
         createdAt: new Date().toISOString()
       });
       
       setSelectedChallengeForAI(null);
-      setAiSuggesterOpen(false);
+      setAiGeneratorOpen(false);
       
       toast({
-        title: "AI Problem Generated",
-        description: "Your AI-generated problem has been created successfully."
+        title: "AI Hypothesis Generated",
+        description: "Your AI-generated hypothesis has been created successfully."
       });
       
-      navigate(`/problems?challengeId=${data.businessChallengeId}`);
+      navigate(`/hypotheses?challengeId=${data.businessChallengeId}`);
     } catch (err) {
       toast({
         title: "Error",
-        description: "Failed to create problem. Please try again later.",
+        description: "Failed to create hypothesis. Please try again later.",
         variant: "destructive"
       });
     }
@@ -195,11 +204,11 @@ const BusinessChallenges: React.FC = () => {
                 key={challenge.id}
                 businessChallenge={challenge}
                 onEdit={handleEditChallenge}
-                onAddProblem={() => navigate(`/problems?challengeId=${challenge.id}`)}
-                onViewProblems={() => navigate(`/problems?challengeId=${challenge.id}`)}
-                onGenerateProblem={handleGenerateProblem}
+                onAddHypothesis={() => navigate(`/hypotheses?challengeId=${challenge.id}`)}
+                onViewHypotheses={() => navigate(`/hypotheses?challengeId=${challenge.id}`)}
+                onGenerateHypotheses={handleGenerateHypotheses}
                 onViewAnalysis={handleViewAnalysis}
-                problemsCount={challenge.problemIds.length}
+                hypothesesCount={hypotheses.filter(h => h.businessChallengeId === challenge.id).length}
               />
             ))}
             
@@ -223,11 +232,11 @@ const BusinessChallenges: React.FC = () => {
         onSubmit={handleSubmitChallenge}
       />
 
-      <AIProblemSuggester
-        open={aiSuggesterOpen}
-        onOpenChange={setAiSuggesterOpen}
+      <AIHypothesisGenerator
+        open={aiGeneratorOpen}
+        onOpenChange={setAiGeneratorOpen}
         businessChallenge={selectedChallengeForAI || undefined}
-        onGenerate={handleSubmitGeneratedProblem}
+        onGenerate={handleSubmitGeneratedHypothesis}
       />
     </div>
   );

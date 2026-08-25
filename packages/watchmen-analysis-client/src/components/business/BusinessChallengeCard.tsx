@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { ArrowUpRight, Edit, Plus, MoreHorizontal, Bot, Sparkles, Search, BarChart2 } from 'lucide-react';
+import { ArrowUpRight, Edit, MoreHorizontal, Bot, Sparkles, Search, BarChart2 } from 'lucide-react';
 import { BusinessChallenge } from "@/model/business";
 import { AgentCard as AgentCardType } from '@/model/A2ASpec';
 import { a2aService } from '@/services/a2aService';
@@ -24,30 +24,30 @@ import AIMonitoringDetail from '@/components/ai/AIMonitoringDetail';
 interface BusinessChallengeCardProps {
   businessChallenge: BusinessChallenge;
   onEdit: (id: string) => void;
-  onAddProblem: (challengeId: string) => void;
-  onViewProblems: (challengeId: string) => void;
-  onGenerateProblem: (challengeId: string) => void;
+  onAddHypothesis: (challengeId: string) => void;
+  onViewHypotheses: (challengeId: string) => void;
+  onGenerateHypotheses: (challengeId: string) => void;
   onViewAnalysis?: (id: string) => void;
-  problemsCount: number;
+  hypothesesCount: number;
   hasAnalyzedHypotheses?: boolean;
 }
 
 const BusinessChallengeCard: React.FC<BusinessChallengeCardProps> = ({
   businessChallenge,
   onEdit,
-  onAddProblem,
-  onViewProblems,
-  onGenerateProblem,
+  onAddHypothesis,
+  onViewHypotheses,
+  onGenerateHypotheses,
   onViewAnalysis,
-  problemsCount,
+  hypothesesCount,
   hasAnalyzedHypotheses = false
 }) => {
   const { id, title, description, createdAt } = businessChallenge;
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleViewProblems = () => {
-    navigate(`/problems?challengeId=${id}`);
+  const handleViewHypotheses = () => {
+    navigate(`/hypotheses?challengeId=${id}`);
   };
 
   const [showMonitoring, setShowMonitoring] = useState(false);
@@ -147,10 +147,6 @@ const BusinessChallengeCard: React.FC<BusinessChallengeCardProps> = ({
                     <Plus className="mr-2 h-4 w-4" />
                     <span>Generate Improvement Actions</span>
                   </MenubarItem> */}
-                  {/* <MenubarItem onClick={() => onGenerateProblem(id)}>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    <span>Generate AI Problem</span>
-                  </MenubarItem> */}
                   {onViewAnalysis && (
                   <MenubarItem onClick={() => onViewAnalysis(id)}>
                     <BarChart2 className="mr-2 h-4 w-4" />
@@ -233,19 +229,10 @@ const BusinessChallengeCard: React.FC<BusinessChallengeCardProps> = ({
         <div className="flex justify-between items-center mt-6 bg-muted/5 p-3 rounded-lg border border-border/5">
           <div className="text-sm flex items-center gap-2">
             <div className="flex items-center gap-1.5">
-              <span className="font-semibold text-base text-primary">{problemsCount}</span>
-              <span className="text-muted-foreground">Business Problems</span>
+              <span className="font-semibold text-base text-primary">{hypothesesCount}</span>
+              <span className="text-muted-foreground">Hypotheses</span>
             </div>
           </div>
-          {/* <Button 
-            variant="outline" 
-            size="sm" 
-            className="text-xs hover:bg-primary hover:text-primary-foreground transition-colors"
-            onClick={() => onAddProblem(id)}
-          >
-            <Plus className="mr-1.5 h-3 w-3" />
-            Add Problem
-          </Button> */}
         </div>
       </CardContent>
       
@@ -263,7 +250,7 @@ const BusinessChallengeCard: React.FC<BusinessChallengeCardProps> = ({
             variant="ghost" 
             size="sm" 
             className="text-xs hover:bg-primary/10 hover:text-primary transition-colors flex items-center"
-            onClick={() => onGenerateProblem(id)}
+            onClick={() => onGenerateHypotheses(id)}
           >
             <Sparkles className="mr-1.5 h-3.5 w-3.5" />
             Generate
@@ -285,9 +272,9 @@ const BusinessChallengeCard: React.FC<BusinessChallengeCardProps> = ({
             variant="ghost" 
             size="sm" 
             className="text-xs hover:bg-primary/10 hover:text-primary transition-colors flex items-center"
-            onClick={handleViewProblems}
+            onClick={handleViewHypotheses}
           >
-            Problems
+            Hypotheses
             <ArrowUpRight className="ml-1.5 h-3.5 w-3.5" />
           </Button>
         </div>

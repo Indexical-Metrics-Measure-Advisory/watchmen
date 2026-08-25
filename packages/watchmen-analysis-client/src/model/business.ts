@@ -1,34 +1,14 @@
-import { HypothesisWithMetrics } from "./Hypothesis";
-
-export interface BusinessProblem {
-  id: string;
-  title: string;
-  description: string;
-  businessChallengeId?: string;
-  status: 'open' | 'in_progress' | 'resolved';
-  hypothesisIds: string[];
-  metrics?: string[];
-  createdAt: string;
-  aiAnswer?: string;
-}
+import { HypothesisWithMetrics } from "@/model/Hypothesis";
 
 export interface BusinessChallenge {
   id: string;
   title: string;
   description: string;
-  problemIds: string[];
   createdAt?: string;
-  problems?: BusinessProblem[];
   datasetStartDate?: string;
   datasetEndDate?: string;
 }
 
-export interface BusinessProblemWithHypotheses extends BusinessProblem {
+export interface BusinessChallengeWithHypotheses extends BusinessChallenge {
   hypotheses: HypothesisWithMetrics[]
 }
-
-
-export interface BusinessChallengeWithProblems extends BusinessChallenge {
-  problems: BusinessProblemWithHypotheses[]
-}
-

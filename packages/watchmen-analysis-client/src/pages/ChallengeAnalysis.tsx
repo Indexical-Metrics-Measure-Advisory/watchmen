@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSidebar } from '@/contexts/SidebarContext';
-import { ArrowLeft, Loader2, BarChart2, Lightbulb, CheckCircle, XCircle, ArrowRight, Search, BrainCircuit, HelpCircle, Download, Edit3, ChevronDown, Target, TrendingUp, AlertTriangle, Calendar, Users, Clock } from 'lucide-react';
+import { ArrowLeft, Loader2, BarChart2, Lightbulb, CheckCircle, XCircle, ArrowRight, Search, BrainCircuit, HelpCircle, Download, Edit3, ChevronDown, Target, TrendingUp, AlertTriangle, Calendar, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +11,7 @@ import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import { ChallengeAnalysisResult } from '@/model/challengeAnalysis';
 import { challengeAnalysisService } from '@/services/challengeAnalysisService';
-import { BusinessChallengeWithProblems } from '@/model/business';
+import { BusinessChallengeWithHypotheses } from '@/model/business';
 
 const ChallengeAnalysis: React.FC = () => {
   const { collapsed } = useSidebar();
@@ -21,11 +21,10 @@ const ChallengeAnalysis: React.FC = () => {
   const analysisId = searchParams.get('analysisId');
   
   const [analysis, setAnalysis] = useState<ChallengeAnalysisResult | null>(null);
-  const [challenge, setChallenge] = useState<BusinessChallengeWithProblems | null>(null);
+  const [challenge, setChallenge] = useState<BusinessChallengeWithHypotheses | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [expandedProblems, setExpandedProblems] = useState<Set<string>>(new Set());
   const [selectedNavItem, setSelectedNavItem] = useState('overview');
   
   const { toast } = useToast();
@@ -59,39 +58,29 @@ const ChallengeAnalysis: React.FC = () => {
   };
 
   // Build list of validated hypotheses
-  const getValidatedHypotheses = (challenge:BusinessChallengeWithProblems,analysis: ChallengeAnalysisResult, problemId?: string) => {
-    if (!analysis || !analysis.hypothesisResultDict || !challenge || !challenge.problems) {
+  const getValidatedHypotheses = (challenge: BusinessChallengeWithHypotheses, analysis: ChallengeAnalysisResult) => {
+    if (!analysis || !analysis.hypothesisResultDict || !challenge || !challenge.hypotheses) {
       return [];
     }
 
+    const hypothesisResultDict = analysis.hypothesisResultDict;
     const validatedList: any[] = [];
 
-    // Loop through problems and hypotheses from challenge
-    challenge.problems.forEach(problem => {
-      // If problemId is specified, only process matching problem
-      if (problemId && problem.id !== problemId) {
-        return;
-      }
-      
-      if (problem.hypotheses && Array.isArray(problem.hypotheses)) {
-        problem.hypotheses.forEach(hypothesis => {
-          // Find corresponding validation results in analysis based on hypothesis id
-          const hypothesisData = analysis.hypothesisResultDict[hypothesis.id];
-          if (hypothesisData && hypothesisData.data_explain_dict && Array.isArray(hypothesisData.data_explain_dict)) {
-            hypothesisData.data_explain_dict.forEach((item: any) => {
-              if (item.hypothesisValidationFlag === true) {
-                validatedList.push({
-                  id: hypothesis.id,
-                  title: hypothesis.title,
-                  problemId: problem.id,
-                  description: hypothesis.description,
-                  problemTitle: problem.title,
-                  hypothesisValidation: item.hypothesisValidation,
-                  keyMetricChange: item.keyMetricChange,
-                  summaryFinding: item.summaryFinding,
-                  ...hypothesisData
-                });
-              }
+    // Loop through hypotheses directly attached to the challenge
+    challenge.hypotheses.forEach(hypothesis => {
+      // Find corresponding validation results in analysis based on hypothesis id
+      const hypothesisData = hypothesisResultDict[hypothesis.id];
+      if (hypothesisData && hypothesisData.data_explain_dict && Array.isArray(hypothesisData.data_explain_dict)) {
+        hypothesisData.data_explain_dict.forEach((item: any) => {
+          if (item.hypothesisValidationFlag === true) {
+            validatedList.push({
+              id: hypothesis.id,
+              title: hypothesis.title,
+              description: hypothesis.description,
+              hypothesisValidation: item.hypothesisValidation,
+              keyMetricChange: item.keyMetricChange,
+              summaryFinding: item.summaryFinding,
+              ...hypothesisData
             });
           }
         });
@@ -102,39 +91,29 @@ const ChallengeAnalysis: React.FC = () => {
   };
 
   // Build list of rejected hypotheses
-  const getRejectedHypotheses = (challenge:BusinessChallengeWithProblems, analysis: ChallengeAnalysisResult, problemId?: string) => {
-    if (!analysis || !analysis.hypothesisResultDict || !challenge || !challenge.problems) {
+  const getRejectedHypotheses = (challenge: BusinessChallengeWithHypotheses, analysis: ChallengeAnalysisResult) => {
+    if (!analysis || !analysis.hypothesisResultDict || !challenge || !challenge.hypotheses) {
       return [];
     }
 
+    const hypothesisResultDict = analysis.hypothesisResultDict;
     const rejectedList: any[] = [];
 
-    // Loop through problems and hypotheses from challenge
-    challenge.problems.forEach(problem => {
-      // If problemId is specified, only process matching problem
-      if (problemId && problem.id !== problemId) {
-        return;
-      }
-      
-      if (problem.hypotheses && Array.isArray(problem.hypotheses)) {
-        problem.hypotheses.forEach(hypothesis => {
-          // Find corresponding validation results in analysis based on hypothesis id
-          const hypothesisData = analysis.hypothesisResultDict[hypothesis.id];
-          if (hypothesisData && hypothesisData.data_explain_dict && Array.isArray(hypothesisData.data_explain_dict)) {
-            hypothesisData.data_explain_dict.forEach((item: any) => {
-              if (item.hypothesisValidationFlag === false) {
-                rejectedList.push({
-                  id: hypothesis.id,
-                  title: hypothesis.title,
-                  problemId: problem.id,
-                  description: hypothesis.description,
-                  problemTitle: problem.title,
-                  hypothesisValidation: item.hypothesisValidation,
-                  keyMetricChange: item.keyMetricChange,
-                  summaryFinding: item.summaryFinding,
-                  ...hypothesisData
-                });
-              }
+    // Loop through hypotheses directly attached to the challenge
+    challenge.hypotheses.forEach(hypothesis => {
+      // Find corresponding validation results in analysis based on hypothesis id
+      const hypothesisData = hypothesisResultDict[hypothesis.id];
+      if (hypothesisData && hypothesisData.data_explain_dict && Array.isArray(hypothesisData.data_explain_dict)) {
+        hypothesisData.data_explain_dict.forEach((item: any) => {
+          if (item.hypothesisValidationFlag === false) {
+            rejectedList.push({
+              id: hypothesis.id,
+              title: hypothesis.title,
+              description: hypothesis.description,
+              hypothesisValidation: item.hypothesisValidation,
+              keyMetricChange: item.keyMetricChange,
+              summaryFinding: item.summaryFinding,
+              ...hypothesisData
             });
           }
         });
@@ -251,24 +230,10 @@ const ChallengeAnalysis: React.FC = () => {
     );
   }
 
-  const toggleProblemExpansion = (problemId: string) => {
-    const newExpanded = new Set(expandedProblems);
-    if (newExpanded.has(problemId)) {
-      newExpanded.delete(problemId);
-    } else {
-      newExpanded.add(problemId);
-    }
-    setExpandedProblems(newExpanded);
-  };
-
   const navigationItems = [
     { id: 'overview', label: 'Challenge Overview', icon: Target },
-    ...(challenge.problems || []).map((problem, index) => ({
-      id: `problem${index + 1}`,
-      label: problem.title,
-      problemId: problem.id,
-      icon: problem.status === 'resolved' ? CheckCircle : problem.status === 'in_progress' ? TrendingUp : AlertTriangle
-    })),
+    { id: 'validated', label: 'Validated Hypotheses', icon: CheckCircle },
+    { id: 'rejected', label: 'Rejected Hypotheses', icon: XCircle },
     { id: 'summary', label: 'Summary and Action Tracking', icon: Calendar }
   ];
 
@@ -316,7 +281,7 @@ const ChallengeAnalysis: React.FC = () => {
               {/* Top Action Bar */}
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h1 className="text-2xl font-semibold">{analysis.title}</h1>
+                  <h1 className="text-2xl font-semibold">{analysis.challengeTitle ?? analysis.title}</h1>
                   <p className="text-muted-foreground">Last updated: {new Date().toLocaleDateString('en-US')}</p>
                 </div>
                 <div className="flex gap-2">
@@ -651,194 +616,45 @@ const ChallengeAnalysis: React.FC = () => {
                 </div>
               )}
               
-              {/* Problem Analysis Area */}
-              {selectedNavItem.startsWith('problem') && (() => {
-                const problemIndex = parseInt(selectedNavItem.replace('problem', '')) - 1;
-                const currentProblem = challenge?.problems?.[problemIndex];
-                
-                if (!currentProblem) return null;
-                
-                return (
-                  <div className="space-y-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          {currentProblem.status === 'resolved' ? (
-                            <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
-                          ) : currentProblem.status === 'in_progress' ? (
-                            <Clock className="mr-2 h-5 w-5 text-blue-500" />
-                          ) : (
-                            <AlertTriangle className="mr-2 h-5 w-5 text-red-500" />
-                          )}
-                          {currentProblem.title}
-                        </CardTitle>
-                        <CardDescription>
-                          {currentProblem.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {/* Problem Overview */}
-                        <div className="mb-6 p-4 bg-muted/50 rounded-lg">
-                          <h3 className="font-medium mb-2">Problem Overview</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {currentProblem.description}
-                          </p>
-                          <div className="mt-3">
-                            <Badge className="text-xs bg-blue-100 text-blue-800">
-                              Status: {currentProblem.status.charAt(0).toUpperCase() + currentProblem.status.slice(1)}
-                            </Badge>
-                          </div>
-                        </div>
-                      
-                      {/* Key Insights - Enhanced */}
-                      <div className="mb-8">
-                        <div className="flex items-center mb-4">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center mr-3">
-                            <Lightbulb className="h-4 w-4 text-white" />
-                          </div>
-                          <h3 className="text-lg font-semibold text-gray-900">Key Insights</h3>
-                          <div className="ml-auto">
-                            <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-1">
-                              AI Analysis Results
-                            </Badge>
-                          </div>
-                        </div>
-                        
-                        {analysis.questionResultDict && analysis.questionResultDict[currentProblem.id] ? (
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {/* Primary Insight - Question Analysis */}
-                            <div className="relative p-6 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-100 border-l-4 border-blue-500 shadow-lg hover:shadow-xl transition-all duration-300">
-                              <div className="flex items-center mb-3">
-                                <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center mr-3">
-                                  <BarChart2 className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                  <Badge className="text-xs bg-blue-500 text-white mb-1">
-                                    Core Analysis
-                                  </Badge>
-                                  <h4 className="font-semibold text-base text-gray-900">Problem Analysis Results</h4>
-                                </div>
-                              </div>
-                              <p className="text-sm text-gray-700 leading-relaxed">
-                                {analysis.questionResultDict[currentProblem.id].answerForQuestion}
-                              </p>
-                              <div className="absolute top-4 right-4">
-                                <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
-                              </div>
-                            </div>
-                            
-                            {/* Secondary Insight - Hypothesis Summary */}
-                            <div className="relative p-6 rounded-xl bg-gradient-to-br from-green-50 to-emerald-100 border-l-4 border-green-500 shadow-lg hover:shadow-xl transition-all duration-300">
-                              <div className="flex items-center mb-3">
-                                <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center mr-3">
-                                  <CheckCircle className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                  <Badge className="text-xs bg-green-500 text-white mb-1">
-                                    Key Findings
-                                  </Badge>
-                                  <h4 className="font-semibold text-base text-gray-900">Hypothesis Validation Summary</h4>
-                                </div>
-                              </div>
-                              <p className="text-sm text-gray-700 leading-relaxed">
-                                {analysis.questionResultDict[currentProblem.id].summaryForHypothesis}
-                              </p>
-                              <div className="absolute top-4 right-4">
-                                <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-                              </div>
-                            </div>
-                            
-                            {/* Action Items - Future Analysis */}
-                            <div className="relative p-6 rounded-xl bg-gradient-to-br from-purple-50 to-violet-100 border-l-4 border-purple-500 shadow-lg hover:shadow-xl transition-all duration-300">
-                              <div className="flex items-center mb-3">
-                                <div className="h-10 w-10 rounded-full bg-purple-500 flex items-center justify-center mr-3">
-                                  <TrendingUp className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                  <Badge className="text-xs bg-purple-500 text-white mb-1">
-                                    Future Analysis
-                                  </Badge>
-                                  <h4 className="font-semibold text-base text-gray-900">Recommended Analysis Directions</h4>
-                                </div>
-                              </div>
-                              <p className="text-sm text-gray-700 leading-relaxed">
-                                {analysis.questionResultDict[currentProblem.id].futureAnalysis}
-                              </p>
-                              <div className="absolute top-4 right-4">
-                                <div className="h-2 w-2 rounded-full bg-purple-500 animate-pulse"></div>
-                              </div>
-                            </div>
-                            
-                            {/* Business Actions - Highlighted */}
-                            <div className="relative p-6 rounded-xl bg-gradient-to-br from-orange-50 to-red-100 border-l-4 border-orange-500 shadow-lg hover:shadow-xl transition-all duration-300">
-                              <div className="flex items-center mb-3">
-                                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center mr-3">
-                                  <Target className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                  <Badge className="text-xs bg-gradient-to-r from-orange-500 to-red-500 text-white mb-1">
-                                    Action Recommendations
-                                  </Badge>
-                                  <h4 className="font-semibold text-base text-gray-900">Business Action Plan</h4>
-                                </div>
-                              </div>
-                              <p className="text-sm text-gray-700 leading-relaxed">
-                                {analysis.questionResultDict[currentProblem.id].futureBusinessAction}
-                              </p>
-                              <div className="absolute top-4 right-4">
-                                <div className="h-2 w-2 rounded-full bg-orange-500 animate-pulse"></div>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {analysis.insights?.slice(0, 2).map((insight, index) => (
-                              <div key={index} className="p-4 rounded-lg border bg-card">
-                                <div className="flex items-center mb-2">
-                                  <Badge 
-                                    className={`text-xs ${insight.type === 'opportunity' ? 'bg-green-100 text-green-800' : 
-                                      insight.type === 'risk' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}
-                                  >
-                                    {insight.type === 'opportunity' ? 'Opportunity' : insight.type === 'risk' ? 'Risk' : 'Insight'}
-                                  </Badge>
-                                  <Badge className="ml-2 text-xs" variant="outline">{insight.priority}</Badge>
-                                </div>
-                                <h4 className="font-medium text-sm mb-1">{insight.title}</h4>
-                                <p className="text-xs text-muted-foreground">{insight.description}</p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      
+              {/* Validated Hypotheses Area */}
+              {selectedNavItem === 'validated' && (
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
+                        Validated Hypotheses
+                      </CardTitle>
+                      <CardDescription>
+                        Hypotheses confirmed by the analysis for this business challenge
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
                       {/* Hypothesis Analysis Section */}
                       <div className="space-y-4">
                         <div className="flex items-center justify-between mb-3">
                           <h3 className="font-medium">Hypothesis Analysis</h3>
-                          <Button 
-                            variant="link" 
-                            size="sm" 
-                            className="text-primary" 
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="text-primary"
                             onClick={() => navigate(`/hypotheses?challengeId=${challengeId}`)}
                           >
                             View All Hypotheses
                             <ArrowRight className="ml-1 h-4 w-4" />
                           </Button>
                         </div>
-                        
-                        {/* Hypothesis Analysis Summary */}
-                        
-                        
+
                         {/* Validated Hypotheses List */}
                         <div className="bg-white rounded-lg border mb-4">
                           <div className="p-3 border-b bg-green-50">
                             <div className="flex items-center">
                               <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
-                              <h4 className="font-medium text-sm text-green-800">Validated Hypotheses ({getValidatedHypotheses(challenge, analysis, currentProblem.id).length})</h4>
+                              <h4 className="font-medium text-sm text-green-800">Validated Hypotheses ({getValidatedHypotheses(challenge, analysis).length})</h4>
                             </div>
                           </div>
                           <div className="divide-y">
-                            {getValidatedHypotheses(challenge, analysis, currentProblem.id).map((hypothesis, index) => (
+                            {getValidatedHypotheses(challenge, analysis).map((hypothesis, index) => (
                               <div key={`validated-${hypothesis.id}-${index}`} className="p-3 hover:bg-green-50/50">
                                 <div className="flex justify-between items-start mb-2">
                                   <div className="flex items-center">
@@ -846,7 +662,7 @@ const ChallengeAnalysis: React.FC = () => {
                                       <CheckCircle className="h-3 w-3 text-green-600" />
                                     </div>
                                     <h5 className="font-medium text-sm">
-                                      <button 
+                                      <button
                                         onClick={() => navigate(`/analysis?hypothesis=${hypothesis.id}`)}
                                         className="text-left hover:text-blue-600 hover:underline transition-colors"
                                       >
@@ -871,7 +687,7 @@ const ChallengeAnalysis: React.FC = () => {
                                 )}
                               </div>
                             ))}
-                            {getValidatedHypotheses(challenge, analysis, currentProblem.id).length === 0 && (
+                            {getValidatedHypotheses(challenge, analysis).length === 0 && (
                               <div className="p-4 text-center text-muted-foreground text-sm">
                                 No validated hypotheses found
                               </div>
@@ -879,58 +695,8 @@ const ChallengeAnalysis: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Rejected Hypotheses List */}
-                        <div className="bg-white rounded-lg border mb-4">
-                          <div className="p-3 border-b bg-red-50">
-                            <div className="flex items-center">
-                              <XCircle className="h-4 w-4 text-red-600 mr-2" />
-                              <h4 className="font-medium text-sm text-red-800">Rejected Hypotheses ({getRejectedHypotheses(challenge, analysis, currentProblem.id).length})</h4>
-                            </div>
-                          </div>
-                          <div className="divide-y">
-                            {getRejectedHypotheses(challenge, analysis, currentProblem.id).map((hypothesis, index) => (
-                              <div key={`rejected-${hypothesis.id}-${index}`} className="p-3 hover:bg-red-50/50">
-                                <div className="flex justify-between items-start mb-2">
-                                  <div className="flex items-center">
-                                    <div className="h-6 w-6 rounded-full bg-red-100 flex items-center justify-center mr-2">
-                                      <XCircle className="h-3 w-3 text-red-600" />
-                                    </div>
-                                    <h5 className="font-medium text-sm">
-                                      <button 
-                                        onClick={() => navigate(`/analysis?hypothesis=${hypothesis.id}`)}
-                                        className="text-left hover:text-blue-600 hover:underline transition-colors"
-                                      >
-                                        {hypothesis.hypothesis || `${hypothesis.title}`}
-                                      </button>
-                                    </h5>
-                                  </div>
-                                  <Badge variant="destructive" className="text-xs">
-                                    Rejected
-                                  </Badge>
-                                </div>
-                                <p className="text-xs text-muted-foreground mb-2">{hypothesis.hypothesisValidation || 'Hypothesis validation details'}</p>
-                                {hypothesis.keyMetricChange && (
-                                  <div className="text-xs text-red-700 mb-2">
-                                    <span className="font-medium">Key Metric Change:</span> {hypothesis.keyMetricChange}
-                                  </div>
-                                )}
-                                {hypothesis.summaryFinding && (
-                                  <div className="text-xs text-muted-foreground">
-                                    <span className="font-medium">Summary:</span> {hypothesis.summaryFinding}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                            {getRejectedHypotheses(challenge, analysis, currentProblem.id).length === 0 && (
-                              <div className="p-4 text-center text-muted-foreground text-sm">
-                                No rejected hypotheses found
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        
                         {/* Detailed Hypothesis Analysis Cards */}
-                        {getValidatedHypotheses(challenge, analysis, currentProblem.id).slice(0, 2).map((hypothesis) => (
+                        {getValidatedHypotheses(challenge, analysis).slice(0, 2).map((hypothesis) => (
                           <Collapsible key={hypothesis.id}>
                             <CollapsibleTrigger asChild>
                               <Button variant="outline" className="w-full justify-between p-4 h-auto">
@@ -981,7 +747,7 @@ const ChallengeAnalysis: React.FC = () => {
                                         </span>
                                       </div>
                                       <p className="text-xs text-blue-700">
-                                        {hypothesis.status === 'validated' 
+                                        {hypothesis.status === 'validated'
                                           ? 'This hypothesis has been validated with statistical significance (p<0.05).'
                                           : 'Initial testing shows promising results with 92% confidence interval.'}
                                       </p>
@@ -992,7 +758,7 @@ const ChallengeAnalysis: React.FC = () => {
                                           <TrendingUp className="h-3 w-3" />
                                         </div>
                                         <p className="text-xs">
-                                          <span className="font-medium">Positive Impact:</span> {hypothesis.confidence > 70 
+                                          <span className="font-medium">Positive Impact:</span> {hypothesis.confidence > 70
                                             ? 'Significant improvement in renewal rates by 7.2% across targeted segments.'
                                             : 'Moderate improvement in customer engagement metrics.'}
                                         </p>
@@ -1002,22 +768,22 @@ const ChallengeAnalysis: React.FC = () => {
                                           <Lightbulb className="h-3 w-3" />
                                         </div>
                                         <p className="text-xs">
-                                          <span className="font-medium">Key Insight:</span> {hypothesis.confidence > 70 
+                                          <span className="font-medium">Key Insight:</span> {hypothesis.confidence > 70
                                             ? 'Personalized messaging based on customer lifecycle stage shows 3x higher engagement.'
                                             : 'Customer segments respond differently to incentive structures.'}
                                         </p>
                                       </div>
                                     </div>
                                   </div>
-                                  
+
                                   {/* Recommendations and Action Items Section */}
                                   <div className="mt-4 pt-4 border-t">
                                     <div className="flex items-center justify-between mb-2">
                                       <h5 className="font-medium text-sm">Recommendations & Action Items</h5>
-                                      <Button 
-                                        variant="ghost" 
-                                        size="sm" 
-                                        className="text-xs" 
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-xs"
                                         onClick={() => navigate(`/hypotheses/${hypothesis.id}`)}
                                       >
                                         View Details
@@ -1039,8 +805,91 @@ const ChallengeAnalysis: React.FC = () => {
                     </CardContent>
                   </Card>
                 </div>
-                );
-              })()}
+              )}
+
+              {/* Rejected Hypotheses Area */}
+              {selectedNavItem === 'rejected' && (
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <XCircle className="mr-2 h-5 w-5 text-red-500" />
+                        Rejected Hypotheses
+                      </CardTitle>
+                      <CardDescription>
+                        Hypotheses disproven by the analysis for this business challenge
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {/* Hypothesis Analysis Section */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-medium">Hypothesis Analysis</h3>
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="text-primary"
+                            onClick={() => navigate(`/hypotheses?challengeId=${challengeId}`)}
+                          >
+                            View All Hypotheses
+                            <ArrowRight className="ml-1 h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        {/* Rejected Hypotheses List */}
+                        <div className="bg-white rounded-lg border mb-4">
+                          <div className="p-3 border-b bg-red-50">
+                            <div className="flex items-center">
+                              <XCircle className="h-4 w-4 text-red-600 mr-2" />
+                              <h4 className="font-medium text-sm text-red-800">Rejected Hypotheses ({getRejectedHypotheses(challenge, analysis).length})</h4>
+                            </div>
+                          </div>
+                          <div className="divide-y">
+                            {getRejectedHypotheses(challenge, analysis).map((hypothesis, index) => (
+                              <div key={`rejected-${hypothesis.id}-${index}`} className="p-3 hover:bg-red-50/50">
+                                <div className="flex justify-between items-start mb-2">
+                                  <div className="flex items-center">
+                                    <div className="h-6 w-6 rounded-full bg-red-100 flex items-center justify-center mr-2">
+                                      <XCircle className="h-3 w-3 text-red-600" />
+                                    </div>
+                                    <h5 className="font-medium text-sm">
+                                      <button
+                                        onClick={() => navigate(`/analysis?hypothesis=${hypothesis.id}`)}
+                                        className="text-left hover:text-blue-600 hover:underline transition-colors"
+                                      >
+                                        {hypothesis.hypothesis || `${hypothesis.title}`}
+                                      </button>
+                                    </h5>
+                                  </div>
+                                  <Badge variant="destructive" className="text-xs">
+                                    Rejected
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground mb-2">{hypothesis.hypothesisValidation || 'Hypothesis validation details'}</p>
+                                {hypothesis.keyMetricChange && (
+                                  <div className="text-xs text-red-700 mb-2">
+                                    <span className="font-medium">Key Metric Change:</span> {hypothesis.keyMetricChange}
+                                  </div>
+                                )}
+                                {hypothesis.summaryFinding && (
+                                  <div className="text-xs text-muted-foreground">
+                                    <span className="font-medium">Summary:</span> {hypothesis.summaryFinding}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                            {getRejectedHypotheses(challenge, analysis).length === 0 && (
+                              <div className="p-4 text-center text-muted-foreground text-sm">
+                                No rejected hypotheses found
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
               
               {/* Summary and Action Tracking */}
               {selectedNavItem === 'summary' && (

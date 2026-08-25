@@ -1,269 +1,122 @@
-import {TagDef, loadTags, saveTags} from '@/services/data/tuples/tag-types';
-import {generateUuid} from '@/services/data/tuples/utils';
+import {loadTags, saveTags, TagDef} from '@/services/data/tuples/tag-types';
+import {prettifyDateTimeToMinute} from '@/services/data/tuples/utils';
 import {Button} from '@/widgets/basic/button';
-import {ButtonInk} from '@/widgets/basic/types';
-import {EventTypes} from '@/widgets/events/types';
-import {useEventBus} from '@/widgets/events/event-bus';
+import {ICON_CREATED_AT, ICON_DELETE, ICON_LAST_MODIFIED_AT, ICON_SEARCH, ICON_TAG} from '@/widgets/basic/constants';
+import {FullWidthPage} from '@/widgets/basic/page';
 import {FullWidthPageHeaderContainer, PageTitle} from '@/widgets/basic/page-header';
 import {PageHeaderButtons} from '@/widgets/basic/page-header-buttons';
-import React, {useEffect, useState} from 'react';
+import {ButtonInk, TooltipAlignment} from '@/widgets/basic/types';
+import {useEventBus} from '@/widgets/events/event-bus';
+import {EventTypes} from '@/widgets/events/types';
+import {Lang} from '@/widgets/langs';
 import {
-	TagCardActions,
-	TagCardBody,
-	TagCardColorDot,
-	TagCardContainer,
-	TagCardDeleteBtn,
-	TagCardDescription,
-	TagCardEditBtn,
-	TagCardGrid,
-	TagCardMeta,
-	TagCardMetaItem,
-	TagCardTitle,
-	TagEditorActions,
-	TagEditorCancelBtn,
-	TagEditorColorInput,
-	TagEditorColorPicker,
-	TagEditorColorSwatch,
-	TagEditorField,
-	TagEditorInput,
-	TagEditorLabel,
-	TagEditorOverlay,
-	TagEditorPanel,
-	TagEditorSaveBtn,
-	TagEditorTextarea,
-	TagEditorTitle,
-	TagManagementContainer,
-	TagNoData,
-} from './widgets';
+	TupleCard,
+	TupleCardDescription,
+	TupleCardStatistics,
+	TupleCardStatisticsItem,
+	TupleCardTitle
+} from '@/widgets/tuple-workbench/tuple-card';
+import {TupleSearchButton, TupleSearchInput} from '@/widgets/tuple-workbench/tuple-search-bar/widgets';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import React, {ChangeEvent, useEffect, useRef, useState} from 'react';
+import {TagEditor} from './tag-editor';
+import {TagCardColorDot, TagCardDeleteButton, TagCardGrid, TagNoData, TagSearchBarContainer} from './widgets';
+
+const matchesSearch = (tag: TagDef, searchText: string): boolean => {
+	return (tag.name ?? '').toLowerCase().includes(searchText)
+		|| (tag.category ?? '').toLowerCase().includes(searchText)
+		|| (tag.description ?? '').toLowerCase().includes(searchText);
+};
 
 const TagManagement = () => {
-	const [tags, setTags] = useState<Array<TagDef>>([]);
-	const [editingTag, setEditingTag] = useState<TagDef | undefined>(undefined);
-	const [showEditor, setShowEditor] = useState(false);
-	const [expandedTagId, setExpandedTagId] = useState<string | null>(null);
 	const {fire} = useEventBus();
+	const searchRef = useRef<HTMLInputElement>(null);
+	const [tags, setTags] = useState<Array<TagDef>>([]);
+	const [searchText, setSearchText] = useState('');
 
-	const loadTagList = () => {
-		const data = loadTags();
-		setTags(data);
-	};
-
+	const reloadTags = () => setTags(loadTags());
 	useEffect(() => {
-		loadTagList();
+		reloadTags();
 	}, []);
 
-	const handleCreate = () => {
-		setEditingTag(undefined);
-		setExpandedTagId(null);
-		setShowEditor(true);
+	const onSearchChanged = (event: ChangeEvent<HTMLInputElement>) => setSearchText(event.target.value);
+	const onSearchClicked = () => {
+		searchRef.current?.focus();
+		searchRef.current?.select();
 	};
-
-	const handleEdit = (tag: TagDef) => {
-		setEditingTag(tag);
-		setShowEditor(true);
+	const onCreateClicked = () => {
+		fire(EventTypes.SHOW_DIALOG, <TagEditor onSaved={reloadTags}/>);
 	};
-
-	const handleDelete = (tag: TagDef) => {
+	const onEditClicked = (tag: TagDef) => () => {
+		fire(EventTypes.SHOW_DIALOG, <TagEditor tag={tag} onSaved={reloadTags}/>);
+	};
+	const onDeleteClicked = (tag: TagDef) => (event: React.MouseEvent<HTMLButtonElement>) => {
+		event.stopPropagation();
 		fire(EventTypes.SHOW_YES_NO_DIALOG,
-			`Are you sure to delete tag "${tag.name}"?`,
+			Lang.TAG.DELETE_CONFIRM.replace('{name}', tag.name),
 			() => {
-				const updated = tags.filter(t => t.tagId !== tag.tagId);
+				const updated = loadTags().filter(t => t.tagId !== tag.tagId);
 				saveTags(updated);
 				setTags(updated);
 				fire(EventTypes.HIDE_DIALOG);
 			},
-			() => fire(EventTypes.HIDE_DIALOG)
-		);
-	};
-
-	const handleSave = () => {
-		setShowEditor(false);
-		setEditingTag(undefined);
-		setExpandedTagId(null);
-		loadTagList();
-	};
-
-	const handleCancel = () => {
-		setShowEditor(false);
-		setEditingTag(undefined);
-	};
-
-	const toggleExpand = (tagId: string) => {
-		setExpandedTagId(prev => prev === tagId ? null : tagId);
+			() => fire(EventTypes.HIDE_DIALOG));
 	};
 
 	const renderTagCard = (tag: TagDef) => {
-		const isExpanded = expandedTagId === tag.tagId;
-
-		return (
-			<TagCardContainer
-				key={tag.tagId}
-				data-widget="tag-card"
-				onClick={() => !isExpanded && toggleExpand(tag.tagId)}
-			>
-				<TagCardBody onClick={isExpanded ? () => toggleExpand(tag.tagId) : undefined}>
-					<TagCardTitle>
-						<TagCardColorDot $color={tag.color} data-widget="tag-color-dot" />
-						<span>{tag.name}</span>
-					</TagCardTitle>
-					{tag.description ? (
-						<TagCardDescription>{tag.description}</TagCardDescription>
-					) : null}
-					<TagCardMeta>
-						{tag.category ? (
-							<TagCardMetaItem>{tag.category}</TagCardMetaItem>
-						) : null}
-						<TagCardMetaItem style={{display: 'flex', alignItems: 'center', gap: 4}}>
-							<TagCardColorDot $color={tag.color} style={{width: 8, height: 8, borderRadius: 2}} />
-							{tag.color}
-						</TagCardMetaItem>
-					</TagCardMeta>
-				</TagCardBody>
-
-				<TagCardActions>
-					<TagCardEditBtn
-						data-widget="tag-edit-btn"
-						onClick={(e) => { e.stopPropagation(); handleEdit(tag); }}
-					>
-						Edit
-					</TagCardEditBtn>
-					<TagCardDeleteBtn
-						data-widget="tag-delete-btn"
-						onClick={(e) => { e.stopPropagation(); handleDelete(tag); }}
-					>
-						Delete
-					</TagCardDeleteBtn>
-				</TagCardActions>
-			</TagCardContainer>
-		);
+		return <TupleCard key={tag.tagId} onClick={onEditClicked(tag)}>
+			<TupleCardTitle>
+				<TagCardColorDot $color={tag.color}/>
+				<span>{tag.name}</span>
+				<TagCardDeleteButton tooltip={{label: Lang.ACTIONS.DELETE, alignment: TooltipAlignment.CENTER}}
+				                     onClick={onDeleteClicked(tag)}>
+					<FontAwesomeIcon icon={ICON_DELETE}/>
+				</TagCardDeleteButton>
+			</TupleCardTitle>
+			<TupleCardDescription>{tag.description}</TupleCardDescription>
+			<TupleCardStatistics>
+				{tag.category
+					? <TupleCardStatisticsItem tooltip={{label: Lang.TAG.CATEGORY, alignment: TooltipAlignment.CENTER}}>
+						<FontAwesomeIcon icon={ICON_TAG}/>
+						<span>{tag.category}</span>
+					</TupleCardStatisticsItem>
+					: null}
+				<TupleCardStatisticsItem tooltip={{label: Lang.TAG.CREATED_AT, alignment: TooltipAlignment.CENTER}}>
+					<FontAwesomeIcon icon={ICON_CREATED_AT}/>
+					<span>{prettifyDateTimeToMinute(tag.createdAt)}</span>
+				</TupleCardStatisticsItem>
+				<TupleCardStatisticsItem tooltip={{label: Lang.TAG.LAST_MODIFIED_AT, alignment: TooltipAlignment.CENTER}}>
+					<FontAwesomeIcon icon={ICON_LAST_MODIFIED_AT}/>
+					<span>{prettifyDateTimeToMinute(tag.lastModifiedAt)}</span>
+				</TupleCardStatisticsItem>
+			</TupleCardStatistics>
+		</TupleCard>;
 	};
 
-		return (
-		<TagManagementContainer>
-			<FullWidthPageHeaderContainer>
-				<PageTitle>Tag Management</PageTitle>
-				<PageHeaderButtons>
-					<Button ink={ButtonInk.PRIMARY} onClick={handleCreate}>
-						Create Tag
-					</Button>
-				</PageHeaderButtons>
-			</FullWidthPageHeaderContainer>
+	const text = searchText.trim().toLowerCase();
+	const filteredTags = text.length === 0 ? tags : tags.filter(tag => matchesSearch(tag, text));
 
-			<div style={{flexGrow: 1, overflowY: 'auto'}}>
-				{tags.length === 0 ? (
-					<TagNoData>No tags found. Create your first tag to get started.</TagNoData>
-				) : (
-					<TagCardGrid>{tags.map(tag => renderTagCard(tag))}</TagCardGrid>
-				)}
-			</div>
-
-			{showEditor ? (
-				<TagEditorOverlay
-					onClick={(e: React.MouseEvent) => {
-						if (e.target === e.currentTarget) handleCancel();
-					}}
-				>
-					<TagEditorPanel>
-						<TagEditorTitle>
-							{editingTag ? 'Edit Tag' : 'Create Tag'}
-						</TagEditorTitle>
-
-						<TagEditorField>
-							<TagEditorLabel>Name *</TagEditorLabel>
-							<TagEditorInput
-								type="text"
-								value={editingTag?.name ?? ''}
-								placeholder="Tag name"
-								autoFocus
-								onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-									setEditingTag(prev => prev ? {...prev, name: e.target.value} : {tagId: '', name: e.target.value, color: '#1890ff', createdAt: '', lastModifiedAt: ''});
-								}}
-							/>
-						</TagEditorField>
-
-						<TagEditorField>
-							<TagEditorLabel>Color *</TagEditorLabel>
-							<TagEditorColorPicker>
-								{['#ff4d4f', '#fa8c16', '#faad14', '#52c41a', '#1890ff', '#2f54eb', '#722ed1', '#eb2f96', '#13c2c2', '#a0d911'].map(c => (
-									<TagEditorColorSwatch
-										key={c}
-										$color={c}
-										$selected={editingTag?.color === c}
-										onClick={() => setEditingTag(prev => prev ? {...prev, color: c} : {tagId: '', name: '', color: c, createdAt: '', lastModifiedAt: ''})}
-									/>
-								))}
-							</TagEditorColorPicker>
-							<TagEditorColorInput
-								type="text"
-								value={editingTag?.color ?? '#1890ff'}
-								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingTag(prev => prev ? {...prev, color: e.target.value} : {tagId: '', name: '', color: e.target.value, createdAt: '', lastModifiedAt: ''})}
-							/>
-						</TagEditorField>
-
-						<TagEditorField>
-							<TagEditorLabel>Category</TagEditorLabel>
-							<TagEditorInput
-								type="text"
-								value={editingTag?.category ?? ''}
-								placeholder="Optional category"
-								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingTag(prev => prev ? {...prev, category: e.target.value} : {tagId: '', name: '', color: '#1890ff', category: e.target.value, createdAt: '', lastModifiedAt: ''})}
-							/>
-						</TagEditorField>
-
-						<TagEditorField>
-							<TagEditorLabel>Description</TagEditorLabel>
-							<TagEditorTextarea
-								value={editingTag?.description ?? ''}
-								placeholder="Optional description"
-								onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditingTag(prev => prev ? {...prev, description: e.target.value} : {tagId: '', name: '', color: '#1890ff', description: e.target.value, createdAt: '', lastModifiedAt: ''})}
-							/>
-						</TagEditorField>
-
-						<TagEditorActions>
-							<TagEditorCancelBtn onClick={handleCancel}>Cancel</TagEditorCancelBtn>
-							<TagEditorSaveBtn
-								disabled={!editingTag?.name?.trim()}
-								onClick={() => {
-									if (!editingTag?.name?.trim()) return;
-									const tags = loadTags();
-									if (editingTag.tagId) {
-										// edit existing
-										const index = tags.findIndex(t => t.tagId === editingTag.tagId);
-										if (index !== -1) {
-											tags[index] = {
-												...tags[index],
-												name: editingTag.name.trim(),
-												color: editingTag.color,
-												category: editingTag.category?.trim() || undefined,
-												description: editingTag.description?.trim() || undefined,
-												lastModifiedAt: new Date().toISOString()
-											};
-										}
-									} else {
-										// create new
-										const newTag: TagDef = {
-											tagId: generateUuid(),
-											name: editingTag.name.trim(),
-											color: editingTag.color,
-											category: editingTag.category?.trim() || undefined,
-											description: editingTag.description?.trim() || undefined,
-											createdAt: new Date().toISOString(),
-											lastModifiedAt: new Date().toISOString()
-										};
-										tags.push(newTag);
-									}
-									saveTags(tags);
-									handleSave();
-								}}
-							>
-								{editingTag?.tagId ? 'Save' : 'Create'}
-							</TagEditorSaveBtn>
-						</TagEditorActions>
-					</TagEditorPanel>
-				</TagEditorOverlay>
-			) : null}
-		</TagManagementContainer>
-	);
+	return <FullWidthPage>
+		<FullWidthPageHeaderContainer>
+			<PageTitle>{Lang.TAG.LIST_TITLE}</PageTitle>
+			<PageHeaderButtons>
+				<Button ink={ButtonInk.PRIMARY} onClick={onCreateClicked}>{Lang.TAG.CREATE_TAG}</Button>
+			</PageHeaderButtons>
+		</FullWidthPageHeaderContainer>
+		<TagSearchBarContainer noIndent={false}>
+			<TupleSearchButton onClick={onSearchClicked}>
+				<FontAwesomeIcon icon={ICON_SEARCH}/>
+			</TupleSearchButton>
+			<TupleSearchInput placeholder={Lang.TAG.SEARCH_PLACEHOLDER}
+			                  value={searchText} onChange={onSearchChanged}
+			                  ref={searchRef}/>
+		</TagSearchBarContainer>
+		<TagCardGrid>
+			{filteredTags.length === 0
+				? <TagNoData>{Lang.TAG.NO_DATA}</TagNoData>
+				: filteredTags.map(renderTagCard)}
+		</TagCardGrid>
+	</FullWidthPage>;
 };
 
 export default TagManagement;

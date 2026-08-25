@@ -1,5 +1,5 @@
 import { AgentCard } from "@/model/A2ASpec";
-import { BusinessChallenge, BusinessChallengeWithProblems } from "@/model/business";
+import { BusinessChallenge } from "@/model/business";
 import { SimulationResult } from "@/model/challengeAnalysis";
 import { API_AI_URL, API_BASE_URL, checkResponse, getDefaultHeaders } from "@/utils/apiConfig";
 
@@ -64,8 +64,8 @@ class AIAgentService {
         return await checkResponse(response);
     }
 
-    //build_business_problem_simulation_environment
-    async build_business_problem_simulation_environment(challenge: BusinessChallenge): Promise<SimulationResult> {
+    //build_business_challenge_simulation_environment
+    async build_business_challenge_simulation_environment(challenge: BusinessChallenge): Promise<SimulationResult> {
         // Call the AI agent to evaluate the challenge
         const response = await fetch(`${API_AI_URL}/challenge/agent/simulate`, {
             method: 'POST',

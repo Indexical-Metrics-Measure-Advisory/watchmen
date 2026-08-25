@@ -61,6 +61,7 @@ export const formatRelativeTime = (input?: string | Date | null, locale = 'en', 
 const durationUnits = {
   en: { day: 'd', hour: 'h', minute: 'm', second: 's' },
   'zh-CN': { day: '天', hour: '小时', minute: '分', second: '秒' },
+  'zh-TW': { day: '天', hour: '小時', minute: '分', second: '秒' },
 } as const;
 
 export const formatDuration = (milliseconds: number, locale = 'en'): string => {

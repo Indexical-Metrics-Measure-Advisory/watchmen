@@ -6,34 +6,36 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { aiHypothesisService } from '@/services/aiHypothesisService';
-import { BusinessProblem } from '@/model/business';
+import { BusinessChallenge } from '@/model/business';
 
 interface AIHypothesisGeneratorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  businessProblem?: BusinessProblem
-  onGenerate: (data: { title: string; description: string; businessProblemId?: string }) => void;
+  businessChallenge?: BusinessChallenge
+  onGenerate: (data: { title: string; description: string; businessChallengeId?: string; analysisMethod?: string }) => void;
 }
 
 const AIHypothesisGenerator: React.FC<AIHypothesisGeneratorProps> = ({
   open,
   onOpenChange,
-  businessProblem,
+  businessChallenge,
   onGenerate,
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedTitle, setGeneratedTitle] = useState('');
   const [generatedDescription, setGeneratedDescription] = useState('');
+  const [generatedAnalysisMethod, setGeneratedAnalysisMethod] = useState<string | undefined>();
 
   const handleGenerate = async () => {
-    if (!businessProblem) return;
+    if (!businessChallenge) return;
     
     setIsGenerating(true);
     try {
-      const result = await aiHypothesisService.generateHypothesis(businessProblem); 
+      const result = await aiHypothesisService.generateHypothesis(businessChallenge.id); 
       
       setGeneratedTitle(result.response.hypothesis);
       setGeneratedDescription(result.response.description);
+      setGeneratedAnalysisMethod(result.response.analysisMethod);
     } catch (error) {
       console.error('Error generating hypothesis:', error);
       // TODO: Add error handling UI
@@ -46,13 +48,15 @@ const AIHypothesisGenerator: React.FC<AIHypothesisGeneratorProps> = ({
     onGenerate({
       title: generatedTitle,
       description: generatedDescription,
-      businessProblemId: businessProblem?.id
+      businessChallengeId: businessChallenge?.id,
+      analysisMethod: generatedAnalysisMethod
     });
     onOpenChange(false);
     
     // Reset the form
     setGeneratedTitle('');
     setGeneratedDescription('');
+    setGeneratedAnalysisMethod(undefined);
   };
 
 
@@ -63,16 +67,16 @@ const AIHypothesisGenerator: React.FC<AIHypothesisGeneratorProps> = ({
         <DialogHeader>
           <DialogTitle>Generate Hypothesis with AI</DialogTitle>
           <DialogDescription>
-            Create a hypothesis based on the business problem using AI assistance
+            Create a hypothesis based on the business challenge using AI assistance
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
-          {businessProblem && (
+          {businessChallenge && (
             <div className="bg-muted/50 p-4 rounded-md">
-              <div className="font-medium">Business Problem</div>
-              <h3 className="text-sm font-medium mt-1">{businessProblem.title}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{businessProblem.description}</p>
+              <div className="font-medium">Business Challenge</div>
+              <h3 className="text-sm font-medium mt-1">{businessChallenge.title}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{businessChallenge.description}</p>
             </div>
           )}
 

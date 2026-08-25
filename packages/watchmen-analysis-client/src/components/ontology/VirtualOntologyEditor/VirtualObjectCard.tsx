@@ -7,11 +7,12 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Topic } from '@/services/topicService';
 import { DataSource } from '@/services/dataSourceService';
-import { PhysicalTableMapping, VirtualLink, VirtualObject } from '@/model/ontology';
+import { OntologyGovernanceAttribute, PhysicalTableMapping, VirtualLink, VirtualObject } from '@/model/ontology';
 import { OntologyActions } from './useOntologyDraft';
 import { PhysicalTableEditor } from './PhysicalTableEditor';
 import { AttributesEditor } from './AttributesEditor';
 import { DerivedAttributesEditor } from './DerivedAttributesEditor';
+import { useTranslation } from 'react-i18next';
 
 /** Module-level constant so useMemo returns the same ref when there's no primary table. */
 const EMPTY_FIELDS: string[] = [];
@@ -27,7 +28,10 @@ export const VirtualObjectCard = React.memo<{
 	topicMap: Map<string, Topic>;
 	topicByName: Map<string, Topic>;
 	spaceSelected: boolean;
-}>(({ vo, expanded, actions, allObjects, allLinks, topics, dataSources, topicMap, topicByName, spaceSelected }) => {
+	/** Governance attributes keyed by attribute name; null when no governance data is available. */
+	governanceAttrs: Map<string, OntologyGovernanceAttribute> | null;
+}>(({ vo, expanded, actions, allObjects, allLinks, topics, dataSources, topicMap, topicByName, spaceSelected, governanceAttrs }) => {
+	const { t } = useTranslation('ontology');
 	const {
 		toggleObject, removeObject, updateObject,
 		addPhysicalTable, updatePhysicalTable, removePhysicalTable,
@@ -60,9 +64,9 @@ export const VirtualObjectCard = React.memo<{
 						value={vo.name}
 						onChange={e => updateObject(vo.id, { name: e.target.value })}
 						className="flex-1"
-						placeholder="Virtual object name"
+						placeholder={t('virtualObjectNamePlaceholder')}
 					/>
-					<Badge variant="outline" className="text-[10px]">{vo.physicalTables.length} tables</Badge>
+					<Badge variant="outline" className="text-[10px]">{t('tablesCount', { count: vo.physicalTables.length })}</Badge>
 					<Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeObject(vo.id)}>
 						<Trash2 className="w-4 h-4 text-red-500" />
 					</Button>
@@ -73,22 +77,22 @@ export const VirtualObjectCard = React.memo<{
 					<Input
 						value={vo.description}
 						onChange={e => updateObject(vo.id, { description: e.target.value })}
-						placeholder="Description"
+						placeholder={t('description')}
 						className="text-sm"
 					/>
 
 					{/* Data source binding */}
 					<div className="space-y-1">
-						<label className="text-xs font-medium text-muted-foreground">Data Source</label>
+						<label className="text-xs font-medium text-muted-foreground">{t('dataSource')}</label>
 						<Select
 							value={vo.datasourceId ?? '__none__'}
 							onValueChange={v => updateObject(vo.id, { datasourceId: v === '__none__' ? undefined : v })}
 						>
 							<SelectTrigger className="h-7 text-xs">
-								<SelectValue placeholder="Select a data source" />
+								<SelectValue placeholder={t('selectDataSource')} />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="__none__">(no data source)</SelectItem>
+								<SelectItem value="__none__">{t('noDataSource')}</SelectItem>
 								{dataSources.map(ds => (
 									<SelectItem key={ds.dataSourceId} value={ds.dataSourceId}>
 										{ds.name}
@@ -102,14 +106,14 @@ export const VirtualObjectCard = React.memo<{
 					{/* Physical tables */}
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
-							<span className="text-xs font-semibold uppercase text-muted-foreground">Physical Tables</span>
+							<span className="text-xs font-semibold uppercase text-muted-foreground">{t('physicalTables')}</span>
 							<Select onValueChange={(topicId) => {
 								const topic = topicMap.get(topicId);
 								if (topic) addPhysicalTable(vo.id, topic);
 							}}>
 								<SelectTrigger className="w-auto h-7 text-xs">
 									<Plus className="w-3 h-3 mr-1" />
-									Add table
+									{t('addTable')}
 								</SelectTrigger>
 								<SelectContent>
 									{topics.map(t => (
@@ -140,7 +144,7 @@ export const VirtualObjectCard = React.memo<{
 						))}
 					</div>
 
-					<AttributesEditor vo={vo} onAdd={addAttribute} onUpdate={updateAttribute} onRemove={removeAttribute} />
+					<AttributesEditor vo={vo} governanceAttrs={governanceAttrs} onAdd={addAttribute} onUpdate={updateAttribute} onRemove={removeAttribute} />
 
 					<DerivedAttributesEditor
 						vo={vo}

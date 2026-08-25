@@ -9,7 +9,9 @@ import {
 	ListChecks,
 	Lock,
 	LogOut,
+	Moon,
 	ShieldCheck,
+	Sun,
 	TableProperties,
 } from 'lucide-react';
 import { Toaster as Sonner } from '@/components/ui/sonner';
@@ -17,6 +19,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { useLocale } from '@/i18n/hooks/use-locale';
 import { isPiiEnabled } from '@/utils/utils';
 import { cn } from '@/lib/utils';
@@ -59,6 +62,7 @@ const AppShell: React.FC = () => {
 	const { user, logout } = useAuth();
 	const { t } = useTranslation(['common', 'nav']);
 	const { language, setLanguage } = useLocale();
+	const { theme, toggleTheme } = useTheme();
 	const { title, subtitle } = usePageTitle();
 
 	const getUserAvatar = (name: string) =>
@@ -66,7 +70,7 @@ const AppShell: React.FC = () => {
 
 	return (
 		<TooltipProvider>
-			<Sonner theme="dark" />
+			<Sonner theme={theme} />
 			<div className="min-h-screen flex w-full bg-background">
 				{/* Sidebar */}
 				<aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
@@ -137,6 +141,17 @@ const AppShell: React.FC = () => {
 								{subtitle && <span className="mt-0.5 text-xs text-muted-foreground">{subtitle}</span>}
 							</div>
 							<div className="flex items-center gap-2">
+								<Button
+									variant="ghost"
+									size="icon"
+									className="h-8 w-8"
+									onClick={toggleTheme}
+									title={theme === 'dark' ? t('common:switchToLight') : t('common:switchToDark')}
+								>
+									{theme === 'dark'
+										? <Sun className="h-4 w-4" />
+										: <Moon className="h-4 w-4" />}
+								</Button>
 								<select
 									value={language}
 									onChange={(e) => void setLanguage(e.target.value as 'en' | 'zh-CN')}

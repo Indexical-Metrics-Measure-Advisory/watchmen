@@ -1188,5 +1188,35 @@ export const Jp: LanguageDeclareType = {
 		NONAME_TOPIC_FACTOR: '名前のないファクター',
 		NONAME_BUCKET: '名前のないバケット',
 		NONAME_ENUM: '名前のない列挙'
+	},
+	PII: {
+		RELATED_TOPICS: '関連トピック',
+		SCAN_SCOPE: 'スキャン範囲',
+		NO_SCAN_TOPICS: 'この用語に関連付けられたトピックがありません。先に用語の編集でトピックを関連付けてください。',
+		ADD_FACTOR: 'ファクターを手動追加',
+		ADD_FACTOR_DIALOG_TITLE: 'ファクターを手動で紐付け',
+		ADD_FACTOR_TOPIC_LABEL: 'トピック',
+		ADD_FACTOR_FACTOR_LABEL: 'ファクター',
+		MATCH_SOURCE_TYPE: 'タイプ',
+		MATCH_SOURCE_KEYWORD: 'キーワード',
+		MATCH_SOURCE_MANUAL: '手動'
+	},
+	TAG: {
+		LIST_TITLE: 'タグ管理',
+		CREATE_TAG: 'タグを作成',
+		EDIT_TAG: 'タグを編集',
+		SEARCH_PLACEHOLDER: '名前、カテゴリ、説明で検索。',
+		NO_DATA: 'タグが見つかりません。最初のタグを作成してください。',
+		DELETE_CONFIRM: 'タグ「{name}」を削除してもよろしいですか？',
+		NAME: '名前',
+		NAME_PLACEHOLDER: 'タグ名。',
+		NAME_REQUIRED: '名前は必須です。',
+		COLOR: '色',
+		CATEGORY: 'カテゴリ',
+		CATEGORY_PLACEHOLDER: '任意のカテゴリ。',
+		DESCRIPTION: '説明',
+		DESCRIPTION_PLACEHOLDER: '任意の説明。',
+		CREATED_AT: '作成日時',
+		LAST_MODIFIED_AT: '最終更新日時'
 	}
 };

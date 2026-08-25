@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { BusinessChallengeWithProblems } from '@/model/business';
+import { BusinessChallenge, BusinessChallengeWithHypotheses } from '@/model/business';
 import { AgentCard } from '@/model/A2ASpec';
 import { analysis_service } from '@/services/analysisService';
 import { cleanMetadataFields } from '@/utils/dataCleaningUtils';
@@ -18,7 +18,7 @@ export interface AIAgentStep {
 }
 
 export interface AIAnalysisResult {
-  businessChallenge: BusinessChallengeWithProblems;
+  businessChallenge: BusinessChallenge;
   judgeChallengeResult: Record<string, unknown> | null;
   queryHistoryResult: Record<string, unknown> | null;
   queryKnowledgeBaseResult: Record<string, unknown> | null;
@@ -90,7 +90,7 @@ export const initialSteps: AIAgentStep[] = [
 
 export function useAgentEngine(
   currentAgent: AgentCard | null,
-  businessChallenge: BusinessChallengeWithProblems | null,
+  businessChallenge: BusinessChallenge | null,
   resourcesLoaded: { agentLoaded: boolean; challengeLoaded: boolean },
   onComplete?: (result: Record<string, unknown>) => void
 ) {
@@ -105,7 +105,7 @@ export function useAgentEngine(
   const [analysisResult, setAnalysisResult] = useState<AIAnalysisResult | null>(null);
   const [analysisConfirmed, setAnalysisConfirmed] = useState<boolean>(false);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
-  const [businessChallengeWithProblems, setBusinessChallengeWithProblems] = useState<BusinessChallengeWithProblems | null>(null);
+  const [businessChallengeWithProblems, setBusinessChallengeWithProblems] = useState<BusinessChallengeWithHypotheses | null>(null);
 
   // Initialize analysis result when challenge loads
   useEffect(() => {

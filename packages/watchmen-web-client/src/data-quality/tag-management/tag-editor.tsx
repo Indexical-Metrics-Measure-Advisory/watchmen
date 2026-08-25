@@ -1,23 +1,37 @@
-import {TagDef, PRESET_COLORS, createTag, loadTags, saveTags} from '@/services/data/tuples/tag-types';
+import {createTag, loadTags, PRESET_COLORS, saveTags, TagDef} from '@/services/data/tuples/tag-types';
+import {Button} from '@/widgets/basic/button';
+import {ButtonInk} from '@/widgets/basic/types';
+import {DialogBody, DialogFooter, DialogHeader, DialogLabel, DialogTitle} from '@/widgets/dialog/widgets';
+import {useEventBus} from '@/widgets/events/event-bus';
+import {EventTypes} from '@/widgets/events/types';
+import {Lang} from '@/widgets/langs';
 import React, {ChangeEvent, useState} from 'react';
+import {
+	TagEditorColorInput,
+	TagEditorColorPalette,
+	TagEditorColorSwatch,
+	TagEditorField,
+	TagEditorInput,
+	TagEditorInputLines,
+	TagEditorRequiredHint
+} from './widgets';
 
-interface TagEditorProps {
-	tag?: TagDef;
-	onSave: () => void;
-	onCancel: () => void;
-}
+const DEFAULT_COLOR = PRESET_COLORS[4];
 
-export const TagEditor = (props: TagEditorProps) => {
-	const {tag, onSave, onCancel} = props;
+export const TagEditor = (props: { tag?: TagDef; onSaved: () => void }) => {
+	const {tag, onSaved} = props;
 	const isEdit = !!tag;
 
+	const {fire} = useEventBus();
 	const [name, setName] = useState(tag?.name ?? '');
-	const [color, setColor] = useState(tag?.color ?? '#1890ff');
+	const [color, setColor] = useState(tag?.color ?? DEFAULT_COLOR);
 	const [category, setCategory] = useState(tag?.category ?? '');
 	const [description, setDescription] = useState(tag?.description ?? '');
 
-	const handleSave = () => {
-		if (!name.trim()) {
+	const nameValid = name.trim().length !== 0;
+
+	const onConfirmClicked = () => {
+		if (!nameValid) {
 			return;
 		}
 		const tags = loadTags();
@@ -32,99 +46,54 @@ export const TagEditor = (props: TagEditorProps) => {
 					description: description.trim() || undefined,
 					lastModifiedAt: new Date().toISOString()
 				};
-				saveTags(tags);
 			}
 		} else {
-			const newTag = createTag(name.trim(), color, category.trim() || undefined, description.trim() || undefined);
-			tags.push(newTag);
-			saveTags(tags);
+			tags.push(createTag(name.trim(), color, category.trim() || undefined, description.trim() || undefined));
 		}
-		onSave();
+		saveTags(tags);
+		fire(EventTypes.HIDE_DIALOG);
+		onSaved();
 	};
+	const onCancelClicked = () => fire(EventTypes.HIDE_DIALOG);
 
-	return (
-		<div style={{
-			position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-			background: 'rgba(0,0,0,0.3)', zIndex: 1000,
-			display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-			overflowY: 'auto', paddingTop: '10vh', paddingBottom: '10vh'
-		}} onClick={(e: React.MouseEvent) => {
-			if (e.target === e.currentTarget) onCancel();
-		}}>
-			<div style={{
-				background: 'var(--bg-color)', borderRadius: '8px',
-				boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-				padding: '24px', width: '420px', maxHeight: '80vh', overflowY: 'auto'
-			}}>
-				<h3 style={{margin: '0 0 16px 0', fontSize: '16px', fontWeight: 700}}>
-					{isEdit ? 'Edit Tag' : 'Create Tag'}
-				</h3>
-				<div style={{marginBottom: '12px'}}>
-					<label style={{fontSize: '12px', fontWeight: 600, marginBottom: '4px', display: 'block', color: 'var(--text-secondary)'}}>
-						Name *
-					</label>
-					<input
-						type="text" value={name} autoFocus
-						onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-						style={{height: 'var(--height)', padding: '0 8px', border: 'var(--border)', borderRadius: 'var(--border-radius)', fontSize: '14px', outline: 'none', width: '100%'}}
-					/>
-				</div>
-				<div style={{marginBottom: '12px'}}>
-			<label style={{fontSize: '12px', fontWeight: 600, marginBottom: '4px', display: 'block', color: 'var(--text-secondary)'}}>
-					Color *
-					</label>
-					<div style={{display: 'flex', flexWrap: 'wrap', gap: '6px'}}>
-						{PRESET_COLORS.map(c => (
-							<div
-								key={c}
-								onClick={() => setColor(c)}
-								style={{
-									width: '24px', height: '24px', borderRadius: '4px',
-									backgroundColor: c, cursor: 'pointer',
-									border: color === c ? '2px solid #000' : '2px solid transparent',
-									transform: color === c ? 'scale(1.1)' : 'scale(1)',
-									transition: 'all 150ms ease'
-								}}
-							/>
-						))}
-					</div>
-					<div style={{marginTop: '4px'}}>
-						<input
-							type="text" value={color}
-							onChange={(e: ChangeEvent<HTMLInputElement>) => setColor(e.target.value)}
-							style={{width: '120px', height: 'var(--height)', padding: '0 8px', border: 'var(--border)', borderRadius: 'var(--border-radius)', fontSize: '14px'}}
-						/>
-					</div>
-				</div>
-				<div style={{marginBottom: '12px'}}>
-			<label style={{fontSize: '12px', fontWeight: 600, marginBottom: '4px', display: 'block', color: 'var(--text-secondary)'}}>
-					Category
-					</label>
-					<input
-						type="text" value={category}
-						onChange={(e: ChangeEvent<HTMLInputElement>) => setCategory(e.target.value)}
-						style={{height: 'var(--height)', padding: '0 8px', border: 'var(--border)', borderRadius: 'var(--border-radius)', fontSize: '14px', outline: 'none', width: '100%'}}
-					/>
-				</div>
-				<div style={{marginBottom: '12px'}}>
-			<label style={{fontSize: '12px', fontWeight: 600, marginBottom: '4px', display: 'block', color: 'var(--text-secondary)'}}>
-					Description
-					</label>
-					<textarea
-						value={description}
-						onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
-						style={{padding: '8px', border: 'var(--border)', borderRadius: 'var(--border-radius)', fontSize: '14px', outline: 'none', resize: 'vertical', minHeight: '60px', width: '100%'}}
-					/>
-				</div>
-				<div style={{display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px'}}>
-					<button onClick={onCancel} style={{background: 'transparent', border: 'var(--border)', borderRadius: '4px', padding: '6px 16px', cursor: 'pointer', fontSize: '13px'}}>
-						Cancel
-					</button>
-					<button onClick={handleSave} disabled={!name.trim()} style={{background: 'var(--primary-color)', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 16px', cursor: 'pointer', fontSize: '13px'}}>
-						{isEdit ? 'Save' : 'Create'}
-					</button>
-				</div>
-			</div>
-		</div>
-	);
+	return <>
+		<DialogHeader>
+			<DialogTitle>{isEdit ? Lang.TAG.EDIT_TAG : Lang.TAG.CREATE_TAG}</DialogTitle>
+		</DialogHeader>
+		<DialogBody>
+			<TagEditorField>
+				<DialogLabel>{Lang.TAG.NAME}</DialogLabel>
+				<TagEditorInput value={name} placeholder={Lang.TAG.NAME_PLACEHOLDER} autoFocus={true}
+				                onChange={(event: ChangeEvent<HTMLInputElement>) => setName(event.target.value)}/>
+				{nameValid ? null : <TagEditorRequiredHint>{Lang.TAG.NAME_REQUIRED}</TagEditorRequiredHint>}
+			</TagEditorField>
+			<TagEditorField>
+				<DialogLabel>{Lang.TAG.COLOR}</DialogLabel>
+				<TagEditorColorPalette>
+					{PRESET_COLORS.map(c => {
+						return <TagEditorColorSwatch key={c} $color={c} $selected={color === c}
+						                             onClick={() => setColor(c)}/>;
+					})}
+				</TagEditorColorPalette>
+				<TagEditorColorInput value={color}
+				                     onChange={(event: ChangeEvent<HTMLInputElement>) => setColor(event.target.value)}/>
+			</TagEditorField>
+			<TagEditorField>
+				<DialogLabel>{Lang.TAG.CATEGORY}</DialogLabel>
+				<TagEditorInput value={category} placeholder={Lang.TAG.CATEGORY_PLACEHOLDER}
+				                onChange={(event: ChangeEvent<HTMLInputElement>) => setCategory(event.target.value)}/>
+			</TagEditorField>
+			<TagEditorField>
+				<DialogLabel>{Lang.TAG.DESCRIPTION}</DialogLabel>
+				<TagEditorInputLines value={description} placeholder={Lang.TAG.DESCRIPTION_PLACEHOLDER}
+				                     onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setDescription(event.target.value)}/>
+			</TagEditorField>
+		</DialogBody>
+		<DialogFooter>
+			<Button ink={ButtonInk.PRIMARY} disabled={!nameValid} onClick={onConfirmClicked}>
+				{isEdit ? Lang.ACTIONS.SAVE : Lang.TAG.CREATE_TAG}
+			</Button>
+			<Button ink={ButtonInk.WAIVE} onClick={onCancelClicked}>{Lang.ACTIONS.CANCEL}</Button>
+		</DialogFooter>
+	</>;
 };

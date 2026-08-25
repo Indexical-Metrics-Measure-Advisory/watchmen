@@ -13,7 +13,7 @@ import {
   Loader2, FileQuestion
 } from 'lucide-react';
 import { HypothesisType } from '@/model/Hypothesis';
-import { BusinessProblem } from "@/model/business";
+import { BusinessChallenge } from "@/model/business";
 import { OptimizationSuggestion } from '@/services/optimizationService';
 import { hypothesisService } from '@/services/hypothesisService';
 import { businessService } from '@/services/businessService';
@@ -24,7 +24,7 @@ import OptimizationSuggestions from '@/components/learning/OptimizationSuggestio
 const Learning: React.FC = () => {
   const [activeTab, setActiveTab] = useState('feedback');
   const [hypothesis, setHypothesis] = useState<HypothesisType | null>(null);
-  const [businessProblem, setBusinessProblem] = useState<BusinessProblem | null>(null);
+  const [businessChallenge, setBusinessChallenge] = useState<BusinessChallenge | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<KnowledgeEntry[]>([]);
@@ -37,15 +37,15 @@ const Learning: React.FC = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const hypothesisId = searchParams.get('hypothesis');
-    const businessProblemId = searchParams.get('businessProblemId');
+    const challengeId = searchParams.get('challengeId');
     const tab = searchParams.get('tab');
     
     if (tab && ['knowledge', 'feedback', 'optimization'].includes(tab)) {
       setActiveTab(tab);
     }
     
-    if (businessProblemId) {
-      loadBusinessProblem(businessProblemId);
+    if (challengeId) {
+      loadBusinessChallenge(challengeId);
     } else if (hypothesisId) {
       loadHypothesis(hypothesisId);
     } else {
@@ -59,7 +59,7 @@ const Learning: React.FC = () => {
       const data = await hypothesisService.getHypothesisById(id);
       if (data) {
         setHypothesis(data);
-        setBusinessProblem(null);
+        setBusinessChallenge(null);
       } else {
         toast({
           title: "Hypothesis Not Found",
@@ -81,27 +81,27 @@ const Learning: React.FC = () => {
     }
   };
   
-  const loadBusinessProblem = async (id: string) => {
+  const loadBusinessChallenge = async (id: string) => {
     setIsLoading(true);
     try {
-      const data = await businessService.getBusinessProblemById(id);
+      const data = await businessService.getBusinessChallengeById(id);
       if (data) {
-        setBusinessProblem(data);
+        setBusinessChallenge(data);
         setHypothesis(null);
       } else {
         toast({
-          title: "Business Problem Not Found",
-          description: "Unable to find the specified business problem",
+          title: "Business Challenge Not Found",
+          description: "Unable to find the specified business challenge",
           variant: "destructive"
         });
         
-        navigate('/problems');
+        navigate('/challenges');
       }
     } catch (error) {
-      console.error('Failed to load business problem:', error);
+      console.error('Failed to load business challenge:', error);
       toast({
         title: "Loading Failed",
-        description: "Unable to load business problem data",
+        description: "Unable to load business challenge data",
         variant: "destructive"
       });
     } finally {
@@ -116,8 +116,8 @@ const Learning: React.FC = () => {
         description: suggestion.description,
         type: suggestion.suggestionType
       }))}`);
-    } else if (businessProblem) {
-      navigate(`/problems?edit=${businessProblem.id}&suggestion=${encodeURIComponent(JSON.stringify({
+    } else if (businessChallenge) {
+      navigate(`/hypotheses?edit=${businessChallenge.id}&suggestion=${encodeURIComponent(JSON.stringify({
         title: suggestion.title,
         description: suggestion.description,
         type: suggestion.suggestionType
@@ -128,8 +128,8 @@ const Learning: React.FC = () => {
   const handleBack = () => {
     if (hypothesis) {
       navigate(`/analysis?hypothesis=${hypothesis.id}`);
-    } else if (businessProblem) {
-      navigate('/problems');
+    } else if (businessChallenge) {
+      navigate('/challenges');
     } else {
       navigate('/hypotheses');
     }
@@ -177,7 +177,7 @@ const Learning: React.FC = () => {
   
   const getCurrentItemTitle = () => {
     if (hypothesis) return hypothesis.title;
-    if (businessProblem) return businessProblem.title;
+    if (businessChallenge) return businessChallenge.title;
     return '';
   };
   
@@ -205,10 +205,10 @@ const Learning: React.FC = () => {
                   <BrainCircuit className="h-6 w-6 mr-2 text-primary" />
                   Learning and Optimization System
                 </h1>
-                {(hypothesis || businessProblem) && (
+                {(hypothesis || businessChallenge) && (
                   <div className="flex items-center text-muted-foreground mt-1">
-                    {businessProblem && (
-                      <><FileQuestion className="h-4 w-4 mr-1" /> Business Problem: </>
+                    {businessChallenge && (
+                      <><FileQuestion className="h-4 w-4 mr-1" /> Business Challenge: </>
                     )}
                     {hypothesis && (
                       <><Sparkles className="h-4 w-4 mr-1" /> Hypothesis: </>
@@ -225,15 +225,15 @@ const Learning: React.FC = () => {
               <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
               <p>Loading data...</p>
             </div>
-          ) : !hypothesis && !businessProblem ? (
+          ) : !hypothesis && !businessChallenge ? (
             <div className="glass-card p-10 text-center">
               <BrainCircuit className="h-16 w-16 mx-auto text-primary mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Please Select a Business Problem</h2>
+              <h2 className="text-xl font-semibold mb-2">Please Select a Business Challenge</h2>
               <p className="text-muted-foreground mb-6">
-                Select a business problem from the list to view and manage learning and optimization data
+                Select a business challenge from the list to view and manage learning and optimization data
               </p>
-              <Button onClick={() => navigate('/problems')}>
-                Browse Business Problems
+              <Button onClick={() => navigate('/challenges')}>
+                Browse Business Challenges
               </Button>
             </div>
           ) : (
@@ -329,7 +329,7 @@ const Learning: React.FC = () => {
                 {/* <TabsContent value="knowledge" className="mt-0">
                   <KnowledgeBase 
                     relatedHypothesis={hypothesis}
-                    relatedBusinessProblem={businessProblem}
+                    relatedBusinessChallenge={businessChallenge}
                   />
                 </TabsContent> */}
                 
@@ -338,7 +338,7 @@ const Learning: React.FC = () => {
                     <div className="col-span-1">
                       <FeedbackCollector 
                         hypothesis={hypothesis}
-                        businessProblem={businessProblem}
+                        businessChallenge={businessChallenge}
                         onFeedbackSubmitted={() => toast({
                           title: "Feedback Submitted",
                           description: "Your feedback has been recorded and will be used to optimize the system."
@@ -348,7 +348,7 @@ const Learning: React.FC = () => {
                     {/* <div className="col-span-2">
                       <KnowledgeBase 
                         relatedHypothesis={hypothesis}
-                        relatedBusinessProblem={businessProblem}
+                        relatedBusinessChallenge={businessChallenge}
                       />
                     </div> */}
                   </div>
@@ -381,7 +381,7 @@ const Learning: React.FC = () => {
                     </div>
                     <OptimizationSuggestions 
                       hypothesis={hypothesis}
-                      businessProblem={businessProblem}
+                      businessChallenge={businessChallenge}
                       onApplySuggestion={handleApplySuggestion}
                     />
                   </div>

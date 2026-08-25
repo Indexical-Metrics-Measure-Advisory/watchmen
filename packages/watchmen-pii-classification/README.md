@@ -6,8 +6,6 @@ discovery and **lineage impact analysis**. Implements the design documented in
 
 This package depends on:
 
-- `watchmen-search` — the AI recommendation channel (vector similarity)
-- `watchmen-metricflow` — upstream lineage (`MetricLineageResolver`)
 - `watchmen-meta` / `watchmen-model` — `TupleService`, `Topic`/`Factor`/`Pipeline`
 - `watchmen-rest` / `watchmen-auth` — HTTP + principal plumbing
 
@@ -23,12 +21,11 @@ src/watchmen_pii/
 ├── model/                       # PIIClassificationTerm, LinkedFactor, report/discovery models
 ├── meta/                        # PIITermService(TupleService) + PIITermShaper
 ├── service/
-│   ├── logic_matcher.py         # FactorType + keyword matching (the "logic" channel)
-│   ├── ai_recommender.py        # watchmen-search-backed AI recommendations
-│   ├── factor_discovery_service.py  # orchestrates logic + AI, merges results
-│   ├── upstream_lineage.py      # wraps MetricLineageResolver.trace_upstream_routes
-│   ├── downstream_lineage.py    # NEW trace_downstream_routes (mirrors upstream)
-│   ├── pii_lineage_report_service.py # aggregates up/down/metrics/encryption -> PiiLineageReport
+│   ├── logic_matcher.py         # FactorType + keyword matching
+│   ├── factor_discovery_service.py  # scoped discovery, manual factor linking, confirm
+│   ├── upstream_lineage.py      # self-implemented upstream tracer (mirrors downstream)
+│   ├── downstream_lineage.py    # self-implemented downstream tracer
+│   ├── pii_lineage_report_service.py # aggregates up/down/encryption -> PiiLineageReport
 │   └── pii_report_service.py    # term overview + global dashboard + CSV/xlsx export
 ├── router/pii_router.py         # single APIRouter mounted under /dqc/pii
 ├── util/trans.py                # per-package transaction wrappers
@@ -47,8 +44,9 @@ mounted under `/dqc/pii` by the rest-dqc host.
 | GET | `/dqc/pii-terms/{termId}` | load one term |
 | PUT | `/dqc/pii-terms/{termId}` | update a term |
 | DELETE | `/dqc/pii-terms/{termId}` | delete a term |
-| POST | `/dqc/pii-terms/{termId}/discover` | run logic/AI discovery; writes back `linkedFactors` |
-| POST | `/dqc/pii-terms/{termId}/confirm` | confirm / drop linked factors |
+| POST | `/dqc/pii-terms/{termId}/discover` | run logic discovery within the term's `topicIds` scope; writes back `linkedFactors` |
+| POST | `/dqc/pii-terms/{termId}/factors` | manually link one factor (`{topicId, factorId}`) to the term |
+| POST | `/dqc/pii-terms/{termId}/confirm` | confirm / drop linked factors (keys are `topicId|factorId`) |
 | POST | `/dqc/pii-terms/{termId}/lineage` | build the upstream + downstream lineage report |
 | GET | `/dqc/pii-report` | global dashboard (by level / category / high-risk / top-impact) |
 | POST | `/dqc/pii-report/export/{csv\|xlsx}` | download the overview table |
@@ -101,6 +99,7 @@ CREATE TABLE pii_classification_terms (
     data_level           VARCHAR(64),
     owner_department     VARCHAR(128),
     match_strategy       VARCHAR(16),
+    topic_ids            MEDIUMTEXT,
     factor_type_patterns TEXT,
     keyword_patterns     TEXT,
     linked_factors       MEDIUMTEXT,
@@ -115,24 +114,15 @@ CREATE TABLE pii_classification_terms (
 ```
 
 PostgreSQL / MSSQL / Oracle equivalents follow the same column set with
-vendor-appropriate types. The three list fields
-(`factor_type_patterns`, `keyword_patterns`, `linked_factors`) are stored as
-JSON-encoded text by `PIITermShaper`.
+vendor-appropriate types. The four list fields
+(`topic_ids`, `factor_type_patterns`, `keyword_patterns`, `linked_factors`)
+are stored as JSON-encoded text by `PIITermShaper`.
 
 ## Configuration
 
 | Env var | Default | Purpose |
 |---|---|---|
 | `PII_CLASSIFICATION_ENABLED` | `false` | Host-side flag (`watchmen-rest-dqc`); the PII router and seed import are only wired in when `true` |
-| `PII_AI_CHANNEL_ENABLED` | `false` | Enable the AI recommendation channel. **Off in the first version** — discovery is logic matching plus manual mapping only |
-| `PII_SEARCH_DB_PATH` | `./data/pii_vectors` | LanceDB path for the factor vector index (AI channel only) |
-
-The AI channel is **optional and off by default**. Only when
-`PII_AI_CHANNEL_ENABLED=true` *and* `AZURE_OPENAI_API_KEY` /
-`AZURE_OPENAI_ENDPOINT` / `AZURE_OPENAI_DEPLOYMENT` are set does the router
-build an `AIRecommender` on first use; otherwise discovery is logic-only.
-The `watchmen-search` import inside `ai_recommender.py` is lazy, so running
-with the AI channel off never touches the search stack at runtime.
 
 ## Tests
 
@@ -144,24 +134,28 @@ poetry run pytest tests/
 Tests are intentionally storage-free:
 
 - `test_logic_matcher.py` — type/keyword scoring + dedup
-- `test_factor_discovery.py` — `_merge` dedup, `confirm`, seed default count
-- `test_downstream_lineage.py` — builds real `Pipeline`/`Topic` objects and
-  stubs `_load_all_pipelines`/`_resolve_topic` to verify 2-hop reachability,
-  depth capping and cycle/empty handling
-- `test_ai_recommender.py` — fake `SemanticSearchService` (no network)
+- `test_factor_discovery.py` — `_merge` dedup, topicIds-scoped discovery,
+  manual `add_factor`, key-based `confirm`, seed default count
+- `test_downstream_lineage.py` / `test_upstream_lineage.py` — build real
+  `Pipeline`/`Topic` objects and stub `_load_all_pipelines`/`_resolve_topic`
+  to verify 2-hop reachability, depth capping and cycle/empty handling
 - `test_pii_term_service.py` — shaper JSON round-trip
 
 ## Design notes
 
-- **Downstream lineage** is implemented inside this package
-  (`service/downstream_lineage.py`), mirroring the upstream resolver's
-  traversal but inverted: it finds pipelines whose trigger topic is the source
-  (`pipeline.topicId == topic_id`) and walks to their write targets.
-  `watchmen-metricflow` is left untouched.
-- **Graph payload** (`PiiGraphData`) reuses the node/edge string kinds of
-  `watchmen-metricflow`'s `LineageNodeType` / `LineageEdgeKind`
-  (`topic_factor`, `pipeline`, `metric`, `maps_to`, `reads_from`, `produces`)
-  so the existing DQC frontend graph renderer works unchanged.
+- **Discovery scope** is declared per term via `topicIds`: only these topics
+  are scanned by the logic matcher. Factors can also be linked manually
+  (`matchSource='manual'`, always confirmed); confirmed and manual links are
+  never overwritten by automatic discovery.
+- **Lineage** (both directions) is implemented inside this package.
+  `service/upstream_lineage.py` finds the pipelines that *write* the current
+  topic+factor and walks to their read sources;
+  `service/downstream_lineage.py` finds pipelines whose trigger topic is the
+  source (`pipeline.topicId == topic_id`) and walks to their write targets.
+  There is no dependency on `watchmen-metricflow`.
+- **Graph payload** (`PiiGraphData`) uses package-owned node/edge string
+  kinds (`topic_factor`, `pipeline`, `maps_to`, `reads_from`, `produces`)
+  defined in `model/report.py`.
 - **Export** is the project's first CSV/xlsx helper; CSV uses stdlib `csv`,
   xlsx uses `openpyxl`, returned via `starlette.responses.Response` (same
   media-type pattern as the glossary YAML export).

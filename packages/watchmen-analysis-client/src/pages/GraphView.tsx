@@ -16,7 +16,7 @@ import '@xyflow/react/dist/style.css';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import GraphToolbar from '@/components/graph/GraphToolbar';
-import { ChallengeNode, ProblemNode, HypothesisNode } from '@/components/graph/NodeTypes';
+import { ChallengeNode, HypothesisNode } from '@/components/graph/NodeTypes';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,7 +31,6 @@ import { hypothesisService } from '@/services/hypothesisService';
 
 const nodeTypes = {
   challenge: ChallengeNode,
-  problem: ProblemNode,
   hypothesis: HypothesisNode,
 };
 
@@ -98,7 +97,6 @@ const FlowContent = ({ onEntitySelect }: { onEntitySelect: (entity: any) => void
     // Automatically distribute nodes in a force-directed layout
     const nodesByType = {
       challenge: nodes.filter(node => node.type === 'challenge'),
-      problem: nodes.filter(node => node.type === 'problem'),
       hypothesis: nodes.filter(node => node.type === 'hypothesis'),
     };
     
@@ -111,25 +109,16 @@ const FlowContent = ({ onEntitySelect }: { onEntitySelect: (entity: any) => void
       };
     });
     
-    // Position problems in the middle
-    nodesByType.problem.forEach((node, i) => {
-      const spacing = window.innerWidth / (nodesByType.problem.length + 1);
+    // Position hypotheses at the bottom
+    nodesByType.hypothesis.forEach((node, i) => {
+      const spacing = window.innerWidth / (nodesByType.hypothesis.length + 1);
       node.position = { 
         x: spacing * (i + 1) - 100, 
         y: 300 
       };
     });
     
-    // Position hypotheses at the bottom
-    nodesByType.hypothesis.forEach((node, i) => {
-      const spacing = window.innerWidth / (nodesByType.hypothesis.length + 1);
-      node.position = { 
-        x: spacing * (i + 1) - 100, 
-        y: 500 
-      };
-    });
-    
-    setNodes([...nodesByType.challenge, ...nodesByType.problem, ...nodesByType.hypothesis]);
+    setNodes([...nodesByType.challenge, ...nodesByType.hypothesis]);
     
     // Check URL parameters for initial highlight
     const params = new URLSearchParams(location.search);
@@ -177,10 +166,6 @@ const FlowContent = ({ onEntitySelect }: { onEntitySelect: (entity: any) => void
           // console.log('Fetching challenge data for id:', id);
           entityData = await businessService.getBusinessChallengeById(id);
           break;
-        case 'problem':
-          // console.log('Fetching problem data for id:', id);
-          entityData = await businessService.getBusinessProblemById(id);
-          break;
         case 'hypothesis':
           // console.log('Finding hypothesis data for id:', id, 'in hypotheses:', hypotheses);
           entityData = hypotheses.find(h => h.id === id);
@@ -191,7 +176,7 @@ const FlowContent = ({ onEntitySelect }: { onEntitySelect: (entity: any) => void
       if (entityData) {
         const entityToSelect = {
           id,
-          type: type as 'challenge' | 'problem' | 'hypothesis',
+          type: type as 'challenge' | 'hypothesis',
           data: {
             ...node.data,
             ...entityData,
@@ -294,7 +279,7 @@ const GraphView: React.FC = () => {
   const navigate = useNavigate();
   const [selectedEntity, setSelectedEntity] = useState<{
     id: string;
-    type: 'challenge' | 'problem' | 'hypothesis';
+    type: 'challenge' | 'hypothesis';
     data: any;
   } | null>(null);
 
@@ -314,9 +299,6 @@ const GraphView: React.FC = () => {
     switch(selectedEntity.type) {
       case 'challenge':
         navigate(`/challenges?id=${selectedEntity.id}`);
-        break;
-      case 'problem':
-        navigate(`/problems?id=${selectedEntity.id}`);
         break;
       case 'hypothesis':
         navigate(`/analysis?hypothesis=${selectedEntity.id}`);
@@ -368,21 +350,10 @@ const GraphView: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className={
                             selectedEntity.type === 'challenge' ? "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300" :
-                            selectedEntity.type === 'problem' ? "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300" :
                             "bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300"
                           }>
                             {selectedEntity.type.charAt(0).toUpperCase() + selectedEntity.type.slice(1)}
                           </Badge>
-                          
-                          {selectedEntity.type == 'problem' &&  (
-                            <Badge variant="outline" className={
-                              selectedEntity.data.status === 'open' ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" :
-                              selectedEntity.data.status === 'in_progress' ? "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300" :
-                              "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                            }>
-                              {selectedEntity.data.status === 'in_progress' ? 'In Progress' : selectedEntity.data.status.charAt(0).toUpperCase() + selectedEntity.data.status.slice(1)}
-                            </Badge>
-                          )}
                           
                           {selectedEntity.type == 'hypothesis' && (
                             <Badge variant="outline" className={

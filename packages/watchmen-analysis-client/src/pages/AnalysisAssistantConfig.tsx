@@ -43,7 +43,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 const languageOptions = [
-  { value: 'zh-CN', label: 'Chinese' },
+  { value: 'zh-CN', label: 'Chinese (Simplified)' },
+  { value: 'zh-TW', label: 'Chinese (Traditional)' },
   { value: 'en', label: 'English' },
   { value: 'ja', label: 'Japanese' },
   { value: 'es', label: 'Spanish' },

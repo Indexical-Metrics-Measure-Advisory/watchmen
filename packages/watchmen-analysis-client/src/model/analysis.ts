@@ -71,6 +71,7 @@ export interface DataExplain {
   hypothesisValidationFlag: boolean
   keyMetricChange :string
   summaryFinding:string
+  confidence?: number // system confidence 0-100, produced by the validation LLM
 }
 
 

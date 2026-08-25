@@ -9,6 +9,7 @@ import { OntologyActions } from './useOntologyDraft';
 import { Field } from './shared';
 import { FilterRowEditor } from './FilterRowEditor';
 import { getLinkSideFields, parseLinkFilterField } from './utils';
+import { Trans, useTranslation } from 'react-i18next';
 
 export const VirtualLinkCard = React.memo<{
 	idx: number;
@@ -16,6 +17,7 @@ export const VirtualLinkCard = React.memo<{
 	actions: OntologyActions;
 	allObjects: VirtualObject[];
 }>(({ idx, link, actions, allObjects }) => {
+	const { t } = useTranslation('ontology');
 	const { updateLink, removeLink, addLinkFilter, updateLinkFilter, removeLinkFilter, setLinkFilterSide } = actions;
 
 	return (
@@ -25,14 +27,14 @@ export const VirtualLinkCard = React.memo<{
 					<Input
 						value={link.name}
 						onChange={e => updateLink(idx, { name: e.target.value })}
-						placeholder="Link name"
+						placeholder={t('linkName')}
 						className="flex-1 h-7 text-sm"
 					/>
 					<Select value={link.joinType} onValueChange={v => updateLink(idx, { joinType: v as VirtualLink['joinType'] })}>
 						<SelectTrigger className="w-32 h-7 text-xs"><SelectValue /></SelectTrigger>
 						<SelectContent>
 							{Object.entries(joinTypeConfig).map(([key, cfg]) => (
-								<SelectItem key={key} value={key}>{cfg.label}</SelectItem>
+								<SelectItem key={key} value={key}>{t(`joinType.${key}`)}</SelectItem>
 							))}
 						</SelectContent>
 					</Select>
@@ -41,7 +43,7 @@ export const VirtualLinkCard = React.memo<{
 					</Button>
 				</div>
 				<div className="grid grid-cols-2 gap-3">
-					<Field label="Source Object">
+					<Field label={t('sourceObject')}>
 						<Select value={link.sourceObjectId} onValueChange={v => updateLink(idx, { sourceObjectId: v })}>
 							<SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
 							<SelectContent>
@@ -51,7 +53,7 @@ export const VirtualLinkCard = React.memo<{
 							</SelectContent>
 						</Select>
 					</Field>
-					<Field label="Target Object">
+					<Field label={t('targetObject')}>
 						<Select value={link.targetObjectId} onValueChange={v => updateLink(idx, { targetObjectId: v })}>
 							<SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
 							<SelectContent>
@@ -65,14 +67,14 @@ export const VirtualLinkCard = React.memo<{
 				<Input
 					value={link.description || ''}
 					onChange={e => updateLink(idx, { description: e.target.value })}
-					placeholder="Description"
+					placeholder={t('description')}
 					className="h-7 text-xs"
 				/>
 				<div className="space-y-2">
 					<div className="flex items-baseline justify-between">
-						<div className="text-xs font-semibold uppercase text-muted-foreground">Join Conditions</div>
+						<div className="text-xs font-semibold uppercase text-muted-foreground">{t('joinConditions')}</div>
 						<div className="text-[10px] text-muted-foreground">
-							Use <code className="bg-muted px-1 rounded">alias.column</code> for cross-table join on source side; target is the primary field of the derived endpoint
+							<Trans t={t} i18nKey="joinConditionsHint" components={{ code: <code className="bg-muted px-1 rounded" /> }}>Use <code>alias.column</code> for cross-table join on source side; target is the primary field of the derived endpoint</Trans>
 						</div>
 					</div>
 					{link.joinConditions.map((jc, jcIdx) => (
@@ -84,7 +86,7 @@ export const VirtualLinkCard = React.memo<{
 									conds[jcIdx] = { ...conds[jcIdx], sourceField: e.target.value };
 									updateLink(idx, { joinConditions: conds });
 								}}
-								placeholder="source field"
+								placeholder={t('sourceField')}
 								className="flex-1 h-7 text-xs"
 							/>
 							<span className="text-xs text-muted-foreground">=</span>
@@ -95,7 +97,7 @@ export const VirtualLinkCard = React.memo<{
 									conds[jcIdx] = { ...conds[jcIdx], targetField: e.target.value };
 									updateLink(idx, { joinConditions: conds });
 								}}
-								placeholder="target field"
+								placeholder={t('targetField')}
 								className="flex-1 h-7 text-xs"
 							/>
 							<Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
@@ -109,17 +111,17 @@ export const VirtualLinkCard = React.memo<{
 					<Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => {
 						updateLink(idx, { joinConditions: [...link.joinConditions, { sourceField: '', targetField: '' }] });
 					}}>
-						<Plus className="w-3 h-3 mr-1" /> Add condition
+						<Plus className="w-3 h-3 mr-1" /> {t('addCondition')}
 					</Button>
 				</div>
 				{/* Filters: link-level constraints appended to the ON clause, e.g. source.role_type eq "policy_holder". */}
 				<div className="space-y-2">
 					<div className="flex items-center justify-between">
 						<span className="text-xs font-semibold uppercase text-muted-foreground">
-							Filters (link-level ON predicates)
+							{t('linkFilters')}
 						</span>
 						<Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => addLinkFilter(idx)}>
-							<Plus className="w-3 h-3 mr-1" /> Add filter
+							<Plus className="w-3 h-3 mr-1" /> {t('addFilter')}
 						</Button>
 					</div>
 					{(link.filters ?? []).map((flt, fIdx) => {
@@ -140,12 +142,12 @@ export const VirtualLinkCard = React.memo<{
 									onValueChange={v => setLinkFilterSide(idx, fIdx, v as 'source' | 'target' | 'none')}
 								>
 									<SelectTrigger className="w-24 h-7 text-xs">
-										<SelectValue placeholder="side" />
+										<SelectValue placeholder={t('side')} />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="source">source</SelectItem>
-										<SelectItem value="target">target</SelectItem>
-										<SelectItem value="none">(none)</SelectItem>
+										<SelectItem value="source">{t('source')}</SelectItem>
+										<SelectItem value="target">{t('target')}</SelectItem>
+										<SelectItem value="none">{t('none')}</SelectItem>
 									</SelectContent>
 								</Select>
 								<Select
@@ -157,7 +159,7 @@ export const VirtualLinkCard = React.memo<{
 									disabled={parsed.side === 'none' || availableFields.length === 0}
 								>
 									<SelectTrigger className="flex-1 min-w-[120px] h-7 text-xs">
-										<SelectValue placeholder={availableFields.length === 0 ? 'no fields available' : 'column'} />
+										<SelectValue placeholder={availableFields.length === 0 ? t('noFieldsAvailable') : t('column')} />
 									</SelectTrigger>
 									<SelectContent>
 										{availableFields.map(f => (
@@ -170,7 +172,7 @@ export const VirtualLinkCard = React.memo<{
 					})}
 					{(link.filters ?? []).length === 0 && (
 						<div className="text-[10px] text-muted-foreground">
-							Optional: append a constant to the ON clause, e.g. <code className="px-1 rounded bg-muted">source.role_type = "policy_holder"</code>.
+							<Trans t={t} i18nKey="linkFilterHint" components={{ code: <code className="px-1 rounded bg-muted" /> }}>Optional: append a constant to the ON clause, e.g. <code>source.role_type = "policy_holder"</code>.</Trans>
 						</div>
 					)}
 				</div>

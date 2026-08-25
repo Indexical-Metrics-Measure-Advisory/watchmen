@@ -1,11 +1,11 @@
-import { BusinessChallenge, BusinessChallengeWithProblems } from '@/model/business';
+import { BusinessChallenge, BusinessChallengeWithHypotheses } from '@/model/business';
 import { AgentCard } from '@/model/A2ASpec';
 import { AIAgentStep } from '../AIAnalysisAgent';
 
 // 步骤执行上下文
 export interface StepExecutionContext {
   businessChallenge: BusinessChallenge;
-  businessChallengeWithProblems?: BusinessChallengeWithProblems;
+  businessChallengeWithProblems?: BusinessChallengeWithHypotheses;
   currentAgent: AgentCard;
   analysisResult: any;
   stepIndex: number;

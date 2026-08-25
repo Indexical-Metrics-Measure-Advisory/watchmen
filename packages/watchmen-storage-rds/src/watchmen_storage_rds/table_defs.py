@@ -273,6 +273,17 @@ table_monitor_job_locks = Table(
     create_str('status', 10, False),
     create_tuple_id_column('user_id', False), create_datetime('created_at', False)
 )
+table_pii_classification_terms = Table(
+    'pii_classification_terms', meta_data,
+    create_pk('term_id'), create_str('name', 255, False),
+    create_str('description', 1024),
+    create_str('category', 64), create_str('sensitivity_level', 16),
+    create_str('data_level', 64), create_str('owner_department', 128),
+    create_str('match_strategy', 16), create_json('topic_ids'),
+    create_medium_text('factor_type_patterns'), create_medium_text('keyword_patterns'),
+    create_medium_text('linked_factors'),
+    create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
 
 # indicator
 # noinspection DuplicatedCode
@@ -592,18 +603,6 @@ table_business_challenges = Table(
     create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(), create_user_id(),
     create_str('title', 10, False), create_pk('id'),
     create_str('description', 10, False),
-    create_json('problemIds'),
-)
-
-table_business_problems = Table(
-    'business_problems', meta_data,
-    create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(), create_user_id(),
-    create_str('title', 10, False), create_pk('id'),
-    create_str('businessChallengeId', 10, False),
-    create_str("aiAnswer", 2000, False),
-    create_datetime("dataset_start_date"), create_datetime("dataset_end_date"),
-    create_str('description', 250, False), create_str('status', 10, False),
-    create_json('hypothesisIds'),
 )
 
 table_hypotheses = Table(
@@ -614,10 +613,11 @@ table_hypotheses = Table(
     create_str("analysis_method", length=100, nullable=False),
     create_str('status', 10, False),
     create_number('confidence', False),
-    create_str('business_problem_id', 10, False),
+    create_str('business_challenge_id', 10),
     create_json('metrics'),
     create_json('related_hypotheses_ids'),
-    create_json("metrics_details")
+    create_json("metrics_details"),
+    create_json('context')
 )
 
 table_metrics = Table(
@@ -891,6 +891,7 @@ tables: Dict[str, Table] = {
     'catalogs': table_catalogs,
     'monitor_rules': table_monitor_rules,
     'monitor_job_locks': table_monitor_job_locks,
+    'pii_classification_terms': table_pii_classification_terms,
     # indicator
     'buckets': table_buckets,
     'indicators': table_indicators,
@@ -927,7 +928,6 @@ tables: Dict[str, Table] = {
     'collector_batch_data_shard': table_collector_batch_data_shard,
     
     "business_challenges": table_business_challenges,
-    "business_problems": table_business_problems,
     "hypotheses": table_hypotheses,
     "metrics": table_metrics,
     "semantic_models": table_semantic_models,

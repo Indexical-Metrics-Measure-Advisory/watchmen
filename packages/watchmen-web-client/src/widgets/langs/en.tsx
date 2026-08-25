@@ -1188,5 +1188,35 @@ export const En = {
 		NONAME_TOPIC_FACTOR: 'Noname Topic Factor',
 		NONAME_BUCKET: 'Noname Bucket',
 		NONAME_ENUM: 'Noname Enum'
+	},
+	PII: {
+		RELATED_TOPICS: 'Related Topics',
+		SCAN_SCOPE: 'Scan Scope',
+		NO_SCAN_TOPICS: 'No topics linked to this term. Edit the term to link topics first.',
+		ADD_FACTOR: 'Add Factor',
+		ADD_FACTOR_DIALOG_TITLE: 'Link Factor Manually',
+		ADD_FACTOR_TOPIC_LABEL: 'Topic',
+		ADD_FACTOR_FACTOR_LABEL: 'Factor',
+		MATCH_SOURCE_TYPE: 'Type',
+		MATCH_SOURCE_KEYWORD: 'Keyword',
+		MATCH_SOURCE_MANUAL: 'Manual'
+	},
+	TAG: {
+		LIST_TITLE: 'Tag Management',
+		CREATE_TAG: 'Create Tag',
+		EDIT_TAG: 'Edit Tag',
+		SEARCH_PLACEHOLDER: 'Search by name, category or description.',
+		NO_DATA: 'No tags found. Create your first tag to get started.',
+		DELETE_CONFIRM: 'Are you sure to delete tag "{name}"?',
+		NAME: 'Name',
+		NAME_PLACEHOLDER: 'Tag name.',
+		NAME_REQUIRED: 'Name is required.',
+		COLOR: 'Color',
+		CATEGORY: 'Category',
+		CATEGORY_PLACEHOLDER: 'Optional category.',
+		DESCRIPTION: 'Description',
+		DESCRIPTION_PLACEHOLDER: 'Optional description.',
+		CREATED_AT: 'Created At',
+		LAST_MODIFIED_AT: 'Last Modified At'
 	}
 };

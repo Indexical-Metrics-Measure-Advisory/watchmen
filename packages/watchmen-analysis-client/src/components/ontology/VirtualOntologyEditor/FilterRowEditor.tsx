@@ -7,6 +7,7 @@ import {
 	FilterCondition, FilterOperator, filterOperatorConfig,
 	filterValueAsString, filterValueAsList,
 } from '@/model/ontology';
+import { useTranslation } from 'react-i18next';
 
 /**
  * 复用的 filter 行编辑器：渲染 operator 选择 + value 输入 + 删除按钮。
@@ -20,6 +21,7 @@ export const FilterRowEditor = React.memo<{
 	onRemove: () => void;
 	children?: React.ReactNode;
 }>(({ flt, onPatch, onRemove, children }) => {
+	const { t } = useTranslation('ontology');
 	const opCfg = filterOperatorConfig[flt.operator] ?? filterOperatorConfig.eq;
 	const needsValue = opCfg.needsValue;
 	return (
@@ -29,7 +31,7 @@ export const FilterRowEditor = React.memo<{
 				<SelectTrigger className="w-28 h-7 text-xs"><SelectValue /></SelectTrigger>
 				<SelectContent>
 					{Object.entries(filterOperatorConfig).map(([key, cfg]) => (
-						<SelectItem key={key} value={key}>{cfg.label}</SelectItem>
+						<SelectItem key={key} value={key}>{t(`filterOperator.${key}`)}</SelectItem>
 					))}
 				</SelectContent>
 			</Select>
@@ -37,7 +39,7 @@ export const FilterRowEditor = React.memo<{
 				<Input
 					value={filterValueAsString(flt.value)}
 					onChange={e => onPatch({ value: e.target.value })}
-					placeholder="constant"
+					placeholder={t('constant')}
 					className="flex-1 min-w-[120px] h-7 text-xs"
 				/>
 			)}
@@ -45,12 +47,12 @@ export const FilterRowEditor = React.memo<{
 				<Input
 					value={filterValueAsList(flt.value).join(',')}
 					onChange={e => onPatch({ value: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-					placeholder="v1,v2,v3"
+					placeholder={t('listValues')}
 					className="flex-1 min-w-[160px] h-7 text-xs"
 				/>
 			)}
 			{needsValue === 'none' && (
-				<span className="text-[10px] text-muted-foreground italic">no value</span>
+				<span className="text-[10px] text-muted-foreground italic">{t('noValue')}</span>
 			)}
 			<Button variant="ghost" size="icon" className="h-7 w-7" onClick={onRemove}>
 				<Trash2 className="w-3.5 h-3.5 text-red-500" />

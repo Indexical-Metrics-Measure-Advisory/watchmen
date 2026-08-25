@@ -2,89 +2,140 @@
 @tailwind components;
 @tailwind utilities;
 
-/* DataMO dark professional theme. Brand accent derives from the legacy
-   mockup's blue→violet gradient (#5b7fff → #7c3aed) on a deep blue-black base. */
+/* DataMO dual theme. Brand accent derives from the legacy mockup's
+   blue->violet gradient (#5b7fff -> #7c3aed). Light theme keeps the same
+   accent identity on a clean white/slate base; dark theme uses the deep
+   blue-black base. */
+
 @layer base {
-  :root {
-    --background: 224 47% 6%;
-    --foreground: 213 31% 91%;
+	/* ---- Light theme (default) ---- */
+	:root {
+		--background: 210 40% 98%;
+		--foreground: 224 47% 11%;
 
-    --card: 224 44% 9%;
-    --card-foreground: 213 31% 91%;
+		--card: 0 0% 100%;
+		--card-foreground: 224 47% 11%;
 
-    --popover: 224 44% 9%;
-    --popover-foreground: 213 31% 91%;
+		--popover: 0 0% 100%;
+		--popover-foreground: 224 47% 11%;
 
-    --primary: 226 84% 66%;
-    --primary-foreground: 224 47% 6%;
+		--primary: 226 84% 55%;
+		--primary-foreground: 0 0% 100%;
 
-    --secondary: 222 30% 14%;
-    --secondary-foreground: 213 31% 91%;
+		--secondary: 220 14% 94%;
+		--secondary-foreground: 224 47% 11%;
 
-    --muted: 222 30% 14%;
-    --muted-foreground: 217 15% 60%;
+		--muted: 220 14% 94%;
+		--muted-foreground: 220 9% 46%;
 
-    --accent: 262 60% 55%;
-    --accent-foreground: 0 0% 100%;
+		--accent: 262 60% 50%;
+		--accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 55%;
-    --destructive-foreground: 0 0% 100%;
+		--destructive: 0 72% 50%;
+		--destructive-foreground: 0 0% 100%;
 
-    --warning: 38 92% 55%;
-    --warning-foreground: 224 47% 6%;
+		--warning: 38 92% 48%;
+		--warning-foreground: 224 47% 11%;
 
-    --success: 152 60% 45%;
-    --success-foreground: 0 0% 100%;
+		--success: 152 60% 40%;
+		--success-foreground: 0 0% 100%;
 
-    --border: 222 25% 16%;
-    --input: 222 25% 18%;
-    --ring: 226 84% 66%;
+		--border: 220 13% 88%;
+		--input: 220 13% 86%;
+		--ring: 226 84% 55%;
 
-    --radius: 0.5rem;
+		--radius: 0.5rem;
 
-    --sidebar-background: 225 50% 5%;
-    --sidebar-foreground: 217 15% 65%;
-    --sidebar-primary: 226 84% 66%;
-    --sidebar-primary-foreground: 224 47% 6%;
-    --sidebar-accent: 222 30% 13%;
-    --sidebar-accent-foreground: 213 31% 91%;
-    --sidebar-border: 222 25% 14%;
-    --sidebar-ring: 226 84% 66%;
-  }
+		--sidebar-background: 210 40% 99%;
+		--sidebar-foreground: 220 9% 46%;
+		--sidebar-primary: 226 84% 55%;
+		--sidebar-primary-foreground: 0 0% 100%;
+		--sidebar-accent: 220 14% 94%;
+		--sidebar-accent-foreground: 224 47% 11%;
+		--sidebar-border: 220 13% 88%;
+		--sidebar-ring: 226 84% 55%;
+	}
+
+	/* ---- Dark theme ---- */
+	.dark {
+		--background: 224 47% 6%;
+		--foreground: 213 31% 91%;
+
+		--card: 224 44% 9%;
+		--card-foreground: 213 31% 91%;
+
+		--popover: 224 44% 9%;
+		--popover-foreground: 213 31% 91%;
+
+		--primary: 226 84% 66%;
+		--primary-foreground: 224 47% 6%;
+
+		--secondary: 222 30% 14%;
+		--secondary-foreground: 213 31% 91%;
+
+		--muted: 222 30% 14%;
+		--muted-foreground: 217 15% 60%;
+
+		--accent: 262 60% 55%;
+		--accent-foreground: 0 0% 100%;
+
+		--destructive: 0 72% 55%;
+		--destructive-foreground: 0 0% 100%;
+
+		--warning: 38 92% 55%;
+		--warning-foreground: 224 47% 6%;
+
+		--success: 152 60% 45%;
+		--success-foreground: 0 0% 100%;
+
+		--border: 222 25% 16%;
+		--input: 222 25% 18%;
+		--ring: 226 84% 66%;
+
+		--sidebar-background: 225 50% 5%;
+		--sidebar-foreground: 217 15% 65%;
+		--sidebar-primary: 226 84% 66%;
+		--sidebar-primary-foreground: 224 47% 6%;
+		--sidebar-accent: 222 30% 13%;
+		--sidebar-accent-foreground: 213 31% 91%;
+		--sidebar-border: 222 25% 14%;
+		--sidebar-ring: 226 84% 66%;
+	}
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+	* {
+		@apply border-border;
+	}
 
-  body {
-    @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
+	body {
+		@apply bg-background text-foreground;
+		font-family:
+			-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+		-webkit-font-smoothing: antialiased;
+	}
 }
 
 /* Brand gradient logo dot (from the legacy DataMO mockup) */
 .logo-dot {
-  background: linear-gradient(135deg, #5b7fff, #7c3aed);
+	background: linear-gradient(135deg, #5b7fff, #7c3aed);
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+	width: 6px;
+	height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+	background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
-  border-radius: 3px;
+	background: hsl(var(--border));
+	border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground));
+	background: hsl(var(--muted-foreground));
 }

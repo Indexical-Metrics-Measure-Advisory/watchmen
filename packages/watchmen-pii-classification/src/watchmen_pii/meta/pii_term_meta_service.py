@@ -2,8 +2,8 @@
 
 Mirrors ``watchmen-meta/.../dqc/catalog_service.py`` exactly: an
 ``EntityShaper`` subclass serializes the tuple to/from an ``EntityRow``, a
-``TupleService`` subclass wires the shaper up to the shared storage. The three
-list-shaped fields (``linkedFactors``, ``factorTypePatterns``,
+``TupleService`` subclass wires the shaper up to the shared storage. The four
+list-shaped fields (``topicIds``, ``linkedFactors``, ``factorTypePatterns``,
 ``keywordPatterns``) are JSON-serialized into single text columns.
 """
 import json
@@ -75,7 +75,7 @@ class PIITermShaper(EntityShaper):
 			'sensitivity_level': term.sensitivityLevel,
 			'data_level': term.dataLevel,
 			'owner_department': term.ownerDepartment,
-			'match_strategy': term.matchStrategy,
+			'topic_ids': _dump_json(term.topicIds),
 			'factor_type_patterns': _dump_json(term.factorTypePatterns),
 			'keyword_patterns': _dump_json(term.keywordPatterns),
 			'linked_factors': _dump_json(term.linkedFactors),
@@ -92,7 +92,7 @@ class PIITermShaper(EntityShaper):
 			sensitivityLevel=row.get('sensitivity_level'),
 			dataLevel=row.get('data_level'),
 			ownerDepartment=row.get('owner_department'),
-			matchStrategy=row.get('match_strategy'),
+			topicIds=_load_str_list(row.get('topic_ids')),
 			factorTypePatterns=_load_str_list(row.get('factor_type_patterns')),
 			keywordPatterns=_load_str_list(row.get('keyword_patterns')),
 			linkedFactors=_load_linked_factors(row.get('linked_factors')),

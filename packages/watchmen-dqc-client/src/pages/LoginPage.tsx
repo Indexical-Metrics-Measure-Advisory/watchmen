@@ -36,7 +36,7 @@ const LoginPage: React.FC = () => {
 	};
 
 	return (
-		<div className="grid min-h-screen place-items-center bg-[radial-gradient(ellipse_at_top,_hsl(226_60%_12%),_hsl(var(--background)))] p-4">
+		<div className="grid min-h-screen place-items-center bg-[radial-gradient(ellipse_at_top,_hsl(226_60%_92%),_hsl(var(--background)))] p-4 dark:bg-[radial-gradient(ellipse_at_top,_hsl(226_60%_12%),_hsl(var(--background)))]">
 			<Card className="w-[min(420px,92vw)]">
 				<CardHeader>
 					<div className="mb-2 flex items-center gap-3">

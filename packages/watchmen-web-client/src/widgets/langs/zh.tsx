@@ -1188,5 +1188,35 @@ export const Zh: LanguageDeclareType = {
 		NONAME_TOPIC_FACTOR: '未命名数据因子',
 		NONAME_BUCKET: '未命名数据分桶',
 		NONAME_ENUM: '未命名枚举'
+	},
+	PII: {
+		RELATED_TOPICS: '关联数据集',
+		SCAN_SCOPE: '扫描范围',
+		NO_SCAN_TOPICS: '当前术语尚未关联数据集，请先在术语编辑中关联数据集。',
+		ADD_FACTOR: '手动添加因子',
+		ADD_FACTOR_DIALOG_TITLE: '手动挂载因子',
+		ADD_FACTOR_TOPIC_LABEL: '数据集',
+		ADD_FACTOR_FACTOR_LABEL: '因子',
+		MATCH_SOURCE_TYPE: '类型',
+		MATCH_SOURCE_KEYWORD: '关键词',
+		MATCH_SOURCE_MANUAL: '手动'
+	},
+	TAG: {
+		LIST_TITLE: '标签管理',
+		CREATE_TAG: '创建标签',
+		EDIT_TAG: '编辑标签',
+		SEARCH_PLACEHOLDER: '按名称、分类或描述搜索。',
+		NO_DATA: '暂无标签，创建第一个标签开始使用。',
+		DELETE_CONFIRM: '确定要删除标签"{name}"吗？',
+		NAME: '名称',
+		NAME_PLACEHOLDER: '标签名称。',
+		NAME_REQUIRED: '名称为必填项。',
+		COLOR: '颜色',
+		CATEGORY: '分类',
+		CATEGORY_PLACEHOLDER: '可选分类。',
+		DESCRIPTION: '描述',
+		DESCRIPTION_PLACEHOLDER: '可选描述。',
+		CREATED_AT: '创建时间',
+		LAST_MODIFIED_AT: '最后修改时间'
 	}
 };

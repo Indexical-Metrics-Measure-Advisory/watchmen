@@ -54,9 +54,10 @@ from watchmen_model.common import (
 	ParameterJoint,
 	TopicFactorParameter,
 )
-from watchmen_metricflow.util import trans_readonly
+
 
 from watchmen_pii.model import PiiTraceRoute, PiiTraceStep
+from watchmen_pii.util import trans_readonly
 
 logger = getLogger(__name__)
 
@@ -87,15 +88,23 @@ class DownstreamLineageResolver:
 			self,
 			principal_service: PrincipalService,
 			max_depth: int = 3,
+			pii_term_service=None,
 	) -> None:
 		self._principal_service = principal_service
 		self.max_depth = max_depth
-		self._topic_service = TopicService(
-			ask_meta_storage(), ask_snowflake_generator(), principal_service
-		)
-		self._pipeline_service = PipelineService(
-			ask_meta_storage(), ask_snowflake_generator(), principal_service
-		)
+		# When a request-scoped PIITermService is given, the internal services
+		# share its storage instance, so every read lands on the transaction the
+		# caller (router) already opened. Only a standalone resolver owns its
+		# storage and wraps reads in transactions itself.
+		self._owns_storage = pii_term_service is None
+		if self._owns_storage:
+			storage = ask_meta_storage()
+			snowflake_generator = ask_snowflake_generator()
+		else:
+			storage = pii_term_service.storage
+			snowflake_generator = pii_term_service.snowflakeGenerator
+		self._topic_service = TopicService(storage, snowflake_generator, principal_service)
+		self._pipeline_service = PipelineService(storage, snowflake_generator, principal_service)
 		self._pipelines_cache: Optional[List[Pipeline]] = None
 		self._topic_cache: dict = {}
 
@@ -369,9 +378,16 @@ class DownstreamLineageResolver:
 
 	# ------------------------------------------------------------------ caches & helpers
 
+	def _readonly(self, service, action):
+		"""Run a read; open a transaction only when this resolver owns its
+		storage (a shared request storage already runs inside one)."""
+		if self._owns_storage:
+			return trans_readonly(service, action)
+		return action()
+
 	def _load_all_pipelines(self, tenant_id: str) -> List[Pipeline]:
 		if self._pipelines_cache is None:
-			pipelines = trans_readonly(
+			pipelines = self._readonly(
 				self._pipeline_service, lambda: self._pipeline_service.find_all(tenant_id)
 			)
 			self._pipelines_cache = sorted(
@@ -385,7 +401,7 @@ class DownstreamLineageResolver:
 			return None
 		if topic_id in self._topic_cache:
 			return self._topic_cache[topic_id]
-		topic = trans_readonly(
+		topic = self._readonly(
 			self._topic_service, lambda: self._topic_service.find_by_id(topic_id)
 		)
 		self._topic_cache[topic_id] = topic

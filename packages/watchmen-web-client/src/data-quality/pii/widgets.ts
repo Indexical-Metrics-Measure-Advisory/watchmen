@@ -105,8 +105,8 @@ export const PiiSourceBadge = styled.span.attrs<{ source?: string }>(({source}) 
 	return {
 		'data-widget': 'pii-source-badge',
 		style: {
-			color: source === 'keyword' ? 'var(--success-color)' : source === 'ai' ? 'var(--info-color, var(--primary-color))' : 'var(--primary-color)',
-			borderColor: source === 'keyword' ? 'var(--success-color)' : source === 'ai' ? 'var(--info-color, var(--primary-color))' : 'var(--primary-color)'
+			color: source === 'keyword' ? 'var(--success-color)' : source === 'manual' ? 'var(--info-color, var(--primary-color))' : 'var(--primary-color)',
+			borderColor: source === 'keyword' ? 'var(--success-color)' : source === 'manual' ? 'var(--info-color, var(--primary-color))' : 'var(--primary-color)'
 		}
 	};
 })<{ source?: string }>`
@@ -271,7 +271,8 @@ export const PiiTable = styled.table.attrs({'data-widget': 'pii-table'})`
 		white-space   : nowrap;
 	}
 	> tbody > tr:nth-child(even) > td {
-		background-color : var(--tooltip-bg-color, transparent);
+		/* theme-neutral striping; tooltip-bg-color inverts in dark mode and hides text */
+		background-color : rgba(128, 128, 128, 0.1);
 	}
 `;
 export const PiiMonoText = styled.span.attrs({'data-widget': 'pii-mono-text'})`
@@ -470,6 +471,27 @@ export const PiiEditorActions = styled.div.attrs({'data-widget': 'pii-editor-act
 	justify-content : flex-end;
 	grid-gap        : calc(var(--margin) / 4);
 	margin-top      : calc(var(--margin) / 3);
+`;
+export const PiiCheckList = styled.div.attrs({'data-widget': 'pii-check-list', 'data-v-scroll': ''})`
+	display        : flex;
+	flex-direction : column;
+	max-height     : 180px;
+	overflow-y     : auto;
+	border         : var(--border);
+	border-radius  : var(--border-radius);
+	padding        : 4px calc(var(--margin) / 3);
+`;
+export const PiiCheckListItem = styled.div.attrs({'data-widget': 'pii-check-list-item'})`
+	display     : flex;
+	align-items : center;
+	grid-gap    : 8px;
+	padding     : 4px 0;
+	cursor      : pointer;
+	> span {
+		font-family : var(--code-font-family);
+		font-size   : 0.9em;
+		white-space : nowrap;
+	}
 `;
 
 // ——— lineage ———

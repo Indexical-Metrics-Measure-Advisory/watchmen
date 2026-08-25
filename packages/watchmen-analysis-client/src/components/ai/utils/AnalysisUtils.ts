@@ -1,4 +1,4 @@
-import { BusinessChallengeWithProblems } from "@/model/business";
+import { BusinessChallengeWithHypotheses } from "@/model/business";
 import { AIAgentHypothesis, AIAgentMetric } from "../AIAnalysisAgent";
 
 /**
@@ -19,7 +19,7 @@ const sanitizeMermaidText = (text: string): string => {
 };
 
 export const generateMermaidDiagram = (
-  businessChallenge: BusinessChallengeWithProblems,
+  businessChallenge: BusinessChallengeWithHypotheses,
   validationResult?: any
 ) => {
   try {
@@ -39,55 +39,37 @@ export const generateMermaidDiagram = (
     diagram += `    ${challengeNodeId}[${challengeTitle}]:::challengeNode;
 `;
     
-    // Add problem nodes
-    if (businessChallenge.problems && Array.isArray(businessChallenge.problems)) {
-      businessChallenge.problems.forEach((problem, pIndex) => {
-        if (!problem) return; // Skip if problem is null or undefined
+    // Add hypothesis nodes
+    if (businessChallenge.hypotheses && Array.isArray(businessChallenge.hypotheses)) {
+      businessChallenge.hypotheses.forEach((hypothesis, hIndex) => {
+        if (!hypothesis) return; // Skip if hypothesis is null or undefined
         
-        const problemTitle = sanitizeMermaidText(problem.title || 'Problem');
-        const problemId = problem.id ? sanitizeMermaidText(problem.id) : `p${pIndex}`;
+        const hypothesisTitle = sanitizeMermaidText(hypothesis.title || 'Hypothesis');
+        const hypothesisId = hypothesis.id ? sanitizeMermaidText(hypothesis.id) : `h${hIndex}`;
         
         // Use node ID for reference and label for display
-        const problemNodeId = `prob_${problem.id}`;
-        diagram += `    ${problemNodeId}[${problemTitle}]:::problemNode;
+        const hypothesisNodeId = `hyp_${hypothesis.id}`;
+        diagram += `    ${hypothesisNodeId}[${hypothesisTitle}]:::hypothesisNode;
 `;
         
-        // Add relation between problem and business challenge
-        diagram += `    ${challengeNodeId} --> ${problemNodeId};\n`;
-  
-        // Add hypothesis nodes
-        if (problem.hypotheses && Array.isArray(problem.hypotheses)) {
-          problem.hypotheses.forEach((hypothesis, hIndex) => {
-            if (!hypothesis) return; // Skip if hypothesis is null or undefined
+        // Add relation between hypothesis and business challenge
+        diagram += `    ${challengeNodeId} --> ${hypothesisNodeId};
+`;
+        
+        // Add metric nodes and relations
+        if (hypothesis.metrics_details && Array.isArray(hypothesis.metrics_details)) {
+          hypothesis.metrics_details.forEach((metric, mIndex) => {
+            if (!metric || !metric.metric) return; // Skip if metric is null or undefined
             
-            const hypothesisTitle = sanitizeMermaidText(hypothesis.title || 'Hypothesis');
-            const hypothesisId = hypothesis.id ? sanitizeMermaidText(hypothesis.id) : `h${pIndex}_${hIndex}`;
+            const metricName = sanitizeMermaidText(metric.metric.name || 'Metric');
+            const metricId = metric.metric.id ? sanitizeMermaidText(metric.metric.id) : `m${hIndex}_${mIndex}`;
             
             // Use node ID for reference and label for display
-            const hypothesisNodeId = `hyp_${hypothesis.id}`;
-            diagram += `    ${hypothesisNodeId}[${hypothesisTitle}]:::hypothesisNode;
-`;
+            const metricNodeId = `met_${metric.metric.name}`;
+            diagram += `    ${metricNodeId}[${metricName}];\n`;
             
-            // Add relation between hypothesis and problem
-            diagram += `    ${problemNodeId} --> ${hypothesisNodeId};
-`;
-            
-            // Add metric nodes and relations
-            if (hypothesis.metrics_details && Array.isArray(hypothesis.metrics_details)) {
-              hypothesis.metrics_details.forEach((metric, mIndex) => {
-                if (!metric || !metric.metric) return; // Skip if metric is null or undefined
-                
-                const metricName = sanitizeMermaidText(metric.metric.name || 'Metric');
-                const metricId = metric.metric.id ? sanitizeMermaidText(metric.metric.id) : `m${pIndex}_${hIndex}_${mIndex}`;
-                
-                // Use node ID for reference and label for display
-                const metricNodeId = `met_${metric.metric.name}`;
-                diagram += `    ${metricNodeId}[${metricName}];\n`;
-                
-                // Add relation between metric and hypothesis
-                diagram += `    ${hypothesisNodeId} --> ${metricNodeId};\n`;
-              });
-            }
+            // Add relation between metric and hypothesis
+            diagram += `    ${hypothesisNodeId} --> ${metricNodeId};\n`;
           });
         }
       });
@@ -97,7 +79,6 @@ export const generateMermaidDiagram = (
     
     // Add class definitions for different node types with distinct colors
     diagram += '    classDef challengeNode fill:#d0e0ff,stroke:#3080ff,stroke-width:2px;\n';
-    diagram += '    classDef problemNode fill:#d0ffe0,stroke:#30c080,stroke-width:2px;\n';
     diagram += '    classDef hypothesisNode fill:#ffff00,stroke:#e0c000,stroke-width:2px;';
 
     

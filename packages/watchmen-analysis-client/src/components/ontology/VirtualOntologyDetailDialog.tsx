@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import {
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, onOpenChange, onEdit }) => {
+	const { t } = useTranslation('ontology');
 	const [expandedObjects, setExpandedObjects] = useState<Set<string>>(new Set());
 	const [dataSources, setDataSources] = useState<DataSource[]>([]);
 
@@ -70,7 +72,7 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 							<p className="text-sm text-muted-foreground mt-1">{ontology.description}</p>
 						</div>
 						<Badge className={`${(sensitivityConfig[ontology.sensitivity] ?? sensitivityConfig.internal).className} border-0`}>
-							{(sensitivityConfig[ontology.sensitivity] ?? sensitivityConfig.internal).icon} {(sensitivityConfig[ontology.sensitivity] ?? sensitivityConfig.internal).label}
+							{(sensitivityConfig[ontology.sensitivity] ?? sensitivityConfig.internal).icon} {t(`sensitivity.${ontology.sensitivity}`)}
 						</Badge>
 					</div>
 				</DialogHeader>
@@ -80,11 +82,11 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 						{/* Meta */}
 						<div className="grid grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg border">
 							<div>
-								<div className="text-xs text-muted-foreground uppercase font-medium mb-1">Business Owner</div>
+								<div className="text-xs text-muted-foreground uppercase font-medium mb-1">{t('businessOwner')}</div>
 								<div className="text-sm font-medium">{ontology.owner || '-'}</div>
 							</div>
 							<div>
-								<div className="text-xs text-muted-foreground uppercase font-medium mb-1">Tech Owner</div>
+								<div className="text-xs text-muted-foreground uppercase font-medium mb-1">{t('technicalOwner')}</div>
 								<div className="text-sm font-medium">{ontology.technicalOwner || '-'}</div>
 							</div>
 						</div>
@@ -103,23 +105,23 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 							<LayerCard
 								icon={<Boxes className="w-5 h-5 text-indigo-600" />}
 								bg="bg-indigo-50"
-								label="Business Layer"
+								label={t('businessLayer')}
 								value={ontology.virtualObjects.length}
-								sub="Virtual Objects"
+								sub={t('virtualObjects')}
 							/>
 							<LayerCard
 								icon={<Link2 className="w-5 h-5 text-emerald-600" />}
 								bg="bg-emerald-50"
-								label="Mapping Layer"
+								label={t('mappingLayer')}
 								value={ontology.virtualLinks.length}
-								sub="Virtual Links"
+								sub={t('virtualLinks')}
 							/>
 							<LayerCard
 								icon={<Table2 className="w-5 h-5 text-purple-600" />}
 								bg="bg-purple-50"
-								label="Physical Layer"
+								label={t('physicalLayer')}
 								value={ontology.virtualObjects.reduce((s, vo) => s + vo.physicalTables.length, 0)}
-								sub="Tables"
+								sub={t('tables')}
 							/>
 						</div>
 
@@ -127,7 +129,7 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 						<div className="space-y-3">
 							<h3 className="text-sm font-semibold flex items-center gap-2">
 								<Boxes className="w-4 h-4 text-indigo-500" />
-								Virtual Objects ({ontology.virtualObjects.length})
+								{t('virtualObjects')} ({ontology.virtualObjects.length})
 							</h3>
 							{ontology.virtualObjects.map(vo => {
 								const expanded = expandedObjects.has(vo.id);
@@ -139,13 +141,13 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 												<span className="text-lg">{vo.icon || '📦'}</span>
 												<CardTitle className="text-base flex-1">{vo.name}</CardTitle>
 												{datasourceName(vo.datasourceId) && (
-													<Badge variant="secondary" className="text-[10px]" title={`Data source: ${datasourceName(vo.datasourceId)}`}>
+													<Badge variant="secondary" className="text-[10px]" title={t('datasourceBadge', { name: datasourceName(vo.datasourceId) })}>
 														<Database className="w-3 h-3 mr-1" />
 														{datasourceName(vo.datasourceId)}
 													</Badge>
 												)}
 												<Badge variant="outline" className="text-[10px]">
-													{vo.physicalTables.length} tables
+													{t('tablesCount', { count: vo.physicalTables.length })}
 												</Badge>
 												{vo.derivedAttributes.length > 0 && (
 													<Badge variant="outline" className="text-[10px]">
@@ -164,7 +166,7 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 
 												{/* Physical tables */}
 												<div className="space-y-2">
-													<div className="text-xs font-semibold uppercase text-muted-foreground">Physical Tables</div>
+													<div className="text-xs font-semibold uppercase text-muted-foreground">{t('physicalTables')}</div>
 													{vo.physicalTables.map((pt, idx) => {
 													const kindCfg = physicalTableKindConfig[pt.kind] ?? physicalTableKindConfig.detail;
 													const joinCfg = pt.kind === 'primary' ? null : physicalTableJoinTypeConfig[pt.joinType ?? kindCfg.defaultJoinType];
@@ -173,11 +175,11 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 															<Database className="w-3.5 h-3.5 text-muted-foreground" />
 															<span className="font-medium">{resolvePhysicalTableLabel(pt)}</span>
 															<Badge variant="outline" className={cn('text-[10px]', kindCfg.className)}>
-																{kindCfg.icon} {kindCfg.label}
+																{kindCfg.icon} {t(`kind.${pt.kind}`)}
 															</Badge>
 															{joinCfg && (
 																<Badge variant="outline" className={cn('text-[10px]', joinCfg.className)}>
-																	{joinCfg.label}
+																	{t(`ptJoinType.${pt.joinType ?? kindCfg.defaultJoinType}`)}
 																</Badge>
 															)}
 																{pt.fields.length > 0 && (
@@ -192,7 +194,7 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 																)}
 																{(pt.filters ?? []).length > 0 && (
 																	<div className="flex flex-wrap gap-1 ml-2 items-center">
-																		<span className="text-[10px] text-muted-foreground uppercase">filter:</span>
+																		<span className="text-[10px] text-muted-foreground uppercase">{t('filterLabel')}</span>
 																		{(pt.filters ?? []).map((flt, fIdx) => {
 																			const opCfg = filterOperatorConfig[flt.operator] ?? filterOperatorConfig.eq;
 																			const valStr = Array.isArray(flt.value)
@@ -201,8 +203,8 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 																					? ''
 																					: String(flt.value);
 																			const text = opCfg.needsValue === 'none'
-																				? `${flt.field} ${opCfg.label}`
-																				: `${flt.field} ${opCfg.label} ${valStr}`;
+																				? `${flt.field} ${t(`filterOperator.${flt.operator}`)}`
+																				: `${flt.field} ${t(`filterOperator.${flt.operator}`)} ${valStr}`;
 																			return (
 																				<Badge key={fIdx} variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200">
 																					{text}
@@ -219,7 +221,7 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 												{/* Attributes */}
 												{vo.attributes.length > 0 && (
 													<div className="space-y-2">
-														<div className="text-xs font-semibold uppercase text-muted-foreground">Business Attributes</div>
+														<div className="text-xs font-semibold uppercase text-muted-foreground">{t('businessAttributes')}</div>
 														<div className="flex flex-wrap gap-2">
 															{vo.attributes.map((attr, idx) => (
 																<Badge key={idx} variant="outline" className="text-xs">
@@ -234,7 +236,7 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 												{/* Derived attributes */}
 												{vo.derivedAttributes.length > 0 && (
 													<div className="space-y-2">
-														<div className="text-xs font-semibold uppercase text-muted-foreground">Derived Attributes</div>
+														<div className="text-xs font-semibold uppercase text-muted-foreground">{t('derivedAttributes')}</div>
 														{vo.derivedAttributes.map(da => (
 															<DerivedAttributeRow key={da.id} attr={da} findObject={findObject} links={ontology.virtualLinks} />
 														))}
@@ -252,7 +254,7 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 							<div className="space-y-3">
 								<h3 className="text-sm font-semibold flex items-center gap-2">
 									<Link2 className="w-4 h-4 text-emerald-500" />
-									Virtual Links ({ontology.virtualLinks.length})
+									{t('virtualLinks')} ({ontology.virtualLinks.length})
 								</h3>
 								{ontology.virtualLinks.map(link => {
 								const source = findObject(link.sourceObjectId);
@@ -268,7 +270,7 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 												<span className="text-base">{target?.icon || '?'}</span>
 												<span className="font-medium text-sm">{target?.name || '?'}</span>
 												<Badge variant="outline" className={cn('text-[10px] ml-auto', joinCfg.className)}>
-													{joinCfg.label}
+													{t(`joinType.${link.joinType}`)}
 												</Badge>
 											</div>
 											{link.description && (
@@ -291,10 +293,10 @@ export const VirtualOntologyDetailDialog: React.FC<Props> = ({ ontology, open, o
 				</div>
 
 				<div className="flex justify-end gap-2 pt-3 border-t shrink-0">
-					<Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+					<Button variant="outline" onClick={() => onOpenChange(false)}>{t('common:close')}</Button>
 					<Button onClick={() => onEdit(ontology)} className="gap-2">
 						<Pencil className="w-4 h-4" />
-						Edit
+						{t('edit')}
 					</Button>
 				</div>
 			</DialogContent>
@@ -318,6 +320,7 @@ const DerivedAttributeRow: React.FC<{
 	findObject: (id: string) => VirtualObject | undefined;
 	links: VirtualLink[];
 }> = ({ attr, findObject, links }) => {
+	const { t } = useTranslation('ontology');
 	const aggCfg = aggregateConfig[attr.aggregate] ?? aggregateConfig.none;
 	const pathLabels = (attr.path ?? []).map((id, idx) => {
 		if (idx % 2 === 0) {
@@ -334,16 +337,16 @@ const DerivedAttributeRow: React.FC<{
 			<div className="flex items-center gap-2 mb-1">
 				<span className="text-sm font-medium">{aggCfg.icon}</span>
 				<span className="font-medium text-sm">{attr.name}</span>
-				<Badge variant="outline" className="text-[10px]">{aggCfg.label}</Badge>
+				<Badge variant="outline" className="text-[10px]">{t(`aggregate.${attr.aggregate}`)}</Badge>
 				{attr.targetField && (
-					<span className="text-xs text-muted-foreground">on {attr.targetField}</span>
+					<span className="text-xs text-muted-foreground">{t('onTargetField', { field: attr.targetField })}</span>
 				)}
 			</div>
 			{attr.description && (
 				<p className="text-xs text-muted-foreground mb-1">{attr.description}</p>
 			)}
 			<div className="flex items-center gap-1 flex-wrap text-[10px] text-muted-foreground">
-				<span className="font-medium">Path:</span>
+				<span className="font-medium">{t('pathLabel')}</span>
 				{pathLabels.map((label, idx) => (
 					<React.Fragment key={idx}>
 						{idx > 0 && <ArrowRight className="w-2.5 h-2.5" />}

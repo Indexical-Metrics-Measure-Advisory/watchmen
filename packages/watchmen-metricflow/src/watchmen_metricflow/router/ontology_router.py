@@ -11,6 +11,8 @@ from watchmen_model.admin import Topic, UserRole, VirtualOntology
 from watchmen_model.common import DataPage, Pageable
 from watchmen_rest import get_any_admin_principal, get_console_principal
 from watchmen_rest.util import raise_400, raise_404, validate_tenant_id
+from watchmen_metricflow.model.governance import OntologyGovernanceMap
+from watchmen_metricflow.ontology.governance_service import OntologyGovernanceService
 from watchmen_metricflow.ontology.space_scope import OntologySpaceScope
 from watchmen_metricflow.util import trans, trans_readonly
 from watchmen_utilities import is_blank, is_not_blank
@@ -175,6 +177,25 @@ async def get_ontology(
 			raise_404(f'Ontology [{ontology_id}] not found.')
 		validate_tenant_id(ontology, principal_service)
 		return ontology
+
+	return trans_readonly(service, action)
+
+
+@router.get('/ontology/governance/map', tags=[UserRole.ADMIN])
+async def get_ontology_governance_map(
+		ontology_id: str = Query(..., alias='ontologyId'),
+		principal_service: PrincipalService = Depends(get_any_admin_principal),
+) -> OntologyGovernanceMap:
+	if is_blank(ontology_id):
+		raise_400('Ontology id is required.')
+	service = get_ontology_service(principal_service)
+
+	def action() -> OntologyGovernanceMap:
+		ontology = service.find_by_id(ontology_id)
+		if ontology is None:
+			raise_404(f'Ontology [{ontology_id}] not found.')
+		validate_tenant_id(ontology, principal_service)
+		return OntologyGovernanceService.from_primary_service(service).build_map(ontology)
 
 	return trans_readonly(service, action)
 

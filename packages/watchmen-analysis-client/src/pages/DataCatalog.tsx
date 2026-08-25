@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useTranslation } from 'react-i18next';
 import { dataCatalogService } from '@/services/dataCatalogService';
 import { 
   DataProduct, 
@@ -46,6 +47,7 @@ interface ProductFormData {
 
 const DataCatalog: React.FC = () => {
   const { collapsed } = useSidebar();
+  const { t } = useTranslation('dataCatalog');
   const [products, setProducts] = useState<DataProduct[]>([]);
   const [stats, setStats] = useState<DataCatalogStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -344,7 +346,7 @@ const DataCatalog: React.FC = () => {
               <CardTitle className="text-lg">{productInfo.name}</CardTitle>
               <CardDescription className="mt-1 line-clamp-2">{productInfo.description}</CardDescription>
             </div>
-            <Badge className={getStatusColor(productInfo.status)}>{productInfo.status}</Badge>
+            <Badge className={getStatusColor(productInfo.status)}>{t(`status.${productInfo.status}`)}</Badge>
           </div>
         </CardHeader>
         <CardContent>
@@ -352,17 +354,17 @@ const DataCatalog: React.FC = () => {
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <User className="h-4 w-4" />
-                <span>{productInfo.owner || 'Unknown'}</span>
+                <span>{productInfo.owner || t('card.unknownOwner')}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                <span>{product.createdAt ? new Date(product.createdAt).toLocaleDateString() : 'N/A'}</span>
+                <span>{product.createdAt ? new Date(product.createdAt).toLocaleDateString() : t('card.na')}</span>
               </div>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex flex-wrap gap-2">
-                <Badge variant="outline">{productInfo.type}</Badge>
+                <Badge variant="outline">{t(`type.${productInfo.type}`)}</Badge>
                 <Badge variant="outline">{productInfo.domain}</Badge>
                 {productInfo.tags?.slice(0, 2).map((tag, i) => (
                   <Badge key={i} variant="secondary" className="text-xs">{tag}</Badge>
@@ -380,7 +382,7 @@ const DataCatalog: React.FC = () => {
                   variant="ghost" 
                   size="sm" 
                   onClick={() => handleEditProduct(product)}
-                  title="Edit product"
+                  title={t('card.editProduct')}
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
@@ -415,14 +417,14 @@ const DataCatalog: React.FC = () => {
             <div className="flex-1">
               <div className="flex items-center gap-3">
                 <h3 className="font-medium">{productInfo.name}</h3>
-                <Badge className={getStatusColor(productInfo.status)}>{productInfo.status}</Badge>
-                <Badge variant="outline">{productInfo.type}</Badge>
+                <Badge className={getStatusColor(productInfo.status)}>{t(`status.${productInfo.status}`)}</Badge>
+                <Badge variant="outline">{t(`type.${productInfo.type}`)}</Badge>
               </div>
               <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{productInfo.description}</p>
               <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                <span>{productInfo.owner || 'Unknown'}</span>
+                <span>{productInfo.owner || t('card.unknownOwner')}</span>
                 <span>{productInfo.domain}</span>
-                <span>{product.createdAt ? new Date(product.createdAt).toLocaleDateString() : 'N/A'}</span>
+                <span>{product.createdAt ? new Date(product.createdAt).toLocaleDateString() : t('card.na')}</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -437,7 +439,7 @@ const DataCatalog: React.FC = () => {
                 variant="ghost" 
                 size="sm" 
                 onClick={() => handleEditProduct(product)}
-                title="Edit product"
+                title={t('card.editProduct')}
               >
                 <Edit className="h-4 w-4" />
               </Button>
@@ -467,71 +469,71 @@ const DataCatalog: React.FC = () => {
     return (
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="schema">Schema</TabsTrigger>
-          <TabsTrigger value="quality">Quality</TabsTrigger>
-          <TabsTrigger value="access">Access</TabsTrigger>
+          <TabsTrigger value="overview">{t('details.overview')}</TabsTrigger>
+          <TabsTrigger value="schema">{t('details.schema')}</TabsTrigger>
+          <TabsTrigger value="quality">{t('details.quality')}</TabsTrigger>
+          <TabsTrigger value="access">{t('details.access')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <h4 className="font-medium mb-2">Basic Information</h4>
+              <h4 className="font-medium mb-2">{t('details.basicInformation')}</h4>
               <div className="space-y-2 text-sm">
-                <div><span className="font-medium">Version:</span> {productInfo.version || 'N/A'}</div>
-                <div><span className="font-medium">Status:</span> {productInfo.status}</div>
-                <div><span className="font-medium">Type:</span> {productInfo.type}</div>
-                <div><span className="font-medium">Domain:</span> {productInfo.domain || 'N/A'}</div>
-                <div><span className="font-medium">Visibility:</span> {productInfo.visibility}</div>
+                <div><span className="font-medium">{t('details.version')}:</span> {productInfo.version || t('card.na')}</div>
+                <div><span className="font-medium">{t('details.status')}:</span> {t(`status.${productInfo.status}`)}</div>
+                <div><span className="font-medium">{t('details.type')}:</span> {t(`type.${productInfo.type}`)}</div>
+                <div><span className="font-medium">{t('details.domain')}:</span> {productInfo.domain || t('card.na')}</div>
+                <div><span className="font-medium">{t('details.visibility')}:</span> {t(`visibility.${productInfo.visibility}`)}</div>
               </div>
             </div>
             <div>
-              <h4 className="font-medium mb-2">Owner Information</h4>
+              <h4 className="font-medium mb-2">{t('details.ownerInformation')}</h4>
               <div className="space-y-1 text-sm">
-                <div><span className="font-medium">Name:</span> {product.dataHolder?.name || productInfo.owner || 'N/A'}</div>
-                <div><span className="font-medium">Email:</span> {product.dataHolder?.email || 'N/A'}</div>
-                <div><span className="font-medium">Role:</span> {product.dataHolder?.role || 'N/A'}</div>
+                <div><span className="font-medium">{t('details.name')}:</span> {product.dataHolder?.name || productInfo.owner || t('card.na')}</div>
+                <div><span className="font-medium">{t('details.email')}:</span> {product.dataHolder?.email || t('card.na')}</div>
+                <div><span className="font-medium">{t('details.role')}:</span> {product.dataHolder?.role || t('card.na')}</div>
               </div>
             </div>
           </div>
           
           <div>
-            <h4 className="font-medium mb-2">Tags</h4>
+            <h4 className="font-medium mb-2">{t('details.tags')}</h4>
             <div className="flex flex-wrap gap-1">
               {productInfo.tags?.map((tag, index) => (
                 <Badge key={index} variant="secondary" className="text-xs">
                   {tag}
                 </Badge>
-              )) || <span className="text-sm text-muted-foreground">No tags</span>}
+              )) || <span className="text-sm text-muted-foreground">{t('details.noTags')}</span>}
             </div>
           </div>
         </TabsContent>
         
         <TabsContent value="schema" className="space-y-4">
           <div>
-            <h4 className="font-medium mb-2">Input Ports</h4>
+            <h4 className="font-medium mb-2">{t('details.inputPorts')}</h4>
             {product.inputPorts?.map((port, index) => (
               <Card key={index} className="mb-2">
                 <CardContent className="p-3">
                   <div className="font-medium">{port.name}</div>
                   <div className="text-sm text-muted-foreground">{port.description}</div>
-                  <div className="text-xs text-muted-foreground mt-1">Format: {port.format}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{t('details.format')}: {port.format}</div>
                 </CardContent>
               </Card>
-            )) || <span className="text-sm text-muted-foreground">No input ports</span>}
+            )) || <span className="text-sm text-muted-foreground">{t('details.noInputPorts')}</span>}
           </div>
           
           <div>
-            <h4 className="font-medium mb-2">Output Ports</h4>
+            <h4 className="font-medium mb-2">{t('details.outputPorts')}</h4>
             {product.outputPorts?.map((port, index) => (
               <Card key={index} className="mb-2">
                 <CardContent className="p-3">
                   <div className="font-medium">{port.name}</div>
                   <div className="text-sm text-muted-foreground">{port.description}</div>
-                  <div className="text-xs text-muted-foreground mt-1">Format: {port.format}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{t('details.format')}: {port.format}</div>
                 </CardContent>
               </Card>
-            )) || <span className="text-sm text-muted-foreground">No output ports</span>}
+            )) || <span className="text-sm text-muted-foreground">{t('details.noOutputPorts')}</span>}
           </div>
         </TabsContent>
         
@@ -540,16 +542,16 @@ const DataCatalog: React.FC = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold">N/A</div>
-                  <div className="text-sm text-muted-foreground">Quality Score</div>
+                  <div className="text-2xl font-bold">{t('card.na')}</div>
+                  <div className="text-sm text-muted-foreground">{t('details.qualityScore')}</div>
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4">
                 <div className="text-center">
-                  <Badge variant="outline">Not Assessed</Badge>
-                  <div className="text-sm text-muted-foreground mt-1">Quality Level</div>
+                  <Badge variant="outline">{t('details.notAssessed')}</Badge>
+                  <div className="text-sm text-muted-foreground mt-1">{t('details.qualityLevel')}</div>
                 </div>
               </CardContent>
             </Card>
@@ -558,30 +560,30 @@ const DataCatalog: React.FC = () => {
         
         <TabsContent value="access" className="space-y-4">
           <div>
-            <h4 className="font-medium mb-2">Related Links</h4>
+            <h4 className="font-medium mb-2">{t('details.relatedLinks')}</h4>
             <div className="space-y-2">
               {product.links?.documentation && (
                 <div className="flex items-center justify-between p-2 bg-muted rounded">
                   <div>
-                    <div className="font-medium">Documentation</div>
+                    <div className="font-medium">{t('details.documentation')}</div>
                     <div className="text-xs text-muted-foreground">{product.links.documentation}</div>
                   </div>
-                  <Badge variant="outline">Documentation</Badge>
+                  <Badge variant="outline">{t('details.documentation')}</Badge>
                 </div>
               )}
               
               {product.links?.repository && (
                 <div className="flex items-center justify-between p-2 bg-muted rounded">
                   <div>
-                    <div className="font-medium">Repository</div>
+                    <div className="font-medium">{t('details.repository')}</div>
                     <div className="text-xs text-muted-foreground">{product.links.repository}</div>
                   </div>
-                  <Badge variant="outline">Repository</Badge>
+                  <Badge variant="outline">{t('details.repository')}</Badge>
                 </div>
               )}
               
               {!product.links?.documentation && !product.links?.repository && (
-                <span className="text-sm text-muted-foreground">No access endpoints</span>
+                <span className="text-sm text-muted-foreground">{t('details.noAccessEndpoints')}</span>
               )}
             </div>
           </div>
@@ -616,85 +618,85 @@ const DataCatalog: React.FC = () => {
   }) => (
     <Tabs defaultValue="basic" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="basic">Basic Info</TabsTrigger>
-        <TabsTrigger value="contact">Contact</TabsTrigger>
-        <TabsTrigger value="links">Links</TabsTrigger>
+        <TabsTrigger value="basic">{t('form.basicInfo')}</TabsTrigger>
+        <TabsTrigger value="contact">{t('form.contact')}</TabsTrigger>
+        <TabsTrigger value="links">{t('form.links')}</TabsTrigger>
       </TabsList>
       
       <TabsContent value="basic" className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Product Name</Label>
+            <Label htmlFor="name">{t('form.productName')}</Label>
             <Input
               id="name"
               value={formData.name || ''}
               onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-              placeholder="Enter product name"
+              placeholder={t('form.productNamePlaceholder')}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="version">Version</Label>
+            <Label htmlFor="version">{t('form.version')}</Label>
             <Input
               id="version"
               value={formData.version || ''}
               onChange={(e) => setFormData((prev) => ({ ...prev, version: e.target.value }))}
-              placeholder="e.g., 1.0.0"
+              placeholder={t('form.versionPlaceholder')}
             />
           </div>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description">{t('form.description')}</Label>
           <Textarea
             id="description"
             value={formData.description || ''}
             onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-            placeholder="Enter product description"
+            placeholder={t('form.descriptionPlaceholder')}
             rows={3}
           />
         </div>
         
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status">{t('form.status')}</Label>
             <Select value={formData.status} onValueChange={(value) => { const v = value as DataProductStatus; setFormData((prev) => ({ ...prev, status: v })); }}>
               <SelectTrigger>
-                <SelectValue placeholder="Select status" />
+                placeholder={t('form.selectStatus')}
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={DataProductStatus.DRAFT}>Draft</SelectItem>
-                <SelectItem value={DataProductStatus.ACTIVE}>Active</SelectItem>
-                <SelectItem value={DataProductStatus.DEPRECATED}>Deprecated</SelectItem>
-                <SelectItem value={DataProductStatus.RETIRED}>Retired</SelectItem>
+                <SelectItem value={DataProductStatus.DRAFT}>{t('status.draft')}</SelectItem>
+                <SelectItem value={DataProductStatus.ACTIVE}>{t('status.active')}</SelectItem>
+                <SelectItem value={DataProductStatus.DEPRECATED}>{t('status.deprecated')}</SelectItem>
+                <SelectItem value={DataProductStatus.RETIRED}>{t('status.retired')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
+            <Label htmlFor="type">{t('form.type')}</Label>
             <Select value={formData.type} onValueChange={(value) => { const v = value as DataProductType; setFormData((prev) => ({ ...prev, type: v })); }}>
               <SelectTrigger>
-                <SelectValue placeholder="Select type" />
+                placeholder={t('form.selectType')}
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={DataProductType.DATASET}>Dataset</SelectItem>
-                <SelectItem value={DataProductType.API}>API</SelectItem>
-                <SelectItem value={DataProductType.STREAM}>Stream</SelectItem>
-                <SelectItem value={DataProductType.MODEL}>Model</SelectItem>
+                <SelectItem value={DataProductType.DATASET}>{t('type.dataset')}</SelectItem>
+                <SelectItem value={DataProductType.API}>{t('type.api')}</SelectItem>
+                <SelectItem value={DataProductType.STREAM}>{t('type.stream')}</SelectItem>
+                <SelectItem value={DataProductType.MODEL}>{t('type.model')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="visibility">Visibility</Label>
+            <Label htmlFor="visibility">{t('form.visibility')}</Label>
             <Select value={formData.visibility} onValueChange={(value) => { const v = value as DataProductVisibility; setFormData((prev) => ({ ...prev, visibility: v })); }}>
               <SelectTrigger>
-                <SelectValue placeholder="Select visibility" />
+                placeholder={t('form.selectVisibility')}
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={DataProductVisibility.PUBLIC}>Public</SelectItem>
-                <SelectItem value={DataProductVisibility.INTERNAL}>Internal</SelectItem>
-                <SelectItem value={DataProductVisibility.PRIVATE}>Private</SelectItem>
+                <SelectItem value={DataProductVisibility.PUBLIC}>{t('visibility.public')}</SelectItem>
+                <SelectItem value={DataProductVisibility.INTERNAL}>{t('visibility.internal')}</SelectItem>
+                <SelectItem value={DataProductVisibility.PRIVATE}>{t('visibility.private')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -702,32 +704,32 @@ const DataCatalog: React.FC = () => {
         
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="owner">Owner</Label>
+            <Label htmlFor="owner">{t('form.owner')}</Label>
             <Input
               id="owner"
               value={formData.owner || ''}
               onChange={(e) => setFormData((prev) => ({ ...prev, owner: e.target.value }))}
-              placeholder="Enter owner name"
+              placeholder={t('form.ownerPlaceholder')}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="domain">Domain</Label>
+            <Label htmlFor="domain">{t('form.domain')}</Label>
             <Input
               id="domain"
               value={formData.domain || ''}
               onChange={(e) => setFormData((prev) => ({ ...prev, domain: e.target.value }))}
-              placeholder="Enter business domain"
+              placeholder={t('form.domainPlaceholder')}
             />
           </div>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="tags">Tags</Label>
+          <Label htmlFor="tags">{t('form.tags')}</Label>
           <Input
             id="tags"
             value={formData.tags || ''}
             onChange={(e) => setFormData((prev) => ({ ...prev, tags: e.target.value }))}
-            placeholder="Separate multiple tags with commas"
+            placeholder={t('form.tagsPlaceholder')}
           />
         </div>
       </TabsContent>
@@ -735,33 +737,33 @@ const DataCatalog: React.FC = () => {
       <TabsContent value="contact" className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="dataHolderName">Data Holder Name</Label>
+            <Label htmlFor="dataHolderName">{t('form.dataHolderName')}</Label>
             <Input
               id="dataHolderName"
               value={formData.dataHolderName || ''}
               onChange={(e) => setFormData((prev) => ({ ...prev, dataHolderName: e.target.value }))}
-              placeholder="Enter name"
+              placeholder={t('form.dataHolderNamePlaceholder')}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="dataHolderEmail">Email</Label>
+            <Label htmlFor="dataHolderEmail">{t('form.email')}</Label>
             <Input
               id="dataHolderEmail"
               type="email"
               value={formData.dataHolderEmail || ''}
               onChange={(e) => setFormData((prev) => ({ ...prev, dataHolderEmail: e.target.value }))}
-              placeholder="Enter email address"
+              placeholder={t('form.emailPlaceholder')}
             />
           </div>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="dataHolderRole">Role</Label>
+          <Label htmlFor="dataHolderRole">{t('form.role')}</Label>
           <Input
             id="dataHolderRole"
             value={formData.dataHolderRole || ''}
             onChange={(e) => setFormData((prev) => ({ ...prev, dataHolderRole: e.target.value }))}
-            placeholder="Enter role"
+            placeholder={t('form.rolePlaceholder')}
           />
         </div>
       </TabsContent>
@@ -769,32 +771,32 @@ const DataCatalog: React.FC = () => {
       <TabsContent value="links" className="space-y-4">
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="documentationLink">Documentation Link</Label>
+            <Label htmlFor="documentationLink">{t('form.documentationLink')}</Label>
             <Input
               id="documentationLink"
               value={formData.documentationLink || ''}
               onChange={(e) => setFormData((prev) => ({ ...prev, documentationLink: e.target.value }))}
-              placeholder="https://docs.example.com"
+              placeholder={t('form.documentationLinkPlaceholder')}
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="repositoryLink">Repository Link</Label>
+            <Label htmlFor="repositoryLink">{t('form.repositoryLink')}</Label>
             <Input
               id="repositoryLink"
               value={formData.repositoryLink || ''}
               onChange={(e) => setFormData((prev) => ({ ...prev, repositoryLink: e.target.value }))}
-              placeholder="https://github.com/example/repo"
+              placeholder={t('form.repositoryLinkPlaceholder')}
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="supportLink">Support Link</Label>
+            <Label htmlFor="supportLink">{t('form.supportLink')}</Label>
             <Input
               id="supportLink"
               value={formData.supportLink || ''}
               onChange={(e) => setFormData((prev) => ({ ...prev, supportLink: e.target.value }))}
-              placeholder="https://support.example.com"
+              placeholder={t('form.supportLinkPlaceholder')}
             />
           </div>
         </div>
@@ -807,8 +809,8 @@ const DataCatalog: React.FC = () => {
     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Data Product</DialogTitle>
-          <DialogDescription>Modify the basic information and configuration of the data product</DialogDescription>
+          <DialogTitle>{t('form.editTitle')}</DialogTitle>
+          <DialogDescription>{t('form.editDescription')}</DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">
@@ -817,11 +819,11 @@ const DataCatalog: React.FC = () => {
           <div className="flex justify-end gap-2 pt-4 border-t">
             <Button variant="outline" onClick={handleCancelEdit}>
                 <X className="h-4 w-4 mr-2" />
-                Cancel
+                {t('form.cancel')}
               </Button>
               <Button onClick={handleSaveProduct}>
                 <Save className="h-4 w-4 mr-2" />
-                Save
+                {t('form.save')}
               </Button>
           </div>
         </div>
@@ -833,8 +835,8 @@ const DataCatalog: React.FC = () => {
     <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Data Product</DialogTitle>
-          <DialogDescription>Create a new data catalog entry for your data product</DialogDescription>
+          <DialogTitle>{t('form.createTitle')}</DialogTitle>
+          <DialogDescription>{t('form.createDescription')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -843,11 +845,11 @@ const DataCatalog: React.FC = () => {
           <div className="flex justify-end gap-2 pt-4 border-t">
             <Button variant="outline" onClick={handleCancelCreate}>
               <X className="h-4 w-4 mr-2" />
-              Cancel
+              {t('form.cancel')}
             </Button>
             <Button onClick={handleCreateProduct} disabled={!createFormData.name?.trim()}>
               <Plus className="h-4 w-4 mr-2" />
-              Create
+              {t('form.create')}
             </Button>
           </div>
         </div>
@@ -870,27 +872,27 @@ const DataCatalog: React.FC = () => {
           {/* Header */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-3xl font-bold">Data Catalog</h1>
-              <p className="text-muted-foreground">Browse and manage all data assets</p>
+              <h1 className="text-3xl font-bold">{t('page.title')}</h1>
+              <p className="text-muted-foreground">{t('page.subtitle')}</p>
             </div>
             <div className="flex items-center gap-2">
               <Button size="sm" onClick={handleOpenCreateProduct}>
                 <Plus className="h-4 w-4 mr-2" />
-                Create
+                {t('form.create')}
               </Button>
               <Select value={sortBy} onValueChange={(v) => setSortBy(v as 'relevance' | 'name' | 'createdAt')}>
-                <SelectTrigger className="w-[160px]"><SelectValue placeholder="Sort by" /></SelectTrigger>
+                <SelectTrigger className="w-[160px]">placeholder={t('search.sortBy')}</SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="relevance">Relevance</SelectItem>
-                  <SelectItem value="name">Name</SelectItem>
-                  <SelectItem value="createdAt">Newest</SelectItem>
+                  <SelectItem value="relevance">{t('search.sortRelevance')}</SelectItem>
+                  <SelectItem value="name">{t('search.sortName')}</SelectItem>
+                  <SelectItem value="createdAt">{t('search.sortNewest')}</SelectItem>
                 </SelectContent>
               </Select>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                title={viewMode === 'grid' ? 'Switch to list' : 'Switch to grid'}
+                title={viewMode === 'grid' ? t('search.switchToList') : t('search.switchToGrid')}
               >
                 {viewMode === 'grid' ? <List className="h-4 w-4" /> : <Grid className="h-4 w-4" />}
               </Button>
@@ -900,7 +902,7 @@ const DataCatalog: React.FC = () => {
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <Filter className="h-4 w-4 mr-2" />
-                Filters
+                {t('search.filters')}
               </Button>
             </div>
           </div>
@@ -908,10 +910,10 @@ const DataCatalog: React.FC = () => {
           {/* Stats */}
           {stats && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <StatsCard title="Total Products" value={stats.totalProducts} icon={Database} />
-              <StatsCard title="Active Products" value={stats.activeProducts} icon={Activity} />
-              <StatsCard title="Total Domains" value={stats.totalDomains} icon={TrendingUp} />
-              <StatsCard title="Total Owners" value={stats.totalOwners} icon={Star} />
+              <StatsCard title={t('stats.totalProducts')} value={stats.totalProducts} icon={Database} />
+              <StatsCard title={t('stats.activeProducts')} value={stats.activeProducts} icon={Activity} />
+              <StatsCard title={t('stats.totalDomains')} value={stats.totalDomains} icon={TrendingUp} />
+              <StatsCard title={t('stats.totalOwners')} value={stats.totalOwners} icon={Star} />
             </div>
           )}
 
@@ -921,7 +923,7 @@ const DataCatalog: React.FC = () => {
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search data products..."
+                  placeholder={t('search.placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') applyFilters(); }}
@@ -930,18 +932,18 @@ const DataCatalog: React.FC = () => {
               </div>
               <Button onClick={applyFilters}>
                 <Search className="h-4 w-4 mr-2" />
-                Search
+                {t('search.search')}
               </Button>
             </div>
 
             {anyActiveFilter && (
               <div className="flex flex-wrap items-center gap-2">
-                {searchQuery && <Badge variant="secondary" className="flex items-center gap-2">Search: "{searchQuery}" <Button variant="ghost" size="sm" onClick={() => setSearchQuery('')}>×</Button></Badge>}
-                {filters.status && <Badge variant="secondary" className="flex items-center gap-2">Status: {filters.status} <Button variant="ghost" size="sm" onClick={() => setFilters({ ...filters, status: '' })}>×</Button></Badge>}
-                {filters.type && <Badge variant="secondary" className="flex items-center gap-2">Type: {filters.type} <Button variant="ghost" size="sm" onClick={() => setFilters({ ...filters, type: '' })}>×</Button></Badge>}
-                {filters.domain && <Badge variant="secondary" className="flex items-center gap-2">Domain: {filters.domain} <Button variant="ghost" size="sm" onClick={() => setFilters({ ...filters, domain: '' })}>×</Button></Badge>}
-                {filters.visibility && <Badge variant="secondary" className="flex items-center gap-2">Visibility: {filters.visibility} <Button variant="ghost" size="sm" onClick={() => setFilters({ ...filters, visibility: '' })}>×</Button></Badge>}
-                <Button variant="outline" size="sm" onClick={resetFilters}>Clear all</Button>
+                {searchQuery && <Badge variant="secondary" className="flex items-center gap-2">{t('search.searchBadge', { query: searchQuery })} <Button variant="ghost" size="sm" onClick={() => setSearchQuery('')}>×</Button></Badge>}
+                {filters.status && <Badge variant="secondary" className="flex items-center gap-2">{t('search.statusBadge', { value: t(`status.${filters.status}`) })} <Button variant="ghost" size="sm" onClick={() => setFilters({ ...filters, status: '' })}>×</Button></Badge>}
+                {filters.type && <Badge variant="secondary" className="flex items-center gap-2">{t('search.typeBadge', { value: t(`type.${filters.type}`) })} <Button variant="ghost" size="sm" onClick={() => setFilters({ ...filters, type: '' })}>×</Button></Badge>}
+                {filters.domain && <Badge variant="secondary" className="flex items-center gap-2">{t('search.domainBadge', { value: filters.domain })} <Button variant="ghost" size="sm" onClick={() => setFilters({ ...filters, domain: '' })}>×</Button></Badge>}
+                {filters.visibility && <Badge variant="secondary" className="flex items-center gap-2">{t('search.visibilityBadge', { value: t(`visibility.${filters.visibility}`) })} <Button variant="ghost" size="sm" onClick={() => setFilters({ ...filters, visibility: '' })}>×</Button></Badge>}
+                <Button variant="outline" size="sm" onClick={resetFilters}>{t('search.clearAll')}</Button>
               </div>
             )}
 
@@ -951,52 +953,52 @@ const DataCatalog: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value as DataProductStatus | ''})}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Status" />
+                        placeholder={t('search.status')}
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Status</SelectItem>
-                        <SelectItem value={DataProductStatus.ACTIVE}>Active</SelectItem>
-                        <SelectItem value={DataProductStatus.DRAFT}>Draft</SelectItem>
-                        <SelectItem value={DataProductStatus.DEPRECATED}>Deprecated</SelectItem>
-                        <SelectItem value={DataProductStatus.RETIRED}>Retired</SelectItem>
+                        <SelectItem value="">{t('search.allStatus')}</SelectItem>
+                        <SelectItem value={DataProductStatus.ACTIVE}>{t('status.active')}</SelectItem>
+                        <SelectItem value={DataProductStatus.DRAFT}>{t('status.draft')}</SelectItem>
+                        <SelectItem value={DataProductStatus.DEPRECATED}>{t('status.deprecated')}</SelectItem>
+                        <SelectItem value={DataProductStatus.RETIRED}>{t('status.retired')}</SelectItem>
                       </SelectContent>
                     </Select>
 
                     <Select value={filters.type} onValueChange={(value) => setFilters({...filters, type: value as DataProductType | ''})}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Type" />
+                        placeholder={t('search.type')}
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Types</SelectItem>
-                        <SelectItem value={DataProductType.DATASET}>Dataset</SelectItem>
-                        <SelectItem value={DataProductType.API}>API</SelectItem>
-                        <SelectItem value={DataProductType.STREAM}>Stream</SelectItem>
-                        <SelectItem value={DataProductType.MODEL}>Model</SelectItem>
+                        <SelectItem value="">{t('search.allTypes')}</SelectItem>
+                        <SelectItem value={DataProductType.DATASET}>{t('type.dataset')}</SelectItem>
+                        <SelectItem value={DataProductType.API}>{t('type.api')}</SelectItem>
+                        <SelectItem value={DataProductType.STREAM}>{t('type.stream')}</SelectItem>
+                        <SelectItem value={DataProductType.MODEL}>{t('type.model')}</SelectItem>
                       </SelectContent>
                     </Select>
 
                     <Input
-                      placeholder="Domain"
+                      placeholder={t('search.domain')}
                       value={filters.domain}
                       onChange={(e) => setFilters({...filters, domain: e.target.value})}
                     />
 
                     <Select value={filters.visibility} onValueChange={(value) => setFilters({...filters, visibility: value as DataProductVisibility | ''})}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Visibility" />
+                        placeholder={t('search.visibility')}
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Visibility</SelectItem>
-                        <SelectItem value={DataProductVisibility.PUBLIC}>Public</SelectItem>
-                        <SelectItem value={DataProductVisibility.INTERNAL}>Internal</SelectItem>
-                        <SelectItem value={DataProductVisibility.PRIVATE}>Private</SelectItem>
+                        <SelectItem value="">{t('search.allVisibility')}</SelectItem>
+                        <SelectItem value={DataProductVisibility.PUBLIC}>{t('visibility.public')}</SelectItem>
+                        <SelectItem value={DataProductVisibility.INTERNAL}>{t('visibility.internal')}</SelectItem>
+                        <SelectItem value={DataProductVisibility.PRIVATE}>{t('visibility.private')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div className="flex justify-end gap-2 mt-4">
-                    <Button variant="outline" onClick={resetFilters}>Reset</Button>
-                    <Button onClick={applyFilters}>Apply Filters</Button>
+                    <Button variant="outline" onClick={resetFilters}>{t('search.reset')}</Button>
+                    <Button onClick={applyFilters}>{t('search.applyFilters')}</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -1006,7 +1008,7 @@ const DataCatalog: React.FC = () => {
           {/* Results header */}
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div>
-              {loading ? 'Loading results…' : `Showing ${sortedProducts.length} result${sortedProducts.length !== 1 ? 's' : ''}`}
+              {loading ? t('search.loadingResults') : t('search.showingResults', { count: sortedProducts.length })}
             </div>
           </div>
 
@@ -1077,11 +1079,11 @@ const DataCatalog: React.FC = () => {
               ) : (
                 <Card className="border-dashed">
                   <CardContent className="py-12 text-center space-y-2">
-                    <div className="text-lg font-medium">No data products found</div>
-                    <div className="text-sm text-muted-foreground">Try adjusting your search or filters</div>
+                    <div className="text-lg font-medium">{t('search.noProductsTitle')}</div>
+                    <div className="text-sm text-muted-foreground">{t('search.noProductsDescription')}</div>
                     <div className="flex justify-center gap-2 pt-2">
-                      <Button variant="outline" onClick={resetFilters}>Reset Filters</Button>
-                      <Button onClick={loadData}>Reload</Button>
+                      <Button variant="outline" onClick={resetFilters}>{t('search.resetFilters')}</Button>
+                      <Button onClick={loadData}>{t('search.reload')}</Button>
                     </div>
                   </CardContent>
                 </Card>

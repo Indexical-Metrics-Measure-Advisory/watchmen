@@ -49,6 +49,7 @@ def test_shaper_serialize_contains_expected_columns():
 		name='证件号码',
 		category='客户数据',
 		sensitivityLevel='1级',
+		topicIds=['t1', 't2'],
 		factorTypePatterns=['id-no'],
 		keywordPatterns=['证件号', 'id_card'],
 		linkedFactors=[LinkedFactor(topicId='t1', factorId='f1')],
@@ -64,6 +65,8 @@ def test_shaper_serialize_contains_expected_columns():
 	assert row['tenant_id'] == 'tenant-1'
 	assert row['version'] == 1
 	# List-shaped fields are JSON-encoded strings.
+	assert isinstance(row['topic_ids'], str)
+	assert 't1' in row['topic_ids']
 	assert isinstance(row['factor_type_patterns'], str)
 	assert 'id-no' in row['factor_type_patterns']
 	assert isinstance(row['keyword_patterns'], str)
@@ -74,6 +77,7 @@ def test_shaper_deserialize_roundtrips_list_fields():
 	term = PIIClassificationTerm(
 		termId='term-2',
 		name='保费',
+		topicIds=['t1'],
 		factorTypePatterns=['', 'unused'],  # blanks tolerated
 		keywordPatterns=['premium'],
 		linkedFactors=[LinkedFactor(topicId='t1', factorId='f1', confirmed=True)],
@@ -86,6 +90,8 @@ def test_shaper_deserialize_roundtrips_list_fields():
 	assert restored.name == '保费'
 	assert restored.tenantId == 'tenant-1'
 	assert restored.version == 2
+	# topicIds survive the round-trip.
+	assert restored.topicIds == ['t1']
 	# linkedFactors survive the round-trip with confirmed flag intact.
 	assert len(restored.linkedFactors) == 1
 	assert restored.linkedFactors[0].confirmed is True
