@@ -63,7 +63,8 @@ class DataTaskExecutor(TaskExecutor):
         trace_id = str(ask_snowflake_generator().next_id())
         trigger_data = PipelineTriggerData(
             code=task.topicCode,
-            data=task.content
+            data=task.content,
+            tenantId=task.tenantId
         )
         # use super admin
         principal_service = ask_super_admin()
