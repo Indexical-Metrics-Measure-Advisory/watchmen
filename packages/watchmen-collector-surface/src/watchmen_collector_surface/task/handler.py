@@ -18,12 +18,14 @@ logger = getLogger(__name__)
 
 
 async def handle_trigger_data(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger, pipeline_id: Optional[PipelineId] = None) -> str:
+	logger.error(f"begin inside handle_trigger_data: {time.perf_counter()}")
 	# use super admin
 	principal_service = ask_super_admin()
 	# change the tenant_id
 	principal_service.tenantId = trigger_data.tenantId
 	schema = TopicService(principal_service).find_schema_by_name(trigger_data.code, trigger_data.tenantId)
 	trace_id = str(ask_snowflake_generator().next_id())
+	logger.error(f"begin pipeline trigger inside handle_trigger_data: {time.perf_counter()}")
 	await PipelineTrigger(
 		trigger_topic_schema=schema,
 		trigger_type=trigger_data.triggerType,
