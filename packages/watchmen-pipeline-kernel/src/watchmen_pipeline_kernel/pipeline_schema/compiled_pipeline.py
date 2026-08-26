@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import time
-from copy import deepcopy, copy
+from copy import copy
 from logging import getLogger
 from traceback import format_exc
 from typing import Any, Callable, Dict, List, Optional
@@ -84,12 +83,10 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 				monitor_log.prerequisite = True
 
 				def run(should_run: bool, stage: CompiledStage) -> bool:
-					logger.error(f"start to run real pipeline {self.pipeline.pipelineId} stage: {time.perf_counter()}")
 					result = self.run_stage(
 						should_run=should_run, stage=stage, variables=variables,
 						created_pipeline_contexts=created_pipeline_contexts, monitor_log=monitor_log,
 						storages=storages, principal_service=principal_service)
-					logger.error(f"end to run real pipeline {self.pipeline.pipelineId} stage: {time.perf_counter()}")
 					return result
 					
 				all_run = ArrayHelper(self.stages).reduce(lambda should_run, x: run(should_run, x), True)
