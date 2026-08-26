@@ -5,13 +5,14 @@ from typing import List, Dict, Optional
 from abc import ABC, abstractmethod
 import time
 
+import uvloop
 from sqlalchemy.exc import IntegrityError
 
 from watchmen_collector_kernel.service.task_service import TaskService
 
 from watchmen_collector_kernel.common import ask_exception_max_length, ask_grouped_task_data_size_threshold
 from watchmen_collector_kernel.model import TaskType, ChangeDataJson
-from watchmen_utilities import ArrayHelper, run
+from watchmen_utilities import ArrayHelper
 
 from watchmen_collector_kernel.model import ScheduledTask, Status
 from watchmen_collector_kernel.service import get_task_service
@@ -130,11 +131,18 @@ class TaskListener:
 
             if len(unfinished_task.changeJsonIds) > self.data_size_threshold:
                 release_remaining_tasks()
-                asyncio.run(self.process_task_with_change_data_json(unfinished_task))
+                self.run(self.process_task_with_change_data_json(unfinished_task))
                 break
             else:
-                asyncio.run(self.process_task_with_change_data_json(unfinished_task))
-
+                self.run(self.process_task_with_change_data_json(unfinished_task))
+    
+    def run(self, async_func):
+        loop = uvloop.new_event_loop()
+        try:
+            loop.run_until_complete(async_func)
+        finally:
+            loop.close()
+    
     async def process_task_with_change_data_json(self, unfinished_task: ScheduledTask):
         try:
             finished_json_ids = []
