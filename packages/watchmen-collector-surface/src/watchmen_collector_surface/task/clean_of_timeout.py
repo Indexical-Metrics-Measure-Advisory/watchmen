@@ -54,7 +54,15 @@ class CleanOfTimeout:
 		self.task_timeout = ask_collector_task_timeout()
 
 	def create_thread(self, scheduler=None) -> None:
-		scheduler.add_job(CleanOfTimeout.event_loop_run, 'interval', seconds=self.cleanInterval, args=(self,))
+		scheduler.add_job(
+			CleanOfTimeout.event_loop_run,
+			'interval',
+			seconds=self.cleanInterval,
+			args=(self,),
+			max_instances=1,
+			coalesce=True,
+			misfire_grace_time=0
+		)
 
 	def event_loop_run(self):
 		try:

@@ -56,7 +56,15 @@ class CollectorEventListener:
 		self.tenant_service = TenantService(self.principal_service)
 
 	def create_thread(self, scheduler=None) -> None:
-		scheduler.add_job(CollectorEventListener.event_loop_run, 'interval', seconds=ask_monitor_event_wait(), args=(self,))
+		scheduler.add_job(
+			CollectorEventListener.event_loop_run,
+			'interval',
+			seconds=ask_monitor_event_wait(),
+			args=(self,),
+			max_instances = 1,
+			coalesce = True,
+			misfire_grace_time = 0
+		)
 
 	def event_loop_run(self):
 		try:

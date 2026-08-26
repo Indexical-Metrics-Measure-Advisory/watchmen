@@ -91,7 +91,15 @@ class TaskListener:
         self.data_size_threshold = ask_grouped_task_data_size_threshold()
 
     def create_thread(self, scheduler=None) -> None:
-        scheduler.add_job(TaskListener.event_loop_run, 'interval', seconds=ask_task_listener_wait(), args=(self,))
+        scheduler.add_job(
+            TaskListener.event_loop_run,
+            'interval',
+            seconds=ask_task_listener_wait(),
+            args=(self,),
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=0
+        )
 
     def event_loop_run(self):
         try:

@@ -480,7 +480,15 @@ class PostJsonService:
 		                                                       self.principal_service)
 
 	def create_thread(self, scheduler=None) -> None:
-		scheduler.add_job(PostJsonService.event_loop_run, 'interval', seconds=ask_post_json_wait(), args=(self,))
+		scheduler.add_job(
+			PostJsonService.event_loop_run,
+			'interval',
+			seconds=ask_post_json_wait(),
+			args=(self,),
+			max_instances=1,
+			coalesce=True,
+			misfire_grace_time=0
+		)
 
 	def event_loop_run(self):
 		try:
