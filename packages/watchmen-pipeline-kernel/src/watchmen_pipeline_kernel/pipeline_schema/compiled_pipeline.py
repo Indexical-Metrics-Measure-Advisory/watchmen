@@ -53,7 +53,6 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 			storages: TopicStorages,
 			handle_monitor_log: Callable[[PipelineMonitorLog, bool], None]
 	) -> List[PipelineContext]:
-		logger.error(f"start to run real pipeline: {time.perf_counter()}")
 		# build pipeline variables
 		trigger_topic_id = self.pipeline.topicId
 		trigger_topic = get_topic_service(principal_service).find_by_id(trigger_topic_id)
@@ -85,11 +84,14 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 				monitor_log.prerequisite = True
 
 				def run(should_run: bool, stage: CompiledStage) -> bool:
-					return self.run_stage(
+					logger.error(f"start to run real pipeline {self.pipeline.pipelineId} stage: {time.perf_counter()}")
+					result = self.run_stage(
 						should_run=should_run, stage=stage, variables=variables,
 						created_pipeline_contexts=created_pipeline_contexts, monitor_log=monitor_log,
 						storages=storages, principal_service=principal_service)
-
+					logger.error(f"end to run real pipeline {self.pipeline.pipelineId} stage: {time.perf_counter()}")
+					return result
+					
 				all_run = ArrayHelper(self.stages).reduce(lambda should_run, x: run(should_run, x), True)
 				if all_run:
 					monitor_log.status = MonitorLogStatus.DONE
@@ -105,9 +107,7 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 		monitor_log.spentInMills = spent_ms(monitor_log.startTime)
 
 		# trigger log pipeline
-		logger.error(f"start to run monitor pipeline: {time.perf_counter()}")
 		handle_monitor_log(monitor_log, ask_async_handle_monitor_log())
-		logger.error(f"end to run monitor pipeline: {time.perf_counter()}")
 		# return created pipelines
 		return created_pipeline_contexts.to_list()
 
