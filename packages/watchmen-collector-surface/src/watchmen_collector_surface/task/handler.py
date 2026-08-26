@@ -1,5 +1,6 @@
 from typing import Dict, Optional
 from logging import getLogger
+import time
 
 from watchmen_model.common import PipelineId
 
@@ -50,10 +51,13 @@ def save_topic_data(trigger_data: PipelineTriggerData) -> TopicTrigger:
 
 
 async def pipeline_data(topic_code: str, data: Dict, tenant_id: str) -> str:
+	logger.error(f"begin inside pipeline data: {time.perf_counter()}")
 	trigger_data = PipelineTriggerData(code=topic_code, data=data, tenantId=tenant_id)
+	logger.error(f"finish trigger data inside pipeline data: {time.perf_counter()}")
 	topic_trigger = save_topic_data(trigger_data)
+	logger.error(f"finish save topic trigger inside pipeline data: {time.perf_counter()}")
 	return await trigger_pipeline(trigger_data, topic_trigger)
-
+	
 
 # noinspection PyMethodMayBeStatic
 async def trigger_pipeline(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger) -> str:
