@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from traceback import format_exc
 from typing import List, Dict, Optional
@@ -129,10 +130,10 @@ class TaskListener:
 
             if len(unfinished_task.changeJsonIds) > self.data_size_threshold:
                 release_remaining_tasks()
-                run(self.process_task_with_change_data_json(unfinished_task))
+                asyncio.run(self.process_task_with_change_data_json(unfinished_task))
                 break
             else:
-                run(self.process_task_with_change_data_json(unfinished_task))
+                asyncio.run(self.process_task_with_change_data_json(unfinished_task))
 
     async def process_task_with_change_data_json(self, unfinished_task: ScheduledTask):
         try:
