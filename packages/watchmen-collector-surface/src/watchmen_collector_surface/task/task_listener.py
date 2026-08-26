@@ -12,6 +12,8 @@ from watchmen_collector_kernel.service.task_service import TaskService
 
 from watchmen_collector_kernel.common import ask_exception_max_length, ask_grouped_task_data_size_threshold
 from watchmen_collector_kernel.model import TaskType, ChangeDataJson
+from watchmen_model.pipeline_kernel import PipelineTriggerData
+from watchmen_pipeline_kernel.pipeline import try_to_invoke_pipelines
 from watchmen_utilities import ArrayHelper
 
 from watchmen_collector_kernel.model import ScheduledTask, Status
@@ -53,10 +55,23 @@ class TaskExecutor(TaskExecutorSPI):
 class DataTaskExecutor(TaskExecutor):
     async def executing_task(self, task: ScheduledTask):
         logger.error(f"begin pipeline data: {time.perf_counter()}")
-        await pipeline_data(task.topicCode, task.content, task.tenantId)
+        # await pipeline_data(task.topicCode, task.content, task.tenantId)
+        await self.pipeline_data_v2(task)
         logger.error(f"finished pipeline data: {time.perf_counter()}")
 
-
+    async def pipeline_data_v2(self, task: ScheduledTask):
+        trace_id = str(ask_snowflake_generator().next_id())
+        trigger_data = PipelineTriggerData(
+            code=task.topicCode,
+            data=task.content
+        )
+        # use super admin
+        principal_service = ask_super_admin()
+        # change the tenant_id
+        principal_service.tenantId = trigger_data.tenantId
+        internal_data_id = await try_to_invoke_pipelines(trigger_data, trace_id, principal_service)
+    
+    
 class PipelineTaskExecutor(TaskExecutor):
     async def executing_task(self, task: ScheduledTask):
         await run_pipeline(task.topicCode, task.content, task.tenantId, task.pipelineId)
