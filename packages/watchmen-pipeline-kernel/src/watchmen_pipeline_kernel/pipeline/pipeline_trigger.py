@@ -137,7 +137,8 @@ class PipelineTrigger:
 				trace_id=self.traceId,
 				data_id=trigger.internalDataId
 			)
-
+		
+		logger.error(f"begin pipeline dispatcher inside pipeline start: {time.perf_counter()}")
 		PipelinesDispatcher(
 			contexts=ArrayHelper(pipelines).map(lambda x: construct_queued_pipeline(x)).to_list(),
 			storages=self.storages,

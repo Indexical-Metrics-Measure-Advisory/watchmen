@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from copy import deepcopy, copy
 from logging import getLogger
 from traceback import format_exc
@@ -52,6 +53,7 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 			storages: TopicStorages,
 			handle_monitor_log: Callable[[PipelineMonitorLog, bool], None]
 	) -> List[PipelineContext]:
+		logger.error(f"start to run real pipeline: {time.perf_counter()}")
 		# build pipeline variables
 		trigger_topic_id = self.pipeline.topicId
 		trigger_topic = get_topic_service(principal_service).find_by_id(trigger_topic_id)
@@ -103,8 +105,9 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 		monitor_log.spentInMills = spent_ms(monitor_log.startTime)
 
 		# trigger log pipeline
+		logger.error(f"start to run monitor pipeline: {time.perf_counter()}")
 		handle_monitor_log(monitor_log, ask_async_handle_monitor_log())
-
+		logger.error(f"end to run monitor pipeline: {time.perf_counter()}")
 		# return created pipelines
 		return created_pipeline_contexts.to_list()
 
