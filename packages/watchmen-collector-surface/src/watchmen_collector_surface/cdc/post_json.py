@@ -486,8 +486,7 @@ class PostJsonService:
 			seconds=ask_post_json_wait(),
 			args=(self,),
 			max_instances=1,
-			coalesce=True,
-			misfire_grace_time=0
+			coalesce=True
 		)
 
 	def event_loop_run(self):

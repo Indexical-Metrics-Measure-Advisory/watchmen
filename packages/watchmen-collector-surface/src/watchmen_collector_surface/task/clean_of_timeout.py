@@ -60,8 +60,7 @@ class CleanOfTimeout:
 			seconds=self.cleanInterval,
 			args=(self,),
 			max_instances=1,
-			coalesce=True,
-			misfire_grace_time=0
+			coalesce=True
 		)
 
 	def event_loop_run(self):

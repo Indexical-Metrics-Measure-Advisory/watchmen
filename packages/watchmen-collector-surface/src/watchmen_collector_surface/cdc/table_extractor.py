@@ -56,9 +56,8 @@ class TableExtractor:
             'interval',
             seconds=ask_table_extract_wait(),
             args=(self,),
-            max_instances = 1,
-            coalesce = True,
-            misfire_grace_time = 0
+            max_instances=1,
+            coalesce=True
         )
 
     def event_loop_run(self):
