@@ -30,6 +30,7 @@ const SHOW_SMART_CONSOLE = (import.meta.env.VITE_SHOW_SMART_CONSOLE ?? 'true') =
 const SHOW_BUSINESS_CHALLENGE = (import.meta.env.VITE_SHOW_BUSINESS_CHALLENGE ?? 'true') === 'true';
 const SHOW_METRICS = (import.meta.env.VITE_SHOW_METRICS ?? 'true') === 'true';
 const SHOW_DATA_CATALOG = (import.meta.env.VITE_SHOW_DATA_CATALOG ?? 'true') === 'true';
+const SHOW_BUSINESS_GLOSSARY = (import.meta.env.VITE_SHOW_BUSINESS_GLOSSARY ?? 'true') === 'true';
 const SHOW_EVALUATION = (import.meta.env.VITE_SHOW_EVALUATION ?? 'true') === 'true';
 const SHOW_METRIC_AI_AGENT = (import.meta.env.VITE_SHOW_METRIC_AI_AGENT ?? 'true') === 'true';
 
@@ -223,7 +224,9 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           {/* <NavItem to="/data-catalog" icon={<FolderOpen size={16} />} label="Data Catalog" collapsed={collapsed} isSubItem={true} /> */}
           <NavItem to="/data-catalog/domain-map" icon={<Network size={16} />} label={t('nav:businessOntology')} collapsed={collapsed} isSubItem={true} />
           <NavItem to="/data-catalog/ontology-tester" icon={<FlaskConical size={16} />} label={t('nav:ontologyDataTester')} collapsed={collapsed} isSubItem={true} />
-          <NavItem to="/data-catalog/business-glossary" icon={<BookOpen size={16} />} label={t('nav:businessGlossary')} collapsed={collapsed} isSubItem={true} />
+          {SHOW_BUSINESS_GLOSSARY && (
+            <NavItem to="/data-catalog/business-glossary" icon={<BookOpen size={16} />} label={t('nav:businessGlossary')} collapsed={collapsed} isSubItem={true} />
+          )}
           {/* <NavItem to="/data-profiles" icon={<Database size={16} />} label="Data Profile Management" collapsed={collapsed} isSubItem={true} /> */}
           
         </NavGroup>
