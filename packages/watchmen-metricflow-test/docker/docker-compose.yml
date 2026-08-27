@@ -1,0 +1,55 @@
+services:
+  postgresdb:
+    image: postgres:14
+    container_name: mft-postgres
+    # the tolerant init runner continues past per-file errors, CI-style; a hard
+    # entrypoint abort (stale ALTER hitting a missing column) must not leave the
+    # container exited
+    restart: always
+    environment:
+      POSTGRES_DB: watchmen
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin-pwd
+    ports:
+      # host-side only; override to dodge a local postgres, e.g. MFT_PG_PORT=25432
+      - '${MFT_PG_PORT:-25432}:5432'
+    volumes:
+      # schema bootstrap on first boot of an empty volume (same mechanism as
+      # watchmen-quick-start); script SOURCES come straight from the versioned
+      # trees in watchmen-storage-postgresql — quick-start's own copies are stale
+      - ./postgres-init/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+      - ../../watchmen-storage-postgresql/meta-scripts:/docker-entrypoint-initdb.d/init-scripts/meta-scripts:ro
+      - ../../watchmen-storage-postgresql/data-scripts:/docker-entrypoint-initdb.d/init-scripts/data-scripts:ro
+      # runs AFTER init.sh (alphabetical: z > i): dedicated test principal + the
+      # pats.expired dialect fix, see file header for rationale
+      - ./postgres-init/z-mft-seed.sql:/docker-entrypoint-initdb.d/z-mft-seed.sql:ro
+      - mft_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U admin -d watchmen']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mysql:
+    image: mysql:8.0.21
+    container_name: mft-mysql
+    environment:
+      MYSQL_DATABASE: mft
+      MYSQL_USER: mft
+      MYSQL_PASSWORD: mft-pwd
+      MYSQL_ROOT_PASSWORD: admin-pwd
+    ports:
+      # host-side only; the server connects to 127.0.0.1 on this port
+      - '${MFT_MYSQL_PORT:-23306}:3306'
+    volumes:
+      - ./mysql-init/01-orders.sql:/docker-entrypoint-initdb.d/01-orders.sql:ro
+      - mft_mysqldata:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  mft_pgdata:
+  mft_mysqldata:

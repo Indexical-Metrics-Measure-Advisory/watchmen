@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "watchmen-metricflow-test"
+version = "18.0.0"
+description = "Black-box API test suite for watchmen-metricflow: real database, real auth (PAT), real HTTP against the live server."
+authors = ["luke0623 <luke0623@outlook.com>"]
+packages = [
+	{ include = "watchmen_metricflow_test", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "~3.12"
+requests = "^2.32.3"
+pydantic-settings = "^2.7.1"
+# server-under-test runs from THIS virtualenv (subprocess uvicorn), same as
+# watchmen-test-harness does for the doll; postgresql is the meta dialect, and
+# mysql is REQUIRED even though optional upstream: the metric value bypass
+# imports watchmen_storage_mysql unconditionally on the query path
+watchmen-metricflow = { path = "../watchmen-metricflow", develop = true, extras = ["postgresql", "mysql"] }
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+
+[tool.poetry.scripts]
+mft = 'watchmen_metricflow_test.runner:main'
+
+[tool.pytest.ini_options]
+testpaths = ['scenarios']
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
