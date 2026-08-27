@@ -1,0 +1,22 @@
+services:
+  mysql:
+    image: mysql:8.0.21
+    container_name: wht-mysql
+    environment:
+      MYSQL_DATABASE: watchmen
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: admin
+    ports:
+      - '${WHT_MYSQL_PORT:-13306}:3306'
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 10s
+      timeout: 10s
+      retries: 6
+      start_period: 20s
+    volumes:
+      - wht_mysql_data:/var/lib/mysql
+
+volumes:
+  wht_mysql_data:

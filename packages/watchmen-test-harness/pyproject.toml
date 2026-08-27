@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "watchmen-test-harness"
+version = "18.0.0"
+description = "Local full-stack e2e test harness for watchmen: boots a real database via docker compose, applies meta/data scripts, starts the doll server, and runs smoke/deep functional scenarios."
+authors = ["luke0623 <luke0623@outlook.com>"]
+packages = [
+	{ include = "watchmen_test_harness", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "~3.12"
+PyMySQL = "^1.1.1"
+requests = "^2.32.3"
+pydantic-settings = "^2.7.1"
+# The harness runs the doll server in-process env; depending on it keeps one
+# poetry virtualenv able to execute both `wht` and `uvicorn watchmen_rest_doll.main:app`.
+# `s3` is required even though optional in CI parity terms: collector-surface
+# imports watchmen_storage_s3 unconditionally, so without it the app cannot boot.
+watchmen-rest-doll = { path = "../watchmen-rest-doll", develop = true, extras = ["mysql", "s3"] }
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+
+[tool.poetry.scripts]
+wht = 'watchmen_test_harness.runner:main'
+
+[tool.pytest.ini_options]
+markers = [
+	'smoke: fast core-path checks (~5 minutes), run via `make smoke`'
+]
+testpaths = ['scenarios']
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

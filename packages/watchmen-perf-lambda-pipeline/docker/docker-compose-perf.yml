@@ -23,7 +23,13 @@ services:
     container_name: perf_localstack
     environment:
       SERVICES: lambda,sqs,s3,events,cloudwatch,iam,sts
-      LAMBDA_RUNTIME_EXECUTOR: docker-reuse
+      # community-edition friendly: run functions inside the LocalStack process
+      # (native arch, no per-invocation sandbox); zip lambdas import the full
+      # watchmen dependency tree, so allow a long runtime-environment startup
+      LAMBDA_EXECUTOR: local
+      LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT: "900"
+      # verbose lambda logs (handler stdout/stderr stream into container log)
+      DEBUG: "1"
       DASHBOARD: "true"
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
@@ -49,8 +55,15 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin-pwd
     ports:
-      - "5432:5432"
+      # host-side only; override to dodge local services, e.g. WHP_PG_PORT=15432
+      - "${WHP_PG_PORT:-5432}:5432"
     volumes:
+      # schema bootstrap on first boot of an empty volume. Runner script comes from
+      # watchmen-quick-start; script SOURCES come straight from the versioned trees
+      # in watchmen-storage-postgresql (quick-start's own copies are stale snapshots)
+      - ./postgres-init/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+      - ../../watchmen-storage-postgresql/meta-scripts:/docker-entrypoint-initdb.d/init-scripts/meta-scripts:ro
+      - ../../watchmen-storage-postgresql/data-scripts:/docker-entrypoint-initdb.d/init-scripts/data-scripts:ro
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d watchmen"]
@@ -65,7 +78,8 @@ services:
       postgresdb:
         condition: service_healthy
     ports:
-      - "8000:8000"
+      # host-side only; override when a dev doll already owns 8000 (WHP_DOLL_PORT=18000)
+      - "${WHP_DOLL_PORT:-8000}:8000"
     environment:
       # Postgres meta + storage
       META_STORAGE_TYPE: postgresql
@@ -115,7 +129,8 @@ services:
     depends_on:
       - prometheus
     ports:
-      - "3000:3000"
+      # host-side only; override when local grafana occupies 3000 (WHP_GRAFANA_PORT=13000)
+      - "${WHP_GRAFANA_PORT:-3000}:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
