@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from copy import deepcopy, copy
+from copy import copy
 from logging import getLogger
 from traceback import format_exc
 from typing import Any, Callable, Dict, List, Optional
@@ -83,11 +83,12 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 				monitor_log.prerequisite = True
 
 				def run(should_run: bool, stage: CompiledStage) -> bool:
-					return self.run_stage(
+					result = self.run_stage(
 						should_run=should_run, stage=stage, variables=variables,
 						created_pipeline_contexts=created_pipeline_contexts, monitor_log=monitor_log,
 						storages=storages, principal_service=principal_service)
-
+					return result
+					
 				all_run = ArrayHelper(self.stages).reduce(lambda should_run, x: run(should_run, x), True)
 				if all_run:
 					monitor_log.status = MonitorLogStatus.DONE
@@ -104,7 +105,6 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 
 		# trigger log pipeline
 		handle_monitor_log(monitor_log, ask_async_handle_monitor_log())
-
 		# return created pipelines
 		return created_pipeline_contexts.to_list()
 

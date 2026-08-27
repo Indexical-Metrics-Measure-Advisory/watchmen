@@ -1,24 +1,21 @@
 import logging
+from abc import ABC, abstractmethod
 from traceback import format_exc
 from typing import List, Dict, Optional
-from abc import ABC, abstractmethod
-import time
 
 from sqlalchemy.exc import IntegrityError
 
-from watchmen_collector_kernel.service.task_service import TaskService
-
 from watchmen_collector_kernel.common import ask_exception_max_length, ask_grouped_task_data_size_threshold
-from watchmen_collector_kernel.model import TaskType, ChangeDataJson
-from watchmen_utilities import ArrayHelper, run
-
 from watchmen_collector_kernel.model import ScheduledTask, Status
+from watchmen_collector_kernel.model import TaskType, ChangeDataJson
 from watchmen_collector_kernel.service import get_task_service
+from watchmen_collector_kernel.service.task_service import TaskService
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_scheduled_task_service, \
     get_scheduled_task_history_service, get_change_data_json_service, get_change_data_json_history_service
-from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
-from .handler import pipeline_data, run_pipeline
 from watchmen_collector_surface.settings import ask_task_listener_wait
+from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
+from watchmen_utilities import ArrayHelper, run
+from .handler import pipeline_data, run_pipeline
 
 logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
@@ -50,11 +47,9 @@ class TaskExecutor(TaskExecutorSPI):
 
 class DataTaskExecutor(TaskExecutor):
     async def executing_task(self, task: ScheduledTask):
-        logger.error(f"begin pipeline data: {time.perf_counter()}")
-        await pipeline_data(task.topicCode, task.content, task.tenantId)
-        logger.error(f"finished pipeline data: {time.perf_counter()}")
-
-
+       await pipeline_data(task.topicCode, task.content, task.tenantId)
+    
+       
 class PipelineTaskExecutor(TaskExecutor):
     async def executing_task(self, task: ScheduledTask):
         await run_pipeline(task.topicCode, task.content, task.tenantId, task.pipelineId)
@@ -113,9 +108,7 @@ class TaskListener:
         self.process_tasks()
 
     def process_tasks(self):
-        logger.error(f"begin time: {time.perf_counter()}")
         unfinished_tasks = self.find_tasks_and_locked()
-        logger.error(f"finish find task and lock: {time.perf_counter()}")
         remaining_tasks = ArrayHelper(unfinished_tasks).to_map(lambda task: task.taskId,
                                                                lambda task: task)
 
@@ -133,21 +126,18 @@ class TaskListener:
                 break
             else:
                 run(self.process_task_with_change_data_json(unfinished_task))
-
+    
     async def process_task_with_change_data_json(self, unfinished_task: ScheduledTask):
         try:
             finished_json_ids = []
             for change_json_id in unfinished_task.changeJsonIds:
                 change_json = self.get_change_data_json(change_json_id)
-                logger.error(f"find find task mapping json: {time.perf_counter()}")
                 if change_json:
                     if self.is_duplicated(change_json):
                         self.delete_change_json(change_json)
                     else:
                         await self.process_sub_tasks(unfinished_task, change_json)
-                        logger.error(f"finish task: {time.perf_counter()}")
                         self.update_change_json_result(change_json, Status.SUCCESS.value)
-                        logger.error(f"remove task: {time.perf_counter()}")
                         finished_json_ids.append(change_json.changeJsonId)
 
             finished_task = self.update_task_status(unfinished_task, Status.SUCCESS.value)
@@ -231,9 +221,7 @@ class TaskListener:
             self.change_json_history_service.begin_transaction()
             change_json.status = status
             self.change_json_history_service.create(change_json)
-            logger.error(f"create json history: {time.perf_counter()}")
             self.change_json_service.delete(change_json.changeJsonId)
-            logger.error(f"delete json history: {time.perf_counter()}")
             self.change_json_history_service.commit_transaction()
         except IntegrityError:
             self.change_json_history_service.rollback_transaction()

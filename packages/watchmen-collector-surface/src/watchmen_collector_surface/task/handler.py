@@ -1,31 +1,25 @@
-from typing import Dict, Optional
 from logging import getLogger
-import time
-
-from watchmen_model.common import PipelineId
-
-from watchmen_model.admin import PipelineTriggerType
+from typing import Dict, Optional
 
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
 from watchmen_data_kernel.storage import TopicTrigger
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin
+from watchmen_model.admin import PipelineTriggerType
+from watchmen_model.common import PipelineId
 from watchmen_model.pipeline_kernel import PipelineTriggerData, TopicDataColumnNames
 from watchmen_pipeline_kernel.pipeline import create_monitor_log_pipeline_invoker, PipelineTrigger
-
 
 logger = getLogger(__name__)
 
 
 async def handle_trigger_data(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger, pipeline_id: Optional[PipelineId] = None) -> str:
-	logger.error(f"begin inside handle_trigger_data: {time.perf_counter()}")
 	# use super admin
 	principal_service = ask_super_admin()
 	# change the tenant_id
 	principal_service.tenantId = trigger_data.tenantId
 	schema = TopicService(principal_service).find_schema_by_name(trigger_data.code, trigger_data.tenantId)
 	trace_id = str(ask_snowflake_generator().next_id())
-	logger.error(f"begin pipeline trigger inside handle_trigger_data: {time.perf_counter()}")
 	await PipelineTrigger(
 		trigger_topic_schema=schema,
 		trigger_type=trigger_data.triggerType,
@@ -53,11 +47,8 @@ def save_topic_data(trigger_data: PipelineTriggerData) -> TopicTrigger:
 
 
 async def pipeline_data(topic_code: str, data: Dict, tenant_id: str) -> str:
-	logger.error(f"begin inside pipeline data: {time.perf_counter()}")
 	trigger_data = PipelineTriggerData(code=topic_code, data=data, tenantId=tenant_id)
-	logger.error(f"finish trigger data inside pipeline data: {time.perf_counter()}")
 	topic_trigger = save_topic_data(trigger_data)
-	logger.error(f"finish save topic trigger inside pipeline data: {time.perf_counter()}")
 	return await trigger_pipeline(trigger_data, topic_trigger)
 	
 

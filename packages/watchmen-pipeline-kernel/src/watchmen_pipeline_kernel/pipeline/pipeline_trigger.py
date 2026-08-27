@@ -1,7 +1,7 @@
 import asyncio
 from logging import getLogger
 from typing import Any, Callable, Dict, Optional
-import time
+
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import PipelineService
 from watchmen_data_kernel.service import ask_topic_data_service
@@ -99,7 +99,6 @@ class PipelineTrigger:
 		"""
 		data of trigger must be prepared already
 		"""
-		logger.error(f"begin inside pipeline start: {time.perf_counter()}")
 		schema = self.triggerTopicSchema
 		topic = schema.get_topic()
 		if is_not_blank(pipeline_id):
@@ -137,12 +136,11 @@ class PipelineTrigger:
 				trace_id=self.traceId,
 				data_id=trigger.internalDataId
 			)
-
+		
 		PipelinesDispatcher(
 			contexts=ArrayHelper(pipelines).map(lambda x: construct_queued_pipeline(x)).to_list(),
 			storages=self.storages,
 		).start(self.handle_monitor_log)
-		logger.error(f"end inside pipeline start: {time.perf_counter()}")
 
 	async def invoke(self) -> int:
 		"""
