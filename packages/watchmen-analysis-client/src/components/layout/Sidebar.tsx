@@ -22,7 +22,8 @@ import {
   FolderOpen,
   FlaskConical,
   Package,
-  Map as MapIcon
+  Map as MapIcon,
+  Share2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -245,6 +246,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         >
           <NavItem to="/data-asset/products" icon={<Package size={16} />} label={t('nav:dataProduct')} collapsed={collapsed} isSubItem={true} />
           <NavItem to="/data-asset/map" icon={<MapIcon size={16} />} label={t('nav:assetMap')} collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/data-asset/graph" icon={<Share2 size={16} />} label={t('nav:dataProductGraph')} collapsed={collapsed} isSubItem={true} />
         </NavGroup>
         )}
 

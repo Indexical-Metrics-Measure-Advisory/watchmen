@@ -8,3 +8,4 @@ from .tuple_service import AuditableShaper, OptimisticLockShaper, TupleService, 
 from .user_based_tuple_service import UserBasedTupleService, UserBasedTupleShaper
 from .operation_service import RecordOperationService
 from .package_version_service import PackageVersionService
+from .audit_log_service import AuditLogService, AuditLogShaper, ask_audit_log_criteria

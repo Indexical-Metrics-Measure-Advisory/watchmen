@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Body
+from starlette.requests import Request
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
@@ -11,6 +12,7 @@ from watchmen_model.common import PipelineId, TenantId
 from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
+from watchmen_rest_doll.audit import record_save_audit
 from watchmen_rest_doll.util import trans, trans_readonly
 from watchmen_utilities import is_blank, is_date
 
@@ -53,14 +55,16 @@ async def load_pipeline_by_id(
 
 @router.post('/pipeline', tags=[UserRole.ADMIN], response_model=None)
 async def save_pipeline(
-		pipeline: Pipeline, principal_service: PrincipalService = Depends(get_admin_principal)
+		request: Request, pipeline: Pipeline, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Pipeline:
 	validate_tenant_id(pipeline, principal_service)
 	if is_system_topic_by_id(pipeline.topicId, principal_service):
 		raise_400('Pipelines with system topic as source cannot be saved via YAML.')
 	pipeline_service = get_pipeline_service(principal_service)
 	action = ask_save_pipeline_action(pipeline_service, principal_service)
-	return trans(pipeline_service, lambda: action(pipeline))
+	saved: Pipeline = trans(pipeline_service, lambda: action(pipeline))
+	record_save_audit(request, 'pipeline', saved.pipelineId, saved.name, principal_service)
+	return saved
 
 
 @router.get('/pipeline/rename', tags=[UserRole.ADMIN], response_class=Response)

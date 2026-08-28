@@ -4,9 +4,9 @@ from typing import List, Optional
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.admin import Factor, Topic, TopicType, TopicKind
 from watchmen_model.common import DataPage, FactorId, Pageable, TenantId, TopicId
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
+from watchmen_storage import ColumnNameLiteral, EntityColumnType, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityDistinctValuesFinder, EntityRow, EntityShaper, \
-	SnowflakeGenerator
+	EntityStraightColumn, EntityStraightValuesFinder, SnowflakeGenerator
 from watchmen_utilities import ArrayHelper, is_not_blank
 
 
@@ -158,22 +158,20 @@ class TopicService(TupleService):
 
 	def find_available_tags(self, tenant_id: Optional[TenantId]) -> List[str]:
 		"""
-		All distinct tags used by tenant topics, sorted. Tags are stored as a json array
-		column, so distinct values are flattened and deduplicated here.
+		All distinct tags used by tenant topics, sorted. Tags are stored as a json array column,
+		therefore values are flattened and deduplicated here, instead of on the database side.
 		"""
 		criteria = []
 		if is_not_blank(tenant_id):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker
-		rows: List[Topic] = self.storage.find_distinct_values(EntityDistinctValuesFinder(
+		rows: List[EntityRow] = self.storage.find_straight_values(EntityStraightValuesFinder(
 			name=self.get_entity_name(),
-			shaper=self.get_entity_shaper(),
 			criteria=criteria,
-			distinctColumnNames=['tags'],
-			distinctValueOnSingleColumn=True
+			straightColumns=[EntityStraightColumn(columnName='tags', columnType=EntityColumnType.JSON)]
 		))
 		tags: List[str] = []
-		ArrayHelper(rows).map(lambda x: x.tags or []).each(lambda x: tags.extend(x))
+		ArrayHelper(rows).map(lambda x: x.get('tags') or []).each(lambda x: tags.extend(x))
 		return sorted(set(tags))
 
 	# noinspection DuplicatedCode

@@ -6,3 +6,4 @@ export { default as pipelineMetaService } from './pipelineMetaService';
 export { default as topicService } from './topicService';
 export { default as dataSourceService } from './dataSourceService';
 export { systemService } from './systemService';
+export { auditService } from './auditService';

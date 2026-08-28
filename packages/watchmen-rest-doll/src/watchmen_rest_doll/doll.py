@@ -82,6 +82,9 @@ class DollApp(RestApp):
 	
 	def ask_collector_enabled(self) -> bool:
 		return self.get_settings().COLLECTOR_ON
+
+	def ask_audit_enabled(self) -> bool:
+		return self.get_settings().AUDIT_ON
 	
 	# noinspection PyMethodMayBeStatic
 	def init_collector_surface(self) -> None:
@@ -144,6 +147,9 @@ def ask_oidc_settings() -> DollSettings:
 
 def ask_collector_enabled() -> bool:
 	return doll.ask_collector_enabled()
+
+def ask_audit_enabled() -> bool:
+	return doll.ask_audit_enabled()
 
 def ask_admin_mcp() -> bool:
 	return doll.get_settings().ADMIN_MCP_ON

@@ -16,6 +16,7 @@ from watchmen_rest import create_jwt_token, get_any_principal, retrieve_authenti
 from watchmen_rest.util import raise_401
 from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, ask_saml2_enabled, ask_saml2_settings, \
 	ask_sso_enabled, ask_oidc_enabled, ask_oidc_settings
+from watchmen_rest_doll.audit import record_login_audit
 from watchmen_rest_doll.settings import SSOTypes
 from watchmen_rest_doll.util import verify_password
 from watchmen_utilities import ExtendedBaseModel
@@ -65,11 +66,17 @@ def authenticate(username, password) -> User:
 
 
 @router.post('/login', response_model=None, tags=['authenticate'])
-async def login_by_user_pwd(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
+async def login_by_user_pwd(request: Request, form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
 	"""
 	OAuth2 compatible token login, get an access token for future requests
 	"""
-	user: User = authenticate(form_data.username, form_data.password)
+	try:
+		user: User = authenticate(form_data.username, form_data.password)
+	except Exception:
+		# failed logins are audited too, with the attempted account name
+		record_login_audit(request, form_data.username, False)
+		raise
+	record_login_audit(request, user.name, True, user.userId, user.tenantId)
 	logger.info(f'User[{user.name}] signed in.')
 	access_token_expires = timedelta(minutes=ask_access_token_expires_in())
 	jwt_secret_key, jwt_algorithm = ask_jwt_params()

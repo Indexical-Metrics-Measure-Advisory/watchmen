@@ -13,6 +13,7 @@ from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_rest import get_admin_principal, get_console_principal, get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
+from watchmen_rest_doll.audit import record_save_audit
 from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail
 from watchmen_utilities import ArrayHelper, is_blank, is_date, is_not_blank
 
@@ -55,12 +56,14 @@ async def load_topic_by_id(
 
 @router.post('/topic', tags=[UserRole.ADMIN], response_model=None)
 async def save_topic(
-		topic: Topic, principal_service: PrincipalService = Depends(get_admin_principal)
+		request: Request, topic: Topic, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Topic:
 	validate_tenant_id(topic, principal_service)
 	topic_service = get_topic_service(principal_service)
 	action = ask_save_topic_action(topic_service, principal_service, True)
-	return trans_with_tail(topic_service, lambda: action(topic))
+	saved: Topic = trans_with_tail(topic_service, lambda: action(topic))
+	record_save_audit(request, 'topic', saved.topicId, saved.name, principal_service)
+	return saved
 
 
 @router.post('/topic/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)

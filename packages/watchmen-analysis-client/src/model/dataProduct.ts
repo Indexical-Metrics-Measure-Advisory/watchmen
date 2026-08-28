@@ -209,6 +209,8 @@ export interface DataProduct {
   board_ids: string[];
   subject_ids: string[];
   ontology_ids: string[];
+  /** manually declared dependencies: products this one consumes (upstream) */
+  upstream_product_ids: string[];
   value_score: number;
   tenantId?: string;
 }
@@ -257,6 +259,7 @@ export interface DataProductUpsert {
   board_ids?: string[];
   subject_ids?: string[];
   ontology_ids?: string[];
+  upstream_product_ids?: string[];
   value_score?: number;
 }
 
@@ -264,6 +267,50 @@ export interface SubjectOption {
   subjectId: string;
   name: string;
   description?: string;
+}
+
+// ---------------------------------------------------------------------------
+// ODPG v1.0 shaped product-level dependency graph
+// ---------------------------------------------------------------------------
+export interface ProductGraphNode {
+  id: string;
+  type: string; // DataProduct | Domain
+  $ref?: string;
+  "x-name"?: string;
+  "x-status"?: string;
+  "x-product-type"?: string;
+  "x-domain"?: string;
+  "x-catalog-id"?: string;
+  "x-value-score"?: number;
+  "x-topic-count"?: number;
+  "x-product-count"?: number;
+}
+
+export interface ProductGraphEdge {
+  from: string;
+  to: string;
+  type: string; // dependsOn | alignsWith
+  confidence: string; // high (manually declared) | medium (pipeline derived)
+  "x-origin"?: "manual" | "pipeline";
+  "x-topic-flow-count"?: number;
+}
+
+export interface ProductGraph {
+  schema: string;
+  version: string;
+  kind: string;
+  graph: {
+    metadata: Record<string, unknown>;
+    nodes: ProductGraphNode[];
+    edges: ProductGraphEdge[];
+  };
+}
+
+export interface ProductGraphParams {
+  domain?: string;
+  q?: string;
+  focus?: string;
+  depth?: number;
 }
 
 export interface BatchCreateRequest {

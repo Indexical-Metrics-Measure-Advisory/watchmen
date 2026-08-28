@@ -572,6 +572,20 @@ table_package_versions = Table(
     create_str('current_version', 20),
     create_tenant_id(), *create_tuple_audit_columns()
 )
+table_audit_log = Table(
+    'audit_log', meta_data,
+    create_pk('audit_id'),
+    create_tuple_id_column('tenant_id'), create_tuple_id_column('user_id'),
+    create_str('user_name', 100),
+    create_str('operation_type', 20, False),
+    create_str('resource', 50),
+    create_str('detail', 512),
+    create_str('method', 16), create_str('path', 512),
+    create_str('query_string', 1024),
+    create_bool('success'), create_int('duration_ms'),
+    create_str('client_ip', 64), create_str('user_agent', 512),
+    create_datetime('occurred_at', False)
+)
 
 table_subscription_event = Table(
     'subscription_events', meta_data,
@@ -956,6 +970,7 @@ tables: Dict[str, Table] = {
     'scheduled_task_history': table_scheduled_task_history,
     'operations': table_operations,
     'package_versions': table_package_versions,
+    'audit_log': table_audit_log,
     # webhook
     'subscription_event_locks': table_subscription_event_locks,
     'subscription_events': table_subscription_event,

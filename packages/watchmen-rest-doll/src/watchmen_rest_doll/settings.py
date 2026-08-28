@@ -35,6 +35,9 @@ class DollSettings(RestSettings):
 
 	ADMIN_MCP_ON: bool = False
 
+	# audit every api operation (account + operation type) at the router layer
+	AUDIT_ON: bool = True
+
 	
 
 

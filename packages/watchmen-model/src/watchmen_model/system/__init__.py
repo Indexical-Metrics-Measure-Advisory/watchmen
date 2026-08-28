@@ -8,4 +8,5 @@ from .plugin import Plugin, PluginApplyTo, PluginType
 from .tenant import Tenant
 from .token import PersonalAccessToken, Token
 from .operation import Operation, OperationType
+from .audit_log import AuditLog, AuditOperationType
 from .PackageVersion import PackageVersion

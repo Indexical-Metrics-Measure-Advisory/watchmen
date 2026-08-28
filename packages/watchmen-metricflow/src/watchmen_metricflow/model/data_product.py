@@ -266,6 +266,8 @@ class DataProduct(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	board_ids: List[str] = []
 	subject_ids: List[str] = []
 	ontology_ids: List[str] = []
+	# manually declared product dependencies: products this one consumes (upstream)
+	upstream_product_ids: List[str] = []
 	value_score: int = 0
 
 
@@ -317,6 +319,7 @@ class DataProductUpsert(ExtendedBaseModel):
 	board_ids: Optional[List[str]] = None
 	subject_ids: Optional[List[str]] = None
 	ontology_ids: Optional[List[str]] = None
+	upstream_product_ids: Optional[List[str]] = None
 	value_score: Optional[int] = None
 
 

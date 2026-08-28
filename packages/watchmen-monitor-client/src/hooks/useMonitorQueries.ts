@@ -8,6 +8,8 @@ import { pipelineMetaService } from '@/services/pipelineMetaService';
 import { topicService } from '@/services/topicService';
 import { lineageService } from '@/services/lineageService';
 import dataSourceService from '@/services/dataSourceService';
+import { auditService } from '@/services/auditService';
+import type { AuditLogCriteria } from '@/services/auditService';
 import type { Pageable } from '@/models/api.models';
 import type { PipelineMonitorLogCriteria } from '@/models/pipeline.models';
 
@@ -29,6 +31,9 @@ const REACT_QUERY_KEYS = {
   recentTriggerOnlines: ['ingest', 'trigger-online'] as const,
   pipelineLogStats: (criteria: PipelineLogStatsCriteria) =>
     ['pipeline', 'log-stats', criteria] as const,
+  auditLogs: (criteria: AuditLogCriteria) => ['audit', 'logs', criteria] as const,
+  auditAccounts: ['audit', 'accounts'] as const,
+  auditOperationTypes: ['audit', 'operation-types'] as const,
 } as const;
 
 // ---- Ingest ----
@@ -157,5 +162,28 @@ export const usePipelineLogStats = (criteria: PipelineLogStatsCriteria = {}, ena
   useQuery({
     queryKey: REACT_QUERY_KEYS.pipelineLogStats(criteria),
     queryFn: () => pipelineMonitorService.getLogStats(criteria),
+    enabled,
+  });
+
+// ---- Audit Log ----
+export const useAuditLogs = (criteria: AuditLogCriteria, enabled = true) =>
+  useQuery({
+    queryKey: REACT_QUERY_KEYS.auditLogs(criteria),
+    queryFn: () => auditService.queryAuditLogs(criteria),
+    placeholderData: keepPreviousData,
+    enabled,
+  });
+
+export const useAuditAccounts = (enabled = true) =>
+  useQuery({
+    queryKey: REACT_QUERY_KEYS.auditAccounts,
+    queryFn: () => auditService.getAccounts(),
+    enabled,
+  });
+
+export const useAuditOperationTypes = (enabled = true) =>
+  useQuery({
+    queryKey: REACT_QUERY_KEYS.auditOperationTypes,
+    queryFn: () => auditService.getOperationTypes(),
     enabled,
   });

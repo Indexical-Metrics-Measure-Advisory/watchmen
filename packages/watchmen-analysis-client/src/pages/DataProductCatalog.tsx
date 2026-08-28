@@ -365,6 +365,7 @@ const emptyProductForm = (): DataProductUpsert => ({
   board_ids: [],
   subject_ids: [],
   ontology_ids: [],
+  upstream_product_ids: [],
 });
 
 interface AssociationOption {
@@ -453,9 +454,10 @@ const ProductFormDialog: React.FC<{
   defaultCatalogId?: string;
   catalogs: DataAssetCatalog[];
   topics: Topic[];
+  products: DataProduct[];
   onClose: () => void;
   onSubmit: (payload: DataProductUpsert) => void;
-}> = ({ open, initial, defaultCatalogId, catalogs, topics, onClose, onSubmit }) => {
+}> = ({ open, initial, defaultCatalogId, catalogs, topics, products, onClose, onSubmit }) => {
   const { t } = useTranslation("dataAsset");
   const [form, setForm] = useState<DataProductUpsert>(emptyProductForm());
   const [tagsText, setTagsText] = useState("");
@@ -647,6 +649,21 @@ const ProductFormDialog: React.FC<{
             </TabsContent>
 
             <TabsContent value="structure" className="mt-0 space-y-3">
+              <div>
+                <Label className="font-semibold">{t("form.dependenciesTitle")}</Label>
+                <p className="text-xs text-slate-400 mt-0.5">{t("form.dependenciesHint")}</p>
+                <AssociationPicker
+                  label={t("form.assocUpstreamProducts")}
+                  options={products
+                    .filter((p) => p.id !== initial?.id)
+                    .map((p) => ({ id: p.id, name: p.display_name || p.name }))}
+                  selected={form.upstream_product_ids || []}
+                  onToggle={(id) => toggleId("upstream_product_ids", id)}
+                  searchPlaceholder={t("form.assocSearch")}
+                  emptyText={t("form.assocEmpty")}
+                />
+              </div>
+              <div className="pt-1 border-t" />
               {assocVisible.has("topic_ids") && (
                 <div>
                   <Label>{t("form.bindTables")}</Label>
@@ -1265,6 +1282,7 @@ const DataProductCatalog: React.FC = () => {
         defaultCatalogId={selectedCatalogId && selectedCatalogId !== "__uncategorized__" ? selectedCatalogId : undefined}
         catalogs={catalogs}
         topics={topics}
+        products={products}
         onClose={() => {
           setProductDialogOpen(false);
           setEditingProduct(null);

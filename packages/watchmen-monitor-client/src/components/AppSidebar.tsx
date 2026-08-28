@@ -13,7 +13,7 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
-import { LayoutDashboard, Database, GitBranch, Server, Bell, Settings, Activity } from 'lucide-react';
+import { LayoutDashboard, Database, GitBranch, Server, Bell, Settings, Activity, ShieldCheck } from 'lucide-react';
 import { systemService } from '@/services/systemService';
 import { useTranslation } from 'react-i18next';
 
@@ -32,6 +32,7 @@ const menuItems: NavItem[] = [
   { id: 'ingestion', url: '/ingestion', icon: Database },
   { id: 'pipeline', url: '/pipeline', icon: GitBranch },
   { id: 'datasource', url: '/datasource', icon: Server },
+  { id: 'audit', url: '/audit', icon: ShieldCheck },
   // { id: 'alerts', url: '/alerts', icon: Bell, disabled: !SHOW_ALERTS },
   { id: 'settings', url: '/settings', icon: Settings, disabled: true },
 ];

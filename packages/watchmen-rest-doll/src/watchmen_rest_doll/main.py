@@ -1,3 +1,5 @@
+from fastapi import APIRouter, Depends
+
 from watchmen_collector_surface.main import get_batch_collector_surface_routers
 from watchmen_data_surface import get_data_surface_routers
 from watchmen_indicator_surface import get_indicator_surface_routers
@@ -10,6 +12,7 @@ from .admin import enumeration_router, pipeline_agent_router, pipeline_graphic_r
 	pipeline_yaml_router, space_router, synonym_topic_router, tag_router, \
 	topic_agent_router, topic_router, topic_snapshot_scheduler_router, topic_yaml_router, user_group_router, user_router
 from .analysis import pipeline_index_router, topic_index_router
+from .audit import audit_recorder, audit_router
 from .auth import authenticate_router
 from .console import connected_space_graphic_router, connected_space_router, dashboard_router, report_router, \
 	subject_router
@@ -32,6 +35,25 @@ app = doll.construct()
 @app.on_event("startup")
 def startup():
 	doll.on_startup(app)
+
+
+# routers whose requests are not audited by the generic recorder:
+# health is infrastructure, authentication is audited explicitly on login,
+# the audit api itself would only add audit-of-audit noise
+AUDIT_EXCLUDED_ROUTERS = (health_router.router, authenticate_router.router, audit_router.router)
+
+
+def attach_audit_recorder(router: APIRouter) -> None:
+	# idempotent: routers are module level singletons
+	if any(getattr(x, 'dependency', None) is audit_recorder for x in router.dependencies):
+		return
+	router.dependencies.append(Depends(audit_recorder))
+
+
+def ask_audited(router: APIRouter) -> APIRouter:
+	if doll.ask_audit_enabled() and router not in AUDIT_EXCLUDED_ROUTERS:
+		attach_audit_recorder(router)
+	return router
 
 
 ArrayHelper([
@@ -64,15 +86,17 @@ ArrayHelper([
 	topic_index_router.router, pipeline_index_router.router,
 	# collector monitor
 	monitor_router.router,
+	# audit
+	audit_router.router,
 
-]).each(lambda x: app.include_router(x))
+]).each(lambda x: app.include_router(ask_audited(x)))
 
 install_sso_router(app)
 
-ArrayHelper(get_data_surface_routers()).each(lambda x: app.include_router(x))
-ArrayHelper(get_pipeline_surface_routers()).each(lambda x: app.include_router(x))
-ArrayHelper(get_inquiry_surface_routers()).each(lambda x: app.include_router(x))
-ArrayHelper(get_indicator_surface_routers()).each(lambda x: app.include_router(x))
+ArrayHelper(get_data_surface_routers()).each(lambda x: app.include_router(ask_audited(x)))
+ArrayHelper(get_pipeline_surface_routers()).each(lambda x: app.include_router(ask_audited(x)))
+ArrayHelper(get_inquiry_surface_routers()).each(lambda x: app.include_router(ask_audited(x)))
+ArrayHelper(get_indicator_surface_routers()).each(lambda x: app.include_router(ask_audited(x)))
 
 app.include_router(lineage_router.router)
 

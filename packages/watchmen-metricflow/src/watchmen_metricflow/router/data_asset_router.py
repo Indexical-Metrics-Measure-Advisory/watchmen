@@ -20,6 +20,7 @@ from watchmen_metricflow.model.data_product import (
 from watchmen_metricflow.service.asset_statistics_service import (
 	AssetMapResponse, build_asset_map, create_snapshot,
 )
+from watchmen_metricflow.service.asset_graph_service import build_product_graph
 from watchmen_metricflow.util import trans, trans_readonly
 
 router = APIRouter()
@@ -355,6 +356,25 @@ async def get_asset_map(
 	return build_asset_map(principal_service)
 
 
+# ODPG v1.0 shaped product-level dependency graph (dependsOn derived from pipelines)
+@router.get('/metricflow/data-assets/graph/products', tags=['CONSOLE', 'ADMIN'])
+async def get_product_graph(
+		domain: Optional[str] = Query(None, description='Filter products by domain value'),
+		q: Optional[str] = Query(None, description='Search product name/display name/description'),
+		focus: Optional[str] = Query(None, description='Keep only the subgraph within depth hops of this product id'),
+		depth: int = Query(1, ge=1, le=5),
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> dict:
+	product_service = get_product_service(principal_service)
+
+	def action() -> dict:
+		return build_product_graph(
+			product_service.storage, principal_service,
+			domain=domain, query=q, focus=focus, depth=depth)
+
+	return trans_readonly(product_service, action)
+
+
 @router.post('/metricflow/data-assets/map/snapshot', tags=['ADMIN'])
 async def take_snapshot(
 		principal_service: PrincipalService = Depends(get_admin_principal)
@@ -438,7 +458,8 @@ def _build_product(upsert: DataProductUpsert, existing: Optional[DataProduct] = 
 	for key in ('categories', 'standards', 'tags', 'output_formats', 'use_cases',
 				'recommended_data_products', 'pricing_plans', 'input_ports', 'output_ports',
 				'supporting_elements', 'custom_properties', 'topic_ids',
-				'metric_names', 'metric_category_ids', 'board_ids', 'subject_ids', 'ontology_ids'):
+				'metric_names', 'metric_category_ids', 'board_ids', 'subject_ids', 'ontology_ids',
+				'upstream_product_ids'):
 		value = getattr(upsert, key, None)
 		if value is not None:
 			setattr(product, key, value)

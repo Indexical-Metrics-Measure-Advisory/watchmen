@@ -6,6 +6,8 @@ import type {
   BatchCreateRequest,
   BatchDeleteRequest,
   AssetMapResponse,
+  ProductGraph,
+  ProductGraphParams,
   SubjectOption,
   TopicDetails,
 } from "@/model/dataProduct";
@@ -302,6 +304,20 @@ export class DataProductService {
       method: "POST",
       headers: getDefaultHeaders(),
       body: JSON.stringify({}),
+    });
+    return checkResponse(response);
+  }
+
+  // ---- ODPG product graph ----
+  async getProductGraph(params: ProductGraphParams = {}): Promise<ProductGraph> {
+    const search = new URLSearchParams();
+    if (params.domain) search.set("domain", params.domain);
+    if (params.q) search.set("q", params.q);
+    if (params.focus) search.set("focus", params.focus);
+    if (params.depth) search.set("depth", String(params.depth));
+    const qs = search.toString();
+    const response = await fetch(`${ENDPOINT}/graph/products${qs ? `?${qs}` : ""}`, {
+      headers: getDefaultHeaders(),
     });
     return checkResponse(response);
   }
