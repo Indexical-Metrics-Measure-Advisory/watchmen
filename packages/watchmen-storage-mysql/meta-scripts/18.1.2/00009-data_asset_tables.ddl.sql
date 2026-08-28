@@ -1,0 +1,83 @@
+-- Data asset tables: catalog tree, data products (ODPS v4.1), asset snapshots
+CREATE TABLE data_asset_catalogs
+(
+    catalog_id       VARCHAR(60)  NOT NULL,
+    name             VARCHAR(255) NOT NULL,
+    description      VARCHAR(1024),
+    parent_id        VARCHAR(60),
+    order_index      INT,
+    tenant_id        VARCHAR(50)  NOT NULL,
+    created_at       DATETIME     NOT NULL,
+    created_by       VARCHAR(50)  NOT NULL,
+    last_modified_at DATETIME     NOT NULL,
+    last_modified_by VARCHAR(50)  NOT NULL,
+    version          BIGINT,
+    PRIMARY KEY (catalog_id),
+    INDEX (name),
+    INDEX (parent_id),
+    INDEX (tenant_id),
+    INDEX (created_at),
+    INDEX (created_by),
+    INDEX (last_modified_at),
+    INDEX (last_modified_by)
+);
+
+CREATE TABLE data_products
+(
+    product_id       VARCHAR(60)   NOT NULL,
+    name             VARCHAR(255)  NOT NULL,
+    display_name     VARCHAR(255),
+    status           VARCHAR(32),
+    product_type     VARCHAR(32),
+    visibility       VARCHAR(32),
+    domain           VARCHAR(128),
+    owner            VARCHAR(128),
+    description      VARCHAR(2048),
+    product_version  VARCHAR(32),
+    catalog_id       VARCHAR(60),
+    value_score      INT,
+    tags             JSON,
+    categories       JSON,
+    topic_ids        JSON,
+    product          JSON,
+    tenant_id        VARCHAR(50)   NOT NULL,
+    created_at       DATETIME      NOT NULL,
+    created_by       VARCHAR(50)   NOT NULL,
+    last_modified_at DATETIME      NOT NULL,
+    last_modified_by VARCHAR(50)   NOT NULL,
+    version          BIGINT,
+    PRIMARY KEY (product_id),
+    INDEX (name),
+    INDEX (catalog_id),
+    INDEX (domain),
+    INDEX (status),
+    INDEX (tenant_id),
+    INDEX (created_at),
+    INDEX (created_by),
+    INDEX (last_modified_at),
+    INDEX (last_modified_by)
+);
+
+CREATE TABLE data_asset_snapshots
+(
+    snapshot_id      VARCHAR(60) NOT NULL,
+    snapshot_date    VARCHAR(20) NOT NULL,
+    total_topics     INT,
+    total_rows       BIGINT,
+    total_factors    INT,
+    product_count    INT,
+    topic_sizes      JSON,
+    tenant_id        VARCHAR(50) NOT NULL,
+    created_at       DATETIME    NOT NULL,
+    created_by       VARCHAR(50) NOT NULL,
+    last_modified_at DATETIME    NOT NULL,
+    last_modified_by VARCHAR(50) NOT NULL,
+    version          BIGINT,
+    PRIMARY KEY (snapshot_id),
+    INDEX (snapshot_date),
+    INDEX (tenant_id),
+    INDEX (created_at),
+    INDEX (created_by),
+    INDEX (last_modified_at),
+    INDEX (last_modified_by)
+);

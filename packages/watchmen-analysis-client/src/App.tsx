@@ -26,6 +26,8 @@ import MetricsManagement from './pages/MetricsManagement';
 import DataProfileManagement from './pages/DataProfileManagement';
 import DataCatalog from './pages/DataCatalog';
 import BusinessDomainMap from './pages/BusinessDomainMap';
+import DataProductCatalog from './pages/DataProductCatalog';
+import AssetMap from './pages/AssetMap';
 import OntologyDataTester from './pages/OntologyDataTester';
 import BusinessGlossary from './pages/BusinessGlossary';
 import FirstTimeOnboarding from "@/components/onboarding/FirstTimeOnboarding";
@@ -75,6 +77,8 @@ const App = () => (
                 <Route path="/data-catalog/domain-map" element={<BusinessDomainMap />} />
                 <Route path="/data-catalog/ontology-tester" element={<OntologyDataTester />} />
                 <Route path="/data-catalog/business-glossary" element={<BusinessGlossary />} />
+                <Route path="/data-asset/products" element={<DataProductCatalog />} />
+                <Route path="/data-asset/map" element={<AssetMap />} />
                 {/* <Route path="/metric-detail" element={<MetricDetail />} /> */}
                 <Route path="/analysis" element={<Analysis />} />
                 <Route path="/challenge-analysis" element={<ChallengeAnalysis />} />

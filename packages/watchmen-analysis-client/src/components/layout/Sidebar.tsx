@@ -20,7 +20,9 @@ import {
   Network,
   BookOpen,
   FolderOpen,
-  FlaskConical
+  FlaskConical,
+  Package,
+  Map as MapIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -30,6 +32,7 @@ const SHOW_SMART_CONSOLE = (import.meta.env.VITE_SHOW_SMART_CONSOLE ?? 'true') =
 const SHOW_BUSINESS_CHALLENGE = (import.meta.env.VITE_SHOW_BUSINESS_CHALLENGE ?? 'true') === 'true';
 const SHOW_METRICS = (import.meta.env.VITE_SHOW_METRICS ?? 'true') === 'true';
 const SHOW_DATA_CATALOG = (import.meta.env.VITE_SHOW_DATA_CATALOG ?? 'true') === 'true';
+const SHOW_DATA_ASSET = (import.meta.env.VITE_SHOW_DATA_ASSET ?? 'true') === 'true';
 const SHOW_BUSINESS_GLOSSARY = (import.meta.env.VITE_SHOW_BUSINESS_GLOSSARY ?? 'true') === 'true';
 const SHOW_EVALUATION = (import.meta.env.VITE_SHOW_EVALUATION ?? 'true') === 'true';
 const SHOW_METRIC_AI_AGENT = (import.meta.env.VITE_SHOW_METRIC_AI_AGENT ?? 'true') === 'true';
@@ -232,6 +235,19 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         </NavGroup>
         )}
         
+        {SHOW_DATA_ASSET && (
+        <NavGroup
+          icon={<Package size={18} />}
+          label={t('nav:dataAsset')}
+          collapsed={collapsed}
+          expanded={expandedGroups.dataAsset ?? true}
+          onToggle={() => toggleGroup('dataAsset')}
+        >
+          <NavItem to="/data-asset/products" icon={<Package size={16} />} label={t('nav:dataProduct')} collapsed={collapsed} isSubItem={true} />
+          <NavItem to="/data-asset/map" icon={<MapIcon size={16} />} label={t('nav:assetMap')} collapsed={collapsed} isSubItem={true} />
+        </NavGroup>
+        )}
+
         {SHOW_EVALUATION && (
         <NavGroup 
           icon={<ClipboardCheck size={18} />} 

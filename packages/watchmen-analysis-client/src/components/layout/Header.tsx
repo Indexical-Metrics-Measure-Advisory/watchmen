@@ -52,6 +52,10 @@ const Header: React.FC = () => {
         return t('layout:pageTitle.aiChatAnalyst');
       case '/login':
         return t('layout:pageTitle.signIn');
+      case '/data-asset/products':
+        return t('layout:pageTitle.dataProduct');
+      case '/data-asset/map':
+        return t('layout:pageTitle.assetMap');
       case '/settings':
         return t('layout:pageTitle.settings');
       default:

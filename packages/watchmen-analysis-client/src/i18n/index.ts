@@ -13,7 +13,7 @@ void i18n
     fallbackLng: defaultLanguage,
     supportedLngs: Object.keys(resources),
     defaultNS: 'common',
-    ns: ['common', 'layout', 'nav', 'dataCatalog', 'metricsEnum', 'metricsManagement', 'metricsCategory', 'metricsParams', 'metricTree', 'metricLineage', 'biAnalysis', 'alertConfig', 'semanticModel', 'ontologyDataTester', 'ontology', 'hypothesis'],
+    ns: ['common', 'layout', 'nav', 'dataCatalog', 'dataAsset', 'metricsEnum', 'metricsManagement', 'metricsCategory', 'metricsParams', 'metricTree', 'metricLineage', 'biAnalysis', 'alertConfig', 'semanticModel', 'ontologyDataTester', 'ontology', 'hypothesis'],
     interpolation: {
       escapeValue: false,
     },

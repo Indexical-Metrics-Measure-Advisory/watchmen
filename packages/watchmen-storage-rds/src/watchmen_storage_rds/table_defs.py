@@ -796,6 +796,49 @@ table_business_glossary = Table(
     create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 
+table_data_asset_catalogs = Table(
+    'data_asset_catalogs', meta_data,
+    create_pk('catalog_id'),
+    create_str('name', 255, False),
+    create_str('description', 1024),
+    create_str('parent_id', 60),
+    create_int('order_index'),
+    create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+
+table_data_products = Table(
+    'data_products', meta_data,
+    create_pk('product_id'),
+    create_str('name', 255, False),
+    create_str('display_name', 255),
+    create_str('status', 32),
+    create_str('product_type', 32),
+    create_str('visibility', 32),
+    create_str('domain', 128),
+    create_str('owner', 128),
+    create_str('description', 2048),
+    create_str('product_version', 32),
+    create_str('catalog_id', 60),
+    create_int('value_score'),
+    create_json('tags'),
+    create_json('categories'),
+    create_json('topic_ids'),
+    create_json('product'),
+    create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+
+table_data_asset_snapshots = Table(
+    'data_asset_snapshots', meta_data,
+    create_pk('snapshot_id'),
+    create_str('snapshot_date', 20, False),
+    create_int('total_topics'),
+    create_int('total_rows'),
+    create_int('total_factors'),
+    create_int('product_count'),
+    create_json('topic_sizes'),
+    create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+
 table_bi_analysis = Table(
     'bi_analysis', meta_data,
     create_pk('id'),
@@ -953,6 +996,9 @@ tables: Dict[str, Table] = {
     'suggested_actions': table_suggested_actions,
     'virtual_ontologies': table_virtual_ontologies,
     'business_glossary': table_business_glossary,
+    'data_asset_catalogs': table_data_asset_catalogs,
+    'data_products': table_data_products,
+    'data_asset_snapshots': table_data_asset_snapshots,
 }
 
 
