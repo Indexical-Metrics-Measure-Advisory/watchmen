@@ -24,7 +24,7 @@ def convert_to_pandas_type(factor_type: FactorType) -> str:
 		FactorType.MILLISECOND, FactorType.AM_PM]:
 		return 'float64'
 	elif factor_type in [FactorType.FULL_DATETIME, FactorType.DATETIME, FactorType.DATE, FactorType.DATE_OF_BIRTH]:
-		return 'datetime64'
+		return 'datetime64[ns]'
 	elif factor_type == FactorType.BOOLEAN:
 		return 'bool'
 	else:

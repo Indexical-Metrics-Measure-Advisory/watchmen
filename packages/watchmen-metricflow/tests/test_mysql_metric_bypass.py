@@ -107,6 +107,32 @@ def _run_metric(metric, metrics, models, rows_by_label, req, resolver=None):
     return runner.run(req)
 
 
+class TestRunnerWhereInjection(unittest.TestCase):
+    """Runner-level regression: MetricQueryRequest.where must reach the leaf
+    query filters. A previous version passed filter_strings=[] at the root
+    _eval_metric call, silently dropping every where condition."""
+
+    def test_req_where_reaches_leaf_query_filters(self):
+        metric = _simple_metric()
+        models = [_make_semantic_model(source_type='db_source', topic_id=None)]
+        context = svc.resolve_mysql_context(metric, [metric], models, _db_direct_resolver())
+        assert context is not None
+
+        captured = {}
+
+        def execute(ontology, request):
+            captured['filters'] = dict(request.filters or {})
+            return []
+
+        runner = svc.MySQLMetricQueryRunner(context, execute_leaf=execute)
+        req = MetricQueryRequest(
+            metric='total_sales', group_by=['region'],
+            where="{{ Dimension('region') }} = 'east'")
+        runner.run(req)
+
+        self.assertEqual({'region': 'east'}, captured.get('filters'))
+
+
 def _compile_leaf_sql(model, measure, req, metric=None, table_ref='orders'):
     metric = metric or _simple_metric()
     specs = svc._parse_group_specs(req, metric, False)

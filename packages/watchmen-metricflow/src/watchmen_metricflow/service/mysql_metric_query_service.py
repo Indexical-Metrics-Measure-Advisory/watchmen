@@ -1005,7 +1005,9 @@ class MySQLMetricQueryRunner:
 		force_time = _tree_needs_time(metric.name, self.context.metrics_by_name, set())
 		specs = _parse_group_specs(req, metric, force_time)
 		state = _RunState(self.context, specs, req, self.execute)
-		series = _eval_metric(state, metric.name, [], [], set())
+		# req.where must seed filter_strings here: downstream _build_filters reads
+		# time range from state.req but takes DSL conditions only via filter_strings
+		series = _eval_metric(state, metric.name, [req.where] if req.where else [], [], set())
 		return _to_response(metric.name, specs, series, req)
 
 	def execute(self, ontology: VirtualOntology, request: OntologyQueryRequest) -> List[Dict[str, Any]]:

@@ -122,12 +122,8 @@ def test_total_sales_with_where_filter(base_url, auth_headers):
 		{'metric': METRIC_TOTAL, 'group_by': ['region'], 'where': where})
 	value_by_region, _ = _value_map(body.get('column_names') or [], body.get('data') or [])
 	assert float(value_by_region.get('east', 0)) == 600.0, str(body.get('data'))
-	if 'west' in value_by_region:
-		# KNOWN ISSUE (upstream): the DSL filter parses correctly —
-		# parse_where_filters returns [('region','eq','east')] — but the compiled
-		# group-by query still returns non-matching groups. Recorded as xfail so
-		# the suite stays green while the defect stays visible.
-		pytest.xfail('upstream: where filter ignored on mysql bypass group-by queries')
+	assert 'west' not in value_by_region, \
+		'where filter ignored — runner must seed filter_strings from req.where'
 
 
 def test_order_count_metric(base_url, auth_headers):
