@@ -1168,8 +1168,11 @@ const DataProductCatalog: React.FC = () => {
                         <TableCell className="text-xs">{catalogName(p.catalog_id) || t("productTable.uncategorized")}</TableCell>
                         <TableCell className="text-xs">{p.domain || "-"}</TableCell>
                         <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {(p.topic_ids || []).length === 0 && <span className="text-xs text-slate-400">-</span>}
+                          <div className="flex flex-wrap gap-1 items-center">
+                            {(p.topic_ids || []).length === 0 && (p.metric_names || []).length === 0
+                              && (p.metric_category_ids || []).length === 0 && (p.board_ids || []).length === 0
+                              && (p.subject_ids || []).length === 0 && (p.ontology_ids || []).length === 0
+                              && <span className="text-xs text-slate-400">-</span>}
                             {(p.topic_ids || []).map((tid) => (
                               <button
                                 key={tid}
@@ -1181,6 +1184,31 @@ const DataProductCatalog: React.FC = () => {
                                 {topicName(tid)}
                               </button>
                             ))}
+                            {(p.metric_names || []).length > 0 && (
+                              <Badge variant="outline" className="text-[10px]">
+                                {t("productTable.shortMetrics")} {p.metric_names.length}
+                              </Badge>
+                            )}
+                            {(p.metric_category_ids || []).length > 0 && (
+                              <Badge variant="outline" className="text-[10px]">
+                                {t("productTable.shortCategories")} {p.metric_category_ids.length}
+                              </Badge>
+                            )}
+                            {(p.board_ids || []).length > 0 && (
+                              <Badge variant="outline" className="text-[10px]">
+                                {t("productTable.shortBoards")} {p.board_ids.length}
+                              </Badge>
+                            )}
+                            {(p.subject_ids || []).length > 0 && (
+                              <Badge variant="outline" className="text-[10px]">
+                                {t("productTable.shortSubjects")} {p.subject_ids.length}
+                              </Badge>
+                            )}
+                            {(p.ontology_ids || []).length > 0 && (
+                              <Badge variant="outline" className="text-[10px]">
+                                {t("productTable.shortOntologies")} {p.ontology_ids.length}
+                              </Badge>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell className="text-right font-medium">{p.value_score}</TableCell>
