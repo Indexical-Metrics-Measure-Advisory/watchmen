@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.admin import TopicService
+from watchmen_meta.console import SubjectService
 from watchmen_model.common import TenantId
 from watchmen_rest import get_admin_principal, get_console_principal
 from watchmen_rest.util import raise_400, raise_404
@@ -34,6 +35,10 @@ def get_product_service(principal_service: PrincipalService) -> DataProductServi
 
 def get_topic_service(principal_service: PrincipalService) -> TopicService:
 	return TopicService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_subject_service(principal_service: PrincipalService) -> SubjectService:
+	return SubjectService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
 # ============================================================================
@@ -279,6 +284,27 @@ async def batch_create_products(
 # Table (topic) details
 # ============================================================================
 
+# subjects list for data product association picker
+@router.get('/metricflow/data-assets/subjects', tags=['CONSOLE', 'ADMIN'])
+async def list_subjects(
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> List[dict]:
+	subject_service = get_subject_service(principal_service)
+
+	def action() -> List[dict]:
+		subjects = subject_service.find_all(principal_service.get_tenant_id())
+		return [
+			{
+				'subjectId': s.subjectId,
+				'name': s.name,
+				'description': s.description,
+			}
+			for s in subjects
+		]
+
+	return trans_readonly(subject_service, action)
+
+
 @router.get('/metricflow/data-assets/topics/{topic_id}/details', tags=['CONSOLE', 'ADMIN'])
 async def get_topic_details(
 		topic_id: str,
@@ -411,7 +437,8 @@ def _build_product(upsert: DataProductUpsert, existing: Optional[DataProduct] = 
 		product.governance_profile = upsert.governance_profile
 	for key in ('categories', 'standards', 'tags', 'output_formats', 'use_cases',
 				'recommended_data_products', 'pricing_plans', 'input_ports', 'output_ports',
-				'supporting_elements', 'custom_properties', 'topic_ids'):
+				'supporting_elements', 'custom_properties', 'topic_ids',
+				'metric_names', 'metric_category_ids', 'board_ids', 'subject_ids', 'ontology_ids'):
 		value = getattr(upsert, key, None)
 		if value is not None:
 			setattr(product, key, value)

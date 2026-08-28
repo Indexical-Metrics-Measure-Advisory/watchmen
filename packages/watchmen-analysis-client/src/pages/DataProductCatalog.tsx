@@ -15,6 +15,10 @@ import type {
 } from "@/model/dataProduct";
 import { dataProductService } from "@/services/dataProductService";
 import { topicService, type Topic } from "@/services/topicService";
+import { metricsService } from "@/services/metricsService";
+import { getCategories } from "@/services/metricsManagementService";
+import { listAnalyses } from "@/services/biAnalysisService";
+import { ontologyService } from "@/services/ontologyService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -356,7 +360,92 @@ const emptyProductForm = (): DataProductUpsert => ({
   value_score: 0,
   catalog_id: undefined,
   topic_ids: [],
+  metric_names: [],
+  metric_category_ids: [],
+  board_ids: [],
+  subject_ids: [],
+  ontology_ids: [],
 });
+
+interface AssociationOption {
+  id: string;
+  name: string;
+}
+
+type AssocField = "topic_ids" | "metric_names" | "metric_category_ids" | "board_ids" | "subject_ids" | "ontology_ids";
+
+// coarse mapping from ODPS product type to associable contents:
+// data types (raw data/derived data/dataset) -> tables, metrics, categories, subjects
+// analytic types (reports/analytic view) -> metrics, categories, boards, subjects, ontologies
+// application/other -> everything
+const DATA_PRODUCT_TYPES = ["raw data", "derived data", "dataset"];
+const ANALYTIC_PRODUCT_TYPES = ["reports", "analytic view"];
+const ALL_ASSOC_FIELDS: AssocField[] = [
+  "topic_ids", "metric_names", "metric_category_ids", "board_ids", "subject_ids", "ontology_ids",
+];
+
+const visibleAssocFields = (productType: string | undefined, form: DataProductUpsert): Set<AssocField> => {
+  // a group carrying saved selections always stays visible, so nothing gets lost
+  const hasSaved = (field: AssocField) => ((form[field] as string[]) || []).length > 0;
+  if (!productType || productType === "application" || productType === "other") {
+    return new Set(ALL_ASSOC_FIELDS);
+  }
+  const allowed: AssocField[] = DATA_PRODUCT_TYPES.includes(productType)
+    ? ["topic_ids", "metric_names", "metric_category_ids", "subject_ids"]
+    : ANALYTIC_PRODUCT_TYPES.includes(productType)
+      ? ["metric_names", "metric_category_ids", "board_ids", "subject_ids", "ontology_ids"]
+      : ALL_ASSOC_FIELDS;
+  return new Set([...allowed, ...ALL_ASSOC_FIELDS.filter(hasSaved)]);
+};
+
+interface AssociationOptions {
+  metrics: AssociationOption[];
+  categories: AssociationOption[];
+  boards: AssociationOption[];
+  subjects: AssociationOption[];
+  ontologies: AssociationOption[];
+}
+
+const emptyAssociationOptions = (): AssociationOptions => ({
+  metrics: [], categories: [], boards: [], subjects: [], ontologies: [],
+});
+
+// one multi-select checkbox group for an associated content type
+const AssociationPicker: React.FC<{
+  label: string;
+  options: AssociationOption[];
+  selected: string[];
+  onToggle: (id: string) => void;
+  searchPlaceholder: string;
+  emptyText: string;
+}> = ({ label, options, selected, onToggle, searchPlaceholder, emptyText }) => {
+  const [filter, setFilter] = useState("");
+  const visible = options.filter((o) => !filter || o.name.toLowerCase().includes(filter.toLowerCase()));
+  return (
+    <div>
+      <Label>{label}{selected.length > 0 ? ` (${selected.length})` : ""}</Label>
+      <Input
+        value={filter}
+        onChange={(e) => setFilter(e.target.value)}
+        placeholder={searchPlaceholder}
+        className="h-8 mt-1"
+      />
+      <ScrollArea className="h-32 border rounded-md mt-1">
+        <div className="p-2 space-y-1">
+          {visible.map((o) => (
+            <label key={o.id} className="flex items-center gap-2 p-1.5 rounded hover:bg-slate-50 cursor-pointer">
+              <Checkbox checked={selected.includes(o.id)} onCheckedChange={() => onToggle(o.id)} />
+              <span className="text-sm truncate">{o.name}</span>
+            </label>
+          ))}
+          {visible.length === 0 && (
+            <div className="text-sm text-slate-400 text-center p-3">{emptyText}</div>
+          )}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+};
 
 const ProductFormDialog: React.FC<{
   open: boolean;
@@ -371,6 +460,36 @@ const ProductFormDialog: React.FC<{
   const [form, setForm] = useState<DataProductUpsert>(emptyProductForm());
   const [tagsText, setTagsText] = useState("");
   const [jsonText, setJsonText] = useState("");
+  const [assocOptions, setAssocOptions] = useState<AssociationOptions>(emptyAssociationOptions());
+
+  useEffect(() => {
+    if (!open) return;
+    // load association candidates once per dialog open; failures stay silent
+    // (the matching picker simply shows no options)
+    (async () => {
+      const [metrics, categories, boards, subjects, ontologies] = await Promise.allSettled([
+        metricsService.getMetrics(),
+        getCategories(),
+        listAnalyses(),
+        dataProductService.listSubjects(),
+        ontologyService.list(),
+      ]);
+      const asOptions = (list: unknown, idKey: string, nameKeys: Array<string>): AssociationOption[] =>
+        (Array.isArray(list) ? list : []).map((item: any) => ({
+          id: String(item?.[idKey] ?? ""),
+          name: String(nameKeys.map((k) => item?.[k]).find((v) => v) ?? item?.[idKey] ?? ""),
+        })).filter((o) => o.id);
+      setAssocOptions({
+        metrics: metrics.status === "fulfilled"
+          ? asOptions(metrics.value, "name", ["label", "name"])
+          : [],
+        categories: categories.status === "fulfilled" ? asOptions(categories.value, "id", ["name"]) : [],
+        boards: boards.status === "fulfilled" ? asOptions(boards.value, "id", ["name"]) : [],
+        subjects: subjects.status === "fulfilled" ? asOptions(subjects.value, "subjectId", ["name"]) : [],
+        ontologies: ontologies.status === "fulfilled" ? asOptions(ontologies.value, "id", ["name"]) : [],
+      });
+    })();
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -392,6 +511,12 @@ const ProductFormDialog: React.FC<{
     const ids = form.topic_ids || [];
     set({ topic_ids: ids.includes(tid) ? ids.filter((x) => x !== tid) : [...ids, tid] });
   };
+
+  const toggleId = (field: AssocField, id: string) => {
+    const ids = (form[field] as string[]) || [];
+    set({ [field]: ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id] } as Partial<DataProductUpsert>);
+  };
+  const assocVisible = visibleAssocFields(form.product_type, form);
 
   const handleSubmit = () => {
     const tags = tagsText.split(/[,，]/).map((t) => t.trim()).filter(Boolean);
@@ -522,25 +647,85 @@ const ProductFormDialog: React.FC<{
             </TabsContent>
 
             <TabsContent value="structure" className="mt-0 space-y-3">
-              <div>
-                <Label>{t("form.bindTables")}</Label>
-                <ScrollArea className="h-48 border rounded-md mt-1">
-                  <div className="p-2 space-y-1">
-                    {topics.map((t2) => (
-                      <label key={t2.id} className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer">
-                        <Checkbox
-                          checked={(form.topic_ids || []).includes(t2.id)}
-                          onCheckedChange={() => toggleTopic(t2.id)}
-                        />
-                        <span className="text-sm">{t2.name}</span>
-                      </label>
-                    ))}
-                    {topics.length === 0 && (
-                      <div className="text-sm text-slate-400 text-center p-4">{t("form.noTopics")}</div>
+              {assocVisible.has("topic_ids") && (
+                <div>
+                  <Label>{t("form.bindTables")}</Label>
+                  <ScrollArea className="h-48 border rounded-md mt-1">
+                    <div className="p-2 space-y-1">
+                      {topics.map((t2) => (
+                        <label key={t2.id} className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer">
+                          <Checkbox
+                            checked={(form.topic_ids || []).includes(t2.id)}
+                            onCheckedChange={() => toggleTopic(t2.id)}
+                          />
+                          <span className="text-sm">{t2.name}</span>
+                        </label>
+                      ))}
+                      {topics.length === 0 && (
+                        <div className="text-sm text-slate-400 text-center p-4">{t("form.noTopics")}</div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
+              {(["metric_names", "metric_category_ids", "board_ids", "subject_ids", "ontology_ids"] as AssocField[])
+                .some((f) => assocVisible.has(f)) && (
+                <div className={assocVisible.has("topic_ids") ? "pt-1 border-t" : ""}>
+                  <Label className="font-semibold">{t("form.associationsTitle")}</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
+                    {assocVisible.has("metric_names") && (
+                      <AssociationPicker
+                        label={t("form.assocMetrics")}
+                        options={assocOptions.metrics}
+                        selected={form.metric_names || []}
+                        onToggle={(id) => toggleId("metric_names", id)}
+                        searchPlaceholder={t("form.assocSearch")}
+                        emptyText={t("form.assocEmpty")}
+                      />
+                    )}
+                    {assocVisible.has("metric_category_ids") && (
+                      <AssociationPicker
+                        label={t("form.assocCategories")}
+                        options={assocOptions.categories}
+                        selected={form.metric_category_ids || []}
+                        onToggle={(id) => toggleId("metric_category_ids", id)}
+                        searchPlaceholder={t("form.assocSearch")}
+                        emptyText={t("form.assocEmpty")}
+                      />
+                    )}
+                    {assocVisible.has("board_ids") && (
+                      <AssociationPicker
+                        label={t("form.assocBoards")}
+                        options={assocOptions.boards}
+                        selected={form.board_ids || []}
+                        onToggle={(id) => toggleId("board_ids", id)}
+                        searchPlaceholder={t("form.assocSearch")}
+                        emptyText={t("form.assocEmpty")}
+                      />
+                    )}
+                    {assocVisible.has("subject_ids") && (
+                      <AssociationPicker
+                        label={t("form.assocSubjects")}
+                        options={assocOptions.subjects}
+                        selected={form.subject_ids || []}
+                        onToggle={(id) => toggleId("subject_ids", id)}
+                        searchPlaceholder={t("form.assocSearch")}
+                        emptyText={t("form.assocEmpty")}
+                      />
+                    )}
+                    {assocVisible.has("ontology_ids") && (
+                      <AssociationPicker
+                        label={t("form.assocOntologies")}
+                        options={assocOptions.ontologies}
+                        selected={form.ontology_ids || []}
+                        onToggle={(id) => toggleId("ontology_ids", id)}
+                        searchPlaceholder={t("form.assocSearch")}
+                        emptyText={t("form.assocEmpty")}
+                      />
                     )}
                   </div>
-                </ScrollArea>
-              </div>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="advanced" className="mt-0 space-y-2">

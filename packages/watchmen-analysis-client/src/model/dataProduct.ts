@@ -204,6 +204,11 @@ export interface DataProduct {
   custom_properties: Record<string, unknown>;
   catalog_id?: string;
   topic_ids: string[];
+  metric_names: string[];
+  metric_category_ids: string[];
+  board_ids: string[];
+  subject_ids: string[];
+  ontology_ids: string[];
   value_score: number;
   tenantId?: string;
 }
@@ -247,7 +252,18 @@ export interface DataProductUpsert {
   custom_properties?: Record<string, unknown>;
   catalog_id?: string;
   topic_ids?: string[];
+  metric_names?: string[];
+  metric_category_ids?: string[];
+  board_ids?: string[];
+  subject_ids?: string[];
+  ontology_ids?: string[];
   value_score?: number;
+}
+
+export interface SubjectOption {
+  subjectId: string;
+  name: string;
+  description?: string;
 }
 
 export interface BatchCreateRequest {
@@ -279,7 +295,14 @@ export interface ProductRank {
   name: string;
   display_name?: string;
   catalog_id?: string;
+  /** manual score, human-assigned on the product */
   value_score: number;
+  manual_score: number;
+  auto_score: number;
+  /** composite = 70% auto + 30% manual */
+  composite_score: number;
+  metric_refs: number;
+  pipeline_refs: number;
   topic_count: number;
   rows: number;
 }

@@ -14,6 +14,9 @@ from watchmen_metricflow.meta.data_product_meta_service import (
 	DataAssetCatalogService, DataProductService, AssetSnapshotService,
 )
 from watchmen_metricflow.model.data_product import TopicSize, AssetSnapshot
+from watchmen_metricflow.service.asset_value_service import (
+	AutoScoreBreakdown, COMPOSITE_AUTO_WEIGHT, compute_auto_scores,
+)
 from watchmen_metricflow.util import trans_readonly
 
 
@@ -27,7 +30,14 @@ class ProductRank(ExtendedBaseModel):
 	name: str = None
 	display_name: Optional[str] = None
 	catalog_id: Optional[str] = None
+	# manual score, human-assigned on the product (value_score field)
 	value_score: int = 0
+	manual_score: int = 0
+	auto_score: int = 0
+	# composite = COMPOSITE_AUTO_WEIGHT * auto + (1 - COMPOSITE_AUTO_WEIGHT) * manual
+	composite_score: int = 0
+	metric_refs: int = 0
+	pipeline_refs: int = 0
 	topic_count: int = 0
 	rows: int = 0
 
@@ -124,22 +134,34 @@ def build_asset_map(principal_service: PrincipalService) -> AssetMapResponse:
 		total_factors = sum(s.factors for s in topic_sizes)
 		total_datasources = len({t.dataSourceId for t in topics if is_not_blank(t.dataSourceId)})
 
-		# value ranking: products ordered by value_score desc
+		# value ranking: composite score (auto + manual blend) desc, rows as tie-breaker
+		auto_scores = compute_auto_scores(
+			catalog_service.storage, products, topic_sizes, principal_service, tenant_id)
 		value_ranking: List[ProductRank] = []
 		for p in products:
 			topic_ids = p.topic_ids or []
+			breakdown: AutoScoreBreakdown = auto_scores.get(p.id) or AutoScoreBreakdown(product_id=p.id)
+			manual_score = p.value_score or 0
+			composite_score = round(
+				COMPOSITE_AUTO_WEIGHT * breakdown.auto_score
+				+ (1 - COMPOSITE_AUTO_WEIGHT) * manual_score)
 			value_ranking.append(ProductRank(
 				product_id=p.id,
 				name=p.name,
 				display_name=p.display_name,
 				catalog_id=p.catalog_id,
-				value_score=p.value_score or 0,
+				value_score=manual_score,
+				manual_score=manual_score,
+				auto_score=breakdown.auto_score,
+				composite_score=composite_score,
+				metric_refs=breakdown.metric_refs,
+				pipeline_refs=breakdown.pipeline_refs,
 				topic_count=len(topic_ids),
 				rows=sum(rows_by_topic.get(tid, 0) for tid in topic_ids),
 			))
 		value_ranking = sorted(
 			value_ranking,
-			key=lambda x: (-x.value_score, -x.rows, x.name or ''),
+			key=lambda x: (-x.composite_score, -x.rows, x.name or ''),
 		)[:10]
 
 		# storage ranking: topics ordered by rows desc

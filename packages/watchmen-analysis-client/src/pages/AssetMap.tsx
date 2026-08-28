@@ -61,6 +61,42 @@ const RankingPanel: React.FC<{
   </div>
 );
 
+// breakdown of the composite value score: 70% auto (metric/pipeline/row usage) + 30% manual
+const ValueScoreTooltip: React.FC<{
+  active?: boolean;
+  payload?: Array<{ payload: Record<string, unknown> }>;
+}> = ({ active, payload }) => {
+  const { t } = useTranslation("dataAsset");
+  if (!active || !payload || payload.length === 0) return null;
+  const p = payload[0].payload as {
+    name: string;
+    composite_score: number;
+    auto_score: number;
+    manual_score: number;
+    metric_refs: number;
+    pipeline_refs: number;
+    rows: number;
+  };
+  return (
+    <div className="bg-white border border-slate-200 rounded-lg shadow-md px-3 py-2 text-xs space-y-1 max-w-xs">
+      <div className="font-semibold text-sm">{p.name}</div>
+      <div>
+        {t("assetMapPage.tooltipComposite")}: <b>{p.composite_score}</b>
+      </div>
+      <div className="text-slate-500">
+        {t("assetMapPage.tooltipAuto")}: {p.auto_score} · {t("assetMapPage.tooltipMetricRefs")}: {p.metric_refs} ·{" "}
+        {t("assetMapPage.tooltipPipelineRefs")}: {p.pipeline_refs}
+      </div>
+      <div className="text-slate-500">
+        {t("assetMapPage.tooltipManual")}: {p.manual_score}
+      </div>
+      <div className="text-slate-400">
+        {t("assetMapPage.headerRows")}: {formatNumber(p.rows)}
+      </div>
+    </div>
+  );
+};
+
 const AssetMap: React.FC = () => {
   const { collapsed } = useSidebar();
   const { t } = useTranslation("dataAsset");
@@ -113,7 +149,11 @@ const AssetMap: React.FC = () => {
     () =>
       (data?.value_ranking || []).map((p) => ({
         name: p.display_name || p.name,
-        value_score: p.value_score,
+        composite_score: p.composite_score ?? p.value_score,
+        auto_score: p.auto_score ?? 0,
+        manual_score: p.manual_score ?? p.value_score ?? 0,
+        metric_refs: p.metric_refs ?? 0,
+        pipeline_refs: p.pipeline_refs ?? 0,
         rows: p.rows,
       })),
     [data]
@@ -207,17 +247,20 @@ const AssetMap: React.FC = () => {
                   {valueData.length === 0 ? (
                     <div className="text-sm text-slate-400 text-center py-10">{t("assetMapPage.noProducts")}</div>
                   ) : (
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={valueData} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 8 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                          <XAxis type="number" tick={{ fontSize: 11 }} />
-                          <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 11 }} />
-                          <Tooltip />
-                          <Bar dataKey="value_score" name={t("assetMapPage.barValueScore")} fill="#f59e0b" radius={[0, 4, 4, 0]} barSize={14} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
+                    <>
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={valueData} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 8 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                            <XAxis type="number" tick={{ fontSize: 11 }} />
+                            <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 11 }} />
+                            <Tooltip content={<ValueScoreTooltip />} />
+                            <Bar dataKey="composite_score" name={t("assetMapPage.barCompositeScore")} fill="#f59e0b" radius={[0, 4, 4, 0]} barSize={14} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="text-xs text-slate-400 mt-1">{t("assetMapPage.valueFormula")}</div>
+                    </>
                   )}
                 </RankingPanel>
 

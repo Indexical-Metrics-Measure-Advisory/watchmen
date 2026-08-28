@@ -259,6 +259,13 @@ class DataProduct(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	# watchmen extension: asset organization
 	catalog_id: Optional[str] = None
 	topic_ids: List[str] = []
+	# associated contents beyond topics: metrics (by name, the metricflow business
+	# key), metric categories, bi analysis boards, subjects and ontologies
+	metric_names: List[str] = []
+	metric_category_ids: List[str] = []
+	board_ids: List[str] = []
+	subject_ids: List[str] = []
+	ontology_ids: List[str] = []
 	value_score: int = 0
 
 
@@ -305,6 +312,11 @@ class DataProductUpsert(ExtendedBaseModel):
 	custom_properties: Optional[Dict[str, Any]] = None
 	catalog_id: Optional[str] = None
 	topic_ids: Optional[List[str]] = None
+	metric_names: Optional[List[str]] = None
+	metric_category_ids: Optional[List[str]] = None
+	board_ids: Optional[List[str]] = None
+	subject_ids: Optional[List[str]] = None
+	ontology_ids: Optional[List[str]] = None
 	value_score: Optional[int] = None
 
 

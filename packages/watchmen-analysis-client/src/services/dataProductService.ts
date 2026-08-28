@@ -6,6 +6,7 @@ import type {
   BatchCreateRequest,
   BatchDeleteRequest,
   AssetMapResponse,
+  SubjectOption,
   TopicDetails,
 } from "@/model/dataProduct";
 import { API_BASE_URL, getDefaultHeaders, checkResponse } from "@/utils/apiConfig";
@@ -235,8 +236,63 @@ export class DataProductService {
     return checkResponse(response);
   }
 
+  // ---- Subjects (for product association picker) ----
+  async listSubjects(): Promise<SubjectOption[]> {
+    if (isMockMode) {
+      await delay(150);
+      return [
+        { subjectId: "mock-subject-1", name: "Order Analysis", description: "Order related analysis subjects" },
+        { subjectId: "mock-subject-2", name: "Customer Profile", description: "Customer profile subjects" },
+      ];
+    }
+    const response = await fetch(`${ENDPOINT}/subjects`, { headers: getDefaultHeaders() });
+    return checkResponse(response);
+  }
+
   // ---- Asset map ----
   async getAssetMap(): Promise<AssetMapResponse> {
+    if (isMockMode) {
+      await delay(300);
+      // composite value score mirrors the backend formula: 70% auto + 30% manual
+      const valueRanking = this.mockProducts.map((p) => {
+        const manual = p.value_score ?? 0;
+        const auto = Math.min(100, (p.topic_ids?.length ?? 0) * 25);
+        return {
+          product_id: p.id,
+          name: p.name,
+          display_name: p.display_name,
+          catalog_id: p.catalog_id,
+          value_score: manual,
+          manual_score: manual,
+          auto_score: auto,
+          composite_score: Math.round(0.7 * auto + 0.3 * manual),
+          metric_refs: 0,
+          pipeline_refs: 0,
+          topic_count: p.topic_ids?.length ?? 0,
+          rows: 0,
+        };
+      });
+      valueRanking.sort((a, b) => b.composite_score - a.composite_score || b.rows - a.rows);
+      return {
+        total_topics: new Set(this.mockProducts.flatMap((p) => p.topic_ids ?? [])).size,
+        total_rows: 0,
+        total_factors: 0,
+        total_products: this.mockProducts.length,
+        total_datasources: 0,
+        total_catalogs: this.mockCatalogs.length,
+        value_ranking: valueRanking.slice(0, 10),
+        storage_ranking: [],
+        inventory_ranking: this.mockCatalogs.map((c) => ({
+          catalog_id: c.id,
+          name: c.name,
+          product_count: this.mockProducts.filter((p) => p.catalog_id === c.id).length,
+        })),
+        domain_ranking: [],
+        storage_trend: [],
+        topic_sizes: [],
+        generated_at: new Date().toISOString(),
+      };
+    }
     const response = await fetch(`${ENDPOINT}/map`, { headers: getDefaultHeaders() });
     return checkResponse(response);
   }
