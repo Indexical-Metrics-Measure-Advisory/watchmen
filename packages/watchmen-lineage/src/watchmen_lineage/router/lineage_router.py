@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_lineage.model.lineage import LineageResult, TopicConsanguinity
+from watchmen_lineage.model.lineage import LineageResult, TopicConsanguinity, FactorConsanguinity
 from watchmen_lineage.service.lineage_service import LineageService
 from watchmen_model.admin import UserRole
-from watchmen_model.common import ObjectiveTargetId, ObjectiveId, TopicId
+from watchmen_model.common import ObjectiveTargetId, ObjectiveId, TopicId, FactorId
 from watchmen_rest import get_admin_principal
 
 router = APIRouter()
@@ -39,3 +39,12 @@ def find_lineage_by_objective(objective_id: ObjectiveId,
 def find_lineage_by_topic(topic_id: TopicId,
                           principal_service: PrincipalService = Depends(get_admin_principal)) -> TopicConsanguinity:
 	return lineage_service.find_upstream_by_topic(topic_id, principal_service)
+
+
+# find factor-level upstream lineage (the full origin of one factor)
+# resolved on demand from pipeline mappings; no tenant-wide graph build required
+@router.get("/lineage/topic/factor/consanguinity", tags=[UserRole.ADMIN], response_model=None)
+def find_lineage_by_factor(topic_id: TopicId, factor_id: FactorId,
+                           principal_service: PrincipalService = Depends(get_admin_principal)) \
+		-> FactorConsanguinity:
+	return lineage_service.find_factor_upstream(topic_id, factor_id, principal_service)

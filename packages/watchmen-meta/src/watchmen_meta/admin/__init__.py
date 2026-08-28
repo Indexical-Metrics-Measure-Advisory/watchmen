@@ -3,6 +3,7 @@ from .ontology_service import OntologyService
 from .pipeline_graphic_service import PipelineGraphicService
 from .pipeline_service import PipelineService
 from .space_service import SpaceService
+from .tag_service import TagService
 from .topic_service import FactorService, TopicService
 from .topic_snapshot_lock_service import TopicSnapshotJobLockService
 from .topic_snapshot_scheduler_service import TopicSnapshotSchedulerService

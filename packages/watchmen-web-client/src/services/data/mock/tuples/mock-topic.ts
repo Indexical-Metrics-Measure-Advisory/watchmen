@@ -28,14 +28,22 @@ export const listMockTopics = async (options: {
 	});
 };
 
+export const loadMockAvailableTopicTags = async (): Promise<Array<string>> => {
+	const tags = new Set<string>();
+	DemoTopics.forEach(topic => (topic.tags ?? []).forEach(tag => tags.add(tag)));
+	return new Promise<Array<string>>((resolve) => {
+		setTimeout(() => resolve([...tags].sort()), 200);
+	});
+};
+
 export const fetchMockTopic = async (topicId: TopicId): Promise<{ topic: Topic }> => {
 	let topic: Topic;
 
 	// eslint-disable-next-line
 	const found = DemoTopics.find(({topicId: id}) => id == topicId);
 	if (found) {
-		const {topicId, name, kind, type, description, factors, version, createdAt, lastModifiedAt} = found;
-		topic = {topicId, name, kind, type, description, factors, version, createdAt, lastModifiedAt};
+		const {topicId, name, kind, type, description, factors, tags, version, createdAt, lastModifiedAt} = found;
+		topic = {topicId, name, kind, type, description, factors, tags, version, createdAt, lastModifiedAt};
 	} else {
 		topic = {
 			topicId,

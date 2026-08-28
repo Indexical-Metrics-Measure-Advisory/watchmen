@@ -1,3 +1,5 @@
+import {TenantId} from './tenant-types';
+import {OptimisticLock, Tuple} from './tuple-types';
 import {generateUuid} from './utils';
 
 export type TagId = string;
@@ -70,3 +72,17 @@ export const PRESET_COLORS = [
 	'#13c2c2', // 青
 	'#a0d911', // 酸橙
 ];
+
+export enum TagType {
+	TOPIC = 'topic',
+	SUBJECT = 'subject',
+	INDICATOR = 'indicator'
+}
+
+export interface Tag extends Tuple, OptimisticLock {
+	tagId: TagId;
+	name: string;
+	type: TagType;
+	description?: string;
+	tenantId?: TenantId;
+}

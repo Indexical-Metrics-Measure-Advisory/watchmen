@@ -25,6 +25,7 @@ import AdminSettings from './settings';
 import AdminAiModels from './ai-model';
 import AdminDebug from './simulator';
 import AdminSpaces from './spaces';
+import AdminTags from './tags';
 import AdminTenants from './tenants';
 import AdminToolbox from './toolbox';
 import {TopicProfile} from './topic-profile';
@@ -95,6 +96,7 @@ const AdminIndex = () => {
 						{asRoute(Router.ADMIN_HOME, <AdminHome/>, {scrollable: false})}
 						{asRoute(Router.ADMIN_TOPICS, <AdminTopics/>)}
 						{asRoute(Router.ADMIN_ENUMS, <AdminEnums/>)}
+						{asRoute(Router.ADMIN_TAGS, <AdminTags/>)}
 						{/*{asRoute(Router.ADMIN_REPORTS, <AdminReports/>)}*/}
 						{asRoute(Router.ADMIN_SPACES, <AdminSpaces/>)}
 						{asRoute(Router.ADMIN_PIPELINES_ALL, <AdminPipelines/>, {wrapped: false})}

@@ -16,4 +16,4 @@ from .tuple_ids import AchievementPluginTaskId, BreakdownTargetId, BucketId, Cha
 	ObjectiveTargetId, PatId, \
 	PipelineActionId, PipelineGraphicId, PipelineId, PipelineStageId, PipelineUnitId, PluginId, ReportFunnelId, \
 	ReportId, ScheduledTaskId, SpaceId, SubjectDatasetColumnId, SubjectId, SubscriptionEventId, \
-	SubscriptionEventLockId, TableTriggerId, TenantId, TopicId, UserGroupId, UserId
+	SubscriptionEventLockId, TableTriggerId, TagId, TenantId, TopicId, UserGroupId, UserId

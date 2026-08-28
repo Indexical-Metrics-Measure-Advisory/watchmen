@@ -7,6 +7,7 @@ export enum TopicEventTypes {
 	TOPIC_TYPE_CHANGED = 'topic-type-changed',
 	TOPIC_DATA_SOURCE_CHANGED = 'topic-data-source-changed',
 	TOPIC_DESCRIPTION_CHANGED = 'topic-description-changed',
+	TOPIC_TAGS_CHANGED = 'topic-tags-changed',
 
 	FACTOR_ADDED = 'factor-added',
 	FACTOR_REMOVED = 'factor-removed',
@@ -47,6 +48,10 @@ export interface TopicEventBus {
 	fire(type: TopicEventTypes.TOPIC_DESCRIPTION_CHANGED, topic: Topic): this;
 	on(type: TopicEventTypes.TOPIC_DESCRIPTION_CHANGED, listener: (topic: Topic) => void): this;
 	off(type: TopicEventTypes.TOPIC_DESCRIPTION_CHANGED, listener: (topic: Topic) => void): this;
+
+	fire(type: TopicEventTypes.TOPIC_TAGS_CHANGED, topic: Topic): this;
+	on(type: TopicEventTypes.TOPIC_TAGS_CHANGED, listener: (topic: Topic) => void): this;
+	off(type: TopicEventTypes.TOPIC_TAGS_CHANGED, listener: (topic: Topic) => void): this;
 
 	fire(type: TopicEventTypes.FACTOR_ADDED, factor: Factor): this;
 	on(type: TopicEventTypes.FACTOR_ADDED, listener: (factor: Factor) => void): this;

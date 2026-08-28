@@ -14,7 +14,6 @@ import {TooltipAlignment} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import dayjs from 'dayjs';
 import React, {MouseEvent, useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 // noinspection ES6PreferShortImport
@@ -27,6 +26,7 @@ import {PipelinesEventTypes} from '../../pipelines-event-bus-types';
 import {useCatalogEventBus} from '../catalog-event-bus';
 import {CatalogEventTypes} from '../catalog-event-bus-types';
 import {ExternalWriterBody} from './external-writer-body';
+import {FactorLineage} from './factor-lineage';
 import {PipelinesBody} from './pipelines-body';
 import {TopicBody} from './topic-body';
 import {CountBadge, NavigatorContainer, NavigatorHeader, NavigatorHeaderButton, NavigatorHeaderTitle} from './widgets';
@@ -71,7 +71,7 @@ export const Navigator = (props: {
 		if (topic == null) {
 			return;
 		}
-		fireProfile(TopicProfileEventTypes.SHOW_PROFILE, topic, dayjs());
+		fireProfile(TopicProfileEventTypes.SHOW_PROFILE, topic);
 	};
 	const onDataClicked = () => {
 		if (topic == null) {
@@ -108,7 +108,8 @@ export const Navigator = (props: {
 		name = topic.name;
 	}
 
-	return <NavigatorContainer visible={visible}>
+	return <>
+		<NavigatorContainer visible={visible}>
 		<NavigatorHeader>
 			<NavigatorHeaderTitle>{name}</NavigatorHeaderTitle>
 			{isTopicProfileAvailable(topic)
@@ -175,5 +176,7 @@ export const Navigator = (props: {
 				<TopicBody topic={topic} visible={openPanel === OpenPanel.TOPIC}/>
 			</>
 			: null}
-	</NavigatorContainer>;
+		</NavigatorContainer>
+		<FactorLineage/>
+	</>;
 };

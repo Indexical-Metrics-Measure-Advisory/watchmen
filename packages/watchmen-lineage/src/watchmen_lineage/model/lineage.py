@@ -267,3 +267,39 @@ class TopicConsanguinity(ExtendedBaseModel):
 	topicId: Optional[TopicId] = None
 	topicName: Optional[str] = None
 	upstream: List[TopicLineageLink] = []
+
+
+class FactorLineageNode(ExtendedBaseModel):
+	"""One factor (field) appearing in a factor's upstream lineage."""
+	topicId: Optional[TopicId] = None
+	topicName: Optional[str] = None
+	factorId: Optional[FactorId] = None
+	factorName: Optional[str] = None
+	factorType: Optional[str] = None
+	isTarget: bool = False
+
+
+class FactorLineageEdge(ExtendedBaseModel):
+	"""One factor-to-factor upstream edge, produced by a pipeline write action."""
+	level: Optional[int] = None
+	sourceTopicId: Optional[TopicId] = None
+	sourceFactorId: Optional[FactorId] = None
+	sourceFactorName: Optional[str] = None
+	targetTopicId: Optional[TopicId] = None
+	targetFactorId: Optional[FactorId] = None
+	targetFactorName: Optional[str] = None
+	relationType: Optional[str] = None
+	arithmetic: Optional[str] = None
+	pipelineId: Optional[PipelineId] = None
+	pipelineName: Optional[str] = None
+
+
+class FactorConsanguinity(ExtendedBaseModel):
+	"""Upstream lineage of a single factor, flattened as nodes and edges."""
+	topicId: Optional[TopicId] = None
+	topicName: Optional[str] = None
+	factorId: Optional[FactorId] = None
+	factorName: Optional[str] = None
+	nodes: List[FactorLineageNode] = []
+	edges: List[FactorLineageEdge] = []
+	maxLevel: int = 0

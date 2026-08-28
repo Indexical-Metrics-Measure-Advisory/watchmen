@@ -27,6 +27,7 @@ export interface Topic extends Tuple, OptimisticLock {
 	type: TopicType;
 	description?: string;
 	factors: Array<Factor>;
+	tags?: Array<string>;
 	tenantId?: TenantId;
 	dataSourceId?: DataSourceId;
 }

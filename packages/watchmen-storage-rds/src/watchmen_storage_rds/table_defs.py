@@ -124,13 +124,20 @@ table_enum_items = Table(
     create_tuple_id_column('enum_id'),
     create_tenant_id()
 )
+table_tags = Table(
+    'tags', meta_data,
+    create_pk('tag_id'),
+    create_str('name', 50, False), create_str('type', 20, False),
+    create_description(),
+    create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
 table_topics = Table(
     'topics', meta_data,
     create_pk('topic_id'),
     create_str('name', 25, False), create_description(),
     create_str('type', 20, False), create_str('kind', 20, False),
     create_tuple_id_column('data_source_id'),
-    create_json('factors'),
+    create_json('factors'), create_json('tags'),
     create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_pipelines = Table(
@@ -870,6 +877,7 @@ tables: Dict[str, Table] = {
     'spaces': table_spaces,
     'enums': table_enums,
     'enum_items': table_enum_items,
+    'tags': table_tags,
     'topics': table_topics,
     'pipelines': table_pipelines,
     'pipeline_graphics': table_pipeline_graphics,

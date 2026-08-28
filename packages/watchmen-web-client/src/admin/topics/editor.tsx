@@ -10,6 +10,7 @@ import {TopicDataSourceInput} from './topic/topic-data-source-input';
 import {TopicDescriptionInput} from './topic/topic-description-input';
 import {TopicKindInput} from './topic/topic-kind-input';
 import {TopicNameInput} from './topic/topic-name-input';
+import {TopicTagsInput} from './topic/tags-input';
 import {TopicTypeInput} from './topic/topic-type-input';
 import {HoldByTopic} from './types';
 
@@ -35,6 +36,8 @@ const TopicEditor = (props: {
 			: null}
 		<TuplePropertyLabel>Description:</TuplePropertyLabel>
 		<TopicDescriptionInput topic={topic}/>
+		<TuplePropertyLabel>Tags:</TuplePropertyLabel>
+		<TopicTagsInput topic={topic}/>
 		<TuplePropertyLabel>Factors:</TuplePropertyLabel>
 		<Factors topic={topic} enums={enums}/>
 	</TopicEventBusProvider>;

@@ -1,0 +1,1 @@
+ALTER TABLE topics ADD COLUMN tags JSON;

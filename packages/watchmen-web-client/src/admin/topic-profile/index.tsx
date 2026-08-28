@@ -7,10 +7,11 @@ import {
 import {Topic} from '@/services/data/tuples/topic-types';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {Button} from '@/widgets/basic/button';
+import {Calendar, CALENDAR_DATE_FORMAT} from '@/widgets/basic/calendar';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
-import dayjs, {Dayjs} from 'dayjs';
+import dayjs from 'dayjs';
 import {useEffect, useState} from 'react';
 import {useTopicProfileEventBus} from './topic-profile-event-bus';
 import {TopicProfileEventTypes} from './topic-profile-event-bus-types';
@@ -31,13 +32,18 @@ import {
 	TopicProfileDialogFooter,
 	TopicProfileDialogHeader,
 	TopicProfileDialogWrapper,
+	TopicProfileRangeBar,
+	TopicProfileRangeButton,
+	TopicProfileRangeCalendar,
+	TopicProfileRangeLabel,
 	ValuePercentage,
 	WarningBadge
 } from './widgets';
 
 interface Data {
 	topic: Topic;
-	date: Dayjs;
+	startDate: string;
+	endDate: string;
 	data?: TopicProfileData;
 }
 
@@ -52,22 +58,26 @@ export const TopicProfile = () => {
 	const [visible, setVisible] = useState(false);
 	const [data, setData] = useState<Data | null>(null);
 
+	const loadProfile = (topic: Topic, startDate: string, endDate: string) => {
+		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
+			async () => await fetchTopicProfileData({topicId: topic.topicId, startDate, endDate}),
+			(profile?: TopicProfileData) => {
+				if (profile == null) {
+					fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
+						No profile data of given topic.
+					</AlertLabel>);
+				} else {
+					setData({topic, startDate, endDate, data: profile});
+					setVisible(true);
+					setDestroyed(false);
+				}
+			});
+	};
+
 	useEffect(() => {
-		const onShowProfile = (topic: Topic, date?: Dayjs) => {
-			const profileDate = date ?? dayjs();
-			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-				async () => await fetchTopicProfileData({topicId: topic.topicId, date: profileDate}),
-				(data?: TopicProfileData) => {
-					if (data == null) {
-						fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
-							No profile data of given topic.
-						</AlertLabel>);
-					} else {
-						setData({topic, date: profileDate, data});
-						setVisible(true);
-						setDestroyed(false);
-					}
-				});
+		const onShowProfile = (topic: Topic) => {
+			const today = dayjs().format(CALENDAR_DATE_FORMAT);
+			loadProfile(topic, today, today);
 		};
 		on(TopicProfileEventTypes.SHOW_PROFILE, onShowProfile);
 		return () => {
@@ -86,6 +96,29 @@ export const TopicProfile = () => {
 	};
 	const onCloseClicked = () => {
 		setVisible(false);
+	};
+
+	const onQuickRangeClicked = (days: number) => () => {
+		const end = dayjs();
+		const start = end.subtract(days - 1, 'day');
+		loadProfile(data.topic, start.format(CALENDAR_DATE_FORMAT), end.format(CALENDAR_DATE_FORMAT));
+	};
+	const onStartChanged = (value?: string) => {
+		if (!value) {
+			return;
+		}
+		loadProfile(data.topic, dayjs(value).format(CALENDAR_DATE_FORMAT), data.endDate);
+	};
+	const onEndChanged = (value?: string) => {
+		if (!value) {
+			return;
+		}
+		loadProfile(data.topic, data.startDate, dayjs(value).format(CALENDAR_DATE_FORMAT));
+	};
+	const isActiveRange = (days: number) => {
+		const end = dayjs();
+		const start = end.subtract(days - 1, 'day');
+		return data.startDate === start.format(CALENDAR_DATE_FORMAT) && data.endDate === end.format(CALENDAR_DATE_FORMAT);
 	};
 
 	const parseWarning = (warning: string) => {
@@ -120,6 +153,19 @@ export const TopicProfile = () => {
 	return <TopicProfileDialog visible={visible} onAnimationEnd={onAnimationEnd}>
 		<TopicProfileDialogWrapper>
 			<TopicProfileDialogHeader>Profile Overview of Topic {getTopicName(data.topic)}</TopicProfileDialogHeader>
+			<TopicProfileRangeBar>
+				<TopicProfileRangeButton active={isActiveRange(1)} onClick={onQuickRangeClicked(1)}>Today</TopicProfileRangeButton>
+				<TopicProfileRangeButton active={isActiveRange(7)} onClick={onQuickRangeClicked(7)}>Last 7 Days</TopicProfileRangeButton>
+				<TopicProfileRangeButton active={isActiveRange(30)} onClick={onQuickRangeClicked(30)}>Last 30 Days</TopicProfileRangeButton>
+				<TopicProfileRangeLabel>From</TopicProfileRangeLabel>
+				<TopicProfileRangeCalendar>
+					<Calendar value={data.startDate} showTime={false} onChange={onStartChanged}/>
+				</TopicProfileRangeCalendar>
+				<TopicProfileRangeLabel>To</TopicProfileRangeLabel>
+				<TopicProfileRangeCalendar>
+					<Calendar value={data.endDate} showTime={false} onChange={onEndChanged}/>
+				</TopicProfileRangeCalendar>
+			</TopicProfileRangeBar>
 			<TopicProfileDialogBody>
 				<Block>
 					<BlockTitle>Statistics</BlockTitle>

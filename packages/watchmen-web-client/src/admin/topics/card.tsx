@@ -15,7 +15,6 @@ import {
 import {useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import dayjs from 'dayjs';
 import React, {MouseEvent} from 'react';
 import styled from 'styled-components';
 import {useTopicProfileEventBus} from '../topic-profile/topic-profile-event-bus';
@@ -24,6 +23,24 @@ import {TopicProfileEventTypes} from '../topic-profile/topic-profile-event-bus-t
 const TopicCardDeleteButton = styled(TupleProfileButton)`
 	&:hover {
 		color : var(--danger-color);
+	}
+`;
+
+const TopicCardTags = styled.div.attrs({'data-widget': 'topic-card-tags'})`
+	display   : flex;
+	flex-wrap : wrap;
+	gap       : calc(var(--margin) / 5);
+	> span {
+		display       : flex;
+		align-items   : center;
+		height        : 1.4em;
+		padding       : 0 calc(var(--margin) / 4);
+		border        : var(--border);
+		border-radius : calc(var(--border-radius) / 2);
+		font-size     : 0.85em;
+		font-variant  : petite-caps;
+		white-space   : nowrap;
+		opacity       : 0.85;
 	}
 `;
 
@@ -40,7 +57,7 @@ const TopicCard = (props: { topic: QueryTopic, canDelete: boolean }) => {
 		event.preventDefault();
 		event.stopPropagation();
 		const {topic: topicData} = await fetchTopic(topic.topicId);
-		fireProfile(TopicProfileEventTypes.SHOW_PROFILE, topicData, dayjs());
+		fireProfile(TopicProfileEventTypes.SHOW_PROFILE, topicData);
 	};
 	const onDeleteClicked = async (event: MouseEvent<HTMLButtonElement>) => {
 		event.preventDefault();
@@ -64,6 +81,11 @@ const TopicCard = (props: { topic: QueryTopic, canDelete: boolean }) => {
 				</TopicCardDeleteButton>
 				: null}
 		</TupleCardTitle>
+		{(topic.tags ?? []).length !== 0
+			? <TopicCardTags>
+				{(topic.tags ?? []).map(tag => <span key={tag}>{tag}</span>)}
+			</TopicCardTags>
+			: null}
 		<TupleCardDescription>{topic.description}</TupleCardDescription>
 		<TupleCardStatistics>
 			<TupleCardStatisticsItem tooltip={{label: 'Created At', alignment: TooltipAlignment.CENTER}}>

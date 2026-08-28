@@ -1,4 +1,5 @@
 import {FactorTypeLabel} from '@/widgets/basic/factor-type-label';
+import {TooltipButton} from '@/widgets/basic/tooltip-button';
 import styled from 'styled-components';
 
 export const TopicBodyContainer = styled.div.attrs<{ visible: boolean }>(({visible}) => {
@@ -22,7 +23,7 @@ export const TopicBodyContainer = styled.div.attrs<{ visible: boolean }>(({visib
 export const FactorRowContainer = styled.div.attrs({'data-widget': 'pipelines-navigator-topic-factor'})`
 	display               : grid;
 	position              : relative;
-	grid-template-columns : auto auto 1fr;
+	grid-template-columns : auto auto 1fr auto;
 	padding               : 0 calc(var(--margin) / 2);
 	transition            : background-color 300ms ease-in-out;
 	&:after {
@@ -50,6 +51,15 @@ export const FactorTypeSmall = styled(FactorTypeLabel)`
 	transform        : scale(0.8);
 	transform-origin : left;
 	margin-left      : calc(var(--margin) / 2);
+`;
+export const FactorLineageButton = styled(TooltipButton).attrs({'data-widget': 'pipelines-navigator-topic-factor-lineage-button'})`
+	width      : calc(var(--height) * 0.7);
+	height     : calc(var(--height) * 0.7);
+	min-height : unset;
+	opacity    : 0.5;
+	&:hover {
+		opacity : 1;
+	}
 `;
 export const NoFactor = styled.div.attrs({'data-widget': 'pipelines-navigator-topic-no-factor'})`
 	display      : flex;

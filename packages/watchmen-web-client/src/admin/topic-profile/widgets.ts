@@ -68,6 +68,49 @@ export const TopicProfileDialogHeader = styled.div.attrs({'data-widget': 'topic-
 	min-height    : 2.5em;
 	border-bottom : var(--border);
 `;
+export const TopicProfileRangeBar = styled.div.attrs({'data-widget': 'topic-profile-range-bar'})`
+	display       : flex;
+	align-items   : center;
+	height        : 3.2em;
+	min-height    : 3.2em;
+	font-size     : var(--font-size);
+	gap           : calc(var(--margin) / 4);
+	border-bottom : var(--border);
+`;
+export const TopicProfileRangeButton = styled.div.attrs<{ active?: boolean }>(({active}) => {
+	return {
+		'data-widget': 'topic-profile-range-button',
+		'data-active': active ? 'yes' : 'no'
+	};
+})<{ active?: boolean }>`
+	display         : flex;
+	align-items     : center;
+	justify-content : center;
+	height          : calc(var(--height) * 0.85);
+	padding         : 0 calc(var(--margin) / 2);
+	white-space     : nowrap;
+	border          : var(--border);
+	border-radius   : var(--border-radius);
+	cursor          : pointer;
+	transition      : all 300ms ease-in-out;
+	&:hover {
+		color        : var(--primary-color);
+		border-color : var(--primary-color);
+	}
+	&[data-active='yes'] {
+		color            : var(--invert-color);
+		background-color : var(--primary-color);
+		border-color     : var(--primary-color);
+	}
+`;
+export const TopicProfileRangeLabel = styled.span.attrs({'data-widget': 'topic-profile-range-label'})`
+	margin-left : calc(var(--margin) / 2);
+	white-space : nowrap;
+`;
+export const TopicProfileRangeCalendar = styled.div.attrs({'data-widget': 'topic-profile-range-calendar'})`
+	width       : 9.5em;
+	flex-shrink : 0;
+`;
 export const TopicProfileDialogBody = styled.div.attrs({
 	'data-widget': 'topic-profile-dialog-body',
 	'data-v-scroll': ''

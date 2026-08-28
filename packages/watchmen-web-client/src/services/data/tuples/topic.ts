@@ -7,6 +7,7 @@ import {
 	fetchMockTopicRowCount,
 	listMockTopics,
 	listMockTopicsForHolder,
+	loadMockAvailableTopicTags,
 	mockRerunTopic,
 	saveMockTopic
 } from '../mock/tuples/mock-topic';
@@ -41,6 +42,17 @@ export const fetchTopic = async (topicId: TopicId): Promise<{ topic: Topic }> =>
 	} else {
 		const topic = await get({api: Apis.TOPIC_GET, search: {topicId}});
 		return {topic};
+	}
+};
+
+/**
+ * all distinct tags used by tenant topics, for tag input suggestions
+ */
+export const loadAvailableTopicTags = async (): Promise<Array<string>> => {
+	if (isMockService()) {
+		return await loadMockAvailableTopicTags();
+	} else {
+		return await post({api: Apis.TOPIC_AVAILABLE_TAGS});
 	}
 };
 

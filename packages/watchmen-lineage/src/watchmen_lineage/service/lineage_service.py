@@ -8,7 +8,8 @@ from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.meta import ObjectiveService
 from watchmen_lineage.model.lineage import DatasetColumnFacet, LineageNode, LineageRelation, LineageType, \
 	RelationDirection, TopicFactorFacet, ObjectiveTargetFacet, LineageResult, RelationshipLineage, IndicatorFacet, \
-	TopicConsanguinity, TopicLineageLink, TopicLineageFactorPair, RelationType
+	TopicConsanguinity, TopicLineageLink, TopicLineageFactorPair, RelationType, FactorConsanguinity, \
+	FactorLineageEdge, FactorLineageNode
 from watchmen_lineage.service.builder.index import get_builder
 from watchmen_lineage.service.builder.loader import LineageBuilder
 from watchmen_lineage.service.builder.pipeline_lineage import is_valid_factor_id
@@ -168,6 +169,115 @@ class LineageService(object):
 									relationType=pair_relation,
 									arithmetic=pair_arithmetic))
 		return list(grouped.values())
+
+	def __find_upstream_factor_edges(self, pipelines: List[Pipeline], topic_id: TopicId, factor_id: FactorId,
+	                                 level: int, resolve_topic) -> List[FactorLineageEdge]:
+		"""
+		All factor-to-factor upstream edges writing the given factor of the given topic,
+		one pipeline action at a time. Mirrors __find_upstream_links, scoped to one factor.
+		"""
+		edges: List[FactorLineageEdge] = []
+		for pipeline in pipelines:
+			for stage in pipeline.stages or []:
+				for unit in stage.units or []:
+					for action in unit.do or []:
+						for target_factor_id, source, relation_type, arithmetic in \
+								self.__iter_write_mappings(action, topic_id):
+							if target_factor_id != factor_id:
+								continue
+							for source_topic_id, source_factor_id, pair_relation, pair_arithmetic in \
+									self.__extract_factor_dependencies(source, relation_type, arithmetic):
+								if source_topic_id is None or source_factor_id is None:
+									continue
+								edges.append(FactorLineageEdge(
+									level=level,
+									sourceTopicId=source_topic_id,
+									sourceFactorId=source_factor_id,
+									sourceFactorName=self.__find_factor_name(
+										resolve_topic(source_topic_id), source_factor_id),
+									targetTopicId=topic_id,
+									targetFactorId=factor_id,
+									targetFactorName=self.__find_factor_name(
+										resolve_topic(topic_id), factor_id),
+									relationType=pair_relation,
+									arithmetic=pair_arithmetic,
+									pipelineId=pipeline.pipelineId,
+									pipelineName=pipeline.name))
+		return edges
+
+	def find_factor_upstream(self, topic_id: TopicId, factor_id: FactorId,
+	                         principal_service: PrincipalService) -> FactorConsanguinity:
+		"""
+		Factor-level upstream lineage: source factor --(pipeline)--> target factor, level by level.
+		Resolved on demand exactly like topic upstream: only enabled pipelines are scanned,
+		topic metadata lookups are cached per request. Cycles between factors are cut by a
+		visited set on (topicId, factorId).
+		"""
+		topic_service = get_topic_service(principal_service)
+		pipeline_service = get_pipeline_service(principal_service)
+		pipelines: List[Pipeline] = [
+			pipeline for pipeline in trans_readonly(
+				pipeline_service, lambda: pipeline_service.find_all(principal_service.tenantId))
+			if pipeline.enabled
+		]
+		topics: Dict[str, Optional[Topic]] = {}
+
+		def resolve_topic(a_topic_id: str) -> Optional[Topic]:
+			if a_topic_id not in topics:
+				topics[a_topic_id] = trans_readonly(topic_service, lambda: topic_service.find_by_id(a_topic_id))
+			return topics[a_topic_id]
+
+		def topic_name(a_topic_id: str) -> Optional[str]:
+			topic = resolve_topic(a_topic_id)
+			return topic.name if topic is not None else None
+
+		def factor_of(a_topic_id: str, a_factor_id: str) -> Optional:
+			topic = resolve_topic(a_topic_id)
+			if topic is None or a_factor_id is None:
+				return None
+			return ArrayHelper(topic.factors or []).find(lambda x: x.factorId == a_factor_id)
+
+		nodes: Dict[tuple, FactorLineageNode] = {}
+
+		def add_node(a_topic_id: str, a_factor_id: str, is_target: bool = False):
+			key = (a_topic_id, a_factor_id)
+			if key in nodes:
+				if is_target:
+					nodes[key].isTarget = True
+				return
+			factor = factor_of(a_topic_id, a_factor_id)
+			nodes[key] = FactorLineageNode(
+				topicId=a_topic_id, topicName=topic_name(a_topic_id),
+				factorId=a_factor_id,
+				factorName=factor.name if factor is not None else None,
+				factorType=factor.type if factor is not None else None,
+				isTarget=is_target)
+
+		result = FactorConsanguinity(
+			topicId=topic_id, topicName=topic_name(topic_id), factorId=factor_id,
+			factorName=self.__find_factor_name(resolve_topic(topic_id), factor_id))
+		add_node(topic_id, factor_id, is_target=True)
+		visited = {(topic_id, factor_id)}
+		current_factors = [(topic_id, factor_id)]
+		level = 0
+		max_level = 10
+		while len(current_factors) > 0 and level < max_level:
+			level += 1
+			next_factors = []
+			for current_topic_id, current_factor_id in current_factors:
+				edges = self.__find_upstream_factor_edges(
+					pipelines, current_topic_id, current_factor_id, level, resolve_topic)
+				for edge in edges:
+					result.edges.append(edge)
+					add_node(edge.sourceTopicId, edge.sourceFactorId)
+					source_key = (edge.sourceTopicId, edge.sourceFactorId)
+					if source_key not in visited:
+						visited.add(source_key)
+						next_factors.append(source_key)
+			current_factors = next_factors
+		result.nodes = list(nodes.values())
+		result.maxLevel = max([edge.level for edge in result.edges if edge.level is not None], default=0)
+		return result
 
 	@staticmethod
 	def __iter_write_mappings(action: PipelineAction, topic_id: TopicId):

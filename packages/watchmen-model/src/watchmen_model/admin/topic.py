@@ -46,6 +46,7 @@ class Topic(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	dataSourceId: Optional[DataSourceId] = None
 	factors: Optional[List[Factor]] = []
 	description: Optional[str] = None
+	tags: Optional[List[str]] = []
 
 	def __setattr__(self, name, value):
 		if name == 'factors':

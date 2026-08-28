@@ -18,6 +18,7 @@ import {Plugin} from './plugin-types';
 import {Report} from './report-types';
 import {Space} from './space-types';
 import {Subject} from './subject-types';
+import {Tag} from './tag-types';
 import {Tenant} from './tenant-types';
 import {TopicSnapshotScheduler} from './topic-snapshot-types';
 import {Topic} from './topic-types';
@@ -102,12 +103,20 @@ export const isAiModel = (tuple: Tuple): tuple is AiModel => {
 	return !!(tuple as any).modelId;
 };
 
+export const isTag = (tuple: Tuple): tuple is Tag => {
+	return !!(tuple as any).tagId;
+};
+
 export const generateUuid = (): string => `${FAKE_ID_PREFIX}${v4().replace(/-/g, '')}`;
 export const isFakedUuidForGraphics = (graphics: PipelinesGraphics): boolean => {
 	return graphics.pipelineGraphId.startsWith(FAKE_ID_PREFIX);
 };
 export const isFakedUuid = (tuple: Tuple): boolean => {
-	if (isConvergence(tuple)) {
+	if (isTag(tuple)) {
+		// tag check must before tenant check
+		// since "tenantId" may also exist in tag object
+		return tuple.tagId.startsWith(FAKE_ID_PREFIX);
+	} else if (isConvergence(tuple)) {
 		return tuple.convergenceId.startsWith(FAKE_ID_PREFIX);
 	} else if (isAiModel(tuple)) {
 		return tuple.modelId.startsWith(FAKE_ID_PREFIX);

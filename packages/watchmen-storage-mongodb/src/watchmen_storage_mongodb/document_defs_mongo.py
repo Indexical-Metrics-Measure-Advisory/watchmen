@@ -127,6 +127,15 @@ table_enum_items = MongoDocument(
 		create_tuple_id_column('enum_id'), create_tenant_id()
 	]
 )
+table_tags = MongoDocument(
+	name='tags',
+	columns=[
+		create_pk('tag_id'),
+		create_str('name', False), create_str('type', False),
+		create_description(),
+		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+	]
+)
 table_topics = MongoDocument(
 	name='topics',
 	columns=[
@@ -134,7 +143,7 @@ table_topics = MongoDocument(
 		create_str('name', False), create_description(),
 		create_str('type', False), create_str('kind', False),
 		create_tuple_id_column('data_source_id'),
-		create_json('factors'),
+		create_json('factors'), create_json('tags'),
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 	]
 )
@@ -457,6 +466,7 @@ tables: Dict[str, MongoDocument] = {
 	'spaces': table_spaces,
 	'enums': table_enums,
 	'enum_items': table_enum_items,
+	'tags': table_tags,
 	'topics': table_topics,
 	'pipelines': table_pipelines,
 	'pipeline_graphics': table_pipeline_graphics,

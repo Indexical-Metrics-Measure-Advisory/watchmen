@@ -6,9 +6,9 @@ from fastapi import APIRouter, Body, Depends, Request, Response
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats
-from watchmen_meta.admin import TopicService
+from watchmen_meta.admin import TagService, TopicService
 from watchmen_meta.analysis import TopicIndexService
-from watchmen_model.admin import Topic, TopicKind, UserRole
+from watchmen_model.admin import TagType, Topic, TopicKind, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_rest import get_admin_principal, get_console_principal, get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
@@ -97,6 +97,25 @@ async def find_topics_by_name(
 		else:
 			# noinspection PyTypeChecker
 			return topic_service.find_by_name(query_name, to_exclude_types(exclude_types), tenant_id)
+
+	return trans_readonly(topic_service, action)
+
+
+# all available tags for topics: registered tags of topic type union distinct tags used by tenant topics
+@router.post('/topic/tag/available', tags=[UserRole.ADMIN], response_model=None)
+async def find_available_topic_tags(
+		principal_service: PrincipalService = Depends(get_admin_principal)) -> List[str]:
+	topic_service = get_topic_service(principal_service)
+
+	def action() -> List[str]:
+		tenant_id = principal_service.get_tenant_id()
+		tag_service = TagService(topic_service.storage, topic_service.snowflakeGenerator, principal_service)
+		registered_tags = ArrayHelper(tag_service.find_all_by_type(TagType.TOPIC, tenant_id)) \
+			.map(lambda x: x.name) \
+			.filter(lambda x: is_not_blank(x)) \
+			.to_list()
+		used_tags = topic_service.find_available_tags(tenant_id)
+		return sorted(set(registered_tags) | set(used_tags))
 
 	return trans_readonly(topic_service, action)
 

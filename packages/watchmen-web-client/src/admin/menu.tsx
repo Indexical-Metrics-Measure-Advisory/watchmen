@@ -26,6 +26,7 @@ import {
 	ICON_SETTINGS,
 	ICON_SPACE,
 	ICON_SWITCH_WORKBENCH,
+	ICON_TAG,
 	ICON_TENANT,
 	ICON_TOOLBOX,
 	ICON_TOPIC,
@@ -116,6 +117,10 @@ export const AdminMenu = () => {
 		<SideMenuItem icon={ICON_ENUM} label="Enumerations" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.ADMIN_ENUMS}, location.pathname)}
 		              onClick={navigateTo(Router.ADMIN_ENUMS)}
+		              visible={!isSuperAdmin()}/>
+		<SideMenuItem icon={ICON_TAG} label="Tags" showTooltip={showTooltip}
+		              active={!!matchPath({path: Router.ADMIN_TAGS}, location.pathname)}
+		              onClick={navigateTo(Router.ADMIN_TAGS)}
 		              visible={!isSuperAdmin()}/>
 		<SideMenuItem icon={ICON_REPORT} label="Reports" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.ADMIN_REPORTS}, location.pathname)}

@@ -5,7 +5,7 @@ import {getCurrentTime} from '../../utils';
 import {MOCK_ENUM_CITY_ID, MOCK_ENUM_GENDER_ID} from './mock-enum';
 
 export const Quotation: Topic = {
-	topicId: '1', name: 'Quotation', kind: TopicKind.BUSINESS, type: TopicType.DISTINCT,
+	topicId: '1', name: 'Quotation', kind: TopicKind.BUSINESS, type: TopicType.DISTINCT, tags: ['ODS'],
 	factors: [
 		{factorId: '101', name: 'quotationId', label: 'Quotation Sequence', type: FactorType.SEQUENCE},
 		{factorId: '102', name: 'quoteNo', label: 'Quotation No.', type: FactorType.TEXT},
@@ -19,7 +19,7 @@ export const Quotation: Topic = {
 	lastModifiedAt: getCurrentTime()
 };
 export const Order: Topic = {
-	topicId: '2', name: 'Order', kind: TopicKind.BUSINESS, type: TopicType.DISTINCT,
+	topicId: '2', name: 'Order', kind: TopicKind.BUSINESS, type: TopicType.DISTINCT, tags: ['ODS', 'Domain Datamart'],
 	factors: [
 		{factorId: '201', name: 'orderId', label: 'Order Sequence', type: FactorType.SEQUENCE},
 		{factorId: '202', name: 'quotationNo', label: 'Quotation No.', type: FactorType.TEXT, indexGroup: 'u-1'},
@@ -58,7 +58,7 @@ export const Participant: Topic = {
 	lastModifiedAt: getCurrentTime()
 };
 export const RawQuotation: Topic = {
-	topicId: '4', name: 'Raw Quotation', kind: TopicKind.BUSINESS, type: TopicType.RAW,
+	topicId: '4', name: 'Raw Quotation', kind: TopicKind.BUSINESS, type: TopicType.RAW, tags: ['Raw'],
 	factors: [
 		{factorId: '401', name: 'quotationId', label: 'Quotation Sequence', type: FactorType.SEQUENCE},
 		{factorId: '402', name: 'quotationNo', label: 'Quotation No.', type: FactorType.TEXT},
@@ -79,7 +79,7 @@ export const RawQuotation: Topic = {
 	lastModifiedAt: getCurrentTime()
 };
 export const WeeklyOrderPremium: Topic = {
-	topicId: '5', name: 'Weekly Order Premium', kind: TopicKind.BUSINESS, type: TopicType.TIME,
+	topicId: '5', name: 'Weekly Order Premium', kind: TopicKind.BUSINESS, type: TopicType.TIME, tags: ['Domain Datamart'],
 	factors: [
 		{factorId: '501', name: 'year', label: 'Year', type: FactorType.YEAR},
 		{factorId: '502', name: 'week', label: 'Week', type: FactorType.WEEK_OF_YEAR},
@@ -103,7 +103,7 @@ export const MonthlyOrderPremium: Topic = {
 	lastModifiedAt: getCurrentTime()
 };
 export const RawEndorsement: Topic = {
-	topicId: '7', name: 'Raw Endorsement', kind: TopicKind.BUSINESS, type: TopicType.RAW,
+	topicId: '7', name: 'Raw Endorsement', kind: TopicKind.BUSINESS, type: TopicType.RAW, tags: ['Raw'],
 	factors: [
 		{factorId: '701', name: 'endorsementId', label: 'Endorsement Sequence', type: FactorType.SEQUENCE},
 		{factorId: '702', name: 'endorsementNo', label: 'Endorsement No.', type: FactorType.TEXT},
@@ -143,8 +143,8 @@ export const DemoTopics: Array<Topic> = [
 	Products
 ].map(t => ({...t, tenantId: '1'}));
 const asQueryTopic = (topic: Topic): QueryTopic => {
-	const {topicId, name, type, kind, description, createdAt, lastModifiedAt} = topic;
-	return {topicId, name, type, kind, description, createdAt, lastModifiedAt} as QueryTopic;
+	const {topicId, name, type, kind, description, tags, createdAt, lastModifiedAt} = topic;
+	return {topicId, name, type, kind, description, tags, createdAt, lastModifiedAt} as QueryTopic;
 };
 export const DemoQueryTopics: Array<QueryTopic> = [
 	asQueryTopic(Quotation),

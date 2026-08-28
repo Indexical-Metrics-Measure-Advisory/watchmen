@@ -1,3 +1,4 @@
+import {Factor} from '@/services/data/tuples/factor-types';
 import {PipelinesGraphics} from '@/services/data/tuples/pipeline-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {AssembledPipelinesGraphics, AssembledTopicGraphics} from './types';
@@ -22,7 +23,9 @@ export enum CatalogEventTypes {
 	ASK_GRAPHICS_SVG = 'ask-graphics-svg',
 	REPLY_GRAPHICS_SVG = 'replay-graphics-svg',
 
-	SHOW_TOPIC_DATA = 'show-topic-data'
+	SHOW_TOPIC_DATA = 'show-topic-data',
+
+	SHOW_FACTOR_LINEAGE = 'show-factor-lineage'
 }
 
 export interface CatalogEventBus {
@@ -76,4 +79,8 @@ export interface CatalogEventBus {
 	fire(type: CatalogEventTypes.SHOW_TOPIC_DATA, topic: Topic): this;
 	on(type: CatalogEventTypes.SHOW_TOPIC_DATA, listener: (topic: Topic) => void): this;
 	off(type: CatalogEventTypes.SHOW_TOPIC_DATA, listener: (topic: Topic) => void): this;
+
+	fire(type: CatalogEventTypes.SHOW_FACTOR_LINEAGE, topic: Topic, factor: Factor): this;
+	on(type: CatalogEventTypes.SHOW_FACTOR_LINEAGE, listener: (topic: Topic, factor: Factor) => void): this;
+	off(type: CatalogEventTypes.SHOW_FACTOR_LINEAGE, listener: (topic: Topic, factor: Factor) => void): this;
 }

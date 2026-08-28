@@ -20,6 +20,7 @@ class TopicShaper(EntityShaper):
 			'kind': topic.kind,
 			'data_source_id': topic.dataSourceId,
 			'factors': ArrayHelper(topic.factors).map(lambda x: x.dict()).to_list(),
+			'tags': topic.tags,
 		})
 
 	def deserialize(self, row: EntityRow) -> Topic:
@@ -31,7 +32,8 @@ class TopicShaper(EntityShaper):
 			type=row.get('type'),
 			kind=row.get('kind'),
 			dataSourceId=row.get('data_source_id'),
-			factors=row.get('factors')
+			factors=row.get('factors'),
+			tags=row.get('tags')
 		))
 
 
@@ -153,6 +155,26 @@ class TopicService(TupleService):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria))
+
+	def find_available_tags(self, tenant_id: Optional[TenantId]) -> List[str]:
+		"""
+		All distinct tags used by tenant topics, sorted. Tags are stored as a json array
+		column, so distinct values are flattened and deduplicated here.
+		"""
+		criteria = []
+		if is_not_blank(tenant_id):
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		rows: List[Topic] = self.storage.find_distinct_values(EntityDistinctValuesFinder(
+			name=self.get_entity_name(),
+			shaper=self.get_entity_shaper(),
+			criteria=criteria,
+			distinctColumnNames=['tags'],
+			distinctValueOnSingleColumn=True
+		))
+		tags: List[str] = []
+		ArrayHelper(rows).map(lambda x: x.tags or []).each(lambda x: tags.extend(x))
+		return sorted(set(tags))
 
 	# noinspection DuplicatedCode
 	def find_modified_after(self, last_modified_at: datetime, tenant_id: Optional[TenantId]) -> List[Topic]:
