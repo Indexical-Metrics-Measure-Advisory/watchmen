@@ -1,4 +1,5 @@
 import {Store} from '../state/store';
+import {renderOntologyPage} from './pages/ontology-page';
 import {renderObservePage} from './pages/observe-page';
 import {renderPerceivePage} from './pages/perceive-page';
 import {renderIngestPage} from './pages/ingest-page';
@@ -10,6 +11,9 @@ import {renderSettingsPage} from './pages/settings-page';
 
 export const renderMainContent = (store: Store) => {
 	const {state} = store;
+	if (state.main === 'ontology') {
+		return renderOntologyPage(store);
+	}
 	if (state.main === 'observe') {
 		return renderObservePage(store);
 	}

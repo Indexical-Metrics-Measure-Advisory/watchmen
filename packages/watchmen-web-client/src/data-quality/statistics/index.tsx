@@ -5,6 +5,7 @@ import React from 'react';
 import {StatisticsPageBody} from './body';
 import {DailyPanel} from './daily';
 import {FreeWalkPanel} from './free-walk';
+import {QualityOverview} from './overview';
 import {StatisticsEventBusProvider} from './statistics-event-bus';
 import {WeeklyPanel} from './weekly';
 
@@ -15,6 +16,7 @@ const DataQualityStatisticsIndex = () => {
 		<FullWidthPageHeaderContainer>
 			<PageTitle>Run Statistics</PageTitle>
 		</FullWidthPageHeaderContainer>
+		<QualityOverview/>
 		<StatisticsEventBusProvider>
 			<StatisticsPageBody>
 				<DailyPanel/>

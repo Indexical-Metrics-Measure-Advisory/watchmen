@@ -6,6 +6,13 @@ import { Pipeline } from "./transform";
 import { GovernRule, MaskingPolicy } from "./govern";
 import { PerceiveScenario } from "./perceive";
 import {
+	OntologyObject,
+	OntologyLink,
+	GlossaryTerm,
+	OntologyView,
+	OntologyCatalogFilter,
+} from "./ontology";
+import {
 	ObservabilityNode,
 	ObservabilityEdge,
 	ObservabilityEvent,
@@ -50,4 +57,10 @@ export type AppState = {
 	observabilityGlobalSearch: string;
 	governRules: GovernRule[];
 	maskingPolicies: MaskingPolicy[];
+	ontologyObjects: OntologyObject[];
+	ontologyLinks: OntologyLink[];
+	glossaryTerms: GlossaryTerm[];
+	ontologyView: OntologyView;
+	ontologySelectedObjectId: string | null;
+	ontologyCatalogFilter: OntologyCatalogFilter;
 };

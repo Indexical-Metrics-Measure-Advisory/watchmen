@@ -166,6 +166,10 @@ export const Apis = {
 	PAT_CREATE: 'pat/create',
 	PAT_DELETE: 'pat/delete?pat_id=:patId',
 
+	PUBLISH_NOTIFICATION_SETTING_GET: 'publish/notification/setting',
+	PUBLISH_NOTIFICATION_SETTING_SAVE: 'publish/notification/setting',
+	PUBLISH_NOTIFICATION_SETTING_TEST: 'publish/notification/setting/test',
+
 	SYSTEM_ENV: 'system/env',
 
 	// any
@@ -175,6 +179,7 @@ export const Apis = {
 	QUERY_LOG: 'pipeline/log',
 	QUERY_RULE: 'dqc/monitor/rules?grade=:grade&topic_id=:topicId',
 	QUERY_RULE_RESULT: 'dqc/monitor/result',
+	RUN_RULES: 'dqc/monitor/rules/run',
 	SAVE_RULE_LIST: 'dqc/monitor/rules',
 	IMPORT_TOPICS_AND_PIPELINES: 'import',
 	IMPORT_TOPICS: 'topic/import',

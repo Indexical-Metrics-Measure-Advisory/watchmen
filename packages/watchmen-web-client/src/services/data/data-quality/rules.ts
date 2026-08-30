@@ -8,7 +8,8 @@ import {
 	MonitorRuleOnFactor,
 	MonitorRuleOnTopic,
 	MonitorRules,
-	MonitorRulesCriteria
+	MonitorRulesCriteria,
+	MonitorRuleStatisticalInterval
 } from './rule-types';
 
 export const fetchMonitorRules = async (options: { criteria: MonitorRulesCriteria }): Promise<MonitorRules> => {
@@ -33,6 +34,37 @@ export const saveMonitorRules = async (options: { rules: MonitorRules }): Promis
 			api: Apis.SAVE_RULE_LIST,
 			data: rules
 		});
+	}
+};
+
+/**
+ * Trigger monitor rules run immediately. The backend runs synchronously and
+ * returns no body; rule-hit logs are written for the (backend-resolved) process
+ * date, to be queried via fetchMonitorRuleLogs.
+ * Corresponds to: GET /dqc/monitor/rules/run?topic_name=&frequency=&process_date=
+ */
+export const runMonitorRules = async (options: {
+	topicName?: string;
+	frequency?: MonitorRuleStatisticalInterval;
+	processDate?: string;
+}): Promise<void> => {
+	if (isMockService()) {
+		return new Promise<void>((resolve) => {
+			setTimeout(resolve, 1000);
+		});
+	} else {
+		const search = new URLSearchParams();
+		if (options.topicName) {
+			search.set('topic_name', options.topicName);
+		}
+		if (options.frequency) {
+			search.set('frequency', options.frequency);
+		}
+		if (options.processDate) {
+			search.set('process_date', options.processDate);
+		}
+		const qs = search.toString();
+		return get({api: qs ? `${Apis.RUN_RULES}?${qs}` : Apis.RUN_RULES});
 	}
 };
 

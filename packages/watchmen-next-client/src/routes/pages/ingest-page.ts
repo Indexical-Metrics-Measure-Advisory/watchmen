@@ -11,7 +11,7 @@ export const renderIngestPage = (store: Store) => {
 	<div class="wm-page">
 		<div class="wm-page-hero">
 			<div class="wm-page-hero-title">Data Ingestion</div>
-			<div class="wm-page-hero-desc">Manage external data source connections and monitor sync health</div>
+			<div class="wm-page-hero-desc">Bring raw material into the platform — the starting point of every Ontology object</div>
 			<div class="wm-page-hero-kpis">
 				<div class="wm-hero-kpi">
 					<div class="wm-hero-kpi-val">${counts.total}</div>

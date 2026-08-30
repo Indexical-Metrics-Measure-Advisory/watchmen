@@ -9,3 +9,4 @@ from .user_based_tuple_service import UserBasedTupleService, UserBasedTupleShape
 from .operation_service import RecordOperationService
 from .package_version_service import PackageVersionService
 from .audit_log_service import AuditLogService, AuditLogShaper, ask_audit_log_criteria
+from .publish_notification_service import PublishNotificationService, PublishNotificationSettingShaper

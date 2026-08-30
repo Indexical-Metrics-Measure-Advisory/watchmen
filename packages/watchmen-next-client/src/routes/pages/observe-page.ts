@@ -1,5 +1,6 @@
 import { Store } from "../../state/store";
 import { ObservabilityNode } from "../../models";
+import { getObjectsForTopicName } from "../../services";
 
 const STAGE_LABELS: Record<string, string> = {
 	ingest: "Ingest",
@@ -328,7 +329,7 @@ const renderObserveHero = (store: Store) => {
 		<div class="wm-observe-hero-content">
 			<div class="wm-observe-hero-left">
 				<div class="wm-observe-title">Global Data Observability</div>
-				<div class="wm-observe-subtitle">Trace data from ingest to raw topic, pipeline, semantic layer and metric consumption. ${total} assets across 7 stages.</div>
+				<div class="wm-observe-subtitle">Runtime truth for the Ontology — trace how every business object is materialized from ingest to consumption. ${total} assets across 7 stages.</div>
 			</div>
 			<div class="wm-observe-hero-actions">
 				<div class="wm-observe-global-search-box">
@@ -798,6 +799,30 @@ const renderGraphZoomDomainView = (store: Store) => {
 	`;
 };
 
+// Ontology cross-link: physical nodes link back to the business objects they materialize.
+const renderOntologyObjectLink = (store: Store, node: ObservabilityNode): string => {
+	const physicalTypes = ["topic", "raw_topic", "factor", "raw_factor"];
+	if (!physicalTypes.includes(node.type)) return "";
+	const topicMatches = getObjectsForTopicName(store.state.ontologyObjects, node.name, store.state.topics);
+	const attrMatches = store.state.ontologyObjects.filter((o) =>
+		o.attributes.some((a) => a.sourceFactor === node.name),
+	);
+	const objects = [...new Map([...topicMatches, ...attrMatches].map((o) => [o.id, o])).values()];
+	if (objects.length === 0) return "";
+	return `
+		<div class="wm-observe-related">
+			<div class="wm-detail-subtitle">Ontology</div>
+			${objects
+				.map(
+					(o) => `
+				<button class="wm-obj-feed-chip" data-ontology-open="${o.id}">◆ ${escapeHtml(o.displayName)} — view object</button>
+			`,
+				)
+				.join("")}
+		</div>
+	`;
+};
+
 const renderGraphZoomNodeView = (store: Store) => {
 	const selectedNode =
 		store.state.observabilityNodes.find((node) => node.id === store.state.observabilitySelectedNodeId) ||
@@ -875,6 +900,7 @@ const renderGraphZoomNodeView = (store: Store) => {
 								)
 								.join("")}
 						</div>
+						${renderOntologyObjectLink(store, selectedNode)}
 						<div class="wm-observe-related">
 							<div class="wm-detail-subtitle">Adjacent Relations</div>
 							${adjacentEdges

@@ -1,6 +1,20 @@
 import { Store } from "../../state/store";
 import { topicTypeBadge, healthLabel, formatCount } from "../../utils/display";
-import { getTopicStats, getTopicDomainList, getTopicsByDomain } from "../../services";
+import { getTopicStats, getTopicDomainList, getTopicsByDomain, getObjectsForTopic } from "../../services";
+
+const objectFeedChips = (store: Store, topicId: string): string => {
+	const objects = getObjectsForTopic(store.state.ontologyObjects, topicId);
+	if (objects.length === 0) {
+		return `<span class="wm-obj-feed-chip none">not in ontology yet</span>`;
+	}
+	return objects
+		.map(
+			(o) => `
+		<button class="wm-obj-feed-chip" data-ontology-open="${o.id}" title="Open ${o.displayName} in Ontology">◆ ${o.displayName}</button>
+	`,
+		)
+		.join("");
+};
 
 export const renderModelPage = (store: Store) => {
 	const topics = store.state.topics;
@@ -10,8 +24,8 @@ export const renderModelPage = (store: Store) => {
 	return `
 	<div class="wm-page">
 		<div class="wm-page-hero">
-			<div class="wm-page-hero-title">Data Modeling</div>
-			<div class="wm-page-hero-desc">Define Watchmen topics, factor structures, and semantic models</div>
+				<div class="wm-page-hero-title">Data Modeling</div>
+				<div class="wm-page-hero-desc">Define topics and factors — the raw material every Ontology object is built from</div>
 			<div class="wm-page-hero-kpis">
 				<div class="wm-hero-kpi">
 					<div class="wm-hero-kpi-val">${stats.total}</div>
@@ -78,9 +92,12 @@ export const renderModelPage = (store: Store) => {
 									<span class="wm-factor-type">${f.type}</span>
 								</span>
 							`,
-								)
-								.join("")}
+									)
+									.join("")}
 							${topic.factors.length > 5 ? `<span class="wm-factor-more">+${topic.factors.length - 5} more</span>` : ""}
+						</div>
+						<div class="wm-topic-objects">
+							${objectFeedChips(store, topic.topicId)}
 						</div>
 					</div>
 					`,

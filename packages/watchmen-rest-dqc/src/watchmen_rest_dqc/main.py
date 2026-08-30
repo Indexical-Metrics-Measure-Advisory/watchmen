@@ -1,6 +1,15 @@
 from watchmen_pii.router import pii_router
 from watchmen_rest.system import health_router
 from watchmen_utilities import ArrayHelper
+from watchmen_data_dictionary import (
+	init_dictionary_jobs,
+	shutdown_dictionary_jobs,
+)
+from watchmen_data_dictionary.api import (
+	configs as dictionary_configs,
+	jobs as dictionary_jobs,
+	storage as dictionary_storage,
+)
 from .admin import catalog_router, monitor_rules_router
 from .data_health import data_health_router
 from .dqc import dqc
@@ -16,9 +25,22 @@ def pii_classification_enabled() -> bool:
 	return bool(dqc.get_settings().PII_CLASSIFICATION_ENABLED)
 
 
+def dictionary_enabled() -> bool:
+	# the data dictionary generator (jobs/configs/storage routers plus its
+	# APScheduler) is mounted unless the host explicitly turns it off
+	return bool(dqc.get_settings().DICTIONARY_ENABLED)
+
+
 @app.on_event("startup")
 def startup():
 	dqc.on_startup(app)
+
+	if dictionary_enabled():
+		try:
+			init_dictionary_jobs()
+		except Exception as e:
+			import logging
+			logging.getLogger(__name__).warning(f"Data dictionary scheduler failed to start: {e}")
 
 	if not pii_classification_enabled():
 		return
@@ -56,9 +78,20 @@ routers = [
 		
 ]
 
-# if pii_classification_enabled():
-# 	from watchmen_pii.app import get_pii_router
-#
-#
+# data dictionary generator keeps the v3/v4 client contract under /api
+if dictionary_enabled():
+	app.include_router(dictionary_jobs.router, prefix='/api')
+	app.include_router(dictionary_configs.router, prefix='/api')
+	app.include_router(dictionary_storage.router, prefix='/api')
 
 ArrayHelper(routers).each(lambda x: app.include_router(x))
+
+
+@app.on_event("shutdown")
+def shutdown():
+	if dictionary_enabled():
+		try:
+			shutdown_dictionary_jobs()
+		except Exception as e:
+			import logging
+			logging.getLogger(__name__).warning(f"Data dictionary scheduler failed to stop: {e}")

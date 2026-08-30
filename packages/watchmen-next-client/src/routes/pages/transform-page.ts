@@ -1,6 +1,6 @@
 import { Store } from "../../state/store";
 import { pipelineTypeLabel, pipelineStatus, healthLabel } from "../../utils/display";
-import { getPipelineStats, getPipelineTopicMap } from "../../services";
+import { getPipelineStats, getPipelineTopicMap, getObjectsForTopic } from "../../services";
 
 export const renderTransformPage = (store: Store) => {
 	const pipelines = store.state.pipelines;
@@ -10,8 +10,8 @@ export const renderTransformPage = (store: Store) => {
 	return `
 	<div class="wm-page">
 		<div class="wm-page-hero">
-			<div class="wm-page-hero-title">Data Transformation</div>
-			<div class="wm-page-hero-desc">Configure and monitor data movement and transformation pipelines</div>
+				<div class="wm-page-hero-title">Data Transformation</div>
+				<div class="wm-page-hero-desc">Materialize the Ontology — pipelines keep every topic and its business objects fresh</div>
 			<div class="wm-page-hero-kpis">
 				<div class="wm-hero-kpi">
 					<div class="wm-hero-kpi-val">${stats.total}</div>
@@ -63,6 +63,13 @@ export const renderTransformPage = (store: Store) => {
 						</div>
 						<div class="wm-pipeline-card-foot">
 							${topic ? `<span class="wm-pipeline-topic">${topic.name}</span>` : ""}
+							${getObjectsForTopic(store.state.ontologyObjects, p.topicId)
+								.map(
+									(o) => `
+								<button class="wm-obj-feed-chip" data-ontology-open="${o.id}" title="Open ${o.displayName} in Ontology">◆ ${o.displayName}</button>
+							`,
+								)
+								.join("")}
 							<span class="wm-pipeline-health">${healthLabel(p.healthStatus)}</span>
 						</div>
 					</div>

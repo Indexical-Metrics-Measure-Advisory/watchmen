@@ -21,5 +21,17 @@ export type {
 	ObservabilityGraphZoom,
 	ObservabilityEventFilter,
 } from "./observability";
+export type {
+	OntologySensitivity,
+	OntologyAttribute,
+	OntologyDerivedAttribute,
+	OntologyObject,
+	OntologyCardinality,
+	OntologyLink,
+	GlossaryTermStatus,
+	GlossaryTerm,
+	OntologyView,
+	OntologyCatalogFilter,
+} from "./ontology";
 export type { MainNavKey } from "./nav";
 export type { EventFilter, AppState } from "./state";

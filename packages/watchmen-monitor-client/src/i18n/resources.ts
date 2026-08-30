@@ -266,6 +266,44 @@ export const resources = {
           p95: '· p95 {{duration}}',
           done: 'Done',
           errors: 'Errors'
+        },
+        trend: {
+          title: 'Task Trends',
+          done: 'Done',
+          error: 'Errors',
+          total: 'Total',
+          sample: 'sample of {{count}} recent runs',
+          empty: 'No trend data yet'
+        },
+        engines: {
+          title: 'Engine Overview',
+          subtitle: 'Realtime engine health',
+          collector: 'Collector Engine',
+          pipelineEngine: 'Pipeline Engine',
+          storage: 'Storage & Sources',
+          healthy: 'Healthy',
+          running: 'Running',
+          failing: 'Failing',
+          idle: 'Idle',
+          events: 'Events',
+          okRate: 'Success',
+          executing: 'Executing',
+          avgDuration: 'Avg',
+          p95: 'p95',
+          runs: 'Runs',
+          sources: 'Sources',
+          failedShort: '{{count}} failed',
+          registeredOnly: 'registered (probe pending)'
+        },
+        slowTasks: {
+          title: 'Inefficient Tasks',
+          subtitle: 'Top {{count}} by avg duration',
+          sample: 'sample of {{count}} runs',
+          runs: '{{count}} runs',
+          errors: '{{count}} err',
+          max: 'max',
+          openInMonitor: 'Open in Pipeline Monitor',
+          empty: 'No slow pipelines detected'
         }
     },
     pipeline: {
@@ -686,6 +724,44 @@ export const resources = {
           p95: '· p95 {{duration}}',
           done: '完成',
           errors: '错误'
+        },
+        trend: {
+          title: '任务趋势',
+          done: '成功',
+          error: '失败',
+          total: '合计',
+          sample: '采样最近 {{count}} 次运行',
+          empty: '暂无趋势数据'
+        },
+        engines: {
+          title: '引擎概览',
+          subtitle: '引擎实时健康',
+          collector: '采集引擎',
+          pipelineEngine: '调度引擎',
+          storage: '存储与数据源',
+          healthy: '健康',
+          running: '运行中',
+          failing: '异常',
+          idle: '空闲',
+          events: '事件',
+          okRate: '成功率',
+          executing: '执行中',
+          avgDuration: '平均',
+          p95: 'p95',
+          runs: '运行',
+          sources: '数据源',
+          failedShort: '{{count}} 失败',
+          registeredOnly: '已注册（待探测）'
+        },
+        slowTasks: {
+          title: '低效任务',
+          subtitle: '平均耗时 Top {{count}}',
+          sample: '采样 {{count}} 次运行',
+          runs: '{{count}} 次',
+          errors: '{{count}} 失败',
+          max: '最长',
+          openInMonitor: '前往管道监控查看',
+          empty: '未发现低效管道'
         }
     },
     pipeline: {
@@ -1106,6 +1182,44 @@ export const resources = {
           p95: '· p95 {{duration}}',
           done: '完成',
           errors: '錯誤'
+        },
+        trend: {
+          title: '任務趨勢',
+          done: '成功',
+          error: '失敗',
+          total: '合計',
+          sample: '取樣最近 {{count}} 次執行',
+          empty: '暫無趨勢數據'
+        },
+        engines: {
+          title: '引擎概覽',
+          subtitle: '引擎即時健康',
+          collector: '採集引擎',
+          pipelineEngine: '調度引擎',
+          storage: '儲存與資料來源',
+          healthy: '健康',
+          running: '運行中',
+          failing: '異常',
+          idle: '閒置',
+          events: '事件',
+          okRate: '成功率',
+          executing: '執行中',
+          avgDuration: '平均',
+          p95: 'p95',
+          runs: '執行',
+          sources: '資料來源',
+          failedShort: '{{count}} 失敗',
+          registeredOnly: '已註冊（待探測）'
+        },
+        slowTasks: {
+          title: '低效任務',
+          subtitle: '平均耗時 Top {{count}}',
+          sample: '取樣 {{count}} 次執行',
+          runs: '{{count}} 次',
+          errors: '{{count}} 失敗',
+          max: '最長',
+          openInMonitor: '前往管線監控查看',
+          empty: '未發現低效管線'
         }
     },
     pipeline: {

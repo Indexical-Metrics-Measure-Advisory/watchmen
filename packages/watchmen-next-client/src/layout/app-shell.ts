@@ -15,23 +15,29 @@ export const renderAppShell = (container: HTMLElement, store: Store) => {
 			<div class="wm-sidebar-logo">W</div>
 			<div class="wm-sidebar-brand">
 				<div class="wm-sidebar-brand-title">Watchmen</div>
-				<div class="wm-sidebar-brand-sub">Perceive Studio</div>
+				<div class="wm-sidebar-brand-sub">Ontology-Driven Data Platform</div>
 			</div>
 		</div>
 		<nav class="wm-nav-items">
-			${store.data.mainNav
+			${store.data.mainNavGroups
 				.map(
-					(item) => `
-				<button class="wm-nav-item${item.key === store.state.main ? " active" : ""}" data-nav="${item.key}">
-					<span class="wm-nav-icon">${item.icon}</span>
-					<span class="wm-nav-label">${item.label}</span>
-					${item.key === "perceive" && pendingCount > 0 ? `<span class="wm-nav-badge">${pendingCount}</span>` : ""}
-				</button>
-			`,
+					(group) => `
+				${group.label ? `<div class="wm-nav-group-label">${group.label}</div>` : ""}
+				${group.items
+					.map(
+						(item) => `
+					<button class="wm-nav-item${item.key === store.state.main ? " active" : ""}" data-nav="${item.key}">
+						<span class="wm-nav-icon">${item.icon}</span>
+						<span class="wm-nav-label">${item.label}</span>
+						${item.key === "perceive" && pendingCount > 0 ? `<span class="wm-nav-badge">${pendingCount}</span>` : ""}
+					</button>
+				`,
+					)
+					.join("")}`,
 				)
 				.join("")}
 		</nav>
-		<div class="wm-sidebar-foot">Agent-driven Data Engineering</div>
+		<div class="wm-sidebar-foot">Everything serves a better Ontology</div>
 	</aside>
 	<main class="wm-main-content">
 		<div class="wm-scroll-area">
@@ -82,6 +88,9 @@ export const bindAppEvents = (container: HTMLElement, rerender: () => void, stor
 			if (node.dataset.observeView) {
 				store.setObservabilityView(node.dataset.observeView as any);
 			}
+			if (node.dataset.observeGraphZoom) {
+				store.setObserveGraphZoom(node.dataset.observeGraphZoom as ObservabilityGraphZoom, "");
+			}
 			if (store.state.main !== "observe") {
 				store.setMainNav("observe");
 			}
@@ -106,6 +115,11 @@ export const bindAppEvents = (container: HTMLElement, rerender: () => void, stor
 
 			const nextStatus = action === "approve" ? "approved" : "rejected";
 			store.setPerceiveScenarioStatus(scenarioId, nextStatus);
+
+			// Approved proposals apply their effects to governance/ontology state.
+			if (action === "approve") {
+				store.applyApprovedEffects(scenarioId);
+			}
 
 			// Add agent log
 			store.addAgentLog({
@@ -201,6 +215,17 @@ export const bindAppEvents = (container: HTMLElement, rerender: () => void, stor
 					});
 					rerender();
 				}, 300);
+			} else if (action === "OPEN_ONTOLOGY") {
+				store.setMainNav("ontology");
+				store.setOntologyView("graph");
+				setTimeout(() => {
+					store.addChatMessage({
+						id: "msg-" + (Date.now() + 1),
+						role: "assistant",
+						content: "Opened the Ontology graph. Click any object to inspect its attributes and lineage.",
+					});
+					rerender();
+				}, 300);
 			} else {
 				setTimeout(() => {
 					store.addChatMessage({
@@ -283,6 +308,60 @@ export const bindAppEvents = (container: HTMLElement, rerender: () => void, stor
 			rerender();
 		});
 	});
+
+	// Ontology view tabs
+	container.querySelectorAll<HTMLElement>("[data-ontology-view]").forEach((node) => {
+		node.addEventListener("click", () => {
+			store.setOntologyView(node.dataset.ontologyView as any);
+			rerender();
+		});
+	});
+
+	// Ontology object selection (graph nodes / catalog rows / in-page links)
+	container.querySelectorAll<HTMLElement>("[data-ontology-select]").forEach((node) => {
+		node.addEventListener("click", () => {
+			store.selectOntologyObject(node.dataset.ontologySelect || null);
+			rerender();
+		});
+	});
+
+	// Cross-page ontology links: jump to the Ontology page and open the object
+	container.querySelectorAll<HTMLElement>("[data-ontology-open]").forEach((node) => {
+		node.addEventListener("click", () => {
+			const objectId = node.dataset.ontologyOpen;
+			if (objectId) store.openOntologyObject(objectId);
+			rerender();
+		});
+	});
+
+	// Cross-page proposal links: jump to Perceive with the proposal selected
+	container.querySelectorAll<HTMLElement>("[data-perceive-select]").forEach((node) => {
+		node.addEventListener("click", () => {
+			store.setMainNav("perceive");
+			store.setEventFilter("all");
+			store.selectScenario(node.dataset.perceiveSelect || null);
+			rerender();
+		});
+	});
+
+	// Ontology catalog filter pills
+	container.querySelectorAll<HTMLElement>("[data-ontology-catalog-filter]").forEach((node) => {
+		node.addEventListener("click", () => {
+			store.setOntologyCatalogFilter({
+				[node.dataset.ontologyCatalogFilter!]: node.dataset.ontologyCatalogFilterValue || "",
+			});
+			rerender();
+		});
+	});
+
+	// Ontology catalog search input
+	const ontologyCatalogSearch = container.querySelector<HTMLInputElement>("[data-ontology-catalog-search]");
+	if (ontologyCatalogSearch) {
+		ontologyCatalogSearch.addEventListener("input", () => {
+			store.setOntologyCatalogFilter({ search: ontologyCatalogSearch.value });
+			rerender();
+		});
+	}
 
 	// Event filter pills
 	container.querySelectorAll<HTMLElement>("[data-observe-event-filter]").forEach((node) => {

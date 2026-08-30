@@ -10,10 +10,12 @@ from watchmen_meta.admin import TagService, TopicService
 from watchmen_meta.analysis import TopicIndexService
 from watchmen_model.admin import TagType, Topic, TopicKind, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
+from watchmen_model.system import PublishNotificationResource
 from watchmen_rest import get_admin_principal, get_console_principal, get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.audit import record_save_audit
+from watchmen_rest_doll.publish import notify_publish
 from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail
 from watchmen_utilities import ArrayHelper, is_blank, is_date, is_not_blank
 
@@ -61,8 +63,11 @@ async def save_topic(
 	validate_tenant_id(topic, principal_service)
 	topic_service = get_topic_service(principal_service)
 	action = ask_save_topic_action(topic_service, principal_service, True)
+	save_action = 'create' if topic_service.is_storable_id_faked(topic.topicId) else 'update'
 	saved: Topic = trans_with_tail(topic_service, lambda: action(topic))
 	record_save_audit(request, 'topic', saved.topicId, saved.name, principal_service)
+	notify_publish(PublishNotificationResource.TOPIC.value,
+				   save_action, saved.topicId, saved.name, principal_service)
 	return saved
 
 

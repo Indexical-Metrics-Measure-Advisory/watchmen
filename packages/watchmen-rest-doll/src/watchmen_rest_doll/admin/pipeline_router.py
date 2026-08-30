@@ -9,10 +9,12 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_model.admin import Pipeline, UserRole
 from watchmen_model.common import PipelineId, TenantId
+from watchmen_model.system import PublishNotificationResource
 from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.audit import record_save_audit
+from watchmen_rest_doll.publish import notify_publish
 from watchmen_rest_doll.util import trans, trans_readonly
 from watchmen_utilities import is_blank, is_date
 
@@ -62,8 +64,11 @@ async def save_pipeline(
 		raise_400('Pipelines with system topic as source cannot be saved via YAML.')
 	pipeline_service = get_pipeline_service(principal_service)
 	action = ask_save_pipeline_action(pipeline_service, principal_service)
+	save_action = 'create' if pipeline_service.is_storable_id_faked(pipeline.pipelineId) else 'update'
 	saved: Pipeline = trans(pipeline_service, lambda: action(pipeline))
 	record_save_audit(request, 'pipeline', saved.pipelineId, saved.name, principal_service)
+	notify_publish(PublishNotificationResource.PIPELINE.value,
+				   save_action, saved.pipelineId, saved.name, principal_service)
 	return saved
 
 

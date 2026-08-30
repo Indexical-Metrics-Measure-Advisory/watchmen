@@ -1,9 +1,9 @@
 import {createStore} from './state/store';
-import {mainNav} from './data';
+import {mainNav, mainNavGroups} from './data';
 import {bindAppEvents, renderAppShell} from './layout/app-shell';
 
 export const mountWatchmenUI = (container: HTMLElement) => {
-	const store = createStore({mainNav});
+	const store = createStore({mainNav, mainNavGroups});
 
 	const render = () => {
 		renderAppShell(container, store);

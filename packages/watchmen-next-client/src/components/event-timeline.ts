@@ -18,6 +18,16 @@ const statusLabel = (s: string) => {
 	}
 };
 
+// Ontology linkage chip on each event row (first affected object).
+const objectChip = (store: Store, scenarioId: string): string => {
+	const scenario = store.state.perceiveScenarios.find((s) => s.id === scenarioId);
+	const objectId = (scenario?.affectedObjectIds || [])[0];
+	if (!objectId) return '';
+	const object = store.state.ontologyObjects.find((o) => o.id === objectId);
+	if (!object) return '';
+	return `<button class="wm-obj-feed-chip" data-ontology-open="${object.id}" title="Open ${object.displayName} in Ontology">◆ ${object.displayName}</button>`;
+};
+
 export const renderEventTimeline = (store: Store): string => {
 	const {perceiveScenarios, selectedScenarioId, eventFilter} = store.state;
 
@@ -60,6 +70,7 @@ export const renderEventTimeline = (store: Store): string => {
 							<div class="wm-event-meta">
 								<span class="wm-event-topic">${s.topicName}</span>
 								<span>${s.detectedAt}</span>
+								${objectChip(store, s.id)}
 							</div>
 						</div>
 						${statusLabel(s.status)}

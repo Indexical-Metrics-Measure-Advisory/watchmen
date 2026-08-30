@@ -7,11 +7,22 @@ export const renderFeedbackPage = (store: Store) => {
 	const stats = getAgentLogStats(logs);
 	const sortedLogs = getSortedLogs(logs);
 
+	// Ontology linkage: resolve the first affected object of the related proposal.
+	const objectChip = (scenarioId?: string): string => {
+		if (!scenarioId) return "";
+		const scenario = store.state.perceiveScenarios.find((s) => s.id === scenarioId);
+		const objectId = (scenario?.affectedObjectIds || [])[0];
+		if (!objectId) return "";
+		const object = store.state.ontologyObjects.find((o) => o.id === objectId);
+		if (!object) return "";
+		return `<button class="wm-obj-feed-chip" data-ontology-open="${object.id}" title="Open ${object.displayName} in Ontology">◆ ${object.displayName}</button>`;
+	};
+
 	return `
 	<div class="wm-page">
 		<div class="wm-page-hero">
 			<div class="wm-page-hero-title">Agent Feedback</div>
-			<div class="wm-page-hero-desc">AI-powered detection, analysis and decision intelligence</div>
+			<div class="wm-page-hero-desc">Human-in-the-loop decisions that teach the Agent to build a better Ontology</div>
 			<div class="wm-page-hero-kpis">
 				<div class="wm-hero-kpi">
 					<div class="wm-hero-kpi-val">${stats.total}</div>
@@ -46,6 +57,7 @@ export const renderFeedbackPage = (store: Store) => {
 						<div class="wm-feedback-body">
 							<div class="wm-feedback-content">${log.content}</div>
 						</div>
+						${objectChip(log.scenarioId)}
 						<div class="wm-feedback-time">${log.timestamp}</div>
 					</div>
 					`;

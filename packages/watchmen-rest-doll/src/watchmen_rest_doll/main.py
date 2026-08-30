@@ -22,6 +22,7 @@ from .ingest import config_router, monitor_router
 from .meta_import import connected_space_import_router, dashboard_import_router, mix_import_router, \
 	pipeline_import_router, report_import_router, space_import_router, subject_import_router, topic_import_router, \
 	user_group_import_router, user_import_router
+from .publish import publish_notification_router
 from .sso.sso_router import install_sso_router
 from .system import ai_model_router, data_source_router, external_writer_router, kafka_collector_config_router, \
 	pat_router, plugin_router, tenant_init_router, tenant_router, operation_router, package_version_router, \
@@ -81,6 +82,7 @@ ArrayHelper([
 	dashboard_import_router.router,
 	mix_import_router.router,
 	webhook_router.router,
+	publish_notification_router.router,
 	config_router.router,
 	# analysis
 	topic_index_router.router, pipeline_index_router.router,

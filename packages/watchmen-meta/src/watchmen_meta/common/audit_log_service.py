@@ -1,5 +1,7 @@
 from typing import List, Optional
 
+from pydantic.alias_generators import to_camel
+
 from watchmen_model.common import DataPage, Pageable
 from watchmen_model.system import AuditLog
 from watchmen_storage import EntityName, EntityShaper, EntityRow, \
@@ -97,7 +99,9 @@ class AuditLogService(EntityService):
 			criteria=criteria, distinctColumnNames=[column_name], distinctValueOnSingleColumn=True,
 			sort=[EntitySortColumn(name=column_name, method=EntitySortMethod.ASC)]
 		))
-		return [row.get(column_name) for row in rows if row.get(column_name) is not None]
+		# storage deserializes each row into an AuditLog, the value sits on the camelCase attribute
+		attribute_name = to_camel(column_name)
+		return [value for row in rows if (value := getattr(row, attribute_name)) is not None]
 
 
 def ask_audit_log_criteria(

@@ -6,6 +6,7 @@ import {ThemeSettings} from '@/widgets/common-settings/theme';
 import {HELP_KEYS, useHelp} from '@/widgets/help';
 import React from 'react';
 import {CacheSettings} from './cache';
+import {PublishNotificationSettings} from './publish-notification';
 import {SimulatorLogsSettings} from './simulator-logs';
 
 export const AdminSettings = () => {
@@ -18,6 +19,7 @@ export const AdminSettings = () => {
 		<PersonalAccessToken/>
 		<CacheSettings/>
 		<SimulatorLogsSettings/>
+		<PublishNotificationSettings/>
 		<VerticalMarginOneUnit/>
 	</SettingsPage>;
 };

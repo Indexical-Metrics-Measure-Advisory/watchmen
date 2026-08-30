@@ -587,6 +587,17 @@ table_audit_log = Table(
     create_datetime('occurred_at', False)
 )
 
+table_publish_notification_setting = Table(
+    'publish_notification_setting', meta_data,
+    create_pk('setting_id'),
+    create_bool('enabled', False),
+    create_json('resources'),
+    create_str('type', 50),
+    create_str('url', 1024),
+    create_str('secret', 512),
+    create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+
 table_subscription_event = Table(
     'subscription_events', meta_data,
     create_pk('subscription_event_id'),
@@ -971,6 +982,7 @@ tables: Dict[str, Table] = {
     'operations': table_operations,
     'package_versions': table_package_versions,
     'audit_log': table_audit_log,
+    'publish_notification_setting': table_publish_notification_setting,
     # webhook
     'subscription_event_locks': table_subscription_event_locks,
     'subscription_events': table_subscription_event,

@@ -13,6 +13,7 @@ import {DQCCacheData} from '../cache/types';
 import {useDataQualityCacheData} from '../cache/use-cache-data';
 import {useRulesEventBus} from './rules-event-bus';
 import {RulesEventTypes} from './rules-event-bus-types';
+import {RunRulesButton} from './run-rules';
 import {GradePickerContainer, SearchCriteriaContainer, SearchLabel} from './widgets';
 
 export const SearchCriteria = () => {
@@ -86,5 +87,6 @@ export const SearchCriteria = () => {
 			<FontAwesomeIcon icon={ICON_SEARCH}/>
 			<span>Find</span>
 		</Button>
+		<RunRulesButton/>
 	</SearchCriteriaContainer>;
 };

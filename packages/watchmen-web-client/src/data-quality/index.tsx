@@ -63,7 +63,8 @@ const DataQualityIndex = () => {
 				{asRoute(Router.DQC_CONSANGUINITY, <DataQualityConsanguinity/>, {scrollable: false})}
 				{asRoute(Router.DQC_CATALOG, <DataQualityCatalog/>, {scrollable: false})}
 				{asRoute(Router.DQC_RULES, <DataQualityMonitorRules/>, {scrollable: false})}
-				{asRoute(Router.DQC_STATISTICS, <DataQualityStatistics/>, {scrollable: false})}
+				{/* scrollable: the quality overview band stacks above the data panels */}
+				{asRoute(Router.DQC_STATISTICS, <DataQualityStatistics/>)}
 				{/*{asRoute(Router.DATA_QUALITY_END_USER, <DataQualityEndUser/>, {scrollable: false})}*/}
 				{asRoute(Router.DQC_SETTINGS, <DataQualitySettings/>)}
 				{asRoute(Router.DQC_TAG_MANAGEMENT, <DataQualityTagManagement/>)}

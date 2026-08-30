@@ -9,4 +9,5 @@ from .tenant import Tenant
 from .token import PersonalAccessToken, Token
 from .operation import Operation, OperationType
 from .audit_log import AuditLog, AuditOperationType
+from .publish_notification import PublishNotificationResource, PublishNotificationSetting, PublishNotificationTargetType
 from .PackageVersion import PackageVersion

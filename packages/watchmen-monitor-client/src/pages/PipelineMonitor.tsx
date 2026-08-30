@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -93,11 +93,13 @@ const PipelineMonitor: React.FC = () => {
   const { t } = useTranslation(['pipeline', 'common']);
   const navigate = useNavigate();
   const { timeRange, refreshKey } = useOutletContext<MonitorOutletContext>();
+  // Deep link support: /pipeline?pipelineId=xxx (e.g. from the overview slow-tasks board).
+  const [searchParams] = useSearchParams();
   const [filters, setFilters] = React.useState<PipelineMonitorLogCriteria>({
     pageNumber: 1,
     pageSize: PAGE_SIZE,
     status: null,
-    pipelineId: null,
+    pipelineId: searchParams.get('pipelineId'),
     topicId: null,
     traceId: null,
     startDate: null,

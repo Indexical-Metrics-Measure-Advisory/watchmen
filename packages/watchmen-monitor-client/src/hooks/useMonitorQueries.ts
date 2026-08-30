@@ -3,7 +3,7 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { ingestMonitorService } from '@/services/ingestMonitorService';
 import { pipelineMonitorService } from '@/services/pipelineMonitorService';
-import type { PipelineLogStatsCriteria } from '@/services/pipelineMonitorService';
+import type { PipelineLogStatsCriteria, PipelineLogInsightCriteria } from '@/services/pipelineMonitorService';
 import { pipelineMetaService } from '@/services/pipelineMetaService';
 import { topicService } from '@/services/topicService';
 import { lineageService } from '@/services/lineageService';
@@ -31,6 +31,8 @@ const REACT_QUERY_KEYS = {
   recentTriggerOnlines: ['ingest', 'trigger-online'] as const,
   pipelineLogStats: (criteria: PipelineLogStatsCriteria) =>
     ['pipeline', 'log-stats', criteria] as const,
+  pipelineLogInsight: (criteria: PipelineLogInsightCriteria) =>
+    ['pipeline', 'log-insight', criteria] as const,
   auditLogs: (criteria: AuditLogCriteria) => ['audit', 'logs', criteria] as const,
   auditAccounts: ['audit', 'accounts'] as const,
   auditOperationTypes: ['audit', 'operation-types'] as const,
@@ -162,6 +164,14 @@ export const usePipelineLogStats = (criteria: PipelineLogStatsCriteria = {}, ena
   useQuery({
     queryKey: REACT_QUERY_KEYS.pipelineLogStats(criteria),
     queryFn: () => pipelineMonitorService.getLogStats(criteria),
+    enabled,
+  });
+
+// Operations-dashboard aggregates (trend + slow pipelines + stats) in one call.
+export const usePipelineLogInsight = (criteria: PipelineLogInsightCriteria = {}, enabled = true) =>
+  useQuery({
+    queryKey: REACT_QUERY_KEYS.pipelineLogInsight(criteria),
+    queryFn: () => pipelineMonitorService.getInsight(criteria),
     enabled,
   });
 

@@ -13,6 +13,11 @@ export type GovernRule = {
 	enabled: boolean;
 	lastChecked?: string;
 	passRate?: number;
+	// Rule parameters (threshold / regex / window, ...). Updated by approved
+	// perceive proposals via PerceiveEffect.update_rule_params.
+	params?: Record<string, string>;
+	// Set when a proposal modified this rule, e.g. "perceive-1".
+	updatedBy?: string;
 };
 
 export type MaskingPolicy = {

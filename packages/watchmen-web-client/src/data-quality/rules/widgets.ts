@@ -8,7 +8,7 @@ export const Body = styled.div.attrs({'data-widget': 'rules-body'})`
 `;
 export const SearchCriteriaContainer = styled.div.attrs({'data-widget': 'rules-search'})`
 	display               : grid;
-	grid-template-columns : auto auto auto 1fr auto 1fr;
+	grid-template-columns : auto auto auto 1fr auto auto;
 	grid-column-gap       : var(--margin);
 	grid-row-gap          : calc(var(--margin) / 4);
 	padding               : calc(var(--margin) / 4) var(--margin);

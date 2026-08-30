@@ -6,5 +6,8 @@ class DqcSettings(RestSettings):
 	# include the PII classification router (and its seed import) only when
 	# explicitly enabled via the PII_CLASSIFICATION_ENABLED env var
 	PII_CLASSIFICATION_ENABLED: bool = False
+	# data dictionary generator (watchmen-data-dictionary): mounted by default,
+	# storage backends configured via STORAGE_BACKEND / ARTIFACT_BACKEND etc.
+	DICTIONARY_ENABLED: bool = True
 
 

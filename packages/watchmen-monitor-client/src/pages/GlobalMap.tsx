@@ -27,8 +27,11 @@ import {
   useIngestEventDetail,
   useIngestProgress,
   useIngestEventStats,
-  usePipelineLogStats,
+  usePipelineLogInsight,
 } from '@/hooks/useMonitorQueries';
+import TrendCard from '@/components/monitor/overview/TrendCard';
+import EngineOverviewCard from '@/components/monitor/overview/EngineOverviewCard';
+import SlowTasksCard from '@/components/monitor/overview/SlowTasksCard';
 import type { MonitorOutletContext } from '@/components/Layout';
 import {
   getIngestStatusMeta,
@@ -351,7 +354,8 @@ const GlobalMap: React.FC = () => {
   } as PipelineMonitorLogCriteria);
   // Aggregated stats from the new backend endpoints (fall back to page samples when unavailable).
   const dataSourceHealthQ = useDataSourceHealth();
-  const pipelineStatsQ = usePipelineLogStats({ sampleSize: 200 });
+  // One-call dashboard aggregates: exact status counts + recent-sample daily trend + slow-pipeline board.
+  const pipelineInsightQ = usePipelineLogInsight({ sampleSize: 1000, slowCount: 8 });
   const eventStatsQ = useIngestEventStats(200);
 
   // Refresh cadence is driven globally from the Layout top-bar selector
@@ -534,19 +538,19 @@ const GlobalMap: React.FC = () => {
   }, [eventStatsQ.data]);
   const effStatusCounts = globalStatusCounts ?? statusCounts;
 
-  // Global pipeline write totals (from /pipeline/log/stats sample; falls back to loaded error logs)
+  // Global pipeline write totals (from /pipeline/log/insight sample; falls back to loaded error logs)
   const effPipelineActionTotals = React.useMemo(() => {
-    const stats = pipelineStatsQ.data;
+    const stats = pipelineInsightQ.data;
     if (!stats) return pipelineActionTotals;
     return { inserts: stats.insertCount, updates: stats.updateCount, deletes: stats.deleteCount };
-  }, [pipelineStatsQ.data, pipelineActionTotals]);
+  }, [pipelineInsightQ.data, pipelineActionTotals]);
 
   const isLoading = eventsQ.isLoading || topicsQ.isLoading || dataSourcesQ.isLoading;
   const healthPct =
     pipelineRunCount > 0 ? Math.round(((pipelineRunCount - errorLogCount) / pipelineRunCount) * 100) : 100;
   // Avg duration: prefer pipeline-run stats (server-side sample), fall back to finished events on this page.
-  const effAvgDurationMs = pipelineStatsQ.data?.avgDurationMs ?? avgDurationMs;
-  const avgDurationCaption = pipelineStatsQ.data?.avgDurationMs != null ? t('kpi.avgCaptionPipeline') : t('kpi.avgCaptionRecent');
+  const effAvgDurationMs = pipelineInsightQ.data?.avgDurationMs ?? avgDurationMs;
+  const avgDurationCaption = pipelineInsightQ.data?.avgDurationMs != null ? t('kpi.avgCaptionPipeline') : t('kpi.avgCaptionRecent');
 
   return (
     <div className="space-y-5">
@@ -624,6 +628,26 @@ const GlobalMap: React.FC = () => {
           value={effAvgDurationMs != null ? formatDuration(effAvgDurationMs) : '—'}
           caption={avgDurationCaption}
           tone="info"
+        />
+      </div>
+
+      {/* Task trends + engine overview */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.5fr_1fr]">
+        <TrendCard
+          data={pipelineInsightQ.data?.trend}
+          sampleSize={pipelineInsightQ.data?.sampleSize}
+          isLoading={pipelineInsightQ.isLoading}
+          error={pipelineInsightQ.error}
+          onRetry={() => pipelineInsightQ.refetch()}
+        />
+        <EngineOverviewCard
+          insight={pipelineInsightQ.data}
+          eventStats={eventStatsQ.data}
+          sourcesTotal={dataSources.length}
+          sourcesOk={dsHealthCounts.ok}
+          sourcesFailed={dsHealthCounts.failed}
+          healthChecked={dsHealthCounts.checked}
+          isLoading={pipelineInsightQ.isLoading || eventStatsQ.isLoading}
         />
       </div>
 
@@ -1262,8 +1286,8 @@ const GlobalMap: React.FC = () => {
                 <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
                   <Clock className="h-3 w-3" />
                   {t('executionStats.runs', { count: pipelineRunCount })}
-                  {pipelineStatsQ.data?.p95DurationMs != null && (
-                    <span className="ml-1">{t('executionStats.p95', { duration: formatDuration(pipelineStatsQ.data.p95DurationMs) })}</span>
+                  {pipelineInsightQ.data?.p95DurationMs != null && (
+                    <span className="ml-1">{t('executionStats.p95', { duration: formatDuration(pipelineInsightQ.data.p95DurationMs) })}</span>
                   )}
                 </span>
               </div>
@@ -1293,6 +1317,17 @@ const GlobalMap: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Inefficient-task leaderboard (slowest pipelines by avg duration, click to drill down) */}
+      <SlowTasksCard
+        slowPipelines={pipelineInsightQ.data?.slowPipelines}
+        nameMap={pipelineNameMap}
+        sampleSize={pipelineInsightQ.data?.sampleSize}
+        isLoading={pipelineInsightQ.isLoading}
+        error={pipelineInsightQ.error}
+        onRetry={() => pipelineInsightQ.refetch()}
+        onOpen={(pipelineId) => navigate(`/pipeline?pipelineId=${encodeURIComponent(pipelineId)}`)}
+      />
     </div>
   );
 };
