@@ -12,6 +12,7 @@ import { metricsService } from '@/services/metricsService';
 import { transformMetricFlowToChartData, timeRangeToBounds, toTimeRangeValue } from '@/utils/biAnalysisUtils';
 import { inferType } from '@/components/bi/utils';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 // ─────────────────────────────────────────────────────────────
 // Constants & Helpers
@@ -119,6 +120,8 @@ export type UseMetricBuilderReturn = {
 export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBuilderReturn => {
   const { metricBuilderOpen, setMetricBuilderOpen, metricDimsCache, onCardAdded, setActiveSection } = options;
   const { toast } = useToast();
+  // Console users only see published metrics in the metric settings sheet.
+  const { isConsoleUser } = useAuth();
 
   // ── Search & Category ──
   const [search, setSearch] = useState('');
@@ -246,7 +249,11 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
         const list = await getAllMetrics(Object.keys(filter).length ? filter : undefined);
 
         if (!alive) return;
-        setMetricsList(Array.isArray(list) ? list : []);
+        // Undefined publishStatus means draft, so console users only get explicit `published`.
+        const visible = isConsoleUser
+          ? (Array.isArray(list) ? list : []).filter(m => m.publishStatus === 'published')
+          : (Array.isArray(list) ? list : []);
+        setMetricsList(visible);
       } catch (e) {
         if (!alive) return;
         setMetricsList([]);
@@ -257,7 +264,7 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
 
     const timer = setTimeout(load, 300);
     return () => { alive = false; clearTimeout(timer); };
-  }, [search, categoryId, metricBuilderOpen]);
+  }, [search, categoryId, metricBuilderOpen, isConsoleUser]);
 
   // ── Load dimensions when metric changes ──
   useEffect(() => {

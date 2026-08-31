@@ -21,7 +21,7 @@ from watchmen_metricflow.service.meta_service import load_metrics_by_tenant_id, 
     build_profile
 from watchmen_metricflow.service.mysql_metric_query_service import try_mysql_dimensions_by_metrics, \
     try_mysql_metric_query
-from watchmen_rest import get_admin_principal, get_any_principal
+from watchmen_rest import get_admin_principal, get_any_principal, get_console_principal
 from watchmen_utilities import ExtendedBaseModel
 from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
 
@@ -86,7 +86,7 @@ async def list_metrics(principal_service: PrincipalService = Depends(get_admin_p
 
 
 @router.get("/metricflow/dimensions_by_metric", tags =["mcp"],operation_id="find_dimensions_by_metric",response_model=DimensionListResponse)
-async def find_dimensions_by_metric(metric_name: str,principal_service: PrincipalService = Depends(get_admin_principal))->DimensionListResponse:
+async def find_dimensions_by_metric(metric_name: str,principal_service: PrincipalService = Depends(get_console_principal))->DimensionListResponse:
     """
     Find common dimensions between a list of metrics and a list of dimensions.
     """
