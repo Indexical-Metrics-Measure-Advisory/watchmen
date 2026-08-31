@@ -679,6 +679,23 @@ url = "https://pypi.org/simple"
 reference = "foo"
 
 [[package]]
+name = "et-xmlfile"
+version = "2.0.0"
+description = "An implementation of lxml.xmlfile for the standard library"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "et_xmlfile-2.0.0-py3-none-any.whl", hash = "sha256:7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa"},
+    {file = "et_xmlfile-2.0.0.tar.gz", hash = "sha256:dab3f4764309081ce75662649be815c4c9081e88f0837825f90fd28317d4da54"},
+]
+
+[package.source]
+type = "legacy"
+url = "https://pypi.org/simple"
+reference = "foo"
+
+[[package]]
 name = "fastapi"
 version = "0.111.1"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
@@ -1418,6 +1435,26 @@ files = [
     {file = "numpy-2.4.4-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:f2cf083b324a467e1ab358c105f6cad5ea950f50524668a80c486ff1db24e119"},
     {file = "numpy-2.4.4.tar.gz", hash = "sha256:2d390634c5182175533585cc89f3608a4682ccb173cc9bb940b2881c8d6f8fa0"},
 ]
+
+[package.source]
+type = "legacy"
+url = "https://pypi.org/simple"
+reference = "foo"
+
+[[package]]
+name = "openpyxl"
+version = "3.1.5"
+description = "A Python library to read/write Excel 2010 xlsx/xlsm files"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "openpyxl-3.1.5-py2.py3-none-any.whl", hash = "sha256:5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2"},
+    {file = "openpyxl-3.1.5.tar.gz", hash = "sha256:cf0e3cf56142039133628b5acffe8ef0c12bc902d2aadd3e0fe5878dc08d1050"},
+]
+
+[package.dependencies]
+et-xmlfile = "*"
 
 [package.source]
 type = "legacy"
@@ -3344,6 +3381,35 @@ type = "directory"
 url = "../watchmen-model"
 
 [[package]]
+name = "watchmen-pii-classification"
+version = "18.0.0"
+description = "PII data classification platform — business-term driven sensitive-data discovery and lineage impact analysis."
+optional = false
+python-versions = "~3.12"
+groups = ["main"]
+files = []
+develop = true
+
+[package.dependencies]
+fastapi = ">=0.110"
+openpyxl = "^3.1"
+pydantic = "^2.9.2"
+pydantic-settings = "^2.4.0"
+python-json-logger = "^2.0.7"
+PyYAML = "^6.0"
+starlette = ">=0.36"
+watchmen-auth = {path = "../watchmen-auth", develop = true}
+watchmen-meta = {path = "../watchmen-meta", develop = true}
+watchmen-model = {path = "../watchmen-model", develop = true}
+watchmen-rest = {path = "../watchmen-rest", develop = true}
+watchmen-storage = {path = "../watchmen-storage", develop = true}
+watchmen-utilities = {path = "../watchmen-utilities", develop = true}
+
+[package.source]
+type = "directory"
+url = "../watchmen-pii-classification"
+
+[[package]]
 name = "watchmen-pipeline-kernel"
 version = "18.0.0"
 description = ""
@@ -3636,4 +3702,4 @@ s3 = []
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.12"
-content-hash = "43e67663d193532da5216a4f740af92b1835f03de236873b858ac27f6a45a8cd"
+content-hash = "02979022999b716a9bbcab40fe58fe3d029a1ac34554938e7064dfc17d9b01e7"
