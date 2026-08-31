@@ -7,5 +7,6 @@ from .tag_service import TagService
 from .topic_service import FactorService, TopicService
 from .topic_snapshot_lock_service import TopicSnapshotJobLockService
 from .topic_snapshot_scheduler_service import TopicSnapshotSchedulerService
+from .topic_tag_service import TopicTagService
 from .user_group_service import UserGroupService
 from .user_service import UserService

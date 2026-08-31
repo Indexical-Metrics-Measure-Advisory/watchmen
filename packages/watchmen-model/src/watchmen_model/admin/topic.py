@@ -46,6 +46,7 @@ class Topic(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	dataSourceId: Optional[DataSourceId] = None
 	factors: Optional[List[Factor]] = []
 	description: Optional[str] = None
+	# transient, not persisted as a topic column, tags are stored in the topic_tags relation (see TopicTag)
 	tags: Optional[List[str]] = None
 
 	def __setattr__(self, name, value):

@@ -1,1 +1,0 @@
-ALTER TABLE topics ADD tags NVARCHAR(MAX);

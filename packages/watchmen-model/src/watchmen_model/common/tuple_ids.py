@@ -66,3 +66,4 @@ OnlineTriggerId = TypeVar('OnlineTriggerId', bound=int)
 OntologyId = TypeVar('OntologyId', bound=str)
 
 TagId = TypeVar('TagId', bound=str)
+TopicTagId = TypeVar('TopicTagId', bound=str)

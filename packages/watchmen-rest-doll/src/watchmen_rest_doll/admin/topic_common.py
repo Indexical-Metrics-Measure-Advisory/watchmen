@@ -1,10 +1,11 @@
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
 from watchmen_data_kernel.common import ask_replace_topic_to_storage, ask_sync_topic_to_storage
 from watchmen_data_kernel.service import sync_topic_structure_storage
-from watchmen_meta.admin import FactorService, PipelineService, TopicService, TopicSnapshotSchedulerService
+from watchmen_meta.admin import FactorService, PipelineService, TopicService, TopicTagService, \
+	TopicSnapshotSchedulerService
 from watchmen_meta.analysis import TopicIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.system import DataSourceService
@@ -25,6 +26,29 @@ def ensure_design_environment_for_yaml_update() -> None:
 
 def get_topic_service(principal_service: PrincipalService) -> TopicService:
 	return TopicService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_topic_tag_service(topic_service: TopicService) -> TopicTagService:
+	return TopicTagService(topic_service.storage, topic_service.snowflakeGenerator)
+
+
+def sync_topic_tags(topic: Topic, topic_service: TopicService) -> None:
+	get_topic_tag_service(topic_service).save_topic_tags(topic)
+
+
+def fill_topic_tags(topics: List[Topic], topic_service: TopicService) -> List[Topic]:
+	"""
+	tags of a topic are stored in the topic_tags relation, not on the topic row itself,
+	therefore they are loaded and attached here
+	"""
+	topics = topics or []
+	tag_service = get_topic_tag_service(topic_service)
+	rows = tag_service.find_by_topic_ids(ArrayHelper(topics).map(lambda x: x.topicId).to_list())
+	tags_map: Dict[TopicId, List[str]] = {}
+	ArrayHelper(rows).each(lambda x: tags_map.setdefault(x.topicId, []).append(x.tagName))
+	for topic in topics:
+		topic.tags = tags_map.get(topic.topicId)
+	return topics
 
 
 def is_system_topic(topic: Topic) -> bool:
@@ -143,6 +167,7 @@ def ask_save_topic_action(
 			redress_factor_ids(topic, topic_service)
 			# noinspection PyTypeChecker
 			topic: Topic = topic_service.create(topic)
+			sync_topic_tags(topic, topic_service)
 			tail = sync_topic_structure(topic, None, principal_service)
 		else:
 			# noinspection PyTypeChecker
@@ -154,6 +179,7 @@ def ask_save_topic_action(
 			redress_factor_ids(topic, topic_service)
 			# noinspection PyTypeChecker
 			topic: Topic = topic_service.update(topic)
+			sync_topic_tags(topic, topic_service)
 
 			if handle_snapshots:
 				scheduler_service = get_snapshot_scheduler_service(topic_service)
@@ -223,5 +249,6 @@ def remove_topic_index(topic_id: TopicId, topic_service: TopicService) -> None:
 
 
 def post_delete_topic(topic_id: TopicId, topic_service: TopicService) -> None:
+	get_topic_tag_service(topic_service).remove_topic_tags(topic_id)
 	remove_topic_index(topic_id, topic_service)
 	CacheService.topic().remove(topic_id)

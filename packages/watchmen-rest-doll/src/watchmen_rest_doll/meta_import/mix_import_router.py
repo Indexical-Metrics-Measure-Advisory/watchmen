@@ -21,6 +21,7 @@ from watchmen_model.system import Tenant
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_403
 from watchmen_rest_doll.admin.pipeline_common import post_save_pipeline
+from watchmen_rest_doll.admin.topic_common import sync_topic_tags
 from watchmen_rest_doll.admin.topic_router import post_save_topic
 from watchmen_rest_doll.console.connected_space_router import ConnectedSpaceWithSubjects, SubjectWithReports
 from watchmen_rest_doll.util import trans
@@ -555,6 +556,7 @@ def try_to_import_topic(topic: Topic, topic_service: TopicService, do_update: bo
 				topicId=topic.topicId, name=topic.name, passed=False, reason='Topic already exists.')
 
 	post_save_topic(topic, topic_service)
+	sync_topic_tags(topic, topic_service)
 	return TopicImportDataResult(topicId=topic.topicId, name=topic.name, passed=True)
 
 
@@ -1035,6 +1037,7 @@ def force_new_import(request: MixImportDataRequest, user_service: UserService) -
 	topic_results = ArrayHelper(request.topics) \
 		.map(lambda x: topic_service.create(x)) \
 		.each(lambda x: post_save_topic(x, topic_service)) \
+		.each(lambda x: sync_topic_tags(x, topic_service)) \
 		.map(lambda x: TopicImportDataResult(topicId=x.topicId, name=x.name, passed=True)).to_list()
 
 	pipeline_service = get_pipeline_service(user_service)

@@ -22,11 +22,13 @@ from watchmen_utilities import ArrayHelper, is_blank, is_date, is_not_blank
 from .topic_common import (
 	get_topic_service,
 	get_topic_index_service,
+	get_topic_tag_service,
 	is_system_topic,
 	ask_save_topic_action,
 	post_save_topic,
 	to_exclude_types,
 	post_delete_topic,
+	fill_topic_tags,
 	LastModified,
 	QueryTopicDataPage,
 )
@@ -51,6 +53,7 @@ async def load_topic_by_id(
 		# tenant id must match current principal's
 		if topic.tenantId != principal_service.get_tenant_id():
 			raise_404()
+		fill_topic_tags([topic], topic_service)
 		return topic
 
 	return trans_readonly(topic_service, action)
@@ -82,10 +85,12 @@ async def find_topics_page_by_name(
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		if is_blank(query_name):
 			# noinspection PyTypeChecker
-			return topic_service.find_page_by_text(None, tenant_id, pageable)
+			data_page = topic_service.find_page_by_text(None, tenant_id, pageable)
 		else:
 			# noinspection PyTypeChecker
-			return topic_service.find_page_by_text(query_name, tenant_id, pageable)
+			data_page = topic_service.find_page_by_text(query_name, tenant_id, pageable)
+		fill_topic_tags(data_page.data, topic_service)
+		return data_page
 
 	return trans_readonly(topic_service, action)
 
@@ -122,7 +127,7 @@ async def find_available_topic_tags(
 			.map(lambda x: x.name) \
 			.filter(lambda x: is_not_blank(x)) \
 			.to_list()
-		used_tags = topic_service.find_available_tags(tenant_id)
+		used_tags = get_topic_tag_service(topic_service).find_distinct_tags(tenant_id)
 		return sorted(set(registered_tags) | set(used_tags))
 
 	return trans_readonly(topic_service, action)
@@ -145,6 +150,7 @@ async def find_topic_yaml_by_name(
 			raise_404()
 		if is_system_topic(topic):
 			raise_404()
+		fill_topic_tags([topic], topic_service)
 		return topic
 
 	topic = trans_readonly(topic_service, action)
@@ -164,7 +170,7 @@ async def find_topics_by_ids(
 
 	def action() -> List[Topic]:
 		tenant_id: TenantId = principal_service.get_tenant_id()
-		return topic_service.find_by_ids(topic_ids, tenant_id)
+		return fill_topic_tags(topic_service.find_by_ids(topic_ids, tenant_id), topic_service)
 
 	return trans_readonly(topic_service, action)
 
@@ -176,7 +182,7 @@ async def find_all_topics(principal_service: PrincipalService = Depends(get_cons
 	topic_service = get_topic_service(principal_service)
 
 	def action() -> List[Topic]:
-		return topic_service.find_all(tenant_id)
+		return fill_topic_tags(topic_service.find_all(tenant_id), topic_service)
 
 	return trans_readonly(topic_service, action)
 
@@ -198,7 +204,8 @@ async def find_updated_topics(
 	topic_service = get_topic_service(principal_service)
 
 	def action() -> List[Topic]:
-		return topic_service.find_modified_after(last_modified_at, principal_service.get_tenant_id())
+		return fill_topic_tags(
+			topic_service.find_modified_after(last_modified_at, principal_service.get_tenant_id()), topic_service)
 
 	return trans_readonly(topic_service, action)
 
