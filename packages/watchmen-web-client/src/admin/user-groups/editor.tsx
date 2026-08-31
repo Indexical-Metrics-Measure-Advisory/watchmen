@@ -39,6 +39,7 @@ const UserGroupEditor = (props: { userGroup: UserGroup, codes?: HoldByUserGroup 
 	// guard data
 	userGroup.spaceIds = userGroup.spaceIds || [];
 	userGroup.objectiveIds = userGroup.objectiveIds || [];
+	userGroup.convergenceIds = userGroup.convergenceIds || [];
 	userGroup.userIds = userGroup.userIds || [];
 
 	return <>

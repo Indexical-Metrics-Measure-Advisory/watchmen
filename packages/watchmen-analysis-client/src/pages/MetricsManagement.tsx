@@ -33,6 +33,7 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { formatDate, formatDateTime } from '@/i18n/utils/format';
 import useMetricsData from '@/hooks/useMetricsData';
+import { useAuth } from '@/contexts/AuthContext';
 import { validateForm, cleanTypeParams, getTypeLabel, getFormatLabel } from '@/utils/metricFormUtils';
 
 /** Validation status badge — standalone sub-component */
@@ -81,6 +82,9 @@ const MetricsManagement: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'metricsEnum', 'metricsManagement']);
   const { toast } = useToast();
+  const { isConsoleUser } = useAuth();
+  // Console users get a read-only view: no create/edit/delete/publish/validate/category actions.
+  const isReadOnly = isConsoleUser;
 
   const {
     metrics, categories, availableMeasures, selectedMetric, setSelectedMetric,
@@ -295,18 +299,22 @@ const MetricsManagement: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowCategoryManagement(!showCategoryManagement)}
-                className={showCategoryManagement ? "bg-accent text-accent-foreground border-accent" : ""}
-              >
-                <FolderOpen className="mr-2 h-4 w-4" />
-                {t('metricsManagement:categories')}
-              </Button>
-              <Button onClick={handleCreateMetricDialog}>
-                <Plus className="mr-2 h-4 w-4" />
-                {t('metricsManagement:newMetric')}
-              </Button>
+              {!isReadOnly && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCategoryManagement(!showCategoryManagement)}
+                  className={showCategoryManagement ? "bg-accent text-accent-foreground border-accent" : ""}
+                >
+                  <FolderOpen className="mr-2 h-4 w-4" />
+                  {t('metricsManagement:categories')}
+                </Button>
+              )}
+              {!isReadOnly && (
+                <Button onClick={handleCreateMetricDialog}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('metricsManagement:newMetric')}
+                </Button>
+              )}
             </div>
           </div>
 
@@ -449,10 +457,12 @@ const MetricsManagement: React.FC = () => {
                     ? t('metricsManagement:noMetricsFiltered')
                     : t('metricsManagement:noMetricsEmpty')}
                 </p>
-                <Button onClick={handleCreateMetricDialog}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  {t('metricsManagement:createMetric')}
-                </Button>
+                {!isReadOnly && (
+                  <Button onClick={handleCreateMetricDialog}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t('metricsManagement:createMetric')}
+                  </Button>
+                )}
              </div>
           ) : (
             <>
@@ -540,31 +550,39 @@ const MetricsManagement: React.FC = () => {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>{t('common:actions')}</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => handleValidateMetric(metric)}>
-                                  <RefreshCcw className="mr-2 h-4 w-4" /> {t('metricsManagement:revalidate')}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleTogglePublish(metric)}>
-                                  {metric.publishStatus === 'published'
-                                    ? <><XCircle className="mr-2 h-4 w-4" /> {t('metricsManagement:unpublish')}</>
-                                    : <><CheckCircle2 className="mr-2 h-4 w-4" /> {t('metricsManagement:publish')}</>}
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
+                                {!isReadOnly && (
+                                  <DropdownMenuItem onClick={() => handleValidateMetric(metric)}>
+                                    <RefreshCcw className="mr-2 h-4 w-4" /> {t('metricsManagement:revalidate')}
+                                  </DropdownMenuItem>
+                                )}
+                                {!isReadOnly && (
+                                  <DropdownMenuItem onClick={() => handleTogglePublish(metric)}>
+                                    {metric.publishStatus === 'published'
+                                      ? <><XCircle className="mr-2 h-4 w-4" /> {t('metricsManagement:unpublish')}</>
+                                      : <><CheckCircle2 className="mr-2 h-4 w-4" /> {t('metricsManagement:publish')}</>}
+                                  </DropdownMenuItem>
+                                )}
+                                {!isReadOnly && <DropdownMenuSeparator />}
                                 <DropdownMenuItem onClick={() => setSelectedMetric(metric)}>
                                   <Eye className="mr-2 h-4 w-4" /> {t('metricsManagement:viewDetails')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleViewLineage(metric)}>
                                   <GitBranch className="mr-2 h-4 w-4" /> {t('metricsManagement:viewLineage')}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleEditMetric(metric)}>
-                                  <Edit className="mr-2 h-4 w-4" /> {t('common:edit')}
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                    className="text-destructive focus:text-destructive"
-                                    onClick={() => handleDeleteMetric(metric.name)}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" /> {t('common:delete')}
-                                </DropdownMenuItem>
+                                {!isReadOnly && (
+                                  <>
+                                    <DropdownMenuItem onClick={() => handleEditMetric(metric)}>
+                                      <Edit className="mr-2 h-4 w-4" /> {t('common:edit')}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        className="text-destructive focus:text-destructive"
+                                        onClick={() => handleDeleteMetric(metric.name)}
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" /> {t('common:delete')}
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -603,14 +621,20 @@ const MetricsManagement: React.FC = () => {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => handleTogglePublish(metric)}>
-                                      {metric.publishStatus === 'published' ? t('metricsManagement:unpublish') : t('metricsManagement:publish')}
-                                    </DropdownMenuItem>
+                                    {!isReadOnly && (
+                                      <DropdownMenuItem onClick={() => handleTogglePublish(metric)}>
+                                        {metric.publishStatus === 'published' ? t('metricsManagement:unpublish') : t('metricsManagement:publish')}
+                                      </DropdownMenuItem>
+                                    )}
                                     <DropdownMenuItem onClick={() => setSelectedMetric(metric)}>{t('metricsManagement:viewDetails')}</DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleViewLineage(metric)}>{t('metricsManagement:viewLineage')}</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleEditMetric(metric)}>{t('common:edit')}</DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteMetric(metric.name)}>{t('common:delete')}</DropdownMenuItem>
+                                    {!isReadOnly && (
+                                      <>
+                                        <DropdownMenuItem onClick={() => handleEditMetric(metric)}>{t('common:edit')}</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteMetric(metric.name)}>{t('common:delete')}</DropdownMenuItem>
+                                      </>
+                                    )}
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
@@ -637,20 +661,24 @@ const MetricsManagement: React.FC = () => {
                                     {t('metricsManagement:card.updated', { value: metric.updatedAt ? formatDate(metric.updatedAt, locale) : t('common:unknown') })}
                                 </span>
                                 <div className="flex gap-1">
-                                    <Button
-                                      size="icon" variant="ghost" className="h-7 w-7"
-                                      onClick={() => handleValidateMetric(metric)}
-                                      disabled={validatingSet.has(metric.name)}
-                                      title={t('metricsManagement:revalidate')}
-                                    >
-                                      <RefreshCcw className={`h-3.5 w-3.5 ${validatingSet.has(metric.name) ? 'animate-spin' : ''}`} />
-                                    </Button>
+                                    {!isReadOnly && (
+                                      <Button
+                                        size="icon" variant="ghost" className="h-7 w-7"
+                                        onClick={() => handleValidateMetric(metric)}
+                                        disabled={validatingSet.has(metric.name)}
+                                        title={t('metricsManagement:revalidate')}
+                                      >
+                                        <RefreshCcw className={`h-3.5 w-3.5 ${validatingSet.has(metric.name) ? 'animate-spin' : ''}`} />
+                                      </Button>
+                                    )}
                                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setSelectedMetric(metric)}>
                                         <Eye className="h-3.5 w-3.5" />
                                     </Button>
-                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleEditMetric(metric)}>
-                                        <Edit className="h-3.5 w-3.5" />
-                                    </Button>
+                                    {!isReadOnly && (
+                                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleEditMetric(metric)}>
+                                          <Edit className="h-3.5 w-3.5" />
+                                      </Button>
+                                    )}
                                 </div>
                             </div>
                          </div>
@@ -757,20 +785,22 @@ const MetricsManagement: React.FC = () => {
                   )}
 
                   {/* Re-validate button inside detail dialog */}
-                  <div className="mt-3">
-                    <Button
-                      size="sm" variant="outline"
-                      onClick={() => {
-                        handleValidateMetric(selectedMetric);
-                        setSelectedMetric(selectedMetric); // keep dialog open
-                      }}
-                      disabled={validatingSet.has(selectedMetric.name)}
-                      className="h-7 text-xs"
-                    >
-                      <RefreshCcw className="mr-1.5 h-3 w-3" />
-                      {t('metricsManagement:revalidateNow')}
-                    </Button>
-                  </div>
+                  {!isReadOnly && (
+                    <div className="mt-3">
+                      <Button
+                        size="sm" variant="outline"
+                        onClick={() => {
+                          handleValidateMetric(selectedMetric);
+                          setSelectedMetric(selectedMetric); // keep dialog open
+                        }}
+                        disabled={validatingSet.has(selectedMetric.name)}
+                        className="h-7 text-xs"
+                      >
+                        <RefreshCcw className="mr-1.5 h-3 w-3" />
+                        {t('metricsManagement:revalidateNow')}
+                      </Button>
+                    </div>
+                  )}
 
                   {/* Validation Log */}
                   {selectedMetric.validationResult?.logs && selectedMetric.validationResult.logs.length > 0 && (

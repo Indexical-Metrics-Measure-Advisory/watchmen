@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService, User, Token, LoginCredentials, LoginConfiguration, SSOTypes } from '@/services/authService';
+import { isConsoleAllowedPath, isConsoleUser } from '@/utils/userRole';
 
 interface AuthContextType {
   user: User | null;
@@ -10,6 +11,7 @@ interface AuthContextType {
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
+  isConsoleUser: boolean;
   loadLoginConfiguration: () => Promise<void>;
   handleSSOLogin: (url: string) => Promise<void>;
 }
@@ -45,6 +47,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       navigate('/login');
     }
   }, [isLoading, user, location.pathname, navigate]);
+
+  // Console users are restricted to the metrics section; keep them on allowed routes.
+  const isConsole = isConsoleUser(user);
+
+  useEffect(() => {
+    if (!isLoading && user && isConsole && !isConsoleAllowedPath(location.pathname)) {
+      navigate('/');
+    }
+  }, [isLoading, user, isConsole, location.pathname, navigate]);
 
   const initializeAuth = async () => {
     setIsLoading(true);
@@ -134,6 +145,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     isLoading,
+    isConsoleUser: isConsole,
     loadLoginConfiguration,
     handleSSOLogin
   };

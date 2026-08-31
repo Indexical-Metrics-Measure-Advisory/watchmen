@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Sidebar group visibility from environment variables (default to true)
 const SHOW_SMART_CONSOLE = (import.meta.env.VITE_SHOW_SMART_CONSOLE ?? 'true') === 'true';
@@ -129,6 +130,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const { collapsed, toggleSidebar, expandedGroups, toggleGroup } = useSidebar();
+  const { isConsoleUser } = useAuth();
   const { t } = useTranslation(['layout', 'nav']);
 
   return (
@@ -176,11 +178,11 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       </div>
       
       <nav className="flex-1 px-2 py-4 space-y-2">
-        {SHOW_SMART_CONSOLE && (
+        {SHOW_SMART_CONSOLE && !isConsoleUser && (
           <NavItem to="/" icon={<LayoutDashboard size={18} />} label={t('nav:smartConsole')} collapsed={collapsed} />
         )}
-        
-        {SHOW_BUSINESS_CHALLENGE && (
+
+        {SHOW_BUSINESS_CHALLENGE && !isConsoleUser && (
         <NavGroup 
           icon={<Lightbulb size={18} />} 
           label={t('nav:dataInsights')} 
@@ -202,22 +204,26 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           onToggle={() => toggleGroup('metrics')}
         >
           {/* <NavItem to="/metrics" icon={<BarChart3 size={16} />} label="Metrics Hub" collapsed={collapsed} isSubItem={true} /> */}
-          {SHOW_METRIC_AI_AGENT && (
+          {SHOW_METRIC_AI_AGENT && !isConsoleUser && (
             <NavItem to="/chat" icon={<MessageSquare size={16} />} label={t('nav:smartMetricsChat')} collapsed={collapsed} isSubItem={true} />
           )}
           <NavItem to="/metrics/bi-analysis" icon={<BarChart3 size={16} />} label={t('nav:metricsAnalysis')} collapsed={collapsed} isSubItem={true} />
           <NavItem to="/metrics/lineage" icon={<Network size={16} />} label={t('nav:metricLineage')} collapsed={collapsed} isSubItem={true} />
-          <NavItem to="/metrics/semantic-models" icon={<GitBranch size={16} />} label={t('nav:semanticModelManagement')} collapsed={collapsed} isSubItem={true} />
+          {!isConsoleUser && (
+            <NavItem to="/metrics/semantic-models" icon={<GitBranch size={16} />} label={t('nav:semanticModelManagement')} collapsed={collapsed} isSubItem={true} />
+          )}
           <NavItem to="/metrics/management" icon={<TrendingUp size={16} />} label={t('nav:metricsManagement')} collapsed={collapsed} isSubItem={true} />
-          <NavItem to="/metrics/alert-configuration" icon={<AlertTriangle size={16} />} label={t('nav:alertConfiguration')} collapsed={collapsed} isSubItem={true} />
-          {SHOW_METRIC_AI_AGENT && (
+          {!isConsoleUser && (
+            <NavItem to="/metrics/alert-configuration" icon={<AlertTriangle size={16} />} label={t('nav:alertConfiguration')} collapsed={collapsed} isSubItem={true} />
+          )}
+          {SHOW_METRIC_AI_AGENT && !isConsoleUser && (
             <NavItem to="/metrics/assistant-config" icon={<Sliders size={16} />} label={t('nav:assistantConfig')} collapsed={collapsed} isSubItem={true} />
           )}
           {/* <NavItem to="/data-profiles" icon={<Database size={16} />} label="Data Profile Management" collapsed={collapsed} isSubItem={true} /> */}
         </NavGroup>
         )}
         
-        {SHOW_DATA_CATALOG && (
+        {SHOW_DATA_CATALOG && !isConsoleUser && (
         <NavGroup 
           icon={<Database size={18} />} 
           label={t('nav:dataCatalog')} 
@@ -236,7 +242,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         </NavGroup>
         )}
         
-        {SHOW_DATA_ASSET && (
+        {SHOW_DATA_ASSET && !isConsoleUser && (
         <NavGroup
           icon={<Package size={18} />}
           label={t('nav:dataAsset')}
@@ -250,7 +256,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         </NavGroup>
         )}
 
-        {SHOW_EVALUATION && (
+        {SHOW_EVALUATION && !isConsoleUser && (
         <NavGroup 
           icon={<ClipboardCheck size={18} />} 
           label={t('nav:evaluation')} 
@@ -267,8 +273,12 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       </nav>
       
       <div className="p-4 border-t border-border/50 space-y-1">
-        <NavItem to="/settings" icon={<Settings size={18} />} label={t('nav:settings')} collapsed={collapsed} />
-        <NavItem to="/help" icon={<HelpCircle size={18} />} label={t('nav:help')} collapsed={collapsed} />
+        {!isConsoleUser && (
+          <NavItem to="/settings" icon={<Settings size={18} />} label={t('nav:settings')} collapsed={collapsed} />
+        )}
+        {!isConsoleUser && (
+          <NavItem to="/help" icon={<HelpCircle size={18} />} label={t('nav:help')} collapsed={collapsed} />
+        )}
       </div>
     </aside>
   );

@@ -16,10 +16,13 @@ import {
 } from '@/services/metricsManagementService';
 import { getSemanticModels } from '@/services/semanticModelService';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const useMetricsData = () => {
   const { t, i18n } = useTranslation(['common', 'metricsEnum', 'metricsManagement']);
   const { toast } = useToast();
+  // Console users run the management page in read-only mode and only see published metrics.
+  const { isConsoleUser } = useAuth();
 
   // ===== useState (14 个) =====
   const [metrics, setMetrics] = useState<MetricDefinition[]>([]);
@@ -65,7 +68,10 @@ const useMetricsData = () => {
 
       const metricsData = await getMetrics(filterParams);
 
-      setMetrics(metricsData || []);
+      // Undefined publishStatus means draft, so console users only get explicit `published`.
+      setMetrics(isConsoleUser
+        ? (metricsData || []).filter((m) => m.publishStatus === 'published')
+        : (metricsData || []));
     } catch (error) {
       console.error('Error loading metrics:', error);
       setMetrics([]);
@@ -77,7 +83,7 @@ const useMetricsData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [filter, toast]);
+  }, [filter, toast, isConsoleUser]);
 
   const loadCategories = useCallback(async () => {
     try {
