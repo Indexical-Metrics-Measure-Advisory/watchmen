@@ -16,8 +16,7 @@ class UserGroupShaper(EntityShaper):
 			'user_ids': user_group.userIds,
 			'space_ids': user_group.spaceIds,
 			'objective_ids': user_group.objectiveIds,
-			'convergence_ids': user_group.convergenceIds,
-			'metric_ids': user_group.metricIds
+			'convergence_ids': user_group.convergenceIds
 		})
 
 	def deserialize(self, row: EntityRow) -> UserGroup:
@@ -29,8 +28,7 @@ class UserGroupShaper(EntityShaper):
 			userIds=row.get('user_ids'),
 			spaceIds=row.get('space_ids'),
 			objectiveIds=row.get('objective_ids'),
-			convergenceIds=row.get('convergence_ids'),
-			metricIds=row.get('metric_ids')
+			convergenceIds=row.get('convergence_ids')
 		))
 
 

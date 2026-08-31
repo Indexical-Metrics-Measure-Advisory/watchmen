@@ -5,7 +5,13 @@ export interface UserGroupSummary {
 	userGroupId: UserGroupId;
 	name: string;
 	description?: string;
-	metricIds?: string[];
+}
+
+// assignment row returned by the metricflow api (`/metricflow/user_group/metrics`)
+export interface UserGroupMetricAssignment {
+	userGroupMetricId: string;
+	userGroupId: UserGroupId;
+	metricId: string;
 }
 
 // metric returned by the metricflow api (`/metricflow/metrics/all`, `/metricflow/metrics/ids`)

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,12 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { MetricOption, UserGroupSummary } from '@/model/userGroupMetrics';
-import { fetchMetrics, fetchUserGroups, saveUserGroupMetrics } from '@/services/userGroupMetricsService';
+import {
+	fetchMetrics,
+	fetchUserGroupMetrics,
+	fetchUserGroups,
+	saveUserGroupMetrics
+} from '@/services/userGroupMetricsService';
 
 const sameIdSet = (a: Set<string>, b: Set<string>) => {
 	if (a.size !== b.size) {
@@ -42,6 +47,9 @@ const UserGroupMetrics: React.FC = () => {
 	const [assignedIds, setAssignedIds] = useState<Set<string>>(new Set());
 	const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 	const [isSaving, setIsSaving] = useState(false);
+	const [assignmentsLoading, setAssignmentsLoading] = useState(false);
+	// guards against out-of-order responses when switching groups quickly
+	const requestedGroupIdRef = useRef<string | null>(null);
 
 	const loadData = useCallback(async () => {
 		setIsLoading(true);
@@ -64,12 +72,34 @@ const UserGroupMetrics: React.FC = () => {
 		void loadData();
 	}, [loadData]);
 
-	const selectGroup = (group: UserGroupSummary) => {
+	const selectGroup = useCallback(async (group: UserGroupSummary) => {
 		setSelectedGroupId(group.userGroupId);
-		const ids = new Set(group.metricIds ?? []);
-		setAssignedIds(ids);
-		setSavedIds(new Set(ids));
-	};
+		setAssignedIds(new Set());
+		setSavedIds(new Set());
+		requestedGroupIdRef.current = group.userGroupId;
+		setAssignmentsLoading(true);
+		try {
+			const ids = await fetchUserGroupMetrics(group.userGroupId);
+			if (requestedGroupIdRef.current !== group.userGroupId) {
+				return;
+			}
+			const idSet = new Set(ids);
+			setAssignedIds(idSet);
+			setSavedIds(new Set(idSet));
+		} catch (error) {
+			if (requestedGroupIdRef.current === group.userGroupId) {
+				toast({
+					title: t('loadFailed'),
+					description: error instanceof Error ? error.message : String(error),
+					variant: 'destructive'
+				});
+			}
+		} finally {
+			if (requestedGroupIdRef.current === group.userGroupId) {
+				setAssignmentsLoading(false);
+			}
+		}
+	}, [t, toast]);
 
 	const toggleMetric = (metricId: string) => {
 		setAssignedIds(prev => {
@@ -91,9 +121,8 @@ const UserGroupMetrics: React.FC = () => {
 		try {
 			const metricIds = Array.from(assignedIds);
 			const saved = await saveUserGroupMetrics(selectedGroupId, metricIds);
-			setGroups(prev => prev.map(group =>
-				group.userGroupId === selectedGroupId ? { ...group, metricIds: saved.metricIds ?? metricIds } : group));
-			setSavedIds(new Set(assignedIds));
+			setAssignedIds(new Set(saved));
+			setSavedIds(new Set(saved));
 			toast({ title: t('savedSuccess') });
 		} catch (error) {
 			toast({
@@ -124,7 +153,7 @@ const UserGroupMetrics: React.FC = () => {
 	}, [metrics, metricSearch]);
 
 	const selectedGroup = groups.find(group => group.userGroupId === selectedGroupId) ?? null;
-	const isDirty = selectedGroupId !== null && !sameIdSet(assignedIds, savedIds);
+	const isDirty = selectedGroupId !== null && !assignmentsLoading && !sameIdSet(assignedIds, savedIds);
 
 	return (
 		<div className={cn(
@@ -174,15 +203,12 @@ const UserGroupMetrics: React.FC = () => {
 													? "border-primary bg-primary/5"
 													: "border-transparent hover:bg-accent"
 											)}
-											onClick={() => selectGroup(group)}
+											onClick={() => void selectGroup(group)}
 										>
 											<div className="text-sm font-medium truncate">{group.name}</div>
 											{group.description && (
 												<div className="text-xs text-muted-foreground truncate mt-0.5">{group.description}</div>
 											)}
-											<div className="text-xs text-muted-foreground mt-1">
-												{t('assignedCount', { count: group.metricIds?.length ?? 0 })}
-											</div>
 										</button>
 									))}
 								</div>
@@ -201,13 +227,18 @@ const UserGroupMetrics: React.FC = () => {
 										<div className="flex items-center gap-2 min-w-0">
 											<BarChart3 className="h-4 w-4 text-muted-foreground shrink-0" />
 											<span className="font-medium truncate">{selectedGroup.name}</span>
+											<Badge variant="outline" className="text-muted-foreground shrink-0">
+												{assignmentsLoading
+													? <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+													: t('assignedCount', { count: assignedIds.size })}
+											</Badge>
 											{isDirty && (
 												<Badge variant="outline" className="text-amber-600 border-amber-300">
 													{t('unsavedChanges')}
 												</Badge>
 											)}
 										</div>
-										<Button size="sm" onClick={handleSave} disabled={!isDirty || isSaving}>
+										<Button size="sm" onClick={handleSave} disabled={!isDirty || isSaving || assignmentsLoading}>
 											{isSaving
 												? <Loader2 className="mr-1 h-4 w-4 animate-spin" />
 												: <Save className="mr-1 h-4 w-4" />}

@@ -99,7 +99,13 @@ table_user_groups = Table(
     create_pk('user_group_id'),
     create_str('name', 50, False), create_description(),
     create_json('user_ids'), create_json('space_ids'), create_json("objective_ids"),
-    create_json("convergence_ids"), create_json("metric_ids"),
+    create_json("convergence_ids"),
+    create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+table_user_group_metrics = Table(
+    'user_group_metrics', meta_data,
+    create_pk('user_group_metric_id'),
+    create_str('user_group_id', 50, True), create_str('metric_id', 50, True),
     create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_spaces = Table(
@@ -964,6 +970,7 @@ tables: Dict[str, Table] = {
     # admin
     'users': table_users,
     'user_groups': table_user_groups,
+    'user_group_metrics': table_user_group_metrics,
     'spaces': table_spaces,
     'enums': table_enums,
     'enum_items': table_enum_items,

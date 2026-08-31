@@ -1,54 +1,55 @@
 from typing import List, Optional
 
 from watchmen_auth import PrincipalService
-from watchmen_meta.admin import UserGroupService, UserService
+from watchmen_meta.admin import UserService
 from watchmen_model.common import MetricId, TenantId, UserGroupId
 from watchmen_rest.util import raise_404
 from watchmen_utilities import ArrayHelper
 
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
+from watchmen_metricflow.meta.user_group_metric_meta_service import UserGroupMetricService
 from watchmen_metricflow.util.trans import trans_readonly
 
 
-def get_user_group_service(metric_service: MetricService) -> UserGroupService:
+def get_user_group_metric_service(metric_service: MetricService) -> UserGroupMetricService:
     # share the storage of metric service so that reads join the same transaction
-    return UserGroupService(
+    return UserGroupMetricService(
         metric_service.storage, metric_service.snowflakeGenerator, metric_service.principalService)
 
 
-def get_user_service(user_group_service: UserGroupService) -> UserService:
+def get_user_service(user_group_metric_service: UserGroupMetricService) -> UserService:
     return UserService(
-        user_group_service.storage, user_group_service.snowflakeGenerator, user_group_service.principalService)
+        user_group_metric_service.storage, user_group_metric_service.snowflakeGenerator,
+        user_group_metric_service.principalService)
 
 
 def find_allowed_metric_ids(
         metric_service: MetricService, principal_service: PrincipalService) -> Optional[List[MetricId]]:
     """
     Returns None when the principal is not restricted (tenant/super admin), otherwise the distinct
-    union of metric ids held by the user groups which the current user belongs to.
-    An empty list means no metric is allowed.
+    union of metric ids assigned (via user_group_metrics) to the user groups which the current
+    user belongs to. An empty list means no metric is allowed.
     Must be called inside a transaction opened on the given metric service.
     """
     if principal_service.is_tenant_admin() or principal_service.is_super_admin():
         return None
 
-    user_group_service = get_user_group_service(metric_service)
-    user = get_user_service(user_group_service).find_by_id(principal_service.get_user_id())
+    user_group_metric_service = get_user_group_metric_service(metric_service)
+    user = get_user_service(user_group_metric_service).find_by_id(principal_service.get_user_id())
     group_ids: Optional[List[UserGroupId]] = user.groupIds if user is not None else None
     if group_ids is None or len(group_ids) == 0:
         return []
 
     tenant_id: TenantId = principal_service.get_tenant_id()
-    user_groups = user_group_service.find_by_ids(group_ids, tenant_id)
-    metric_ids: List[MetricId] = []
-    ArrayHelper(user_groups).each(lambda x: metric_ids.extend(x.metricIds or []))
-    return ArrayHelper(metric_ids).distinct().to_list()
+    return ArrayHelper(
+        user_group_metric_service.find_metric_ids_by_user_group_ids(group_ids, tenant_id)
+    ).distinct().to_list()
 
 
 def filter_metrics_allowed(
         metrics: List, metric_service: MetricService, principal_service: PrincipalService) -> List:
     """
-    Filters out metrics not held by the user groups of the current console user.
+    Filters out metrics not assigned to the user groups of the current console user.
     Returns the given list as is for admins.
     Must be called inside a transaction opened on the given metric service.
     """
@@ -62,7 +63,7 @@ def filter_metrics_allowed(
 def check_metric_allowed(
         metric, metric_service: MetricService, principal_service: PrincipalService) -> None:
     """
-    Raises 404 when the given metric is not held by the user groups of the current console user.
+    Raises 404 when the given metric is not assigned to the user groups of the current console user.
     Admins are not restricted.
     Must be called inside a transaction opened on the given metric service.
     """
@@ -76,7 +77,7 @@ def check_metric_allowed(
 def check_metric_names_allowed(
         metric_service: MetricService, principal_service: PrincipalService, metric_names: List[str]) -> None:
     """
-    Raises 404 when any requested metric (addressed by name) is not held by the user groups
+    Raises 404 when any requested metric (addressed by name) is not assigned to the user groups
     of the current console user. Admins are not restricted.
     """
     def action() -> None:

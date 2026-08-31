@@ -1,4 +1,4 @@
-import { MetricOption, UserGroupSummary } from '@/model/userGroupMetrics';
+import { MetricOption, UserGroupMetricAssignment, UserGroupSummary } from '@/model/userGroupMetrics';
 import { API_BASE_URL, WATCHMEN_API_BASE_URL, checkResponse, getDefaultHeaders } from '@/utils/apiConfig';
 
 // user groups live in the main watchmen rest app (rest-doll)
@@ -10,18 +10,28 @@ export const fetchUserGroups = async (search = ''): Promise<UserGroupSummary[]> 
 	return checkResponse(response);
 };
 
+// assignments live in the metricflow app
+export const fetchUserGroupMetrics = async (userGroupId: string): Promise<string[]> => {
+	const response = await fetch(
+		`${API_BASE_URL}/metricflow/user_group/metrics?user_group_id=${encodeURIComponent(userGroupId)}`,
+		{ headers: getDefaultHeaders() }
+	);
+	const rows: UserGroupMetricAssignment[] = await checkResponse(response);
+	return rows.map(row => row.metricId);
+};
+
 export const saveUserGroupMetrics = async (
 	userGroupId: string,
 	metricIds: string[]
-): Promise<UserGroupSummary> => {
+): Promise<string[]> => {
 	const response = await fetch(
 		`${API_BASE_URL}/metricflow/user_group/metrics?user_group_id=${encodeURIComponent(userGroupId)}`,
 		{ method: 'POST', headers: getDefaultHeaders(), body: JSON.stringify(metricIds) }
 	);
-	return checkResponse(response);
+	const rows: UserGroupMetricAssignment[] = await checkResponse(response);
+	return rows.map(row => row.metricId);
 };
 
-// metrics live in the metricflow app
 export const fetchMetrics = async (): Promise<MetricOption[]> => {
 	const response = await fetch(`${API_BASE_URL}/metricflow/metrics/all`, {
 		headers: getDefaultHeaders()

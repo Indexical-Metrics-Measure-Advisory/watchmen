@@ -343,9 +343,6 @@ def ask_save_user_group_action(
 			convergence_ids = ArrayHelper(user_group.convergenceIds).distinct().to_list()
 			sync_user_group_change_with_convergence_handler.sync_on_create(
 				user_group.userGroupId, convergence_ids, user_group.tenantId, user_group_service)
-
-			metric_ids = ArrayHelper(user_group.metricIds).distinct().to_list()
-			user_group.metricIds = metric_ids
 		else:
 			# noinspection PyTypeChecker,DuplicatedCode
 			existing_user_group: Optional[UserGroup] = user_group_service.find_by_id(user_group.userGroupId)
@@ -388,12 +385,6 @@ def ask_save_user_group_action(
 			sync_user_group_change_with_convergence_handler.sync_on_update(
 				user_group.userGroupId, convergence_ids, removed_convergence_ids, user_group.tenantId,
 				user_group_service)
-
-			if user_group.metricIds is None:
-				# keep existing metric ids, in case the caller doesn't support this field
-				user_group.metricIds = existing_user_group.metricIds
-			metric_ids = ArrayHelper(user_group.metricIds).distinct().to_list()
-			user_group.metricIds = metric_ids
 		return user_group
 
 	return action
