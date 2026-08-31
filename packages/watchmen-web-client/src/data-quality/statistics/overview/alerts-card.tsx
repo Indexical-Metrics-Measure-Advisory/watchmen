@@ -103,7 +103,7 @@ export const AlertsCard = (props: { alerts: Array<AlertItem>; topicMap: Record<T
 						const topic = alert.topicId ? topicMap[alert.topicId] : (void 0);
 						const topicName = topic ? getTopicName(topic) : (alert.topicId || '');
 						const factorName = alert.factorId
-							? ((topic?.factors || []).find(factor => factor.factorId == alert.factorId)?.name || 'Noname Factor')
+							? ((topic?.factors || []).find(factor => factor.factorId === alert.factorId)?.name || 'Noname Factor')
 							: (void 0);
 						const ruleName = RuleDefs[alert.ruleCode]?.name || alert.ruleCode;
 						return <AlertRow key={`${alert.ruleCode}-${alert.topicId}-${alert.factorId}-${index}`}>

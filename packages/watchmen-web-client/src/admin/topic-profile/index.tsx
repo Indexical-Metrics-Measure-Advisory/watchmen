@@ -83,6 +83,7 @@ export const TopicProfile = () => {
 		return () => {
 			off(TopicProfileEventTypes.SHOW_PROFILE, onShowProfile);
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [on, off, fireGlobal]);
 
 	if (destroyed || data == null) {

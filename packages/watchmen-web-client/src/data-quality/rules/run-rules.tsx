@@ -133,7 +133,7 @@ const RunResultsDialog = (props: {
 						const ruleTopic = log.topicId ? topicMap[log.topicId] : (void 0);
 						const topicName = ruleTopic ? getTopicName(ruleTopic) : (log.topicId || '');
 						const factorName = log.factorId
-							? ((ruleTopic?.factors || []).find(factor => factor.factorId == log.factorId)?.name || 'Noname Factor')
+							? ((ruleTopic?.factors || []).find(factor => factor.factorId === log.factorId)?.name || 'Noname Factor')
 							: '';
 						return <RunResultsBodyRow key={index}>
 							<RunResultsCell>{index + 1}</RunResultsCell>

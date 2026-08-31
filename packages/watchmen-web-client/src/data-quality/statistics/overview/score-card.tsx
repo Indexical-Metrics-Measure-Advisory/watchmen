@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import {ScoreBand} from './quality-dimensions';
-import {OverviewCard, OverviewCardBody, OverviewCardHeader, OverviewCardNoData} from './widgets';
+import {OverviewCard, OverviewCardBody, OverviewCardHeader} from './widgets';
 
 const BAND_COLORS: Record<ScoreBand, string> = {
 	excellent: '#2e9e63',
