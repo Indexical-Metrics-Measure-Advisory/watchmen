@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import SpaceService, UserService, UserGroupService
@@ -7,6 +7,9 @@ from watchmen_metricflow.model.metrics import Metric
 from watchmen_metricflow.model.semantic import SemanticModel
 from watchmen_metricflow.service.meta_service import get_semantic_model_service, get_metric_service
 from watchmen_indicator_surface.util import trans_readonly
+from watchmen_model.admin.space import Space
+from watchmen_model.admin.user import User
+from watchmen_model.admin.user_group import UserGroup
 from watchmen_model.common import TenantId
 from watchmen_utilities import ArrayHelper
 
@@ -28,28 +31,34 @@ def get_console_user_topic_ids(principal_service: PrincipalService) -> List[str]
     user_group_service = get_user_group_service(principal_service)
     space_service = get_space_service(principal_service)
 
-    def action() -> List[str]:
-        user_id = principal_service.get_user_id()
-        tenant_id = principal_service.get_tenant_id()
-        user = user_service.find_by_id(user_id)
-        if not user or not user.groupIds:
-            return []
+    def load_user() -> Optional[User]:
+        return user_service.find_by_id(principal_service.get_user_id())
 
-        user_groups = user_group_service.find_by_ids(user.groupIds, tenant_id)
-        if not user_groups:
-            return []
+    user = trans_readonly(user_service, load_user)
+    if not user or not user.groupIds:
+        return []
 
-        space_ids = ArrayHelper(user_groups).flat_map(lambda x: x.spaceIds).distinct().to_list()
-        if not space_ids:
-            return []
+    tenant_id = principal_service.get_tenant_id()
 
-        spaces = space_service.find_by_ids(space_ids, tenant_id)
-        if not spaces:
-            return []
+    def load_user_groups() -> List[UserGroup]:
+        return user_group_service.find_by_ids(user.groupIds, tenant_id)
 
-        return ArrayHelper(spaces).flat_map(lambda x: x.topicIds).distinct().to_list()
+    user_groups = trans_readonly(user_group_service, load_user_groups)
+    if not user_groups:
+        return []
 
-    return trans_readonly(user_service, action)
+    space_ids = ArrayHelper(user_groups).map(lambda x: x.spaceIds).flatten().filter(lambda x: x is not None).distinct().to_list()
+    if not space_ids:
+        return []
+
+    def load_spaces() -> List[Space]:
+        return space_service.find_by_ids(space_ids, tenant_id)
+
+    spaces = trans_readonly(space_service, load_spaces)
+    if not spaces:
+        return []
+
+    return ArrayHelper(spaces).map(lambda x: x.topicIds).flatten().filter(lambda x: x is not None).distinct().to_list()
 
 
 def find_semantic_models_by_topic_ids(principal_service: PrincipalService, topic_ids: List[str],
