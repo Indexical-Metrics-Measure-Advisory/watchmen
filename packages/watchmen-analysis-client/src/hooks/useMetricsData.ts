@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import {
   MetricDefinition,
   MetricFilter,
-  MetricPublishStatus,
   MetricTypeParams,
   Category,
 } from '@/model/metricsManagement';
@@ -13,6 +12,7 @@ import {
   updateMetric,
   getCategories,
   validateMetric,
+  publishMetric,
 } from '@/services/metricsManagementService';
 import { getSemanticModels } from '@/services/semanticModelService';
 import { useToast } from '@/hooks/use-toast';
@@ -39,6 +39,12 @@ const useMetricsData = () => {
   const [showCategoryManagement, setShowCategoryManagement] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const [validatingSet, setValidatingSet] = useState<Set<string>>(new Set());
+
+  // publish / version history dialogs
+  const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
+  const [metricToPublish, setMetricToPublish] = useState<MetricDefinition | null>(null);
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
+  const [metricForVersions, setMetricForVersions] = useState<MetricDefinition | null>(null);
 
   const [filter, setFilter] = useState<MetricFilter>({
     categoryId: 'all',
@@ -159,30 +165,48 @@ const useMetricsData = () => {
     }
   }, [validatingSet, toast]);
 
-  const handleTogglePublish = useCallback(async (metric: MetricDefinition) => {
-    const metricName = metric.name;
-    const publishStatus: MetricPublishStatus = metric.publishStatus === 'published' ? 'draft' : 'published';
+  const openPublishDialog = useCallback((metric: MetricDefinition) => {
+    setMetricToPublish(metric);
+    setIsPublishDialogOpen(true);
+  }, []);
 
+  const handlePublishConfirmed = useCallback(async (comments?: string) => {
+    if (!metricToPublish) return;
+    const metricName = metricToPublish.name;
     try {
-      // Persist full metric with updated publish status back to backend
-      await updateMetric(metricName, { ...metric, publishStatus });
-
-      // Update the metric in local state
+      const published = await publishMetric(metricName, comments);
+      // sync the whole metric: publishStatus / publishedVersionNo / lastPublishedAt
       setMetrics(prev => prev.map(m =>
         m.name === metricName
-          ? { ...m, publishStatus }
+          ? { ...m, ...published }
           : m
       ));
-
       toast({
         title: t('common:success'),
-        description: t(publishStatus === 'published' ? 'metricsManagement:publishSuccess' : 'metricsManagement:unpublishSuccess', { name: metricName })
+        description: t('metricsManagement:publishSuccess', { name: metricName })
       });
     } catch (error) {
-      console.error('Failed to toggle publish status:', error);
+      console.error('Failed to publish metric:', error);
       toast({ title: t('common:error'), description: t('metricsManagement:publishFailed'), variant: "destructive" });
+    } finally {
+      setIsPublishDialogOpen(false);
+      setMetricToPublish(null);
     }
-  }, [toast]);
+  }, [metricToPublish, setMetrics, toast, t]);
+
+  const openVersionHistory = useCallback((metric: MetricDefinition) => {
+    setMetricForVersions(metric);
+    setIsVersionHistoryOpen(true);
+  }, []);
+
+  // called by the version history dialog after a successful rollback
+  const handleRolledBack = useCallback((updated: MetricDefinition) => {
+    setMetrics(prev => prev.map(m =>
+      m.name === updated.name
+        ? { ...m, ...updated }
+        : m
+    ));
+  }, [setMetrics]);
 
   // ===== useEffect (4 个) =====
 
@@ -219,6 +243,10 @@ const useMetricsData = () => {
     validatingSet,
     filter,
     allMetricsForSelect,
+    isPublishDialogOpen,
+    metricToPublish,
+    isVersionHistoryOpen,
+    metricForVersions,
     // useState setters
     setMetrics,
     setCategories,
@@ -243,7 +271,12 @@ const useMetricsData = () => {
     loadCategories,
     loadSemanticModels,
     handleValidateMetric,
-    handleTogglePublish,
+    openPublishDialog,
+    handlePublishConfirmed,
+    openVersionHistory,
+    handleRolledBack,
+    setIsPublishDialogOpen,
+    setIsVersionHistoryOpen,
   };
 };
 

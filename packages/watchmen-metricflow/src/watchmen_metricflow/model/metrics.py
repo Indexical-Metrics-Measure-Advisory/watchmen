@@ -1,4 +1,5 @@
 from enum import Enum
+from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
 
@@ -90,6 +91,11 @@ class MetricPublishStatus(str, Enum):
     PUBLISHED = "published"
 
 
+class MetricVersionOperationType(str, Enum):
+    PUBLISH = "publish"
+    ROLLBACK = "rollback"
+
+
 class ValidationLogEntry(BaseModel):
 
     model_config = ConfigDict(use_enum_values=True)
@@ -136,6 +142,10 @@ class Metric(ExtendedBaseModel, TenantBasedTuple, Auditable,OptimisticLock):
     time_granularity: Optional[str] = None
     # publish status of the metric: draft / published; None is treated as draft
     publishStatus: Optional[MetricPublishStatus] = None
+    # version number of the currently published version; None when not published
+    publishedVersionNo: Optional[int] = None
+    # time when the metric was published
+    lastPublishedAt: Optional[datetime] = None
 
 
 
@@ -144,6 +154,22 @@ class MetricWithCategory(Metric):
 
     validationStatus: Optional[MetricValidationStatus] = None
     validationResult: Optional[MetricValidationResult] = None
+
+
+class MetricVersion(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
+    id: Optional[str] = None
+    # stable metric id, keeps working even if the metric is renamed
+    metricId: str
+    # metric name at the time this version was recorded
+    metricName: str
+    versionNo: int
+    operationType: MetricVersionOperationType
+    # full serialized metric snapshot, restorable
+    content: Dict[str, Any]
+    # publish note or rollback reason, required on rollback
+    comments: Optional[str] = None
+    # currently published version when a rollback happened
+    rollbackFromVersionNo: Optional[int] = None
 
 
 

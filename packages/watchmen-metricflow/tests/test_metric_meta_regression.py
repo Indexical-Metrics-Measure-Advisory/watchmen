@@ -124,7 +124,8 @@ class TestUpdateMetricGuard(unittest.TestCase):
     def test_update_uses_stored_id_not_body_id(self):
         # regression: update used the caller-supplied id, allowing cross-tenant overwrites
         service = mock.MagicMock(spec=MetricService)
-        service.find_by_name.return_value = SimpleNamespace(id='stored-id')
+        service.find_by_name.return_value = SimpleNamespace(
+            id='stored-id', publishStatus=None, publishedVersionNo=None, lastPublishedAt=None)
         service.update.side_effect = lambda metric: metric
         with mock.patch.object(metric_meta_router, 'get_metric_service', return_value=service):
             client = TestClient(self._app())

@@ -67,7 +67,7 @@ async def get_bi_analysis_by_name(
 @router.post('/metricflow/bi-analysis', tags=['ADMIN'], response_model=None)
 async def create_bi_analysis(
         analysis: BIAnalysis,
-        principal_service: PrincipalService = Depends(get_admin_principal)
+        principal_service: PrincipalService = Depends(get_console_principal)
 ) -> BIAnalysis:
     """Create a new BI analysis"""
     if is_blank(analysis.name):
@@ -94,7 +94,7 @@ async def create_bi_analysis(
 @router.post('/metricflow/bi-analysis/update', tags=['ADMIN'], response_model=None)
 async def update_bi_analysis(
         analysis: BIAnalysis,
-        principal_service: PrincipalService = Depends(get_admin_principal)
+        principal_service: PrincipalService = Depends(get_console_principal)
 ) -> BIAnalysis:
     """Update an existing BI analysis"""
     if is_blank(analysis.id):
@@ -119,7 +119,7 @@ async def update_bi_analysis(
 @router.post('/metricflow/bi-analysis/update/template', tags=['ADMIN'], response_model=None)
 async def update_bi_analysis(
         analysis_input: BIAnalysisInput,
-        principal_service: PrincipalService = Depends(get_admin_principal)
+        principal_service: PrincipalService = Depends(get_console_principal)
 ) -> BIAnalysis:
     """Update an existing BI analysis"""
     if is_blank(analysis_input.id):
@@ -143,7 +143,7 @@ async def update_bi_analysis(
 @router.get('/metricflow/bi-analysis/delete/{analysis_id}', tags=['ADMIN'], response_model=None)
 async def delete_bi_analysis(
         analysis_id: str,
-        principal_service: PrincipalService = Depends(get_admin_principal)
+        principal_service: PrincipalService = Depends(get_console_principal)
 ) -> BIAnalysis:
     """Delete a BI analysis"""
     if not ask_tuple_delete_enabled():

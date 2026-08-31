@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService, User, Token, LoginCredentials, LoginConfiguration, SSOTypes } from '@/services/authService';
+import { clearMetricsCache } from '@/services/metricsManagementService';
 import { isConsoleAllowedPath, isConsoleUser } from '@/utils/userRole';
 
 interface AuthContextType {
@@ -104,7 +105,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const tokenData: Token = await authService.loginWithCredentials(credentials);
-      
+
+      // Drop any data cached under the previous account before switching identity.
+      clearMetricsCache();
+
       // Store token
       authService.storeToken(tokenData);
       setToken(tokenData.accessToken);
@@ -135,6 +139,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
+    clearMetricsCache();
     authService.clearStoredAuth();
   };
 

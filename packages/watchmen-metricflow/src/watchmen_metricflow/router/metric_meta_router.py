@@ -1,32 +1,75 @@
 import yaml
 from fastapi import APIRouter
 from fastapi import Depends, Body, Request, Response
+from logging import getLogger
 from typing import List, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
-from watchmen_metricflow.model.metrics import Metric, MetricWithCategory, MetricPublishStatus
+from watchmen_metricflow.meta.metric_version_meta_service import MetricVersionService
+from watchmen_metricflow.model.metrics import Metric, MetricWithCategory, MetricPublishStatus, MetricVersion, \
+    MetricVersionOperationType
 from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_rest import get_admin_principal, get_console_principal
 from watchmen_rest.util import raise_400, raise_404
 from watchmen_metricflow.settings import ask_tuple_delete_enabled
 from watchmen_metricflow.util import trans, trans_readonly, trans_with_tail
-from watchmen_utilities import is_blank
+from watchmen_utilities import ExtendedBaseModel, is_blank
 from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
-from watchmen_metricflow.service.space_auth_service import get_console_user_topic_ids, \
-    find_metrics_by_topic_ids
 
+
+logger = getLogger(__name__)
 
 router = APIRouter()
+
+
+def find_metrics_visible_to(
+        metric_service: MetricService, principal_service: PrincipalService, tenant_id: TenantId
+) -> List[MetricWithCategory]:
+    metrics = metric_service.find_all(tenant_id)
+    if principal_service.is_tenant_admin() or principal_service.is_super_admin():
+        return metrics
+    # Console users: published metrics only, no semantic-model linkage required.
+    published_metrics = [m for m in metrics if m.publishStatus == MetricPublishStatus.PUBLISHED]
+    logger.info('Console metric visibility: total[{0}] -> published[{1}].'.format(
+        len(metrics), len(published_metrics)))
+    return published_metrics
 
 
 def get_metric_service(principal_service: PrincipalService) -> MetricService:
     return MetricService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
+def get_metric_version_service(metric_service: MetricService) -> MetricVersionService:
+    # share the storage of metric service so that both writes join the same transaction
+    return MetricVersionService(metric_service.storage, metric_service.snowflakeGenerator,
+                                metric_service.principalService)
+
+
+def check_published_lock(existing_metric: MetricWithCategory) -> None:
+    if existing_metric.publishStatus == MetricPublishStatus.PUBLISHED:
+        raise_400('Published metric cannot be modified. Roll back first.')
+
+
 class QueryMetricDataPage(DataPage):
     data: List[Metric]
+
+
+class MetricVersionDataPage(DataPage):
+    data: List[MetricVersion]
+
+
+class MetricPublishBody(ExtendedBaseModel):
+    # publish note, optional
+    comments: Optional[str] = None
+
+
+class MetricRollbackBody(ExtendedBaseModel):
+    # rollback reason, required
+    comments: str
+    # restore content of the given version instead of the current one
+    targetVersionNo: Optional[int] = None
 
 
 @router.get('/metricflow/metric/{metric_name}', tags=['CONSOLE', 'ADMIN'], response_model=None)
@@ -98,9 +141,18 @@ async def save_metric_yaml(
         if existing_metric is None:
             if is_blank(metric.id):
                 metric.id = str(metric_service.snowflakeGenerator.next_id())
+            # a new metric always starts as draft, publish must go through the publish endpoint
+            metric.publishStatus = None
+            metric.publishedVersionNo = None
+            metric.lastPublishedAt = None
             metric_result = metric_service.create(metric)
         else:
+            check_published_lock(existing_metric)
             metric.id = existing_metric.id
+            # publish status is managed only by the publish/rollback endpoints
+            metric.publishStatus = existing_metric.publishStatus
+            metric.publishedVersionNo = existing_metric.publishedVersionNo
+            metric.lastPublishedAt = existing_metric.lastPublishedAt
             metric_result = metric_service.update(metric)
         return metric_result, lambda: metric_config_cache.remove(metric.tenantId)
 
@@ -128,6 +180,11 @@ async def create_metric(
     
     metric_service = get_metric_service(principal_service)
     metric.id = str(metric_service.snowflakeGenerator.next_id())
+    # a new metric always starts as draft, publish must go through the publish endpoint
+    metric.publishStatus = None
+    metric.publishedVersionNo = None
+    metric.lastPublishedAt = None
+
     def action():
         # Check if metric with same name already exists
         existing_metric = metric_service.find_by_name(metric.name, metric.tenantId)
@@ -161,7 +218,12 @@ async def update_metric(
         if existing_metric is None:
             raise_404('Metric not found.')
 
+        check_published_lock(existing_metric)
         metric.id = existing_metric.id
+        # publish status is managed only by the publish/rollback endpoints
+        metric.publishStatus = existing_metric.publishStatus
+        metric.publishedVersionNo = existing_metric.publishedVersionNo
+        metric.lastPublishedAt = existing_metric.lastPublishedAt
         metric_result = metric_service.update(metric)
         return metric_result, lambda: metric_config_cache.remove(metric.tenantId)
     
@@ -187,7 +249,9 @@ async def delete_metric(
         existing_metric = metric_service.find_by_name(metric_name, tenant_id)
         if existing_metric is None:
             raise_404('Metric not found.')
-        
+
+        check_published_lock(existing_metric)
+
         metric_result = metric_service.delete_by_name(metric_name, tenant_id)
         return metric_result, lambda: metric_config_cache.remove(tenant_id)
     
@@ -239,11 +303,7 @@ async def get_all_metrics(
 
     def action() -> List[MetricWithCategory]:
         tenant_id: TenantId = principal_service.get_tenant_id()
-        if principal_service.is_tenant_admin() or principal_service.is_super_admin():
-            return metric_service.find_all(tenant_id)
-        else:
-            topic_ids = get_console_user_topic_ids(principal_service)
-            return find_metrics_by_topic_ids(principal_service, topic_ids, tenant_id)
+        return find_metrics_visible_to(metric_service, principal_service, tenant_id)
 
     return trans_readonly(metric_service, action)
 
@@ -278,11 +338,7 @@ async def find_metrics_page_by_name(
     def action() -> QueryMetricDataPage:
         tenant_id: TenantId = principal_service.get_tenant_id()
 
-        if principal_service.is_tenant_admin() or principal_service.is_super_admin():
-            all_metrics = metric_service.find_all(tenant_id)
-        else:
-            topic_ids = get_console_user_topic_ids(principal_service)
-            all_metrics = find_metrics_by_topic_ids(principal_service, topic_ids, tenant_id)
+        all_metrics = find_metrics_visible_to(metric_service, principal_service, tenant_id)
 
         if is_blank(query_name):
             metrics = all_metrics
@@ -327,6 +383,168 @@ async def find_metrics_by_name(
     return trans_readonly(metric_service, action)
 
 
+@router.post('/metricflow/metric/{metric_name}/publish', tags=['ADMIN'], response_model=None)
+async def publish_metric(
+        metric_name: str,
+        body: Optional[MetricPublishBody] = Body(default=None),
+        principal_service: PrincipalService = Depends(get_admin_principal)
+) -> MetricWithCategory:
+    """Publish a metric: snapshot the current definition as a new version and lock the metric"""
+    if is_blank(metric_name):
+        raise_400('Metric name is required.')
+
+    metric_service = get_metric_service(principal_service)
+
+    def action():
+        tenant_id: TenantId = principal_service.get_tenant_id()
+        metric = metric_service.find_by_name(metric_name, tenant_id)
+        if metric is None:
+            raise_404('Metric not found.')
+        if metric.publishStatus == MetricPublishStatus.PUBLISHED:
+            raise_400('Metric is already published. Roll back before publishing again.')
+
+        version_service = get_metric_version_service(metric_service)
+        version_no = version_service.find_max_version_no(metric.id, tenant_id) + 1
+        comments = body.comments if body is not None else None
+        version = MetricVersion(
+            id=str(version_service.snowflakeGenerator.next_id()),
+            metricId=metric.id,
+            metricName=metric.name,
+            versionNo=version_no,
+            operationType=MetricVersionOperationType.PUBLISH,
+            content=metric_service.get_entity_shaper().serialize(metric),
+            comments=comments,
+            tenantId=tenant_id,
+        )
+        version_service.create(version)
+
+        metric.publishStatus = MetricPublishStatus.PUBLISHED
+        metric.publishedVersionNo = version_no
+        metric.lastPublishedAt = metric_service.now()
+        metric_result = metric_service.update(metric)
+        return metric_result, lambda: metric_config_cache.remove(tenant_id)
+
+    return trans_with_tail(metric_service, action)
 
 
-    
+@router.post('/metricflow/metric/{metric_name}/rollback', tags=['ADMIN'], response_model=None)
+async def rollback_metric(
+        metric_name: str,
+        body: MetricRollbackBody = Body(...),
+        principal_service: PrincipalService = Depends(get_admin_principal)
+) -> MetricWithCategory:
+    """Roll back a published metric to draft, recorded as a new version with the required comments;
+    when targetVersionNo is given, content of that version is restored"""
+    if is_blank(metric_name):
+        raise_400('Metric name is required.')
+    if body is None or is_blank(body.comments):
+        raise_400('Rollback comments are required.')
+
+    metric_service = get_metric_service(principal_service)
+
+    def action():
+        tenant_id: TenantId = principal_service.get_tenant_id()
+        metric = metric_service.find_by_name(metric_name, tenant_id)
+        if metric is None:
+            raise_404('Metric not found.')
+        if metric.publishStatus != MetricPublishStatus.PUBLISHED:
+            raise_400('Only a published metric can be rolled back.')
+
+        version_service = get_metric_version_service(metric_service)
+        rollback_from_version_no = metric.publishedVersionNo
+
+        restored_metric = metric
+        if body.targetVersionNo is not None:
+            target_version = version_service.find_by_metric_id_and_version_no(
+                metric.id, body.targetVersionNo, tenant_id)
+            if target_version is None:
+                raise_400(f'Metric version[{body.targetVersionNo}] not found.')
+            restored_metric = metric_service.get_entity_shaper().deserialize(target_version.content)
+            # keep the current id and name: metric is addressed by name
+            restored_metric.id = metric.id
+            restored_metric.name = metric.name
+
+        # after rollback the metric goes back to draft, editable again
+        restored_metric.tenantId = tenant_id
+        restored_metric.publishStatus = MetricPublishStatus.DRAFT
+        restored_metric.publishedVersionNo = None
+        restored_metric.lastPublishedAt = None
+
+        version_no = version_service.find_max_version_no(metric.id, tenant_id) + 1
+        version = MetricVersion(
+            id=str(version_service.snowflakeGenerator.next_id()),
+            metricId=metric.id,
+            metricName=metric.name,
+            versionNo=version_no,
+            operationType=MetricVersionOperationType.ROLLBACK,
+            content=metric_service.get_entity_shaper().serialize(restored_metric),
+            comments=body.comments,
+            rollbackFromVersionNo=rollback_from_version_no,
+            tenantId=tenant_id,
+        )
+        version_service.create(version)
+
+        metric_result = metric_service.update(restored_metric)
+        return metric_result, lambda: metric_config_cache.remove(tenant_id)
+
+    return trans_with_tail(metric_service, action)
+
+
+@router.get('/metricflow/metric/{metric_name}/versions', tags=['CONSOLE', 'ADMIN'], response_model=None)
+async def get_metric_versions(
+        metric_name: str,
+        pageNumber: int = 1,
+        pageSize: int = 10,
+        principal_service: PrincipalService = Depends(get_console_principal)
+) -> MetricVersionDataPage:
+    """List all versions of a metric, newest first"""
+    if is_blank(metric_name):
+        raise_400('Metric name is required.')
+
+    metric_service = get_metric_service(principal_service)
+
+    def action() -> MetricVersionDataPage:
+        tenant_id: TenantId = principal_service.get_tenant_id()
+        metric = metric_service.find_by_name(metric_name, tenant_id)
+        if metric is None:
+            raise_404('Metric not found.')
+
+        version_service = get_metric_version_service(metric_service)
+        page = version_service.find_page_by_metric_id(
+            metric.id, tenant_id, Pageable(pageNumber=pageNumber, pageSize=pageSize))
+        return MetricVersionDataPage(
+            data=page.data,
+            itemCount=page.itemCount,
+            pageNumber=page.pageNumber,
+            pageSize=page.pageSize,
+            pageCount=page.pageCount
+        )
+
+    return trans_readonly(metric_service, action)
+
+
+@router.get('/metricflow/metric/{metric_name}/versions/{version_no}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+async def get_metric_version_detail(
+        metric_name: str,
+        version_no: int,
+        principal_service: PrincipalService = Depends(get_console_principal)
+) -> MetricVersion:
+    """Load one version of a metric, with the full metric snapshot inside"""
+    if is_blank(metric_name):
+        raise_400('Metric name is required.')
+
+    metric_service = get_metric_service(principal_service)
+
+    def action() -> MetricVersion:
+        tenant_id: TenantId = principal_service.get_tenant_id()
+        metric = metric_service.find_by_name(metric_name, tenant_id)
+        if metric is None:
+            raise_404('Metric not found.')
+
+        version_service = get_metric_version_service(metric_service)
+        version = version_service.find_by_metric_id_and_version_no(metric.id, version_no, tenant_id)
+        if version is None:
+            raise_404('Metric version not found.')
+        return version
+
+    return trans_readonly(metric_service, action)

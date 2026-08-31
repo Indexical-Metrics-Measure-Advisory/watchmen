@@ -145,6 +145,29 @@ export interface MetricDefinition {
 
   // Publish status; undefined is treated as draft
   publishStatus?: MetricPublishStatus;
+  // version number of the currently published version; undefined when not published
+  publishedVersionNo?: number;
+  // time when the metric was published
+  lastPublishedAt?: string;
+}
+
+// ===== Metric Version Types =====
+
+/** Version operation type: publish or rollback */
+export type MetricVersionOperationType = 'publish' | 'rollback';
+
+/** A recorded historical version of a metric, with a full restorable snapshot inside content */
+export interface MetricVersion {
+  id?: string;
+  metricId: string;
+  metricName: string;
+  versionNo: number;
+  operationType: MetricVersionOperationType;
+  content?: Record<string, any>;
+  comments?: string;
+  rollbackFromVersionNo?: number;
+  createdAt?: string;
+  createdBy?: string;
 }
 
 // Compatible configuration placeholder, specific structure defined by backend

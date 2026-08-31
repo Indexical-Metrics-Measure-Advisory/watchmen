@@ -670,6 +670,21 @@ table_metrics = Table(
     create_str('validation_status', 50),
     create_json('validation_result'),
     create_str('publish_status', 50),
+    create_int('published_version_no'),
+    create_datetime('last_published_at'),
+    create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(),
+)
+
+table_metric_versions = Table(
+    'metric_versions', meta_data,
+    create_pk('id'),
+    create_tuple_id_column('metric_id', False),
+    create_str('metric_name', 128, False),
+    create_int('version_no', False),
+    create_str('operation_type', 20, False),
+    create_json('content'),
+    create_str('comments', 1024),
+    create_int('rollback_from_version_no'),
     create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(),
 )
 
@@ -1008,6 +1023,7 @@ tables: Dict[str, Table] = {
     "business_challenges": table_business_challenges,
     "hypotheses": table_hypotheses,
     "metrics": table_metrics,
+    "metric_versions": table_metric_versions,
     "semantic_models": table_semantic_models,
     "agent_cards": table_agent_cards,
     'analysis': table_analysis,

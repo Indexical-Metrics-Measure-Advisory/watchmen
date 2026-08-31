@@ -203,18 +203,19 @@ class TestListAllMetrics(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(2, len(response.json()))
 
-    def test_non_admin_gets_filtered_metrics(self):
-        metrics = [make_metric('a')]
+    def test_non_admin_gets_published_metrics_only(self):
+        metrics = [make_metric('draft_a', publishStatus='draft'),
+                   make_metric('published_b', publishStatus='published')]
         service = mock_metric_service()
-        with self._patch_service(service), \
-                mock.patch.object(metric_meta_router, 'get_console_user_topic_ids', return_value=['t1']), \
-                mock.patch.object(metric_meta_router, 'find_metrics_by_topic_ids', return_value=metrics):
+        service.find_all.return_value = metrics
+        with self._patch_service(service):
             client = build_client(
                 metric_meta_router.router,
                 principal=console_principal(is_admin=False))
             response = client.get('/metricflow/metrics/all')
         self.assertEqual(200, response.status_code)
-        self.assertEqual(1, len(response.json()))
+        names = [m['name'] for m in response.json()]
+        self.assertEqual(['published_b'], names)
 
     def test_find_metrics_by_name_list(self):
         metrics = [make_metric('rev'), make_metric('revenue')]

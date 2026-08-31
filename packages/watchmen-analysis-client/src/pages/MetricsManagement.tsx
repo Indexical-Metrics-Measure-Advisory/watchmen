@@ -17,7 +17,7 @@ import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import {
   Plus, Edit, Trash2, BarChart3, GitBranch, Calculator, Search, Filter, Eye, Folder, FolderOpen, Tag, MoreHorizontal, LayoutGrid, List as ListIcon, Clock, RefreshCcw,
-  CheckCircle2, XCircle, CircleDot, ShieldCheck, AlertTriangle
+  CheckCircle2, XCircle, CircleDot, ShieldCheck, AlertTriangle, History
 } from 'lucide-react';
 import {
   MetricDefinition,
@@ -27,6 +27,8 @@ import {
 } from '@/model/metricsManagement';
 import { deleteMetric, updateMetric, createMetric } from '@/services/metricsManagementService';
 import MetricFormDialog from '@/components/metrics/MetricFormDialog';
+import MetricPublishDialog from '@/components/metrics/MetricPublishDialog';
+import MetricVersionHistoryDialog from '@/components/metrics/MetricVersionHistoryDialog';
 import CategoryManagement from '@/components/metrics/CategoryManagement';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -92,9 +94,15 @@ const MetricsManagement: React.FC = () => {
     metricToEdit, setMetricToEdit, editForm, setEditForm, createForm, setCreateForm,
     showCategoryManagement, setShowCategoryManagement, viewMode, setViewMode,
     validatingSet, filter, setFilter, allMetricsForSelect,
-    loadData, loadCategories, loadSemanticModels, handleValidateMetric, handleTogglePublish,
+    loadData, loadCategories, loadSemanticModels, handleValidateMetric,
+    openPublishDialog, handlePublishConfirmed, openVersionHistory, handleRolledBack,
+    isPublishDialogOpen, metricToPublish, isVersionHistoryOpen, metricForVersions,
+    setIsPublishDialogOpen, setIsVersionHistoryOpen,
     metricNamePattern, locale
   } = useMetricsData();
+
+  // published metrics are immutable: edit/delete must go through rollback first
+  const isPublishedMetric = (metric: MetricDefinition) => metric.publishStatus === 'published';
 
   const handleDeleteMetric = async (metricName: string) => {
     try {
@@ -555,13 +563,18 @@ const MetricsManagement: React.FC = () => {
                                     <RefreshCcw className="mr-2 h-4 w-4" /> {t('metricsManagement:revalidate')}
                                   </DropdownMenuItem>
                                 )}
-                                {!isReadOnly && (
-                                  <DropdownMenuItem onClick={() => handleTogglePublish(metric)}>
-                                    {metric.publishStatus === 'published'
-                                      ? <><XCircle className="mr-2 h-4 w-4" /> {t('metricsManagement:unpublish')}</>
-                                      : <><CheckCircle2 className="mr-2 h-4 w-4" /> {t('metricsManagement:publish')}</>}
+                                {!isReadOnly && isPublishedMetric(metric) ? (
+                                  <DropdownMenuItem onClick={() => openVersionHistory(metric)}>
+                                    <XCircle className="mr-2 h-4 w-4" /> {t('metricsManagement:rollbackPublish')}
+                                  </DropdownMenuItem>
+                                ) : !isReadOnly && (
+                                  <DropdownMenuItem onClick={() => openPublishDialog(metric)}>
+                                    <CheckCircle2 className="mr-2 h-4 w-4" /> {t('metricsManagement:publish')}
                                   </DropdownMenuItem>
                                 )}
+                                <DropdownMenuItem onClick={() => openVersionHistory(metric)}>
+                                  <History className="mr-2 h-4 w-4" /> {t('metricsManagement:versionHistory')}
+                                </DropdownMenuItem>
                                 {!isReadOnly && <DropdownMenuSeparator />}
                                 <DropdownMenuItem onClick={() => setSelectedMetric(metric)}>
                                   <Eye className="mr-2 h-4 w-4" /> {t('metricsManagement:viewDetails')}
@@ -571,13 +584,19 @@ const MetricsManagement: React.FC = () => {
                                 </DropdownMenuItem>
                                 {!isReadOnly && (
                                   <>
-                                    <DropdownMenuItem onClick={() => handleEditMetric(metric)}>
+                                    <DropdownMenuItem
+                                        onClick={() => handleEditMetric(metric)}
+                                        disabled={isPublishedMetric(metric)}
+                                        title={isPublishedMetric(metric) ? t('metricsManagement:publishedLockHint') : undefined}
+                                    >
                                       <Edit className="mr-2 h-4 w-4" /> {t('common:edit')}
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
                                         className="text-destructive focus:text-destructive"
                                         onClick={() => handleDeleteMetric(metric.name)}
+                                        disabled={isPublishedMetric(metric)}
+                                        title={isPublishedMetric(metric) ? t('metricsManagement:publishedLockHint') : undefined}
                                     >
                                       <Trash2 className="mr-2 h-4 w-4" /> {t('common:delete')}
                                     </DropdownMenuItem>
@@ -621,18 +640,38 @@ const MetricsManagement: React.FC = () => {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    {!isReadOnly && (
-                                      <DropdownMenuItem onClick={() => handleTogglePublish(metric)}>
-                                        {metric.publishStatus === 'published' ? t('metricsManagement:unpublish') : t('metricsManagement:publish')}
+                                    {!isReadOnly && isPublishedMetric(metric) ? (
+                                      <DropdownMenuItem onClick={() => openVersionHistory(metric)}>
+                                        {t('metricsManagement:rollbackPublish')}
+                                      </DropdownMenuItem>
+                                    ) : !isReadOnly && (
+                                      <DropdownMenuItem onClick={() => openPublishDialog(metric)}>
+                                        {t('metricsManagement:publish')}
                                       </DropdownMenuItem>
                                     )}
+                                    <DropdownMenuItem onClick={() => openVersionHistory(metric)}>
+                                      <History className="mr-2 h-4 w-4" /> {t('metricsManagement:versionHistory')}
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => setSelectedMetric(metric)}>{t('metricsManagement:viewDetails')}</DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleViewLineage(metric)}>{t('metricsManagement:viewLineage')}</DropdownMenuItem>
                                     {!isReadOnly && (
                                       <>
-                                        <DropdownMenuItem onClick={() => handleEditMetric(metric)}>{t('common:edit')}</DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            onClick={() => handleEditMetric(metric)}
+                                            disabled={isPublishedMetric(metric)}
+                                            title={isPublishedMetric(metric) ? t('metricsManagement:publishedLockHint') : undefined}
+                                        >
+                                          {t('common:edit')}
+                                        </DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteMetric(metric.name)}>{t('common:delete')}</DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            className="text-destructive"
+                                            onClick={() => handleDeleteMetric(metric.name)}
+                                            disabled={isPublishedMetric(metric)}
+                                            title={isPublishedMetric(metric) ? t('metricsManagement:publishedLockHint') : undefined}
+                                        >
+                                          {t('common:delete')}
+                                        </DropdownMenuItem>
                                       </>
                                     )}
                                   </DropdownMenuContent>
@@ -716,6 +755,22 @@ const MetricsManagement: React.FC = () => {
         allMetricsForSelect={allMetricsForSelect}
         metricNamePattern={metricNamePattern}
         onSave={handleSaveCreate}
+      />
+
+      {/* Publish Dialog — records an optional version note */}
+      <MetricPublishDialog
+        metric={metricToPublish}
+        open={isPublishDialogOpen}
+        onOpenChange={setIsPublishDialogOpen}
+        onConfirm={handlePublishConfirmed}
+      />
+
+      {/* Version History Dialog — lists versions, rollback with required comments */}
+      <MetricVersionHistoryDialog
+        metric={metricForVersions}
+        open={isVersionHistoryOpen}
+        onOpenChange={setIsVersionHistoryOpen}
+        onRolledBack={handleRolledBack}
       />
 
       {/* Metric Details Dialog */}

@@ -12,6 +12,7 @@ import {
 	MetricValidationResult,
 	MetricValidationStatus,
 	ValidationLogEntry,
+	MetricVersion,
 } from "@/model/metricsManagement";
 import { Message } from "@/components/ai/AIMessage";
 import { API_BASE_URL, getDefaultHeaders, checkResponse } from "@/utils/apiConfig";
@@ -361,6 +362,13 @@ let metricsInFlight: Promise<MetricDefinition[]> | null = null;
 
 const invalidateMetricsCache = () => {
 	metricsCache = null;
+};
+
+// Clear cache and any in-flight request — must be called on login/logout so data
+// from the previous account is never reused for the next one.
+export const clearMetricsCache = () => {
+	metricsCache = null;
+	metricsInFlight = null;
 };
 
 const loadRealTimeMetrics = async (): Promise<MetricDefinition[]> => {
@@ -754,6 +762,111 @@ export const deleteMetric = async (name: string): Promise<void> => {
 		throw new MetricsAPIException(
 			MetricsAPIError.SERVER_ERROR,
 			"Failed to delete metric",
+			error instanceof Error ? undefined : extractErrorStatus(error),
+			error instanceof Error ? error : undefined,
+		);
+	}
+};
+
+// Publish a metric: snapshot the current definition as a new version and lock it
+export const publishMetric = async (name: string, comments?: string): Promise<MetricDefinition> => {
+	try {
+		const response = await fetch(`${API_BASE_URL}/metricflow/metric/${encodeURIComponent(name)}/publish`, {
+			method: "POST",
+			headers: getDefaultHeaders(),
+			body: JSON.stringify({ comments: comments || null }),
+		});
+
+		const published = await checkResponse(response);
+		invalidateMetricsCache();
+		return published;
+	} catch (error) {
+		console.error("Failed to publish metric:", error);
+		throw new MetricsAPIException(
+			MetricsAPIError.SERVER_ERROR,
+			"Failed to publish metric",
+			error instanceof Error ? undefined : extractErrorStatus(error),
+			error instanceof Error ? error : undefined,
+		);
+	}
+};
+
+// Roll back a published metric to draft, recorded as a new version with required comments;
+// when targetVersionNo is given, content of that version is restored
+export const rollbackMetric = async (
+	name: string,
+	comments: string,
+	targetVersionNo?: number,
+): Promise<MetricDefinition> => {
+	try {
+		const response = await fetch(`${API_BASE_URL}/metricflow/metric/${encodeURIComponent(name)}/rollback`, {
+			method: "POST",
+			headers: getDefaultHeaders(),
+			body: JSON.stringify({ comments, targetVersionNo: targetVersionNo ?? null }),
+		});
+
+		const rolledBack = await checkResponse(response);
+		invalidateMetricsCache();
+		return rolledBack;
+	} catch (error) {
+		console.error("Failed to roll back metric:", error);
+		throw new MetricsAPIException(
+			MetricsAPIError.SERVER_ERROR,
+			"Failed to roll back metric",
+			error instanceof Error ? undefined : extractErrorStatus(error),
+			error instanceof Error ? error : undefined,
+		);
+	}
+};
+
+// List all versions of a metric, newest first
+export const getMetricVersions = async (
+	name: string,
+	pageNumber = 1,
+	pageSize = 50,
+): Promise<{ data: MetricVersion[]; itemCount: number; pageNumber: number; pageSize: number; pageCount: number }> => {
+	try {
+		const params = new URLSearchParams({
+			pageNumber: String(pageNumber),
+			pageSize: String(pageSize),
+		});
+		const response = await fetch(
+			`${API_BASE_URL}/metricflow/metric/${encodeURIComponent(name)}/versions?${params.toString()}`,
+			{
+				method: "GET",
+				headers: getDefaultHeaders(),
+			},
+		);
+
+		return await checkResponse(response);
+	} catch (error) {
+		console.error("Failed to get metric versions:", error);
+		throw new MetricsAPIException(
+			MetricsAPIError.SERVER_ERROR,
+			"Failed to get metric versions",
+			error instanceof Error ? undefined : extractErrorStatus(error),
+			error instanceof Error ? error : undefined,
+		);
+	}
+};
+
+// Load one version of a metric, with the full metric snapshot inside
+export const getMetricVersionDetail = async (name: string, versionNo: number): Promise<MetricVersion> => {
+	try {
+		const response = await fetch(
+			`${API_BASE_URL}/metricflow/metric/${encodeURIComponent(name)}/versions/${versionNo}`,
+			{
+				method: "GET",
+				headers: getDefaultHeaders(),
+			},
+		);
+
+		return await checkResponse(response);
+	} catch (error) {
+		console.error("Failed to get metric version detail:", error);
+		throw new MetricsAPIException(
+			MetricsAPIError.SERVER_ERROR,
+			"Failed to get metric version detail",
 			error instanceof Error ? undefined : extractErrorStatus(error),
 			error instanceof Error ? error : undefined,
 		);

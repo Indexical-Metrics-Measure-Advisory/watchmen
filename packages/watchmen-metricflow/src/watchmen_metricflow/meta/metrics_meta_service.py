@@ -125,7 +125,9 @@ class MetricShaper(UserBasedTupleShaper):
             'time_granularity': metric.time_granularity,
             'validation_status': MetricShaper.serialize_validation_status(metric.validationStatus),
             'validation_result': MetricShaper.serialize_validation_result(metric.validationResult),
-            'publish_status': MetricShaper.serialize_publish_status(metric.publishStatus)
+            'publish_status': MetricShaper.serialize_publish_status(metric.publishStatus),
+            'published_version_no': metric.publishedVersionNo,
+            'last_published_at': metric.lastPublishedAt
         }
 
         row = TupleShaper.serialize_tenant_based(metric,row)
@@ -151,7 +153,9 @@ class MetricShaper(UserBasedTupleShaper):
             'time_granularity': row.get('time_granularity'),
             'validationStatus': row.get('validation_status'),
             'validationResult': row.get('validation_result'),
-            'publishStatus': row.get('publish_status')
+            'publishStatus': row.get('publish_status'),
+            'publishedVersionNo': row.get('published_version_no'),
+            'lastPublishedAt': row.get('last_published_at')
         }
 
 

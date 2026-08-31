@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LogIn, LogOut, Settings, ChevronDown, UserCircle } from 'lucide-react';
+import { LogIn, LogOut, Settings, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '@/i18n/hooks/use-locale';
@@ -64,7 +64,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="w-full bg-white/80 dark:bg-card/80 backdrop-blur-md border-b border-border/50 py-3 px-6 flex items-center justify-between z-[9997]">
+    <header className="relative w-full bg-white/80 dark:bg-card/80 backdrop-blur-md border-b border-border/50 py-3 px-6 flex items-center justify-between z-[9997]">
       <h1 className="text-xl font-medium">{getPageTitle()}</h1>
       
       <div className="flex items-center gap-4">
@@ -158,32 +158,20 @@ const Header: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="py-2">
-                  {!isConsoleUser && (
-                    <>
-                      <button
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          navigate('/settings');
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                      >
-                        <UserCircle className="h-4 w-4" />
-                        {t('layout:profileSettings')}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          navigate('/settings');
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                      >
-                        <Settings className="h-4 w-4" />
-                        {t('layout:accountSettings')}
-                      </button>
-                    </>
-                  )}
-                </div>
+                {!isConsoleUser && (
+                  <div className="py-2">
+                    <button
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        navigate('/settings');
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                    >
+                      <Settings className="h-4 w-4" />
+                      {t('layout:accountSettings')}
+                    </button>
+                  </div>
+                )}
                 
                 <div className="border-t border-border py-2">
                   <button
