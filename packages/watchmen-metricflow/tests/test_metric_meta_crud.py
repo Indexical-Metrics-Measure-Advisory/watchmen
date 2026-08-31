@@ -208,7 +208,10 @@ class TestListAllMetrics(unittest.TestCase):
                    make_metric('published_b', publishStatus='published')]
         service = mock_metric_service()
         service.find_all.return_value = metrics
-        with self._patch_service(service):
+        # user-group filtering is covered by its own tests, pass metrics through here
+        with self._patch_service(service), \
+                mock.patch.object(metric_meta_router, 'filter_metrics_allowed',
+                                  side_effect=lambda m, *_: m):
             client = build_client(
                 metric_meta_router.router,
                 principal=console_principal(is_admin=False))

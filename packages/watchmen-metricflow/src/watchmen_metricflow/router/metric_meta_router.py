@@ -6,6 +6,7 @@ from typing import List, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
+from watchmen_metricflow.meta.metric_access_service import check_metric_allowed, filter_metrics_allowed
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
 from watchmen_metricflow.meta.metric_version_meta_service import MetricVersionService
 from watchmen_metricflow.model.metrics import Metric, MetricWithCategory, MetricPublishStatus, MetricVersion, \
@@ -32,6 +33,8 @@ def find_metrics_visible_to(
         return metrics
     # Console users: published metrics only, no semantic-model linkage required.
     published_metrics = [m for m in metrics if m.publishStatus == MetricPublishStatus.PUBLISHED]
+    # Console users can only see the metrics assigned to their user groups.
+    published_metrics = filter_metrics_allowed(published_metrics, metric_service, principal_service)
     logger.info('Console metric visibility: total[{0}] -> published[{1}].'.format(
         len(metrics), len(published_metrics)))
     return published_metrics
@@ -88,8 +91,9 @@ async def get_metric_by_name(
         metric = metric_service.find_by_name(metric_name, tenant_id)
         if metric is None:
             raise_404()
+        check_metric_allowed(metric, metric_service, principal_service)
         return metric
-    
+
     return trans_readonly(metric_service, action)
 
 
@@ -109,6 +113,7 @@ async def get_metric_yaml_by_name(
         metric = metric_service.find_by_name(metric_name, tenant_id)
         if metric is None:
             raise_404()
+        check_metric_allowed(metric, metric_service, principal_service)
         return metric
 
     metric = trans_readonly(metric_service, action)
@@ -271,8 +276,9 @@ async def get_metrics_by_type(
     
     def action() -> List[Metric]:
         tenant_id: TenantId = principal_service.get_tenant_id()
-        return metric_service.find_by_type(metric_type, tenant_id)
-    
+        metrics = metric_service.find_by_type(metric_type, tenant_id)
+        return filter_metrics_allowed(metrics, metric_service, principal_service)
+
     return trans_readonly(metric_service, action)
 
 
@@ -289,8 +295,9 @@ async def get_metrics_by_label(
     
     def action() -> List[MetricWithCategory]:
         tenant_id: TenantId = principal_service.get_tenant_id()
-        return metric_service.find_by_label(label, tenant_id)
-    
+        metrics = metric_service.find_by_label(label, tenant_id)
+        return filter_metrics_allowed(metrics, metric_service, principal_service)
+
     return trans_readonly(metric_service, action)
 
 
@@ -380,6 +387,24 @@ async def find_metrics_by_name(
             all_metrics = metric_service.find_all(tenant_id)
             return [m for m in all_metrics if query_name.lower() in m.name.lower()]
     
+    return trans_readonly(metric_service, action)
+
+
+@router.post('/metricflow/metrics/ids', tags=['ADMIN'], response_model=None)
+async def find_metrics_by_ids(
+        metric_ids: List[str] = Body(default=[]),
+        principal_service: PrincipalService = Depends(get_admin_principal)
+) -> List[MetricWithCategory]:
+    if len(metric_ids) == 0:
+        return []
+
+    metric_service = get_metric_service(principal_service)
+
+    def action() -> List[MetricWithCategory]:
+        tenant_id: TenantId = principal_service.get_tenant_id()
+        ids = set(metric_ids)
+        return [m for m in metric_service.find_all(tenant_id) if m.id in ids]
+
     return trans_readonly(metric_service, action)
 
 
@@ -490,12 +515,12 @@ async def rollback_metric(
     return trans_with_tail(metric_service, action)
 
 
-@router.get('/metricflow/metric/{metric_name}/versions', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/metric/{metric_name}/versions', tags=['ADMIN'], response_model=None)
 async def get_metric_versions(
         metric_name: str,
         pageNumber: int = 1,
         pageSize: int = 10,
-        principal_service: PrincipalService = Depends(get_console_principal)
+        principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> MetricVersionDataPage:
     """List all versions of a metric, newest first"""
     if is_blank(metric_name):
@@ -508,6 +533,7 @@ async def get_metric_versions(
         metric = metric_service.find_by_name(metric_name, tenant_id)
         if metric is None:
             raise_404('Metric not found.')
+        check_metric_allowed(metric, metric_service, principal_service)
 
         version_service = get_metric_version_service(metric_service)
         page = version_service.find_page_by_metric_id(
@@ -523,11 +549,11 @@ async def get_metric_versions(
     return trans_readonly(metric_service, action)
 
 
-@router.get('/metricflow/metric/{metric_name}/versions/{version_no}', tags=['CONSOLE', 'ADMIN'], response_model=None)
+@router.get('/metricflow/metric/{metric_name}/versions/{version_no}', tags=['ADMIN'], response_model=None)
 async def get_metric_version_detail(
         metric_name: str,
         version_no: int,
-        principal_service: PrincipalService = Depends(get_console_principal)
+        principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> MetricVersion:
     """Load one version of a metric, with the full metric snapshot inside"""
     if is_blank(metric_name):
@@ -540,6 +566,7 @@ async def get_metric_version_detail(
         metric = metric_service.find_by_name(metric_name, tenant_id)
         if metric is None:
             raise_404('Metric not found.')
+        check_metric_allowed(metric, metric_service, principal_service)
 
         version_service = get_metric_version_service(metric_service)
         version = version_service.find_by_metric_id_and_version_no(metric.id, version_no, tenant_id)

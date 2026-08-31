@@ -13,6 +13,7 @@ interface ActionTypeManagementProps {
   onEdit: (type: ActionType) => void;
   onDelete: (id: string) => void;
   onToggle: (type: ActionType) => void;
+  readOnly?: boolean;
 }
 
 export const ActionTypeManagement: React.FC<ActionTypeManagementProps> = ({
@@ -20,7 +21,8 @@ export const ActionTypeManagement: React.FC<ActionTypeManagementProps> = ({
   onAdd,
   onEdit,
   onDelete,
-  onToggle
+  onToggle,
+  readOnly = false
 }) => {
   const { t } = useTranslation(['common', 'alertConfig']);
   // Group by Category
@@ -44,9 +46,11 @@ export const ActionTypeManagement: React.FC<ActionTypeManagementProps> = ({
             <h2 className="text-xl font-semibold">{t('alertConfig:actionTypes.managementTitle')}</h2>
             <Badge variant="secondary" className="text-sm px-2 py-0.5">{t('alertConfig:actionTypes.typesCount', { count: types.length })}</Badge>
          </div>
-         <Button onClick={onAdd}>
-            <Plus className="h-4 w-4 mr-2" /> {t('alertConfig:actionTypes.addType')}
-         </Button>
+         {!readOnly && (
+           <Button onClick={onAdd}>
+              <Plus className="h-4 w-4 mr-2" /> {t('alertConfig:actionTypes.addType')}
+           </Button>
+         )}
       </div>
 
       <div className="space-y-6">
@@ -76,20 +80,22 @@ export const ActionTypeManagement: React.FC<ActionTypeManagementProps> = ({
                                 </div>
                             </div>
                             
-                            <div className="flex items-center gap-4">
-                                <Switch 
-                                    checked={type.enabled}
-                                    onCheckedChange={() => onToggle(type)}
-                                />
-                                <div className="flex items-center gap-1">
-                                    <Button variant="ghost" size="sm" onClick={() => onEdit(type)} className="h-8 w-8 p-0">
-                                        <Edit className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                                    </Button>
-                                    <Button variant="ghost" size="sm" onClick={() => onDelete(type.id)} className="h-8 w-8 p-0">
-                                        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-600" />
-                                    </Button>
-                                </div>
-                            </div>
+                            {!readOnly && (
+                              <div className="flex items-center gap-4">
+                                  <Switch
+                                      checked={type.enabled}
+                                      onCheckedChange={() => onToggle(type)}
+                                  />
+                                  <div className="flex items-center gap-1">
+                                      <Button variant="ghost" size="sm" onClick={() => onEdit(type)} className="h-8 w-8 p-0">
+                                          <Edit className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                                      </Button>
+                                      <Button variant="ghost" size="sm" onClick={() => onDelete(type.id)} className="h-8 w-8 p-0">
+                                          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-600" />
+                                      </Button>
+                                  </div>
+                              </div>
+                            )}
                         </CardContent>
                     </Card>
                 ))}

@@ -4,6 +4,7 @@ import { actionTypeService } from '@/services/actionTypeService';
 import { ActionTypeManagement } from '@/components/suggested-action/ActionTypeManagement';
 import { ActionTypeModal } from '@/components/suggested-action/ActionTypeModal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 interface ActionTypeConfigurationProps {
@@ -13,6 +14,9 @@ interface ActionTypeConfigurationProps {
 
 export const ActionTypeConfiguration: React.FC<ActionTypeConfigurationProps> = ({ types, onTypesChange }) => {
   const { t } = useTranslation(['common', 'alertConfig']);
+  const { isConsoleUser } = useAuth();
+  // Action type mutations are admin-only on the backend; console users browse read-only.
+  const isReadOnly = isConsoleUser;
   const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
   const [editingType, setEditingType] = useState<ActionType | null>(null);
 
@@ -67,6 +71,7 @@ export const ActionTypeConfiguration: React.FC<ActionTypeConfigurationProps> = (
             onEdit={handleEditType}
             onDelete={handleDeleteType}
             onToggle={handleToggleType}
+            readOnly={isReadOnly}
         />
 
         <ActionTypeModal

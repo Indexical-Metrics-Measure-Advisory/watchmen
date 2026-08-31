@@ -9,7 +9,7 @@ export const isConsoleUser = (user: Pick<User, 'role'> | null | undefined): bool
   user?.role?.toLowerCase() === 'console';
 
 // Paths a console user may open; anything else is redirected to the metrics analysis home.
-const CONSOLE_ALLOWED_PATHS = ['/', '/metrics/bi-analysis', '/metrics/tree', '/metrics/lineage', '/metrics/management'];
+const CONSOLE_ALLOWED_PATHS = ['/', '/metrics/bi-analysis', '/metrics/tree', '/metrics/lineage', '/metrics/management', '/metrics/alert-configuration'];
 
 export const isConsoleAllowedPath = (pathname: string): boolean => {
   if (pathname === '/login' || pathname.startsWith('/share/analysis/')) {

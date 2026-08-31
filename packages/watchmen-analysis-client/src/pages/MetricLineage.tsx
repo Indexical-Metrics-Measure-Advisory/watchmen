@@ -78,7 +78,10 @@ const MetricLineagePage: React.FC = () => {
   const [selectedPathId, setSelectedPathId] = React.useState<string | null>(null);
   const [pathLoadingId, setPathLoadingId] = React.useState<string | null>(null);
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
-  const recentMetricsStorageKey = React.useMemo(() => getRecentMetricsStorageKey(user?.tenantId), [user?.tenantId]);
+  const recentMetricsStorageKey = React.useMemo(
+    () => getRecentMetricsStorageKey(user?.tenantId, user?.userId),
+    [user?.tenantId, user?.userId],
+  );
   const { recentMetrics, addRecentMetric } = useRecentMetrics(recentMetricsStorageKey);
   const stageMeta = React.useMemo(() => buildStageMeta(t), [t]);
   const statusMeta = React.useMemo(() => buildStatusMeta(t), [t]);
@@ -112,7 +115,7 @@ const MetricLineagePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [setSearchParams, t, toast, user?.tenantId, addRecentMetric]);
+  }, [setSearchParams, t, toast, addRecentMetric]);
 
   React.useEffect(() => {
     let active = true;

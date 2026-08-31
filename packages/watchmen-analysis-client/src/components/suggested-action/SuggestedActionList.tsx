@@ -18,6 +18,7 @@ interface SuggestedActionListProps {
   onEdit: (action: SuggestedAction) => void;
   onDelete: (id: string) => void;
   onToggle: (action: SuggestedAction) => void;
+  readOnly?: boolean;
 }
 
 export const SuggestedActionList: React.FC<SuggestedActionListProps> = ({
@@ -25,7 +26,8 @@ export const SuggestedActionList: React.FC<SuggestedActionListProps> = ({
   types,
   onEdit,
   onDelete,
-  onToggle
+  onToggle,
+  readOnly = false
 }) => {
   // Calculate stats
   const total = actions.length;
@@ -173,27 +175,29 @@ export const SuggestedActionList: React.FC<SuggestedActionListProps> = ({
                          </div>
                        </div>
 
-                       <div className="flex items-center gap-4 pl-4 border-l ml-4 self-center">
-                         <Switch 
-                            checked={action.enabled}
-                            onCheckedChange={() => onToggle(action)}
-                         />
-                         <DropdownMenu>
-                           <DropdownMenuTrigger asChild>
-                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                               <MoreHorizontal className="h-4 w-4" />
-                             </Button>
-                           </DropdownMenuTrigger>
-                           <DropdownMenuContent align="end">
-                             <DropdownMenuItem onClick={() => onEdit(action)}>
-                               Edit
-                             </DropdownMenuItem>
-                             <DropdownMenuItem className="text-red-600" onClick={() => onDelete(action.id)}>
-                               Delete
-                             </DropdownMenuItem>
-                           </DropdownMenuContent>
-                         </DropdownMenu>
-                       </div>
+                       {!readOnly && (
+                         <div className="flex items-center gap-4 pl-4 border-l ml-4 self-center">
+                           <Switch
+                              checked={action.enabled}
+                              onCheckedChange={() => onToggle(action)}
+                           />
+                           <DropdownMenu>
+                             <DropdownMenuTrigger asChild>
+                               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                 <MoreHorizontal className="h-4 w-4" />
+                               </Button>
+                             </DropdownMenuTrigger>
+                             <DropdownMenuContent align="end">
+                               <DropdownMenuItem onClick={() => onEdit(action)}>
+                                 Edit
+                               </DropdownMenuItem>
+                               <DropdownMenuItem className="text-red-600" onClick={() => onDelete(action.id)}>
+                                 Delete
+                               </DropdownMenuItem>
+                             </DropdownMenuContent>
+                           </DropdownMenu>
+                         </div>
+                       )}
                      </div>
                    </CardContent>
                  </Card>

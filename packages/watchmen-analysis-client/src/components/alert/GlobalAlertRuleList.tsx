@@ -11,10 +11,14 @@ import { GlobalAlertConfigurationModal } from '@/components/bi/GlobalAlertConfig
 import { Badge } from "@/components/ui/badge";
 import { globalAlertService } from '@/services/globalAlertService';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 export const GlobalAlertRuleList: React.FC = () => {
   const { t } = useTranslation(['common', 'alertConfig']);
+  const { isConsoleUser } = useAuth();
+  // Alert rule create/edit/delete are admin-only on the backend; console users browse read-only.
+  const isReadOnly = isConsoleUser;
   const [rules, setRules] = useState<GlobalAlertRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -71,9 +75,11 @@ export const GlobalAlertRuleList: React.FC = () => {
           <h2 className="text-xl font-bold tracking-tight">{t('alertConfig:globalRules.title')}</h2>
           <p className="text-muted-foreground">{t('alertConfig:globalRules.subtitle')}</p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" /> {t('alertConfig:globalRules.newRule')}
-        </Button>
+        {!isReadOnly && (
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" /> {t('alertConfig:globalRules.newRule')}
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -100,14 +106,16 @@ export const GlobalAlertRuleList: React.FC = () => {
                 )}
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end gap-2 pt-0">
-              <Button variant="outline" size="sm" onClick={() => handleEdit(rule)} className="h-8">
-                <Edit className="h-3.5 w-3.5 mr-1.5" /> {t('common:edit')}
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setRuleToDelete(rule.id)} className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10">
-                <Trash2 className="h-3.5 w-3.5 mr-1.5" /> {t('common:delete')}
-              </Button>
-            </CardFooter>
+            {!isReadOnly && (
+              <CardFooter className="flex justify-end gap-2 pt-0">
+                <Button variant="outline" size="sm" onClick={() => handleEdit(rule)} className="h-8">
+                  <Edit className="h-3.5 w-3.5 mr-1.5" /> {t('common:edit')}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setRuleToDelete(rule.id)} className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10">
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" /> {t('common:delete')}
+                </Button>
+              </CardFooter>
+            )}
           </Card>
         ))}
         {rules.length === 0 && !loading && (

@@ -1,8 +1,8 @@
 from typing import List, Optional
 
 from watchmen_utilities import ExtendedBaseModel
-from watchmen_model.common import ConvergenceId, ObjectiveId, OptimisticLock, SpaceId, TenantBasedTuple, UserGroupId, \
-	UserId
+from watchmen_model.common import ConvergenceId, MetricId, ObjectiveId, OptimisticLock, SpaceId, TenantBasedTuple, \
+	UserGroupId, UserId
 
 
 class UserGroup(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
@@ -13,3 +13,4 @@ class UserGroup(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	spaceIds: Optional[List[SpaceId]] = None
 	objectiveIds: Optional[List[ObjectiveId]] = None
 	convergenceIds: Optional[List[ConvergenceId]] = None
+	metricIds: Optional[List[MetricId]] = None

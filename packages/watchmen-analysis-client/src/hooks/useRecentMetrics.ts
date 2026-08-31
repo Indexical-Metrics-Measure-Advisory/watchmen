@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 const MAX_RECENT_METRICS = 10;
 
@@ -15,6 +15,10 @@ function readRecentMetrics(key: string): string[] {
 
 export function useRecentMetrics(storageKey: string = 'recent_metrics') {
   const [recentMetrics, setRecentMetrics] = useState<string[]>(() => readRecentMetrics(storageKey));
+
+  useEffect(() => {
+    setRecentMetrics(readRecentMetrics(storageKey));
+  }, [storageKey]);
 
   const addRecentMetric = useCallback(
     (metricName: string) => {

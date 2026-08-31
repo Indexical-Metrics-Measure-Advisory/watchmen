@@ -8,6 +8,7 @@ from typing import List, Tuple, Dict, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
+from watchmen_metricflow.meta.metric_access_service import check_metric_names_allowed
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
 from watchmen_metricflow.meta.semantic_meta_service import SemanticModelService
 from watchmen_metricflow.metricflow.config.db_version.cli_configuration_db import CLIConfigurationDB
@@ -90,6 +91,8 @@ async def find_dimensions_by_metric(metric_name: str,principal_service: Principa
     """
     Find common dimensions between a list of metrics and a list of dimensions.
     """
+    check_metric_names_allowed(get_metric_service(principal_service), principal_service, [metric_name])
+
     # MySQL data sources bypass dbt (dbt-metricflow has no MySQL support)
     mysql_result = await try_mysql_dimensions_by_metrics([metric_name], principal_service)
     if mysql_result is not None:
@@ -157,6 +160,8 @@ async def convert_request(request: Request):
 async def get_metric_value(req :MetricQueryRequest,
                         principal_service: PrincipalService = Depends(get_any_principal))->MetricFlowResponse:
 
+    check_metric_names_allowed(get_metric_service(principal_service), principal_service, [req.metric])
+
     # MySQL data sources bypass dbt (dbt-metricflow has no MySQL support)
     mysql_result = await try_mysql_metric_query(req, principal_service)
     if mysql_result is not None:
@@ -186,6 +191,9 @@ async def get_metric_value(req :MetricQueryRequest,
 @router.post("/metricflow/query_metrics", response_model=List[MetricFlowResponse])
 async def query_metrics(request_list: List[MetricQueryRequest],
                         principal_service: PrincipalService = Depends(get_any_principal)):
+    check_metric_names_allowed(
+        get_metric_service(principal_service), principal_service, [request.metric for request in request_list])
+
     config = await build_metric_config(principal_service)
 
 

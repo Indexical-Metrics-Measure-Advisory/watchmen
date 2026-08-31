@@ -23,7 +23,8 @@ import {
   FlaskConical,
   Package,
   Map as MapIcon,
-  Share2
+  Share2,
+  Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -214,8 +215,9 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           )}
           <NavItem to="/metrics/management" icon={<TrendingUp size={16} />} label={t('nav:metricsManagement')} collapsed={collapsed} isSubItem={true} />
           {!isConsoleUser && (
-            <NavItem to="/metrics/alert-configuration" icon={<AlertTriangle size={16} />} label={t('nav:alertConfiguration')} collapsed={collapsed} isSubItem={true} />
+            <NavItem to="/metrics/user-groups" icon={<Users size={16} />} label={t('nav:userGroupMetrics')} collapsed={collapsed} isSubItem={true} />
           )}
+          <NavItem to="/metrics/alert-configuration" icon={<AlertTriangle size={16} />} label={t('nav:alertConfiguration')} collapsed={collapsed} isSubItem={true} />
           {SHOW_METRIC_AI_AGENT && !isConsoleUser && (
             <NavItem to="/metrics/assistant-config" icon={<Sliders size={16} />} label={t('nav:assistantConfig')} collapsed={collapsed} isSubItem={true} />
           )}

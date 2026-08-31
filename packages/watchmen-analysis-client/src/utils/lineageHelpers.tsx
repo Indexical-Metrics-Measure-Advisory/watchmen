@@ -25,8 +25,10 @@ export const STAGE_ORDER: LineageStage[] = ['metric', 'semantic', 'topic', 'pipe
 // Storage helpers
 // ---------------------------------------------------------------------------
 
-export const getRecentMetricsStorageKey = (tenantId?: string | null): string =>
-  tenantId ? `${RECENT_METRICS_KEY}:${tenantId}` : RECENT_METRICS_KEY;
+export const getRecentMetricsStorageKey = (tenantId?: string | null, userId?: string | null): string => {
+  const scope = [tenantId, userId].filter((part) => !!part).join(':');
+  return scope ? `${RECENT_METRICS_KEY}:${scope}` : RECENT_METRICS_KEY;
+};
 
 export const clearLegacyRecentMetricsStorageKey = (): void => {
   localStorage.removeItem(RECENT_METRICS_KEY);

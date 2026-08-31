@@ -8,6 +8,7 @@ import { SuggestedActionModal } from '@/components/suggested-action/SuggestedAct
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 interface SuggestedActionManagementProps {
@@ -17,6 +18,9 @@ interface SuggestedActionManagementProps {
 
 export const SuggestedActionManagement: React.FC<SuggestedActionManagementProps> = ({ types, onTypesChange }) => {
   const { t } = useTranslation(['common', 'alertConfig']);
+  const { isConsoleUser } = useAuth();
+  // Suggested action mutations are admin-only on the backend; console users browse read-only.
+  const isReadOnly = isConsoleUser;
   const [actions, setActions] = useState<SuggestedAction[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -136,9 +140,11 @@ export const SuggestedActionManagement: React.FC<SuggestedActionManagementProps>
             </Select>
          </div>
 
-         <Button onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" /> {t('alertConfig:suggestedActions.newAction')}
-         </Button>
+         {!isReadOnly && (
+           <Button onClick={handleCreate}>
+              <Plus className="mr-2 h-4 w-4" /> {t('alertConfig:suggestedActions.newAction')}
+           </Button>
+         )}
       </div>
 
       <SuggestedActionList
@@ -147,6 +153,7 @@ export const SuggestedActionManagement: React.FC<SuggestedActionManagementProps>
         onEdit={handleEdit}
         onDelete={handleDelete}
         onToggle={handleToggleAction}
+        readOnly={isReadOnly}
       />
 
       <SuggestedActionModal

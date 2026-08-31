@@ -573,9 +573,11 @@ const MetricsManagement: React.FC = () => {
                                     <CheckCircle2 className="mr-2 h-4 w-4" /> {t('metricsManagement:publish')}
                                   </DropdownMenuItem>
                                 )}
-                                <DropdownMenuItem onClick={() => openVersionHistory(metric)}>
-                                  <History className="mr-2 h-4 w-4" /> {t('metricsManagement:versionHistory')}
-                                </DropdownMenuItem>
+                                {!isReadOnly && (
+                                  <DropdownMenuItem onClick={() => openVersionHistory(metric)}>
+                                    <History className="mr-2 h-4 w-4" /> {t('metricsManagement:versionHistory')}
+                                  </DropdownMenuItem>
+                                )}
                                 {!isReadOnly && <DropdownMenuSeparator />}
                                 <DropdownMenuItem onClick={() => setSelectedMetric(metric)}>
                                   <Eye className="mr-2 h-4 w-4" /> {t('metricsManagement:viewDetails')}
@@ -650,9 +652,11 @@ const MetricsManagement: React.FC = () => {
                                         {t('metricsManagement:publish')}
                                       </DropdownMenuItem>
                                     )}
-                                    <DropdownMenuItem onClick={() => openVersionHistory(metric)}>
-                                      <History className="mr-2 h-4 w-4" /> {t('metricsManagement:versionHistory')}
-                                    </DropdownMenuItem>
+                                    {!isReadOnly && (
+                                      <DropdownMenuItem onClick={() => openVersionHistory(metric)}>
+                                        <History className="mr-2 h-4 w-4" /> {t('metricsManagement:versionHistory')}
+                                      </DropdownMenuItem>
+                                    )}
                                     <DropdownMenuItem onClick={() => setSelectedMetric(metric)}>{t('metricsManagement:viewDetails')}</DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleViewLineage(metric)}>{t('metricsManagement:viewLineage')}</DropdownMenuItem>
                                     {!isReadOnly && (

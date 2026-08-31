@@ -23,6 +23,7 @@ import AIAgentManagement from './pages/AIAgentManagement';
 import AIAnalysisAgent from './components/ai/AIAnalysisAgent';
 import SemanticModelManagement from './pages/SemanticModelManagement';
 import MetricsManagement from './pages/MetricsManagement';
+import UserGroupMetrics from './pages/UserGroupMetrics';
 import DataProfileManagement from './pages/DataProfileManagement';
 import DataCatalog from './pages/DataCatalog';
 import BusinessDomainMap from './pages/BusinessDomainMap';
@@ -66,6 +67,7 @@ const App = () => (
                 {/* <Route path="/metrics" element={<Metrics />} /> */}
                 <Route path="/metrics/semantic-models" element={<SemanticModelManagement />} />
                 <Route path="/metrics/management" element={<MetricsManagement />} />
+                <Route path="/metrics/user-groups" element={<UserGroupMetrics />} />
                 {SHOW_METRIC_AI_AGENT && (
                   <Route path="/metrics/assistant-config" element={<AnalysisAssistantConfigPage />} />
                 )}
