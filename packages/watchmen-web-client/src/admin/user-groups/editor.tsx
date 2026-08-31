@@ -1,5 +1,3 @@
-import {QueryConvergenceForHolder} from '@/services/data/tuples/query-convergence-types';
-import {QueryObjectiveForHolder} from '@/services/data/tuples/query-objective-types';
 import {QuerySpaceForHolder} from '@/services/data/tuples/query-space-types';
 import {QueryUserForHolder} from '@/services/data/tuples/query-user-types';
 import {UserGroup} from '@/services/data/tuples/user-group-types';
@@ -8,8 +6,6 @@ import {TuplePropertyInput, TuplePropertyInputLines, TuplePropertyLabel} from '@
 import {useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes, TupleState} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import React, {ChangeEvent} from 'react';
-import {ConvergencePicker} from './convergence-picker';
-import {ObjectivePicker} from './objective-picker';
 import {SpacePicker} from './space-picker';
 import {HoldByUserGroup} from './types';
 import {UserPicker} from './user-picker';
@@ -19,9 +15,7 @@ const UserGroupEditor = (props: { userGroup: UserGroup, codes?: HoldByUserGroup 
 		userGroup,
 		codes: {
 			users = [] as Array<QueryUserForHolder>,
-			spaces = [] as Array<QuerySpaceForHolder>,
-			objectives = [] as Array<QueryObjectiveForHolder>,
-			convergences = [] as Array<QueryConvergenceForHolder>
+			spaces = [] as Array<QuerySpaceForHolder>
 		} = {}
 	} = props;
 
@@ -38,8 +32,6 @@ const UserGroupEditor = (props: { userGroup: UserGroup, codes?: HoldByUserGroup 
 
 	// guard data
 	userGroup.spaceIds = userGroup.spaceIds || [];
-	userGroup.objectiveIds = userGroup.objectiveIds || [];
-	userGroup.convergenceIds = userGroup.convergenceIds || [];
 	userGroup.userIds = userGroup.userIds || [];
 
 	return <>
@@ -49,10 +41,6 @@ const UserGroupEditor = (props: { userGroup: UserGroup, codes?: HoldByUserGroup 
 		<TuplePropertyInputLines value={userGroup.description || ''} onChange={onPropChange('description')}/>
 		<TuplePropertyLabel>Spaces:</TuplePropertyLabel>
 		<SpacePicker label="Assign Space" userGroup={userGroup} codes={spaces}/>
-		<TuplePropertyLabel>Objectives:</TuplePropertyLabel>
-		<ObjectivePicker label="Assign Objective" userGroup={userGroup} codes={objectives}/>
-		<TuplePropertyLabel>Convergences:</TuplePropertyLabel>
-		<ConvergencePicker label="Assign Convergence" userGroup={userGroup} codes={convergences}/>
 		<TuplePropertyLabel>Users:</TuplePropertyLabel>
 		<UserPicker label="Include User" userGroup={userGroup} codes={users}/>
 	</>;

@@ -29,6 +29,7 @@ import { deleteMetric, updateMetric, createMetric } from '@/services/metricsMana
 import MetricFormDialog from '@/components/metrics/MetricFormDialog';
 import MetricPublishDialog from '@/components/metrics/MetricPublishDialog';
 import MetricVersionHistoryDialog from '@/components/metrics/MetricVersionHistoryDialog';
+import MetricDefinitionView from '@/components/metrics/MetricDefinitionView';
 import CategoryManagement from '@/components/metrics/CategoryManagement';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -900,10 +901,12 @@ const MetricsManagement: React.FC = () => {
                 <Separator />
                 <div>
                   <label className="text-sm font-medium">{t('metricsManagement:details.typeParameters')}</label>
-                  <div className="mt-1 p-3 bg-muted rounded">
-                    <pre className="text-sm overflow-x-auto">
-                      {JSON.stringify(selectedMetric.type_params, null, 2)}
-                    </pre>
+                  <div className="mt-1">
+                    <MetricDefinitionView
+                      metric={selectedMetric}
+                      availableMeasures={availableMeasures}
+                      allMetricsForSelect={allMetricsForSelect}
+                    />
                   </div>
                 </div>
                 {selectedMetric.unit && (

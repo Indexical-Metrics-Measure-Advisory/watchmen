@@ -9,8 +9,6 @@ import {
 } from '../mock/tuples/mock-user-group';
 import {TuplePage} from '../query/tuple-page';
 import {isMockService} from '../utils';
-import {QueryConvergenceForHolder} from './query-convergence-types';
-import {QueryObjectiveForHolder} from './query-objective-types';
 import {QuerySpaceForHolder} from './query-space-types';
 import {QueryUserGroup, QueryUserGroupForHolder} from './query-user-group-types';
 import {QueryUserForHolder} from './query-user-types';
@@ -41,8 +39,6 @@ export const fetchUserGroup = async (
 	userGroup: UserGroup;
 	users: Array<QueryUserForHolder>;
 	spaces: Array<QuerySpaceForHolder>;
-	objectives: Array<QueryObjectiveForHolder>;
-	convergences: Array<QueryConvergenceForHolder>;
 }> => {
 	if (isMockService()) {
 		return fetchMockUserGroup(userGroupId);
@@ -65,30 +61,10 @@ export const fetchUserGroup = async (
 				return [];
 			}
 		};
-		const fetchObjectives = async (): Promise<Array<QueryObjectiveForHolder>> => {
-			const {objectiveIds} = userGroup;
-			if (objectiveIds && objectiveIds.length > 0) {
-				return await post({api: Apis.OBJECTIVE_BY_IDS, data: objectiveIds});
-			} else {
-				return [];
-			}
-		};
-		const fetchConvergences = async (): Promise<Array<QueryConvergenceForHolder>> => {
-			const {convergenceIds} = userGroup;
-			if (convergenceIds && convergenceIds.length > 0) {
-				return await post({api: Apis.CONVERGENCE_BY_IDS, data: convergenceIds});
-			} else {
-				return [];
-			}
-		};
 
-		const [
-			users, spaces, objectives, convergences
-		] = await Promise.all([
-			fetchUsers(), fetchSpaces(), fetchObjectives(), fetchConvergences()
-		]);
+		const [users, spaces] = await Promise.all([fetchUsers(), fetchSpaces()]);
 
-		return {userGroup, users, spaces, objectives, convergences};
+		return {userGroup, users, spaces};
 	}
 };
 

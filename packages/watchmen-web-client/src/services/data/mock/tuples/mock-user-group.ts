@@ -1,6 +1,4 @@
 import {TuplePage} from '../../query/tuple-page';
-import {QueryConvergenceForHolder} from '../../tuples/query-convergence-types';
-import {QueryObjectiveForHolder} from '../../tuples/query-objective-types';
 import {QuerySpaceForHolder} from '../../tuples/query-space-types';
 import {QueryUserGroup, QueryUserGroupForHolder} from '../../tuples/query-user-group-types';
 import {QueryUserForHolder} from '../../tuples/query-user-types';
@@ -40,8 +38,6 @@ export const fetchMockUserGroup = async (
 	userGroup: UserGroup;
 	users: Array<QueryUserForHolder>;
 	spaces: Array<QuerySpaceForHolder>;
-	objectives: Array<QueryObjectiveForHolder>;
-	convergences: Array<QueryConvergenceForHolder>;
 }> => {
 	let userGroup: UserGroup;
 	switch (userGroupId) {
@@ -116,9 +112,7 @@ export const fetchMockUserGroup = async (
 			{userId: '4', name: 'Walter Kovacs'},
 			{userId: '5', name: 'Jeffrey Dean Morgan'}
 		],
-		spaces: [{spaceId: '1', name: 'Quotation & Order'}],
-		objectives: [{objectiveId: '1', name: 'Monthly Budget'}],
-		convergences: [{convergenceId: '1', name: 'Mock Convergence'}]
+		spaces: [{spaceId: '1', name: 'Quotation & Order'}]
 	};
 };
 
