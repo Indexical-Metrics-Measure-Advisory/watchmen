@@ -61,6 +61,21 @@ def get_console_user_topic_ids(principal_service: PrincipalService) -> List[str]
     return ArrayHelper(spaces).map(lambda x: x.topicIds).flatten().filter(lambda x: x is not None).distinct().to_list()
 
 
+def get_measure_names_with_create_metric(semantic_model: SemanticModel) -> set:
+    """
+    Nested models of ExtendedBaseModel subclasses hold raw dicts at runtime,
+    so measures may be either dicts or Measure instances.
+    """
+    names = set()
+    for measure in (semantic_model.measures or []):
+        if isinstance(measure, dict):
+            if measure.get('create_metric') and measure.get('name'):
+                names.add(measure['name'])
+        elif measure.create_metric and measure.name:
+            names.add(measure.name)
+    return names
+
+
 def find_semantic_models_by_topic_ids(principal_service: PrincipalService, topic_ids: List[str],
                                       tenant_id: str) -> List[SemanticModel]:
     semantic_model_service = get_semantic_model_service(principal_service)
@@ -90,11 +105,7 @@ def find_metrics_by_semantic_model(principal_service: PrincipalService, semantic
         prefix = f"{semantic_model.name}_"
 
         # Get valid measure names for this semantic model
-        valid_measure_names = {
-            measure.name
-            for measure in semantic_model.measures
-            if measure.create_metric
-        }
+        valid_measure_names = get_measure_names_with_create_metric(semantic_model)
 
         filtered_metrics = []
         for metric in metrics:
@@ -120,12 +131,7 @@ def find_metrics_by_topic_ids(principal_service: PrincipalService, topic_ids: Li
         # Map: semantic_model_name -> set(valid_measure_names)
         model_measures = {}
         for model in semantic_models:
-            valid_measures = {
-                measure.name
-                for measure in model.measures
-                if measure.create_metric
-            }
-            model_measures[model.name] = valid_measures
+            model_measures[model.name] = get_measure_names_with_create_metric(model)
 
         for metric in all_metrics:
             # Check if metric matches any semantic model
