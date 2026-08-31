@@ -1,5 +1,7 @@
 from typing import List, Optional
 
+from logging import getLogger
+
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import SpaceService, UserService, UserGroupService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
@@ -12,6 +14,8 @@ from watchmen_model.admin.user import User
 from watchmen_model.admin.user_group import UserGroup
 from watchmen_model.common import TenantId
 from watchmen_utilities import ArrayHelper
+
+logger = getLogger(__name__)
 
 
 def get_space_service(principal_service: PrincipalService) -> SpaceService:
@@ -36,6 +40,9 @@ def get_console_user_topic_ids(principal_service: PrincipalService) -> List[str]
 
     user = trans_readonly(user_service, load_user)
     if not user or not user.groupIds:
+        logger.info(
+            'Console metric visibility: user[{0}] has no user group bound, no metric is visible.'
+            .format(principal_service.get_user_id()))
         return []
 
     tenant_id = principal_service.get_tenant_id()
@@ -45,10 +52,14 @@ def get_console_user_topic_ids(principal_service: PrincipalService) -> List[str]
 
     user_groups = trans_readonly(user_group_service, load_user_groups)
     if not user_groups:
+        logger.info('Console metric visibility: user groups[{0}] not found, no metric is visible.'
+                    .format(user.groupIds))
         return []
 
     space_ids = ArrayHelper(user_groups).map(lambda x: x.spaceIds).flatten().filter(lambda x: x is not None).distinct().to_list()
     if not space_ids:
+        logger.info('Console metric visibility: user groups[{0}] bind no space, no metric is visible.'
+                    .format([g.name for g in user_groups]))
         return []
 
     def load_spaces() -> List[Space]:
@@ -56,9 +67,14 @@ def get_console_user_topic_ids(principal_service: PrincipalService) -> List[str]
 
     spaces = trans_readonly(space_service, load_spaces)
     if not spaces:
+        logger.info('Console metric visibility: spaces[{0}] not found, no metric is visible.'.format(space_ids))
         return []
 
-    return ArrayHelper(spaces).map(lambda x: x.topicIds).flatten().filter(lambda x: x is not None).distinct().to_list()
+    topic_ids = ArrayHelper(spaces).map(lambda x: x.topicIds).flatten().filter(lambda x: x is not None).distinct().to_list()
+    logger.info('Console metric visibility: user[{0}] -> groups[{1}] -> spaces[{2}] -> topics[{3}].'.format(
+        user.name, [g.name for g in user_groups],
+        [(s.name, s.topicIds) for s in spaces], topic_ids))
+    return topic_ids
 
 
 def get_measure_names_with_create_metric(semantic_model: SemanticModel) -> set:
@@ -142,6 +158,14 @@ def find_metrics_by_topic_ids(principal_service: PrincipalService, topic_ids: Li
                     if measure_part in valid_measures:
                         filtered_metrics.append(metric)
                         break  # Found a match, move to next metric
+
+        logger.info(
+            'Console metric visibility: topics[{0}] -> semantic models[{1}] -> '
+            'total metrics[{2}] -> matched metrics[{3}].'.format(
+                topic_ids,
+                [(name, sorted(measures)) for name, measures in model_measures.items()],
+                len(all_metrics),
+                [m.name for m in filtered_metrics]))
         return filtered_metrics
 
     return trans_readonly(metric_service, action)
