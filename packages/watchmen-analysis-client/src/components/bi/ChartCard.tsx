@@ -6,7 +6,7 @@ import type { BIChartCard, BICardSize } from '@/model/biAnalysis';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import type { AlertStatus } from '@/model/AlertConfig';
 import { AlertCard } from './AlertCard';
-import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy, AlertTriangle, CheckCircle2, Activity, Lightbulb } from 'lucide-react';
+import { GripHorizontal, Trash2, Maximize2, Minimize2, BarChart2, Table as TableIcon, LineChart as LineChartIcon, Sparkles, Copy, AlertTriangle, AlertCircle, CheckCircle2, Activity, Lightbulb } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +24,7 @@ import { DataTable } from './charts/DataTable';
 import { useChartAxis } from './charts/useChartAxis';
 import { KPIView, BarChartView, PieChartView, AreaChartView, LineChartView } from './charts/ChartViews';
 import { useRechartsModule } from './charts/RechartsContext';
-import { useMetricFormat, useMetricLabel, useMetricUnit } from './charts/useMetricFormat';
+import { useMetricFormat, useMetricLabel, useMetricUnit, useMetricCurrency } from './charts/useMetricFormat';
 
 export type { ChartDatum, ChartDatumValue } from './charts/types';
 export { DataTable } from './charts/DataTable';
@@ -44,6 +44,9 @@ export interface ChartCardProps {
   onAcknowledge?: (alertId: string) => void;
   onProposeHypothesis?: (card: BIChartCard) => void;
   hypothesisBadge?: { total: number; worstStatus: string };
+  isLoading?: boolean;
+  error?: string;
+  onRetry?: () => void;
 }
 
 const sizeClass = (size: BICardSize) => {
@@ -64,12 +67,14 @@ type ChartInnerProps = {
   sourceData?: MetricFlowResponse;
   format?: string;
   unit?: string;
+  currency?: string;
+  valueLabel?: string;
   alertStatus?: AlertStatus;
   onAcknowledge?: (alertId: string) => void;
   onProposeHypothesis?: (card: BIChartCard) => void;
 };
 
-const Chart = React.memo(({ lib, card, data, sourceData, format, unit, alertStatus, onAcknowledge, onProposeHypothesis }: ChartInnerProps) => {
+const Chart = React.memo(({ lib, card, data, sourceData, format, unit, currency, valueLabel, alertStatus, onAcknowledge, onProposeHypothesis }: ChartInnerProps) => {
   const { type: chartType } = { type: card.chartType };
   
   const sampledData = useMemo(() => {
@@ -83,7 +88,7 @@ const Chart = React.memo(({ lib, card, data, sourceData, format, unit, alertStat
     return data;
   }, [chartType, data]);
   
-  const axisProps = useChartAxis(card, sampledData);
+  const axisProps = useChartAxis(card, sampledData, format, currency);
 
   if (chartType === 'alert') {
     return <AlertCard card={card} data={data} alertStatus={alertStatus} onAcknowledge={onAcknowledge} onProposeHypothesis={onProposeHypothesis} />;
@@ -94,23 +99,23 @@ const Chart = React.memo(({ lib, card, data, sourceData, format, unit, alertStat
   }
 
   if (chartType === 'kpi') {
-    return <KPIView data={sampledData} format={format} unit={unit} />;
+    return <KPIView data={sampledData} format={format} unit={unit} currency={currency} granularity={card.selection?.timeGranularity} />;
   }
 
   if (['bar', 'groupedBar', 'stackedBar'].includes(chartType)) {
-    return <BarChartView lib={lib} data={sampledData} chartType={chartType} axisProps={axisProps} format={format} unit={unit} />;
+    return <BarChartView lib={lib} data={sampledData} chartType={chartType} axisProps={axisProps} format={format} unit={unit} currency={currency} valueLabel={valueLabel} />;
   }
 
   if (chartType === 'pie' && !axisProps.isTime) {
-    return <PieChartView lib={lib} data={sampledData} format={format} unit={unit} />;
+    return <PieChartView lib={lib} data={sampledData} format={format} unit={unit} currency={currency} valueLabel={valueLabel} />;
   }
 
   if (chartType === 'area') {
-    return <AreaChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} unit={unit} />;
+    return <AreaChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} unit={unit} currency={currency} valueLabel={valueLabel} />;
   }
 
   // Default to line
-  return <LineChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} unit={unit} />;
+  return <LineChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} unit={unit} currency={currency} valueLabel={valueLabel} />;
 });
 
 // Hypothesis badge pill colors by worst status (mirrors the alert pill styling)
@@ -136,6 +141,9 @@ export const ChartCard = React.memo(({
   sourceData,
   onProposeHypothesis,
   hypothesisBadge,
+  isLoading,
+  error,
+  onRetry,
 }: ChartCardProps) => {
   const { toast } = useToast();
   const { t } = useTranslation('biAnalysis');
@@ -146,6 +154,7 @@ export const ChartCard = React.memo(({
   const metricLabel = useMetricLabel(card.metricId);
   const metricFormat = useMetricFormat(card.metricId);
   const metricUnit = useMetricUnit(card.metricId);
+  const metricCurrency = useMetricCurrency(card.metricId);
   
   const dimensionsCount = card.selection?.dimensions?.length || 0;
   const isTooManyDimensions = dimensionsCount > 5;
@@ -219,7 +228,7 @@ export const ChartCard = React.memo(({
           
           <div className="flex items-center gap-2 overflow-hidden flex-1">
             {draggable && (
-               <div className="cursor-grab text-muted-foreground/50 hover:text-foreground active:cursor-grabbing transition-colors" title="Drag to reorder">
+               <div className="cursor-grab text-muted-foreground/50 hover:text-foreground active:cursor-grabbing transition-colors" title={t('chart.dragToReorder')}>
                  <GripHorizontal className="h-5 w-5" />
                </div>
             )}
@@ -295,12 +304,12 @@ export const ChartCard = React.memo(({
 
           <div className="flex items-center gap-1 flex-shrink-0">
             {card.chartType !== 'alert' && (
-              <Button variant="ghost" size="icon" onClick={handleCopy} className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Copy Data">
+              <Button variant="ghost" size="icon" onClick={handleCopy} className="h-7 w-7 text-muted-foreground hover:text-foreground" title={t('chart.copyData')}>
                 <Copy className="h-3.5 w-3.5" />
               </Button>
             )}
             {card.chartType !== 'alert' && onProposeHypothesis && (
-              <Button variant="ghost" size="icon" onClick={() => onProposeHypothesis(card)} className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Propose hypothesis">
+              <Button variant="ghost" size="icon" onClick={() => onProposeHypothesis(card)} className="h-7 w-7 text-muted-foreground hover:text-foreground" title={t('chart.proposeHypothesis')}>
                 <Lightbulb className="h-3.5 w-3.5" />
               </Button>
             )}
@@ -356,6 +365,26 @@ export const ChartCard = React.memo(({
                     <DataTable data={data} sourceData={sourceData} />
                  </div>
                </div>
+            ) : chartViewEnabled && error && data.length === 0 ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground gap-2">
+                <AlertCircle className="w-8 h-8 opacity-30 text-destructive" />
+                <span className="text-xs font-medium" title={error}>{t('chart.loadFailed')}</span>
+                {onRetry && (
+                  <Button variant="outline" size="sm" className="h-7 text-xs" onClick={onRetry}>
+                    {t('chart.retry')}
+                  </Button>
+                )}
+              </div>
+            ) : chartViewEnabled && isLoading && data.length === 0 ? (
+              <div className="h-full w-full min-h-[250px] flex flex-col justify-end gap-2 px-1 pb-1">
+                <div className="flex-1 flex items-end gap-2">
+                  {[45, 70, 35, 85, 55, 65].map(height => (
+                    <div key={height} className="flex-1 animate-pulse rounded-t-md bg-muted" style={{ height: `${height}%` }} />
+                  ))}
+                </div>
+                <div className="h-2 w-1/3 animate-pulse rounded bg-muted self-center" />
+                <span className="sr-only">{t('chart.loading')}</span>
+              </div>
             ) : chartViewEnabled && !lib ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground gap-2">
                 <BarChart2 className="w-8 h-8 opacity-20" />
@@ -370,6 +399,8 @@ export const ChartCard = React.memo(({
                   sourceData={sourceData}
                   format={metricFormat}
                   unit={metricUnit}
+                  currency={metricCurrency}
+                  valueLabel={displayName}
                   alertStatus={alertStatus}
                   onAcknowledge={onAcknowledge}
                   onProposeHypothesis={onProposeHypothesis}
@@ -399,7 +430,10 @@ export const ChartCard = React.memo(({
   prev.alertStatus === next.alertStatus &&
   prev.onAcknowledge === next.onAcknowledge &&
   prev.onProposeHypothesis === next.onProposeHypothesis &&
-  prev.hypothesisBadge === next.hypothesisBadge
+  prev.hypothesisBadge === next.hypothesisBadge &&
+  prev.isLoading === next.isLoading &&
+  prev.error === next.error &&
+  prev.onRetry === next.onRetry
 ));
 
 export default ChartCard;

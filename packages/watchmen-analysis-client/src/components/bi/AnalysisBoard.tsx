@@ -30,6 +30,9 @@ const EMPTY_CARD_DATA: { chartData: ChartDataPoint[]; rawData: MetricFlowRespons
 interface AnalysisBoardProps {
   cards: BIChartCard[];
   cardDataMap: Record<string, { chartData: ChartDataPoint[]; rawData: MetricFlowResponse | null }>;
+  cardLoadingMap?: Record<string, boolean>;
+  cardErrorMap?: Record<string, string>;
+  onCardRetry?: (card: BIChartCard) => void;
   onDragStart: (index: number) => (e: React.DragEvent<HTMLDivElement>) => void;
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
   onDrop: (index: number) => (e: React.DragEvent<HTMLDivElement>) => void;
@@ -62,6 +65,9 @@ interface BoardCardItemProps {
   index: number;
   chartData: ChartDataPoint[];
   rawData: MetricFlowResponse | null;
+  isLoading?: boolean;
+  error?: string;
+  onCardRetry?: (card: BIChartCard) => void;
   readOnly: boolean;
   alertStatus?: AlertStatus;
   onDragStart: AnalysisBoardProps['onDragStart'];
@@ -90,6 +96,9 @@ const BoardCardItem = React.memo(({
   index,
   chartData,
   rawData,
+  isLoading,
+  error,
+  onCardRetry,
   readOnly,
   alertStatus,
   onDragStart,
@@ -134,6 +143,10 @@ const BoardCardItem = React.memo(({
     () => !readOnly ? () => onRemove(index) : undefined,
     [readOnly, onRemove, index]
   );
+  const handleRetry = React.useMemo(
+    () => onCardRetry ? () => onCardRetry(card) : undefined,
+    [onCardRetry, card]
+  );
 
   if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert' && card.chartType !== 'kpi') {
     return (
@@ -160,6 +173,9 @@ const BoardCardItem = React.memo(({
           card={card}
           data={chartData}
           sourceData={rawData ?? undefined}
+          isLoading={isLoading}
+          error={error}
+          onRetry={handleRetry}
           draggable={!readOnly}
           onDragStart={handleDragStart}
           onDragOver={!readOnly ? onDragOver : undefined}
@@ -181,6 +197,9 @@ const BoardCardItem = React.memo(({
   prev.index === next.index &&
   prev.chartData === next.chartData &&
   prev.rawData === next.rawData &&
+  prev.isLoading === next.isLoading &&
+  prev.error === next.error &&
+  prev.onCardRetry === next.onCardRetry &&
   prev.readOnly === next.readOnly &&
   prev.alertStatus === next.alertStatus &&
   prev.onDragStart === next.onDragStart &&
@@ -196,6 +215,9 @@ const BoardCardItem = React.memo(({
 export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
   cards,
   cardDataMap,
+  cardLoadingMap,
+  cardErrorMap,
+  onCardRetry,
   onDragStart,
   onDragOver,
   onDrop,
@@ -312,7 +334,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
           {onProposeHypothesis && (
             <Button variant="outline" size="sm" onClick={onProposeHypothesis} className="gap-2 h-8">
               <Lightbulb className="w-4 h-4" />
-              Propose hypothesis
+              {t('biAnalysis:chart.proposeHypothesis')}
             </Button>
           )}
           {hasGlobalFilters && (
@@ -365,6 +387,9 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
                     index={index}
                     chartData={chartData}
                     rawData={rawData}
+                    isLoading={cardLoadingMap?.[card.id]}
+                    error={cardErrorMap?.[card.id]}
+                    onCardRetry={onCardRetry}
                     readOnly={readOnly}
                     alertStatus={alertStatusMap?.[card.id]}
                     onDragStart={onDragStart}

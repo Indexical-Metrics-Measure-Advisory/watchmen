@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getMetrics } from '@/services/metricsManagementService';
+import { inferCurrencyFromUnit } from '@/utils/metricValueFormat';
 
 /**
  * Resolve the display label / format / unit configured on a metric
@@ -42,6 +43,7 @@ const loadDisplayInfo = (): Promise<DisplayMap> => {
 const pickLabel = (info: MetricDisplayInfo | undefined) => info?.label;
 const pickFormat = (info: MetricDisplayInfo | undefined) => info?.format;
 const pickUnit = (info: MetricDisplayInfo | undefined) => info?.unit;
+const pickCurrency = (info: MetricDisplayInfo | undefined) => inferCurrencyFromUnit(info?.unit);
 
 const useMetricDisplayField = (metricId: string | undefined, pick: (info: MetricDisplayInfo | undefined) => string | undefined): string | undefined => {
 	const [value, setValue] = useState<string | undefined>(() => (metricId && cache ? pick(cache[metricId]) : undefined));
@@ -69,3 +71,6 @@ export const useMetricLabel = (metricId?: string): string | undefined => useMetr
 export const useMetricFormat = (metricId?: string): string | undefined => useMetricDisplayField(metricId, pickFormat);
 
 export const useMetricUnit = (metricId?: string): string | undefined => useMetricDisplayField(metricId, pickUnit);
+
+/** Currency code inferred from the metric's display unit (defaults to USD). */
+export const useMetricCurrency = (metricId?: string): string | undefined => useMetricDisplayField(metricId, pickCurrency);

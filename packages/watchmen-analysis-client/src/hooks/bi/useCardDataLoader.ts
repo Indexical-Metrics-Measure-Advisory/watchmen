@@ -82,12 +82,41 @@ export const useCardDataLoader = () => {
   const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: ChartDatum[]; rawData: MetricFlowResponse | null }>>({});
   const [alertStatusMap, setAlertStatusMap] = useState<Record<string, AlertStatus>>({});
   const [isBoardRefreshing, setIsBoardRefreshing] = useState(false);
+  // Per-card fetch status: true while a fetch is in flight; a short message on failure
+  const [cardLoadingMap, setCardLoadingMap] = useState<Record<string, boolean>>({});
+  const [cardErrorMap, setCardErrorMap] = useState<Record<string, string>>({});
 
   // ── Refs: Caches ──
   const cardQueryCache = useRef<Map<string, { result: FetchCardDataResult; timestamp: number }>>(new Map());
   const cardInFlightRequests = useRef<Map<string, number>>(new Map());
   const boardRefreshRequestRef = useRef(0);
   const loadedCardIdsRef = useRef<Set<string>>(new Set());
+  // Last query context used by any load — reused by retryCard so a per-card retry
+  // runs with the same global time range / filters as the board's last fetch
+  const lastContextRef = useRef<CardQueryContext | undefined>(undefined);
+
+  // ── Batched loading-map updates (one setState per batch, not per card) ──
+  const markCardsLoading = useCallback((cardIds: string[]) => {
+    if (cardIds.length === 0) return;
+    setCardLoadingMap(prev => {
+      const next = { ...prev };
+      cardIds.forEach(id => {
+        next[id] = true;
+      });
+      return next;
+    });
+  }, []);
+
+  const markCardsSettled = useCallback((cardIds: string[]) => {
+    if (cardIds.length === 0) return;
+    setCardLoadingMap(prev => {
+      const next = { ...prev };
+      cardIds.forEach(id => {
+        delete next[id];
+      });
+      return next;
+    });
+  }, []);
 
   // ── Fetch single card data ──
   const fetchCardData = useCallback(async (
@@ -187,6 +216,7 @@ export const useCardDataLoader = () => {
       return { id: card.id, type: 'chart', data, rawData: resp };
     } catch (e) {
       console.warn(`Card ${card.id}: failed to load data.`, e);
+      setCardErrorMap(prev => ({ ...prev, [card.id]: e instanceof Error ? e.message : String(e) }));
       return null;
     }
   }, []);
@@ -213,6 +243,19 @@ export const useCardDataLoader = () => {
       });
       return hasUpdates ? next : prev;
     });
+
+    // A successful fetch clears any previously recorded error for that card
+    setCardErrorMap(prev => {
+      const next = { ...prev };
+      let hasUpdates = false;
+      results.forEach(result => {
+        if (result && next[result.id]) {
+          delete next[result.id];
+          hasUpdates = true;
+        }
+      });
+      return hasUpdates ? next : prev;
+    });
   }, []);
 
   // ── Load data for a single card (with cache & dedup) ──
@@ -220,6 +263,7 @@ export const useCardDataLoader = () => {
     card: BIChartCard,
     context?: CardQueryContext
   ) => {
+    lastContextRef.current = context;
     const cacheKey = buildCardCacheKey(card, context);
     const cached = cardQueryCache.current.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CARD_QUERY_CACHE_TTL && !context?.filtersOverride) {
@@ -229,6 +273,7 @@ export const useCardDataLoader = () => {
     if (cardInFlightRequests.current.has(cacheKey)) return;
     const requestId = Date.now();
     cardInFlightRequests.current.set(cacheKey, requestId);
+    markCardsLoading([card.id]);
     try {
       const result = await fetchCardData(card, context);
       if (cardInFlightRequests.current.get(cacheKey) !== requestId) return;
@@ -238,8 +283,9 @@ export const useCardDataLoader = () => {
       applyCardResults([result]);
     } finally {
       cardInFlightRequests.current.delete(cacheKey);
+      markCardsSettled([card.id]);
     }
-  }, [applyCardResults, fetchCardData]);
+  }, [applyCardResults, fetchCardData, markCardsLoading, markCardsSettled]);
 
   // ── Load data for many cards at once — fetches in parallel and applies all
   // results with a single batched state update (used for the initial board load) ──
@@ -247,6 +293,7 @@ export const useCardDataLoader = () => {
     cardsToLoad: BIChartCard[],
     context?: CardQueryContext
   ) => {
+    lastContextRef.current = context;
     const now = Date.now();
     const cachedResults: FetchCardDataResult[] = [];
     const pending: BIChartCard[] = [];
@@ -269,6 +316,7 @@ export const useCardDataLoader = () => {
 
     const requestId = Date.now();
     pending.forEach(card => cardInFlightRequests.current.set(buildCardCacheKey(card, context), requestId));
+    markCardsLoading(pending.map(card => card.id));
     try {
       const results = await Promise.all(pending.map(card => fetchCardData(card, context)));
       const valid: FetchCardDataResult[] = [];
@@ -280,8 +328,9 @@ export const useCardDataLoader = () => {
       applyCardResults(valid);
     } finally {
       pending.forEach(card => cardInFlightRequests.current.delete(buildCardCacheKey(card, context)));
+      markCardsSettled(pending.map(card => card.id));
     }
-  }, [applyCardResults, fetchCardData]);
+  }, [applyCardResults, fetchCardData, markCardsLoading, markCardsSettled]);
 
   // ── Refresh a set of cards with context ──
   const refreshCardsWithContext = useCallback(async (
@@ -295,12 +344,32 @@ export const useCardDataLoader = () => {
     }
   ) => {
     const requestId = ++boardRefreshRequestRef.current;
-    const results = await Promise.all(
-      cardsToRefresh.map(card => fetchCardData(card, context))
-    );
-    if (requestId !== boardRefreshRequestRef.current) return;
-    applyCardResults(results);
-  }, [applyCardResults, fetchCardData]);
+    lastContextRef.current = context;
+    markCardsLoading(cardsToRefresh.map(card => card.id));
+    try {
+      const results = await Promise.all(
+        cardsToRefresh.map(card => fetchCardData(card, context))
+      );
+      if (requestId !== boardRefreshRequestRef.current) return;
+      applyCardResults(results);
+    } finally {
+      markCardsSettled(cardsToRefresh.map(card => card.id));
+    }
+  }, [applyCardResults, fetchCardData, markCardsLoading, markCardsSettled]);
+
+  // ── Retry a single failed card: drop its cache entry and refetch with the
+  // last-used query context ──
+  const retryCard = useCallback(async (card: BIChartCard) => {
+    const context = lastContextRef.current;
+    cardQueryCache.current.delete(buildCardCacheKey(card, context));
+    setCardErrorMap(prev => {
+      if (!prev[card.id]) return prev;
+      const next = { ...prev };
+      delete next[card.id];
+      return next;
+    });
+    await loadCardDataFor(card, context);
+  }, [loadCardDataFor]);
 
   // ── Refresh all cards (used by refresh button) ──
   const refreshData = useCallback(async (cards: BIChartCard[], context?: {
@@ -317,6 +386,8 @@ export const useCardDataLoader = () => {
   const clearCardDataMap = useCallback(() => {
     setCardDataMap({});
     setAlertStatusMap({});
+    setCardLoadingMap({});
+    setCardErrorMap({});
     cardQueryCache.current.clear();
     cardInFlightRequests.current.clear();
     loadedCardIdsRef.current.clear();
@@ -328,6 +399,9 @@ export const useCardDataLoader = () => {
     setAlertStatusMap,
     isBoardRefreshing,
     setIsBoardRefreshing,
+    cardLoadingMap,
+    cardErrorMap,
+    retryCard,
     fetchCardData,
     loadCardDataFor,
     loadCardsDataFor,

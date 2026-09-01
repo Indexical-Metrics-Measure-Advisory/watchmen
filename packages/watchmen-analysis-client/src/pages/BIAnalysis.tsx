@@ -60,6 +60,9 @@ const BIAnalysisPage: React.FC = () => {
     alertStatusMap,
     isBoardRefreshing,
     setIsBoardRefreshing,
+    cardLoadingMap,
+    cardErrorMap,
+    retryCard,
     loadCardDataFor,
     loadCardsDataFor,
     refreshCardsWithContext,
@@ -330,6 +333,9 @@ const BIAnalysisPage: React.FC = () => {
                 <AnalysisBoard
                   cards={cards}
                   cardDataMap={cardDataMap}
+                  cardLoadingMap={cardLoadingMap}
+                  cardErrorMap={cardErrorMap}
+                  onCardRetry={retryCard}
                   onDragStart={onDragStart}
                   onDragOver={onDragOver}
                   onDrop={onDrop}
