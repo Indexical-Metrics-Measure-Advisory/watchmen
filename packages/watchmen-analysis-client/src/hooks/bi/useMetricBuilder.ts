@@ -173,6 +173,10 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
 
   const previewCache = useRef<Map<string, { data: unknown[]; rawData: MetricFlowResponse | null }>>(new Map());
 
+  // Latest chart config for callbacks that must not re-create on every keystroke
+  const chartConfigRef = useRef(chartConfig);
+  chartConfigRef.current = chartConfig;
+
   // LRU eviction helper for preview cache
   const ensurePreviewCacheSize = useCallback(() => {
     const cache = previewCache.current;
@@ -415,6 +419,16 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
   }, []);
 
   const toggleDim = useCallback((dim: string) => {
+    // Both selecting and deselecting a dimension must re-query the backend,
+    // so evict this metric's cached previews; otherwise toggling back to a
+    // previously-seen dimension set would be served from cache without a fetch.
+    const metricName = chartConfigRef.current.metricDef?.name;
+    if (metricName) {
+      const marker = `"metric":${JSON.stringify(metricName)}`;
+      Array.from(previewCache.current.keys()).forEach(key => {
+        if (key.includes(marker)) previewCache.current.delete(key);
+      });
+    }
     setChartConfig(prev => {
       const dimensions = prev.dimensions.includes(dim)
         ? prev.dimensions.filter(d => d !== dim)
