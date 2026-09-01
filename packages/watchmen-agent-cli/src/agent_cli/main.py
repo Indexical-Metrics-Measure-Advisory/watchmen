@@ -223,7 +223,7 @@ def handle_semantic_pull_name(args: argparse.Namespace) -> None:
 
 
 def handle_semantic_push_file(args: argparse.Namespace) -> None:
-    run_with_sync_service(args, lambda svc: svc.push_semantic_model_yaml_file(Path(args.file_path)))
+    run_with_sync_service(args, lambda svc: svc.push_semantic_model_yaml_file(Path(args.file_path), dry_run=args.dry_run))
 
 
 def handle_semantic_list(args: argparse.Namespace) -> None:
@@ -240,7 +240,7 @@ def handle_metric_pull_name(args: argparse.Namespace) -> None:
 
 
 def handle_metric_push_file(args: argparse.Namespace) -> None:
-    run_with_sync_service(args, lambda svc: svc.push_metric_yaml_file(Path(args.file_path)))
+    run_with_sync_service(args, lambda svc: svc.push_metric_yaml_file(Path(args.file_path), dry_run=args.dry_run))
 
 
 def handle_metric_list(args: argparse.Namespace) -> None:
@@ -512,6 +512,7 @@ def register_semantic_commands(subparsers: argparse._SubParsersAction) -> None:
     semantic_push_file = create_subparser(semantic_sub, "push-file", "Push a local semantic model YAML file")
     semantic_push_file.add_argument("file_path", help="Path to the local .yml or .yaml file")
     add_vault_arg(semantic_push_file)
+    semantic_push_file.add_argument("--dry-run", action="store_true", default=False, help="Validate only, do not persist")
     semantic_push_file.set_defaults(handler=handle_semantic_push_file)
 
     semantic_list = create_subparser(semantic_sub, "list", "List local semantic model files")
@@ -535,6 +536,7 @@ def register_metric_commands(subparsers: argparse._SubParsersAction) -> None:
     metric_push_file = create_subparser(metric_sub, "push-file", "Push a local metric YAML file")
     metric_push_file.add_argument("file_path", help="Path to the local .yml or .yaml file")
     add_vault_arg(metric_push_file)
+    metric_push_file.add_argument("--dry-run", action="store_true", default=False, help="Validate only, do not persist")
     metric_push_file.set_defaults(handler=handle_metric_push_file)
 
     metric_list = create_subparser(metric_sub, "list", "List local metric files")

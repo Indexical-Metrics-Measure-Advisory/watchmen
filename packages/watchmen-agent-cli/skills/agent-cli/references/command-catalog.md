@@ -46,14 +46,14 @@
 ## Semantic Model (MetricFlow)
 
 - `semantic pull-name "<model_name>" --vault`
-- `semantic push-file <file_path> --vault`
+- `semantic push-file <file_path> --vault [--dry-run]`
 - `semantic list --vault`
 - `semantic list-remote --vault`
 
 ## Metric (MetricFlow)
 
 - `metric pull-name "<metric_name>" --vault`
-- `metric push-file <file_path> --vault`
+- `metric push-file <file_path> --vault [--dry-run]`
 - `metric list --vault`
 - `metric list-remote --vault`
 

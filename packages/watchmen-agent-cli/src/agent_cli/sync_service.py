@@ -291,15 +291,30 @@ class SyncService:
         write_yaml_entity(self.vault_path, METRICFLOW_SEMANTIC_DIR, model_yaml, "id", name_key="name")
         return {"semanticModelName": model_name, "status": "pulled"}
 
-    def push_semantic_model_yaml_file(self, file_path: Path) -> Dict[str, Any]:
+    def push_semantic_model_yaml_file(self, file_path: Path, dry_run: bool = False) -> Dict[str, Any]:
         if not file_path.exists():
             raise AgentCliException(f"File not found: {file_path}")
         source_yaml = file_path.read_text(encoding="utf-8")
         source_model = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
         source_id = str((source_model or {}).get("id") or "").strip()
-        pushed_yaml = self.client.post_text("/metricflow/semantic-model/yaml/agent-upsert", source_yaml)
-        pushed_model = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
-        pushed_id = str((pushed_model or {}).get("id") or "").strip()
+        # agent-upsert 响应: {action, dryRun, semanticModel}
+        path = "/metricflow/semantic-model/yaml/agent-upsert"
+        if dry_run:
+            path += "?dry_run=true"
+        pushed_yaml = self.client.post_text(path, source_yaml)
+        pushed_response = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
+        pushed_model = (pushed_response or {}).get("semanticModel") or {}
+        pushed_id = str(pushed_model.get("id") or "").strip()
+        pushed_yaml = yaml.dump(pushed_model, sort_keys=False) if pushed_model else pushed_yaml
+        action = (pushed_response or {}).get("action") or ""
+
+        if dry_run:
+            return {
+                "status": "dry_run",
+                "file": str(file_path),
+                "action": action,
+            }
+
         replaced = bool(source_id and pushed_id and source_id == pushed_id)
 
         if file_path.resolve().is_relative_to((self.vault_path / METRICFLOW_SEMANTIC_DIR).resolve()):
@@ -312,6 +327,7 @@ class SyncService:
         return {
             "status": "pushed",
             "file": str(file_path),
+            "action": action,
             "sourceId": source_id or None,
             "id": pushed_id or None,
             "replaced": replaced
@@ -334,15 +350,30 @@ class SyncService:
         write_yaml_entity(self.vault_path, METRICFLOW_METRIC_DIR, metric_yaml, "id", name_key="name")
         return {"metricName": metric_name, "status": "pulled"}
 
-    def push_metric_yaml_file(self, file_path: Path) -> Dict[str, Any]:
+    def push_metric_yaml_file(self, file_path: Path, dry_run: bool = False) -> Dict[str, Any]:
         if not file_path.exists():
             raise AgentCliException(f"File not found: {file_path}")
         source_yaml = file_path.read_text(encoding="utf-8")
         source_metric = yaml.safe_load(source_yaml) if source_yaml.strip() else {}
         source_id = str((source_metric or {}).get("id") or "").strip()
-        pushed_yaml = self.client.post_text("/metricflow/metric/yaml/agent-upsert", source_yaml)
-        pushed_metric = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
-        pushed_id = str((pushed_metric or {}).get("id") or "").strip()
+        # agent-upsert 响应: {action, dryRun, metric}
+        path = "/metricflow/metric/yaml/agent-upsert"
+        if dry_run:
+            path += "?dry_run=true"
+        pushed_yaml = self.client.post_text(path, source_yaml)
+        pushed_response = yaml.safe_load(pushed_yaml) if pushed_yaml.strip() else {}
+        pushed_metric = (pushed_response or {}).get("metric") or {}
+        pushed_id = str(pushed_metric.get("id") or "").strip()
+        pushed_yaml = yaml.dump(pushed_metric, sort_keys=False) if pushed_metric else pushed_yaml
+        action = (pushed_response or {}).get("action") or ""
+
+        if dry_run:
+            return {
+                "status": "dry_run",
+                "file": str(file_path),
+                "action": action,
+            }
+
         replaced = bool(source_id and pushed_id and source_id == pushed_id)
 
         if file_path.resolve().is_relative_to((self.vault_path / METRICFLOW_METRIC_DIR).resolve()):
@@ -355,6 +386,7 @@ class SyncService:
         return {
             "status": "pushed",
             "file": str(file_path),
+            "action": action,
             "sourceId": source_id or None,
             "id": pushed_id or None,
             "replaced": replaced

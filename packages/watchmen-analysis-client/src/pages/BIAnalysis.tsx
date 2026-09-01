@@ -72,6 +72,7 @@ const BIAnalysisPage: React.FC = () => {
   // ── Hook: Analysis state ──
   const {
     currentAnalysisId,
+    currentAnalysisName,
     activeSection,
     cards,
     setCards,
@@ -273,7 +274,18 @@ const BIAnalysisPage: React.FC = () => {
                 <LayoutDashboard className="h-8 w-8 text-primary" />
               </div>
               <div className="space-y-1">
-                <h1 className="text-2xl font-bold tracking-tight">{t('biAnalysis:page.title')}</h1>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="text-2xl font-bold tracking-tight">{t('biAnalysis:page.title')}</h1>
+                  {currentAnalysisName && (
+                    <Badge
+                      variant="secondary"
+                      className="max-w-[280px] truncate text-sm font-medium px-3 py-1"
+                      title={currentAnalysisName}
+                    >
+                      {currentAnalysisName}
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground">{t('biAnalysis:page.subtitle')}</p>
               </div>
             </div>

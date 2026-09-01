@@ -2,33 +2,34 @@ import { useEffect, useState } from 'react';
 import { getMetrics } from '@/services/metricsManagementService';
 
 /**
- * Resolve the display format configured on a metric (BIChartCard.metricId is the
- * metric name). The metric list is fetched once and cached at module level, so
- * every chart card on a dashboard shares a single request.
+ * Resolve the display label / format / unit configured on a metric
+ * (BIChartCard.metricId is the metric name). The metric list is fetched once and
+ * cached at module level, so every chart card on a dashboard shares a single request.
  */
 
-type FormatMap = Record<string, string | undefined>;
+type MetricDisplayInfo = { label?: string; format?: string; unit?: string };
+type DisplayMap = Record<string, MetricDisplayInfo | undefined>;
 
-let cache: FormatMap | null = null;
-let pending: Promise<FormatMap> | null = null;
+let cache: DisplayMap | null = null;
+let pending: Promise<DisplayMap> | null = null;
 
-const loadFormats = (): Promise<FormatMap> => {
+const loadDisplayInfo = (): Promise<DisplayMap> => {
 	if (cache) {
 		return Promise.resolve(cache);
 	}
 	pending ??= getMetrics()
 		.then(metrics => {
-			const map: FormatMap = {};
+			const map: DisplayMap = {};
 			metrics.forEach(m => {
-				if (m.name && m.format) {
-					map[m.name] = m.format;
+				if (m.name && (m.label || m.format || m.unit)) {
+					map[m.name] = { label: m.label, format: m.format, unit: m.unit };
 				}
 			});
 			cache = map;
 			return map;
 		})
 		.catch(e => {
-			console.warn('[useMetricFormat] failed to load metric formats', e);
+			console.warn('[useMetricFormat] failed to load metric display info', e);
 			cache = {};
 			return cache;
 		})
@@ -38,23 +39,33 @@ const loadFormats = (): Promise<FormatMap> => {
 	return pending;
 };
 
-export const useMetricFormat = (metricId?: string): string | undefined => {
-	const [format, setFormat] = useState<string | undefined>(() => (metricId && cache ? cache[metricId] : undefined));
+const pickLabel = (info: MetricDisplayInfo | undefined) => info?.label;
+const pickFormat = (info: MetricDisplayInfo | undefined) => info?.format;
+const pickUnit = (info: MetricDisplayInfo | undefined) => info?.unit;
+
+const useMetricDisplayField = (metricId: string | undefined, pick: (info: MetricDisplayInfo | undefined) => string | undefined): string | undefined => {
+	const [value, setValue] = useState<string | undefined>(() => (metricId && cache ? pick(cache[metricId]) : undefined));
 
 	useEffect(() => {
 		if (!metricId) {
 			return;
 		}
 		let cancelled = false;
-		loadFormats().then(map => {
+		loadDisplayInfo().then(map => {
 			if (!cancelled) {
-				setFormat(map[metricId]);
+				setValue(pick(map[metricId]));
 			}
 		});
 		return () => {
 			cancelled = true;
 		};
-	}, [metricId]);
+	}, [metricId, pick]);
 
-	return format;
+	return value;
 };
+
+export const useMetricLabel = (metricId?: string): string | undefined => useMetricDisplayField(metricId, pickLabel);
+
+export const useMetricFormat = (metricId?: string): string | undefined => useMetricDisplayField(metricId, pickFormat);
+
+export const useMetricUnit = (metricId?: string): string | undefined => useMetricDisplayField(metricId, pickUnit);

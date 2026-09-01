@@ -57,6 +57,11 @@ class CLIConfigurationDB(CLIConfiguration):
         """Setup this configuration for executing commands.
 
         """
+        if self.profile is None:
+            raise RuntimeError(
+                "No dbt profile is available for this tenant: every data source is MySQL "
+                "(dbt-metricflow has no MySQL adapter) or unresolvable, so dbt setup cannot run. "
+                "MySQL metrics must be served by the MySQL bypass.")
         try:
             # todo
             # config_service:ConfigService = get_config_service()

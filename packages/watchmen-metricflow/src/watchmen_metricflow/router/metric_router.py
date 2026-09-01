@@ -21,7 +21,8 @@ from watchmen_metricflow.model.semantic import SemanticModel
 from watchmen_metricflow.service.meta_service import load_metrics_by_tenant_id, load_semantic_models_by_tenant_id, \
     build_profile
 from watchmen_metricflow.service.mysql_metric_query_service import try_mysql_dimensions_by_metrics, \
-    try_mysql_metric_query
+    try_mysql_metric_query, try_mysql_metrics_list
+from watchmen_model.system import DataSourceType
 from watchmen_rest import get_admin_principal, get_any_principal, get_console_principal
 from watchmen_utilities import ExtendedBaseModel
 from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
@@ -72,6 +73,11 @@ async def list_metrics(principal_service: PrincipalService = Depends(get_admin_p
     """
     List all metrics available in the metric system.
     """
+    # MySQL data sources bypass dbt (dbt-metricflow has no MySQL support)
+    mysql_result = await try_mysql_metrics_list(principal_service)
+    if mysql_result is not None:
+        return mysql_result
+
     config = await build_metric_config(principal_service)
 
     response = find_all_metrics(config)
@@ -94,11 +100,14 @@ async def find_dimensions_by_metric(metric_name: str,principal_service: Principa
     check_metric_names_allowed(get_metric_service(principal_service), principal_service, [metric_name])
 
     # MySQL data sources bypass dbt (dbt-metricflow has no MySQL support)
-    mysql_result = await try_mysql_dimensions_by_metrics([metric_name], principal_service)
+    decline_reasons: List[str] = []
+    mysql_result = await try_mysql_dimensions_by_metrics([metric_name], principal_service, decline_reasons)
     if mysql_result is not None:
         return mysql_result
 
     config = await build_metric_config(principal_service)
+
+    ensure_dbt_path(config, [metric_name], decline_reasons)
 
     return load_dimensions_by_metrics([metric_name], config)
 
@@ -112,11 +121,14 @@ async def find_dimensions(metrics: List[str],principal_service: PrincipalService
     """
 
     # MySQL data sources bypass dbt (dbt-metricflow has no MySQL support)
-    mysql_result = await try_mysql_dimensions_by_metrics(metrics, principal_service)
+    decline_reasons: List[str] = []
+    mysql_result = await try_mysql_dimensions_by_metrics(metrics, principal_service, decline_reasons)
     if mysql_result is not None:
         return mysql_result
 
     config = await build_metric_config(principal_service)
+
+    ensure_dbt_path(config, metrics, decline_reasons)
 
     return load_dimensions_by_metrics(metrics, config)
 
@@ -163,11 +175,14 @@ async def get_metric_value(req :MetricQueryRequest,
     check_metric_names_allowed(get_metric_service(principal_service), principal_service, [req.metric])
 
     # MySQL data sources bypass dbt (dbt-metricflow has no MySQL support)
-    mysql_result = await try_mysql_metric_query(req, principal_service)
+    decline_reasons: List[str] = []
+    mysql_result = await try_mysql_metric_query(req, principal_service, decline_reasons)
     if mysql_result is not None:
         return mysql_result
 
     config = await build_metric_config(principal_service)
+
+    ensure_dbt_path(config, [req.metric], decline_reasons)
 
     ## check topic and subject space acesss
 
@@ -200,10 +215,12 @@ async def query_metrics(request_list: List[MetricQueryRequest],
     response_list = []
     for request in request_list:
         # MySQL data sources bypass dbt (dbt-metricflow has no MySQL support)
-        mysql_result = await try_mysql_metric_query(request, principal_service)
+        decline_reasons: List[str] = []
+        mysql_result = await try_mysql_metric_query(request, principal_service, decline_reasons)
         if mysql_result is not None:
             response_list.append(mysql_result)
             continue
+        ensure_dbt_path(config, [request.metric], decline_reasons)
         query_result: MetricFlowQueryResult = query(
             cfg=config,
             metrics=[request.metric],
@@ -232,10 +249,30 @@ def get_data_source_key(profile_data: Dict) -> Optional[str]:
     return None
 
 
+def ensure_dbt_path(config: CLIConfigurationDB, metric_names: List[str],
+                    decline_reasons: Optional[List[str]] = None) -> None:
+    """The dbt path only serves non-MySQL data sources; a missing merged profile
+    means every data source is MySQL (or unresolvable), and falling through to
+    dbt would fail on profile loading."""
+    if config.profile is None:
+        detail = (f"Metrics [{', '.join(metric_names)}] cannot be resolved to a MySQL data source "
+                  f"and this tenant has no non-MySQL data source for the dbt path")
+        if decline_reasons:
+            detail += '; MySQL bypass declined because: ' + '; '.join(decline_reasons)
+        raise HTTPException(status_code=400, detail=detail + '.')
+
+
 def build_merged_profile(semantics: List[SemanticModel], principal_service: PrincipalService) -> Optional[Dict]:
     profiles_map = {}
     for semantic in semantics:
         profile_data = build_profile(semantic, principal_service)
+
+        # MySQL profiles are served by the MySQL bypass (dbt-metricflow has no
+        # MySQL adapter); keep them out so the default target is never mysql
+        target_output = profile_data.get("outputs", {}).get(profile_data.get("target")) \
+            if profile_data else None
+        if target_output and target_output.get("type") == DataSourceType.MYSQL.value:
+            continue
 
         key = get_data_source_key(profile_data)
         if key and key not in profiles_map:

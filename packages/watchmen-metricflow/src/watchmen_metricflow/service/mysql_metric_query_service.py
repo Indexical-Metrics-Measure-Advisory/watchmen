@@ -13,6 +13,7 @@ public entry returns None and the caller falls through to the dbt path.
 
 import ast
 import calendar
+import logging
 import re
 from datetime import date, datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -26,7 +27,8 @@ from watchmen_model.system import DataSource, DataSourceParam, DataSourceType
 from watchmen_rest.util import raise_400
 
 from watchmen_metricflow.model.metric_request import MetricQueryRequest
-from watchmen_metricflow.model.dimension_response import DimensionInfo, DimensionListResponse
+from watchmen_metricflow.model.dimension_response import (
+	DimensionInfo, DimensionListResponse, MetricInfo, MetricListResponse)
 from watchmen_metricflow.model.metrics import (
 	MeasureReference, Metric, MetricRef, MetricType, MetricTypeParams, OffsetWindow)
 from watchmen_metricflow.model.semantic import (
@@ -42,6 +44,15 @@ from watchmen_metricflow.service.meta_service import (
 from watchmen_metricflow.util.trans import trans_readonly
 
 _GRANULARITIES = ('day', 'week', 'month', 'quarter', 'year')
+
+logger = logging.getLogger(__name__)
+
+
+def _decline(reasons: Optional[List[str]], reason: str) -> None:
+	"""Log a bypass decline and record the reason for the caller to surface."""
+	logger.info(f'MySQL bypass declined: {reason}')
+	if reasons is not None:
+		reasons.append(reason)
 
 _AGGREGATE_MAP = {
 	AggregationType.COUNT.value: 'count',
@@ -125,9 +136,31 @@ def _collect_tree_measures(
 	visited.add(metric_name)
 	params = metric.type_params
 	metric_type = _metric_type_value(metric)
+	# measure-position refs are measure names by definition and are collected
+	# as-is; a metric of the same name (e.g. auto-created from create_metric)
+	# must not shadow them; metric-position refs recurse into the metric tree
 	measure_refs: List[MeasureReference] = []
-	if metric_type in (MetricType.SIMPLE.value, MetricType.CUMULATIVE.value):
-		measure_refs = [params.measure] if params and params.measure else []
+	direct_measures: List[MeasureReference] = []
+	if metric_type == MetricType.SIMPLE.value:
+		if params and params.measure:
+			direct_measures.append(params.measure)
+	elif metric_type == MetricType.CUMULATIVE.value:
+		if params and params.measure:
+			direct_measures.append(params.measure)
+		# the metric UI saves cumulative metrics with their base under
+		# cumulative_type_params (measure or metric), leaving params.measure empty
+		cumulative_params = params.cumulative_type_params if params else None
+		if cumulative_params is not None:
+			if cumulative_params.measure is not None and cumulative_params.measure.name:
+				direct_measures.append(cumulative_params.measure)
+			if cumulative_params.metric is not None and cumulative_params.metric.name:
+				base_name = cumulative_params.metric.name
+				if base_name in metrics_by_name:
+					if not _collect_tree_measures(base_name, metrics_by_name, visited, out):
+						return False
+				else:
+					# tolerate a measure name placed under cumulative_type_params.metric
+					direct_measures.append(cumulative_params.metric)
 	elif metric_type == MetricType.RATIO.value:
 		measure_refs = [ref for ref in (params.numerator, params.denominator) if ref]
 	elif metric_type == MetricType.DERIVED.value:
@@ -138,7 +171,11 @@ def _collect_tree_measures(
 			elif ref.name:
 				# derived refs must be metrics; unknown names fail the bypass
 				return False
-		measure_refs = list(params.input_measures or [])
+		direct_measures = list(params.input_measures or [])
+	for ref in direct_measures:
+		if ref is None or not ref.name:
+			continue
+		out.add(ref.name)
 	for ref in measure_refs:
 		if ref is None or not ref.name:
 			continue
@@ -177,13 +214,15 @@ def _normalize_metric(metric: Metric) -> Metric:
 
 def resolve_mysql_context(
 		metric: Metric, metrics: List[Metric], semantic_models: List[SemanticModel],
-		binding_resolver: Callable[[SemanticModel], Optional[MySQLModelSource]]
+		binding_resolver: Callable[[SemanticModel], Optional[MySQLModelSource]],
+		decline_reasons: Optional[List[str]] = None
 ) -> Optional[MySQLQueryContext]:
 	"""Decide whether a metric can bypass dbt and run against MySQL directly.
 
 	Returns None when any measure in the metric's reference chain resolves to a
 	non-MySQL data source, a different data source than the other measures, or
-	cannot be resolved at all.
+	cannot be resolved at all. Decline reasons are logged and, when
+	`decline_reasons` is given, appended there for the caller to surface.
 	"""
 	_normalize_metric(metric)
 	metrics_by_name = {item.name: _normalize_metric(item) for item in metrics}
@@ -193,22 +232,33 @@ def resolve_mysql_context(
 			measure_models.setdefault(measure.name, model)
 	measure_names: set = set()
 	if not _collect_tree_measures(metric.name, metrics_by_name, set(), measure_names):
+		_decline(decline_reasons, f'metric [{metric.name}] reference chain contains '
+		                          f'an unknown metric reference.')
 		return None
 	if not measure_names:
+		_decline(decline_reasons, f'metric [{metric.name}] references no measures '
+		                          f'(type=[{_metric_type_value(metric)}], '
+		                          f'type_params=[{metric.type_params}]).')
 		return None
 	model_sources: Dict[str, MySQLModelSource] = {}
 	for name in measure_names:
 		model = measure_models.get(name)
 		if model is None:
+			_decline(decline_reasons, f'measure [{name}] of metric [{metric.name}] '
+			                          f'is not defined in any semantic model.')
 			return None
 		if model.name in model_sources:
 			continue
 		source = binding_resolver(model)
 		if source is None:
+			_decline(decline_reasons, f'semantic model [{model.name}] of metric [{metric.name}] '
+			                          f'does not resolve to a MySQL data source.')
 			return None
 		model_sources[model.name] = source
 	if len({source.key for source in model_sources.values()}) != 1:
 		# measures spread over different connections are not supported
+		_decline(decline_reasons, f'measures of metric [{metric.name}] '
+		                          f'spread over multiple data sources.')
 		return None
 	return MySQLQueryContext(metric, metrics_by_name, semantic_models, measure_models, model_sources)
 
@@ -373,6 +423,18 @@ def _normalize_granularity(granularity: Any) -> str:
 	return value
 
 
+def _grain_suffix(name: str) -> Optional[str]:
+	"""Normalized granularity when a dunder name segment is a granularity word.
+
+	Mirrors dbt's StructuredLinkableSpecName.from_name: the trailing dunder
+	segment of e.g. start_date__month is a time granularity, not a dimension.
+	"""
+	value = str(name).strip().lower()
+	if value.endswith('s') and value[:-1] in _GRANULARITIES:
+		value = value[:-1]
+	return value if value in _GRANULARITIES else None
+
+
 def _parse_group_specs(req: MetricQueryRequest, metric: Metric, force_time: bool) -> List[_GroupSpec]:
 	default_granularity = _normalize_granularity(req.time_granularity or metric.time_granularity or 'day')
 	specs: List[_GroupSpec] = []
@@ -390,12 +452,25 @@ def _parse_group_specs(req: MetricQueryRequest, metric: Metric, force_time: bool
 				seen.add(key)
 				specs.append(_GroupSpec(item, 'metric_time', granularity, True))
 		else:
-			# plain dimension name or entity-qualified dunder (entity__dimension)
-			attr_name = item.split('__')[-1]
-			key = (attr_name, None)
-			if key not in seen:
-				seen.add(key)
-				specs.append(_GroupSpec(item, attr_name, None, False))
+			# dbt dunder names, following StructuredLinkableSpecName.from_name:
+			# a trailing granularity segment marks a time dimension with an
+			# explicit grain ([entity__]dimension__grain), otherwise the last
+			# segment is the dimension of an entity-qualified (entity__dimension)
+			# or plain name
+			parts = item.split('__')
+			grain = _grain_suffix(parts[-1]) if len(parts) >= 2 else None
+			if grain is not None:
+				attr_name = parts[-2]
+				key = (attr_name, grain)
+				if key not in seen:
+					seen.add(key)
+					specs.append(_GroupSpec(item, attr_name, grain, True))
+			else:
+				attr_name = parts[-1]
+				key = (attr_name, None)
+				if key not in seen:
+					seen.add(key)
+					specs.append(_GroupSpec(item, attr_name, None, False))
 	if force_time and not any(spec.is_time for spec in specs):
 		specs.append(_GroupSpec(f'metric_time__{default_granularity}', 'metric_time', default_granularity, True))
 	return specs
@@ -427,11 +502,23 @@ def _resolve_dimension_expr(model: SemanticModel, attr_name: str) -> str:
 	raise_400(f'Dimension [{attr_name}] not found in semantic model [{model.name}].')
 
 
+def _resolve_named_time_expr(model: SemanticModel, attr_name: str) -> str:
+	"""Resolve the expr of a named time dimension (dbt granular variant base)."""
+	dimension = model.get_dimension_by_name(attr_name)
+	if dimension is not None and dimension.type == DimensionType.TIME.value:
+		return dimension.expr
+	raise_400(f'Time dimension [{attr_name}] not found in semantic model [{model.name}].')
+
+
 def _filter_attr_name(raw_name: str) -> str:
 	raw_name = raw_name.strip()
 	if raw_name == 'metric_time' or raw_name.startswith('metric_time__'):
 		return 'metric_time'
-	return raw_name.split('__')[-1]
+	parts = raw_name.split('__')
+	# a [entity__]dimension__grain filter addresses the dimension, not the grain
+	if len(parts) >= 2 and _grain_suffix(parts[-1]) is not None:
+		return parts[-2]
+	return parts[-1]
 
 
 def _add_months(value: Any, months: int) -> Any:
@@ -506,8 +593,12 @@ def _build_leaf_query(
 	leaf_label = measure.name
 	attributes: Dict[str, str] = {}
 	for spec in specs:
-		attributes[spec.attr_name] = _resolve_time_expr(model, measure) \
-			if spec.is_time else _resolve_dimension_expr(model, spec.attr_name)
+		if spec.is_time:
+			attributes[spec.attr_name] = _resolve_time_expr(model, measure) \
+				if spec.attr_name == 'metric_time' \
+				else _resolve_named_time_expr(model, spec.attr_name)
+		else:
+			attributes[spec.attr_name] = _resolve_dimension_expr(model, spec.attr_name)
 	filters = _build_filters(model, measure, attributes, req, filter_strings, time_shift)
 
 	agg_value = measure.agg.value if isinstance(measure.agg, AggregationType) else measure.agg
@@ -646,7 +737,17 @@ def _eval_metric(
 		denominator = _eval_measure_ref(state, params.denominator, filters, time_shift, visited)
 		return _ratio_series(numerator, denominator)
 	if metric_type == MetricType.CUMULATIVE.value:
-		series = _eval_measure_ref(state, params.measure, filters, time_shift, visited)
+		cumulative_params = params.cumulative_type_params
+		if params.measure is not None and params.measure.name:
+			series = _eval_measure_ref(state, params.measure, filters, time_shift, visited)
+		elif cumulative_params is not None and cumulative_params.measure is not None \
+				and cumulative_params.measure.name:
+			series = _eval_measure_ref(state, cumulative_params.measure, filters, time_shift, visited)
+		elif cumulative_params is not None and cumulative_params.metric is not None \
+				and cumulative_params.metric.name:
+			series = _eval_metric(state, cumulative_params.metric.name, filters, time_shift, visited)
+		else:
+			raise_400(f'Cumulative metric [{metric_name}] requires a measure or a base metric.')
 		return _cumulative_series(series, params)
 	if metric_type == MetricType.DERIVED.value:
 		return _derived_series(state, params, filters, time_shift, visited)
@@ -925,11 +1026,10 @@ def _order_column_index(field: str, column_names: List[str], metric_name: str) -
 		return len(column_names) - 1
 	if field in column_names:
 		return column_names.index(field)
-	# allow attribute-style references (entity__dimension, metric_time__month)
-	attr_name = 'metric_time' if field.startswith('metric_time') else field.split('__')[-1]
+	# allow attribute-style references (entity__dimension, start_date__month)
+	attr_name = _filter_attr_name(field)
 	for index, name in enumerate(column_names):
-		candidate = 'metric_time' if name.startswith('metric_time') else name.split('__')[-1]
-		if candidate == attr_name:
+		if _filter_attr_name(name) == attr_name:
 			return index
 	return None
 
@@ -1034,55 +1134,97 @@ class MySQLMetricQueryRunner:
 		return self.engine
 
 
-async def try_mysql_metric_query(req: MetricQueryRequest, principal_service: PrincipalService):
+async def try_mysql_metric_query(
+		req: MetricQueryRequest, principal_service: PrincipalService,
+		decline_reasons: Optional[List[str]] = None):
 	"""Run a metric query through the MySQL bypass when applicable.
 
 	Returns a MetricFlowResponse when the metric's whole reference chain resolves
 	to MySQL data sources, otherwise None (caller falls through to the dbt path).
+	Decline reasons are logged and, when `decline_reasons` is given, appended
+	there for the caller to surface.
 	"""
 	metrics: List[Metric] = await load_metrics_by_tenant_id(principal_service)
 	metric = next((item for item in metrics if item.name == req.metric), None)
 	if metric is None:
+		_decline(decline_reasons, f'metric [{req.metric}] not found.')
 		return None
 	if _metric_type_value(metric) == MetricType.CONVERSION.value:
 		# ConversionTypeParams is an empty model: no defined semantics anywhere
 		raise_400('Conversion metric semantics not defined.')
 	semantic_models: List[SemanticModel] = await load_semantic_models_by_tenant_id(principal_service)
 	context = resolve_mysql_context(
-		metric, metrics, semantic_models, _production_binding_resolver(principal_service))
+		metric, metrics, semantic_models, _production_binding_resolver(principal_service),
+		decline_reasons)
 	if context is None:
 		return None
 	return MySQLMetricQueryRunner(context, principal_service).run(req)
 
 
+async def try_mysql_metrics_list(
+		principal_service: PrincipalService) -> Optional[MetricListResponse]:
+	"""List tenant metrics from metadata when every semantic model resolves to MySQL.
+
+	dbt-metricflow has no MySQL adapter, so a MySQL-only tenant cannot run
+	cfg.setup(); the list is built from the same meta metrics the dbt artifacts
+	would be built from. Returns None when any semantic model is not backed by
+	MySQL (caller falls through to the dbt path).
+	"""
+	semantic_models: List[SemanticModel] = await load_semantic_models_by_tenant_id(principal_service)
+	if not semantic_models:
+		return None
+	resolver = _production_binding_resolver(principal_service)
+	if any(resolver(model) is None for model in semantic_models):
+		return None
+	metrics: List[Metric] = await load_metrics_by_tenant_id(principal_service)
+	metric_infos = [
+		MetricInfo(
+			name=metric.name,
+			label=metric.label,
+			description=metric.description,
+			type=metric.type.name if isinstance(metric.type, MetricType) else str(metric.type).upper(),
+			format=metric.format,
+		)
+		for metric in metrics
+	]
+	return MetricListResponse(metrics=metric_infos, total_count=len(metric_infos))
+
+
 async def try_mysql_dimensions_by_metrics(
-		metric_names: List[str], principal_service: PrincipalService) -> Optional[DimensionListResponse]:
+		metric_names: List[str], principal_service: PrincipalService,
+		decline_reasons: Optional[List[str]] = None) -> Optional[DimensionListResponse]:
 	"""Answer dimension discovery from metadata when every requested metric resolves to MySQL.
 
 	Returns a DimensionListResponse built from the semantic models backing the metrics,
-	otherwise None (caller falls through to the dbt path).
+	otherwise None (caller falls through to the dbt path). Decline reasons are logged
+	and, when `decline_reasons` is given, appended there for the caller to surface.
 	"""
 	metrics: List[Metric] = await load_metrics_by_tenant_id(principal_service)
 	metrics_by_name = {item.name: item for item in metrics}
 	requested = [metrics_by_name.get(name) for name in metric_names]
-	if any(item is None for item in requested):
+	unknown = [name for name, item in zip(metric_names, requested) if item is None]
+	if unknown:
+		_decline(decline_reasons, f'metrics not found [{", ".join(unknown)}].')
 		return None
 	semantic_models: List[SemanticModel] = await load_semantic_models_by_tenant_id(principal_service)
 	resolver = _production_binding_resolver(principal_service)
 	binding_key: Optional[str] = None
 	models: Dict[str, SemanticModel] = {}
 	for metric in requested:
-		context = resolve_mysql_context(metric, metrics, semantic_models, resolver)
+		context = resolve_mysql_context(metric, metrics, semantic_models, resolver, decline_reasons)
 		if context is None:
 			return None
 		if binding_key is None:
 			binding_key = context.binding.key
 		elif binding_key != context.binding.key:
 			# metrics spread over different connections are not supported
+			_decline(decline_reasons, f'metrics {metric_names} spread over multiple data sources.')
 			return None
 		# only the models owning the measures actually referenced by this metric
 		measure_names: set = set()
 		if not _collect_tree_measures(metric.name, context.metrics_by_name, set(), measure_names):
+			_decline(decline_reasons, f'metric [{metric.name}] reference chain contains '
+			                          f'an unknown metric reference.')
 			return None
 		for name in measure_names:
 			model = context.measure_models.get(name)

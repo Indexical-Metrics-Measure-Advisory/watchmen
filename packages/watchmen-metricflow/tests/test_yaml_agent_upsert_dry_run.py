@@ -57,8 +57,12 @@ def make_semantic_yaml(name='orders', **overrides):
 
 
 def semantic_model_with_measures(*names):
-    """A stand-in for a stored SemanticModel exposing only what validation reads."""
-    return SimpleNamespace(measures=[SimpleNamespace(name=n) for n in names])
+    """A stand-in for a stored SemanticModel exposing only what validation reads.
+
+    Measures stay plain dicts, mirroring what the storage shaper actually returns
+    (ExtendedBaseModel keeps nested collections as raw dicts).
+    """
+    return SimpleNamespace(measures=[{'name': n} for n in names])
 
 
 def patch_metric_service(service):
@@ -194,6 +198,26 @@ class MetricYamlDryRunTest(unittest.TestCase):
         result = yaml.safe_load(response.text)
         self.assertEqual('would_create', result['action'])
 
+    def test_dry_run_mixed_measure_forms_resolve(self):
+        """Stored semantic models mix plain dicts and typed models; both must resolve."""
+        service = mock_metric_service()
+        service.storage = mock.MagicMock()
+        service.find_by_name.return_value = None
+        client = self._client(service, semantic_measures=(), existing_metrics=[])
+        self.semantic_service.find_all.return_value = [
+            SimpleNamespace(measures=[{'name': 'order_total'}]),
+            SimpleNamespace(measures=[SimpleNamespace(name='other_measure')]),
+        ]
+
+        response = client.post(
+            '/metricflow/metric/yaml/agent-upsert?dry_run=true',
+            content=make_metric_yaml(type_params={'measure': {'name': 'other_measure'}}),
+            headers={'Content-Type': 'application/x-yaml'})
+
+        self.assertEqual(200, response.status_code)
+        result = yaml.safe_load(response.text)
+        self.assertEqual('would_create', result['action'])
+
     def test_persist_create_returns_envelope(self):
         service = mock_metric_service()
         service.storage = mock.MagicMock()
@@ -290,7 +314,7 @@ class SemanticModelYamlDryRunTest(unittest.TestCase):
         self.assertEqual('orders', result['semanticModel']['name'])
         self.assertEqual('2001', result['semanticModel']['id'])
         # the rebuilt node relation is previewed in the dry-run response
-        self.assertEqual('topic_orders', result['semanticModel']['nodeRelation']['alias'])
+        self.assertEqual('topic_orders', result['semanticModel']['node_relation']['alias'])
         service.create.assert_not_called()
         service.update.assert_not_called()
 

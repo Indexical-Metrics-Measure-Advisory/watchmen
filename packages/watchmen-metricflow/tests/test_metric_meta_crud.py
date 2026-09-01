@@ -7,6 +7,7 @@ isolated via MagicMock so the tests run without a database.
 import sys
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -324,6 +325,13 @@ class TestYamlEndpoints(unittest.TestCase):
         service = mock_metric_service()
         service.find_by_name.return_value = None
         service.create.side_effect = lambda m: m
+        # yaml import hard-validates references: measure must exist in a semantic model
+        semantic_service = mock.MagicMock()
+        semantic_service.find_all.return_value = [
+            SimpleNamespace(measures=[SimpleNamespace(name='order_total')])]
+        # base-metric existence check reads all tenant metrics
+        service.find_all.return_value = []
+        service.storage = mock.MagicMock()
         yaml_body = (
             "name: new_metric\n"
             "type: simple\n"
@@ -331,7 +339,9 @@ class TestYamlEndpoints(unittest.TestCase):
             "  measure:\n"
             "    name: order_total\n"
         )
-        with self._patch(service):
+        with self._patch(service), \
+                mock.patch.object(metric_meta_router, 'SemanticModelService',
+                                  return_value=semantic_service):
             client = build_client(metric_meta_router.router)
             response = client.post(
                 '/metricflow/metric/yaml',
@@ -347,6 +357,13 @@ class TestYamlEndpoints(unittest.TestCase):
         service = mock_metric_service()
         service.find_by_name.return_value = existing
         service.update.side_effect = lambda m: m
+        # yaml import hard-validates references: measure must exist in a semantic model
+        semantic_service = mock.MagicMock()
+        semantic_service.find_all.return_value = [
+            SimpleNamespace(measures=[SimpleNamespace(name='order_total')])]
+        # base-metric existence check reads all tenant metrics
+        service.find_all.return_value = []
+        service.storage = mock.MagicMock()
         yaml_body = (
             "name: existing_metric\n"
             "type: simple\n"
@@ -354,7 +371,9 @@ class TestYamlEndpoints(unittest.TestCase):
             "  measure:\n"
             "    name: order_total\n"
         )
-        with self._patch(service):
+        with self._patch(service), \
+                mock.patch.object(metric_meta_router, 'SemanticModelService',
+                                  return_value=semantic_service):
             client = build_client(metric_meta_router.router)
             response = client.post(
                 '/metricflow/metric/yaml',

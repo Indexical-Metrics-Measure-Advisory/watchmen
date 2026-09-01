@@ -357,6 +357,29 @@ class TestLeafTranslation(unittest.TestCase):
         # time dimension column of the semantic model is used
         self.assertIn('ordered_at', sql)
 
+    def test_no_dimension_returns_single_total(self):
+        metric = _simple_metric()
+        rows = {'order_total': [{'order_total': 150}]}
+        response = _run_metric(
+            metric, [metric], [_make_semantic_model()], rows,
+            MetricQueryRequest(metric='total_sales'))
+        self.assertEqual(response.column_names, ['total_sales'])
+        self.assertEqual(response.data, ((150,),))
+
+    def test_no_dimension_with_time_range_keeps_filter_out_of_select(self):
+        # the UI always sends start/end; with no group-by the injected metric_time
+        # attribute must stay in WHERE only: SELECT ordered_at, sum(...) without
+        # GROUP BY is rejected by MySQL's only_full_group_by
+        model = _make_semantic_model()
+        req = MetricQueryRequest(
+            metric='total_sales', group_by=None,
+            start_time=datetime(2024, 1, 1), end_time=datetime(2024, 12, 31))
+        sql, _ = _compile_leaf_sql(model, model.get_measure_by_name('order_total'), req)
+        select_part = sql.upper().split('FROM ')[0]
+        self.assertNotIn('METRIC_TIME', select_part)
+        self.assertNotIn('ORDERED_AT', select_part)
+        self.assertIn('BETWEEN', sql.upper())
+
     def test_where_dsl_becomes_structured_filters(self):
         model = _make_semantic_model()
         req = MetricQueryRequest(
@@ -397,6 +420,98 @@ class TestLeafTranslation(unittest.TestCase):
 # --------------------------------------------------------------------------- #
 # Metric-type combination
 # --------------------------------------------------------------------------- #
+
+class TestNamedTimeGranularity(unittest.TestCase):
+    """dbt binds day/week/month/quarter/year granular variants to every time
+    dimension (StructuredLinkableSpecName.from_name): a group_by name like
+    order_date__month addresses the order_date time dimension with month
+    truncation. The MySQL bypass used to take the LAST dunder segment as the
+    dimension name, failing with e.g. 'Dimension [month] not found'."""
+
+    def test_grain_suffix_spec_addresses_the_dimension(self):
+        metric = _simple_metric()
+        req = MetricQueryRequest(metric='total_sales', group_by=['order_date__month'])
+        specs = svc._parse_group_specs(req, metric, False)
+        self.assertEqual(len(specs), 1)
+        self.assertEqual(specs[0].out_name, 'order_date__month')
+        self.assertEqual(specs[0].attr_name, 'order_date')
+        self.assertEqual(specs[0].granularity, 'month')
+        self.assertTrue(specs[0].is_time)
+
+    def test_entity_qualified_grain_suffix(self):
+        metric = _simple_metric()
+        req = MetricQueryRequest(metric='total_sales', group_by=['orders__order_date__year'])
+        specs = svc._parse_group_specs(req, metric, False)
+        self.assertEqual((specs[0].attr_name, specs[0].granularity), ('order_date', 'year'))
+
+    def test_entity_qualified_without_grain_still_takes_last_segment(self):
+        metric = _simple_metric()
+        req = MetricQueryRequest(metric='total_sales', group_by=['orders__region'])
+        specs = svc._parse_group_specs(req, metric, False)
+        self.assertEqual(
+            (specs[0].attr_name, specs[0].granularity, specs[0].is_time), ('region', None, False))
+
+    def test_grain_sql_truncates_the_dimension_column(self):
+        model = _make_semantic_model()
+        req = MetricQueryRequest(metric='total_sales', group_by=['order_date__month'])
+        sql, request = _compile_leaf_sql(model, model.get_measure_by_name('order_total'), req)
+        self.assertIn('DATE_FORMAT', sql.upper())
+        self.assertIn('%%Y-%%m', sql)
+        # the named time dimension's own expr is used, not just the model default
+        self.assertIn('ordered_at', sql)
+        self.assertEqual(request.groupBy[0].field, 'order_date')
+
+    def test_day_grain_uses_named_dimension_without_error(self):
+        # regression: this used to fail with 'Dimension [day] not found'
+        model = _make_semantic_model()
+        req = MetricQueryRequest(metric='total_sales', group_by=['order_date__day'])
+        sql, _ = _compile_leaf_sql(model, model.get_measure_by_name('order_total'), req)
+        self.assertIn('ordered_at', sql)
+
+    def test_unknown_base_dimension_raises_400(self):
+        model = _make_semantic_model()
+        req = MetricQueryRequest(metric='total_sales', group_by=['ghost__month'])
+        with self.assertRaises(HTTPException) as ctx:
+            _compile_leaf_sql(model, model.get_measure_by_name('order_total'), req)
+        self.assertEqual(ctx.exception.status_code, 400)
+
+    def test_non_time_dimension_with_grain_suffix_raises_400(self):
+        model = _make_semantic_model()
+        req = MetricQueryRequest(metric='total_sales', group_by=['region__month'])
+        with self.assertRaises(HTTPException) as ctx:
+            _compile_leaf_sql(model, model.get_measure_by_name('order_total'), req)
+        self.assertEqual(ctx.exception.status_code, 400)
+
+    def test_where_dunder_grain_filter_targets_dimension(self):
+        model = _make_semantic_model()
+        req = MetricQueryRequest(
+            metric='total_sales', group_by=['order_date__month'],
+            where="{{ Dimension('order_date__month') }} = '2024-01'")
+        sql, request = _compile_leaf_sql(model, model.get_measure_by_name('order_total'), req)
+        self.assertEqual(request.filters, {'order_date': '2024-01'})
+
+    def test_order_by_dunder_grain_name(self):
+        self.assertEqual(
+            svc._order_column_index('order_date__month', ['region', 'order_date__month', 'm'], 'm'), 1)
+        self.assertEqual(
+            svc._order_column_index('order_date', ['region', 'order_date__month', 'm'], 'm'), 1)
+
+    def test_cumulative_along_named_time_dimension(self):
+        metric = Metric(
+            name='cum_sales', type='cumulative',
+            type_params=MetricTypeParams(measure=MeasureReference(name='order_total')))
+        rows = {'order_total': [
+            {'order_date': '2024-01', 'order_total': 10},
+            {'order_date': '2024-02', 'order_total': 20},
+        ]}
+        response = _run_metric(
+            metric, [metric], [_make_semantic_model()], rows,
+            MetricQueryRequest(metric='cum_sales', group_by=['order_date__month']))
+        # the named time dimension counts as the query's time axis: no
+        # synthetic metric_time is appended for cumulative metrics
+        self.assertEqual(response.column_names, ['order_date__month', 'cum_sales'])
+        self.assertEqual(sorted(response.data), [('2024-01', 10), ('2024-02', 30)])
+
 
 class TestCombination(unittest.TestCase):
     def test_simple_metric(self):

@@ -108,8 +108,14 @@ class OntologySqlCompiler:
 			else:
 				attribute_columns, attribute_labels, attribute_group_keys = [], [], []
 		else:
-			attribute_columns, attribute_labels, attribute_group_keys = self._compile_attributes(
-				virtual_object, request.fields, tables_by_alias)
+			if (request.includeDerived or []) and not (request.fields or []):
+				# 聚合查询（无分组、fields 为空）时 attribute 只服务于 WHERE 过滤
+				# （如 metric_time 时间范围），展开进 SELECT 会产生没有 GROUP BY 的
+				# 非聚合列，被 MySQL only_full_group_by 拒绝
+				attribute_columns, attribute_labels, attribute_group_keys = [], [], []
+			else:
+				attribute_columns, attribute_labels, attribute_group_keys = self._compile_attributes(
+					virtual_object, request.fields, tables_by_alias)
 		group_columns, group_labels, request_group_keys = self._compile_group_by(
 			virtual_object, group_entries, tables_by_alias, dialect_name)
 

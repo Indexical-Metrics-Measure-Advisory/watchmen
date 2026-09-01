@@ -33,11 +33,6 @@ class ConversionTypeParams(BaseModel):
 
 
 
-class CumulativeTypeParams(BaseModel):
-    
-    model_config = ConfigDict(use_enum_values=True)
-
-
 class WindowParams(BaseModel):
 
     count : int =None
@@ -57,6 +52,14 @@ class MetricRef(BaseModel):
     alias:Optional[str]= None
     offset_window :Optional[OffsetWindow]= None
     offset_to_grain:Optional[str]= None
+
+
+class CumulativeTypeParams(BaseModel):
+
+    model_config = ConfigDict(use_enum_values=True)
+
+    measure: Optional[MeasureReference] = None
+    metric: Optional[MetricRef] = None
 
 class MetricTypeParams(BaseModel):
     

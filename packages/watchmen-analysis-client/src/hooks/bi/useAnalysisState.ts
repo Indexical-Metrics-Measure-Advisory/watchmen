@@ -34,6 +34,8 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
 
   // ── Analysis & Navigation ──
   const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(null);
+  // Name of the loaded/saved analysis board, shown in the page header; null for an unsaved board
+  const [currentAnalysisName, setCurrentAnalysisName] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<'dashboard' | 'saved'>('dashboard');
 
   // ── Dashboard Cards ──
@@ -140,6 +142,7 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
     setCards([]);
     clearCardDataMap();
     setCurrentAnalysisId(null);
+    setCurrentAnalysisName(null);
     setSaveName('');
     setSaveDesc('');
     localStorage.removeItem(getLastAnalysisStorageKey(user?.tenantId));
@@ -169,6 +172,7 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
       clearLegacyLastAnalysisStorageKey();
       toast({ title: 'Saved', description: 'Analysis board has been saved' });
     }
+    setCurrentAnalysisName(saveName.trim());
 
     setSaveOpen(false);
     refreshTemplates();
@@ -187,6 +191,7 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
     const currentCards = cardsRef.current;
     const record = await saveAnalysis({ id: "", name: saveName.trim(), description: saveDesc.trim(), cards: currentCards, userId: user.userId });
     setCurrentAnalysisId(record.id);
+    setCurrentAnalysisName(saveName.trim());
     localStorage.setItem(getLastAnalysisStorageKey(user.tenantId), record.id);
     clearLegacyLastAnalysisStorageKey();
     setSaveOpen(false);
@@ -213,6 +218,7 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
       }
       setSaveName(tpl.name);
       setSaveDesc(tpl.description || '');
+      setCurrentAnalysisName(tpl.name);
       setActiveSection('dashboard');
       setPendingScrollToDashboard(true);
     } catch (error) {
@@ -247,6 +253,7 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
       localStorage.removeItem(getLastAnalysisStorageKey(user?.tenantId));
       clearLegacyLastAnalysisStorageKey();
       setCurrentAnalysisId(null);
+      setCurrentAnalysisName(null);
     }
     refreshTemplates();
     toast({ title: 'Deleted', description: 'Analysis deleted' });
@@ -359,6 +366,7 @@ export const useAnalysisState = (options: UseAnalysisStateOptions) => {
   return {
     // State
     currentAnalysisId,
+    currentAnalysisName,
     activeSection,
     cards,
     setCards,

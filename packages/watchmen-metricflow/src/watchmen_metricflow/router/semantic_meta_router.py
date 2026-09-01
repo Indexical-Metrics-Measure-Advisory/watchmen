@@ -1,21 +1,22 @@
 import yaml
 from fastapi import APIRouter
 from fastapi import Depends, Body, Request, Response
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import TopicService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.system import DataSourceService
 from watchmen_metricflow.meta.semantic_meta_service import SemanticModelService
-from watchmen_metricflow.model.semantic import SemanticModel, NodeRelation, SemanticModelSourceType
+from watchmen_metricflow.model.semantic import SemanticModel, NodeRelation, SemanticModelSourceType, \
+    Entity, Measure, Dimension
 from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_model.system import DataSourceType
 from watchmen_rest import get_admin_principal, get_console_principal
 from watchmen_rest.util import raise_400, raise_404
 from watchmen_metricflow.settings import ask_tuple_delete_enabled
 from watchmen_metricflow.util import trans, trans_readonly, trans_with_tail
-from watchmen_utilities import is_blank
+from watchmen_utilities import ExtendedBaseModel, is_blank
 from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
 from watchmen_metricflow.service.space_auth_service import get_console_user_topic_ids, \
     find_semantic_models_by_topic_ids
@@ -131,17 +132,81 @@ async def get_semantic_model_yaml_by_name(
     return Response(content=yaml_str, media_type='application/x-yaml')
 
 
+class SemanticModelAgentUpsertResult(ExtendedBaseModel):
+    """YAML agent-upsert result: action + the effective semantic model (with id and rebuilt node relation)"""
+    action: str
+    dryRun: bool
+    semanticModel: Optional[dict] = None
+
+
+def validate_no_duplicate_names(semantic_model: SemanticModel) -> None:
+    """Duplicate names within one semantic model are ambiguous, block them like the doll topic router does for factors"""
+    for kind, items in (('entity', semantic_model.entities),
+                        ('measure', semantic_model.measures),
+                        ('dimension', semantic_model.dimensions)):
+        names = [item.name for item in (items or [])]
+        if len(names) != len(set(names)):
+            raise_400(f'Duplicate {kind} names are not allowed.')
+
+
+def validate_topic_for_semantic_model(semantic_model: SemanticModel, principal_service: PrincipalService) -> None:
+    """A topic-sourced semantic model must point to an existing topic of the same tenant"""
+    if semantic_model.sourceType != SemanticModelSourceType.TOPIC:
+        return
+    if is_blank(semantic_model.topicId):
+        raise_400('topicId is required when sourceType is topic.')
+
+    tenant_id: TenantId = principal_service.get_tenant_id()
+    topic_service = get_topic_service(principal_service)
+
+    def load_topic():
+        return topic_service.find_by_id(semantic_model.topicId)
+
+    topic = trans_readonly(topic_service, load_topic)
+    if topic is None:
+        raise_400(f'Topic[{semantic_model.topicId}] not found.')
+    if topic.tenantId != tenant_id:
+        raise_400(f'Topic[{semantic_model.topicId}] does not belong to tenant[{tenant_id}].')
+
+
+def prepare_semantic_model_upsert(
+        semantic_model: SemanticModel,
+        semantic_model_service: SemanticModelService) -> Tuple[str, SemanticModel]:
+    """Prepare upsert by name, return (action_type, effective semantic model). action_type: 'create' or 'update'"""
+    existing_model = semantic_model_service.find_by_name(semantic_model.name, semantic_model.tenantId)
+    if existing_model is None:
+        if is_blank(semantic_model.id):
+            semantic_model.id = str(semantic_model_service.snowflakeGenerator.next_id())
+        return 'create', semantic_model
+
+    semantic_model.id = existing_model.id
+    return 'update', semantic_model
+
+
 @router.post('/metricflow/semantic-model/yaml/agent-upsert', tags=['ADMIN'], response_class=Response)
 @router.post('/metricflow/semantic-model/yaml', tags=['ADMIN'], response_class=Response)
 async def save_semantic_model_yaml(
         request: Request,
+        dry_run: bool = False,
         principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Response:
+    """
+    Upsert a semantic model by name from a raw YAML body.
+
+    Args:
+      - dry_run: when true, only validate without persisting; returns would_create / would_update
+    """
     yaml_bytes = await request.body()
     yaml_str = yaml_bytes.decode('utf-8')
     try:
         semantic_model_dict = yaml.safe_load(yaml_str)
         semantic_model = SemanticModel.model_validate(semantic_model_dict)
+        # ExtendedBaseModel re-assigns raw input over validated nested models,
+        # so node_relation / entities / measures / dimensions arrive as plain dicts
+        semantic_model.node_relation = NodeRelation.model_validate(semantic_model.node_relation)
+        semantic_model.entities = [Entity.model_validate(x) for x in (semantic_model.entities or [])]
+        semantic_model.measures = [Measure.model_validate(x) for x in (semantic_model.measures or [])]
+        semantic_model.dimensions = [Dimension.model_validate(x) for x in (semantic_model.dimensions or [])]
     except Exception as e:
         raise_400(f'Invalid YAML: {str(e)}')
 
@@ -149,27 +214,44 @@ async def save_semantic_model_yaml(
         raise_400('Semantic model name is required.')
 
     semantic_model.tenantId = principal_service.get_tenant_id()
-    semantic_model_service = get_semantic_model_service(principal_service)
+
+    # validations shared by dry-run and persist, mirrors the doll topic agent-upsert
+    validate_no_duplicate_names(semantic_model)
+    validate_topic_for_semantic_model(semantic_model, principal_service)
 
     if semantic_model.topicId and semantic_model.sourceType == SemanticModelSourceType.TOPIC:
         node_relation = _build_node_relation_by_topic_id(semantic_model.topicId, principal_service)
         if node_relation:
             semantic_model.node_relation = node_relation
 
-    def action():
-        existing_model = semantic_model_service.find_by_name(semantic_model.name, semantic_model.tenantId)
-        if existing_model is None:
-            if is_blank(semantic_model.id):
-                semantic_model.id = str(semantic_model_service.snowflakeGenerator.next_id())
-            model_result = semantic_model_service.create(semantic_model)
-        else:
-            semantic_model.id = existing_model.id
-            model_result = semantic_model_service.update(semantic_model)
-        return model_result, lambda: metric_config_cache.remove(semantic_model.tenantId)
+    semantic_model_service = get_semantic_model_service(principal_service)
 
-    saved_semantic_model = trans_with_tail(semantic_model_service, action)
-    saved_yaml_str = yaml.dump(saved_semantic_model.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
-    return Response(content=saved_yaml_str, media_type='application/x-yaml')
+    if dry_run:
+        # dry-run: read-only transaction, only query and validate
+        def do_prepare():
+            return prepare_semantic_model_upsert(semantic_model, semantic_model_service)
+
+        action_type, effective_model = trans_readonly(semantic_model_service, do_prepare)
+        result = SemanticModelAgentUpsertResult(
+            action=f'would_{action_type}', dryRun=True,
+            semanticModel=effective_model.model_dump(mode='json', by_alias=True, exclude_none=True))
+    else:
+        # persist: read-write transaction, invalidate metric config cache post-commit
+        def do_save():
+            action_type, effective_model = prepare_semantic_model_upsert(semantic_model, semantic_model_service)
+            if action_type == 'create':
+                model_result = semantic_model_service.create(effective_model)
+            else:
+                model_result = semantic_model_service.update(effective_model)
+            return (action_type, model_result), lambda: metric_config_cache.remove(semantic_model.tenantId)
+
+        action_type, saved_model = trans_with_tail(semantic_model_service, do_save)
+        result = SemanticModelAgentUpsertResult(
+            action=action_type, dryRun=False,
+            semanticModel=saved_model.model_dump(mode='json', by_alias=True, exclude_none=True))
+
+    result_yaml = yaml.dump(result.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=result_yaml, media_type='application/x-yaml')
 
 
 @router.post('/metricflow/semantic-model', tags=['ADMIN'], response_model=None)

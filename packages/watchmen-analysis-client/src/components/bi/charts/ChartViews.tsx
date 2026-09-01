@@ -10,9 +10,10 @@ const useChartKeys = (data: ChartDatum[]): string[] => {
 };
 
 // Shared tooltip props — no animation, no cursor fill to reduce repaint cost.
-// format is the display format configured on the metric (number / currency / percentage).
-const tooltipSharedProps = (format?: string) => ({
-  content: <CustomTooltip format={format} />,
+// format is the display format configured on the metric (number / currency / percentage),
+// unit is the display unit configured on the metric, appended after the value.
+const tooltipSharedProps = (format?: string, unit?: string) => ({
+  content: <CustomTooltip format={format} unit={unit} />,
   isAnimationActive: false,
   animationDuration: 0,
   cursor: { stroke: 'currentColor', strokeDasharray: '3 3', opacity: 0.3, fill: 'none' as const },
@@ -24,17 +25,17 @@ const yAxisTickFormatter = (
   fallback: ReturnType<typeof useChartAxis>['formatYAxis'],
 ) => (format ? (value: number) => formatMetricValue(value, format) : fallback);
 
-export const KPIView = React.memo(({ data, format }: { data: ChartDatum[]; format?: string }) => {
+export const KPIView = React.memo(({ data, format, unit }: { data: ChartDatum[]; format?: string; unit?: string }) => {
   if (!data || data.length === 0) {
     return <div className="flex items-center justify-center h-full text-muted-foreground text-sm">No data</div>;
   }
 
   const currentValue = typeof data[data.length - 1].value === 'number' ? data[data.length - 1].value : 0;
   const previousValue = data.length > 1 ? (typeof data[data.length - 2].value === 'number' ? data[data.length - 2].value : 0) : null;
-  
+
   let change = null;
   let changeType = 'neutral';
-  
+
   if (previousValue !== null && previousValue !== 0) {
     change = ((Number(currentValue) - Number(previousValue)) / Number(previousValue)) * 100;
     changeType = change > 0 ? 'positive' : change < 0 ? 'negative' : 'neutral';
@@ -42,8 +43,11 @@ export const KPIView = React.memo(({ data, format }: { data: ChartDatum[]; forma
 
   return (
     <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-      <div className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tighter tabular-nums bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent drop-shadow-sm">
-        {formatMetricValue(Number(currentValue), format)}
+      <div className="flex items-baseline justify-center gap-2">
+        <span className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tighter tabular-nums bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent drop-shadow-sm">
+          {formatMetricValue(Number(currentValue), format)}
+        </span>
+        {unit && <span className="text-lg sm:text-xl font-medium text-muted-foreground whitespace-nowrap">{unit}</span>}
       </div>
       {change !== null && (
         <div className={`flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full ${
@@ -60,7 +64,7 @@ export const KPIView = React.memo(({ data, format }: { data: ChartDatum[]; forma
   );
 });
 
-export const BarChartView = React.memo(({ lib, data, chartType, axisProps, format }: { lib: RechartsModule, data: ChartDatum[], chartType: string, axisProps: ReturnType<typeof useChartAxis>, format?: string }) => {
+export const BarChartView = React.memo(({ lib, data, chartType, axisProps, format, unit }: { lib: RechartsModule, data: ChartDatum[], chartType: string, axisProps: ReturnType<typeof useChartAxis>, format?: string, unit?: string }) => {
   const { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, Legend } = lib;
   const { commonXAxisProps, commonYAxisProps, commonGridProps } = axisProps;
   
@@ -88,7 +92,7 @@ export const BarChartView = React.memo(({ lib, data, chartType, axisProps, forma
           type={isHorizontalLayout ? "category" : "number"}
           dataKey={isHorizontalLayout ? commonXAxisProps.dataKey : undefined}
         />
-        <Tooltip {...tooltipSharedProps(format)} />
+        <Tooltip {...tooltipSharedProps(format, unit)} />
         {(isGrouped || isStacked) && <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} />}
         {keys.map((key, index) => (
           <Bar 
@@ -110,7 +114,7 @@ export const BarChartView = React.memo(({ lib, data, chartType, axisProps, forma
   );
 });
 
-export const PieChartView = React.memo(({ lib, data, format }: { lib: RechartsModule, data: ChartDatum[], format?: string }) => {
+export const PieChartView = React.memo(({ lib, data, format, unit }: { lib: RechartsModule, data: ChartDatum[], format?: string, unit?: string }) => {
   const { ResponsiveContainer, PieChart, Tooltip, Legend, Pie, Cell } = lib;
 
   const processedData = React.useMemo(() => {
@@ -133,7 +137,7 @@ export const PieChartView = React.memo(({ lib, data, format }: { lib: RechartsMo
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={300}>
       <PieChart>
-        <Tooltip {...tooltipSharedProps(format)} />
+        <Tooltip {...tooltipSharedProps(format, unit)} />
         <Legend wrapperStyle={{ fontSize: '12px' }} />
         <Pie 
           data={processedData} 
@@ -157,7 +161,7 @@ export const PieChartView = React.memo(({ lib, data, format }: { lib: RechartsMo
   );
 });
 
-export const AreaChartView = React.memo(({ lib, data, axisProps, format }: { lib: RechartsModule, data: ChartDatum[], axisProps: ReturnType<typeof useChartAxis>, format?: string }) => {
+export const AreaChartView = React.memo(({ lib, data, axisProps, format, unit }: { lib: RechartsModule, data: ChartDatum[], axisProps: ReturnType<typeof useChartAxis>, format?: string, unit?: string }) => {
   const { ResponsiveContainer, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Area, Legend } = lib;
   const { commonXAxisProps, commonYAxisProps, commonGridProps } = axisProps;
   
@@ -181,10 +185,10 @@ export const AreaChartView = React.memo(({ lib, data, axisProps, format }: { lib
         <CartesianGrid {...commonGridProps} />
         <XAxis {...commonXAxisProps} />
         <YAxis {...commonYAxisProps} tickFormatter={yAxisTickFormatter(format, axisProps.formatYAxis)} />
-        <Tooltip {...tooltipSharedProps(format)} />
+        <Tooltip {...tooltipSharedProps(format, unit)} />
         {hasMultipleSeries && <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />}
         {keys.map((key, index) => (
-          <Area 
+          <Area
             key={key}
             type="monotone" 
             dataKey={key} 
@@ -202,7 +206,7 @@ export const AreaChartView = React.memo(({ lib, data, axisProps, format }: { lib
   );
 });
 
-export const LineChartView = React.memo(({ lib, data, axisProps, format }: { lib: RechartsModule, data: ChartDatum[], axisProps: ReturnType<typeof useChartAxis>, format?: string }) => {
+export const LineChartView = React.memo(({ lib, data, axisProps, format, unit }: { lib: RechartsModule, data: ChartDatum[], axisProps: ReturnType<typeof useChartAxis>, format?: string, unit?: string }) => {
   const { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Line, Legend } = lib;
   const { commonXAxisProps, commonYAxisProps, commonGridProps } = axisProps;
 
@@ -218,10 +222,10 @@ export const LineChartView = React.memo(({ lib, data, axisProps, format }: { lib
         <CartesianGrid {...commonGridProps} />
         <XAxis {...commonXAxisProps} />
         <YAxis {...commonYAxisProps} tickFormatter={yAxisTickFormatter(format, axisProps.formatYAxis)} />
-        <Tooltip {...tooltipSharedProps(format)} />
+        <Tooltip {...tooltipSharedProps(format, unit)} />
         {hasMultipleSeries && <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />}
         {keys.map((key, index) => (
-          <Line 
+          <Line
             key={key}
             type="monotone" 
             dataKey={key} 

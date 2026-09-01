@@ -2,15 +2,16 @@ import yaml
 from fastapi import APIRouter
 from fastapi import Depends, Body, Request, Response
 from logging import getLogger
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_metricflow.meta.metric_access_service import check_metric_allowed, filter_metrics_allowed
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
+from watchmen_metricflow.meta.semantic_meta_service import SemanticModelService
 from watchmen_metricflow.meta.metric_version_meta_service import MetricVersionService
 from watchmen_metricflow.model.metrics import Metric, MetricWithCategory, MetricPublishStatus, MetricVersion, \
-    MetricVersionOperationType
+    MetricVersionOperationType, MetricTypeParams
 from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_rest import get_admin_principal, get_console_principal
 from watchmen_rest.util import raise_400, raise_404
@@ -75,6 +76,13 @@ class MetricRollbackBody(ExtendedBaseModel):
     targetVersionNo: Optional[int] = None
 
 
+class MetricAgentUpsertResult(ExtendedBaseModel):
+    """YAML agent-upsert result: action + the effective metric (with id and publish fields)"""
+    action: str
+    dryRun: bool
+    metric: Optional[dict] = None
+
+
 @router.get('/metricflow/metric/{metric_name}', tags=['CONSOLE', 'ADMIN'], response_model=None)
 async def get_metric_by_name(
         metric_name: str,
@@ -121,17 +129,111 @@ async def get_metric_yaml_by_name(
     return Response(content=yaml_str, media_type='application/x-yaml')
 
 
+def collect_referenced_measure_names(metric: Metric) -> List[str]:
+    """All measure names referenced by the metric type params"""
+    type_params = metric.type_params
+    if type_params is None:
+        return []
+    names = []
+    for ref in (type_params.measure, type_params.numerator, type_params.denominator):
+        if ref is not None and not is_blank(ref.name):
+            names.append(ref.name)
+    names.extend(ref.name for ref in (type_params.input_measures or []) if not is_blank(ref.name))
+    cumulative = type_params.cumulative_type_params
+    if cumulative is not None and cumulative.measure is not None and not is_blank(cumulative.measure.name):
+        names.append(cumulative.measure.name)
+    return names
+
+
+def collect_referenced_metric_names(metric: Metric) -> List[str]:
+    """All base metric names referenced by the metric type params"""
+    type_params = metric.type_params
+    if type_params is None:
+        return []
+    names = [ref.name for ref in (type_params.metrics or []) if not is_blank(ref.name)]
+    cumulative = type_params.cumulative_type_params
+    if cumulative is not None and cumulative.metric is not None and not is_blank(cumulative.metric.name):
+        names.append(cumulative.metric.name)
+    return names
+
+
+def prepare_metric_upsert(
+        metric: MetricWithCategory, metric_service: MetricService) -> Tuple[str, MetricWithCategory]:
+    """Prepare upsert by name, return (action_type, effective metric). action_type: 'create' or 'update'.
+
+    Publish fields are managed only by the publish/rollback endpoints: forced blank on create,
+    inherited from the existing metric on update.
+    """
+    existing_metric = metric_service.find_by_name(metric.name, metric.tenantId)
+    if existing_metric is None:
+        if is_blank(metric.id):
+            metric.id = str(metric_service.snowflakeGenerator.next_id())
+        # a new metric always starts as draft, publish must go through the publish endpoint
+        metric.publishStatus = None
+        metric.publishedVersionNo = None
+        metric.lastPublishedAt = None
+        return 'create', metric
+
+    check_published_lock(existing_metric)
+    metric.id = existing_metric.id
+    # publish status is managed only by the publish/rollback endpoints
+    metric.publishStatus = existing_metric.publishStatus
+    metric.publishedVersionNo = existing_metric.publishedVersionNo
+    metric.lastPublishedAt = existing_metric.lastPublishedAt
+    return 'update', metric
+
+
+def validate_metric_references(metric: Metric, metric_service: MetricService) -> None:
+    """Hard-validate cross-object references, shared by dry-run and persist.
+
+    Every referenced measure must exist in some semantic model of the tenant, every referenced
+    base metric must already exist (mirrors the doll topic agent-upsert validations).
+    """
+    tenant_id: TenantId = metric.tenantId
+
+    # share the in-transaction storage so all reads join the same transaction
+    semantic_model_service = SemanticModelService(
+        metric_service.storage, metric_service.snowflakeGenerator, metric_service.principalService)
+    known_measure_names = set()
+    for model in semantic_model_service.find_all(tenant_id):
+        # stored semantic models keep nested measures as plain dicts (ExtendedBaseModel raw-input quirk)
+        for measure in (model.measures or []):
+            name = measure.get('name') if isinstance(measure, dict) else measure.name
+            if not is_blank(name):
+                known_measure_names.add(name)
+    missing_measures = sorted({name for name in collect_referenced_measure_names(metric)
+                               if name not in known_measure_names})
+    if missing_measures:
+        raise_400(f'Measure[{", ".join(missing_measures)}] not found in any semantic model of tenant[{tenant_id}].')
+
+    known_metric_names = {m.name for m in metric_service.find_all(tenant_id) if m.id != metric.id}
+    missing_metrics = sorted({name for name in collect_referenced_metric_names(metric)
+                              if name not in known_metric_names})
+    if missing_metrics:
+        raise_400(f'Metric[{", ".join(missing_metrics)}] not found in tenant[{tenant_id}]. Import the base metric first.')
+
+
 @router.post('/metricflow/metric/yaml/agent-upsert', tags=['ADMIN'], response_class=Response)
 @router.post('/metricflow/metric/yaml', tags=['ADMIN'], response_class=Response)
 async def save_metric_yaml(
         request: Request,
+        dry_run: bool = False,
         principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Response:
+    """
+    Upsert a metric by name from a raw YAML body.
+
+    Args:
+      - dry_run: when true, only validate without persisting; returns would_create / would_update
+    """
     yaml_bytes = await request.body()
     yaml_str = yaml_bytes.decode('utf-8')
     try:
         metric_dict = yaml.safe_load(yaml_str)
         metric = MetricWithCategory.model_validate(metric_dict)
+        # ExtendedBaseModel re-assigns raw input over validated nested models,
+        # so type_params (and everything under it) arrives as plain dicts
+        metric.type_params = MetricTypeParams.model_validate(metric.type_params)
     except Exception as e:
         raise_400(f'Invalid YAML: {str(e)}')
 
@@ -141,29 +243,35 @@ async def save_metric_yaml(
     metric.tenantId = principal_service.get_tenant_id()
     metric_service = get_metric_service(principal_service)
 
-    def action():
-        existing_metric = metric_service.find_by_name(metric.name, metric.tenantId)
-        if existing_metric is None:
-            if is_blank(metric.id):
-                metric.id = str(metric_service.snowflakeGenerator.next_id())
-            # a new metric always starts as draft, publish must go through the publish endpoint
-            metric.publishStatus = None
-            metric.publishedVersionNo = None
-            metric.lastPublishedAt = None
-            metric_result = metric_service.create(metric)
-        else:
-            check_published_lock(existing_metric)
-            metric.id = existing_metric.id
-            # publish status is managed only by the publish/rollback endpoints
-            metric.publishStatus = existing_metric.publishStatus
-            metric.publishedVersionNo = existing_metric.publishedVersionNo
-            metric.lastPublishedAt = existing_metric.lastPublishedAt
-            metric_result = metric_service.update(metric)
-        return metric_result, lambda: metric_config_cache.remove(metric.tenantId)
+    if dry_run:
+        # dry-run: read-only transaction, only query and validate
+        def do_prepare():
+            action_type, effective_metric = prepare_metric_upsert(metric, metric_service)
+            validate_metric_references(metric, metric_service)
+            return action_type, effective_metric
 
-    saved_metric = trans_with_tail(metric_service, action)
-    saved_yaml_str = yaml.dump(saved_metric.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
-    return Response(content=saved_yaml_str, media_type='application/x-yaml')
+        action_type, effective_metric = trans_readonly(metric_service, do_prepare)
+        result = MetricAgentUpsertResult(
+            action=f'would_{action_type}', dryRun=True,
+            metric=effective_metric.model_dump(mode='json', by_alias=True, exclude_none=True))
+    else:
+        # persist: read-write transaction, invalidate metric config cache post-commit
+        def do_save():
+            action_type, effective_metric = prepare_metric_upsert(metric, metric_service)
+            validate_metric_references(metric, metric_service)
+            if action_type == 'create':
+                metric_result = metric_service.create(effective_metric)
+            else:
+                metric_result = metric_service.update(effective_metric)
+            return (action_type, metric_result), lambda: metric_config_cache.remove(metric.tenantId)
+
+        action_type, saved_metric = trans_with_tail(metric_service, do_save)
+        result = MetricAgentUpsertResult(
+            action=action_type, dryRun=False,
+            metric=saved_metric.model_dump(mode='json', by_alias=True, exclude_none=True))
+
+    result_yaml = yaml.dump(result.model_dump(mode='json', by_alias=True, exclude_none=True), sort_keys=False)
+    return Response(content=result_yaml, media_type='application/x-yaml')
 
 
 

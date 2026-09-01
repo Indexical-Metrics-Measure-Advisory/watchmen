@@ -24,7 +24,7 @@ import { DataTable } from './charts/DataTable';
 import { useChartAxis } from './charts/useChartAxis';
 import { KPIView, BarChartView, PieChartView, AreaChartView, LineChartView } from './charts/ChartViews';
 import { useRechartsModule } from './charts/RechartsContext';
-import { useMetricFormat } from './charts/useMetricFormat';
+import { useMetricFormat, useMetricLabel, useMetricUnit } from './charts/useMetricFormat';
 
 export type { ChartDatum, ChartDatumValue } from './charts/types';
 export { DataTable } from './charts/DataTable';
@@ -63,12 +63,13 @@ type ChartInnerProps = {
   data: ChartDatum[];
   sourceData?: MetricFlowResponse;
   format?: string;
+  unit?: string;
   alertStatus?: AlertStatus;
   onAcknowledge?: (alertId: string) => void;
   onProposeHypothesis?: (card: BIChartCard) => void;
 };
 
-const Chart = React.memo(({ lib, card, data, sourceData, format, alertStatus, onAcknowledge, onProposeHypothesis }: ChartInnerProps) => {
+const Chart = React.memo(({ lib, card, data, sourceData, format, unit, alertStatus, onAcknowledge, onProposeHypothesis }: ChartInnerProps) => {
   const { type: chartType } = { type: card.chartType };
   
   const sampledData = useMemo(() => {
@@ -93,23 +94,23 @@ const Chart = React.memo(({ lib, card, data, sourceData, format, alertStatus, on
   }
 
   if (chartType === 'kpi') {
-    return <KPIView data={sampledData} format={format} />;
+    return <KPIView data={sampledData} format={format} unit={unit} />;
   }
 
   if (['bar', 'groupedBar', 'stackedBar'].includes(chartType)) {
-    return <BarChartView lib={lib} data={sampledData} chartType={chartType} axisProps={axisProps} format={format} />;
+    return <BarChartView lib={lib} data={sampledData} chartType={chartType} axisProps={axisProps} format={format} unit={unit} />;
   }
 
   if (chartType === 'pie' && !axisProps.isTime) {
-    return <PieChartView lib={lib} data={sampledData} format={format} />;
+    return <PieChartView lib={lib} data={sampledData} format={format} unit={unit} />;
   }
 
   if (chartType === 'area') {
-    return <AreaChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} />;
+    return <AreaChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} unit={unit} />;
   }
 
   // Default to line
-  return <LineChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} />;
+  return <LineChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} unit={unit} />;
 });
 
 // Hypothesis badge pill colors by worst status (mirrors the alert pill styling)
@@ -141,14 +142,23 @@ export const ChartCard = React.memo(({
   const navigate = useNavigate();
   const lib = useRechartsModule();
   const [activeTab, setActiveTab] = useState<string>("chart");
-  // display format configured on the metric (BIChartCard.metricId is the metric name)
+  // display label / format / unit configured on the metric (BIChartCard.metricId is the metric name)
+  const metricLabel = useMetricLabel(card.metricId);
   const metricFormat = useMetricFormat(card.metricId);
+  const metricUnit = useMetricUnit(card.metricId);
   
   const dimensionsCount = card.selection?.dimensions?.length || 0;
   const isTooManyDimensions = dimensionsCount > 5;
   const chartViewEnabled = activeTab === 'chart';
   const dataViewEnabled = activeTab === 'data';
   const copyEnabled = card.chartType !== 'alert' && data.length > 0;
+
+  // card.title is "<metric name> · <time range>"; metricId itself is the metric name
+  const titleSeparatorIndex = card.title.indexOf(' · ');
+  const metricName = card.metricId || (titleSeparatorIndex > -1 ? card.title.slice(0, titleSeparatorIndex) : card.title);
+  // label is the readable display name configured on the metric, shown on dashboards
+  const displayName = metricLabel || metricName;
+  const titleTimeRange = titleSeparatorIndex > -1 ? card.title.slice(titleSeparatorIndex + 3) : undefined;
   
   const copyHeaders = useMemo(
     () => (!data || data.length === 0 ? [] : Object.keys(data[0]).filter(k => k !== 'color' && k !== 'fill')),
@@ -241,9 +251,9 @@ export const ChartCard = React.memo(({
               </TabsList>
             )}
             
-            <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-muted-foreground ml-2 border-l pl-2 max-w-[200px]">
-              <span className="truncate">{card.title}</span>
-              {card.alert?.enabled && (
+            {(card.alert?.enabled || hypothesisBadge) && (
+              <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-muted-foreground ml-2 border-l pl-2 max-w-[200px]">
+                {card.alert?.enabled && (
                 <>
                   {alertStatus?.triggered ? (
                     alertStatus.acknowledged ? (
@@ -279,7 +289,8 @@ export const ChartCard = React.memo(({
                   <span>{hypothesisBadge.total}</span>
                 </button>
               )}
-            </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-1 flex-shrink-0">
@@ -326,8 +337,16 @@ export const ChartCard = React.memo(({
           </div>
         </CardHeader>
 
-        <CardContent className="p-4 pt-4 flex-1 min-h-[250px] relative overflow-hidden" style={{ contain: 'layout style paint' }}>
-          <TabsContent value="chart" className="h-full w-full mt-0 data-[state=active]:flex flex-col">
+        <CardContent className="p-4 pt-4 flex-1 min-h-[250px] relative overflow-hidden flex flex-col" style={{ contain: 'layout style paint' }}>
+          <div className="flex items-baseline gap-2 mb-2 shrink-0 overflow-hidden">
+            <span className="text-sm font-semibold text-foreground truncate" title={displayName}>
+              {displayName}
+            </span>
+            {titleTimeRange && (
+              <span className="text-xs text-muted-foreground whitespace-nowrap">{titleTimeRange}</span>
+            )}
+          </div>
+          <TabsContent value="chart" className="flex-1 min-h-0 w-full mt-0 data-[state=active]:flex flex-col">
             {chartViewEnabled && isTooManyDimensions ? (
                <div className="h-full w-full flex flex-col">
                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 text-xs text-yellow-600 dark:text-yellow-400 text-center border-b border-yellow-100 dark:border-yellow-900/30 mb-2 rounded-sm">
@@ -344,13 +363,14 @@ export const ChartCard = React.memo(({
               </div>
             ) : chartViewEnabled ? (
               <div className="h-full w-full min-h-[250px]">
-                <Chart 
-                  lib={lib} 
-                  card={card} 
-                  data={data} 
+                <Chart
+                  lib={lib}
+                  card={card}
+                  data={data}
                   sourceData={sourceData}
                   format={metricFormat}
-                  alertStatus={alertStatus} 
+                  unit={metricUnit}
+                  alertStatus={alertStatus}
                   onAcknowledge={onAcknowledge}
                   onProposeHypothesis={onProposeHypothesis}
                 />
@@ -358,7 +378,7 @@ export const ChartCard = React.memo(({
             ) : null}
           </TabsContent>
           
-          <TabsContent value="data" className="h-full w-full mt-0 overflow-hidden">
+          <TabsContent value="data" className="flex-1 min-h-0 w-full mt-0 overflow-hidden">
             {dataViewEnabled ? <DataTable data={data} sourceData={sourceData} /> : null}
           </TabsContent>
         </CardContent>
