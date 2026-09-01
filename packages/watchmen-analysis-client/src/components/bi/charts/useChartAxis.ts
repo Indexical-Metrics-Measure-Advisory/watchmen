@@ -86,16 +86,16 @@ export const useChartAxis = (card: BIChartCard, data: ChartDatum[], displayForma
   const commonXAxisProps = useMemo(() => ({
     dataKey: xKey,
     tickFormatter: formatTimeAxis,
-    tick: { fontSize: 11, fill: 'currentColor' },
+    tick: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' },
     tickLine: false,
-    axisLine: { stroke: 'currentColor', opacity: 0.2 },
+    axisLine: { stroke: 'hsl(var(--border))' },
     dy: 10,
     minTickGap: 30,
   }), [xKey, formatTimeAxis]);
 
   const commonYAxisProps = useMemo(() => ({
     tickFormatter: formatYAxis,
-    tick: { fontSize: 11, fill: 'currentColor' },
+    tick: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' },
     tickLine: false,
     axisLine: false,
     dx: -10,
@@ -105,8 +105,8 @@ export const useChartAxis = (card: BIChartCard, data: ChartDatum[], displayForma
   const commonGridProps = useMemo(() => ({
     strokeDasharray: '3 3',
     vertical: false,
-    stroke: 'currentColor',
-    opacity: 0.1,
+    stroke: 'hsl(var(--border))',
+    opacity: 0.6,
   }), []);
 
   return {

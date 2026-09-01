@@ -4,16 +4,17 @@ export const MAX_TIME_SERIES_POINTS = 240;
 export const MAX_CATEGORY_POINTS = 120;
 export const TOOLTIP_CURSOR = { fill: 'currentColor', opacity: 0.05 };
 
-// Modern color palette
+// Theme-aware chart palette: resolves against the --chart-* tokens defined in
+// index.css, so charts follow light/dark mode automatically.
 export const COLORS = [
-  '#3b82f6', // Blue
-  '#8b5cf6', // Violet
-  '#10b981', // Emerald
-  '#f59e0b', // Amber
-  '#ec4899', // Pink
-  '#06b6d4', // Cyan
-  '#f43f5e', // Rose
-  '#6366f1', // Indigo
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+  'hsl(var(--chart-6))',
+  'hsl(var(--chart-7))',
+  'hsl(var(--chart-8))',
 ];
 
 export const toNumericValue = (value: ChartDatumValue): number => typeof value === 'number' ? value : 0;

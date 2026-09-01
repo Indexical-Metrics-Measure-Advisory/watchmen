@@ -32,6 +32,14 @@ const COMPARISON_LABEL_KEYS: Record<string, string> = {
   year: 'chart.vsLastYear',
 };
 
+// Shared legend style — round markers to match the tooltip color dots and the
+// overall rounded visual language of the app
+const legendProps = {
+  iconType: 'circle' as const,
+  iconSize: 8,
+  wrapperStyle: { fontSize: '12px', color: 'hsl(var(--muted-foreground))', paddingTop: '10px' },
+};
+
 // Shared tooltip props — no animation, no cursor fill to reduce repaint cost.
 // format is the display format configured on the metric (number / currency / percentage),
 // unit is the display unit configured on the metric, appended after the value.
@@ -50,6 +58,9 @@ const yAxisTickFormatter = (
   fallback: ReturnType<typeof useChartAxis>['formatYAxis'],
   currency?: string,
 ) => (format ? (value: number) => formatMetricValue(value, format, currency) : fallback);
+
+// Hover dot with a card-colored ring so it pops off the line/area
+const activeDotWithRing = (color: string) => ({ r: 5, strokeWidth: 2, stroke: 'hsl(var(--card))', fill: color });
 
 export const KPIView = React.memo(({ data, format, unit, currency, granularity }: { data: ChartDatum[]; format?: string; unit?: string; currency?: string; granularity?: string }) => {
   const { t } = useTranslation('biAnalysis');
@@ -123,7 +134,17 @@ export const BarChartView = React.memo(({ lib, data, chartType, axisProps, forma
         data={data} 
         margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
         layout={isHorizontalLayout ? "vertical" : "horizontal"}
+        barCategoryGap="25%"
+        barGap={4}
       >
+        <defs>
+          {keys.map((key, index) => (
+            <linearGradient key={key} id={`barFill-${index}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.9}/>
+              <stop offset="100%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.65}/>
+            </linearGradient>
+          ))}
+        </defs>
         <CartesianGrid {...commonGridProps} horizontal={!isHorizontalLayout} vertical={isHorizontalLayout} />
         <XAxis {...commonXAxisProps} type={isHorizontalLayout ? "number" : "category"} />
         <YAxis
@@ -132,16 +153,18 @@ export const BarChartView = React.memo(({ lib, data, chartType, axisProps, forma
           type={isHorizontalLayout ? "category" : "number"}
           dataKey={isHorizontalLayout ? commonXAxisProps.dataKey : undefined}
         />
-        <Tooltip {...tooltipSharedProps(format, unit, currency, valueLabel)} />
-        {(isGrouped || isStacked) && <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} />}
+        <Tooltip {...tooltipSharedProps(format, unit, currency, valueLabel)} cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }} />
+        {(isGrouped || isStacked) && <Legend {...legendProps} />}
         {keys.map((key, index) => (
           <Bar 
             key={key} 
             dataKey={key}
             name={key === 'value' && valueLabel ? valueLabel : key}
             stackId={isStacked ? 'a' : undefined}
-            fill={COLORS[index % COLORS.length]} 
+            fill={`url(#barFill-${index})`}
             isAnimationActive={shouldAnimate}
+            animationDuration={600}
+            animationEasing="ease-out"
             radius={
               isHorizontalLayout 
                 ? (isStacked ? [0, 0, 0, 0] : [0, 4, 4, 0]) 
@@ -191,17 +214,20 @@ export const PieChartView = React.memo(({ lib, data, format, unit, currency, val
     <ResponsiveContainer width="100%" height="100%" debounce={300}>
       <PieChart>
         <Tooltip {...tooltipSharedProps(format, unit, currency, valueLabel, pieTotal)} />
-        <Legend wrapperStyle={{ fontSize: '12px' }} />
+        <Legend {...legendProps} />
         <Pie 
           data={processedData} 
           dataKey="value" 
           nameKey="name" 
           isAnimationActive={shouldAnimate}
+          animationDuration={600}
+          animationEasing="ease-out"
           cx="50%" 
           cy="50%" 
           innerRadius={60} 
           outerRadius={90} 
           paddingAngle={2}
+          cornerRadius={4}
           strokeWidth={2}
           stroke="hsl(var(--card))"
         >
@@ -234,8 +260,8 @@ export const AreaChartView = React.memo(({ lib, data, axisProps, format, unit, c
         <defs>
           {keys.map((key, index) => (
             <linearGradient key={key} id={`colorValue-${index}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.3}/>
-              <stop offset="95%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0}/>
+              <stop offset="5%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.25}/>
+              <stop offset="95%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.02}/>
             </linearGradient>
           ))}
         </defs>
@@ -243,7 +269,7 @@ export const AreaChartView = React.memo(({ lib, data, axisProps, format, unit, c
         <XAxis {...commonXAxisProps} />
         <YAxis {...commonYAxisProps} tickFormatter={yAxisTickFormatter(format, axisProps.formatYAxis, currency)} />
         <Tooltip {...tooltipSharedProps(format, unit, currency, valueLabel)} />
-        {hasMultipleSeries && <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />}
+        {hasMultipleSeries && <Legend {...legendProps} />}
         {keys.map((key, index) => (
           <Area
             key={key}
@@ -252,10 +278,12 @@ export const AreaChartView = React.memo(({ lib, data, axisProps, format, unit, c
             name={key === 'value' && valueLabel ? valueLabel : key}
             stroke={COLORS[index % COLORS.length]} 
             isAnimationActive={shouldAnimate}
+            animationDuration={600}
+            animationEasing="ease-out"
             fillOpacity={1} 
             fill={`url(#colorValue-${index})`} 
             strokeWidth={2}
-            activeDot={showActiveDot ? { r: 4, strokeWidth: 0, fill: COLORS[index % COLORS.length] } : false}
+            activeDot={showActiveDot ? activeDotWithRing(COLORS[index % COLORS.length]) : false}
             stackId="1" 
           />
         ))}
@@ -285,7 +313,7 @@ export const LineChartView = React.memo(({ lib, data, axisProps, format, unit, c
         <XAxis {...commonXAxisProps} />
         <YAxis {...commonYAxisProps} tickFormatter={yAxisTickFormatter(format, axisProps.formatYAxis, currency)} />
         <Tooltip {...tooltipSharedProps(format, unit, currency, valueLabel)} />
-        {hasMultipleSeries && <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />}
+        {hasMultipleSeries && <Legend {...legendProps} />}
         {keys.map((key, index) => (
           <Line
             key={key}
@@ -294,9 +322,11 @@ export const LineChartView = React.memo(({ lib, data, axisProps, format, unit, c
             name={key === 'value' && valueLabel ? valueLabel : key}
             stroke={COLORS[index % COLORS.length]} 
             isAnimationActive={shouldAnimate}
+            animationDuration={600}
+            animationEasing="ease-out"
             strokeWidth={2.5} 
             dot={false}
-            activeDot={showActiveDot ? { r: 6, strokeWidth: 0, fill: COLORS[index % COLORS.length] } : false}
+            activeDot={showActiveDot ? activeDotWithRing(COLORS[index % COLORS.length]) : false}
           />
         ))}
       </LineChart>
