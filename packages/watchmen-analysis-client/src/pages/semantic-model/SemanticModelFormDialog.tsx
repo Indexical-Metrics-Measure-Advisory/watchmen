@@ -636,7 +636,7 @@ export const SemanticModelFormDialog: React.FC<SemanticModelFormDialogProps> = (
             <div>
               <Label htmlFor={isEdit ? 'edit-agg_time_dimension' : 'agg_time_dimension'}>{t('semanticModel:form.defaultTimeDimension')}</Label>
               <Select
-                value={formData.defaults.agg_time_dimension || undefined}
+                value={formData.defaults?.agg_time_dimension || undefined}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, defaults: { ...prev.defaults, agg_time_dimension: value } }))}
                 disabled={!hasSelectedDataSource || timeDimensionOptions.length === 0}
               >

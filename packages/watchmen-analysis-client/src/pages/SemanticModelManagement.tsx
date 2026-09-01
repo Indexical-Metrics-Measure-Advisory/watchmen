@@ -397,7 +397,7 @@ const SemanticModelManagement: React.FC = () => {
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">{t('semanticModel:page.timeDimension')}:</span>
-                          <span className="font-mono text-xs">{model.defaults.agg_time_dimension}</span>
+                          <span className="font-mono text-xs">{model.defaults?.agg_time_dimension || t('semanticModel:page.na')}</span>
                         </div>
                       </div>
                     </CardContent>

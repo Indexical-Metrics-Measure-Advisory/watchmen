@@ -35,7 +35,8 @@ export function useSemanticModelForm() {
 
   const loadModelForEdit = (model: SemanticModel) => {
     setEditingModel(model);
-    setFormData({ ...model });
+    // defaults is optional on the backend; normalize so the form always has an object
+    setFormData({ ...model, defaults: model.defaults ?? { agg_time_dimension: '' } });
   };
 
   const clearEditing = () => {
