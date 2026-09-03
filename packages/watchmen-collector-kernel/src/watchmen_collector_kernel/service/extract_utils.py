@@ -50,9 +50,11 @@ def build_audit_column_criteria(audit_column_name: str, start_time: datetime, en
 def build_audit_columns_criteria(date_column: str, time_column: str, start_time: datetime,
                                  end_time: datetime) -> EntityCriteria:
     start_date = start_time.date()
-    start_tm = start_time.time()
+    start_time = start_time.time()
+    start_tm = start_time.strftime("%H:%M:%S")
     end_date = end_time.date()
-    end_tm = end_time.time()
+    end_time = end_time.time()
+    end_tm = end_time.strftime("%H:%M:%S")
     
     if start_date < end_date:
         return [
