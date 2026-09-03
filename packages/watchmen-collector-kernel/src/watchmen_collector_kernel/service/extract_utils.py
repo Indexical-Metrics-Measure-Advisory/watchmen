@@ -65,7 +65,7 @@ def build_audit_columns_criteria(date_column: str, time_column: str, start_time:
                         conjunction=EntityCriteriaJointConjunction.AND,
                         children=[
                             EntityCriteriaExpression(
-                                lefe=ColumnNameLiteral(columnName=date_column),
+                                left=ColumnNameLiteral(columnName=date_column),
                                 operator=EntityCriteriaOperator.GREATER_THAN,
                                 right=start_date),
                             EntityCriteriaExpression(
@@ -78,7 +78,7 @@ def build_audit_columns_criteria(date_column: str, time_column: str, start_time:
                         conjunction=EntityCriteriaJointConjunction.AND,
                         children=[
                             EntityCriteriaExpression(
-                                lefe=ColumnNameLiteral(columnName=date_column),
+                                left=ColumnNameLiteral(columnName=date_column),
                                 operator=EntityCriteriaOperator.EQUALS,
                                 right=start_date),
                             EntityCriteriaExpression(
@@ -91,7 +91,7 @@ def build_audit_columns_criteria(date_column: str, time_column: str, start_time:
                         conjunction=EntityCriteriaJointConjunction.AND,
                         children=[
                             EntityCriteriaExpression(
-                                lefe=ColumnNameLiteral(columnName=date_column),
+                                left=ColumnNameLiteral(columnName=date_column),
                                 operator=EntityCriteriaOperator.EQUALS,
                                 right=end_date),
                             EntityCriteriaExpression(
@@ -111,7 +111,7 @@ def build_audit_columns_criteria(date_column: str, time_column: str, start_time:
                 right=start_date),
             EntityCriteriaExpression(
                 left=ColumnNameLiteral(columnName=time_column),
-                operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+                operator=EntityCriteriaOperator.GREATER_THAN,
                 right=start_tm),
             EntityCriteriaExpression(
                 left=ColumnNameLiteral(columnName=time_column),
