@@ -10,7 +10,8 @@ from watchmen_rest.system import health_router
 from watchmen_utilities import ArrayHelper
 from .admin import enumeration_router, pipeline_agent_router, pipeline_graphic_router, pipeline_router, \
 	pipeline_yaml_router, space_router, synonym_topic_router, tag_router, \
-	topic_agent_router, topic_router, topic_snapshot_scheduler_router, topic_yaml_router, user_group_router, user_router
+	topic_agent_router, topic_archive_router, topic_router, topic_snapshot_scheduler_router, topic_yaml_router, \
+	user_group_router, user_router
 from .analysis import pipeline_index_router, topic_index_router
 from .audit import audit_recorder, audit_router
 from .auth import authenticate_router
@@ -69,6 +70,7 @@ ArrayHelper([
 	topic_router.router, topic_yaml_router.router, topic_agent_router.router, synonym_topic_router.router, pipeline_router.router, pipeline_yaml_router.router, pipeline_agent_router.router, pipeline_graphic_router.router,
 	space_router.router,
 	topic_snapshot_scheduler_router.router,
+	topic_archive_router.router,
 	# console
 	connected_space_router.router, connected_space_graphic_router.router,
 	subject_router.router, report_router.router,

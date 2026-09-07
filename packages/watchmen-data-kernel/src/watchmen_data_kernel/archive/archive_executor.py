@@ -2,7 +2,7 @@ import math
 from datetime import datetime, timedelta
 from hashlib import md5
 from logging import getLogger
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import DataKernelException
@@ -11,15 +11,16 @@ from watchmen_data_kernel.service.service_helper import ask_topic_data_service
 from watchmen_data_kernel.service.storage_helper import ask_topic_storage
 from watchmen_data_kernel.storage.data_entity_helper import TopicDataEntityHelper
 from watchmen_data_kernel.storage.topic_storage import build_topic_data_storage
+from watchmen_data_kernel.storage_bridge import parse_condition_for_storage, PipelineVariables
 from watchmen_meta.admin import ArchiveBatchService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import ArchiveBatch, ArchiveBatchStatus, Topic, TopicArchivePolicy, TopicKind
-from watchmen_model.common import DataModel, Pageable, TenantId, TopicId
+from watchmen_model.common import Pageable, TenantId, TopicId
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_model.system import DataSource
 from watchmen_storage import as_table_name, ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, \
 	EntityDeleter, EntityPager, EntityRow, EntitySortColumn, EntitySortMethod, TopicDataStorageSPI
-from watchmen_utilities import get_current_time_in_seconds, is_blank, is_not_blank
+from watchmen_utilities import ExtendedBaseModel, get_current_time_in_seconds, is_blank, is_not_blank
 
 logger = getLogger(__name__)
 
@@ -28,7 +29,7 @@ MAX_BATCHES_PER_RUN = 100
 DEFAULT_MAX_BATCHES = 10
 
 
-class TopicArchiveResult(DataModel):
+class TopicArchiveResult(ExtendedBaseModel):
 	topicId: TopicId = None
 	topicName: Optional[str] = None
 	dryRun: bool = True
@@ -52,6 +53,17 @@ class TopicArchiveExecutor:
 			left=ColumnNameLiteral(columnName=TopicDataColumnNames.INSERT_TIME.value),
 			operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
 			right=cutoff)
+
+	def build_data_criteria(self, cutoff: datetime, schema, policy: TopicArchivePolicy) -> List[Any]:
+		"""
+		rows are archived only when insert time is before cutoff and the policy filter (if given) matches
+		"""
+		criteria: List[Any] = [self.build_cutoff_criteria(cutoff)]
+		a_filter = policy.filter
+		if a_filter is not None and hasattr(a_filter, 'filters') and a_filter.filters:
+			parsed = parse_condition_for_storage(a_filter, [schema], self.principalService, False)
+			criteria.append(parsed.run(PipelineVariables(None, None, None), self.principalService))
+		return criteria
 
 	def validate_policy(self, policy: TopicArchivePolicy) -> Topic:
 		if is_blank(policy.topicId):
@@ -264,7 +276,7 @@ class TopicArchiveExecutor:
 		entity_helper = hot_service.get_data_entity_helper()
 
 		cutoff: datetime = get_current_time_in_seconds() - timedelta(days=policy.hotDays)
-		criteria = [self.build_cutoff_criteria(cutoff)]
+		criteria = self.build_data_criteria(cutoff, schema, policy)
 		total_rows = hot_service.count_by_criteria(criteria)
 
 		result = TopicArchiveResult(

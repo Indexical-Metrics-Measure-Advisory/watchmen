@@ -41,3 +41,48 @@ export const extractChartKeys = (data: ChartDatum[]): string[] => {
   );
   return extractedKeys.length > 0 ? extractedKeys : ['value'];
 };
+
+/**
+ * Cap multi-series chart data to the top series by total value, folding the
+ * rest into a single "others" series (always last). Keeps charts readable and
+ * guarantees the series count never exceeds the palette size.
+ */
+export const capSeries = (
+  data: ChartDatum[],
+  keys: string[],
+  othersLabel: string,
+  maxSeries: number = 8,
+): { data: ChartDatum[]; keys: string[] } => {
+  if (keys.length <= maxSeries) return { data, keys };
+
+  const totals = new Map<string, number>(keys.map(k => [k, 0]));
+  data.forEach(row => {
+    keys.forEach(k => totals.set(k, (totals.get(k) ?? 0) + toNumericValue(row[k])));
+  });
+  const sorted = [...keys].sort((a, b) => (totals.get(b) ?? 0) - (totals.get(a) ?? 0));
+  const kept = sorted.slice(0, maxSeries - 1);
+  const dropped = sorted.slice(maxSeries - 1);
+
+  const capped = data.map(row => {
+    const next: ChartDatum = {};
+    Object.entries(row).forEach(([k, v]) => {
+      if (!dropped.includes(k)) next[k] = v;
+    });
+    next[othersLabel] = dropped.reduce((sum, k) => sum + toNumericValue(row[k]), 0);
+    return next;
+  });
+
+  return { data: capped, keys: [...kept, othersLabel] };
+};
+
+/**
+ * Keep the top categories of single-dimension {name, value} data and fold the
+ * rest into an "others" bucket (mirrors the pie chart behaviour).
+ */
+export const topNWithOthers = (data: ChartDatum[], othersLabel: string, max: number = 10): ChartDatum[] => {
+  if (data.length <= max) return data;
+  const sorted = [...data].sort((a, b) => toNumericValue(b.value) - toNumericValue(a.value));
+  const top = sorted.slice(0, max - 1);
+  const restValue = sorted.slice(max - 1).reduce((sum, item) => sum + toNumericValue(item.value), 0);
+  return [...top, { name: othersLabel, value: restValue }];
+};

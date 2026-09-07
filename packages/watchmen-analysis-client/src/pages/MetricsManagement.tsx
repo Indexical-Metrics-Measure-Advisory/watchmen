@@ -132,6 +132,8 @@ const MetricsManagement: React.FC = () => {
       type: metric.type,
       unit: metric.unit,
       format: metric.format,
+      // config carries the number format options; must round-trip or they are lost on save
+      config: metric.config,
       type_params: metric.type_params
     });
     setIsEditDialogOpen(true);

@@ -2,7 +2,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, TypeVar
 
-from watchmen_model.common import DataSourceId, OptimisticLock, TenantBasedTuple, TenantId, TopicId
+from watchmen_model.common import DataSourceId, OptimisticLock, ParameterJoint, TenantBasedTuple, TenantId, TopicId, \
+	construct_parameter_joint
 from watchmen_utilities import ExtendedBaseModel
 
 TopicArchivePolicyId = TypeVar('TopicArchivePolicyId', bound=str)
@@ -32,8 +33,16 @@ class TopicArchivePolicy(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	# the data source which archived data is moved into
 	archiveDataSourceId: Optional[DataSourceId] = None
 	batchSize: int = 5000
+	# only topic data matching the filter is archived, none means all
+	filter: Optional[ParameterJoint] = None
 	# cold data destruction requires an approval when true, reserved for the next phase
 	destroyRequiresApproval: bool = True
+
+	def __setattr__(self, name, value):
+		if name == 'filter':
+			super().__setattr__(name, construct_parameter_joint(value))
+		else:
+			super().__setattr__(name, value)
 
 
 class ArchiveBatch(ExtendedBaseModel, TenantBasedTuple):

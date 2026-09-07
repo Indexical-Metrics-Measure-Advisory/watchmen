@@ -52,6 +52,11 @@ export const Apis = {
 	COLLECTOR_TRIGGER_PIPELINE: 'collector/trigger/event/pipeline',
 	TOPIC_SNAPSHOT_SCHEDULER_LIST: 'topic/snapshot/scheduler/list',
 	TOPIC_SNAPSHOT_SCHEDULER_SAVE: 'topic/snapshot/scheduler',
+	TOPIC_ARCHIVE_POLICY_LIST: 'topic/archive/policy/list',
+	TOPIC_ARCHIVE_POLICY_SAVE: 'topic/archive/policy',
+	TOPIC_ARCHIVE_POLICY_DELETE: 'topic/archive/policy?policy_id=:policyId',
+	TOPIC_ARCHIVE_BATCH_LIST: 'topic/archive/batch/list',
+	TOPIC_ARCHIVE_RUN: 'topic/archive/run',
 	TOPIC_SYNONYM_ASK_FACTORS: 'topic/synonym/factors?name=:topicName&data_source_id=:dataSourceId',
 	TOPIC_IMPORT_DATA: 'topic/data/import?topic_id=:topicId',
 

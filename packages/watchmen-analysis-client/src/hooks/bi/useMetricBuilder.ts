@@ -11,6 +11,7 @@ import type { Category } from '@/model/metricsManagement';
 import { metricsService } from '@/services/metricsService';
 import { transformMetricFlowToChartData, timeRangeToBounds, toTimeRangeValue } from '@/utils/biAnalysisUtils';
 import { inferType } from '@/components/bi/utils';
+import { extractChartKeys } from '@/components/bi/charts/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -34,6 +35,12 @@ const isGroupedData = (data: unknown[]) => {
   if (!first || typeof first !== 'object') return false;
   const r = first as Record<string, unknown>;
   return !('value' in r) && !('date' in r);
+};
+
+// Time-series data with many series reads better as a stacked bar (composition
+// over time) than as a tangle of overlapping lines
+const pickTimeSeriesType = (data: unknown[]): BIChartType => {
+  return extractChartKeys(data as ChartDatum[]).length > 5 ? 'stackedBar' : 'line';
 };
 
 const chartTypeFromDims = (dims: string[], detailed: MetricDimension[]): BIChartType => {
@@ -319,7 +326,7 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
           if (chartConfig.chartType !== 'auto') {
             cachedType = chartConfig.chartType;
           } else if (isTimeData(cached.data)) {
-            cachedType = 'line';
+            cachedType = pickTimeSeriesType(cached.data);
           } else if (isGroupedData(cached.data)) {
             cachedType = 'groupedBar';
           } else if (!chartConfig.dimensions || chartConfig.dimensions.length === 0) {
@@ -357,7 +364,7 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
           if (chartConfig.chartType !== 'auto') {
             type = chartConfig.chartType;
           } else if (isTimeData(data)) {
-            type = 'line';
+            type = pickTimeSeriesType(data);
           } else if (isGroupedData(data)) {
             type = 'groupedBar';
           } else if (!chartConfig.dimensions || chartConfig.dimensions.length === 0) {

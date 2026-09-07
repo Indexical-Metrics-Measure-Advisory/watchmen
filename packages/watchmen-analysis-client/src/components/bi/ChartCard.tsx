@@ -24,7 +24,8 @@ import { DataTable } from './charts/DataTable';
 import { useChartAxis } from './charts/useChartAxis';
 import { KPIView, BarChartView, PieChartView, AreaChartView, LineChartView } from './charts/ChartViews';
 import { useRechartsModule } from './charts/RechartsContext';
-import { useMetricFormat, useMetricLabel, useMetricUnit, useMetricCurrency } from './charts/useMetricFormat';
+import { useMetricFormat, useMetricLabel, useMetricUnit, useMetricCurrency, useMetricNumberFormat } from './charts/useMetricFormat';
+import type { MetricNumberFormat } from '@/model/metricsManagement';
 
 export type { ChartDatum, ChartDatumValue } from './charts/types';
 export { DataTable } from './charts/DataTable';
@@ -68,15 +69,16 @@ type ChartInnerProps = {
   format?: string;
   unit?: string;
   currency?: string;
+  numberFormat?: MetricNumberFormat;
   valueLabel?: string;
   alertStatus?: AlertStatus;
   onAcknowledge?: (alertId: string) => void;
   onProposeHypothesis?: (card: BIChartCard) => void;
 };
 
-const Chart = React.memo(({ lib, card, data, sourceData, format, unit, currency, valueLabel, alertStatus, onAcknowledge, onProposeHypothesis }: ChartInnerProps) => {
+const Chart = React.memo(({ lib, card, data, sourceData, format, unit, currency, numberFormat, valueLabel, alertStatus, onAcknowledge, onProposeHypothesis }: ChartInnerProps) => {
   const { type: chartType } = { type: card.chartType };
-  
+
   const sampledData = useMemo(() => {
     if (data.length <= 1) return data;
     if (['line', 'area'].includes(chartType)) {
@@ -87,35 +89,35 @@ const Chart = React.memo(({ lib, card, data, sourceData, format, unit, currency,
     }
     return data;
   }, [chartType, data]);
-  
-  const axisProps = useChartAxis(card, sampledData, format, currency);
+
+  const axisProps = useChartAxis(card, sampledData, format, currency, numberFormat);
 
   if (chartType === 'alert') {
     return <AlertCard card={card} data={data} alertStatus={alertStatus} onAcknowledge={onAcknowledge} onProposeHypothesis={onProposeHypothesis} />;
   }
 
   if (chartType === 'table') {
-    return <DataTable data={data} sourceData={sourceData} />;
+    return <DataTable data={data} sourceData={sourceData} format={format} currency={currency} numberFormat={numberFormat} />;
   }
 
   if (chartType === 'kpi') {
-    return <KPIView data={sampledData} format={format} unit={unit} currency={currency} granularity={card.selection?.timeGranularity} />;
+    return <KPIView data={sampledData} format={format} unit={unit} currency={currency} numberFormat={numberFormat} granularity={card.selection?.timeGranularity} />;
   }
 
   if (['bar', 'groupedBar', 'stackedBar'].includes(chartType)) {
-    return <BarChartView lib={lib} data={sampledData} chartType={chartType} axisProps={axisProps} format={format} unit={unit} currency={currency} valueLabel={valueLabel} />;
+    return <BarChartView lib={lib} data={sampledData} chartType={chartType} axisProps={axisProps} format={format} unit={unit} currency={currency} numberFormat={numberFormat} valueLabel={valueLabel} />;
   }
 
   if (chartType === 'pie' && !axisProps.isTime) {
-    return <PieChartView lib={lib} data={sampledData} format={format} unit={unit} currency={currency} valueLabel={valueLabel} />;
+    return <PieChartView lib={lib} data={sampledData} format={format} unit={unit} currency={currency} numberFormat={numberFormat} valueLabel={valueLabel} />;
   }
 
   if (chartType === 'area') {
-    return <AreaChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} unit={unit} currency={currency} valueLabel={valueLabel} />;
+    return <AreaChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} unit={unit} currency={currency} numberFormat={numberFormat} valueLabel={valueLabel} />;
   }
 
   // Default to line
-  return <LineChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} unit={unit} currency={currency} valueLabel={valueLabel} />;
+  return <LineChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} unit={unit} currency={currency} numberFormat={numberFormat} valueLabel={valueLabel} />;
 });
 
 // Hypothesis badge pill colors by worst status (mirrors the alert pill styling)
@@ -150,11 +152,12 @@ export const ChartCard = React.memo(({
   const navigate = useNavigate();
   const lib = useRechartsModule();
   const [activeTab, setActiveTab] = useState<string>("chart");
-  // display label / format / unit configured on the metric (BIChartCard.metricId is the metric name)
+  // display label / format / unit / number format configured on the metric (BIChartCard.metricId is the metric name)
   const metricLabel = useMetricLabel(card.metricId);
   const metricFormat = useMetricFormat(card.metricId);
   const metricUnit = useMetricUnit(card.metricId);
   const metricCurrency = useMetricCurrency(card.metricId);
+  const metricNumberFormat = useMetricNumberFormat(card.metricId);
   
   const dimensionsCount = card.selection?.dimensions?.length || 0;
   const isTooManyDimensions = dimensionsCount > 5;
@@ -362,7 +365,7 @@ export const ChartCard = React.memo(({
                    {t('chartCard.tooManyDimensions')}
                  </div>
                  <div className="flex-1 overflow-hidden">
-                    <DataTable data={data} sourceData={sourceData} />
+                    <DataTable data={data} sourceData={sourceData} format={metricFormat} currency={metricCurrency} numberFormat={metricNumberFormat} />
                  </div>
                </div>
             ) : chartViewEnabled && error && data.length === 0 ? (
@@ -400,6 +403,7 @@ export const ChartCard = React.memo(({
                   format={metricFormat}
                   unit={metricUnit}
                   currency={metricCurrency}
+                  numberFormat={metricNumberFormat}
                   valueLabel={displayName}
                   alertStatus={alertStatus}
                   onAcknowledge={onAcknowledge}
@@ -410,7 +414,7 @@ export const ChartCard = React.memo(({
           </TabsContent>
           
           <TabsContent value="data" className="flex-1 min-h-0 w-full mt-0 overflow-hidden">
-            {dataViewEnabled ? <DataTable data={data} sourceData={sourceData} /> : null}
+            {dataViewEnabled ? <DataTable data={data} sourceData={sourceData} format={metricFormat} currency={metricCurrency} numberFormat={metricNumberFormat} /> : null}
           </TabsContent>
         </CardContent>
       </Tabs>

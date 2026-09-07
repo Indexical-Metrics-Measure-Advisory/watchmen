@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import type { ChartDatum } from './types';
 import type { MetricFlowResponse } from '@/model/metricFlow';
+import type { MetricNumberFormat } from '@/model/metricsManagement';
+import { formatMetricValue } from '@/utils/metricValueFormat';
 import {
   Table,
   TableBody,
@@ -21,7 +23,8 @@ const formatNumber = (value: number): string => {
   return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
 };
 
-// Cache for formatted numbers to avoid re-formatting
+// Cache for formatted numbers to avoid re-formatting; only used for the
+// default formatting path (no metric number format configured)
 const numberCache = new Map<number, string>();
 const cachedFormat = (value: number): string => {
   const cached = numberCache.get(value);
@@ -31,7 +34,14 @@ const cachedFormat = (value: number): string => {
   return formatted;
 };
 
-export const DataTable = React.memo(({ data, sourceData }: { data: ChartDatum[], sourceData?: MetricFlowResponse }) => {
+// Metric-aware formatting: applies the metric's display format and its
+// number format options (decimal places / separator / abbreviation)
+const formatCell = (value: number, format?: string, currency?: string, numberFormat?: MetricNumberFormat): string => {
+  if (!format && !numberFormat) return cachedFormat(value);
+  return formatMetricValue(value, format, currency, numberFormat);
+};
+
+export const DataTable = React.memo(({ data, sourceData, format, currency, numberFormat }: { data: ChartDatum[], sourceData?: MetricFlowResponse, format?: string, currency?: string, numberFormat?: MetricNumberFormat }) => {
   const [visibleRows, setVisibleRows] = useState(INITIAL_ROWS);
 
   const fallbackHeaders = useMemo(
@@ -74,7 +84,7 @@ export const DataTable = React.memo(({ data, sourceData }: { data: ChartDatum[],
                 {row.map((cell, j) => (
                   <TableCell key={`${i}-${j}`} className="font-medium">
                     {typeof cell === 'number'
-                      ? cachedFormat(cell)
+                      ? formatCell(cell, format, currency, numberFormat)
                       : (cell === null || cell === undefined ? '-' : String(cell))}
                   </TableCell>
                 ))}
@@ -125,7 +135,7 @@ export const DataTable = React.memo(({ data, sourceData }: { data: ChartDatum[],
               {headers.map((header) => (
                 <TableCell key={`${i}-${header}`} className="font-medium">
                   {typeof row[header] === 'number'
-                    ? cachedFormat(row[header] as number)
+                    ? formatCell(row[header] as number, format, currency, numberFormat)
                     : (row[header] === null || row[header] === undefined ? '-' : String(row[header]))}
                 </TableCell>
               ))}

@@ -31,6 +31,7 @@ export enum Router {
 	ADMIN_TOOLBOX = '/admin/toolbox',
 	ADMIN_TOOLBOX_ALL = '/admin/toolbox/*',
 	ADMIN_TOOLBOX_TOPIC_SNAPSHOT = '/admin/toolbox/topic-snapshot',
+	ADMIN_TOOLBOX_TOPIC_ARCHIVE = '/admin/toolbox/topic-archive',
 	ADMIN_TOOLBOX_PIPELINE_TRIGGER = '/admin/toolbox/pipeline-trigger',
 
 	CONSOLE = '/console',

@@ -2,13 +2,22 @@ from typing import List, Optional
 
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.admin import TopicArchivePolicy, TopicArchivePolicyId
-from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
+from watchmen_model.common import DataPage, Pageable, ParameterJoint, TenantId, TopicId
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
 	EntityShaper
 from watchmen_utilities import is_not_blank
 
 
 class TopicArchivePolicyShaper(EntityShaper):
+	@staticmethod
+	def serialize_filter(a_filter: ParameterJoint) -> Optional[dict]:
+		if a_filter is None:
+			return None
+		elif isinstance(a_filter, dict):
+			return a_filter
+		else:
+			return a_filter.dict()
+
 	def serialize(self, policy: TopicArchivePolicy) -> EntityRow:
 		return TupleShaper.serialize_tenant_based(policy, {
 			'policy_id': policy.policyId,
@@ -18,6 +27,7 @@ class TopicArchivePolicyShaper(EntityShaper):
 			'cold_days': policy.coldDays,
 			'archive_data_source_id': policy.archiveDataSourceId,
 			'batch_size': policy.batchSize,
+			'filter': TopicArchivePolicyShaper.serialize_filter(policy.filter),
 			'destroy_requires_approval':
 				True if policy.destroyRequiresApproval is None else policy.destroyRequiresApproval
 		})
@@ -32,6 +42,7 @@ class TopicArchivePolicyShaper(EntityShaper):
 			coldDays=row.get('cold_days'),
 			archiveDataSourceId=row.get('archive_data_source_id'),
 			batchSize=row.get('batch_size'),
+			filter=row.get('filter'),
 			destroyRequiresApproval=row.get('destroy_requires_approval')
 		))
 

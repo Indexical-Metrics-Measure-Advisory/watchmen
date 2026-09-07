@@ -1,6 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { format, isValid } from 'date-fns';
 import type { BIChartCard } from '@/model/biAnalysis';
+import type { MetricNumberFormat } from '@/model/metricsManagement';
 import type { ChartDatum, ChartDatumValue } from './types';
 import { formatMetricValue } from '@/utils/metricValueFormat';
 
@@ -8,7 +9,7 @@ import { formatMetricValue } from '@/utils/metricValueFormat';
 const Y_AXIS_MIN_WIDTH = 50;
 const Y_AXIS_MAX_WIDTH = 100;
 
-export const useChartAxis = (card: BIChartCard, data: ChartDatum[], displayFormat?: string, currency?: string) => {
+export const useChartAxis = (card: BIChartCard, data: ChartDatum[], displayFormat?: string, currency?: string, numberFormat?: MetricNumberFormat) => {
   const isTime = useMemo(() => data.length > 0 && typeof data[0].date === 'string', [data]);
   const xKey = isTime ? 'date' : 'name';
 
@@ -70,7 +71,7 @@ export const useChartAxis = (card: BIChartCard, data: ChartDatum[], displayForma
   // Estimate the Y-axis width from the largest formatted tick so long values
   // (e.g. currency-formatted millions) are not clipped.
   const yAxisWidth = useMemo(() => {
-    const formatter = displayFormat ? (value: number) => formatMetricValue(value, displayFormat, currency) : formatYAxis;
+    const formatter = displayFormat ? (value: number) => formatMetricValue(value, displayFormat, currency, numberFormat) : formatYAxis;
     let maxAbs = 0;
     data.forEach(row => {
       Object.values(row).forEach(value => {
@@ -81,7 +82,7 @@ export const useChartAxis = (card: BIChartCard, data: ChartDatum[], displayForma
     });
     const sample = formatter(maxAbs);
     return Math.min(Y_AXIS_MAX_WIDTH, Math.max(Y_AXIS_MIN_WIDTH, sample.length * 7 + 12));
-  }, [data, displayFormat, currency, formatYAxis]);
+  }, [data, displayFormat, currency, numberFormat, formatYAxis]);
 
   const commonXAxisProps = useMemo(() => ({
     dataKey: xKey,

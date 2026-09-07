@@ -89,23 +89,22 @@ export const transformMetricFlowToChartData = (resp: MetricFlowResponse): Record
   // Case: Multi-dimensional (Pivot)
   if (dimIdxs.length >= 2) {
     let mainAxisIdx = dimIdxs[0];
-    let groupIdx = dimIdxs[1];
     let isTimeAxis = false;
 
     // If there is a time dimension, force it to be the X-axis
     if (typeof timeIdx === 'number') {
       mainAxisIdx = timeIdx;
-      const nonTimeIdx = dimIdxs.find(i => i !== timeIdx);
-      if (nonTimeIdx !== undefined) {
-        groupIdx = nonTimeIdx;
-      }
       isTimeAxis = true;
     }
+
+    // All remaining dimensions form a composite series key, so no selected
+    // dimension is silently dropped from the chart
+    const groupIdxs = dimIdxs.filter(i => i !== mainAxisIdx);
 
     const pivotMap = new Map<string, ChartDatum>();
     for (const row of resp.data) {
       const axisVal = fmt(row[mainAxisIdx]);
-      const groupVal = fmt(row[groupIdx]);
+      const groupVal = groupIdxs.map(i => fmt(row[i])).join(' · ');
       const val = Number(row[valueIdx] ?? 0);
 
       if (!pivotMap.has(axisVal)) {

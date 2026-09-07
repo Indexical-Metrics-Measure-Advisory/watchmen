@@ -7,14 +7,16 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation } from 'react-i18next';
-import { Category, InputMeasure, MetricDefinition, MetricTypeParams } from '@/model/metricsManagement';
+import { Category, InputMeasure, MetricDefinition, MetricNumberFormat, MetricTypeParams } from '@/model/metricsManagement';
 import DerivedMetricParams from '@/components/DerivedMetricParams';
 import CumulativeMetricParams from '@/components/metrics/CumulativeMetricParams';
 import ConversionMetricParams from '@/components/metrics/ConversionMetricParams';
 import SimpleMetricParams from '@/components/metrics/form/SimpleMetricParams';
 import RatioMetricParams from '@/components/metrics/form/RatioMetricParams';
 import { getFormatLabel } from '@/utils/metricFormUtils';
+import { formatMetricValue, inferCurrencyFromUnit } from '@/utils/metricValueFormat';
 import { cn } from '@/lib/utils';
 
 /** Unified Metric Form Dialog for both create and edit */
@@ -66,6 +68,15 @@ const MetricFormDialog: React.FC<MetricFormDialogProps> = ({
       type_params: { ...prev.type_params, [side]: value },
     }));
   };
+
+  const numberFormat = (form.config?.numberFormat ?? {}) as MetricNumberFormat;
+  const updateNumberFormat = (patch: Partial<MetricNumberFormat>) => {
+    setForm(prev => ({
+      ...prev,
+      config: { ...prev.config, numberFormat: { ...(prev.config?.numberFormat ?? {}), ...patch } },
+    }));
+  };
+  const decimalPlacesValue = numberFormat.decimalPlaces === undefined ? 'auto' : String(numberFormat.decimalPlaces);
 
   const isEdit = mode === 'edit';
   const dialogTitle = isEdit ? t('metricsManagement:dialogs.editTitle') : t('metricsManagement:dialogs.createTitle');
@@ -318,6 +329,57 @@ const MetricFormDialog: React.FC<MetricFormDialogProps> = ({
                     <SelectItem value="percentage">{t('metricsEnum:formats.percentage')}</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <Label>{t('metricsManagement:dialogs.numberFormat')}</Label>
+                <p className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.numberFormatHint')}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.decimalPlaces')}</Label>
+                  <Select
+                    value={decimalPlacesValue}
+                    onValueChange={(value) => updateNumberFormat({ decimalPlaces: value === 'auto' ? undefined : parseInt(value, 10) })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">{t('metricsManagement:dialogs.decimalAuto')}</SelectItem>
+                      {[0, 1, 2, 3, 4, 5, 6].map(n => (
+                        <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">{t('metricsManagement:dialogs.formatPreview')}</Label>
+                  <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm font-medium tabular-nums truncate">
+                    {formatMetricValue(
+                      form.format === 'percentage' ? 97.56 : 1234567.891,
+                      form.format,
+                      inferCurrencyFromUnit(form.unit),
+                      numberFormat
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <Checkbox
+                    checked={numberFormat.useThousandSeparator !== false}
+                    onCheckedChange={(checked) => updateNumberFormat({ useThousandSeparator: checked === true })}
+                  />
+                  {t('metricsManagement:dialogs.thousandSeparator')}
+                </label>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <Checkbox
+                    checked={numberFormat.abbreviation === true}
+                    onCheckedChange={(checked) => updateNumberFormat({ abbreviation: checked === true })}
+                  />
+                  {t('metricsManagement:dialogs.abbreviateLargeNumbers')}
+                </label>
               </div>
             </div>
           </section>

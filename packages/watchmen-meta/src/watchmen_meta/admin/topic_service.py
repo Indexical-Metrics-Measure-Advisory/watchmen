@@ -2,12 +2,14 @@ from datetime import datetime
 from typing import List, Optional
 
 from watchmen_meta.common import TupleService, TupleShaper
-from watchmen_model.admin import Factor, Topic, TopicType, TopicKind
+from watchmen_model.admin import Factor, Topic, TopicTag, TopicType, TopicKind
 from watchmen_model.common import DataPage, FactorId, Pageable, TenantId, TopicId
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityDistinctValuesFinder, EntityRow, EntityShaper, \
 	SnowflakeGenerator
 from watchmen_utilities import ArrayHelper, is_not_blank
+
+from .topic_tag_service import TOPIC_TAG_ENTITY_NAME, TOPIC_TAG_ENTITY_SHAPER
 
 
 class TopicShaper(EntityShaper):
@@ -93,19 +95,43 @@ class TopicService(TupleService):
 		))
 		return ArrayHelper(topics).map(lambda x: x.topicId).to_list()
 
+	def find_topic_ids_by_tag_like(self, text: str, tenant_id: Optional[TenantId]) -> List[TopicId]:
+		"""
+		tags are stored in the topic_tags relation, find topic ids whose tag name matches the given text
+		"""
+		criteria = [EntityCriteriaExpression(
+			left=ColumnNameLiteral(columnName='tag_name'), operator=EntityCriteriaOperator.LIKE, right=text)]
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		rows: List[TopicTag] = self.storage.find_distinct_values(EntityDistinctValuesFinder(
+			name=TOPIC_TAG_ENTITY_NAME,
+			shaper=TOPIC_TAG_ENTITY_SHAPER,
+			criteria=criteria,
+			distinctColumnNames=['topic_id']
+		))
+		return ArrayHelper(rows).map(lambda x: x.topicId).to_list()
+
 	# noinspection DuplicatedCode
 	def find_page_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
+			children = [
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text),
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName='description'), operator=EntityCriteriaOperator.LIKE,
+					right=text)
+			]
+			# topics matched by tag are also acceptable, thus 'topic_id in' is added to the or joint
+			topic_ids = self.find_topic_ids_by_tag_like(text, tenant_id)
+			if len(topic_ids) != 0:
+				children.append(EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName='topic_id'), operator=EntityCriteriaOperator.IN,
+					right=topic_ids))
 			criteria.append(EntityCriteriaJoint(
 				conjunction=EntityCriteriaJointConjunction.OR,
-				children=[
-					EntityCriteriaExpression(
-						left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text),
-					EntityCriteriaExpression(
-						left=ColumnNameLiteral(columnName='description'), operator=EntityCriteriaOperator.LIKE,
-						right=text)
-				]
+				children=children
 			))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))

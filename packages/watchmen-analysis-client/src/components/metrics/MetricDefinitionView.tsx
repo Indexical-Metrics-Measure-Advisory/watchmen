@@ -1,7 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { MetricDefinition, WindowParams } from '@/model/metricsManagement';
+import { MetricDefinition, MetricNumberFormat, WindowParams } from '@/model/metricsManagement';
 import { getFormatLabel } from '@/utils/metricFormUtils';
+import { formatMetricValue, inferCurrencyFromUnit } from '@/utils/metricValueFormat';
 
 interface MetricDefinitionViewProps {
   metric: MetricDefinition;
@@ -279,6 +280,33 @@ const MetricDefinitionView: React.FC<MetricDefinitionViewProps> = ({
 
   const fields = renderFields();
 
+  // Display attributes: unit / format / number format options configured on the metric
+  const numberFormat = metric.config?.numberFormat as MetricNumberFormat | undefined;
+  const hasNumberFormat = !!numberFormat && (
+    numberFormat.decimalPlaces !== undefined
+    || numberFormat.useThousandSeparator === false
+    || numberFormat.abbreviation === true
+  );
+  const hasDisplayInfo = !!(metric.unit || metric.format || hasNumberFormat);
+  const formatSample = hasNumberFormat
+    ? formatMetricValue(
+      metric.format === 'percentage' ? 97.56 : 1234567.891,
+      metric.format,
+      inferCurrencyFromUnit(metric.unit),
+      numberFormat,
+    )
+    : null;
+  const numberFormatParts: string[] = [];
+  if (numberFormat?.decimalPlaces !== undefined) {
+    numberFormatParts.push(t('metricsManagement:dialogs.decimalPlaces') + ': ' + numberFormat.decimalPlaces);
+  }
+  if (numberFormat?.useThousandSeparator === false) {
+    numberFormatParts.push(t('metricsManagement:dialogs.thousandSeparator') + ': ' + t('metricsManagement:details.no'));
+  }
+  if (numberFormat?.abbreviation === true) {
+    numberFormatParts.push(t('metricsManagement:dialogs.abbreviateLargeNumbers'));
+  }
+
   return (
     <div className="space-y-3">
       {/* Business summary sentence */}
@@ -294,6 +322,30 @@ const MetricDefinitionView: React.FC<MetricDefinitionViewProps> = ({
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">{t('metricsManagement:details.noDefinition')}</p>
+      )}
+
+      {/* Display configuration: unit / format / number format */}
+      {hasDisplayInfo && (
+        <div className="rounded-lg border divide-y">
+          {metric.unit && (
+            <DefinitionRow label={t('metricsManagement:details.unit')}>{metric.unit}</DefinitionRow>
+          )}
+          {metric.format && (
+            <DefinitionRow label={t('metricsManagement:details.format')}>
+              <Chip>{getFormatLabel(metric.format, t)}</Chip>
+            </DefinitionRow>
+          )}
+          {hasNumberFormat && (
+            <DefinitionRow label={t('metricsManagement:details.numberFormat')}>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="font-medium tabular-nums">{formatSample}</span>
+                {numberFormatParts.map((part) => (
+                  <Chip key={part}>{part}</Chip>
+                ))}
+              </div>
+            </DefinitionRow>
+          )}
+        </div>
       )}
     </div>
   );

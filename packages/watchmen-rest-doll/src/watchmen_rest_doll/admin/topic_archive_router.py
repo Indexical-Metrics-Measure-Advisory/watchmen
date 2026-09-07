@@ -9,12 +9,12 @@ from watchmen_meta.admin import ArchiveBatchService, TopicArchivePolicyService, 
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import ArchiveBatch, ArchiveBatchStatus, TopicArchivePolicy, TopicArchivePolicyId, \
 	UserRole
-from watchmen_model.common import DataModel, DataPage, DataSourceId, Pageable, TenantId, TopicId
+from watchmen_model.common import DataPage, DataSourceId, Pageable, TenantId, TopicId
 from watchmen_rest import get_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import is_blank
+from watchmen_utilities import ExtendedBaseModel, is_blank
 
 router = APIRouter()
 
@@ -44,7 +44,7 @@ class QueryArchiveBatchDataPage(DataPage):
 	data: List[ArchiveBatch]
 
 
-class TopicArchiveRunRequest(DataModel):
+class TopicArchiveRunRequest(ExtendedBaseModel):
 	topicId: Optional[TopicId] = None
 	policyId: Optional[TopicArchivePolicyId] = None
 	dryRun: bool = True
@@ -70,8 +70,12 @@ def validate_policy(policy: TopicArchivePolicy, policy_service: TopicArchivePoli
 		raise_400('Batch size must be between 1 and 100000.')
 	if is_blank(policy.archiveDataSourceId):
 		raise_400('Archive data source is required.')
-	if policy.archiveDataSourceId == find_topic_data_source_id(policy.topicId, policy_service):
-		raise_400('Archive data source must be different from the topic data source.')
+	topic_data_source_id = find_topic_data_source_id(policy.topicId, policy_service)
+	if policy.archiveDataSourceId == topic_data_source_id:
+		raise_400(
+			f'Archive data source[id={policy.archiveDataSourceId}] must be different '
+			f'from the data source[id={topic_data_source_id}] of topic[id={policy.topicId}]. '
+			f'Archived data is moved into another storage, declare a different data source first.')
 
 
 @router.post('/topic/archive/policy/list', tags=[UserRole.ADMIN], response_model=None)

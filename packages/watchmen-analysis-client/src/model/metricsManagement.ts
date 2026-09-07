@@ -70,6 +70,20 @@ export interface ConversionTypeParams {
 
 export type PeriodAggregation = string;
 
+/**
+ * Number display options configured on a metric and persisted under
+ * config.numberFormat. Applied when metric values are rendered in charts,
+ * KPI cards and data tables.
+ */
+export interface MetricNumberFormat {
+  // number of decimal places to display (0-6); undefined keeps the default
+  decimalPlaces?: number;
+  // group thousands with separators; defaults to true when unset
+  useThousandSeparator?: boolean;
+  // abbreviate large values with K/M/B; defaults to false when unset
+  abbreviation?: boolean;
+}
+
 export interface CumulativeTypeParams {
   window?: WindowParams;
   grain_to_date?: TimeGranularity;

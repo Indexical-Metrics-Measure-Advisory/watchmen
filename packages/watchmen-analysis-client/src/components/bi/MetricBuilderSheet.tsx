@@ -30,6 +30,7 @@ import type { MetricDefinition } from '@/model/metricsManagement';
 import type { MetricDimension } from '@/model/analysis';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import { inferType } from './utils';
+import { inferCurrencyFromUnit } from '@/utils/metricValueFormat';
 import { RechartsProvider } from './charts/RechartsContext';
 import { useTranslation } from 'react-i18next';
 
@@ -130,6 +131,13 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
     () => Array.from(new Set(availableDimsDetailed.map(inferType))).sort(),
     [availableDimsDetailed]
   );
+
+  // Number format configured on the selected metric, applied to the data table preview
+  const previewMetricDef = React.useMemo(
+    () => metricsList.find(m => (m.id ?? m.name) === selectedMetricId),
+    [metricsList, selectedMetricId]
+  );
+  const previewNumberFormat = previewMetricDef?.config?.numberFormat;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -286,6 +294,12 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                         </ScrollArea>
                       </Tabs>
 
+                      {selectedDims.length >= 3 && selectedDims.length <= 5 && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-2 text-xs text-blue-600 dark:text-blue-400 rounded-sm border border-blue-100 dark:border-blue-900/30 mb-4">
+                          {t('biAnalysis:metricBuilder.multiDimsHint')}
+                        </div>
+                      )}
+
                       {selectedDimType === 'TIME' && (
                         <div className="space-y-2 mb-4">
                           <Label className="text-xs font-semibold text-muted-foreground uppercase">{t('biAnalysis:metricBuilder.timeGranularity')}</Label>
@@ -421,7 +435,13 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                         {t('biAnalysis:metricBuilder.tooManyDimensions')}
                       </div>
                       <div className="flex-1 overflow-hidden">
-                        <DataTable data={previewData} sourceData={previewRawData ?? undefined} />
+                        <DataTable
+                          data={previewData}
+                          sourceData={previewRawData ?? undefined}
+                          format={previewMetricDef?.format}
+                          currency={inferCurrencyFromUnit(previewMetricDef?.unit)}
+                          numberFormat={previewNumberFormat}
+                        />
                       </div>
                     </div>
                   ) : selectedMetric && previewCard ? (

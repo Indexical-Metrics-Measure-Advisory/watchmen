@@ -7,6 +7,7 @@ CREATE TABLE topic_archive_policies
     cold_days                 INT,
     archive_data_source_id    NVARCHAR(50) NOT NULL,
     batch_size                INT          NOT NULL,
+    filter                    NVARCHAR(MAX),
     destroy_requires_approval DECIMAL(1),
     tenant_id                 NVARCHAR(50) NOT NULL,
     created_at                DATETIME     NOT NULL,

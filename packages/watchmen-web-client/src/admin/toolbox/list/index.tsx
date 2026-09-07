@@ -22,6 +22,12 @@ export const ToolboxList = () => {
 					Likes a time machine for a piece or a segment of single topic.
 				</ToolboxCardDescription>
 			</ToolboxCard>
+			<ToolboxCard onClick={onClick(Router.ADMIN_TOOLBOX_TOPIC_ARCHIVE)}>
+				<ToolboxCardTitle>Topic Archive</ToolboxCardTitle>
+				<ToolboxCardDescription>
+					Move aged topic data into cold storage, with dry run support.
+				</ToolboxCardDescription>
+			</ToolboxCard>
 			<ToolboxCard onClick={onClick(Router.ADMIN_TOOLBOX_PIPELINE_TRIGGER)}>
 				<ToolboxCardTitle>Pipeline Trigger</ToolboxCardTitle>
 				<ToolboxCardDescription>

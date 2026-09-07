@@ -250,6 +250,34 @@ table_snapshot_schedulers = MongoDocument(
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 	]
 )
+table_topic_archive_policies = MongoDocument(
+	name='topic_archive_policies',
+	columns=[
+		create_pk('policy_id'),
+		create_tuple_id_column('topic_id', False),
+		create_bool('enabled', False),
+		create_int('hot_days', False), create_int('cold_days'),
+		create_tuple_id_column('archive_data_source_id', False),
+		create_int('batch_size', False),
+		create_json('filter'),
+		create_bool('destroy_requires_approval', False),
+		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+	]
+)
+table_archive_batches = MongoDocument(
+	name='archive_batches',
+	columns=[
+		create_pk('batch_id'),
+		create_tuple_id_column('policy_id', False),
+		create_tuple_id_column('topic_id', False),
+		create_datetime('time_from'), create_datetime('time_to'),
+		create_int('row_count', False),
+		create_str('checksum'), create_str('storage_uri'),
+		create_str('status', False), create_str('error_message'),
+		create_datetime('archived_at'),
+		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+	]
+)
 table_snapshot_job_locks = MongoDocument(
 	name='snapshot_job_locks',
 	columns=[
@@ -491,6 +519,8 @@ tables: Dict[str, MongoDocument] = {
 	'pipeline_graphics': table_pipeline_graphics,
 	'snapshot_schedulers': table_snapshot_schedulers,
 	'snapshot_job_locks': table_snapshot_job_locks,
+	'topic_archive_policies': table_topic_archive_policies,
+	'archive_batches': table_archive_batches,
 	# console
 	'connected_spaces': table_connected_spaces,
 	'connected_space_graphics': table_connected_space_graphics,
