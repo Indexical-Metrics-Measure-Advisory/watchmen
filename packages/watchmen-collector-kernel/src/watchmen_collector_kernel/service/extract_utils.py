@@ -50,9 +50,11 @@ def build_audit_column_criteria(audit_column_name: str, start_time: datetime, en
 def build_audit_columns_criteria(date_column: str, time_column: str, start_time: datetime,
                                  end_time: datetime) -> EntityCriteria:
     start_date = start_time.date()
-    start_tm = start_time.time()
+    start_tm = start_time.time().strftime("%H:%M:%S")
     end_date = end_time.date()
-    end_tm = end_time.time()
+    end_tm = end_time.time().strftime("%H:%M:%S")
+    
+    logger.info(f"start_date: {start_date}, start_tm: {start_tm}, end_date: {end_date}, end_tm: {end_tm}")
     
     if start_date < end_date:
         return [
@@ -63,7 +65,7 @@ def build_audit_columns_criteria(date_column: str, time_column: str, start_time:
                         conjunction=EntityCriteriaJointConjunction.AND,
                         children=[
                             EntityCriteriaExpression(
-                                lefe=ColumnNameLiteral(columnName=date_column),
+                                left=ColumnNameLiteral(columnName=date_column),
                                 operator=EntityCriteriaOperator.GREATER_THAN,
                                 right=start_date),
                             EntityCriteriaExpression(
@@ -76,7 +78,7 @@ def build_audit_columns_criteria(date_column: str, time_column: str, start_time:
                         conjunction=EntityCriteriaJointConjunction.AND,
                         children=[
                             EntityCriteriaExpression(
-                                lefe=ColumnNameLiteral(columnName=date_column),
+                                left=ColumnNameLiteral(columnName=date_column),
                                 operator=EntityCriteriaOperator.EQUALS,
                                 right=start_date),
                             EntityCriteriaExpression(
@@ -89,7 +91,7 @@ def build_audit_columns_criteria(date_column: str, time_column: str, start_time:
                         conjunction=EntityCriteriaJointConjunction.AND,
                         children=[
                             EntityCriteriaExpression(
-                                lefe=ColumnNameLiteral(columnName=date_column),
+                                left=ColumnNameLiteral(columnName=date_column),
                                 operator=EntityCriteriaOperator.EQUALS,
                                 right=end_date),
                             EntityCriteriaExpression(
@@ -109,7 +111,7 @@ def build_audit_columns_criteria(date_column: str, time_column: str, start_time:
                 right=start_date),
             EntityCriteriaExpression(
                 left=ColumnNameLiteral(columnName=time_column),
-                operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+                operator=EntityCriteriaOperator.GREATER_THAN,
                 right=start_tm),
             EntityCriteriaExpression(
                 left=ColumnNameLiteral(columnName=time_column),
