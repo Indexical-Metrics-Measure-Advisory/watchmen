@@ -2,11 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   BarChart3, Database, Layers, Package, HardDrive, Camera, RefreshCw,
-  TrendingUp, Trophy, Table2,
+  Trophy, Table2,
 } from "lucide-react";
 import {
-  LineChart as RechartLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  Legend, ResponsiveContainer, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, BarChart, Bar,
 } from "recharts";
 import { useSidebar } from "@/contexts/SidebarContext";
 import Sidebar from "@/components/layout/Sidebar";
@@ -134,17 +134,6 @@ const AssetMap: React.FC = () => {
     }
   };
 
-  const trendData = useMemo(
-    () =>
-      (data?.storage_trend || []).map((s) => ({
-        date: s.snapshot_date,
-        rows: s.total_rows,
-        topics: s.total_topics,
-        products: s.product_count,
-      })),
-    [data]
-  );
-
   const valueData = useMemo(
     () =>
       (data?.value_ranking || []).map((p) => ({
@@ -216,30 +205,6 @@ const AssetMap: React.FC = () => {
                 <StatCard icon={<HardDrive className="w-5 h-5" />} label={t("assetMapPage.statDatasources")} value={formatNumber(data.total_datasources)} />
                 <StatCard icon={<FolderIcon />} label={t("assetMapPage.statCatalogs")} value={formatNumber(data.total_catalogs)} />
               </div>
-
-              {/* storage trend */}
-              <RankingPanel title={t("assetMapPage.storageTrend")} icon={<TrendingUp className="w-4 h-4 text-blue-600" />}>
-                {trendData.length === 0 ? (
-                  <div className="text-sm text-slate-400 text-center py-10">
-                    {t("assetMapPage.noSnapshot")}
-                  </div>
-                ) : (
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartLineChart data={trendData} margin={{ top: 8, right: 16, bottom: 0, left: 8 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                        <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                        <YAxis tick={{ fontSize: 11 }} tickFormatter={formatNumber} />
-                        <Tooltip formatter={(v: unknown) => formatNumber(Number(v))} />
-                        <Legend />
-                        <Line type="monotone" dataKey="rows" name={t("assetMapPage.legendRows")} stroke="#2563eb" strokeWidth={2} dot={false} />
-                        <Line type="monotone" dataKey="topics" name={t("assetMapPage.legendTopics")} stroke="#10b981" strokeWidth={2} dot={false} />
-                        <Line type="monotone" dataKey="products" name={t("assetMapPage.legendProducts")} stroke="#8b5cf6" strokeWidth={2} dot={false} />
-                      </RechartLineChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </RankingPanel>
 
               {/* rankings */}
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
