@@ -35,12 +35,30 @@ class OntologyTableFactory:
 
 	@staticmethod
 	def physical_table_name(topic_name: str) -> str:
-		"""``dm_policy_contract`` → ``topic_dm_policy_contract``。"""
+		"""``dm_policy_contract`` → ``topic_dm_policy_contract``。
+
+		``schema.table`` / ``raw:schema.table`` 中的 schema 保留原样，
+		topic_ 前缀约定只作用于表名部分。
+		"""
 		if not topic_name:
 			raise OntologySqlCompileError('Physical table topicName is required.')
-		if topic_name.startswith(OntologyTableFactory.EXPLICIT_TABLE_PREFIX):
-			return topic_name[len(OntologyTableFactory.EXPLICIT_TABLE_PREFIX):]
-		return topic_name if topic_name.startswith('topic_') else f'topic_{topic_name}'
+		explicit = topic_name.startswith(OntologyTableFactory.EXPLICIT_TABLE_PREFIX)
+		name = topic_name[len(OntologyTableFactory.EXPLICIT_TABLE_PREFIX):] if explicit else topic_name
+		schema = None
+		if '.' in name:
+			schema, _, name = name.rpartition('.')
+		elif explicit:
+			# keep name untouched below
+			pass
+		if not explicit and not name.startswith('topic_'):
+			name = f'topic_{name}'
+		return f'{schema}.{name}' if schema else name
+
+	@staticmethod
+	def split_physical_name(physical_name: str) -> tuple:
+		"""``schema.table`` → ``(schema, table)``；无 schema 时 schema 为 ``None``。"""
+		schema, _, table = physical_name.rpartition('.')
+		return (schema or None), table
 
 	@staticmethod
 	def resolve_mapping_alias(mapping: PhysicalTableMapping) -> str:
@@ -52,11 +70,14 @@ class OntologyTableFactory:
 		# 否则 SQL 会引用一个数据库里不存在的列（旧 bug）。
 		columns = list(fields) if fields else ['id']
 		physical_name = self.physical_table_name(table_name)
+		schema, bare_name = self.split_physical_name(physical_name)
 		# 同一张表可能在主查询和 derived join 中都被引用；metadata 中已存在则复用。
 		existing = self.metadata.tables.get(physical_name)
 		if existing is not None:
 			return existing.alias(alias) if alias else existing
-		table = Table(physical_name, self.metadata, *[self._build_column(name) for name in columns])
+		table = Table(
+			bare_name, self.metadata, schema=schema,
+			*[self._build_column(name) for name in columns])
 		return table.alias(alias) if alias else table
 
 	def build_table_lookup(self, mapping: PhysicalTableMapping, table: Table) -> Dict[str, Table]:

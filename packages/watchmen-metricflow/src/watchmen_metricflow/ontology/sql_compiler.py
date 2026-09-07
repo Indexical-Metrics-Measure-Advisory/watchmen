@@ -39,6 +39,19 @@ def _build_time_trunc_expression(granularity: str, column: Any, dialect_name: Op
 		return func.date_format(column, '%Y')
 	if dialect == 'postgresql':
 		return func.date_trunc(granularity, column)
+	if dialect == 'oracle':
+		# TRUNC 返回 datetime，由调用方按粒度归一成字符串键（同 pg date_trunc）
+		if granularity == 'day':
+			return func.trunc(column, 'DD')
+		if granularity == 'week':
+			# IW：ISO 周，周一为一周起点，跨年行为与 mysql %x-%v / pg date_trunc 一致
+			return func.trunc(column, 'IW')
+		if granularity == 'month':
+			return func.trunc(column, 'MM')
+		if granularity == 'quarter':
+			return func.trunc(column, 'Q')
+		# year
+		return func.trunc(column, 'YYYY')
 	raise OntologySqlCompileError(
 		f'Group by granularity [{granularity}] is not supported on dialect [{dialect}].')
 

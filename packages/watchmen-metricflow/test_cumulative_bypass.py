@@ -45,9 +45,9 @@ sys.modules['watchmen_storage_mysql'] = fake
 from watchmen_metricflow.model.metrics import Metric, MetricTypeParams, MetricWithCategory
 from watchmen_metricflow.model.metric_request import MetricQueryRequest
 from watchmen_metricflow.model.semantic import SemanticModel
-from watchmen_metricflow.service.mysql_metric_query_service import (
-	_collect_tree_measures, _normalize_metric, resolve_mysql_context,
-	MySQLModelSource, MySQLMetricQueryRunner)
+from watchmen_metricflow.service.direct_metric_query_service import (
+	_collect_tree_measures, _normalize_metric, resolve_direct_context,
+	DirectModelSource, DirectMetricQueryRunner)
 
 failures = []
 
@@ -96,8 +96,8 @@ sm = SemanticModel.model_validate({
 	'dimensions': [{'name': 'approve_date', 'type': 'time', 'expr': 'approve_date'}],
 	'entities': [],
 })
-resolver = lambda model: MySQLModelSource(key='ds:1', table_ref='approve', data_source_id='ds1')
-context = resolve_mysql_context(metrics_by_name['approve_cnt'], metrics, [sm], resolver)
+resolver = lambda model: DirectModelSource(key='ds:1', table_ref='approve', data_source_id='ds1')
+context = resolve_direct_context(metrics_by_name['approve_cnt'], metrics, [sm], resolver)
 check('context resolves for UI-shaped cumulative metric', context is not None)
 
 # --- end-to-end run with injected leaf executor (no database) -----------------
@@ -106,7 +106,7 @@ if context is not None:
 		{'metric_time': '2026-01-01', 'approve_count': 2},
 		{'metric_time': '2026-01-02', 'approve_count': 3},
 	]
-	runner = MySQLMetricQueryRunner(context, execute_leaf=lambda ontology, request: rows)
+	runner = DirectMetricQueryRunner(context, execute_leaf=lambda ontology, request: rows)
 	resp = runner.run(MetricQueryRequest(metric='approve_cnt', group_by=['metric_time__day']))
 	values = [row[-1] for row in resp.data]
 	check('cumulative accumulation over base metric',
@@ -116,8 +116,8 @@ if context is not None:
 	      f'columns={resp.column_names}')
 
 	# regression: querying the base simple metric directly still works
-	base_context = resolve_mysql_context(metrics_by_name['total_approve'], metrics, [sm], resolver)
-	base_runner = MySQLMetricQueryRunner(base_context, execute_leaf=lambda o, r: rows)
+	base_context = resolve_direct_context(metrics_by_name['total_approve'], metrics, [sm], resolver)
+	base_runner = DirectMetricQueryRunner(base_context, execute_leaf=lambda o, r: rows)
 	base_resp = base_runner.run(MetricQueryRequest(metric='total_approve', group_by=['metric_time__day']))
 	check('simple base metric query unchanged (regression)',
 	      [row[-1] for row in base_resp.data] == [2, 3],
@@ -136,9 +136,9 @@ check('collect supports cumulative_type_params.measure', ok_c and out_c == {'app
 
 if context is not None:
 	# in production the metric itself is part of the tenant metric list
-	context_c = resolve_mysql_context(metric_c, [*metrics, metric_c], [sm], resolver)
+	context_c = resolve_direct_context(metric_c, [*metrics, metric_c], [sm], resolver)
 	if context_c is not None:
-		runner_c = MySQLMetricQueryRunner(
+		runner_c = DirectMetricQueryRunner(
 			context_c, execute_leaf=lambda ontology, request: rows)
 		resp_c = runner_c.run(MetricQueryRequest(metric='cum_by_measure', group_by=['metric_time__day']))
 		check('cumulative-by-measure accumulates',
@@ -180,7 +180,7 @@ ok_s = _collect_tree_measures('issue_policy_count', shadow_by_name, set(), out_s
 check('measure ref survives a same-named metric (shadowing)',
       ok_s and out_s == {'issued_policy_cnt'}, f'collected={out_s}')
 
-shadow_context = resolve_mysql_context(
+shadow_context = resolve_direct_context(
 	shadow_by_name['issue_policy_count'], shadow_metrics,
 	[SemanticModel.model_validate({
 		'name': 'policy_sm', 'description': 'd', 'sourceType': 'topic',

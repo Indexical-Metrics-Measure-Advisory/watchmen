@@ -1,14 +1,17 @@
-"""MySQL bypass for metric queries.
+"""Direct (non-dbt) bypass for metric queries.
 
 dbt-metricflow has no MySQL support, so metrics whose data source is MySQL are
 executed through the ontology SQL compiler (OntologySqlCompiler) plus a
-SQLAlchemy engine (MySQLDataSourceHelper) instead of dbt.
+SQLAlchemy engine instead of dbt. PostgreSQL data sources can take the same
+bypass: DIRECT_METRIC_BYPASS_TYPES lists the served data source types
+(default 'mysql', e.g. 'mysql,postgresql' enables pgsql).
 
 Any metric is recursively decomposed into leaf measure aggregation queries
 (one leaf = one measure aggregated by the request group-by, compiled to SQL);
 ratio / derived / cumulative semantics are combined in Python, aligning rows
-on group-by key tuples. Non-MySQL data sources are not handled here: the
-public entry returns None and the caller falls through to the dbt path.
+on group-by key tuples. Data sources outside DIRECT_METRIC_BYPASS_TYPES are
+not handled here: the public entry returns None and the caller falls through
+to the dbt path.
 """
 
 import ast
@@ -41,6 +44,7 @@ from watchmen_metricflow.ontology.table_factory import OntologyTableFactory
 from watchmen_metricflow.service.meta_service import (
 	get_data_source_service, get_topic_service, load_metrics_by_tenant_id,
 	load_semantic_models_by_tenant_id)
+from watchmen_metricflow.settings import ask_direct_bypass_types
 from watchmen_metricflow.util.trans import trans_readonly
 
 _GRANULARITIES = ('day', 'week', 'month', 'quarter', 'year')
@@ -50,7 +54,7 @@ logger = logging.getLogger(__name__)
 
 def _decline(reasons: Optional[List[str]], reason: str) -> None:
 	"""Log a bypass decline and record the reason for the caller to surface."""
-	logger.info(f'MySQL bypass declined: {reason}')
+	logger.info(f'Direct bypass declined: {reason}')
 	if reasons is not None:
 		reasons.append(reason)
 
@@ -78,33 +82,34 @@ _WHERE_CONDITION_PATTERN = re.compile(
 # Bypass detection
 # =============================================================================
 
-class MySQLModelSource:
-	"""How one semantic model maps to a MySQL physical table."""
+class DirectModelSource:
+	"""How one semantic model maps to a bypassed physical table."""
 
 	def __init__(
 			self, key: str, table_ref: str, data_source_id: Optional[str] = None,
 			node_relation: Optional[NodeRelation] = None) -> None:
 		# connection identity; all models in one query must share the same key
 		self.key = key
-		# PhysicalTableMapping.topicName; raw:-prefixed for DB_DIRECT relations
+		# PhysicalTableMapping.topicName; raw:-prefixed for DB_DIRECT relations;
+		# ``schema.table`` for pg so the table resolves outside search_path
 		self.table_ref = table_ref
 		self.data_source_id = data_source_id
 		self.node_relation = node_relation
 
 
-class MySQLQueryContext:
-	"""Resolved context for a metric that can bypass dbt and query MySQL directly."""
+class DirectQueryContext:
+	"""Resolved context for a metric that can bypass dbt and query its data source directly."""
 
 	def __init__(
 			self, metric: Metric, metrics_by_name: Dict[str, Metric],
 			semantic_models: List[SemanticModel], measure_models: Dict[str, SemanticModel],
-			model_sources: Dict[str, MySQLModelSource]) -> None:
+			model_sources: Dict[str, DirectModelSource]) -> None:
 		self.metric = metric
 		self.metrics_by_name = metrics_by_name
 		self.semantic_models = semantic_models
 		# measure name -> owning semantic model
 		self.measure_models = measure_models
-		# semantic model name -> MySQL source binding
+		# semantic model name -> bypassed source binding
 		self.model_sources = model_sources
 		self.binding = next(iter(model_sources.values()))
 
@@ -212,17 +217,32 @@ def _normalize_metric(metric: Metric) -> Metric:
 	return metric
 
 
-def resolve_mysql_context(
+def _data_source_type_value(value: Any) -> str:
+	"""Lowercase DataSourceType value of either an enum member or a raw string."""
+	return (value.value if isinstance(value, DataSourceType) else str(value)).strip().lower()
+
+
+def _data_source_schema(data_source: DataSource) -> Optional[str]:
+	"""The ``schema`` param of a data source, e.g. required to qualify pg tables."""
+	for param in (data_source.params or []):
+		name = getattr(param, 'name', None)
+		value = getattr(param, 'value', None)
+		if name and name.strip().lower() == 'schema' and value and value.strip():
+			return value.strip()
+	return None
+
+
+def resolve_direct_context(
 		metric: Metric, metrics: List[Metric], semantic_models: List[SemanticModel],
-		binding_resolver: Callable[[SemanticModel], Optional[MySQLModelSource]],
+		binding_resolver: Callable[[SemanticModel], Optional[DirectModelSource]],
 		decline_reasons: Optional[List[str]] = None
-) -> Optional[MySQLQueryContext]:
-	"""Decide whether a metric can bypass dbt and run against MySQL directly.
+) -> Optional[DirectQueryContext]:
+	"""Decide whether a metric can bypass dbt and run against its data source directly.
 
 	Returns None when any measure in the metric's reference chain resolves to a
-	non-MySQL data source, a different data source than the other measures, or
-	cannot be resolved at all. Decline reasons are logged and, when
-	`decline_reasons` is given, appended there for the caller to surface.
+	data source outside DIRECT_METRIC_BYPASS_TYPES, a different data source than
+	the other measures, or cannot be resolved at all. Decline reasons are logged
+	and, when `decline_reasons` is given, appended there for the caller to surface.
 	"""
 	_normalize_metric(metric)
 	metrics_by_name = {item.name: _normalize_metric(item) for item in metrics}
@@ -240,7 +260,7 @@ def resolve_mysql_context(
 		                          f'(type=[{_metric_type_value(metric)}], '
 		                          f'type_params=[{metric.type_params}]).')
 		return None
-	model_sources: Dict[str, MySQLModelSource] = {}
+	model_sources: Dict[str, DirectModelSource] = {}
 	for name in measure_names:
 		model = measure_models.get(name)
 		if model is None:
@@ -252,7 +272,7 @@ def resolve_mysql_context(
 		source = binding_resolver(model)
 		if source is None:
 			_decline(decline_reasons, f'semantic model [{model.name}] of metric [{metric.name}] '
-			                          f'does not resolve to a MySQL data source.')
+			                          f'does not resolve to a bypass-enabled data source.')
 			return None
 		model_sources[model.name] = source
 	if len({source.key for source in model_sources.values()}) != 1:
@@ -260,7 +280,7 @@ def resolve_mysql_context(
 		_decline(decline_reasons, f'measures of metric [{metric.name}] '
 		                          f'spread over multiple data sources.')
 		return None
-	return MySQLQueryContext(metric, metrics_by_name, semantic_models, measure_models, model_sources)
+	return DirectQueryContext(metric, metrics_by_name, semantic_models, measure_models, model_sources)
 
 
 def _relation_table_name(relation_name: str) -> str:
@@ -273,11 +293,12 @@ def _relation_table_name(relation_name: str) -> str:
 
 def _production_binding_resolver(
 		principal_service: PrincipalService
-) -> Callable[[SemanticModel], Optional[MySQLModelSource]]:
+) -> Callable[[SemanticModel], Optional[DirectModelSource]]:
+	bypass_types = ask_direct_bypass_types()
 	topic_service = get_topic_service(principal_service)
 	data_source_service = get_data_source_service(principal_service)
 
-	def resolver(model: SemanticModel) -> Optional[MySQLModelSource]:
+	def resolver(model: SemanticModel) -> Optional[DirectModelSource]:
 		source_type = _source_type_value(model)
 		if source_type == SemanticModelSourceType.TOPIC.value:
 			topic = trans_readonly(topic_service, lambda: topic_service.find_by_id(model.topicId))
@@ -285,23 +306,48 @@ def _production_binding_resolver(
 				return None
 			data_source = trans_readonly(
 				data_source_service, lambda: data_source_service.find_by_id(topic.dataSourceId))
-			if data_source is None or data_source.dataSourceType != DataSourceType.MYSQL:
+			if data_source is None \
+					or _data_source_type_value(data_source.dataSourceType) not in bypass_types:
 				return None
+			table_name = topic.name.strip().lower()
+			# pg/oracle have no per-connection default database: qualify the topic
+			# table with the schema configured on the data source (oracle falls
+			# back to the username, same as the dbt profile in build_profile)
+			data_source_type = _data_source_type_value(data_source.dataSourceType)
+			schema = None
+			if data_source_type == DataSourceType.POSTGRESQL.value:
+				schema = _data_source_schema(data_source)
+			elif data_source_type == DataSourceType.ORACLE.value:
+				schema = _data_source_schema(data_source) or data_source.username
+			if schema:
+				table_name = f'{schema.strip()}.{table_name}'
 			# physical table follows the topic storage convention topic_{name}
-			return MySQLModelSource(
+			return DirectModelSource(
 				key=f'datasource:{topic.dataSourceId}',
-				table_ref=topic.name.strip().lower(),
+				table_ref=table_name,
 				data_source_id=topic.dataSourceId)
 		if source_type == SemanticModelSourceType.DB_DIRECT.value:
 			node_relation = model.node_relation
 			if isinstance(node_relation, dict):
 				node_relation = NodeRelation.model_validate(node_relation)
-			if (node_relation.databaseType or '').lower() != DataSourceType.MYSQL.value:
+			database_type = (node_relation.databaseType or '').lower()
+			if database_type not in bypass_types:
 				return None
-			return MySQLModelSource(
+			table_part = _relation_table_name(node_relation.relation_name)
+			# qualify with the relation's schema so pg/oracle resolve the table
+			# (oracle falls back to the username, its default schema); other
+			# dialects keep the connection default, as before
+			schema_name = ''
+			if database_type == DataSourceType.POSTGRESQL.value:
+				schema_name = (node_relation.schema_name or '').strip()
+			elif database_type == DataSourceType.ORACLE.value:
+				schema_name = (node_relation.schema_name or '').strip() \
+				              or (node_relation.username or '').strip()
+			if schema_name:
+				table_part = f'{schema_name}.{table_part}'
+			return DirectModelSource(
 				key=f'node:{node_relation.host}:{node_relation.port}:{node_relation.database}',
-				table_ref=OntologyTableFactory.EXPLICIT_TABLE_PREFIX
-				        + _relation_table_name(node_relation.relation_name),
+				table_ref=OntologyTableFactory.EXPLICIT_TABLE_PREFIX + table_part,
 				node_relation=node_relation)
 		return None
 
@@ -663,6 +709,15 @@ def _normalize_value(value: Any) -> Any:
 	return None if value is None else str(value)
 
 
+def _to_time_key(value: Any, spec: _GroupSpec) -> Any:
+	"""Render a driver-native date/datetime group-by value into the truncated
+	string form (postgresql date_trunc returns timestamps where the mysql
+	dialect renders strings), keeping key alignment dialect-neutral."""
+	if spec.is_time and isinstance(value, date):
+		return _format_time_key(value, spec.granularity)
+	return value
+
+
 def _rows_to_series(rows: List[Dict[str, Any]], specs: List[_GroupSpec], leaf_label: str,
 		fill: Any = None) -> _Series:
 	time_index = next((index for index, spec in enumerate(specs) if spec.is_time), None)
@@ -670,7 +725,7 @@ def _rows_to_series(rows: List[Dict[str, Any]], specs: List[_GroupSpec], leaf_la
 	values: Dict[tuple, Any] = {}
 	display: Dict[tuple, tuple] = {}
 	for row in rows:
-		raw_key = tuple(row.get(spec.attr_name) for spec in specs)
+		raw_key = tuple(_to_time_key(row.get(spec.attr_name), spec) for spec in specs)
 		key = tuple(_normalize_value(item) for item in raw_key)
 		values[key] = row.get(leaf_label)
 		if key not in display:
@@ -682,7 +737,7 @@ class _RunState:
 	"""Per-request state shared by all leaf queries (specs, filters, executor)."""
 
 	def __init__(
-			self, context: MySQLQueryContext, specs: List[_GroupSpec], req: MetricQueryRequest,
+			self, context: DirectQueryContext, specs: List[_GroupSpec], req: MetricQueryRequest,
 			execute: Callable[[VirtualOntology, OntologyQueryRequest], List[Dict[str, Any]]]) -> None:
 		self.context = context
 		self.specs = specs
@@ -753,7 +808,7 @@ def _eval_metric(
 		return _derived_series(state, params, filters, time_shift, visited)
 	if metric_type == MetricType.CONVERSION.value:
 		raise_400('Conversion metric semantics not defined.')
-	raise_400(f'Metric type [{metric_type}] is not supported by MySQL metric query.')
+	raise_400(f'Metric type [{metric_type}] is not supported by the direct metric query.')
 
 
 def _merged_display(*series_list: _Series) -> Dict[tuple, tuple]:
@@ -1071,9 +1126,9 @@ def _to_response(metric_name: str, specs: List[_GroupSpec], series: _Series, req
 
 def _create_db_direct_engine(node_relation: NodeRelation) -> Engine:
 	"""Build a SQLAlchemy engine from a DB_DIRECT semantic model's node relation."""
-	from watchmen_storage_mysql import MySQLDataSourceHelper
+	database_type = (node_relation.databaseType or '').lower()
 	data_source = DataSource(
-		dataSourceType=DataSourceType.MYSQL,
+		dataSourceType=database_type,
 		host=node_relation.host,
 		port=str(node_relation.port) if node_relation.port is not None else None,
 		username=node_relation.username,
@@ -1081,14 +1136,24 @@ def _create_db_direct_engine(node_relation: NodeRelation) -> Engine:
 		name=node_relation.database,
 		params=[DataSourceParam(name='schema', value=node_relation.schema_name)]
 			if node_relation.schema_name else [])
-	return MySQLDataSourceHelper(data_source).engine
+	if database_type == DataSourceType.MYSQL.value:
+		from watchmen_storage_mysql import MySQLDataSourceHelper
+		return MySQLDataSourceHelper(data_source).engine
+	if database_type == DataSourceType.POSTGRESQL.value:
+		from watchmen_storage_postgresql import PostgreSQLDataSourceHelper
+		return PostgreSQLDataSourceHelper(data_source).engine
+	if database_type == DataSourceType.ORACLE.value:
+		from watchmen_storage_oracle import OracleDataSourceHelper
+		return OracleDataSourceHelper(data_source).engine
+	raise_400(f'DB_DIRECT database type [{node_relation.databaseType}] '
+	          f'is not supported by the direct bypass.')
 
 
-class MySQLMetricQueryRunner:
-	"""Executes one metric query through the ontology SQL compiler against MySQL."""
+class DirectMetricQueryRunner:
+	"""Executes one metric query through the ontology SQL compiler against the bound data source."""
 
 	def __init__(
-			self, context: MySQLQueryContext, principal_service: Optional[PrincipalService] = None,
+			self, context: DirectQueryContext, principal_service: Optional[PrincipalService] = None,
 			engine: Optional[Engine] = None,
 			execute_leaf: Optional[
 				Callable[[VirtualOntology, OntologyQueryRequest], List[Dict[str, Any]]]] = None
@@ -1115,6 +1180,8 @@ class MySQLMetricQueryRunner:
 			return self._execute_leaf(ontology, request)
 		engine = self._resolve_engine()
 		compiled = self._compiler.compile(ontology, request, dialect_name=engine.dialect.name)
+		logger.debug(f'Direct bypass executes leaf [{(request.includeDerived or ["?"])[0]}] '
+		             f'on dialect [{engine.dialect.name}]: {compiled.statement}')
 		with engine.connect() as conn:
 			return [dict(row._mapping) for row in conn.execute(compiled.statement).fetchall()]
 
@@ -1134,15 +1201,15 @@ class MySQLMetricQueryRunner:
 		return self.engine
 
 
-async def try_mysql_metric_query(
+async def try_direct_metric_query(
 		req: MetricQueryRequest, principal_service: PrincipalService,
 		decline_reasons: Optional[List[str]] = None):
-	"""Run a metric query through the MySQL bypass when applicable.
+	"""Run a metric query through the direct bypass when applicable.
 
 	Returns a MetricFlowResponse when the metric's whole reference chain resolves
-	to MySQL data sources, otherwise None (caller falls through to the dbt path).
-	Decline reasons are logged and, when `decline_reasons` is given, appended
-	there for the caller to surface.
+	to data sources listed in DIRECT_METRIC_BYPASS_TYPES, otherwise None (caller
+	falls through to the dbt path). Decline reasons are logged and, when
+	`decline_reasons` is given, appended there for the caller to surface.
 	"""
 	metrics: List[Metric] = await load_metrics_by_tenant_id(principal_service)
 	metric = next((item for item in metrics if item.name == req.metric), None)
@@ -1153,22 +1220,25 @@ async def try_mysql_metric_query(
 		# ConversionTypeParams is an empty model: no defined semantics anywhere
 		raise_400('Conversion metric semantics not defined.')
 	semantic_models: List[SemanticModel] = await load_semantic_models_by_tenant_id(principal_service)
-	context = resolve_mysql_context(
+	context = resolve_direct_context(
 		metric, metrics, semantic_models, _production_binding_resolver(principal_service),
 		decline_reasons)
 	if context is None:
 		return None
-	return MySQLMetricQueryRunner(context, principal_service).run(req)
+	logger.info(f'Direct bypass accepted: metric [{req.metric}] served by '
+	            f'[{context.binding.key}] (table [{context.binding.table_ref}]).')
+	return DirectMetricQueryRunner(context, principal_service).run(req)
 
 
-async def try_mysql_metrics_list(
+async def try_direct_metrics_list(
 		principal_service: PrincipalService) -> Optional[MetricListResponse]:
-	"""List tenant metrics from metadata when every semantic model resolves to MySQL.
+	"""List tenant metrics from metadata when every semantic model is bypass-enabled.
 
-	dbt-metricflow has no MySQL adapter, so a MySQL-only tenant cannot run
-	cfg.setup(); the list is built from the same meta metrics the dbt artifacts
-	would be built from. Returns None when any semantic model is not backed by
-	MySQL (caller falls through to the dbt path).
+	dbt-metricflow has no MySQL adapter, so a tenant whose data sources are all
+	listed in DIRECT_METRIC_BYPASS_TYPES cannot run cfg.setup(); the list is
+	built from the same meta metrics the dbt artifacts would be built from.
+	Returns None when any semantic model is not bypass-enabled (caller falls
+	through to the dbt path).
 	"""
 	semantic_models: List[SemanticModel] = await load_semantic_models_by_tenant_id(principal_service)
 	if not semantic_models:
@@ -1187,13 +1257,15 @@ async def try_mysql_metrics_list(
 		)
 		for metric in metrics
 	]
+	logger.info(f'Direct bypass accepted: metrics list ({len(metric_infos)} metrics) '
+	            f'served from metadata, all semantic models are bypass-enabled.')
 	return MetricListResponse(metrics=metric_infos, total_count=len(metric_infos))
 
 
-async def try_mysql_dimensions_by_metrics(
+async def try_direct_dimensions_by_metrics(
 		metric_names: List[str], principal_service: PrincipalService,
 		decline_reasons: Optional[List[str]] = None) -> Optional[DimensionListResponse]:
-	"""Answer dimension discovery from metadata when every requested metric resolves to MySQL.
+	"""Answer dimension discovery from metadata when every requested metric is bypass-enabled.
 
 	Returns a DimensionListResponse built from the semantic models backing the metrics,
 	otherwise None (caller falls through to the dbt path). Decline reasons are logged
@@ -1211,7 +1283,7 @@ async def try_mysql_dimensions_by_metrics(
 	binding_key: Optional[str] = None
 	models: Dict[str, SemanticModel] = {}
 	for metric in requested:
-		context = resolve_mysql_context(metric, metrics, semantic_models, resolver, decline_reasons)
+		context = resolve_direct_context(metric, metrics, semantic_models, resolver, decline_reasons)
 		if context is None:
 			return None
 		if binding_key is None:
@@ -1244,9 +1316,11 @@ async def try_mysql_dimensions_by_metrics(
 			dimension_infos.append(DimensionInfo(
 				name=dimension.name, qualified_name=dimension.name,
 				description=dimension.description, type=type_name))
-	# metric_time is always available on the MySQL path (see _parse_group_specs)
+	# metric_time is always available on the direct path (see _parse_group_specs)
 	if 'metric_time' not in seen:
 		dimension_infos.append(DimensionInfo(
 			name='metric_time', qualified_name='metric_time',
 			description='Event time for the metric', type=DimensionType.TIME.name))
+	logger.info(f'Direct bypass accepted: dimensions for metrics [{", ".join(metric_names)}] '
+	            f'served from metadata ({len(dimension_infos)} dimensions).')
 	return DimensionListResponse(dimensions=dimension_infos, total_count=len(dimension_infos))

@@ -1,7 +1,7 @@
 """Tests for the metric query router (metric_router).
 
 Covers health check, metric listing, dimension lookup, and metric value
-query.  dbt-metricflow and MySQL bypass paths are both exercised via
+query.  dbt-metricflow and direct (non-dbt) bypass paths are both exercised via
 mock patches so no real database or dbt runtime is required.
 """
 import sys
@@ -77,10 +77,10 @@ class TestFindDimensions(unittest.TestCase):
             ],
             total_count=2)
 
-    def test_find_dimensions_by_metric_via_mysql_bypass(self):
+    def test_find_dimensions_by_metric_via_direct_bypass(self):
         expected = self._expected_dims()
         with mock.patch.object(
-                metric_router, 'try_mysql_dimensions_by_metrics',
+                metric_router, 'try_direct_dimensions_by_metrics',
                 mock.AsyncMock(return_value=expected)):
             client = build_client(metric_router.router)
             response = client.get('/metricflow/dimensions_by_metric?metric_name=revenue')
@@ -92,7 +92,7 @@ class TestFindDimensions(unittest.TestCase):
     def test_find_dimensions_by_metric_fallback_to_dbt(self):
         expected = self._expected_dims()
         with mock.patch.object(
-                metric_router, 'try_mysql_dimensions_by_metrics',
+                metric_router, 'try_direct_dimensions_by_metrics',
                 mock.AsyncMock(return_value=None)), \
                 mock.patch.object(metric_router, 'build_metric_config', mock.AsyncMock()), \
                 mock.patch.object(metric_router, 'load_dimensions_by_metrics', return_value=expected):
@@ -101,10 +101,10 @@ class TestFindDimensions(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(2, response.json()['total_count'])
 
-    def test_find_dimensions_post_via_mysql_bypass(self):
+    def test_find_dimensions_post_via_direct_bypass(self):
         expected = self._expected_dims()
         with mock.patch.object(
-                metric_router, 'try_mysql_dimensions_by_metrics',
+                metric_router, 'try_direct_dimensions_by_metrics',
                 mock.AsyncMock(return_value=expected)):
             client = build_client(metric_router.router)
             response = client.post('/metricflow/find_dimensions', json=['revenue', 'orders'])
@@ -114,7 +114,7 @@ class TestFindDimensions(unittest.TestCase):
     def test_find_dimensions_post_fallback_to_dbt(self):
         expected = self._expected_dims()
         with mock.patch.object(
-                metric_router, 'try_mysql_dimensions_by_metrics',
+                metric_router, 'try_direct_dimensions_by_metrics',
                 mock.AsyncMock(return_value=None)), \
                 mock.patch.object(metric_router, 'build_metric_config', mock.AsyncMock()), \
                 mock.patch.object(metric_router, 'load_dimensions_by_metrics', return_value=expected):
@@ -134,10 +134,10 @@ class TestGetMetricValue(unittest.TestCase):
             data=(('APAC', 100), ('EMEA', 200)),
             column_names=['region', 'revenue'])
 
-    def test_get_metric_value_via_mysql_bypass(self):
+    def test_get_metric_value_via_direct_bypass(self):
         expected = self._expected_response()
         with mock.patch.object(
-                metric_router, 'try_mysql_metric_query',
+                metric_router, 'try_direct_metric_query',
                 mock.AsyncMock(return_value=expected)):
             client = build_client(metric_router.router)
             response = client.post(
@@ -154,7 +154,7 @@ class TestGetMetricValue(unittest.TestCase):
             rows=(('APAC', 100),),
             column_names=['region', 'revenue'])
         with mock.patch.object(
-                metric_router, 'try_mysql_metric_query',
+                metric_router, 'try_direct_metric_query',
                 mock.AsyncMock(return_value=None)), \
                 mock.patch.object(metric_router, 'build_metric_config', mock.AsyncMock()), \
                 mock.patch.object(metric_router, 'query', return_value=mock_result):
@@ -169,7 +169,7 @@ class TestGetMetricValue(unittest.TestCase):
     def test_get_metric_value_with_time_range(self):
         expected = self._expected_response()
         with mock.patch.object(
-                metric_router, 'try_mysql_metric_query',
+                metric_router, 'try_direct_metric_query',
                 mock.AsyncMock(return_value=expected)):
             client = build_client(metric_router.router)
             response = client.post(
@@ -187,13 +187,13 @@ class TestGetMetricValue(unittest.TestCase):
 # --------------------------------------------------------------------------- #
 
 class TestQueryMetrics(unittest.TestCase):
-    def test_query_metrics_batch_via_mysql_bypass(self):
+    def test_query_metrics_batch_via_direct_bypass(self):
         expected = MetricFlowResponse(
             data=(('APAC', 100),),
             column_names=['region', 'revenue'])
         with mock.patch.object(metric_router, 'build_metric_config', mock.AsyncMock()), \
                 mock.patch.object(
-                    metric_router, 'try_mysql_metric_query',
+                    metric_router, 'try_direct_metric_query',
                     mock.AsyncMock(return_value=expected)):
             client = build_client(metric_router.router)
             response = client.post('/metricflow/query_metrics', json=[
@@ -210,7 +210,7 @@ class TestQueryMetrics(unittest.TestCase):
             column_names=['region', 'revenue'])
         with mock.patch.object(metric_router, 'build_metric_config', mock.AsyncMock()), \
                 mock.patch.object(
-                    metric_router, 'try_mysql_metric_query',
+                    metric_router, 'try_direct_metric_query',
                     mock.AsyncMock(return_value=None)), \
                 mock.patch.object(metric_router, 'query', return_value=mock_result):
             client = build_client(metric_router.router)
@@ -232,7 +232,29 @@ class TestBuildMergedProfile(unittest.TestCase):
         from watchmen_metricflow.model.semantic import SemanticModel
         from watchmen_metricflow.router.metric_router import build_merged_profile
         from _metric_test_base import admin_principal
-        # three models each pointing at a different host -> 3 distinct connections
+        # three models each pointing at a different host -> 3 distinct connections;
+        # mssql is not bypass-enabled by default, so all three reach the dbt profile
+        models = []
+        for i in range(3):
+            models.append(SemanticModel(**{
+                'name': f'm{i}', 'description': 'd', 'sourceType': 'db_source',
+                'node_relation': {
+                    'alias': 'a', 'schema_name': 's', 'database': 'db',
+                    'relation_name': 'r', 'databaseType': 'mssql',
+                    'host': f'host-{i}', 'username': 'u', 'password': 'p', 'port': 1433},
+                'entities': [], 'measures': [], 'dimensions': []}))
+        from fastapi import HTTPException
+        with self.assertRaises(HTTPException) as ctx:
+            build_merged_profile(models, admin_principal())
+        self.assertEqual(400, ctx.exception.status_code)
+
+    def test_bypass_enabled_data_sources_are_excluded_from_profile(self):
+        # postgresql is bypass-enabled by default (DIRECT_METRIC_BYPASS_TYPES):
+        # its profiles stay out of the merged dbt profile, so a pg-only model
+        # list merges to no profile at all instead of raising
+        from watchmen_metricflow.model.semantic import SemanticModel
+        from watchmen_metricflow.router.metric_router import build_merged_profile
+        from _metric_test_base import admin_principal
         models = []
         for i in range(3):
             models.append(SemanticModel(**{
@@ -242,10 +264,7 @@ class TestBuildMergedProfile(unittest.TestCase):
                     'relation_name': 'r', 'databaseType': 'pgsql',
                     'host': f'host-{i}', 'username': 'u', 'password': 'p', 'port': 5432},
                 'entities': [], 'measures': [], 'dimensions': []}))
-        from fastapi import HTTPException
-        with self.assertRaises(HTTPException) as ctx:
-            build_merged_profile(models, admin_principal())
-        self.assertEqual(400, ctx.exception.status_code)
+        self.assertIsNone(build_merged_profile(models, admin_principal()))
 
     def test_no_data_sources_returns_none(self):
         # empty model list -> no profiles -> None

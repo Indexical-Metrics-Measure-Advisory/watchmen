@@ -1,8 +1,9 @@
 import os
 import sys
 import asyncio
+import types
 import unittest
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
@@ -22,7 +23,7 @@ for package_dir in PACKAGES_ROOT.iterdir():
         sys.path.insert(0, str(src_dir))
 
 from fastapi import HTTPException
-from sqlalchemy.dialects import mysql
+from sqlalchemy.dialects import mysql, oracle, postgresql
 
 from watchmen_metricflow.model.metric_request import MetricQueryRequest
 from watchmen_metricflow.model.metrics import (
@@ -31,7 +32,8 @@ from watchmen_metricflow.model.semantic import (
     Dimension, Measure, NodeRelation, SemanticModel, SemanticModelDefaults, TimeParams)
 from watchmen_metricflow.ontology.sql_compiler import OntologySqlCompiler
 from watchmen_metricflow.ontology.table_factory import OntologyTableFactory
-from watchmen_metricflow.service import mysql_metric_query_service as svc
+from watchmen_metricflow.service import direct_metric_query_service as svc
+from watchmen_metricflow import settings as mf_settings_module
 from watchmen_model.system import DataSourceType
 
 
@@ -39,11 +41,11 @@ from watchmen_model.system import DataSourceType
 # Fixtures
 # --------------------------------------------------------------------------- #
 
-def _node_relation(database_type='mysql', relation_name='analytics.orders'):
+def _node_relation(database_type='mysql', relation_name='analytics.orders', port=3306):
     return NodeRelation(
         alias='orders', schema_name='analytics', database='analytics',
         relation_name=relation_name, databaseType=database_type,
-        host='localhost', port=3306, username='u', password='p')
+        host='localhost', port=port, username='u', password='p')
 
 
 def _make_semantic_model(name='sm_orders', source_type='topic', topic_id='topic-1',
@@ -83,13 +85,13 @@ def _ratio_metric(name='avg_order', numerator='order_total', denominator='order_
 
 def _mysql_resolver(key='ds:1', table_ref='orders', data_source_id='ds-1'):
     def resolver(model):
-        return svc.MySQLModelSource(key=key, table_ref=table_ref, data_source_id=data_source_id)
+        return svc.DirectModelSource(key=key, table_ref=table_ref, data_source_id=data_source_id)
     return resolver
 
 
 def _db_direct_resolver(key='node:localhost:3306:analytics', table_ref='raw:orders'):
     def resolver(model):
-        return svc.MySQLModelSource(key=key, table_ref=table_ref, node_relation=model.node_relation)
+        return svc.DirectModelSource(key=key, table_ref=table_ref, node_relation=model.node_relation)
     return resolver
 
 
@@ -101,9 +103,9 @@ def _fake_execute(rows_by_label):
 
 
 def _run_metric(metric, metrics, models, rows_by_label, req, resolver=None):
-    context = svc.resolve_mysql_context(metric, metrics, models, resolver or _mysql_resolver())
+    context = svc.resolve_direct_context(metric, metrics, models, resolver or _mysql_resolver())
     assert context is not None
-    runner = svc.MySQLMetricQueryRunner(context, execute_leaf=_fake_execute(rows_by_label))
+    runner = svc.DirectMetricQueryRunner(context, execute_leaf=_fake_execute(rows_by_label))
     return runner.run(req)
 
 
@@ -115,7 +117,7 @@ class TestRunnerWhereInjection(unittest.TestCase):
     def test_req_where_reaches_leaf_query_filters(self):
         metric = _simple_metric()
         models = [_make_semantic_model(source_type='db_source', topic_id=None)]
-        context = svc.resolve_mysql_context(metric, [metric], models, _db_direct_resolver())
+        context = svc.resolve_direct_context(metric, [metric], models, _db_direct_resolver())
         assert context is not None
 
         captured = {}
@@ -124,7 +126,7 @@ class TestRunnerWhereInjection(unittest.TestCase):
             captured['filters'] = dict(request.filters or {})
             return []
 
-        runner = svc.MySQLMetricQueryRunner(context, execute_leaf=execute)
+        runner = svc.DirectMetricQueryRunner(context, execute_leaf=execute)
         req = MetricQueryRequest(
             metric='total_sales', group_by=['region'],
             where="{{ Dimension('region') }} = 'east'")
@@ -153,7 +155,7 @@ class TestBypassDetection(unittest.TestCase):
     def test_topic_mysql_resolves_context(self):
         metric = _simple_metric()
         models = [_make_semantic_model()]
-        context = svc.resolve_mysql_context(metric, [metric], models, _mysql_resolver())
+        context = svc.resolve_direct_context(metric, [metric], models, _mysql_resolver())
         self.assertIsNotNone(context)
         self.assertEqual(context.binding.data_source_id, 'ds-1')
         self.assertEqual(context.model_sources['sm_orders'].table_ref, 'orders')
@@ -161,7 +163,7 @@ class TestBypassDetection(unittest.TestCase):
     def test_db_direct_mysql_resolves_context(self):
         metric = _simple_metric()
         models = [_make_semantic_model(source_type='db_source', topic_id=None)]
-        context = svc.resolve_mysql_context(metric, [metric], models, _db_direct_resolver())
+        context = svc.resolve_direct_context(metric, [metric], models, _db_direct_resolver())
         self.assertIsNotNone(context)
         self.assertIsNone(context.binding.data_source_id)
         self.assertEqual(context.binding.table_ref, 'raw:orders')
@@ -186,7 +188,7 @@ class TestBypassDetection(unittest.TestCase):
             'topicId': 'topic-1', 'sourceType': 'topic',
         })
         self.assertIsInstance(loaded.measures[0], dict)
-        context = svc.resolve_mysql_context(metric, [metric], [loaded], _mysql_resolver())
+        context = svc.resolve_direct_context(metric, [metric], [loaded], _mysql_resolver())
         self.assertIsNotNone(context)
         self.assertIsInstance(loaded.measures[0], Measure)
         self.assertEqual(context.binding.data_source_id, 'ds-1')
@@ -200,7 +202,7 @@ class TestBypassDetection(unittest.TestCase):
         })
         self.assertIsInstance(loaded_metric.type_params, dict)
         models = [_make_semantic_model()]
-        context = svc.resolve_mysql_context(loaded_metric, [loaded_metric], models, _mysql_resolver())
+        context = svc.resolve_direct_context(loaded_metric, [loaded_metric], models, _mysql_resolver())
         self.assertIsNotNone(context)
         self.assertIsInstance(loaded_metric.type_params, MetricTypeParams)
         self.assertEqual(context.binding.data_source_id, 'ds-1')
@@ -208,7 +210,7 @@ class TestBypassDetection(unittest.TestCase):
     def test_non_mysql_returns_none(self):
         metric = _simple_metric()
         models = [_make_semantic_model()]
-        context = svc.resolve_mysql_context(metric, [metric], models, lambda model: None)
+        context = svc.resolve_direct_context(metric, [metric], models, lambda model: None)
         self.assertIsNone(context)
 
 
@@ -221,15 +223,15 @@ class TestBypassDetection(unittest.TestCase):
 
         def resolver(model):
             # each model binds to a different data source connection
-            return svc.MySQLModelSource(key=f'ds:{model.name}', table_ref='orders', data_source_id=model.name)
+            return svc.DirectModelSource(key=f'ds:{model.name}', table_ref='orders', data_source_id=model.name)
 
-        context = svc.resolve_mysql_context(ratio, [ratio], models, resolver)
+        context = svc.resolve_direct_context(ratio, [ratio], models, resolver)
         self.assertIsNone(context)
 
     def test_unknown_measure_returns_none(self):
         metric = _simple_metric(measure='no_such_measure')
         models = [_make_semantic_model()]
-        context = svc.resolve_mysql_context(metric, [metric], models, _mysql_resolver())
+        context = svc.resolve_direct_context(metric, [metric], models, _mysql_resolver())
         self.assertIsNone(context)
 
 
@@ -247,7 +249,7 @@ class TestMysqlDimensionsBypass(unittest.TestCase):
         with mock.patch.object(svc, 'load_metrics_by_tenant_id', fake_load_metrics), \
                 mock.patch.object(svc, 'load_semantic_models_by_tenant_id', fake_load_models), \
                 mock.patch.object(svc, '_production_binding_resolver', lambda ps: resolver):
-            return asyncio.run(svc.try_mysql_dimensions_by_metrics(metric_names, None))
+            return asyncio.run(svc.try_direct_dimensions_by_metrics(metric_names, None))
 
     def test_dimensions_from_mysql_metric(self):
         metric = _simple_metric()
@@ -286,21 +288,6 @@ class TestMysqlDimensionsBypass(unittest.TestCase):
         self.assertEqual(source.table_ref, 'orders')
         self.assertEqual(source.data_source_id, 'ds-1')
 
-    def test_production_resolver_topic_non_mysql(self):
-        model = _make_semantic_model()
-        topic = SimpleNamespace(dataSourceId='ds-1', name='Orders')
-        data_source = SimpleNamespace(dataSourceType=DataSourceType.POSTGRESQL)
-        with mock.patch.object(svc, 'get_topic_service') as get_ts, \
-                mock.patch.object(svc, 'get_data_source_service') as get_ds:
-            topic_service = mock.MagicMock()
-            topic_service.find_by_id.return_value = topic
-            ds_service = mock.MagicMock()
-            ds_service.find_by_id.return_value = data_source
-            get_ts.return_value = topic_service
-            get_ds.return_value = ds_service
-            resolver = svc._production_binding_resolver(mock.MagicMock())
-            self.assertIsNone(resolver(model))
-
     def test_production_resolver_db_direct(self):
         model = _make_semantic_model(source_type='db_source', topic_id=None)
         with mock.patch.object(svc, 'get_topic_service') as get_ts, \
@@ -311,8 +298,185 @@ class TestMysqlDimensionsBypass(unittest.TestCase):
             source = resolver(model)
         self.assertIsNotNone(source)
         self.assertEqual(source.table_ref, 'raw:orders')
-        model.node_relation.databaseType = 'pgsql'
+        model.node_relation.databaseType = 'mongodb'
         self.assertIsNone(resolver(model))
+
+
+# --------------------------------------------------------------------------- #
+# Bypass configuration (DIRECT_METRIC_BYPASS_TYPES)
+# --------------------------------------------------------------------------- #
+
+def _bypass_types_setting(value):
+    return mock.patch.object(
+        mf_settings_module.mf_settings, 'DIRECT_METRIC_BYPASS_TYPES', value)
+
+
+class TestBypassConfiguration(unittest.TestCase):
+    def test_default_serves_mysql_postgresql_oracle(self):
+        self.assertEqual({'mysql', 'postgresql', 'oracle'}, svc.ask_direct_bypass_types())
+
+    def test_mysql_only_when_narrowed(self):
+        with _bypass_types_setting('mysql'):
+            self.assertEqual({'mysql'}, svc.ask_direct_bypass_types())
+
+    def test_parses_postgresql_when_enabled(self):
+        with _bypass_types_setting('mysql,postgresql'):
+            self.assertEqual({'mysql', 'postgresql'}, svc.ask_direct_bypass_types())
+
+    def test_unknown_values_are_ignored(self):
+        with _bypass_types_setting('mysql, redis,'):
+            self.assertEqual({'mysql'}, svc.ask_direct_bypass_types())
+
+    def test_production_resolver_topic_pgsql_follows_configuration(self):
+        model = _make_semantic_model()
+        topic = SimpleNamespace(dataSourceId='ds-1', name='Orders')
+        data_source = SimpleNamespace(dataSourceType=DataSourceType.POSTGRESQL, params=[])
+        with mock.patch.object(svc, 'get_topic_service') as get_ts, \
+                mock.patch.object(svc, 'get_data_source_service') as get_ds:
+            topic_service = mock.MagicMock()
+            topic_service.find_by_id.return_value = topic
+            ds_service = mock.MagicMock()
+            ds_service.find_by_id.return_value = data_source
+            get_ts.return_value = topic_service
+            get_ds.return_value = ds_service
+            # narrowed to mysql: postgresql stays on the dbt path
+            with _bypass_types_setting('mysql'):
+                self.assertIsNone(svc._production_binding_resolver(mock.MagicMock())(model))
+            with _bypass_types_setting('mysql,postgresql'):
+                source = svc._production_binding_resolver(mock.MagicMock())(model)
+        self.assertIsNotNone(source)
+        # no schema param on the data source -> unqualified, search_path applies
+        self.assertEqual(source.table_ref, 'orders')
+        self.assertEqual(source.data_source_id, 'ds-1')
+
+    def test_production_resolver_topic_pgsql_qualifies_with_datasource_schema(self):
+        # pg tables live in the schema configured on the data source; without
+        # qualification the compiled FROM fails on search_path
+        model = _make_semantic_model()
+        topic = SimpleNamespace(dataSourceId='ds-1', name='Orders')
+        schema_param = SimpleNamespace(name='schema', value='datamart')
+        data_source = SimpleNamespace(
+            dataSourceType=DataSourceType.POSTGRESQL, params=[schema_param])
+        with mock.patch.object(svc, 'get_topic_service') as get_ts, \
+                mock.patch.object(svc, 'get_data_source_service') as get_ds:
+            topic_service = mock.MagicMock()
+            topic_service.find_by_id.return_value = topic
+            ds_service = mock.MagicMock()
+            ds_service.find_by_id.return_value = data_source
+            get_ts.return_value = topic_service
+            get_ds.return_value = ds_service
+            source = svc._production_binding_resolver(mock.MagicMock())(model)
+        self.assertIsNotNone(source)
+        self.assertEqual(source.table_ref, 'datamart.orders')
+
+    def test_production_resolver_topic_oracle_schema_and_username_fallback(self):
+        model = _make_semantic_model()
+        topic = SimpleNamespace(dataSourceId='ds-1', name='Orders')
+        with_schema = SimpleNamespace(
+            dataSourceType=DataSourceType.ORACLE, username='watchmen',
+            params=[SimpleNamespace(name='schema', value='datamart')])
+        without_schema = SimpleNamespace(
+            dataSourceType=DataSourceType.ORACLE, username='watchmen', params=[])
+        with mock.patch.object(svc, 'get_topic_service') as get_ts, \
+                mock.patch.object(svc, 'get_data_source_service') as get_ds:
+            topic_service = mock.MagicMock()
+            topic_service.find_by_id.return_value = topic
+            ds_service = mock.MagicMock()
+            get_ts.return_value = topic_service
+            get_ds.return_value = ds_service
+            resolver = svc._production_binding_resolver(mock.MagicMock())
+            # explicit schema param wins
+            ds_service.find_by_id.return_value = with_schema
+            source = resolver(model)
+            self.assertEqual('datamart.orders', source.table_ref)
+            # oracle falls back to the username as schema (default schema)
+            ds_service.find_by_id.return_value = without_schema
+            source = resolver(model)
+        self.assertEqual('watchmen.orders', source.table_ref)
+
+    def test_production_resolver_db_direct_pgsql_follows_configuration(self):
+        model = _make_semantic_model(source_type='db_source', topic_id=None)
+        model.node_relation.databaseType = 'postgresql'
+        with mock.patch.object(svc, 'get_topic_service'), \
+                mock.patch.object(svc, 'get_data_source_service'):
+            # narrowed to mysql: postgresql stays on the dbt path
+            with _bypass_types_setting('mysql'):
+                self.assertIsNone(svc._production_binding_resolver(mock.MagicMock())(model))
+            with _bypass_types_setting('mysql,postgresql'):
+                source = svc._production_binding_resolver(mock.MagicMock())(model)
+        self.assertIsNotNone(source)
+        # the relation's schema_name qualifies the table for pg
+        self.assertEqual(source.table_ref, 'raw:analytics.orders')
+
+
+    def test_production_resolver_db_direct_oracle_username_fallback(self):
+        model = _make_semantic_model(source_type='db_source', topic_id=None)
+        model.node_relation.databaseType = 'oracle'
+        with mock.patch.object(svc, 'get_topic_service'), \
+                mock.patch.object(svc, 'get_data_source_service'):
+            resolver = svc._production_binding_resolver(mock.MagicMock())
+            # schema_name present -> qualified with it
+            source = resolver(model)
+            self.assertEqual('raw:analytics.orders', source.table_ref)
+            # no schema_name -> oracle falls back to the username
+            model.node_relation.schema_name = None
+            source = resolver(model)
+        self.assertEqual('raw:u.orders', source.table_ref)
+
+
+class TestDbDirectEngineDispatch(unittest.TestCase):
+    def _stub_adapters(self, instances):
+        def recorder_factory(name):
+            class Recorder:
+                def __init__(self, data_source):
+                    self.engine = object()
+                    instances.append((name, data_source))
+            return Recorder
+
+        mysql_module = types.ModuleType('watchmen_storage_mysql')
+        mysql_module.MySQLDataSourceHelper = recorder_factory('mysql')
+        pg_module = types.ModuleType('watchmen_storage_postgresql')
+        pg_module.PostgreSQLDataSourceHelper = recorder_factory('postgresql')
+        oracle_module = types.ModuleType('watchmen_storage_oracle')
+        oracle_module.OracleDataSourceHelper = recorder_factory('oracle')
+        return mock.patch.dict(sys.modules, {
+            'watchmen_storage_mysql': mysql_module,
+            'watchmen_storage_postgresql': pg_module,
+            'watchmen_storage_oracle': oracle_module})
+
+    def test_mysql_relation_dispatches_to_mysql_helper(self):
+        instances = []
+        with self._stub_adapters(instances):
+            svc._create_db_direct_engine(_node_relation())
+        self.assertEqual(1, len(instances))
+        self.assertEqual('mysql', instances[0][0])
+        self.assertEqual(DataSourceType.MYSQL, instances[0][1].dataSourceType)
+
+    def test_pgsql_relation_dispatches_to_postgresql_helper(self):
+        instances = []
+        relation = _node_relation(database_type='postgresql', port=5432)
+        with self._stub_adapters(instances):
+            svc._create_db_direct_engine(relation)
+        self.assertEqual(1, len(instances))
+        self.assertEqual('postgresql', instances[0][0])
+        data_source = instances[0][1]
+        self.assertEqual(DataSourceType.POSTGRESQL, data_source.dataSourceType)
+        self.assertEqual('analytics', data_source.name)
+        self.assertEqual('analytics', data_source.params[0].value)
+
+    def test_unknown_database_type_raises_400(self):
+        with self.assertRaises(HTTPException) as ctx:
+            svc._create_db_direct_engine(_node_relation(database_type='mongodb'))
+        self.assertEqual(ctx.exception.status_code, 400)
+
+    def test_oracle_relation_dispatches_to_oracle_helper(self):
+        instances = []
+        relation = _node_relation(database_type='oracle', port=1521)
+        with self._stub_adapters(instances):
+            svc._create_db_direct_engine(relation)
+        self.assertEqual(1, len(instances))
+        self.assertEqual('oracle', instances[0][0])
+        self.assertEqual(DataSourceType.ORACLE, instances[0][1].dataSourceType)
 
 
 # --------------------------------------------------------------------------- #
@@ -323,6 +487,39 @@ class TestLeafTranslation(unittest.TestCase):
     def test_explicit_table_name_bypasses_topic_prefix(self):
         self.assertEqual(OntologyTableFactory.physical_table_name('orders'), 'topic_orders')
         self.assertEqual(OntologyTableFactory.physical_table_name('raw:orders'), 'orders')
+        # schema qualification only wraps the table part with the convention
+        self.assertEqual(
+            OntologyTableFactory.physical_table_name('datamart.orders'), 'datamart.topic_orders')
+        self.assertEqual(
+            OntologyTableFactory.physical_table_name('raw:datamart.orders'), 'datamart.orders')
+        self.assertEqual(
+            OntologyTableFactory.split_physical_name('datamart.topic_orders'),
+            ('datamart', 'topic_orders'))
+        self.assertEqual(OntologyTableFactory.split_physical_name('orders'), (None, 'orders'))
+
+    def test_schema_qualified_table_compiles_into_from(self):
+        model = _make_semantic_model()
+        req = MetricQueryRequest(metric='total_sales', group_by=['region'])
+        specs = svc._parse_group_specs(req, _simple_metric(), False)
+        ontology, request, _ = svc._build_leaf_query(
+            specs, req, model, model.get_measure_by_name('order_total'), 'datamart.orders', [], [])
+        compiled = OntologySqlCompiler().compile(ontology, request, dialect_name='postgresql')
+        sql = str(compiled.statement.compile(
+            dialect=postgresql.dialect(), compile_kwargs={'literal_binds': True}))
+        self.assertIn('FROM datamart.topic_orders', sql)
+
+    def test_oracle_dialect_compiles_trunc_and_qualified_from(self):
+        model = _make_semantic_model()
+        req = MetricQueryRequest(metric='total_sales', group_by=['metric_time__month'])
+        specs = svc._parse_group_specs(req, _simple_metric(), False)
+        ontology, request, _ = svc._build_leaf_query(
+            specs, req, model, model.get_measure_by_name('order_total'), 'datamart.orders', [], [])
+        compiled = OntologySqlCompiler().compile(ontology, request, dialect_name='oracle')
+        sql = str(compiled.statement.compile(
+            dialect=oracle.dialect(), compile_kwargs={'literal_binds': True}))
+        self.assertIn('trunc(', sql.lower())
+        self.assertIn("'MM'", sql)
+        self.assertIn('FROM datamart.topic_orders', sql)
 
     def test_measure_aggregate_mapping(self):
         model = _make_semantic_model()
@@ -704,6 +901,87 @@ class TestCombination(unittest.TestCase):
         with self.assertRaises(HTTPException) as ctx:
             svc._eval_metric(state, 'conv', [], [], set())
         self.assertEqual(ctx.exception.status_code, 400)
+
+
+# --------------------------------------------------------------------------- #
+# PostgreSQL bypass
+# --------------------------------------------------------------------------- #
+
+class TestPostgresqlBypass(unittest.TestCase):
+    def _compile_pg_leaf_sql(self, model, measure, req, metric=None, table_ref='orders'):
+        metric = metric or _simple_metric()
+        specs = svc._parse_group_specs(req, metric, False)
+        ontology, request, label = svc._build_leaf_query(
+            specs, req, model, measure, table_ref,
+            [req.where] if req.where else [], [])
+        compiled = OntologySqlCompiler().compile(ontology, request, dialect_name='postgresql')
+        sql = str(compiled.statement.compile(
+            dialect=postgresql.dialect(), compile_kwargs={'literal_binds': True}))
+        return sql, request
+
+    def test_pg_dialect_compiles_date_trunc(self):
+        model = _make_semantic_model()
+        req = MetricQueryRequest(metric='total_sales', group_by=['metric_time__month'])
+        sql, _ = self._compile_pg_leaf_sql(model, model.get_measure_by_name('order_total'), req)
+        self.assertIn('date_trunc', sql.lower())
+        self.assertIn('ordered_at', sql)
+
+    def test_pg_timestamp_keys_are_normalized_per_granularity(self):
+        # postgresql date_trunc returns timestamps while mysql renders strings;
+        # keys must take the mysql string form ('2024-01') so the Python-layer
+        # combination stays dialect-neutral
+        metric = Metric(
+            name='cum_sales', type='cumulative',
+            type_params=MetricTypeParams(measure=MeasureReference(name='order_total')))
+        rows = {'order_total': [
+            {'metric_time': datetime(2024, 1, 1), 'order_total': 10},
+            {'metric_time': datetime(2024, 2, 1), 'order_total': 20},
+        ]}
+        response = _run_metric(
+            metric, [metric], [_make_semantic_model()], rows,
+            MetricQueryRequest(metric='cum_sales', group_by=['metric_time__month']))
+        self.assertEqual(
+            sorted(response.data),
+            [('2024-01', 10), ('2024-02', 30)])
+
+    def test_pg_date_keys_are_normalized(self):
+        metric = _simple_metric()
+        rows = {'order_total': [
+            {'region': 'a', 'order_total': 100},
+        ]}
+        response = _run_metric(
+            metric, [metric], [_make_semantic_model()], rows,
+            MetricQueryRequest(metric='total_sales', group_by=['region']))
+        # non-time dimensions keep their raw values
+        self.assertEqual(response.data, (('a', 100),))
+        # a date value on a time spec is rendered through _format_time_key
+        series = svc._rows_to_series(
+            [{'metric_time': date(2024, 3, 9), 'order_total': 7}],
+            [svc._GroupSpec('metric_time__day', 'metric_time', 'day', True)], 'order_total')
+        self.assertEqual(series.values[('2024-03-09',)], 7)
+
+    def test_pg_timestamp_keys_support_offset_window(self):
+        total = _simple_metric(name='total', measure='order_total')
+        metric = Metric(
+            name='delta', type='derived',
+            type_params=MetricTypeParams(
+                expr='total - prev',
+                metrics=[
+                    MetricRef(name='total'),
+                    MetricRef(name='total', alias='prev',
+                              offset_window=OffsetWindow(count=1, granularity='month')),
+                ]))
+        rows = {'order_total': [
+            {'metric_time': datetime(2024, 1, 1), 'order_total': 100},
+            {'metric_time': datetime(2024, 2, 1), 'order_total': 110},
+        ]}
+        response = _run_metric(
+            metric, [metric, total], [_make_semantic_model()], rows,
+            MetricQueryRequest(metric='delta', group_by=['metric_time__month']))
+        # offset shifting parses the normalized '2024-01' style keys
+        self.assertEqual(
+            sorted(response.data, key=lambda row: row[0]),
+            [('2024-01', None), ('2024-02', 10)])
 
 
 if __name__ == '__main__':
