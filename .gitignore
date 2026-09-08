@@ -72,3 +72,4 @@ packages/watchmen-ai-copilot/src/watchmen_ai/knowledge_base/graphdb/knowledge_gr
 # ---- Misc ----
 packages/watchmen-indicator
 packages/watchmen-analysis-client/lint-results.txt
+/.mimosa
