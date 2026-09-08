@@ -4,11 +4,11 @@ import type { BIChartCard, GlobalAlertRule } from '@/model/biAnalysis';
 import type { ChartDatum } from '@/components/bi/ChartCard';
 import type { MetricFlowResponse, MetricQueryRequest } from '@/model/metricFlow';
 import type { AlertStatus } from '@/model/AlertConfig';
-import type { MetricDimension } from '@/model/analysis';
+import type { ChartFacetGroup } from '@/utils/biAnalysisUtils';
 import { metricsService } from '@/services/metricsService';
 import { globalAlertService } from '@/services/globalAlertService';
-import { transformMetricFlowToChartData, timeRangeToBounds, toTimeRangeValue, buildGlobalWhere } from '@/utils/biAnalysisUtils';
-import { inferType } from '@/components/bi/utils';
+import { transformMetricFlowToChart, timeRangeToBounds, toTimeRangeValue, buildGlobalWhere } from '@/utils/biAnalysisUtils';
+import { buildGroupBy, isTimeDimensionByName, MAX_MULTI_DIM_ROWS } from '@/utils/dimensionQuery';
 import { GLOBAL_TIME_RANGE_PER_CARD } from '@/hooks/bi/useGlobalFilters';
 
 // ─────────────────────────────────────────────────────────────
@@ -19,12 +19,14 @@ export type FetchCardDataResult = {
   id: string;
   type: 'chart';
   data: ChartDatum[];
+  facets: ChartFacetGroup[] | null;
   rawData: MetricFlowResponse | null;
   status?: never;
 } | {
   id: string;
   type: 'alert';
   data: ChartDatum[];
+  facets?: null;
   rawData: null;
   status: AlertStatus | null;
 };
@@ -79,7 +81,7 @@ const resolveTimeRange = (
  */
 export const useCardDataLoader = () => {
   // ── State ──
-  const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: ChartDatum[]; rawData: MetricFlowResponse | null }>>({});
+  const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: ChartDatum[]; facets: ChartFacetGroup[] | null; rawData: MetricFlowResponse | null }>>({});
   const [alertStatusMap, setAlertStatusMap] = useState<Record<string, AlertStatus>>({});
   const [isBoardRefreshing, setIsBoardRefreshing] = useState(false);
   // Per-card fetch status: true while a fetch is in flight; a short message on failure
@@ -188,19 +190,20 @@ export const useCardDataLoader = () => {
       const gTimeRange = context?.timeRangeOverride ?? context?.globalTimeRange ?? GLOBAL_TIME_RANGE_PER_CARD;
       const resolvedRange = resolveTimeRange(card, gTimeRange, context?.globalCustomDateRange);
       const { start, end } = timeRangeToBounds(resolvedRange);
-      let groupBy = card.selection.dimensions && card.selection.dimensions.length > 0 ? [...card.selection.dimensions] : undefined;
-
-      if (card.selection.timeGranularity && groupBy) {
-        groupBy = groupBy.map(dim => {
-          if (inferType({ name: dim } as MetricDimension) === 'TIME') {
-            return `${dim}__${card.selection.timeGranularity}`;
-          }
-          return dim;
-        });
-      }
+      const selection = card.selection;
+      const dimensions = selection?.dimensions;
+      // Only TIME dimensions receive the granularity suffix — categorical
+      // dimensions must reach the backend untouched.
+      const groupBy = buildGroupBy(dimensions, selection?.timeGranularity, isTimeDimensionByName);
 
       const filterValues = context?.filtersOverride ?? context?.globalFilterValues ?? {};
       const where = groupBy ? buildGlobalWhere(filterValues) : undefined;
+
+      // Single dimension: the limit is a true server-side Top-N by measure;
+      // multi-dimension queries fetch the most significant rows and the chart
+      // folds overflowing series client-side.
+      const dimensionCount = dimensions?.length ?? 0;
+      const limit = dimensionCount <= 1 ? (selection?.limit ?? 500) : MAX_MULTI_DIM_ROWS;
 
       const req: MetricQueryRequest = {
         metric: card.metricId,
@@ -208,12 +211,18 @@ export const useCardDataLoader = () => {
         where,
         start_time: start,
         end_time: end,
-        order: [],
-        limit: 500
+        // Server-side Top-N: "-" prefix = order by measure descending
+        order: [`-${card.metricId}`],
+        limit
       };
       const resp = await metricsService.getMetricValue(req);
-      const data = transformMetricFlowToChartData(resp);
-      return { id: card.id, type: 'chart', data, rawData: resp };
+      const dataset = transformMetricFlowToChart(resp, {
+        axisDimension: selection?.axisDimension,
+        seriesDimension: selection?.seriesDimension,
+        facetDimension: selection?.facetDimension,
+        isTimeDimension: isTimeDimensionByName,
+      });
+      return { id: card.id, type: 'chart', data: dataset.rows, facets: dataset.facets, rawData: resp };
     } catch (e) {
       console.warn(`Card ${card.id}: failed to load data.`, e);
       setCardErrorMap(prev => ({ ...prev, [card.id]: e instanceof Error ? e.message : String(e) }));
@@ -227,7 +236,7 @@ export const useCardDataLoader = () => {
       const next = { ...prev };
       results.forEach(result => {
         if (!result) return;
-        next[result.id] = { chartData: result.data, rawData: result.rawData as MetricFlowResponse };
+        next[result.id] = { chartData: result.data, facets: result.facets ?? null, rawData: result.rawData as MetricFlowResponse };
       });
       return next;
     });

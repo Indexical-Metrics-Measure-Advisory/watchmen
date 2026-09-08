@@ -541,9 +541,8 @@ class _DerivedAttributeCompiler:
 				target_col = target_table.c.get(derived.targetField)
 				if target_col is not None:
 					return func.count(target_col)
-			fallback = target_table.c.get('id')
-			if fallback is not None:
-				return func.count(fallback)
+			# 纯 count(*) 语义：不落任何具体列（物理表的键列名不保证是 id，
+			# 如 pg 的 id_），且 count(列) 会跳过 NULL 行
 			return func.count()
 		if aggregate == 'count_distinct':
 			target_col = self._resolve_aggregate_target_column(

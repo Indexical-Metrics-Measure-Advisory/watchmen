@@ -13,7 +13,7 @@ from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_model.system import PublishNotificationResource
 from watchmen_rest import get_admin_principal, get_console_principal, get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
-from watchmen_rest_doll.doll import ask_tuple_delete_enabled
+from watchmen_rest_doll.doll import ask_tuple_delete_enabled, ask_topic_tags_enabled
 from watchmen_rest_doll.audit import record_save_audit
 from watchmen_rest_doll.publish import notify_publish
 from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail
@@ -88,7 +88,8 @@ async def find_topics_page_by_name(
 			data_page = topic_service.find_page_by_text(None, tenant_id, pageable)
 		else:
 			# noinspection PyTypeChecker
-			data_page = topic_service.find_page_by_text(query_name, tenant_id, pageable)
+			data_page = topic_service.find_page_by_text(
+				query_name, tenant_id, pageable, with_tags=ask_topic_tags_enabled())
 		fill_topic_tags(data_page.data, topic_service)
 		return data_page
 
@@ -121,6 +122,9 @@ async def find_available_topic_tags(
 	topic_service = get_topic_service(principal_service)
 
 	def action() -> List[str]:
+		if not ask_topic_tags_enabled():
+			# tags feature is disabled, no suggestions
+			return []
 		tenant_id = principal_service.get_tenant_id()
 		tag_service = TagService(topic_service.storage, topic_service.snowflakeGenerator, principal_service)
 		registered_tags = ArrayHelper(tag_service.find_all_by_type(TagType.TOPIC, tenant_id)) \

@@ -19,12 +19,18 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import type { ChartDatum, RechartsModule } from './charts/types';
-import { MAX_TIME_SERIES_POINTS, MAX_CATEGORY_POINTS, sampleDataByIndex } from './charts/utils';
+import { MAX_TIME_SERIES_POINTS, MAX_CATEGORY_POINTS, sampleDataByIndex, aggregateForPie } from './charts/utils';
 import { DataTable } from './charts/DataTable';
+import { PivotTable } from './charts/PivotTable';
+import { FacetGridView } from './charts/FacetGrid';
 import { useChartAxis } from './charts/useChartAxis';
 import { KPIView, BarChartView, PieChartView, AreaChartView, LineChartView } from './charts/ChartViews';
 import { useRechartsModule } from './charts/RechartsContext';
 import { useMetricFormat, useMetricLabel, useMetricUnit, useMetricCurrency, useMetricNumberFormat } from './charts/useMetricFormat';
+import { resolveDimensionRoles } from './dimensionRoles';
+import type { ChartTransformOptions } from '@/utils/biAnalysisUtils';
+import type { ChartFacetGroup } from '@/utils/biAnalysisUtils';
+import { isTimeDimensionByName } from '@/utils/dimensionQuery';
 import type { MetricNumberFormat } from '@/model/metricsManagement';
 
 export type { ChartDatum, ChartDatumValue } from './charts/types';
@@ -33,6 +39,7 @@ export { DataTable } from './charts/DataTable';
 export interface ChartCardProps {
   card: BIChartCard;
   data: ChartDatum[];
+  facets?: ChartFacetGroup[] | null;
   sourceData?: MetricFlowResponse;
   onResize?: (size: BICardSize) => void;
   onRemove?: () => void;
@@ -65,6 +72,7 @@ type ChartInnerProps = {
   lib: RechartsModule;
   card: BIChartCard;
   data: ChartDatum[];
+  facets?: ChartFacetGroup[] | null;
   sourceData?: MetricFlowResponse;
   format?: string;
   unit?: string;
@@ -76,7 +84,7 @@ type ChartInnerProps = {
   onProposeHypothesis?: (card: BIChartCard) => void;
 };
 
-const Chart = React.memo(({ lib, card, data, sourceData, format, unit, currency, numberFormat, valueLabel, alertStatus, onAcknowledge, onProposeHypothesis }: ChartInnerProps) => {
+const Chart = React.memo(({ lib, card, data, facets, sourceData, format, unit, currency, numberFormat, valueLabel, alertStatus, onAcknowledge, onProposeHypothesis }: ChartInnerProps) => {
   const { type: chartType } = { type: card.chartType };
 
   const sampledData = useMemo(() => {
@@ -92,6 +100,20 @@ const Chart = React.memo(({ lib, card, data, sourceData, format, unit, currency,
 
   const axisProps = useChartAxis(card, sampledData, format, currency, numberFormat);
 
+  // Pie renders one ring: multi-series pivots are summed into a single value
+  const pieData = useMemo(() => aggregateForPie(sampledData), [sampledData]);
+
+  // Dimension roles + Top-N: the chart renders axis × series (+ facet grid);
+  // dimensions beyond those channels stay in the pivot/data view.
+  const roles = useMemo(() => resolveDimensionRoles(card.selection ?? {}, isTimeDimensionByName), [card.selection]);
+  const maxSeries = useMemo(() => Math.max(3, card.selection?.limit ?? 8), [card.selection?.limit]);
+  const roleOptions = useMemo((): ChartTransformOptions => ({
+    axisDimension: roles.axisDimension,
+    seriesDimension: roles.seriesDimension,
+    facetDimension: roles.facetDimension,
+    isTimeDimension: isTimeDimensionByName,
+  }), [roles]);
+
   if (chartType === 'alert') {
     return <AlertCard card={card} data={data} alertStatus={alertStatus} onAcknowledge={onAcknowledge} onProposeHypothesis={onProposeHypothesis} />;
   }
@@ -100,24 +122,46 @@ const Chart = React.memo(({ lib, card, data, sourceData, format, unit, currency,
     return <DataTable data={data} sourceData={sourceData} format={format} currency={currency} numberFormat={numberFormat} />;
   }
 
+  if (chartType === 'pivot') {
+    return <PivotTable sourceData={sourceData} roleOptions={roleOptions} format={format} currency={currency} numberFormat={numberFormat} />;
+  }
+
   if (chartType === 'kpi') {
     return <KPIView data={sampledData} format={format} unit={unit} currency={currency} numberFormat={numberFormat} granularity={card.selection?.timeGranularity} />;
   }
 
+  // Facet dimension → small multiples (one mini chart per facet value)
+  if (facets && facets.length > 0) {
+    return (
+      <FacetGridView
+        lib={lib}
+        facets={facets}
+        chartType={chartType}
+        axisProps={axisProps}
+        format={format}
+        unit={unit}
+        currency={currency}
+        numberFormat={numberFormat}
+        valueLabel={valueLabel}
+        maxSeries={maxSeries}
+      />
+    );
+  }
+
   if (['bar', 'groupedBar', 'stackedBar'].includes(chartType)) {
-    return <BarChartView lib={lib} data={sampledData} chartType={chartType} axisProps={axisProps} format={format} unit={unit} currency={currency} numberFormat={numberFormat} valueLabel={valueLabel} />;
+    return <BarChartView lib={lib} data={sampledData} chartType={chartType} axisProps={axisProps} format={format} unit={unit} currency={currency} numberFormat={numberFormat} valueLabel={valueLabel} maxSeries={maxSeries} />;
   }
 
   if (chartType === 'pie' && !axisProps.isTime) {
-    return <PieChartView lib={lib} data={sampledData} format={format} unit={unit} currency={currency} numberFormat={numberFormat} valueLabel={valueLabel} />;
+    return <PieChartView lib={lib} data={pieData} format={format} unit={unit} currency={currency} numberFormat={numberFormat} valueLabel={valueLabel} />;
   }
 
   if (chartType === 'area') {
-    return <AreaChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} unit={unit} currency={currency} numberFormat={numberFormat} valueLabel={valueLabel} />;
+    return <AreaChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} unit={unit} currency={currency} numberFormat={numberFormat} valueLabel={valueLabel} maxSeries={maxSeries} />;
   }
 
   // Default to line
-  return <LineChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} unit={unit} currency={currency} numberFormat={numberFormat} valueLabel={valueLabel} />;
+  return <LineChartView lib={lib} data={sampledData} axisProps={axisProps} format={format} unit={unit} currency={currency} numberFormat={numberFormat} valueLabel={valueLabel} maxSeries={maxSeries} />;
 });
 
 // Hypothesis badge pill colors by worst status (mirrors the alert pill styling)
@@ -131,6 +175,7 @@ const HYPOTHESIS_STATUS_COLOR: Record<string, string> = {
 export const ChartCard = React.memo(({
   card,
   data,
+  facets,
   onResize,
   onRemove,
   className,
@@ -160,7 +205,7 @@ export const ChartCard = React.memo(({
   const metricNumberFormat = useMetricNumberFormat(card.metricId);
   
   const dimensionsCount = card.selection?.dimensions?.length || 0;
-  const isTooManyDimensions = dimensionsCount > 5;
+  const showPivotDataTab = dimensionsCount >= 2;
   const chartViewEnabled = activeTab === 'chart';
   const dataViewEnabled = activeTab === 'data';
   const copyEnabled = card.chartType !== 'alert' && data.length > 0;
@@ -359,16 +404,7 @@ export const ChartCard = React.memo(({
             )}
           </div>
           <TabsContent value="chart" className="flex-1 min-h-0 w-full mt-0 data-[state=active]:flex flex-col">
-            {chartViewEnabled && isTooManyDimensions ? (
-               <div className="h-full w-full flex flex-col">
-                 <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 text-xs text-yellow-600 dark:text-yellow-400 text-center border-b border-yellow-100 dark:border-yellow-900/30 mb-2 rounded-sm">
-                   {t('chartCard.tooManyDimensions')}
-                 </div>
-                 <div className="flex-1 overflow-hidden">
-                    <DataTable data={data} sourceData={sourceData} format={metricFormat} currency={metricCurrency} numberFormat={metricNumberFormat} />
-                 </div>
-               </div>
-            ) : chartViewEnabled && error && data.length === 0 ? (
+            {chartViewEnabled && error && data.length === 0 ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground gap-2">
                 <AlertCircle className="w-8 h-8 opacity-30 text-destructive" />
                 <span className="text-xs font-medium" title={error}>{t('chart.loadFailed')}</span>
@@ -399,6 +435,7 @@ export const ChartCard = React.memo(({
                   lib={lib}
                   card={card}
                   data={data}
+                  facets={facets}
                   sourceData={sourceData}
                   format={metricFormat}
                   unit={metricUnit}
@@ -412,9 +449,26 @@ export const ChartCard = React.memo(({
               </div>
             ) : null}
           </TabsContent>
-          
+
           <TabsContent value="data" className="flex-1 min-h-0 w-full mt-0 overflow-hidden">
-            {dataViewEnabled ? <DataTable data={data} sourceData={sourceData} format={metricFormat} currency={metricCurrency} numberFormat={metricNumberFormat} /> : null}
+            {dataViewEnabled ? (
+              showPivotDataTab && sourceData ? (
+                <PivotTable
+                  sourceData={sourceData}
+                  roleOptions={{
+                    axisDimension: card.selection?.axisDimension,
+                    seriesDimension: card.selection?.seriesDimension,
+                    facetDimension: card.selection?.facetDimension,
+                    isTimeDimension: isTimeDimensionByName,
+                  }}
+                  format={metricFormat}
+                  currency={metricCurrency}
+                  numberFormat={metricNumberFormat}
+                />
+              ) : (
+                <DataTable data={data} sourceData={sourceData} format={metricFormat} currency={metricCurrency} numberFormat={metricNumberFormat} />
+              )
+            ) : null}
           </TabsContent>
         </CardContent>
       </Tabs>
@@ -423,6 +477,7 @@ export const ChartCard = React.memo(({
 }, (prev, next) => (
   prev.card === next.card &&
   prev.data === next.data &&
+  prev.facets === next.facets &&
   prev.sourceData === next.sourceData &&
   prev.onResize === next.onResize &&
   prev.onRemove === next.onRemove &&

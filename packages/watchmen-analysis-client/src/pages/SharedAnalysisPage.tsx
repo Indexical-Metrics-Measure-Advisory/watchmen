@@ -13,7 +13,10 @@ import { useToast } from '@/components/ui/use-toast';
 import { globalAlertService } from '@/services/globalAlertService';
 
 import { authService } from '@/services/authService';
-import { transformMetricFlowToChartData, timeRangeToBounds } from '@/utils/biAnalysisUtils';
+import { transformMetricFlowToChart, timeRangeToBounds } from '@/utils/biAnalysisUtils';
+import type { ChartFacetGroup } from '@/utils/biAnalysisUtils';
+import type { ChartDatum } from '@/components/bi/ChartCard';
+import { buildGroupBy, isTimeDimensionByName, MAX_MULTI_DIM_ROWS } from '@/utils/dimensionQuery';
 
 const SharedAnalysisPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +30,7 @@ const SharedAnalysisPage: React.FC = () => {
   }, [token]);
 
   const [cards, setCards] = useState<BIChartCard[]>([]);
-  const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: any[]; rawData: MetricFlowResponse | null }>>({});
+  const [cardDataMap, setCardDataMap] = useState<Record<string, { chartData: ChartDatum[]; facets: ChartFacetGroup[] | null; rawData: MetricFlowResponse | null }>>({});
   const [alertStatusMap, setAlertStatusMap] = useState<Record<string, AlertStatus>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -37,13 +40,13 @@ const SharedAnalysisPage: React.FC = () => {
   const loadCardDataFor = async (card: BIChartCard) => {
     try {
       if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert' && card.chartType !== 'kpi') {
-        setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], rawData: null } }));
+        setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], facets: null, rawData: null } }));
         return;
       }
 
       if (card.chartType === 'alert' && card.alert) {
         if (!card.alert.enabled) {
-          setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], rawData: null } }));
+          setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], facets: null, rawData: null } }));
           return;
         }
         const resp = await globalAlertService.fetchAlertData(card.alert as GlobalAlertRule);
@@ -55,7 +58,7 @@ const SharedAnalysisPage: React.FC = () => {
            chartData = resp;
         }
 
-        setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: chartData, rawData: null } }));
+        setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: chartData, facets: null, rawData: null } }));
 
         if (resp && typeof resp.triggered === 'boolean') {
            // It has triggered status. 
@@ -87,20 +90,28 @@ const SharedAnalysisPage: React.FC = () => {
       }
 
       const { start, end } = timeRangeToBounds(card.selection.timeRange);
+      const dimensions = card.selection.dimensions;
+      const dimensionCount = dimensions?.length ?? 0;
       const req: MetricQueryRequest = {
         metric: card.metricId,
-        group_by: card.selection.dimensions && card.selection.dimensions.length > 0 ? card.selection.dimensions : undefined,
+        group_by: buildGroupBy(dimensions, card.selection.timeGranularity, isTimeDimensionByName),
         start_time: start,
         end_time: end,
-        order: [],
-        limit: 500
+        // Server-side Top-N: "-" prefix = order by measure descending
+        order: [`-${card.metricId}`],
+        limit: dimensionCount <= 1 ? (card.selection.limit ?? 500) : MAX_MULTI_DIM_ROWS
       };
       const resp = await metricsService.getMetricValue(req);
-      const data = transformMetricFlowToChartData(resp);
-      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: data, rawData: resp } }));
+      const dataset = transformMetricFlowToChart(resp, {
+        axisDimension: card.selection.axisDimension,
+        seriesDimension: card.selection.seriesDimension,
+        facetDimension: card.selection.facetDimension,
+        isTimeDimension: isTimeDimensionByName,
+      });
+      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: dataset.rows, facets: dataset.facets, rawData: resp } }));
     } catch (e) {
       console.warn(`Card ${card.id}: failed to load data.`, e);
-      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], rawData: null } }));
+      setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], facets: null, rawData: null } }));
     }
   };
 

@@ -23,14 +23,15 @@ import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { DateRange } from "react-day-picker";
-import { ChartCard, DataTable } from '@/components/bi/ChartCard';
+import { ChartCard } from '@/components/bi/ChartCard';
 import type { ChartDatum } from '@/components/bi/ChartCard';
 import { BIMetric, BIChartType } from '@/model/biAnalysis';
 import type { MetricDefinition } from '@/model/metricsManagement';
 import type { MetricDimension } from '@/model/analysis';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import { inferType } from './utils';
-import { inferCurrencyFromUnit } from '@/utils/metricValueFormat';
+import type { DimensionRole } from './dimensionRoles';
+import type { ChartFacetGroup } from '@/utils/biAnalysisUtils';
 import { RechartsProvider } from './charts/RechartsContext';
 import { useTranslation } from 'react-i18next';
 
@@ -55,6 +56,15 @@ export type MetricBuilderSheetProps = {
   filteredDims: MetricDimension[];
   selectedDims: string[];
   onToggleDim: (value: string) => void;
+  /** True when the top-N dimension list hides more matching dimensions */
+  dimsTruncated: boolean;
+  /** Total matching dimensions for the current type/search filter */
+  matchedDimsCount: number;
+  showAllDims: boolean;
+  onShowAllDimsChange: (showAll: boolean) => void;
+  /** Resolved role per selected dimension (explicit roles win over defaults) */
+  dimensionRoles: { dimension: string; role: DimensionRole }[];
+  onDimensionRoleChange: (dimension: string, role: DimensionRole) => void;
   timeRange: string;
   onTimeRangeChange: (value: string) => void;
   timeGranularity: string;
@@ -67,6 +77,7 @@ export type MetricBuilderSheetProps = {
   onLimitChange: (limit: number) => void;
   previewType: BIChartType;
   previewData: ChartDatum[];
+  previewFacets: ChartFacetGroup[] | null;
   previewRawData: MetricFlowResponse | null;
   onAddToDashboard: () => void;
 };
@@ -95,6 +106,12 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
   filteredDims,
   selectedDims,
   onToggleDim,
+  dimsTruncated,
+  matchedDimsCount,
+  showAllDims,
+  onShowAllDimsChange,
+  dimensionRoles,
+  onDimensionRoleChange,
   timeRange,
   onTimeRangeChange,
   timeGranularity,
@@ -107,11 +124,20 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
   onLimitChange,
   previewType,
   previewData,
+  previewFacets,
   previewRawData,
   onAddToDashboard
 }: MetricBuilderSheetProps) {
   const { t } = useTranslation(['biAnalysis', 'metricsParams']);
   // Memoize preview card object to avoid creating new reference on every render
+  const resolvedRoles = React.useMemo(() => {
+    const map = new Map(dimensionRoles.map(entry => [entry.dimension, entry.role]));
+    return map;
+  }, [dimensionRoles]);
+  const detailDimsCount = React.useMemo(
+    () => dimensionRoles.filter(entry => entry.role === 'detail').length,
+    [dimensionRoles]
+  );
   const previewCard = React.useMemo(() => selectedMetric ? {
     id: 'preview',
     title: `${selectedMetric.name} · ${timeRange}`,
@@ -120,24 +146,20 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
     size: 'lg' as const,
     selection: {
       dimensions: selectedDims,
+      axisDimension: dimensionRoles.find(entry => entry.role === 'axis')?.dimension,
+      seriesDimension: dimensionRoles.find(entry => entry.role === 'series')?.dimension,
+      facetDimension: dimensionRoles.find(entry => entry.role === 'facet')?.dimension,
       timeRange,
       timeGranularity,
       limit
     }
-  } : null, [selectedMetric, timeRange, previewType, selectedDims, timeGranularity, limit]);
+  } : null, [selectedMetric, timeRange, previewType, selectedDims, dimensionRoles, timeGranularity, limit]);
 
   // Memoize dimTypes computation to avoid repeated Set creation on each render
   const dimTypes = React.useMemo(
     () => Array.from(new Set(availableDimsDetailed.map(inferType))).sort(),
     [availableDimsDetailed]
   );
-
-  // Number format configured on the selected metric, applied to the data table preview
-  const previewMetricDef = React.useMemo(
-    () => metricsList.find(m => (m.id ?? m.name) === selectedMetricId),
-    [metricsList, selectedMetricId]
-  );
-  const previewNumberFormat = previewMetricDef?.config?.numberFormat;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -275,26 +297,67 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                               const label = d.description || d.qualified_name || d.name;
                               const isChecked = selectedDims.includes(val);
                               return (
-                                <label
+                                <div
                                   key={val}
                                   className={`flex items-center gap-2 px-2 py-1.5 rounded-sm cursor-pointer text-sm transition-colors ${
                                     isChecked ? 'bg-accent/50' : 'hover:bg-accent/20'
                                   }`}
+                                  onClick={() => onToggleDim(val)}
                                 >
                                   <Checkbox
                                     checked={isChecked}
                                     onCheckedChange={() => onToggleDim(val)}
+                                    onClick={(e) => e.stopPropagation()}
                                     className="h-4 w-4"
                                   />
                                   <span className="truncate flex-1" title={label}>{label}</span>
-                                </label>
+                                </div>
                               );
                             })}
                           </div>
                         </ScrollArea>
+                        {dimsTruncated && (
+                          <button
+                            type="button"
+                            className="w-full text-center text-xs text-primary hover:underline py-1.5"
+                            onClick={() => onShowAllDimsChange(!showAllDims)}
+                          >
+                            {showAllDims
+                              ? t('biAnalysis:metricBuilder.showTopDimensions')
+                              : t('biAnalysis:metricBuilder.showAllDimensions', { count: matchedDimsCount })}
+                          </button>
+                        )}
                       </Tabs>
 
-                      {selectedDims.length >= 3 && selectedDims.length <= 5 && (
+                      {selectedDims.length > 0 && (
+                        <div className="space-y-1 mb-4">
+                          <Label className="text-xs font-semibold text-muted-foreground uppercase">{t('biAnalysis:metricBuilder.dimensionRoles')}</Label>
+                          <div className="rounded-md border divide-y">
+                            {selectedDims.map(dim => {
+                              const label = availableDimsDetailed.find(d => (d.qualified_name || d.name) === dim)?.description || dim;
+                              const role = resolvedRoles.get(dim) ?? 'detail';
+                              return (
+                                <div key={dim} className="flex items-center gap-2 px-2 py-1.5">
+                                  <span className="truncate flex-1 text-xs" title={dim}>{label}</span>
+                                  <Select value={role} onValueChange={(v) => onDimensionRoleChange(dim, v as DimensionRole)}>
+                                    <SelectTrigger className="h-7 w-[104px] text-xs shrink-0">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="axis">{t('biAnalysis:metricBuilder.roles.axis')}</SelectItem>
+                                      <SelectItem value="series">{t('biAnalysis:metricBuilder.roles.series')}</SelectItem>
+                                      <SelectItem value="facet">{t('biAnalysis:metricBuilder.roles.facet')}</SelectItem>
+                                      <SelectItem value="detail">{t('biAnalysis:metricBuilder.roles.detail')}</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedDims.length >= 3 && (
                         <div className="bg-blue-50 dark:bg-blue-900/20 p-2 text-xs text-blue-600 dark:text-blue-400 rounded-sm border border-blue-100 dark:border-blue-900/30 mb-4">
                           {t('biAnalysis:metricBuilder.multiDimsHint')}
                         </div>
@@ -379,6 +442,7 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                             <SelectItem value="area">{t('biAnalysis:metricBuilder.chartTypes.area')}</SelectItem>
                             <SelectItem value="kpi">{t('biAnalysis:metricBuilder.chartTypes.kpi')}</SelectItem>
                             <SelectItem value="table">{t('biAnalysis:metricBuilder.chartTypes.table')}</SelectItem>
+                            <SelectItem value="pivot">{t('biAnalysis:metricBuilder.chartTypes.pivot')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -429,28 +493,21 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                 </CardHeader>
                 <CardContent className="flex-1 p-6 min-h-[400px] flex flex-col">
                   <RechartsProvider>
-                  {selectedDims.length > 5 ? (
-                    <div className="h-full w-full flex flex-col">
-                      <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 text-xs text-yellow-600 dark:text-yellow-400 text-center border-b border-yellow-100 dark:border-yellow-900/30 mb-2 rounded-sm">
-                        {t('biAnalysis:metricBuilder.tooManyDimensions')}
-                      </div>
-                      <div className="flex-1 overflow-hidden">
-                        <DataTable
-                          data={previewData}
+                  {selectedMetric && previewCard ? (
+                    <div className="flex-1 w-full h-full min-h-[350px] flex flex-col">
+                      {detailDimsCount > 0 && previewType !== 'table' && previewType !== 'pivot' && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-2 text-xs text-blue-600 dark:text-blue-400 text-center border-b border-blue-100 dark:border-blue-900/30 mb-2 rounded-sm shrink-0">
+                          {t('biAnalysis:metricBuilder.detailDimsHint', { count: detailDimsCount })}
+                        </div>
+                      )}
+                      <div className="flex-1 min-h-0">
+                        <ChartCard
+                          card={previewCard}
+                          data={previewData ?? EMPTY_CHART_DATA}
+                          facets={previewFacets}
                           sourceData={previewRawData ?? undefined}
-                          format={previewMetricDef?.format}
-                          currency={inferCurrencyFromUnit(previewMetricDef?.unit)}
-                          numberFormat={previewNumberFormat}
                         />
                       </div>
-                    </div>
-                  ) : selectedMetric && previewCard ? (
-                    <div className="flex-1 w-full h-full min-h-[350px]">
-                      <ChartCard
-                        card={previewCard}
-                        data={previewData ?? EMPTY_CHART_DATA}
-                        sourceData={previewRawData ?? undefined}
-                      />
                     </div>
                   ) : (
                     <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground space-y-4">

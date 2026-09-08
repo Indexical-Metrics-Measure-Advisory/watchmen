@@ -4,6 +4,7 @@ import type { BIChartCard, BICardSize } from '@/model/biAnalysis';
 import type { AlertStatus } from '@/model/AlertConfig';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import type { MetricDimension } from '@/model/analysis';
+import type { ChartFacetGroup } from '@/utils/biAnalysisUtils';
 import type { ChartDatum } from '@/components/bi/ChartCard';
 import { LayoutDashboard, PlusCircle, AlertCircle, BellPlus, SlidersHorizontal, ChevronRight, X, RefreshCw, Clock, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,14 +23,15 @@ const INITIAL_VISIBLE_CARDS = 12;
 const CARD_RENDER_BATCH_SIZE = 12;
 
 // ── Stable empty default to avoid new []/null references on each render ──
-const EMPTY_CARD_DATA: { chartData: ChartDataPoint[]; rawData: MetricFlowResponse | null } = {
+const EMPTY_CARD_DATA: { chartData: ChartDataPoint[]; facets: ChartFacetGroup[] | null; rawData: MetricFlowResponse | null } = {
   chartData: [],
+  facets: null,
   rawData: null,
 };
 
 interface AnalysisBoardProps {
   cards: BIChartCard[];
-  cardDataMap: Record<string, { chartData: ChartDataPoint[]; rawData: MetricFlowResponse | null }>;
+  cardDataMap: Record<string, { chartData: ChartDataPoint[]; facets?: ChartFacetGroup[] | null; rawData: MetricFlowResponse | null }>;
   cardLoadingMap?: Record<string, boolean>;
   cardErrorMap?: Record<string, string>;
   onCardRetry?: (card: BIChartCard) => void;
@@ -64,6 +66,7 @@ interface BoardCardItemProps {
   card: BIChartCard;
   index: number;
   chartData: ChartDataPoint[];
+  facets?: ChartFacetGroup[] | null;
   rawData: MetricFlowResponse | null;
   isLoading?: boolean;
   error?: string;
@@ -95,6 +98,7 @@ const BoardCardItem = React.memo(({
   card,
   index,
   chartData,
+  facets,
   rawData,
   isLoading,
   error,
@@ -172,6 +176,7 @@ const BoardCardItem = React.memo(({
         <ChartCard
           card={card}
           data={chartData}
+          facets={facets}
           sourceData={rawData ?? undefined}
           isLoading={isLoading}
           error={error}
@@ -196,6 +201,7 @@ const BoardCardItem = React.memo(({
   prev.card === next.card &&
   prev.index === next.index &&
   prev.chartData === next.chartData &&
+  prev.facets === next.facets &&
   prev.rawData === next.rawData &&
   prev.isLoading === next.isLoading &&
   prev.error === next.error &&
@@ -379,13 +385,14 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = React.memo(({
           ) : (
             <div className="grid grid-cols-12 gap-6" style={{ contain: 'layout style paint' }}>
               {visibleCards.map((card, index) => {
-                const { chartData, rawData } = cardDataMap[card.id] ?? EMPTY_CARD_DATA;
+                const { chartData, facets, rawData } = cardDataMap[card.id] ?? EMPTY_CARD_DATA;
                 return (
                   <BoardCardItem
                     key={card.id}
                     card={card}
                     index={index}
                     chartData={chartData}
+                    facets={facets}
                     rawData={rawData}
                     isLoading={cardLoadingMap?.[card.id]}
                     error={cardErrorMap?.[card.id]}

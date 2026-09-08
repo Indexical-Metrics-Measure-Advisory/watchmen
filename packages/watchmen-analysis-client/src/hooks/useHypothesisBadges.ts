@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { hypothesisService } from '@/services/hypothesisService';
+import { useTenantAiEnabled } from '@/hooks/useTenantAiEnabled';
 import type { HypothesisType } from '@/model/Hypothesis';
 
 // ─────────────────────────────────────────────────────────────
@@ -59,8 +60,11 @@ const buildBadges = (hypotheses: HypothesisType[]): Record<string, HypothesisBad
  * useHypothesisBadges loads all hypotheses once and aggregates them into
  * per-metric badges (count + worst status). Mirrors the caching idiom of
  * useCardDataLoader: ref-based cache with a 30s TTL plus in-flight dedupe.
+ * Hypotheses live behind the AI service, so nothing is fetched (or refreshed)
+ * unless the current tenant has AI enabled.
  */
 export const useHypothesisBadges = () => {
+  const { aiEnabled } = useTenantAiEnabled();
   const [badges, setBadges] = useState<Record<string, HypothesisBadge>>({});
   const [loading, setLoading] = useState(false);
 
@@ -68,6 +72,9 @@ export const useHypothesisBadges = () => {
   const badgeInFlightRef = useRef<Promise<void> | null>(null);
 
   const loadBadges = useCallback(async (force = false): Promise<void> => {
+    if (!aiEnabled) {
+      return;
+    }
     const cached = badgeCacheRef.current;
     if (!force && cached && Date.now() - cached.timestamp < BADGE_CACHE_TTL) {
       setBadges(cached.badges);
@@ -92,11 +99,14 @@ export const useHypothesisBadges = () => {
     })();
     badgeInFlightRef.current = request;
     return request;
-  }, []);
+  }, [aiEnabled]);
 
   useEffect(() => {
+    if (!aiEnabled) {
+      return;
+    }
     void loadBadges();
-  }, [loadBadges]);
+  }, [aiEnabled, loadBadges]);
 
   const refresh = useCallback(() => loadBadges(true), [loadBadges]);
 

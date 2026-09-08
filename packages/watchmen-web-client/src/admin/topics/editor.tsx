@@ -1,4 +1,4 @@
-import {isMultipleDataSourcesEnabled} from '@/feature-switch';
+import {isMultipleDataSourcesEnabled, isTopicTagsEnabled} from '@/feature-switch';
 import {QueryDataSourceForHolder} from '@/services/data/tuples/query-data-source-types';
 import {QueryEnumForHolder} from '@/services/data/tuples/query-enum-types';
 import {Topic} from '@/services/data/tuples/topic-types';
@@ -36,8 +36,12 @@ const TopicEditor = (props: {
 			: null}
 		<TuplePropertyLabel>Description:</TuplePropertyLabel>
 		<TopicDescriptionInput topic={topic}/>
-		<TuplePropertyLabel>Tags:</TuplePropertyLabel>
-		<TopicTagsInput topic={topic}/>
+		{isTopicTagsEnabled()
+			? <>
+				<TuplePropertyLabel>Tags:</TuplePropertyLabel>
+				<TopicTagsInput topic={topic}/>
+			</>
+			: null}
 		<TuplePropertyLabel>Factors:</TuplePropertyLabel>
 		<Factors topic={topic} enums={enums}/>
 	</TopicEventBusProvider>;

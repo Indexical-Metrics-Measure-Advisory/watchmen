@@ -2,6 +2,7 @@ import {QueryTopic} from '@/services/data/tuples/query-topic-types';
 import {fetchTopic} from '@/services/data/tuples/topic';
 import {isTopicProfileAvailable} from '@/services/data/tuples/topic-utils';
 import {prettifyDateTimeToMinute} from '@/services/data/tuples/utils';
+import {isTopicTagsEnabled} from '@/feature-switch';
 import {ICON_CREATED_AT, ICON_DELETE, ICON_LAST_MODIFIED_AT, ICON_TOPIC_PROFILE} from '@/widgets/basic/constants';
 import {TooltipAlignment} from '@/widgets/basic/types';
 import {
@@ -81,7 +82,7 @@ const TopicCard = (props: { topic: QueryTopic, canDelete: boolean }) => {
 				</TopicCardDeleteButton>
 				: null}
 		</TupleCardTitle>
-		{(topic.tags ?? []).length !== 0
+		{(isTopicTagsEnabled() && (topic.tags ?? []).length !== 0)
 			? <TopicCardTags>
 				{(topic.tags ?? []).map(tag => <span key={tag}>{tag}</span>)}
 			</TopicCardTags>

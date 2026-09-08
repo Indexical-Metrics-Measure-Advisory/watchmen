@@ -1,5 +1,5 @@
 import TopicBackground from '@/assets/topic-background.svg';
-import {getWebAppEnvironment, isMultipleDataSourcesEnabled} from '@/feature-switch';
+import {getWebAppEnvironment, isMultipleDataSourcesEnabled, isTopicTagsEnabled} from '@/feature-switch';
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {listDataSourcesForHolder} from '@/services/data/tuples/data-source';
 import {listEnumsForHolder} from '@/services/data/tuples/enum';
@@ -240,7 +240,9 @@ const AdminTopics = () => {
 		                       icon: ICON_DOWNLOAD,
 		                       action: onDownloadScriptsClicked
 	                       }]}
-	                       searchPlaceholder="Search by topic name, description, tag, etc."
+	                       searchPlaceholder={isTopicTagsEnabled()
+		                       ? 'Search by topic name, description, tag, etc.'
+		                       : 'Search by topic name, description, etc.'}
 	                       tupleLabel="Topic" tupleImage={TopicBackground} tupleImagePosition="left 120px"
 	                       renderEditor={renderEditor}
 	                       renderCard={(topic: QueryTopic) => renderCard(topic, canDelete)} getKeyOfTuple={getKeyOfTopic}

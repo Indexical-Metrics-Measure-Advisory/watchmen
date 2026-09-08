@@ -1,4 +1,4 @@
-export type BIChartType = 'line' | 'bar' | 'stackedBar' | 'pie' | 'area' | 'groupedBar' | 'alert' | 'kpi' | 'table';
+export type BIChartType = 'line' | 'bar' | 'stackedBar' | 'pie' | 'area' | 'groupedBar' | 'alert' | 'kpi' | 'table' | 'pivot';
 
 export type BICardSize = 'sm' | 'md' | 'lg';
 
@@ -21,9 +21,15 @@ export interface BIMetric {
 
 export interface BIDimensionSelection {
   dimensions: string[]; // selected analysis dimensions
+  // Explicit dimension roles (optional — when unset, roles are inferred:
+  // time dimension → axis, next dimension → series). A dimension assigned to
+  // one role must not appear in the other role fields.
+  axisDimension?: string; // X axis dimension (time preferred when inferred)
+  seriesDimension?: string; // color/legend series dimension
+  facetDimension?: string; // small-multiple (trellis) dimension
   timeRange?: string; // e.g., Past 7 days, Past 30 days
   timeGranularity?: string;
-  limit?: number; // Top N limit
+  limit?: number; // Top N: series/categories shown, the rest folded into Others
 }
 
 export interface AlertAction {

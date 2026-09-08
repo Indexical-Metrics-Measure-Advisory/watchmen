@@ -2,7 +2,7 @@ import React from 'react';
 import { BarChart2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ChartDatum, RechartsModule } from './types';
-import { COLORS, toNumericValue, extractChartKeys, capSeries, topNWithOthers } from './utils';
+import { COLORS, OTHERS_COLOR, colorForSeries, toNumericValue, extractChartKeys, capSeries, topNWithOthers } from './utils';
 import { CustomTooltip } from './CustomTooltip';
 import type { useChartAxis } from './useChartAxis';
 import { formatMetricValue } from '@/utils/metricValueFormat';
@@ -115,15 +115,23 @@ export const KPIView = React.memo(({ data, format, unit, currency, numberFormat,
   );
 });
 
-export const BarChartView = React.memo(({ lib, data, chartType, axisProps, format, unit, currency, numberFormat, valueLabel }: { lib: RechartsModule, data: ChartDatum[], chartType: string, axisProps: ReturnType<typeof useChartAxis>, format?: string, unit?: string, currency?: string, numberFormat?: MetricNumberFormat, valueLabel?: string }) => {
+// Shared optional series/axis controls threaded from ChartCard:
+// maxSeries honours the card's Top-N setting when folding into "others";
+// yDomain pins the Y scale (used by the facet grid so panels share a scale).
+type SeriesViewOptions = {
+  maxSeries?: number;
+  yDomain?: [number | 'auto', number | 'auto'];
+};
+
+export const BarChartView = React.memo(({ lib, data, chartType, axisProps, format, unit, currency, numberFormat, valueLabel, maxSeries, yDomain }: { lib: RechartsModule, data: ChartDatum[], chartType: string, axisProps: ReturnType<typeof useChartAxis>, format?: string, unit?: string, currency?: string, numberFormat?: MetricNumberFormat, valueLabel?: string } & SeriesViewOptions) => {
   const { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, Legend } = lib;
   const { t } = useTranslation('biAnalysis');
   const { commonXAxisProps, commonYAxisProps, commonGridProps } = axisProps;
-  
+
   const isStacked = chartType === 'stackedBar';
   const isGrouped = chartType === 'groupedBar';
   const isHorizontalLayout = false; // Add support later if needed
-  
+
   // Identify keys for multiple series
   const rawKeys = useChartKeys(data);
 
@@ -135,8 +143,8 @@ export const BarChartView = React.memo(({ lib, data, chartType, axisProps, forma
     if (!axisProps.isTime && rawKeys.length === 1 && rawKeys[0] === 'value') {
       return { data: topNWithOthers(data, othersLabel), keys: rawKeys };
     }
-    return capSeries(data, rawKeys, othersLabel);
-  }, [data, rawKeys, axisProps.isTime, t]);
+    return capSeries(data, rawKeys, othersLabel, maxSeries);
+  }, [data, rawKeys, axisProps.isTime, t, maxSeries]);
 
   const shouldAnimate = chartData.length <= 40;
 
@@ -146,8 +154,8 @@ export const BarChartView = React.memo(({ lib, data, chartType, axisProps, forma
 
   return (
     <ResponsiveContainer width="100%" height="100%" debounce={300}>
-      <BarChart 
-        data={chartData} 
+      <BarChart
+        data={chartData}
         margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
         layout={isHorizontalLayout ? "vertical" : "horizontal"}
         barCategoryGap="25%"
@@ -156,8 +164,8 @@ export const BarChartView = React.memo(({ lib, data, chartType, axisProps, forma
         <defs>
           {keys.map((key, index) => (
             <linearGradient key={key} id={`barFill-${index}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.9}/>
-              <stop offset="100%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.65}/>
+              <stop offset="0%" stopColor={colorForSeries(key, index, t('chart.others'))} stopOpacity={0.9}/>
+              <stop offset="100%" stopColor={colorForSeries(key, index, t('chart.others'))} stopOpacity={0.65}/>
             </linearGradient>
           ))}
         </defs>
@@ -165,6 +173,7 @@ export const BarChartView = React.memo(({ lib, data, chartType, axisProps, forma
         <XAxis {...commonXAxisProps} type={isHorizontalLayout ? "number" : "category"} />
         <YAxis
           {...commonYAxisProps}
+          domain={yDomain}
           tickFormatter={yAxisTickFormatter(format, axisProps.formatYAxis, currency, numberFormat)}
           type={isHorizontalLayout ? "category" : "number"}
           dataKey={isHorizontalLayout ? commonXAxisProps.dataKey : undefined}
@@ -172,8 +181,8 @@ export const BarChartView = React.memo(({ lib, data, chartType, axisProps, forma
         <Tooltip {...tooltipSharedProps(format, unit, currency, valueLabel, numberFormat)} cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }} />
         {(isGrouped || isStacked) && <Legend {...legendProps} />}
         {keys.map((key, index) => (
-          <Bar 
-            key={key} 
+          <Bar
+            key={key}
             dataKey={key}
             name={key === 'value' && valueLabel ? valueLabel : key}
             stackId={isStacked ? 'a' : undefined}
@@ -182,9 +191,9 @@ export const BarChartView = React.memo(({ lib, data, chartType, axisProps, forma
             animationDuration={600}
             animationEasing="ease-out"
             radius={
-              isHorizontalLayout 
-                ? (isStacked ? [0, 0, 0, 0] : [0, 4, 4, 0]) 
-                : (isStacked ? [0, 0, 0, 0] : [4, 4, 0, 0]) 
+              isHorizontalLayout
+                ? (isStacked ? [0, 0, 0, 0] : [0, 4, 4, 0])
+                : (isStacked ? [0, 0, 0, 0] : [4, 4, 0, 0])
             }
             maxBarSize={60}
           />
@@ -247,8 +256,8 @@ export const PieChartView = React.memo(({ lib, data, format, unit, currency, num
           strokeWidth={2}
           stroke="hsl(var(--card))"
         >
-          {processedData.map((_, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          {processedData.map((item, index) => (
+            <Cell key={`cell-${index}`} fill={item.name === t('chart.others') ? OTHERS_COLOR : COLORS[index % COLORS.length]} />
           ))}
         </Pie>
       </PieChart>
@@ -256,17 +265,18 @@ export const PieChartView = React.memo(({ lib, data, format, unit, currency, num
   );
 });
 
-export const AreaChartView = React.memo(({ lib, data, axisProps, format, unit, currency, numberFormat, valueLabel }: { lib: RechartsModule, data: ChartDatum[], axisProps: ReturnType<typeof useChartAxis>, format?: string, unit?: string, currency?: string, numberFormat?: MetricNumberFormat, valueLabel?: string }) => {
+export const AreaChartView = React.memo(({ lib, data, axisProps, format, unit, currency, numberFormat, valueLabel, maxSeries, yDomain }: { lib: RechartsModule, data: ChartDatum[], axisProps: ReturnType<typeof useChartAxis>, format?: string, unit?: string, currency?: string, numberFormat?: MetricNumberFormat, valueLabel?: string } & SeriesViewOptions) => {
   const { ResponsiveContainer, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Area, Legend } = lib;
   const { t } = useTranslation('biAnalysis');
   const { commonXAxisProps, commonYAxisProps, commonGridProps } = axisProps;
-  
+
   const rawKeys = useChartKeys(data);
+  const othersLabel = t('chart.others');
 
   // Keep the top series and fold the rest into "others" (see BarChartView)
   const { data: chartData, keys } = React.useMemo(
-    () => capSeries(data, rawKeys, t('chart.others')),
-    [data, rawKeys, t]
+    () => capSeries(data, rawKeys, othersLabel, maxSeries),
+    [data, rawKeys, othersLabel, maxSeries]
   );
 
   const hasMultipleSeries = keys.length > 1 || (keys.length === 1 && keys[0] !== 'value');
@@ -283,31 +293,31 @@ export const AreaChartView = React.memo(({ lib, data, axisProps, format, unit, c
         <defs>
           {keys.map((key, index) => (
             <linearGradient key={key} id={`colorValue-${index}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.25}/>
-              <stop offset="95%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.02}/>
+              <stop offset="5%" stopColor={colorForSeries(key, index, othersLabel)} stopOpacity={0.25}/>
+              <stop offset="95%" stopColor={colorForSeries(key, index, othersLabel)} stopOpacity={0.02}/>
             </linearGradient>
           ))}
         </defs>
         <CartesianGrid {...commonGridProps} />
         <XAxis {...commonXAxisProps} />
-        <YAxis {...commonYAxisProps} tickFormatter={yAxisTickFormatter(format, axisProps.formatYAxis, currency, numberFormat)} />
+        <YAxis {...commonYAxisProps} domain={yDomain} tickFormatter={yAxisTickFormatter(format, axisProps.formatYAxis, currency, numberFormat)} />
         <Tooltip {...tooltipSharedProps(format, unit, currency, valueLabel, numberFormat)} />
         {hasMultipleSeries && <Legend {...legendProps} />}
         {keys.map((key, index) => (
           <Area
             key={key}
-            type="monotone" 
+            type="monotone"
             dataKey={key}
             name={key === 'value' && valueLabel ? valueLabel : key}
-            stroke={COLORS[index % COLORS.length]} 
+            stroke={colorForSeries(key, index, othersLabel)}
             isAnimationActive={shouldAnimate}
             animationDuration={600}
             animationEasing="ease-out"
-            fillOpacity={1} 
-            fill={`url(#colorValue-${index})`} 
+            fillOpacity={1}
+            fill={`url(#colorValue-${index})`}
             strokeWidth={2}
-            activeDot={showActiveDot ? activeDotWithRing(COLORS[index % COLORS.length]) : false}
-            stackId="1" 
+            activeDot={showActiveDot ? activeDotWithRing(colorForSeries(key, index, othersLabel)) : false}
+            stackId="1"
           />
         ))}
       </AreaChart>
@@ -315,17 +325,18 @@ export const AreaChartView = React.memo(({ lib, data, axisProps, format, unit, c
   );
 });
 
-export const LineChartView = React.memo(({ lib, data, axisProps, format, unit, currency, numberFormat, valueLabel }: { lib: RechartsModule, data: ChartDatum[], axisProps: ReturnType<typeof useChartAxis>, format?: string, unit?: string, currency?: string, numberFormat?: MetricNumberFormat, valueLabel?: string }) => {
+export const LineChartView = React.memo(({ lib, data, axisProps, format, unit, currency, numberFormat, valueLabel, maxSeries, yDomain }: { lib: RechartsModule, data: ChartDatum[], axisProps: ReturnType<typeof useChartAxis>, format?: string, unit?: string, currency?: string, numberFormat?: MetricNumberFormat, valueLabel?: string } & SeriesViewOptions) => {
   const { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Line, Legend } = lib;
   const { t } = useTranslation('biAnalysis');
   const { commonXAxisProps, commonYAxisProps, commonGridProps } = axisProps;
 
   const rawKeys = useChartKeys(data);
+  const othersLabel = t('chart.others');
 
   // Keep the top series and fold the rest into "others" (see BarChartView)
   const { data: chartData, keys } = React.useMemo(
-    () => capSeries(data, rawKeys, t('chart.others')),
-    [data, rawKeys, t]
+    () => capSeries(data, rawKeys, othersLabel, maxSeries),
+    [data, rawKeys, othersLabel, maxSeries]
   );
 
   const hasMultipleSeries = keys.length > 1 || (keys.length === 1 && keys[0] !== 'value');
@@ -341,22 +352,22 @@ export const LineChartView = React.memo(({ lib, data, axisProps, format, unit, c
       <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
         <CartesianGrid {...commonGridProps} />
         <XAxis {...commonXAxisProps} />
-        <YAxis {...commonYAxisProps} tickFormatter={yAxisTickFormatter(format, axisProps.formatYAxis, currency, numberFormat)} />
+        <YAxis {...commonYAxisProps} domain={yDomain} tickFormatter={yAxisTickFormatter(format, axisProps.formatYAxis, currency, numberFormat)} />
         <Tooltip {...tooltipSharedProps(format, unit, currency, valueLabel, numberFormat)} />
         {hasMultipleSeries && <Legend {...legendProps} />}
         {keys.map((key, index) => (
           <Line
             key={key}
-            type="monotone" 
+            type="monotone"
             dataKey={key}
             name={key === 'value' && valueLabel ? valueLabel : key}
-            stroke={COLORS[index % COLORS.length]} 
+            stroke={colorForSeries(key, index, othersLabel)}
             isAnimationActive={shouldAnimate}
             animationDuration={600}
             animationEasing="ease-out"
-            strokeWidth={2.5} 
+            strokeWidth={2.5}
             dot={false}
-            activeDot={showActiveDot ? activeDotWithRing(COLORS[index % COLORS.length]) : false}
+            activeDot={showActiveDot ? activeDotWithRing(colorForSeries(key, index, othersLabel)) : false}
           />
         ))}
       </LineChart>

@@ -40,6 +40,9 @@ class DollApp(RestApp):
 	
 	def ask_hide_datasource_pwd_enabled(self) -> bool:
 		return self.get_settings().HIDE_DATASOURCE_PWD
+
+	def ask_topic_tags_enabled(self) -> bool:
+		return self.get_settings().TOPIC_TAGS_ENABLED
 	
 	def ask_sso_enabled(self) -> bool:
 		return self.get_settings().SSO_ON
@@ -123,6 +126,10 @@ def ask_create_dqc_topics_on_tenant_create() -> bool:
 
 def ask_hide_datasource_pwd_enabled() -> bool:
 	return doll.ask_hide_datasource_pwd_enabled()
+
+
+def ask_topic_tags_enabled() -> bool:
+	return doll.ask_topic_tags_enabled()
 
 
 def ask_sso_enabled() -> bool:

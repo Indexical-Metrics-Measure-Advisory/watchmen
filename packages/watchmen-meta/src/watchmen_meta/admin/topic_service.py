@@ -113,7 +113,9 @@ class TopicService(TupleService):
 		return ArrayHelper(rows).map(lambda x: x.topicId).to_list()
 
 	# noinspection DuplicatedCode
-	def find_page_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
+	def find_page_by_text(
+			self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable,
+			with_tags: bool = True) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
 			children = [
@@ -123,12 +125,13 @@ class TopicService(TupleService):
 					left=ColumnNameLiteral(columnName='description'), operator=EntityCriteriaOperator.LIKE,
 					right=text)
 			]
-			# topics matched by tag are also acceptable, thus 'topic_id in' is added to the or joint
-			topic_ids = self.find_topic_ids_by_tag_like(text, tenant_id)
-			if len(topic_ids) != 0:
-				children.append(EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName='topic_id'), operator=EntityCriteriaOperator.IN,
-					right=topic_ids))
+			if with_tags:
+				# topics matched by tag are also acceptable, thus 'topic_id in' is added to the or joint
+				topic_ids = self.find_topic_ids_by_tag_like(text, tenant_id)
+				if len(topic_ids) != 0:
+					children.append(EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='topic_id'), operator=EntityCriteriaOperator.IN,
+						right=topic_ids))
 			criteria.append(EntityCriteriaJoint(
 				conjunction=EntityCriteriaJointConjunction.OR,
 				children=children

@@ -29,6 +29,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTenantAiEnabled } from '@/hooks/useTenantAiEnabled';
 
 // Sidebar group visibility from environment variables (default to true)
 const SHOW_SMART_CONSOLE = (import.meta.env.VITE_SHOW_SMART_CONSOLE ?? 'true') === 'true';
@@ -132,6 +133,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const { collapsed, toggleSidebar, expandedGroups, toggleGroup } = useSidebar();
   const { isConsoleUser } = useAuth();
+  const { aiEnabled } = useTenantAiEnabled();
   const { t } = useTranslation(['layout', 'nav']);
 
   return (
@@ -205,7 +207,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           onToggle={() => toggleGroup('metrics')}
         >
           {/* <NavItem to="/metrics" icon={<BarChart3 size={16} />} label="Metrics Hub" collapsed={collapsed} isSubItem={true} /> */}
-          {SHOW_METRIC_AI_AGENT && !isConsoleUser && (
+          {SHOW_METRIC_AI_AGENT && aiEnabled && !isConsoleUser && (
             <NavItem to="/chat" icon={<MessageSquare size={16} />} label={t('nav:smartMetricsChat')} collapsed={collapsed} isSubItem={true} />
           )}
           <NavItem to="/metrics/bi-analysis" icon={<BarChart3 size={16} />} label={t('nav:metricsAnalysis')} collapsed={collapsed} isSubItem={true} />
@@ -218,7 +220,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
             <NavItem to="/metrics/user-groups" icon={<Users size={16} />} label={t('nav:userGroupMetrics')} collapsed={collapsed} isSubItem={true} />
           )}
           <NavItem to="/metrics/alert-configuration" icon={<AlertTriangle size={16} />} label={t('nav:alertConfiguration')} collapsed={collapsed} isSubItem={true} />
-          {SHOW_METRIC_AI_AGENT && !isConsoleUser && (
+          {SHOW_METRIC_AI_AGENT && aiEnabled && !isConsoleUser && (
             <NavItem to="/metrics/assistant-config" icon={<Sliders size={16} />} label={t('nav:assistantConfig')} collapsed={collapsed} isSubItem={true} />
           )}
           {/* <NavItem to="/data-profiles" icon={<Database size={16} />} label="Data Profile Management" collapsed={collapsed} isSubItem={true} /> */}

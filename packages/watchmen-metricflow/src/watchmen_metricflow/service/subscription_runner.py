@@ -9,10 +9,12 @@ from watchmen_metricflow.meta.metric_subscription_meta_service import Subscripti
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
 from watchmen_metricflow.metricflow.main_api import query
 from watchmen_metricflow.model.bi_analysis_board import BIAnalysis, BIChartCard
+from watchmen_metricflow.model.metric_request import MetricQueryRequest
 from watchmen_metricflow.model.metric_subscription import Subscription, SubscriptionFrequency, SchedulerRunResponse, SubscriptionTriggerResult
 from watchmen_metricflow.router.metric_router import build_metric_config
 from watchmen_metricflow.model.alert_rule import GlobalAlertRule, AlertAction, AlertStatus
 from watchmen_metricflow.service.alert_trigger_servcie import AlertTriggerService
+from watchmen_metricflow.service.direct_metric_query_service import try_direct_metric_query
 from watchmen_metricflow.service.alert_email_body_builder import (
     build_alert_detail_html,
     build_data_table_html,
@@ -311,8 +313,6 @@ class SubscriptionRunner:
 		if not metric:
 			return None
 
-		config = await build_metric_config(self.principal_service)
-		
 		group_by = []
 		start_time = None
 		end_time = None
@@ -322,7 +322,23 @@ class SubscriptionRunner:
 				group_by = card.selection["dimensions"]
 			start_time, end_time = self._parse_time_range(card.selection["timeRange"])
 
+		# bypass-enabled data sources (DIRECT_METRIC_BYPASS_TYPES) skip dbt
 		try:
+			direct_result = await try_direct_metric_query(
+				MetricQueryRequest(
+					metric=metric.name, group_by=group_by or None,
+					start_time=start_time, end_time=end_time),
+				self.principal_service)
+			if direct_result is not None:
+				return {
+					"columns": direct_result.column_names,
+					"data": [list(row) for row in direct_result.data]
+				}
+		except Exception as e:
+			logger.warning(f'Subscription metric [{metric_name}] direct bypass failed: {e}')
+
+		try:
+			config = await build_metric_config(self.principal_service)
 			query_result = query(
 				cfg=config,
 				metrics=[metric.name],
@@ -330,7 +346,7 @@ class SubscriptionRunner:
 				start_time=start_time,
 				end_time=end_time
 			)
-			
+
 			return {
 				"columns": query_result.result_df.column_names,
 				"data": query_result.result_df.rows

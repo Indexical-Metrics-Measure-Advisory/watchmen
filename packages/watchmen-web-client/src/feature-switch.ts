@@ -2,6 +2,8 @@ import {fetchSystemEnv} from './services/data/account/system';
 
 export const isHideDataSourcePwdEnabled = () => process.env.REACT_APP_HIDE_DATASOURCE_PWD === 'true';
 export const isDataQualityCenterEnabled = () => process.env.REACT_APP_DQC_ENABLED === 'true';
+/** topic tags: editing, search and display; switched on by default, set REACT_APP_TOPIC_TAGS_ENABLED=false to turn off */
+export const isTopicTagsEnabled = () => process.env.REACT_APP_TOPIC_TAGS_ENABLED !== 'false';
 
 const DQC_PII_ENABLED_KEY = 'watchmen-dqc-pii-enabled';
 export const DQC_PII_ENABLED_CHANGED_EVENT = 'watchmen-dqc-pii-enabled-changed';

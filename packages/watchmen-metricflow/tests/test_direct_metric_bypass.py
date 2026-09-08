@@ -521,6 +521,34 @@ class TestLeafTranslation(unittest.TestCase):
         self.assertIn("'MM'", sql)
         self.assertIn('FROM datamart.topic_orders', sql)
 
+    def test_count_star_alert_query_never_references_synthetic_id(self):
+        # alert evaluation queries with no group-by and no time range produce an
+        # empty fields list; the table factory then declares a synthetic 'id'
+        # fallback column which must NOT leak into count(*) SQL (real pg key
+        # columns may be named e.g. id_)
+        model = SemanticModel(
+            name='claims_sm', description='test model',
+            node_relation=_node_relation(),
+            entities=[],
+            measures=[Measure(name='claim_cases', agg='count', expr='*')],
+            dimensions=[
+                Dimension(name='region', type='categorical', expr='region'),
+            ],
+            topicId='topic-1', sourceType='topic')
+        metric = Metric(
+            name='claim_total', type='simple',
+            type_params=MetricTypeParams(measure=MeasureReference(name='claim_cases')))
+        req = MetricQueryRequest(metric='claim_total')
+        specs = svc._parse_group_specs(req, metric, False)
+        self.assertEqual([], specs)
+        ontology, request, label = svc._build_leaf_query(
+            specs, req, model, model.get_measure_by_name('claim_cases'), 'raw:claims', [], [])
+        compiled = OntologySqlCompiler().compile(ontology, request, dialect_name='postgresql')
+        sql = str(compiled.statement.compile(
+            dialect=postgresql.dialect(), compile_kwargs={'literal_binds': True}))
+        self.assertIn('count(*)', sql.lower())
+        self.assertNotIn('base.id', sql.lower().replace('base.id_', ''))
+
     def test_measure_aggregate_mapping(self):
         model = _make_semantic_model()
         req = MetricQueryRequest(metric='total_sales', group_by=['region'])

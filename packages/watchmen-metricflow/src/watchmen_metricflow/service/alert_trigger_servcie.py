@@ -15,15 +15,18 @@ from watchmen_metricflow.meta.suggest_action_meta_service import SuggestedAction
 from watchmen_metricflow.model.alert_rule import GlobalAlertRule, AlertStatus, AlertSeverity, AlertConditionLogic, \
     AlertOperator, AlertCondition, AlertConditionResult, AlertAction
 from watchmen_metricflow.model.alert_instance import AlertInstance
+from watchmen_metricflow.model.metric_request import MetricQueryRequest
 from watchmen_metricflow.model.metrics import Metric
 from watchmen_metricflow.model.suggest_action import SuggestedAction, ActionType
 from watchmen_metricflow.router.metric_router import build_metric_config
 from watchmen_metricflow.metricflow.main_api import query
+from watchmen_metricflow.service.direct_metric_query_service import try_direct_metric_query
 from watchmen_metricflow.service.hooks import build_alert_hook_dispatcher
 from watchmen_metricflow.settings import ask_analysis_web_base_url, mf_settings
 from metricflow.engine.metricflow_engine import MetricFlowQueryResult
 from watchmen_metricflow.util import trans, trans_readonly
 from watchmen_rest import create_jwt_token
+from fastapi import HTTPException
 
 logger = getLogger(__name__)
 
@@ -67,6 +70,23 @@ class AlertTriggerService:
         return trans_readonly(self.action_type_service, load_action_type)
 
     async def _get_metric_value(self, metric_name: str) -> float:
+        # bypass-enabled data sources (DIRECT_METRIC_BYPASS_TYPES) skip dbt
+        decline_reasons: List[str] = []
+        try:
+            direct_result = await try_direct_metric_query(
+                MetricQueryRequest(metric=metric_name), self.principal_service, decline_reasons)
+        except HTTPException as e:
+            logger.warning(f'Alert metric [{metric_name}] direct bypass failed: {e.detail}')
+            direct_result = None
+        if direct_result is not None:
+            if direct_result.data and len(direct_result.data) > 0:
+                val = direct_result.data[0][0]
+                try:
+                    return float(val)
+                except (ValueError, TypeError):
+                    return 0.0
+            return 0.0
+
         config = await build_metric_config(self.principal_service)
         query_result: MetricFlowQueryResult = query(
             cfg=config,

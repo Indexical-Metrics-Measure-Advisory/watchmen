@@ -9,6 +9,8 @@ import { globalAlertService } from '@/services/globalAlertService';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { formatMetricValue } from '@/utils/metricValueFormat';
+import { useMetricCurrency, useMetricFormat, useMetricUnit } from './charts/useMetricFormat';
 
 export interface AlertCardProps {
   card: BIChartCard;
@@ -117,6 +119,10 @@ const RISK_COLOR: Record<string, string> = {
 export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge, onProposeHypothesis }: AlertCardProps) => {
   const value = data.length > 0 ? (typeof data[0].value === 'number' ? data[0].value : 0) : 0;
   const alertConfig = card.alert;
+  // Metric display config for the current-value hero (shared cached lookup)
+  const metricFormat = useMetricFormat(card.metricId);
+  const metricUnit = useMetricUnit(card.metricId);
+  const metricCurrency = useMetricCurrency(card.metricId);
   const isAcknowledged = alertStatus?.acknowledged;
   const { toast } = useToast();
   const { t } = useTranslation('biAnalysis');
@@ -252,14 +258,37 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge, o
 
   return (
     <div className="flex flex-col h-full justify-between p-1 w-full gap-2">
-      {/* Header Section */}
+      {/* Header Section — icon tone and status line reflect the alert state */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Activity className="h-5 w-5 text-primary" />
+          <div className={cn(
+            "p-2 rounded-lg relative",
+            isTriggered && !isAcknowledged ? "bg-destructive/10" : isAcknowledged ? "bg-emerald-500/10" : "bg-primary/10"
+          )}>
+            {isTriggered && !isAcknowledged
+              ? <AlertTriangle className="h-5 w-5 text-destructive" />
+              : isAcknowledged
+                ? <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                : <Activity className="h-5 w-5 text-primary" />}
+            {isTriggered && !isAcknowledged && (
+              <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-destructive" />
+              </span>
+            )}
           </div>
           <div>
             <div className="font-semibold text-lg tracking-tight leading-none mb-1">{alertConfig.name || card.title}</div>
+            <div className={cn(
+              "text-xs flex items-center gap-1",
+              isTriggered && !isAcknowledged ? "text-destructive font-medium" : isAcknowledged ? "text-emerald-600" : "text-muted-foreground"
+            )}>
+              {isTriggered
+                ? (isAcknowledged
+                    ? <>{t('alertCard.acknowledged')}{alertStatus?.acknowledgedBy ? ` · ${t('alertCard.acknowledgedBy', { name: alertStatus.acknowledgedBy })}` : ''}</>
+                    : t('alertCard.triggered'))
+                : t('alertCard.monitoring')}
+            </div>
             {alertConfig.description && (
                <div className="text-xs text-muted-foreground truncate max-w-[200px]" title={alertConfig.description}>
                  {alertConfig.description}
@@ -270,11 +299,36 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge, o
         <div className="flex flex-col items-end gap-2">
            {alertConfig.priority && (
              <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-5", PRIORITY_COLOR[alertConfig.priority])}>
-               {alertConfig.priority.toUpperCase()}
+               {t(`alertCard.priority.${alertConfig.priority}`, { defaultValue: alertConfig.priority.toUpperCase() })}
              </Badge>
            )}
         </div>
       </div>
+
+      {/* Current value vs threshold — the first thing a business user looks for */}
+      {(alertConfig.conditions || []).length > 0 && (
+        <div className="flex items-end justify-between bg-muted/30 border border-border/40 rounded-md px-3 py-2">
+          <div>
+            <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{t('alertCard.currentValue')}</div>
+            <div className={cn(
+              "text-2xl font-bold tabular-nums tracking-tight",
+              isTriggered && !isAcknowledged ? "text-destructive" : "text-foreground"
+            )}>
+              {formatMetricValue(Number(value), metricFormat, metricCurrency)}
+              {metricUnit && <span className="text-sm font-medium text-muted-foreground ml-1">{metricUnit}</span>}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{t('alertCard.threshold')}</div>
+            <div className="text-sm font-mono text-foreground">
+              {(alertConfig.conditions || [])[0].operator} {(alertConfig.conditions || [])[0].value}
+              {(alertConfig.conditions || []).length > 1 && (
+                <span className="text-muted-foreground text-xs"> +{(alertConfig.conditions || []).length - 1}</span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Rule Condition Box - Shown when NOT triggered */}
       {!isTriggered && (
@@ -308,24 +362,12 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge, o
       {/* Action Section - Only visible when triggered */}
       {isTriggered && (
         <div className="flex-1 flex flex-col gap-2 overflow-hidden">
-          {isAcknowledged ? (
-             <div className="flex items-center justify-between bg-emerald-500/10 p-3 rounded border border-emerald-500/20">
-                 <div className="flex items-center gap-2 text-emerald-600">
-                     <CheckCircle2 className="w-5 h-5" />
-                     <div className="flex flex-col">
-                        <span className="font-medium text-sm">{t('alertCard.acknowledged')}</span>
-                        <span className="text-[10px] opacity-80">{t('alertCard.acknowledgedBy', { name: alertStatus?.acknowledgedBy || t('alertCard.fallbackUser') })}</span>
-                     </div>
-                 </div>
-                 <Button variant="ghost" size="sm" onClick={() => setShowDetails(!showDetails)} className="h-7 text-xs px-2 hover:bg-emerald-500/20 hover:text-emerald-700">
-                     {showDetails ? t('alertCard.hideDetails') : t('alertCard.showDetails')}
-                 </Button>
-             </div>
-          ) : (
-             <div className="flex items-center gap-2 px-1">
-                <AlertTriangle className="w-4 h-4 text-destructive" />
-                <span className="text-sm font-semibold text-destructive">{t('alertCard.triggered')}</span>
-             </div>
+          {isAcknowledged && (
+            <div className="flex justify-end">
+              <Button variant="ghost" size="sm" onClick={() => setShowDetails(!showDetails)} className="h-7 text-xs px-2">
+                {showDetails ? t('alertCard.hideDetails') : t('alertCard.showDetails')}
+              </Button>
+            </div>
           )}
 
           {(showDetails || !isAcknowledged) && (
@@ -345,8 +387,8 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge, o
                          }
                       </div>
                       <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-                         <div>{t('alertCard.currentValueLabel')}: <span className="font-mono text-foreground">{result.currentValue}</span></div>
-                         <div>{t('alertCard.thresholdLabel')}: <span className="font-mono text-foreground">{result.operator} {result.value}</span></div>
+                         <div>{t('alertCard.currentValue')}: <span className="font-mono text-foreground">{result.currentValue}</span></div>
+                         <div>{t('alertCard.threshold')}: <span className="font-mono text-foreground">{result.operator} {result.value}</span></div>
                       </div>
                    </div>
                  ))}
@@ -540,38 +582,21 @@ export const AlertCard = React.memo(({ card, data, alertStatus, onAcknowledge, o
         ) : null}
       </div>
 
-      {/* Footer Stats */}
-      <div className="flex items-center justify-between mt-auto pt-2 border-t">
-        <div className="flex items-center gap-2">
-          {isTriggered ? (
-             isAcknowledged ? (
-               <Badge variant="outline" className="px-2 py-0.5 text-[10px] font-medium text-emerald-600 bg-emerald-50 border-emerald-200">
-                 {t('alertCard.resolved')}
-               </Badge>
-             ) : (
-               <Badge variant="destructive" className="px-2 py-0.5 text-[10px] font-medium">
-                 {t('alertCard.active')}
-               </Badge>
-             )
-          ) : (
-            <Badge variant="outline" className="px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted/50">
-              {t('alertCard.normal')}
-            </Badge>
-          )}
-        </div>
-        {onProposeHypothesis && (
+      {/* Footer — status is already expressed by the header, only the hypothesis action remains */}
+      {onProposeHypothesis && (
+        <div className="flex items-center justify-end mt-auto pt-2 border-t">
           <Button
             variant="ghost"
             size="sm"
             className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
-            title="Create hypothesis"
+            title={t('chart.proposeHypothesis')}
             onClick={() => onProposeHypothesis(card)}
           >
             <Lightbulb className="w-3.5 h-3.5" />
-            Create hypothesis
+            {t('chart.proposeHypothesis')}
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 });

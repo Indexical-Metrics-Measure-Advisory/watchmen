@@ -1,10 +1,12 @@
 
 import { Toaster } from "@/components/ui/toaster";
+import type { ReactNode } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route, BrowserRouter } from "react-router-dom";
+import { Routes, Route, BrowserRouter, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { useTenantAiEnabled } from "@/hooks/useTenantAiEnabled";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import Index from "./pages/Index";
@@ -50,6 +52,16 @@ const queryClient = new QueryClient();
 
 const SHOW_METRIC_AI_AGENT = (import.meta.env.VITE_SHOW_METRIC_AI_AGENT ?? 'true') === 'true';
 
+// keeps AI-only pages out of reach when the tenant has not enabled AI (tenant.enableAI)
+const RequireTenantAi = ({ children }: { children: ReactNode }) => {
+  const { aiEnabled, isLoading } = useTenantAiEnabled();
+  if (!aiEnabled) {
+    // hold rendering until the tenant flag is resolved, then bounce when AI is off
+    return isLoading ? null : <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -69,7 +81,7 @@ const App = () => (
                 <Route path="/metrics/management" element={<MetricsManagement />} />
                 <Route path="/metrics/user-groups" element={<UserGroupMetrics />} />
                 {SHOW_METRIC_AI_AGENT && (
-                  <Route path="/metrics/assistant-config" element={<AnalysisAssistantConfigPage />} />
+                  <Route path="/metrics/assistant-config" element={<RequireTenantAi><AnalysisAssistantConfigPage /></RequireTenantAi>} />
                 )}
                 <Route path="/metrics/bi-analysis" element={<BIAnalysisPage />} />
                 <Route path="/metrics/tree" element={<MetricDependencyTree />} />
@@ -95,7 +107,7 @@ const App = () => (
                 <Route path="/evaluation/offline" element={<OfflineEvaluation />} />
                 <Route path="/evaluation/datasets" element={<EvaluationDatasetManagement />} />
                 {SHOW_METRIC_AI_AGENT && (
-                  <Route path="/chat" element={<ChatPage />} />
+                  <Route path="/chat" element={<RequireTenantAi><ChatPage /></RequireTenantAi>} />
                 )}
                 <Route path="/bi-analysis" element={<BIAnalysisPage />} />
                 <Route path="/share/analysis/:id" element={<SharedAnalysisPage />} />

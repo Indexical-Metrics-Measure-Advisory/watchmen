@@ -15,6 +15,7 @@ from watchmen_pipeline_kernel.topic_snapshot import as_snapshot_task_topic_name,
 	create_snapshot_target_topic, create_snapshot_task_topic, rebuild_snapshot_pipeline, \
 	rebuild_snapshot_target_topic, rebuild_snapshot_task_topic
 from watchmen_rest.util import raise_400, raise_403
+from watchmen_rest_doll.doll import ask_topic_tags_enabled
 from watchmen_utilities import ArrayHelper, ExtendedBaseModel, is_blank, is_not_blank
 from .pipeline_common import ask_save_pipeline_action
 
@@ -33,6 +34,9 @@ def get_topic_tag_service(topic_service: TopicService) -> TopicTagService:
 
 
 def sync_topic_tags(topic: Topic, topic_service: TopicService) -> None:
+	if not ask_topic_tags_enabled():
+		# tags feature is disabled, keep stored tags untouched so that they survive a re-enable
+		return
 	get_topic_tag_service(topic_service).save_topic_tags(topic)
 
 
@@ -41,6 +45,9 @@ def fill_topic_tags(topics: List[Topic], topic_service: TopicService) -> List[To
 	tags of a topic are stored in the topic_tags relation, not on the topic row itself,
 	therefore they are loaded and attached here
 	"""
+	if not ask_topic_tags_enabled():
+		# tags feature is disabled, never expose tags
+		return topics
 	topics = topics or []
 	tag_service = get_topic_tag_service(topic_service)
 	rows = tag_service.find_by_topic_ids(ArrayHelper(topics).map(lambda x: x.topicId).to_list())
