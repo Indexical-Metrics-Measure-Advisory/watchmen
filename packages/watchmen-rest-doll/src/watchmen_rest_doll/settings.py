@@ -18,8 +18,8 @@ class DollSettings(RestSettings):
 
 	HIDE_DATASOURCE_PWD: bool = True  # hide datasource pwd on api
 
-	# enable topic tags: editing, search and display; when disabled, stored tags are kept untouched
-	TOPIC_TAGS_ENABLED: bool = True
+	# enable topic tags: editing, search and display; opt-in via env, stored tags are kept untouched when disabled
+	TOPIC_TAGS_ENABLED: bool = False
 
 	SSO_ON: bool = False
 	SSO_PROVIDER: SSOTypes = SSOTypes.SAML2
