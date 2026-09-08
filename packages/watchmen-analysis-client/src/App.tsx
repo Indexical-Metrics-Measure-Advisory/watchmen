@@ -1,51 +1,55 @@
 
 import { Toaster } from "@/components/ui/toaster";
+import { lazy, Suspense } from "react";
 import type { ReactNode } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, BrowserRouter, Navigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useTenantAiEnabled } from "@/hooks/useTenantAiEnabled";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
-import Index from "./pages/Index";
-import BusinessChallenges from "./pages/BusinessChallenges";
-import Hypotheses from "./pages/Hypotheses";
-// import MetricDetail from "./pages/MetricDetail";
-import Analysis from "./pages/Analysis";
-import ChallengeAnalysis from "./pages/ChallengeAnalysis";
-import GraphView from "./pages/GraphView";
-import Login from "./pages/Login";
-import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
-import Learning from './pages/Learning';
-import AIMonitoring from './pages/AIMonitoring';
-import AIAgentManagement from './pages/AIAgentManagement';
-import AIAnalysisAgent from './components/ai/AIAnalysisAgent';
-import SemanticModelManagement from './pages/SemanticModelManagement';
-import MetricsManagement from './pages/MetricsManagement';
-import UserGroupMetrics from './pages/UserGroupMetrics';
-import DataProfileManagement from './pages/DataProfileManagement';
-import DataCatalog from './pages/DataCatalog';
-import BusinessDomainMap from './pages/BusinessDomainMap';
-import DataProductCatalog from './pages/DataProductCatalog';
-import AssetMap from './pages/AssetMap';
-import DataProductGraph from './pages/DataProductGraph';
-import OntologyDataTester from './pages/OntologyDataTester';
-import BusinessGlossary from './pages/BusinessGlossary';
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import FirstTimeOnboarding from "@/components/onboarding/FirstTimeOnboarding";
-import RetrievalTesting from "./pages/RetrievalTesting";
-import OfflineEvaluation from "./pages/OfflineEvaluation";
-import EvaluationDatasetManagement from "./pages/EvaluationDatasetManagement";
-import OnlineEvaluation from "./pages/OnlineEvaluation";
-import ChatPage from "./pages/chat";
-import AnalysisAssistantConfigPage from './pages/AnalysisAssistantConfig';
+// keep the landing page, login and 404 eager so first paint and auth redirects stay fast
 import BIAnalysisPage from './pages/BIAnalysis';
-import MetricDependencyTree from './pages/MetricDependencyTree';
-import MetricLineagePage from './pages/MetricLineage';
-import { AlertConfigurationPage } from './pages/AlertConfigurationPage';
-import SharedAnalysisPage from './pages/SharedAnalysisPage';
+import Login from "./pages/Login";
+import NotFound from "./pages/NotFound";
+
+const Index = lazy(() => import("./pages/Index"));
+const BusinessChallenges = lazy(() => import("./pages/BusinessChallenges"));
+const Hypotheses = lazy(() => import("./pages/Hypotheses"));
+const Analysis = lazy(() => import("./pages/Analysis"));
+const ChallengeAnalysis = lazy(() => import("./pages/ChallengeAnalysis"));
+const GraphView = lazy(() => import("./pages/GraphView"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Learning = lazy(() => import('./pages/Learning'));
+const AIMonitoring = lazy(() => import('./pages/AIMonitoring'));
+const AIAgentManagement = lazy(() => import('./pages/AIAgentManagement'));
+const AIAnalysisAgent = lazy(() => import('./components/ai/AIAnalysisAgent'));
+const SemanticModelManagement = lazy(() => import('./pages/SemanticModelManagement'));
+const MetricsManagement = lazy(() => import('./pages/MetricsManagement'));
+const UserGroupMetrics = lazy(() => import('./pages/UserGroupMetrics'));
+const DataProfileManagement = lazy(() => import('./pages/DataProfileManagement'));
+const DataCatalog = lazy(() => import('./pages/DataCatalog'));
+const BusinessDomainMap = lazy(() => import('./pages/BusinessDomainMap'));
+const DataProductCatalog = lazy(() => import('./pages/DataProductCatalog'));
+const AssetMap = lazy(() => import('./pages/AssetMap'));
+const DataProductGraph = lazy(() => import('./pages/DataProductGraph'));
+const OntologyDataTester = lazy(() => import('./pages/OntologyDataTester'));
+const BusinessGlossary = lazy(() => import('./pages/BusinessGlossary'));
+const RetrievalTesting = lazy(() => import("./pages/RetrievalTesting"));
+const OfflineEvaluation = lazy(() => import("./pages/OfflineEvaluation"));
+const EvaluationDatasetManagement = lazy(() => import("./pages/EvaluationDatasetManagement"));
+const OnlineEvaluation = lazy(() => import("./pages/OnlineEvaluation"));
+const ChatPage = lazy(() => import("./pages/chat"));
+const AnalysisAssistantConfigPage = lazy(() => import('./pages/AnalysisAssistantConfig'));
+const MetricDependencyTree = lazy(() => import('./pages/MetricDependencyTree'));
+const MetricLineagePage = lazy(() => import('./pages/MetricLineage'));
+const AlertConfigurationPage = lazy(() => import('./pages/AlertConfigurationPage').then(m => ({ default: m.AlertConfigurationPage })));
+const SharedAnalysisPage = lazy(() => import('./pages/SharedAnalysisPage'));
 
 
 const queryClient = new QueryClient();
@@ -72,7 +76,13 @@ const App = () => (
           <SidebarProvider>
             <AuthProvider>
               <FirstTimeOnboarding />
-              <Routes>
+              <ErrorBoundary>
+                <Suspense fallback={
+                  <div className="flex items-center justify-center h-screen w-full">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                }>
+                  <Routes>
                 <Route path="/" element={< BIAnalysisPage/>} />
                 <Route path="/challenges" element={<BusinessChallenges />} />
                 <Route path="/hypotheses" element={<Hypotheses />} />
@@ -118,7 +128,9 @@ const App = () => (
                 <Route path="/settings" element={<Settings />} />
                 
                 <Route path="*" element={<NotFound />} />
-              </Routes>
+                  </Routes>
+                </Suspense>
+              </ErrorBoundary>
               {/** AI Assistant removed per request */}
             </AuthProvider>
           </SidebarProvider>

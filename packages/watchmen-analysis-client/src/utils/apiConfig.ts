@@ -28,9 +28,21 @@ export const getDefaultHeaders = () => {
   return headers;
 };
 
+// Registered by the app/auth layer (AuthContext) to clear the session and
+// redirect to the login page when any API call answers 401. Kept as a callback
+// so this module does not need to know about routing or storage details.
+let unauthorizedHandler: (() => void) | null = null;
+
+export const setUnauthorizedHandler = (handler: (() => void) | null) => {
+  unauthorizedHandler = handler;
+};
+
 // Helper function to check if the response is ok
 export const checkResponse = async (response: Response) => {
   if (!response.ok) {
+    if (response.status === 401) {
+      unauthorizedHandler?.();
+    }
     const errorData = await response.json().catch(() => ({}));
     // FastAPI error responses carry the message in `detail` (string or validation error array)
     const detail = typeof errorData.detail === 'string' ? errorData.detail : undefined;

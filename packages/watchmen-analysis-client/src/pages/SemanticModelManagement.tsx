@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -51,6 +52,7 @@ const SemanticModelManagement: React.FC = () => {
   const [topics, setTopics] = useState<ReturnType<typeof topicService.getDatamartTopics> extends Promise<infer T> ? T : never>([]);
   const [isTopicsLoading, setIsTopicsLoading] = useState(false);
   const [editingModel, setEditingModel] = useState<SemanticModel | null>(null);
+  const [modelToDelete, setModelToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -87,13 +89,16 @@ const SemanticModelManagement: React.FC = () => {
     }
   };
 
-  const handleDeleteModel = async (modelName: string) => {
+  const handleDeleteModel = async () => {
+    if (!modelToDelete) return;
     try {
-      await deleteSemanticModel(modelName);
+      await deleteSemanticModel(modelToDelete);
       toast({ title: t('common:success'), description: t('semanticModel:toast.deleted') });
       loadData();
     } catch (error) {
       toast({ title: t('common:error'), description: t('semanticModel:toast.deleteFailed'), variant: "destructive" });
+    } finally {
+      setModelToDelete(null);
     }
   };
 
@@ -379,7 +384,7 @@ const SemanticModelManagement: React.FC = () => {
                           }}>
                             <Edit size={14} />
                           </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleDeleteModel(model.name)}>
+                          <Button variant="outline" size="sm" onClick={() => setModelToDelete(model.name)}>
                             <Trash2 size={14} />
                           </Button>
                         </div>
@@ -453,6 +458,22 @@ const SemanticModelManagement: React.FC = () => {
           onSubmit={handleEditSubmit}
           toast={toast}
         />
+
+        {/* Delete confirmation */}
+        <AlertDialog open={!!modelToDelete} onOpenChange={(open) => !open && setModelToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('semanticModel:page.deleteConfirmTitle')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('semanticModel:page.deleteConfirmDescription', { name: modelToDelete })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('common:cancel')}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteModel} className="bg-red-600 hover:bg-red-700">{t('common:delete')}</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </TooltipProvider>
   );

@@ -19,9 +19,6 @@ import { API_BASE_URL, getDefaultHeaders, checkResponse } from "@/utils/apiConfi
 import type { MetricDimension } from "@/model/analysis";
 import { DimensionType } from "@/model/analysis";
 
-// Simulate API delay
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 // ===== Category Management API =====
 
 // Get category hierarchy structure (Deprecated: use getCategories)
@@ -31,8 +28,6 @@ export const getCategoriesHierarchy = async (filter?: CategoryFilter): Promise<C
 
 // Get flattened category list
 export const getCategories = async (filter?: CategoryFilter): Promise<Category[]> => {
-	await delay(200);
-
 	try {
 		const response = await fetch(`${API_BASE_URL}/metricflow/category/all`, {
 			method: "GET",
@@ -59,8 +54,6 @@ export const getCategories = async (filter?: CategoryFilter): Promise<Category[]
 
 // Get single category details
 export const getCategory = async (categoryId: string): Promise<Category | null> => {
-	await delay(150);
-
 	try {
 		const response = await fetch(`${API_BASE_URL}/metricflow/category/${encodeURIComponent(categoryId)}`, {
 			method: "GET",
@@ -87,8 +80,6 @@ export const getCategory = async (categoryId: string): Promise<Category | null> 
 
 // Create category
 export const createCategory = async (categoryData: Partial<Category>): Promise<CategoryOperationResult> => {
-	await delay(400);
-
 	try {
 		// Validate category data
 		const validationErrors = validateCategoryData(categoryData);
@@ -137,8 +128,6 @@ export const updateCategory = async (
 	categoryId: string,
 	updates: Partial<Category>,
 ): Promise<CategoryOperationResult> => {
-	await delay(350);
-
 	try {
 		const response = await fetch(`${API_BASE_URL}/metricflow/category/${categoryId}`, {
 			method: "PUT",
@@ -175,8 +164,6 @@ export const deleteCategory = async (
 	categoryId: string,
 	forceDelete: boolean = false,
 ): Promise<CategoryOperationResult> => {
-	await delay(300);
-
 	try {
 		// const queryParams = forceDelete ? '?force=true' : '';
 		const response = await fetch(`${API_BASE_URL}/metricflow/category/delete/${categoryId}`, {
@@ -217,8 +204,6 @@ export const deleteCategory = async (
 
 // Get category statistics
 export const getCategoryStats = async (): Promise<CategoryStats[]> => {
-	await delay(250);
-
 	try {
 		const response = await fetch(`${API_BASE_URL}/metricflow/metric/categories/stats`, {
 			method: "GET",
@@ -245,8 +230,6 @@ export const assignMetricsToCategory = async (
 	metricIds: string[],
 	categoryId: string,
 ): Promise<CategoryOperationResult> => {
-	await delay(400);
-
 	try {
 		const response = await fetch(
 			`${API_BASE_URL}/metricflow/categories/${encodeURIComponent(categoryId)}/metrics`,
@@ -284,8 +267,6 @@ export const removeMetricsFromCategory = async (
 	metricIds: string[],
 	categoryId: string,
 ): Promise<CategoryOperationResult> => {
-	await delay(350);
-
 	try {
 		const response = await fetch(
 			`${API_BASE_URL}/metricflow/categories/${encodeURIComponent(categoryId)}/metrics`,
@@ -322,8 +303,6 @@ export const removeMetricsFromCategory = async (
 export const performBulkCategoryOperation = async (
 	operation: BulkCategoryOperation,
 ): Promise<CategoryOperationResult> => {
-	await delay(500);
-
 	try {
 		const response = await fetch(`${API_BASE_URL}/metricflow/categories/bulk-operation`, {
 			method: "POST",
@@ -914,9 +893,6 @@ interface AIMetricsInsight {
 }
 
 const generateAIMetricsResponse = async (query: string, context?: string): Promise<string> => {
-	// Simulate AI processing delay
-	await delay(1500);
-
 	const lowerQuery = query.toLowerCase();
 
 	// Pattern matching for different types of queries
@@ -1041,8 +1017,6 @@ export const queryMetricsWithAI = async (aiQuery: AIMetricsQuery): Promise<Messa
 };
 
 export const generateMetricsInsights = async (metricNames?: string[]): Promise<AIMetricsInsight[]> => {
-	await delay(1000);
-
 	const insights: AIMetricsInsight[] = [
 		{
 			title: "Premium Growth Acceleration",
@@ -1083,8 +1057,6 @@ export const generateMetricsInsights = async (metricNames?: string[]): Promise<A
 };
 
 export const getAIMetricsRecommendations = async (category?: string): Promise<Message> => {
-	await delay(800);
-
 	let content = "";
 
 	switch (category) {

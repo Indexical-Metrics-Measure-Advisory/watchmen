@@ -503,6 +503,8 @@ export const resources = {
 			versionPublishCommentsPlaceholder: "What changed in this version?",
 			versionPublishConfirm: "Publish",
 			metricDeleted: "Metric deleted successfully",
+			deleteConfirmTitle: "Delete Metric",
+			deleteConfirmDescription: 'Are you sure you want to delete metric "{{name}}"? This action cannot be undone.',
 			metricCreated: "Metric created successfully",
 			metricUpdated: 'Metric "{{name}}" has been successfully updated.',
 			loadFailed: "Failed to load metrics data",
@@ -1474,6 +1476,8 @@ export const resources = {
 					timeGranularity: "Time Granularity",
 				},
 				na: "N/A",
+				deleteConfirmTitle: "Delete Semantic Model",
+				deleteConfirmDescription: 'Are you sure you want to delete semantic model "{{name}}"? This action cannot be undone.',
 			},
 			toast: {
 				loadFailed: "Failed to load semantic models or topics",
@@ -2475,6 +2479,8 @@ export const resources = {
 			versionPublishCommentsPlaceholder: "这个版本改了什么？",
 			versionPublishConfirm: "发布",
 			metricDeleted: "指标删除成功",
+			deleteConfirmTitle: "删除指标",
+			deleteConfirmDescription: "确认删除指标“{{name}}”吗？此操作无法撤销。",
 			metricCreated: "指标创建成功",
 			metricUpdated: '指标 "{{name}}" 已成功更新。',
 			loadFailed: "加载指标数据失败",
@@ -3428,6 +3434,8 @@ export const resources = {
 					timeGranularity: "时间粒度",
 				},
 				na: "无",
+				deleteConfirmTitle: "删除语义模型",
+				deleteConfirmDescription: "确认删除语义模型“{{name}}”吗？此操作无法撤销。",
 			},
 			toast: {
 				loadFailed: "加载语义模型或 topics 失败",
@@ -4422,6 +4430,8 @@ export const resources = {
 			versionPublishCommentsPlaceholder: "這個版本改了什麼？",
 			versionPublishConfirm: "發佈",
 			metricDeleted: "指標刪除成功",
+			deleteConfirmTitle: "刪除指標",
+			deleteConfirmDescription: "確認刪除指標「{{name}}」嗎？此操作無法復原。",
 			metricCreated: "指標建立成功",
 			metricUpdated: "指標 \"{{name}}\" 已成功更新。",
 			loadFailed: "載入指標資料失敗",
@@ -5409,7 +5419,9 @@ export const resources = {
 					description: "描述",
 					timeGranularity: "時間粒度"
 				},
-				na: "無"
+				na: "無",
+				deleteConfirmTitle: "刪除語意模型",
+				deleteConfirmDescription: "確認刪除語意模型「{{name}}」嗎？此操作無法復原。"
 			},
 			toast: {
 				loadFailed: "載入語意模型或 topics 失敗",

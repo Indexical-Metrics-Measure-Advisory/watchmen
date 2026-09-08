@@ -6,13 +6,11 @@ import {
   LayoutDashboard,
   Lightbulb,
   BarChart3, Settings,
-  HelpCircle,
   Target, ChevronLeft,
   ChevronDown,
   ChevronRight, MessageSquare,
   ClipboardCheck,
   Database,
-  TestTube,
   GitBranch,
   AlertTriangle,
   TrendingUp,
@@ -271,7 +269,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           <NavItem to="/evaluation/offline" icon={<Database size={16} />} label={t('nav:offlineEvaluation')} collapsed={collapsed} isSubItem={true} />
           <NavItem to="/evaluation/datasets" icon={<Database size={16} />} label={t('nav:datasetManagement')} collapsed={collapsed} isSubItem={true} />
           {/* <NavItem to="/evaluation/online" icon={<TestTube size={16} />} label="Online Evaluation" collapsed={collapsed} isSubItem={true} /> */}
-          <NavItem to="/evaluation/scenarios" icon={<TestTube size={16} />} label={t('nav:scenarioEvaluation')} collapsed={collapsed} isSubItem={true} />
         </NavGroup>
         )}
       </nav>
@@ -279,9 +276,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       <div className="p-4 border-t border-border/50 space-y-1">
         {!isConsoleUser && (
           <NavItem to="/settings" icon={<Settings size={18} />} label={t('nav:settings')} collapsed={collapsed} />
-        )}
-        {!isConsoleUser && (
-          <NavItem to="/help" icon={<HelpCircle size={18} />} label={t('nav:help')} collapsed={collapsed} />
         )}
       </div>
     </aside>

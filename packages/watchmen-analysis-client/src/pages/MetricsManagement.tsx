@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -105,9 +106,12 @@ const MetricsManagement: React.FC = () => {
   // published metrics are immutable: edit/delete must go through rollback first
   const isPublishedMetric = (metric: MetricDefinition) => metric.publishStatus === 'published';
 
-  const handleDeleteMetric = async (metricName: string) => {
+  const [metricToDelete, setMetricToDelete] = React.useState<string | null>(null);
+
+  const handleDeleteMetric = async () => {
+    if (!metricToDelete) return;
     try {
-      await deleteMetric(metricName);
+      await deleteMetric(metricToDelete);
       toast({
         title: t('common:success'),
         description: t('metricsManagement:metricDeleted')
@@ -119,6 +123,8 @@ const MetricsManagement: React.FC = () => {
         description: t('metricsManagement:deleteFailed'),
         variant: "destructive"
       });
+    } finally {
+      setMetricToDelete(null);
     }
   };
 
@@ -599,7 +605,7 @@ const MetricsManagement: React.FC = () => {
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
                                         className="text-destructive focus:text-destructive"
-                                        onClick={() => handleDeleteMetric(metric.name)}
+                                        onClick={() => setMetricToDelete(metric.name)}
                                         disabled={isPublishedMetric(metric)}
                                         title={isPublishedMetric(metric) ? t('metricsManagement:publishedLockHint') : undefined}
                                     >
@@ -673,7 +679,7 @@ const MetricsManagement: React.FC = () => {
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem
                                             className="text-destructive"
-                                            onClick={() => handleDeleteMetric(metric.name)}
+                                            onClick={() => setMetricToDelete(metric.name)}
                                             disabled={isPublishedMetric(metric)}
                                             title={isPublishedMetric(metric) ? t('metricsManagement:publishedLockHint') : undefined}
                                         >
@@ -779,6 +785,22 @@ const MetricsManagement: React.FC = () => {
         onOpenChange={setIsVersionHistoryOpen}
         onRolledBack={handleRolledBack}
       />
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!metricToDelete} onOpenChange={(open) => !open && setMetricToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('metricsManagement:deleteConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('metricsManagement:deleteConfirmDescription', { name: metricToDelete })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common:cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteMetric} className="bg-red-600 hover:bg-red-700">{t('common:delete')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Metric Details Dialog */}
       {selectedMetric && (

@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { authService, User, Token, LoginCredentials, LoginConfiguration, SSOTypes } from '@/services/authService';
 import { clearMetricsCache } from '@/services/metricsManagementService';
 import { isConsoleAllowedPath, isConsoleUser } from '@/utils/userRole';
+import { setUnauthorizedHandler } from '@/utils/apiConfig';
 
 interface AuthContextType {
   user: User | null;
@@ -42,6 +43,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     initializeAuth();
   }, []);
+
+  // Any API call answering 401 means the token is no longer valid:
+  // drop the session and bounce to the login page (unless already there).
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      authService.clearStoredAuth();
+      setUser(null);
+      setToken(null);
+      if (location.pathname !== '/login') {
+        navigate('/login', { replace: true });
+      }
+    });
+    return () => setUnauthorizedHandler(null);
+  }, [navigate, location.pathname]);
 
   useEffect(() => {
     if (!isLoading && !user && location.pathname !== '/login' && !location.pathname.startsWith('/share/analysis/')) {
