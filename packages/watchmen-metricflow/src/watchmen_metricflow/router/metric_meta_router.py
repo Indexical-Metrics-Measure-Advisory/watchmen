@@ -18,7 +18,7 @@ from watchmen_rest.util import raise_400, raise_404
 from watchmen_metricflow.settings import ask_tuple_delete_enabled
 from watchmen_metricflow.util import trans, trans_readonly, trans_with_tail
 from watchmen_utilities import ExtendedBaseModel, is_blank
-from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
+from watchmen_metricflow.service.meta_service import invalidate_metric_caches
 
 
 logger = getLogger(__name__)
@@ -263,7 +263,7 @@ async def save_metric_yaml(
                 metric_result = metric_service.create(effective_metric)
             else:
                 metric_result = metric_service.update(effective_metric)
-            return (action_type, metric_result), lambda: metric_config_cache.remove(metric.tenantId)
+            return (action_type, metric_result), lambda: invalidate_metric_caches(metric.tenantId)
 
         action_type, saved_metric = trans_with_tail(metric_service, do_save)
         result = MetricAgentUpsertResult(
@@ -305,7 +305,7 @@ async def create_metric(
             raise_400(f'Metric with name "{metric.name}" already exists.')
         
         metric_result = metric_service.create(metric)
-        return metric_result, lambda: metric_config_cache.remove(metric.tenantId)
+        return metric_result, lambda: invalidate_metric_caches(metric.tenantId)
     
     return trans_with_tail(metric_service, action)
 
@@ -338,7 +338,7 @@ async def update_metric(
         metric.publishedVersionNo = existing_metric.publishedVersionNo
         metric.lastPublishedAt = existing_metric.lastPublishedAt
         metric_result = metric_service.update(metric)
-        return metric_result, lambda: metric_config_cache.remove(metric.tenantId)
+        return metric_result, lambda: invalidate_metric_caches(metric.tenantId)
     
     return trans_with_tail(metric_service, action)
 
@@ -366,7 +366,7 @@ async def delete_metric(
         check_published_lock(existing_metric)
 
         metric_result = metric_service.delete_by_name(metric_name, tenant_id)
-        return metric_result, lambda: metric_config_cache.remove(tenant_id)
+        return metric_result, lambda: invalidate_metric_caches(tenant_id)
     
     return trans_with_tail(metric_service, action)
 
@@ -555,7 +555,7 @@ async def publish_metric(
         metric.publishedVersionNo = version_no
         metric.lastPublishedAt = metric_service.now()
         metric_result = metric_service.update(metric)
-        return metric_result, lambda: metric_config_cache.remove(tenant_id)
+        return metric_result, lambda: invalidate_metric_caches(tenant_id)
 
     return trans_with_tail(metric_service, action)
 
@@ -618,7 +618,7 @@ async def rollback_metric(
         version_service.create(version)
 
         metric_result = metric_service.update(restored_metric)
-        return metric_result, lambda: metric_config_cache.remove(tenant_id)
+        return metric_result, lambda: invalidate_metric_caches(tenant_id)
 
     return trans_with_tail(metric_service, action)
 

@@ -109,7 +109,8 @@ def build_mismatch_statement(factor: Factor, data_service: TopicDataService) -> 
 			out_of_range(factor, data_service, DateTimeConstants.DAY_KIND_WORKDAY, DateTimeConstants.DAY_KIND_HOLIDAY)
 		]
 	elif factor_type == FactorType.HOUR:
-		return True, [out_of_range(factor, data_service, 0, 59)]
+		# hour of day, 0 - 23
+		return True, [out_of_range(factor, data_service, 0, 23)]
 	elif factor_type == FactorType.HOUR_KIND:
 		return True, [
 			out_of_range(

@@ -1,8 +1,12 @@
+import os
 import sys
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
+
+# avoid the competitive snowflake worker connecting to a real meta storage at import time
+os.environ.setdefault('SNOWFLAKE_COMPETITIVE_WORKERS', 'false')
 
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]

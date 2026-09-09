@@ -1,8 +1,12 @@
+from datetime import date
+from typing import Optional
+
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import StorageService
-from watchmen_model.dqc import MonitorJobLock, MonitorJobLockId
-from watchmen_storage import EntityHelper, EntityIdHelper, EntityRow, EntityShaper, SnowflakeGenerator, \
-	TransactionalStorageSPI
+from watchmen_model.common import TopicId
+from watchmen_model.dqc import MonitorJobLock, MonitorJobLockId, MonitorRuleStatisticalInterval
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityFinder, EntityHelper, \
+	EntityIdHelper, EntityRow, EntityShaper, SnowflakeGenerator, TransactionalStorageSPI
 from watchmen_utilities import get_current_time_in_seconds
 
 
@@ -77,3 +81,22 @@ class MonitorJobLockService(StorageService):
 
 		self.storage.insert_one(lock, self.get_entity_helper())
 		return lock
+
+	def update(self, lock: MonitorJobLock) -> MonitorJobLock:
+		self.storage.update_one(lock, self.get_entity_id_helper())
+		return lock
+
+	def find_by_topic_and_process_date(
+			self, topic_id: TopicId, frequency: MonitorRuleStatisticalInterval,
+			process_date: date) -> Optional[MonitorJobLock]:
+		return self.storage.find_one(EntityFinder(
+			name=self.get_entity_name(),
+			shaper=self.get_entity_shaper(),
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
+					right=self.principalService.get_tenant_id()),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='topic_id'), right=topic_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='frequency'), right=frequency),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='process_date'), right=process_date)
+			]
+		))

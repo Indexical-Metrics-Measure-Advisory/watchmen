@@ -27,8 +27,9 @@ from watchmen_model.system import Tenant
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, to_previous_month, to_previous_week, \
 	to_yesterday
 import os
-from .rule import compute_date_range, disabled_rules, enum_service, rows_count_mismatch_with_another, rows_not_exists, \
-	run_all_rules
+from .rule import compute_date_range, disabled_rules, enum_service, rows_count_mismatch_with_another, \
+	rows_not_exists, run_all_rules
+from .rule.data_service_utils import wrap_with_tenant_criteria
 
 logger = getLogger(__name__)
 
@@ -136,7 +137,8 @@ class MonitorRulesRunner:
 			return False, None
 		storage = ask_topic_storage(schema, self.principalService)
 		data_service = ask_topic_data_service(schema, storage, self.principalService)
-		return True, data_service
+		# wrap with tenant criteria, monitor rules must never touch data of other tenants
+		return True, wrap_with_tenant_criteria(data_service)
 
 	def run_on_topic(self, topic_id: TopicId, process_date: date, rules: List[MonitorRule]) -> None:
 		success, data_service = self.get_topic_data_service(topic_id, len(rules))
@@ -240,6 +242,11 @@ def try_to_lock_topic_for_monitor(
 	lock_service = get_lock_service(principal_service)
 	lock_service.begin_transaction()
 	try:
+		# find first: a lock row of same scope means the job is already done or running
+		existing = lock_service.find_by_topic_and_process_date(topic.topicId, frequency, process_date)
+		if existing is not None:
+			lock_service.commit_transaction()
+			return None, False
 		lock = MonitorJobLock(
 			# lockId: MonitorJobLockId = None
 			tenantId=principal_service.get_tenant_id(),
@@ -252,7 +259,13 @@ def try_to_lock_topic_for_monitor(
 		lock_service.create(lock)
 		lock_service.commit_transaction()
 		return lock, True
-	except Exception:
+	except Exception as e:
+		# the unique constraint on (tenant_id, topic_id, frequency, process_date) is the final guard
+		# against concurrent execution; any other failure (e.g. storage unavailable) must be visible
+		# in log instead of being swallowed silently
+		logger.warning(
+			f'Failed to lock topic[id={topic.topicId}] for monitor, '
+			f'frequency[{frequency}], process_date[{process_date}]: {e}', exc_info=True)
 		lock_service.rollback_transaction()
 		return None, False
 	finally:
@@ -265,9 +278,12 @@ def accomplish_job(lock: MonitorJobLock, status: MonitorJobLockStatus, principal
 	lock_service.begin_transaction()
 	try:
 		lock.status = status
-		lock_service.create(lock)
+		# update the existing lock row, never insert a new one
+		lock_service.update(lock)
 		lock_service.commit_transaction()
-	except Exception:
+	except Exception as e:
+		logger.error(
+			f'Failed to accomplish monitor job lock[id={lock.lockId}] to status[{status}]: {e}', exc_info=True)
 		lock_service.rollback_transaction()
 	finally:
 		lock_service.close_transaction()
@@ -325,10 +341,23 @@ def offload_to_spark_submit(
 		if spark_libs_dir.is_dir():
 			python_paths.append(str(spark_libs_dir))
 
-	# Propagate important environment variables to Spark executors
-	for key, value in os.environ.items():
-		if key.startswith("META_STORAGE_") or key.startswith("WATCHMEN_") or key == "MONITOR_RULES_RUNNER_ENGINE":
-			args_parts.extend(["--conf", f"spark.executorEnv.{key}={value}"])
+	# Propagate watchmen-related environment variables to the Spark driver.
+	# NEVER pass them via --conf: anything on the command line appears in process list
+	# and Spark UI environment page, which leaks credentials (e.g. META_STORAGE_PASSWORD).
+	# Write them into a permission-restricted temp file, distribute via --files,
+	# and let spark_executor.py load it before importing watchmen modules.
+	env_file_path: Optional[str] = None
+	env_lines = [
+		f'{key}={value}' for key, value in os.environ.items()
+		if key.startswith("META_STORAGE_") or key.startswith("WATCHMEN_")
+		or key == "MONITOR_RULES_RUNNER_ENGINE"
+	]
+	if len(env_lines) > 0:
+		fd, env_file_path = mkstemp(prefix="watchmen_spark_env_", suffix=".properties")
+		os.fchmod(fd, 0o600)
+		with os.fdopen(fd, "w") as f:
+			f.write("\n".join(env_lines))
+		args_parts.extend(["--files", env_file_path])
 
 	# Add PYTHONPATH to executor and driver
 	if python_paths:
@@ -352,13 +381,24 @@ def offload_to_spark_submit(
 		"--frequency", frequency.value,
 		"--process-date", process_date.isoformat()
 	])
+	if env_file_path is not None:
+		# only the base name is passed; the file is distributed by --files and resolved via SparkFiles
+		cmd_parts.extend(["--env-file", os.path.basename(env_file_path)])
 
 	cmd_str = " ".join(shlex.quote(p) for p in cmd_parts)
 	logger.info(f"Offloading DQC task to spark-submit: {cmd_str}")
 
 	current_env = os.environ.copy()
-	result = subprocess.run(cmd_parts, capture_output=True, text=True, env=current_env)
-	
+	try:
+		result = subprocess.run(cmd_parts, capture_output=True, text=True, env=current_env)
+	finally:
+		# remove the temp env file (contains credentials) as soon as submit is done
+		if env_file_path is not None:
+			try:
+				os.remove(env_file_path)
+			except OSError:
+				logger.warning(f'Failed to remove spark env file[{env_file_path}].')
+
 	if result.returncode != 0:
 		logger.error(f"Spark submit failed: {result.stderr}")
 		raise DqcException(f"Spark submit failed with return code {result.returncode}")
@@ -396,12 +436,37 @@ def create_daily_runner(scheduler: AsyncIOScheduler) -> None:
 	scheduler.add_job(run, trigger, day_of_week=day_of_week, hour=hour, minute=minute)
 
 
+# module-level scheduler singleton, to avoid duplicated job registration on multi-invocation
+# and to keep a reference for shutdown
+_periodic_monitor_scheduler: Optional[AsyncIOScheduler] = None
+
+
 def create_periodic_monitor_jobs() -> None:
+	global _periodic_monitor_scheduler
 	if not ask_monitor_jobs_enabled():
 		return
+	if _periodic_monitor_scheduler is not None:
+		logger.warning('Periodic monitor jobs already started, ignored duplicated invocation.')
+		return
+	# AsyncIOScheduler.start() requires a running event loop,
+	# make sure this function is invoked on application startup, not on module import
 	scheduler = AsyncIOScheduler()
 	create_daily_runner(scheduler)
 	create_weekly_runner(scheduler)
 	create_monthly_runner(scheduler)
 	scheduler.start()
+	_periodic_monitor_scheduler = scheduler
 	logger.info("Periodic monitor jobs started.")
+
+
+def shutdown_periodic_monitor_jobs() -> None:
+	global _periodic_monitor_scheduler
+	if _periodic_monitor_scheduler is None:
+		return
+	try:
+		_periodic_monitor_scheduler.shutdown(wait=False)
+		logger.info("Periodic monitor jobs stopped.")
+	except Exception as e:
+		logger.error(f'Failed to shutdown periodic monitor jobs: {e}', exc_info=True)
+	finally:
+		_periodic_monitor_scheduler = None

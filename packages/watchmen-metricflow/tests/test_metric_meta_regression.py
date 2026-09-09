@@ -60,14 +60,14 @@ def _principal_stub():
     return stub
 
 
-def _db_direct_model_dict(name: str = 'm1', host: str = 'db-host') -> dict:
+def _db_direct_model_dict(name: str = 'm1', host: str = 'db-host', database_type: str = 'pgsql') -> dict:
     return dict(
         name=name,
         description='desc',
         sourceType='db_source',
         node_relation=dict(
             alias='a', schema_name='s', database='db', relation_name='r',
-            databaseType='pgsql', host=host, username='u', password='p', port=5432),
+            databaseType=database_type, host=host, username='u', password='p', port=5432),
         entities=[], measures=[], dimensions=[])
 
 
@@ -82,7 +82,11 @@ def _metric(name: str) -> MetricWithCategory:
 class TestNoCredentialPrints(unittest.TestCase):
     def test_build_merged_profile_does_not_print(self):
         # regression: profile dicts (with plaintext passwords) were printed to stdout
-        models = [SemanticModel(**_db_direct_model_dict('a')), SemanticModel(**_db_direct_model_dict('b'))]
+        # snowflake stays on the dbt path (not in DIRECT_METRIC_BYPASS_TYPES), so the
+        # merged profile actually keeps these models instead of skipping them
+        models = [
+            SemanticModel(**_db_direct_model_dict('a', database_type='snowflake')),
+            SemanticModel(**_db_direct_model_dict('b', database_type='snowflake'))]
         buffer = io.StringIO()
         with redirect_stdout(buffer):
             profile = build_merged_profile(models, _principal_stub())

@@ -1,7 +1,7 @@
 from datetime import datetime  # noqa
 from typing import Dict, Optional, Tuple
 
-from sqlalchemy import Integer, String, Table
+from sqlalchemy import Integer, String, Table, UniqueConstraint
 from watchmen_model.system import AIModel, DataSource
 from watchmen_model.admin import is_aggregation_topic, is_raw_topic, Topic
 from watchmen_model.common import TopicId
@@ -316,7 +316,11 @@ table_monitor_job_locks = Table(
     create_pk('lock_id'), create_tuple_id_column('tenant_id', False), create_tuple_id_column('topic_id', False),
     create_str('frequency', 10, False), create_date('process_date', False),
     create_str('status', 10, False),
-    create_tuple_id_column('user_id', False), create_datetime('created_at', False)
+    create_tuple_id_column('user_id', False), create_datetime('created_at', False),
+    # one lock row per (tenant, topic, frequency, process date),
+    # mutual exclusion of monitor jobs relies on this constraint
+    UniqueConstraint('tenant_id', 'topic_id', 'frequency', 'process_date',
+                     name='uq_monitor_job_locks_on_scope')
 )
 table_pii_classification_terms = Table(
     'pii_classification_terms', meta_data,

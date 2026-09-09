@@ -17,7 +17,7 @@ from watchmen_rest.util import raise_400, raise_404
 from watchmen_metricflow.settings import ask_tuple_delete_enabled
 from watchmen_metricflow.util import trans, trans_readonly, trans_with_tail
 from watchmen_utilities import ExtendedBaseModel, is_blank
-from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
+from watchmen_metricflow.service.meta_service import invalidate_metric_caches
 from watchmen_metricflow.service.space_auth_service import get_console_user_topic_ids, \
     find_semantic_models_by_topic_ids
 
@@ -243,7 +243,7 @@ async def save_semantic_model_yaml(
                 model_result = semantic_model_service.create(effective_model)
             else:
                 model_result = semantic_model_service.update(effective_model)
-            return (action_type, model_result), lambda: metric_config_cache.remove(semantic_model.tenantId)
+            return (action_type, model_result), lambda: invalidate_metric_caches(semantic_model.tenantId)
 
         action_type, saved_model = trans_with_tail(semantic_model_service, do_save)
         result = SemanticModelAgentUpsertResult(
@@ -281,7 +281,7 @@ async def create_semantic_model(
             raise_400(f'Semantic model with name "{semantic_model.name}" already exists.')
         
         model_result = semantic_model_service.create(semantic_model)
-        return model_result, lambda: metric_config_cache.remove(semantic_model.tenantId)
+        return model_result, lambda: invalidate_metric_caches(semantic_model.tenantId)
     
     return trans_with_tail(semantic_model_service, action)
 
@@ -314,7 +314,7 @@ async def update_semantic_model(
 
         semantic_model.id = existing_model.id
         model_result = semantic_model_service.update(semantic_model)
-        return model_result, lambda: metric_config_cache.remove(semantic_model.tenantId)
+        return model_result, lambda: invalidate_metric_caches(semantic_model.tenantId)
     
     return trans_with_tail(semantic_model_service, action)
 
@@ -340,7 +340,7 @@ async def delete_semantic_model(
             raise_404('Semantic model not found.')
         
         semantic_model_service.delete_by_name(model_name, tenant_id)
-        return existing_model, lambda: metric_config_cache.remove(tenant_id)
+        return existing_model, lambda: invalidate_metric_caches(tenant_id)
     
     return trans_with_tail(semantic_model_service, action)
 

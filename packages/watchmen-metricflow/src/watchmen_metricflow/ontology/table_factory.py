@@ -100,10 +100,25 @@ class OntologyTableFactory:
 		return None
 
 	@classmethod
-	def _build_column(cls, name: str):
-		lower = name.lower()
+	def guess_column_kind(cls, name: str) -> str:
+		"""Column kind guessed by name suffix: 'numeric' / 'datetime' / 'string'.
+
+		Used both to declare SQLAlchemy column types and to coerce filter values
+		into a type the column accepts (strict dialects such as postgresql reject
+		``varchar = integer`` comparisons).
+		"""
+		lower = (name or '').lower()
 		if lower == 'id' or lower.endswith(_NUMERIC_SUFFIXES):
-			return Column(name, Numeric)
+			return 'numeric'
 		if lower.endswith(_DATETIME_SUFFIXES):
+			return 'datetime'
+		return 'string'
+
+	@classmethod
+	def _build_column(cls, name: str):
+		kind = cls.guess_column_kind(name)
+		if kind == 'numeric':
+			return Column(name, Numeric)
+		if kind == 'datetime':
 			return Column(name, DateTime)
 		return Column(name, String)

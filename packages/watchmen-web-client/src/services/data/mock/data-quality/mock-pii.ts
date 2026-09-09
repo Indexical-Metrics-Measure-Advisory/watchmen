@@ -234,27 +234,110 @@ export const fetchMockPiiLineage = async (options: { termId: string }): Promise<
 		termId: options.termId,
 		termName: term?.name,
 		sensitivityLevel: term?.sensitivityLevel,
-		linkedFactors: term?.linkedFactors ?? [],
-		upstreamRoutes: [],
-		downstreamRoutes: [],
+		linkedFactors: [
+			{
+				topicId: 'policy_raw', topicName: 'policy_raw',
+				factorId: 'f_id_card', factorName: 'id_card_no',
+				matchConfidence: 1.0, matchSource: PiiMatchSource.KEYWORD, confirmed: true
+			},
+			{
+				topicId: 'customer_info', topicName: 'customer_info',
+				factorId: 'f_identity', factorName: 'identity_number',
+				matchConfidence: 0.95, matchSource: PiiMatchSource.KEYWORD, confirmed: true
+			}
+		],
+		upstreamRoutes: [
+			{
+				id: 'upstream-0-pipeline_etl_01',
+				title: 'Pipeline[pipeline_etl_01]',
+				steps: [
+					{
+						kind: 'pipeline', pipelineId: 'pipeline_etl_01', pipelineName: 'pipeline_etl_01',
+						topicId: 'policy_raw', factorId: 'f_id_card'
+					},
+					{kind: 'source_table', sourceTableName: 'SRC_CRM_POLICY'},
+					{kind: 'source_field', sourceTableName: 'SRC_CRM_POLICY', sourceFieldName: 'id_card'}
+				],
+				diagnostics: []
+			},
+			{
+				id: 'upstream-0-pipeline_etl_02',
+				title: 'Pipeline[pipeline_etl_02]',
+				steps: [
+					{
+						kind: 'pipeline', pipelineId: 'pipeline_etl_02', pipelineName: 'pipeline_etl_02',
+						topicId: 'customer_info', factorId: 'f_identity'
+					},
+					{kind: 'topic', topicId: 'policy_raw', topicName: 'policy_raw'},
+					{
+						kind: 'topic_factor', topicId: 'policy_raw', topicName: 'policy_raw',
+						factorId: 'f_id_card', factorName: 'id_card_no'
+					}
+				],
+				diagnostics: ['Pipeline[pipeline_etl_02] used trigger topic fallback for upstream trace.']
+			}
+		],
+		downstreamRoutes: [
+			{
+				id: 'downstream-0-pipeline_agg',
+				title: 'Pipeline[pipeline_agg]',
+				steps: [
+					{
+						kind: 'pipeline', pipelineId: 'pipeline_agg', pipelineName: 'pipeline_agg',
+						topicId: 'policy_raw', factorId: 'f_id_card'
+					},
+					{kind: 'topic', topicId: 'policy_summary', topicName: 'policy_summary'},
+					{
+						kind: 'topic_factor', topicId: 'policy_summary', topicName: 'policy_summary',
+						factorId: 'f_holder', factorName: 'holder_name'
+					}
+				],
+				diagnostics: []
+			}
+		],
 		graphData: {
 			nodes: [
-				{id: 'topic:policy_raw', type: 'topic', name: 'policy_raw', sensitivity: PiiSensitivityLevel.LEVEL_1},
-				{id: 'factor:id_card_no', type: 'topic_factor', name: 'id_card_no', sensitivity: PiiSensitivityLevel.LEVEL_1},
-				{id: 'topic:customer_info', type: 'topic', name: 'customer_info', sensitivity: PiiSensitivityLevel.LEVEL_1},
-				{id: 'factor:identity_number', type: 'topic_factor', name: 'identity_number', sensitivity: PiiSensitivityLevel.LEVEL_1},
+				{id: 'term:1', type: 'term', name: term?.name ?? 'term', sensitivity: term?.sensitivityLevel},
+				{
+					id: 'topic_factor:policy_raw:f_id_card', type: 'topic_factor', name: 'id_card_no',
+					sensitivity: term?.sensitivityLevel
+				},
+				{
+					id: 'topic_factor:customer_info:f_identity', type: 'topic_factor', name: 'identity_number',
+					sensitivity: term?.sensitivityLevel
+				},
 				{id: 'pipeline:pipeline_etl_01', type: 'pipeline', name: 'pipeline_etl_01'},
-				{id: 'topic:policy_summary', type: 'topic', name: 'policy_summary', sensitivity: PiiSensitivityLevel.LEVEL_2},
-				{id: 'factor:holder_name', type: 'topic_factor', name: 'holder_name', sensitivity: PiiSensitivityLevel.LEVEL_2},
-				{id: 'pipeline:pipeline_agg', type: 'pipeline', name: 'pipeline_agg'}
+				{id: 'pipeline:pipeline_etl_02', type: 'pipeline', name: 'pipeline_etl_02'},
+				{id: 'pipeline:pipeline_agg', type: 'pipeline', name: 'pipeline_agg'},
+				{id: 'source_table:SRC_CRM_POLICY', type: 'source_table', name: 'SRC_CRM_POLICY'},
+				{id: 'source_field:SRC_CRM_POLICY:id_card', type: 'source_field', name: 'id_card'},
+				{id: 'topic:policy_raw', type: 'topic', name: 'policy_raw'},
+				{id: 'topic:policy_summary', type: 'topic', name: 'policy_summary'},
+				{
+					id: 'topic_factor:policy_summary:f_holder', type: 'topic_factor', name: 'holder_name',
+					sensitivity: PiiSensitivityLevel.LEVEL_2
+				}
 			],
 			edges: [
-				{from: 'topic:policy_raw', to: 'factor:id_card_no', kind: 'maps_to'},
-				{from: 'pipeline:pipeline_etl_01', to: 'topic:policy_raw', kind: 'reads_from'},
-				{from: 'pipeline:pipeline_etl_01', to: 'topic:customer_info', kind: 'reads_from'},
-				{from: 'topic:customer_info', to: 'factor:identity_number', kind: 'maps_to'},
+				{from: 'term:1', to: 'topic_factor:policy_raw:f_id_card', kind: 'maps_to'},
+				{from: 'term:1', to: 'topic_factor:customer_info:f_identity', kind: 'maps_to'},
+				{from: 'source_field:SRC_CRM_POLICY:id_card', to: 'source_table:SRC_CRM_POLICY', kind: 'reads_from'},
+				{from: 'source_table:SRC_CRM_POLICY', to: 'pipeline:pipeline_etl_01', kind: 'reads_from'},
+				{
+					from: 'pipeline:pipeline_etl_01', to: 'topic_factor:policy_raw:f_id_card', kind: 'reads_from'
+				},
+				{from: 'topic_factor:policy_raw:f_id_card', to: 'topic:policy_raw', kind: 'reads_from'},
+				{from: 'topic:policy_raw', to: 'pipeline:pipeline_etl_02', kind: 'reads_from'},
+				{
+					from: 'pipeline:pipeline_etl_02', to: 'topic_factor:customer_info:f_identity', kind: 'reads_from'
+				},
+				{
+					from: 'topic_factor:policy_raw:f_id_card', to: 'pipeline:pipeline_agg', kind: 'produces'
+				},
 				{from: 'pipeline:pipeline_agg', to: 'topic:policy_summary', kind: 'produces'},
-				{from: 'topic:policy_summary', to: 'factor:holder_name', kind: 'maps_to'}
+				{
+					from: 'topic:policy_summary', to: 'topic_factor:policy_summary:f_holder', kind: 'produces'
+				}
 			]
 		},
 		encryptionCoverage: {total: 15, encrypted: 8, plaintext: 7},

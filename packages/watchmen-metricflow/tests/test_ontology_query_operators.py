@@ -242,10 +242,11 @@ class TestGroupBy(unittest.TestCase):
         self.assertIn('GROUP BY', sql)
 
     def test_group_by_granularity_unsupported_dialect_raises(self):
+        # oracle gained time-trunc support (TRUNC); mssql remains unsupported
         with self.assertRaises(OntologySqlCompileError):
             _compile_sql(
                 _request(filters={'amount': 10}, groupBy=[{'field': 'created', 'granularity': 'month'}]),
-                dialect_name='oracle')
+                dialect_name='mssql')
 
     def test_unknown_group_by_field_raises(self):
         with self.assertRaises(OntologySqlCompileError):

@@ -556,7 +556,9 @@ class _DerivedAttributeCompiler:
 			target_col = self._resolve_aggregate_target_column(
 				target_field, target_table, path_tables, derived.name)
 			sql_func = getattr(func, aggregate)
-			return func.coalesce(sql_func(target_col), 0)
+			# keep the raw aggregate: an empty input set must yield NULL (standard SQL
+			# and dbt-metricflow semantics), not a fabricated 0 from coalesce
+			return sql_func(target_col)
 		raise OntologySqlCompileError(f'Derived aggregate [{derived.aggregate}] is not supported yet.')
 
 	# ---- 列解析 --------------------------------------------------------------

@@ -35,6 +35,8 @@ from watchmen_metricflow.ontology.table_factory import OntologyTableFactory
 from watchmen_metricflow.service import direct_metric_query_service as svc
 from watchmen_metricflow import settings as mf_settings_module
 from watchmen_model.system import DataSourceType
+from watchmen_model.admin import (
+    PhysicalTableMapping, VirtualObject, VirtualObjectAttribute, VirtualOntology)
 
 
 # --------------------------------------------------------------------------- #
@@ -240,14 +242,10 @@ class TestBypassDetection(unittest.TestCase):
 # --------------------------------------------------------------------------- #
 class TestMysqlDimensionsBypass(unittest.TestCase):
     def _run_bypass(self, metric_names, metrics, models, resolver):
-        async def fake_load_metrics(principal_service):
-            return metrics
+        def fake_load_meta(principal_service):
+            return metrics, models
 
-        async def fake_load_models(principal_service):
-            return models
-
-        with mock.patch.object(svc, 'load_metrics_by_tenant_id', fake_load_metrics), \
-                mock.patch.object(svc, 'load_semantic_models_by_tenant_id', fake_load_models), \
+        with mock.patch.object(svc, 'load_metric_meta_cached', fake_load_meta), \
                 mock.patch.object(svc, '_production_binding_resolver', lambda ps: resolver):
             return asyncio.run(svc.try_direct_dimensions_by_metrics(metric_names, None))
 
@@ -384,14 +382,14 @@ class TestBypassConfiguration(unittest.TestCase):
             ds_service = mock.MagicMock()
             get_ts.return_value = topic_service
             get_ds.return_value = ds_service
-            resolver = svc._production_binding_resolver(mock.MagicMock())
+            # the resolver memoizes meta lookups per instance; use a fresh one per data source
             # explicit schema param wins
             ds_service.find_by_id.return_value = with_schema
-            source = resolver(model)
+            source = svc._production_binding_resolver(mock.MagicMock())(model)
             self.assertEqual('datamart.orders', source.table_ref)
             # oracle falls back to the username as schema (default schema)
             ds_service.find_by_id.return_value = without_schema
-            source = resolver(model)
+            source = svc._production_binding_resolver(mock.MagicMock())(model)
         self.assertEqual('watchmen.orders', source.table_ref)
 
     def test_production_resolver_db_direct_pgsql_follows_configuration(self):
@@ -1010,6 +1008,363 @@ class TestPostgresqlBypass(unittest.TestCase):
         self.assertEqual(
             sorted(response.data, key=lambda row: row[0]),
             [('2024-01', None), ('2024-02', 10)])
+
+
+# --------------------------------------------------------------------------- #
+# Response ordering / limit
+# --------------------------------------------------------------------------- #
+class TestResponseOrderingAndLimit(unittest.TestCase):
+    def test_default_order_is_metric_desc(self):
+        rows = {'order_total': [
+            {'region': 'a', 'order_total': 10},
+            {'region': 'b', 'order_total': 30},
+            {'region': 'c', 'order_total': 20},
+        ]}
+        response = _run_metric(
+            _simple_metric(), [_simple_metric()], [_make_semantic_model()], rows,
+            MetricQueryRequest(metric='total_sales', group_by=['region']))
+        # no explicit order: metric value descending, aligned with the dbt path
+        self.assertEqual([row[0] for row in response.data], ['b', 'c', 'a'])
+
+    def test_explicit_order_wins_over_default(self):
+        rows = {'order_total': [
+            {'region': 'a', 'order_total': 10},
+            {'region': 'b', 'order_total': 30},
+        ]}
+        response = _run_metric(
+            _simple_metric(), [_simple_metric()], [_make_semantic_model()], rows,
+            MetricQueryRequest(metric='total_sales', group_by=['region'], order=['region']))
+        self.assertEqual([row[0] for row in response.data], ['a', 'b'])
+
+    def test_order_nulls_last_regardless_of_direction(self):
+        rows = [(10, None), (None, 'x'), (30, 'b'), (20, 'a')]
+        desc = svc._apply_order(rows, ['v', 'r'], ['-v'], 'm')
+        self.assertEqual([row[0] for row in desc], [30, 20, 10, None])
+        asc = svc._apply_order(rows, ['v', 'r'], ['v'], 'm')
+        self.assertEqual([row[0] for row in asc], [10, 20, 30, None])
+
+    def test_order_mixed_types_do_not_raise(self):
+        rows = [(10,), ('2',), (1.5,)]
+        ordered = svc._apply_order(rows, ['v'], ['v'], 'm')
+        # numeric values compare numerically, strings after them; no TypeError
+        self.assertEqual([row[0] for row in ordered], [1.5, 10, '2'])
+
+    def test_req_limit_truncates_response(self):
+        rows = {'order_total': [
+            {'region': 'a', 'order_total': 10},
+            {'region': 'b', 'order_total': 30},
+            {'region': 'c', 'order_total': 20},
+        ]}
+        response = _run_metric(
+            _simple_metric(), [_simple_metric()], [_make_semantic_model()], rows,
+            MetricQueryRequest(metric='total_sales', group_by=['region'], limit=2))
+        self.assertEqual(2, len(response.data))
+        # default order (metric desc) applies before the limit
+        self.assertEqual([row[0] for row in response.data], ['b', 'c'])
+
+
+# --------------------------------------------------------------------------- #
+# Single-leaf order/limit pushdown
+# --------------------------------------------------------------------------- #
+class TestSingleLeafPushdown(unittest.TestCase):
+    def _run_capturing(self, metric, metrics, req):
+        captured = []
+
+        def execute(ontology, request):
+            captured.append(request)
+            label = request.includeDerived[0]
+            return [{'region': 'a', label: 10}]
+
+        context = svc.resolve_direct_context(metric, metrics, [_make_semantic_model()], _mysql_resolver())
+        assert context is not None
+        svc.DirectMetricQueryRunner(context, execute_leaf=execute).run(req)
+        return captured
+
+    def test_simple_metric_pushes_order_and_limit_to_leaf(self):
+        metric = _simple_metric()
+        captured = self._run_capturing(
+            metric, [metric],
+            MetricQueryRequest(metric='total_sales', group_by=['region'], order=['-total_sales'], limit=5))
+        self.assertEqual(1, len(captured))
+        request = captured[0]
+        self.assertEqual(5, request.limit)
+        self.assertEqual(
+            [(entry.field, entry.direction) for entry in request.orderBy],
+            [('order_total', 'desc')])
+
+    def test_order_on_group_dimension_pushes_down(self):
+        metric = _simple_metric()
+        captured = self._run_capturing(
+            metric, [metric],
+            MetricQueryRequest(metric='total_sales', group_by=['region'], order=['-region']))
+        self.assertEqual(
+            [(entry.field, entry.direction) for entry in captured[0].orderBy],
+            [('region', 'desc')])
+
+    def test_ratio_metric_does_not_push_down(self):
+        metric = _ratio_metric()
+        metrics = [metric, _simple_metric()]
+        captured = self._run_capturing(
+            metric, metrics,
+            MetricQueryRequest(metric='avg_order', group_by=['region'], order=['-avg_order'], limit=5))
+        self.assertEqual(2, len(captured))
+        for request in captured:
+            self.assertEqual(svc._LEAF_ROW_LIMIT, request.limit)
+            self.assertEqual([], list(request.orderBy))
+
+
+# --------------------------------------------------------------------------- #
+# Cumulative time spine
+# --------------------------------------------------------------------------- #
+class TestCumulativeTimeSpine(unittest.TestCase):
+    def test_cumulative_fills_missing_periods(self):
+        metric = Metric(
+            name='cum_sales', type='cumulative',
+            type_params=MetricTypeParams(measure=MeasureReference(name='order_total')))
+        rows = {'order_total': [
+            {'metric_time': '2024-01-01', 'order_total': 10},
+            {'metric_time': '2024-01-03', 'order_total': 30},
+        ]}
+        response = _run_metric(
+            metric, [metric], [_make_semantic_model()], rows,
+            MetricQueryRequest(metric='cum_sales', group_by=['metric_time__day']))
+        data = {row[0]: row[1] for row in response.data}
+        # the gap day is generated by the spine and carries the accumulator forward
+        self.assertEqual({'2024-01-01': 10, '2024-01-02': 10, '2024-01-03': 40}, data)
+
+    def test_window_counts_periods_not_rows_with_data(self):
+        metric = Metric(
+            name='win_sales', type='cumulative',
+            type_params=MetricTypeParams(
+                measure=MeasureReference(name='order_total'),
+                window=WindowParams(count=2, granularity='day')))
+        rows = {'order_total': [
+            {'metric_time': '2024-01-01', 'order_total': 10},
+            {'metric_time': '2024-01-03', 'order_total': 30},
+        ]}
+        response = _run_metric(
+            metric, [metric], [_make_semantic_model()], rows,
+            MetricQueryRequest(metric='win_sales', group_by=['metric_time__day']))
+        data = {row[0]: row[1] for row in response.data}
+        # window of 2 days: 01-02 sums [10, 0], 01-03 sums [0, 30]; without the
+        # spine 01-03 would incorrectly sum [10, 30]
+        self.assertEqual({'2024-01-01': 10, '2024-01-02': 10, '2024-01-03': 30}, data)
+
+    def test_spine_fill_bounded_by_max_periods(self):
+        keys = [('2020-01',), ('2024-01',)]
+        # 49 months is below the cap and gets filled
+        filled = svc._fill_time_spine(keys, 0, 'month')
+        self.assertEqual(49, len(filled))
+        # day granularity over the same range exceeds the cap: keys pass through
+        unfilled = svc._fill_time_spine([('2020-01-01',), ('2024-01-01',)], 0, 'day')
+        self.assertEqual([('2020-01-01',), ('2024-01-01',)], unfilled)
+
+
+# --------------------------------------------------------------------------- #
+# Filter value coercion
+# --------------------------------------------------------------------------- #
+class TestFilterValueCoercion(unittest.TestCase):
+    def test_int_coerced_to_str_for_string_column(self):
+        # postgresql rejects varchar = integer; mysql silently coerces
+        self.assertEqual('5', svc._coerce_filter_value('region', 5))
+
+    def test_str_coerced_to_number_for_numeric_column(self):
+        self.assertEqual(5, svc._coerce_filter_value('order_count', '5'))
+        self.assertEqual(5.5, svc._coerce_filter_value('order_count', '5.5'))
+
+    def test_list_values_coerced_itemwise(self):
+        self.assertEqual(['1', 'a'], svc._coerce_filter_value('region', [1, 'a']))
+
+    def test_bool_never_treated_as_number(self):
+        self.assertEqual('true', svc._coerce_filter_value('region', True))
+        self.assertEqual(1, svc._coerce_filter_value('order_count', True))
+
+    def test_unparseable_str_on_numeric_column_passes_through(self):
+        self.assertEqual('abc', svc._coerce_filter_value('order_count', 'abc'))
+
+    def test_range_bounds_share_one_format(self):
+        mixed = svc._normalize_range_bound(date(2024, 1, 1), datetime(2024, 2, 1))
+        self.assertIsInstance(mixed, datetime)
+        plain = svc._normalize_range_bound(date(2024, 1, 1), date(2024, 2, 1))
+        self.assertIsInstance(plain, date)
+        self.assertNotIsInstance(plain, datetime)
+
+
+# --------------------------------------------------------------------------- #
+# Group-by grain validation against models
+# --------------------------------------------------------------------------- #
+class TestGroupSpecGrainValidation(unittest.TestCase):
+    def test_categorical_dimension_named_like_grain(self):
+        # 'week' is a real categorical dimension here, not a granularity word
+        model = SemanticModel(
+            name='sm', description='test',
+            node_relation=_node_relation(),
+            entities=[], measures=[Measure(name='m', agg='sum', expr='amount')],
+            dimensions=[Dimension(name='week', type='categorical', expr='week_code')],
+            topicId='t', sourceType='db_source')
+        specs = svc._parse_group_specs(
+            MetricQueryRequest(metric='m', group_by=['shop__week']), _simple_metric('mx', 'm'),
+            False, [model])
+        self.assertEqual([(specs[0].attr_name, specs[0].granularity, specs[0].is_time)],
+                         [('week', None, False)])
+
+    def test_time_dimension_grain_still_detected_with_models(self):
+        models = [_make_semantic_model()]
+        specs = svc._parse_group_specs(
+            MetricQueryRequest(metric='total_sales', group_by=['orders__order_date__year']),
+            _simple_metric(), False, models)
+        self.assertEqual((specs[0].attr_name, specs[0].granularity), ('order_date', 'year'))
+        self.assertTrue(specs[0].is_time)
+
+    def test_week_time_key_accepts_w_prefix(self):
+        self.assertEqual(
+            svc._parse_time_key('2024-05', 'week'), svc._parse_time_key('2024-W05', 'week'))
+
+
+# --------------------------------------------------------------------------- #
+# Derived metric validation
+# --------------------------------------------------------------------------- #
+class TestDerivedDuplicateRef(unittest.TestCase):
+    def test_duplicate_ref_name_without_alias_raises_400(self):
+        total = _simple_metric(name='total', measure='order_total')
+        metric = Metric(
+            name='d', type='derived',
+            type_params=MetricTypeParams(
+                expr='total + total',
+                metrics=[MetricRef(name='total'), MetricRef(name='total')]))
+        with self.assertRaises(HTTPException) as ctx:
+            _run_metric(
+                metric, [metric, total], [_make_semantic_model()], {'order_total': []},
+                MetricQueryRequest(metric='d'))
+        self.assertEqual(400, ctx.exception.status_code)
+
+
+# --------------------------------------------------------------------------- #
+# Engine cache
+# --------------------------------------------------------------------------- #
+class TestEngineCache(unittest.TestCase):
+    def tearDown(self):
+        svc.dispose_direct_engines()
+
+    def test_engine_cached_by_binding_key(self):
+        model = _make_semantic_model(source_type='db_source', topic_id=None)
+        metric = _simple_metric()
+        context = svc.resolve_direct_context(metric, [metric], [model], _db_direct_resolver())
+        with mock.patch.object(svc, '_create_db_direct_engine') as factory:
+            factory.return_value = mock.MagicMock()
+            engine_1 = svc.DirectMetricQueryRunner(context)._resolve_engine()
+            engine_2 = svc.DirectMetricQueryRunner(context)._resolve_engine()
+        # one engine per binding key, shared across requests (no per-request pool leak)
+        self.assertIs(engine_1, engine_2)
+        factory.assert_called_once()
+
+    def test_dispose_clears_cache(self):
+        engine = mock.MagicMock()
+        svc._get_cached_engine('k1', lambda: engine)
+        svc.dispose_direct_engines()
+        engine.dispose.assert_called_once()
+        replacement = mock.MagicMock()
+        self.assertIs(replacement, svc._get_cached_engine('k1', lambda: replacement))
+
+
+# --------------------------------------------------------------------------- #
+# Field-level masking on the direct path
+# --------------------------------------------------------------------------- #
+class TestDirectPathMasking(unittest.TestCase):
+    def _runner(self, roles):
+        model = _make_semantic_model(source_type='db_source', topic_id=None)
+        metric = _simple_metric()
+        context = svc.resolve_direct_context(metric, [metric], [model], _db_direct_resolver())
+        principal = SimpleNamespace(
+            principal=SimpleNamespace(roles=roles), get_tenant_id=lambda: 't1')
+        return svc.DirectMetricQueryRunner(context, principal_service=principal)
+
+    def _synthetic_vo(self):
+        vo = VirtualObject(
+            id='metric_leaf', name='metric_leaf',
+            physicalTables=[PhysicalTableMapping(
+                topicName='raw:orders', alias='base', kind='primary', fields=['pii_note', 'region'])],
+            attributes=[
+                VirtualObjectAttribute(name='pii_note', sourceTable='base', sourceField='pii_note'),
+                VirtualObjectAttribute(name='region', sourceTable='base', sourceField='region')])
+        ontology = VirtualOntology(
+            ontologyId='o', name='o', virtualObjects=[vo], virtualLinks=[])
+        return ontology, vo
+
+    def test_non_admin_sensitive_named_column_masked(self):
+        runner = self._runner(roles=[])
+        ontology, vo = self._synthetic_vo()
+        rows = runner._mask_rows(ontology, vo, [{'pii_note': 'abcdef', 'region': 'east'}])
+        # DB_DIRECT has no topic metadata: the legacy name heuristic masks it
+        self.assertEqual('a****f', rows[0]['pii_note'])
+        self.assertEqual('east', rows[0]['region'])
+
+    def test_admin_not_masked(self):
+        runner = self._runner(roles=['admin'])
+        ontology, vo = self._synthetic_vo()
+        rows = runner._mask_rows(ontology, vo, [{'pii_note': 'abcdef', 'region': 'east'}])
+        self.assertEqual('abcdef', rows[0]['pii_note'])
+
+    def test_no_principal_passthrough(self):
+        model = _make_semantic_model(source_type='db_source', topic_id=None)
+        metric = _simple_metric()
+        context = svc.resolve_direct_context(metric, [metric], [model], _db_direct_resolver())
+        runner = svc.DirectMetricQueryRunner(context)
+        ontology, vo = self._synthetic_vo()
+        rows = [{'pii_note': 'abcdef'}]
+        self.assertIs(rows, runner._mask_rows(ontology, vo, rows))
+
+
+# --------------------------------------------------------------------------- #
+# Concurrent leaf evaluation
+# --------------------------------------------------------------------------- #
+class TestParallelLeafEvaluation(unittest.TestCase):
+    def test_ratio_leaves_run_concurrently(self):
+        import time
+        metric = _ratio_metric()
+        metrics = [metric, _simple_metric()]
+
+        def slow_execute(ontology, request):
+            time.sleep(0.3)
+            label = request.includeDerived[0]
+            return [{'region': 'a', label: 10}]
+
+        context = svc.resolve_direct_context(metric, metrics, [_make_semantic_model()], _mysql_resolver())
+        runner = svc.DirectMetricQueryRunner(context, execute_leaf=slow_execute)
+        started = time.monotonic()
+        runner.run(MetricQueryRequest(metric='avg_order', group_by=['region']))
+        elapsed = time.monotonic() - started
+        # two 0.3s leaves overlap when evaluated concurrently; serial would take 0.6s
+        self.assertLess(elapsed, 0.5)
+
+    def test_derived_refs_run_concurrently_and_compose_correctly(self):
+        total = _simple_metric(name='total', measure='order_total')
+        count = _simple_metric(name='cnt', measure='order_count')
+        metric = Metric(
+            name='avg', type='derived',
+            type_params=MetricTypeParams(
+                expr='total / cnt', metrics=[MetricRef(name='total'), MetricRef(name='cnt')]))
+        rows = {
+            'order_total': [{'region': 'a', 'order_total': 100}],
+            'order_count': [{'region': 'a', 'order_count': 4}],
+        }
+        response = _run_metric(
+            metric, [metric, total, count], [_make_semantic_model()], rows,
+            MetricQueryRequest(metric='avg', group_by=['region']))
+        self.assertEqual(response.data, (('a', 25),))
+
+    def test_parallel_leaf_error_propagates(self):
+        metric = _ratio_metric()
+        metrics = [metric, _simple_metric()]
+
+        def failing_execute(ontology, request):
+            raise HTTPException(status_code=400, detail='boom')
+
+        context = svc.resolve_direct_context(metric, metrics, [_make_semantic_model()], _mysql_resolver())
+        runner = svc.DirectMetricQueryRunner(context, execute_leaf=failing_execute)
+        with self.assertRaises(HTTPException) as ctx:
+            runner.run(MetricQueryRequest(metric='avg_order', group_by=['region']))
+        self.assertEqual(400, ctx.exception.status_code)
 
 
 if __name__ == '__main__':

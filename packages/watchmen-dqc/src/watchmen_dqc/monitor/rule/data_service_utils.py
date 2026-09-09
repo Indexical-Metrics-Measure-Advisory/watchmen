@@ -1,6 +1,6 @@
 from datetime import datetime
 from logging import getLogger
-from typing import Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService
@@ -16,6 +16,70 @@ from watchmen_storage import ColumnNameLiteral, EntityCriteria, EntityCriteriaEx
 from watchmen_utilities import ArrayHelper, is_blank
 
 logger = getLogger(__name__)
+
+
+class TenantCriteriaTopicDataService:
+	"""
+	wrap a TopicDataService, force appending tenant id criteria on every read.
+	monitor rules run on behalf of one tenant and must never touch data of other tenants,
+	since topic data tables are shared by tenants (tenant id is a regular column).
+	"""
+
+	def __init__(self, delegate: TopicDataService):
+		self.delegate = delegate
+
+	def __getattr__(self, name: str) -> Any:
+		return getattr(self.delegate, name)
+
+	def get_tenant_criteria_expression(self) -> EntityCriteriaExpression:
+		return EntityCriteriaExpression(
+			left=ColumnNameLiteral(columnName=TopicDataColumnNames.TENANT_ID.value),
+			right=self.delegate.get_principal_service().get_tenant_id())
+
+	def append_tenant_criteria(self, criteria: Optional[EntityCriteria]) -> EntityCriteria:
+		existing = list(criteria) if criteria is not None else []
+		return [*existing, self.get_tenant_criteria_expression()]
+
+	def count(self) -> int:
+		return self.delegate.count_by_criteria(self.append_tenant_criteria(None))
+
+	def count_by_criteria(self, criteria: EntityCriteria) -> int:
+		return self.delegate.count_by_criteria(self.append_tenant_criteria(criteria))
+
+	def exists(self, criteria: EntityCriteria) -> bool:
+		return self.delegate.exists(self.append_tenant_criteria(criteria))
+
+	def find(self, criteria: EntityCriteria) -> List[Dict[str, Any]]:
+		return self.delegate.find(self.append_tenant_criteria(criteria))
+
+	def find_distinct_values(
+			self, criteria: Optional[EntityCriteria], column_names: List[str],
+			distinct_value_on_single_column: bool = False) -> List[Dict[str, Any]]:
+		return self.delegate.find_distinct_values(
+			criteria=self.append_tenant_criteria(criteria), column_names=column_names,
+			distinct_value_on_single_column=distinct_value_on_single_column)
+
+	def find_straight_values(self, criteria: EntityCriteria, columns: List[Any]) -> List[Dict[str, Any]]:
+		return self.delegate.find_straight_values(self.append_tenant_criteria(criteria), columns)
+
+	def find_limited_straight_values(
+			self, criteria: EntityCriteria, columns: List[Any], sort: Optional[Any], limit: int
+	) -> List[Dict[str, Any]]:
+		return self.delegate.find_limited_straight_values(
+			self.append_tenant_criteria(criteria), columns, sort, limit)
+
+	def find_limited_values(self, criteria: EntityCriteria, limit: int) -> List[Dict[str, Any]]:
+		return self.delegate.find_limited_values(self.append_tenant_criteria(criteria), limit)
+
+	def exchange_to_topic(self, topic_id: TopicId) -> 'TenantCriteriaTopicDataService':
+		# exchanged data service must be tenant wrapped as well
+		return TenantCriteriaTopicDataService(exchange_topic_data_service(self.delegate, topic_id))
+
+
+def wrap_with_tenant_criteria(data_service: TopicDataService) -> TenantCriteriaTopicDataService:
+	if isinstance(data_service, TenantCriteriaTopicDataService):
+		return data_service
+	return TenantCriteriaTopicDataService(data_service)
 
 
 def get_topic_service(principal_service: PrincipalService) -> TopicService:

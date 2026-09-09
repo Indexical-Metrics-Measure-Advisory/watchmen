@@ -74,9 +74,11 @@ routers = [
 	catalog_router.router, monitor_rules_router.router,
 	topic_monitor_router.router, topic_profile_router.router,
 	data_health_router.router,
-	pii_router.router,
-		
 ]
+
+# mount the PII classification router only when the feature is explicitly enabled
+if pii_classification_enabled():
+	routers.append(pii_router.router)
 
 # data dictionary generator keeps the v3/v4 client contract under /api
 # if dictionary_enabled():
@@ -87,11 +89,11 @@ routers = [
 ArrayHelper(routers).each(lambda x: app.include_router(x))
 
 
-# @app.on_event("shutdown")
-# def shutdown():
-# 	if dictionary_enabled():
-# 		try:
-# 			shutdown_dictionary_jobs()
-# 		except Exception as e:
-# 			import logging
-# 			logging.getLogger(__name__).warning(f"Data dictionary scheduler failed to stop: {e}")
+@app.on_event("shutdown")
+def shutdown():
+	from watchmen_dqc.boot import shutdown_monitor_jobs
+	try:
+		shutdown_monitor_jobs()
+	except Exception as e:
+		import logging
+		logging.getLogger(__name__).warning(f"Monitor jobs scheduler failed to stop: {e}")

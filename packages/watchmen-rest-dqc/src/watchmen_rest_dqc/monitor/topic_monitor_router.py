@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
@@ -8,15 +9,15 @@ from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_data_kernel.meta import TenantService, TopicService
 from watchmen_dqc.common import ask_monitor_rules_runner_engine
 from watchmen_dqc.monitor import MonitorDataService
-from watchmen_dqc.monitor.rules_runner import SelfCleaningMonitorRulesRunner, create_monitor_rules_runner
+from watchmen_dqc.monitor.rules_runner import create_monitor_rules_runner, offload_to_spark_submit
 from watchmen_model.admin import User, UserRole
 from watchmen_model.common import TenantId
 from watchmen_model.dqc import MonitorRuleLog, MonitorRuleLogCriteria, MonitorRuleStatisticalInterval
 from watchmen_model.system import Tenant
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_404
-from watchmen_utilities import get_current_time_in_seconds, is_blank, is_date, is_not_blank, to_previous_month, \
-	to_previous_week, to_yesterday, truncate_time
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_not_blank, \
+	to_previous_month, to_previous_week, to_yesterday, truncate_time
 
 router = APIRouter()
 
@@ -100,23 +101,30 @@ def run_topics_rules(
 	if frequency is None:
 		frequency = MonitorRuleStatisticalInterval.DAILY
 
-	engine = ask_monitor_rules_runner_engine()
-	if engine == 'spark_submit':
-		runner: SelfCleaningMonitorRulesRunner = SelfCleaningMonitorRulesRunner(principal_service)
-	else:
-		runner = create_monitor_rules_runner(principal_service)
-
 	if frequency == MonitorRuleStatisticalInterval.MONTHLY:
 		if process_date.year == now.year and process_date.month == now.month:
 			process_date = to_previous_month(process_date)
-		runner.run(process_date, topic_id, MonitorRuleStatisticalInterval.MONTHLY)
 	elif frequency == MonitorRuleStatisticalInterval.WEEKLY:
 		if process_date.year == now.year and int(process_date.strftime('%U')) == int(now.strftime('%U')):
 			process_date = to_previous_week(process_date)
-		runner.run(process_date, topic_id, MonitorRuleStatisticalInterval.WEEKLY)
 	elif frequency == MonitorRuleStatisticalInterval.DAILY:
 		if process_date.year == now.year and process_date.month == now.month and process_date.day == now.day:
 			process_date = to_yesterday(process_date)
-		runner.run(process_date, topic_id, MonitorRuleStatisticalInterval.DAILY)
 	else:
 		raise_400(f'Given frequency[{frequency}] is not supported.')
+
+	engine = ask_monitor_rules_runner_engine()
+	if engine == 'spark_submit':
+		# on spark_submit engine, rules are executed by external spark cluster, never run locally
+		if is_not_blank(topic_id):
+			topic_ids = [topic_id]
+		else:
+			topic_ids = ArrayHelper(
+				get_topic_service(principal_service).find_should_monitored(principal_service.get_tenant_id())) \
+				.map(lambda x: x.topicId).to_list()
+		# spark executor accepts date only, truncate to date when it is a datetime
+		spark_process_date = process_date.date() if isinstance(process_date, datetime) else process_date
+		ArrayHelper(topic_ids).each(lambda x: offload_to_spark_submit(
+			principal_service.get_tenant_id(), x, frequency, spark_process_date))
+	else:
+		create_monitor_rules_runner(principal_service).run(process_date, topic_id, frequency)

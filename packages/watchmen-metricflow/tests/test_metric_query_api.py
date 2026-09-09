@@ -54,8 +54,13 @@ class TestListMetrics(unittest.TestCase):
                 MetricInfo(name='orders', type='simple'),
             ],
             total_count=2)
-        with mock.patch.object(metric_router, 'build_metric_config', mock.AsyncMock()), \
-                mock.patch.object(metric_router, 'find_all_metrics', return_value=expected):
+        # the direct bypass is declined so the dbt path is exercised
+        with mock.patch.object(
+                metric_router, 'try_direct_metrics_list',
+                mock.AsyncMock(return_value=None)), \
+                mock.patch.object(metric_router, 'build_metric_config', mock.AsyncMock()), \
+                mock.patch.object(metric_router, 'find_all_metrics', return_value=expected), \
+                mock.patch.object(metric_router, 'load_metrics_by_tenant_id_sync', return_value=[]):
             client = build_client(metric_router.router)
             response = client.get('/metricflow/list_metrics')
         self.assertEqual(200, response.status_code)
@@ -81,7 +86,8 @@ class TestFindDimensions(unittest.TestCase):
         expected = self._expected_dims()
         with mock.patch.object(
                 metric_router, 'try_direct_dimensions_by_metrics',
-                mock.AsyncMock(return_value=expected)):
+                mock.AsyncMock(return_value=expected)), \
+                mock.patch.object(metric_router, 'check_metric_names_allowed'):
             client = build_client(metric_router.router)
             response = client.get('/metricflow/dimensions_by_metric?metric_name=revenue')
         self.assertEqual(200, response.status_code)
@@ -94,6 +100,7 @@ class TestFindDimensions(unittest.TestCase):
         with mock.patch.object(
                 metric_router, 'try_direct_dimensions_by_metrics',
                 mock.AsyncMock(return_value=None)), \
+                mock.patch.object(metric_router, 'check_metric_names_allowed'), \
                 mock.patch.object(metric_router, 'build_metric_config', mock.AsyncMock()), \
                 mock.patch.object(metric_router, 'load_dimensions_by_metrics', return_value=expected):
             client = build_client(metric_router.router)
@@ -138,7 +145,8 @@ class TestGetMetricValue(unittest.TestCase):
         expected = self._expected_response()
         with mock.patch.object(
                 metric_router, 'try_direct_metric_query',
-                mock.AsyncMock(return_value=expected)):
+                mock.AsyncMock(return_value=expected)), \
+                mock.patch.object(metric_router, 'check_metric_names_allowed'):
             client = build_client(metric_router.router)
             response = client.post(
                 '/metricflow/get_metric_value',
@@ -156,6 +164,7 @@ class TestGetMetricValue(unittest.TestCase):
         with mock.patch.object(
                 metric_router, 'try_direct_metric_query',
                 mock.AsyncMock(return_value=None)), \
+                mock.patch.object(metric_router, 'check_metric_names_allowed'), \
                 mock.patch.object(metric_router, 'build_metric_config', mock.AsyncMock()), \
                 mock.patch.object(metric_router, 'query', return_value=mock_result):
             client = build_client(metric_router.router)
@@ -170,7 +179,8 @@ class TestGetMetricValue(unittest.TestCase):
         expected = self._expected_response()
         with mock.patch.object(
                 metric_router, 'try_direct_metric_query',
-                mock.AsyncMock(return_value=expected)):
+                mock.AsyncMock(return_value=expected)), \
+                mock.patch.object(metric_router, 'check_metric_names_allowed'):
             client = build_client(metric_router.router)
             response = client.post(
                 '/metricflow/get_metric_value',
@@ -192,6 +202,7 @@ class TestQueryMetrics(unittest.TestCase):
             data=(('APAC', 100),),
             column_names=['region', 'revenue'])
         with mock.patch.object(metric_router, 'build_metric_config', mock.AsyncMock()), \
+                mock.patch.object(metric_router, 'check_metric_names_allowed'), \
                 mock.patch.object(
                     metric_router, 'try_direct_metric_query',
                     mock.AsyncMock(return_value=expected)):
@@ -209,6 +220,7 @@ class TestQueryMetrics(unittest.TestCase):
             rows=(('APAC', 100),),
             column_names=['region', 'revenue'])
         with mock.patch.object(metric_router, 'build_metric_config', mock.AsyncMock()), \
+                mock.patch.object(metric_router, 'check_metric_names_allowed'), \
                 mock.patch.object(
                     metric_router, 'try_direct_metric_query',
                     mock.AsyncMock(return_value=None)), \

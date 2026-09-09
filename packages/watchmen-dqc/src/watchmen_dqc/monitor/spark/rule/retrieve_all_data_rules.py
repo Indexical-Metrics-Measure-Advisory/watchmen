@@ -67,7 +67,9 @@ def run_retrieve_all_data_rules(
 	rows = data_service.find_distinct_values(
 		criteria=build_date_range_criteria(date_range),
 		column_names=column_names,
-		distinct_value_on_single_column=True
+		# all values in date range are required, median/quantile/stdev are computed on full distribution,
+		# distinct values will lose weights and lead to incorrect result
+		distinct_value_on_single_column=False
 	)
 
 	def translate_to_array(data_rows: List[Dict[str, Any]], factor: Factor) -> List[List[Any]]:
@@ -75,8 +77,8 @@ def run_retrieve_all_data_rules(
 		return ArrayHelper(data_rows) \
 			.map(lambda x: x.get(column_name)) \
 			.map(lambda value: is_decimal(value)) \
-			.filter(lambda x: x[1] if x[0] else 0) \
-			.map(lambda x: [x[0]]) \
+			.filter(lambda parsed_and_value: parsed_and_value[0]) \
+			.map(lambda parsed_and_value: [parsed_and_value[1]]) \
 			.to_list()
 
 	def run_rules(factor: Factor, data: List[Any]) -> List[Tuple[MonitorRule, RuleResult]]:

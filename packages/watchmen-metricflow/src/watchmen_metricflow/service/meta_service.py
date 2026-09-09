@@ -1,7 +1,7 @@
-from typing import List
+from typing import List, Tuple
 
 from watchmen_auth import PrincipalService
-from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
+from watchmen_metricflow.cache.metric_config_cache import metric_config_cache, metric_meta_cache
 from watchmen_metricflow.util.trans import trans_readonly, trans, trans_with_tail
 from watchmen_meta.admin import TopicService
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
@@ -9,8 +9,9 @@ from watchmen_meta.console import SubjectService
 from watchmen_meta.system import DataSourceService
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
 from watchmen_metricflow.meta.semantic_meta_service import SemanticModelService
-from watchmen_metricflow.model.metrics import Metric, MetricWithCategory
-from watchmen_metricflow.model.semantic import NodeRelation, SemanticModel, SemanticModelSourceType
+from watchmen_metricflow.model.metrics import Metric, MetricTypeParams, MetricWithCategory
+from watchmen_metricflow.model.semantic import (
+    Dimension, Entity, Measure, NodeRelation, SemanticModel, SemanticModelSourceType)
 from watchmen_model.common import TenantId
 from watchmen_model.system import DataSource, DataSourceType
 
@@ -34,17 +35,22 @@ def get_subject_service(principal_service: PrincipalService) -> SubjectService:
     return SubjectService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-async def load_metrics_by_tenant_id(principal_service) -> List[Metric]:
+def load_metrics_by_tenant_id_sync(principal_service) -> List[Metric]:
     metric_service = get_metric_service(principal_service)
+
     def action() -> List[Metric]:
         tenant_id: TenantId = principal_service.get_tenant_id()
-        metrics_list:List[MetricWithCategory] =  metric_service.find_all(tenant_id)
+        metrics_list: List[MetricWithCategory] = metric_service.find_all(tenant_id)
         return metrics_list
 
     return trans_readonly(metric_service, action)
 
 
-async def load_semantic_models_by_tenant_id(principal_service) -> List[SemanticModel]:
+async def load_metrics_by_tenant_id(principal_service) -> List[Metric]:
+    return load_metrics_by_tenant_id_sync(principal_service)
+
+
+def load_semantic_models_by_tenant_id_sync(principal_service) -> List[SemanticModel]:
     semantic_model_service = get_semantic_model_service(principal_service)
 
     def action() -> List[SemanticModel]:
@@ -52,6 +58,62 @@ async def load_semantic_models_by_tenant_id(principal_service) -> List[SemanticM
         return semantic_model_service.find_all(tenant_id)
 
     return trans_readonly(semantic_model_service, action)
+
+
+async def load_semantic_models_by_tenant_id(principal_service) -> List[SemanticModel]:
+    return load_semantic_models_by_tenant_id_sync(principal_service)
+
+
+def normalize_semantic_model(model: SemanticModel) -> SemanticModel:
+    """Coerce nested collections of a semantic model back to typed models.
+
+    ExtendedBaseModel.__init__ re-injects the raw input after validation, so
+    measures/entities/dimensions may still be plain dicts at this point.
+    Idempotent; safe to call on already-normalized models.
+    """
+    model.measures = [
+        Measure.model_validate(measure) if isinstance(measure, dict) else measure
+        for measure in (model.measures or [])]
+    model.entities = [
+        Entity.model_validate(entity) if isinstance(entity, dict) else entity
+        for entity in (model.entities or [])]
+    model.dimensions = [
+        Dimension.model_validate(dimension) if isinstance(dimension, dict) else dimension
+        for dimension in (model.dimensions or [])]
+    return model
+
+
+def normalize_metric(metric: Metric) -> Metric:
+    """Coerce type_params of a metric back to a typed model (same raw-dict issue)."""
+    if isinstance(metric.type_params, dict):
+        metric.type_params = MetricTypeParams.model_validate(metric.type_params)
+    return metric
+
+
+def load_metric_meta_cached(principal_service) -> Tuple[List[Metric], List[SemanticModel]]:
+    """Load (metrics, semantic_models) of the tenant with a per-tenant cache.
+
+    Used by the direct (non-dbt) metric query path, which resolves the whole
+    metric reference chain on every query. Models are normalized once here so
+    query-time code can rely on typed nested collections. The cache is
+    invalidated by metric / semantic model writes and carries a short TTL as a
+    safety net for other metadata changes (topic, data source).
+    """
+    tenant_id = principal_service.get_tenant_id()
+    cached = metric_meta_cache.get(tenant_id)
+    if cached is not None:
+        return cached
+    metrics = [normalize_metric(metric) for metric in load_metrics_by_tenant_id_sync(principal_service)]
+    semantic_models = [
+        normalize_semantic_model(model) for model in load_semantic_models_by_tenant_id_sync(principal_service)]
+    metric_meta_cache.put(tenant_id, metrics, semantic_models)
+    return metrics, semantic_models
+
+
+def invalidate_metric_caches(tenant_id) -> None:
+    """Drop both the dbt config cache and the direct-path meta cache of a tenant."""
+    metric_config_cache.remove(tenant_id)
+    metric_meta_cache.remove(tenant_id)
 
 
 def save_metric(principal_service: PrincipalService, metric: Metric) -> Metric:
@@ -69,7 +131,7 @@ def save_metric(principal_service: PrincipalService, metric: Metric) -> Metric:
         else:
             # If not exists, call create logic
             res = metric_service.create(metric)
-        return res, lambda: metric_config_cache.remove(tenant_id)
+        return res, lambda: invalidate_metric_caches(tenant_id)
 
     return trans_with_tail(metric_service, action)
 
@@ -89,7 +151,7 @@ def save_semantic_model(principal_service: PrincipalService, semantic_model: Sem
         else:
             # If not exists, call create logic
             res = semantic_model_service.create(semantic_model)
-        return res, lambda: metric_config_cache.remove(tenant_id)
+        return res, lambda: invalidate_metric_caches(tenant_id)
 
     return trans_with_tail(semantic_model_service, action)
 

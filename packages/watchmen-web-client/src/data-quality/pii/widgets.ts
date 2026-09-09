@@ -543,3 +543,93 @@ export const PiiSlider = styled.input.attrs({'data-widget': 'pii-slider', type: 
 	accent-color : var(--primary-color);
 	width        : 140px;
 `;
+
+// ——— lineage route chains ———
+export const PiiRouteList = styled.div.attrs({'data-widget': 'pii-route-list', 'data-v-scroll': ''})`
+	display        : flex;
+	flex-direction : column;
+	max-height     : 220px;
+	overflow-y     : auto;
+`;
+export const PiiRouteItem = styled.div.attrs({'data-widget': 'pii-route-item'})`
+	display        : flex;
+	flex-direction : column;
+	padding        : 6px 0;
+	&:not(:last-child) {
+		border-bottom : var(--border);
+	}
+`;
+export const PiiRouteTitle = styled.div.attrs({'data-widget': 'pii-route-title'})`
+	font-size     : 0.85em;
+	font-variant  : petite-caps;
+	opacity       : 0.75;
+	margin-bottom : 4px;
+`;
+export const PiiRouteChain = styled.div.attrs({'data-widget': 'pii-route-chain'})`
+	display     : flex;
+	align-items : center;
+	flex-wrap   : wrap;
+	grid-gap    : 4px;
+`;
+export const PiiRouteStep = styled.span.attrs<{ kind?: string }>(({kind}) => {
+	return {
+		'data-widget': 'pii-route-step',
+		style: {
+			color: kind === 'topic_factor' ? 'var(--danger-color)'
+				: kind === 'pipeline' ? 'var(--primary-color)'
+					: kind === 'topic' ? 'var(--info-color, var(--primary-color))'
+						: (void 0),
+			borderColor: kind === 'topic_factor' ? 'var(--danger-color)'
+				: kind === 'pipeline' ? 'var(--primary-color)'
+					: kind === 'topic' ? 'var(--info-color, var(--primary-color))'
+						: 'var(--border-color)',
+			fontWeight: kind === 'topic_factor' ? 'var(--font-demi-bold)' : (void 0)
+		}
+	};
+})<{ kind?: string }>`
+	display       : inline-flex;
+	align-items   : center;
+	padding       : 0 8px;
+	height        : 20px;
+	font-family   : var(--code-font-family);
+	font-size     : 0.8em;
+	border        : var(--border);
+	border-radius : 10px;
+	white-space   : nowrap;
+`;
+export const PiiRouteArrow = styled.span.attrs({'data-widget': 'pii-route-arrow'})`
+	font-size : 0.85em;
+	opacity   : 0.6;
+	&::before {
+		content : '→';
+	}
+`;
+export const PiiRouteDiagnostics = styled.div.attrs({'data-widget': 'pii-route-diagnostics'})`
+	font-size   : 0.8em;
+	color       : var(--warn-color);
+	opacity     : 0.9;
+	margin-top  : 4px;
+	line-height : 1.4;
+`;
+export const PiiGraphLegendNote = styled.div.attrs({'data-widget': 'pii-graph-legend-note'})`
+	display     : flex;
+	align-items : center;
+	flex-wrap   : wrap;
+	grid-gap    : calc(var(--margin) / 3);
+	font-size   : 0.85em;
+	opacity     : 0.75;
+	margin-top  : 8px;
+	> span {
+		display     : inline-flex;
+		align-items : center;
+		&:before {
+			content          : '';
+			display          : inline-block;
+			width            : 10px;
+			height           : 10px;
+			border-radius    : 50%;
+			margin-right     : 4px;
+			background-color : var(--legend-color, var(--hover-color));
+		}
+	}
+`;

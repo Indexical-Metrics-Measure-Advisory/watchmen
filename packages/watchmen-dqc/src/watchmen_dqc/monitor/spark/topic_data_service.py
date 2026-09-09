@@ -10,6 +10,7 @@ from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
 from watchmen_data_kernel.storage import TopicDataService
 from watchmen_dqc.common import DqcException
+from watchmen_dqc.monitor.rule.data_service_utils import wrap_with_tenant_criteria
 from watchmen_model.common import TopicId
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, \
@@ -43,7 +44,8 @@ class SparkTopicDataService:
 			raise DqcException(f'Topic[name={topic.name}] not found.')
 		storage = ask_topic_storage(schema, principal_service)
 		delegate = ask_topic_data_service(schema, storage, principal_service)
-		return SparkTopicDataService(delegate, self.spark)
+		# exchanged data service must be tenant wrapped as well
+		return SparkTopicDataService(wrap_with_tenant_criteria(delegate), self.spark)
 
 	def count(self) -> int:
 		return self._ensure_frame().count()

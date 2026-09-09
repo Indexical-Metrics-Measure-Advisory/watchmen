@@ -18,10 +18,13 @@ import ast
 import calendar
 import logging
 import re
-from datetime import date, datetime, timedelta
+import threading
+from concurrent.futures import ThreadPoolExecutor
+from datetime import date, datetime, time as dt_time, timedelta
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from sqlalchemy import Engine
+from starlette.concurrency import run_in_threadpool
 
 from watchmen_auth import PrincipalService
 from watchmen_model.admin import (
@@ -30,20 +33,23 @@ from watchmen_model.system import DataSource, DataSourceParam, DataSourceType
 from watchmen_rest.util import raise_400
 
 from watchmen_metricflow.model.metric_request import MetricQueryRequest
+from watchmen_metricflow.model.metric_response import MetricFlowResponse
 from watchmen_metricflow.model.dimension_response import (
 	DimensionInfo, DimensionListResponse, MetricInfo, MetricListResponse)
 from watchmen_metricflow.model.metrics import (
 	MeasureReference, Metric, MetricRef, MetricType, MetricTypeParams, OffsetWindow)
 from watchmen_metricflow.model.semantic import (
-	AggregationType, Dimension, DimensionType, Entity, Measure, NodeRelation, SemanticModel,
+	AggregationType, Dimension, DimensionType, Measure, NodeRelation, SemanticModel,
 	SemanticModelSourceType, TimeGranularity)
 from watchmen_metricflow.ontology.engine_provider import OntologyRdsEngineProvider
-from watchmen_metricflow.ontology.schema import OntologyGroupBy, OntologyQueryRequest
+from watchmen_metricflow.ontology.factor_type_resolver import FactorTypeResolver
+from watchmen_metricflow.ontology.schema import OntologyGroupBy, OntologyOrderBy, OntologyQueryRequest
+from watchmen_metricflow.ontology.security_layer import OntologySecurityLayer
 from watchmen_metricflow.ontology.sql_compiler import OntologySqlCompiler
 from watchmen_metricflow.ontology.table_factory import OntologyTableFactory
 from watchmen_metricflow.service.meta_service import (
-	get_data_source_service, get_topic_service, load_metrics_by_tenant_id,
-	load_semantic_models_by_tenant_id)
+	get_data_source_service, get_topic_service, load_metric_meta_cached,
+	normalize_metric, normalize_semantic_model)
 from watchmen_metricflow.settings import ask_direct_bypass_types
 from watchmen_metricflow.util.trans import trans_readonly
 
@@ -192,29 +198,10 @@ def _collect_tree_measures(
 	return True
 
 
-def _normalize_semantic_model(model: SemanticModel) -> SemanticModel:
-	"""Coerce nested collections of a semantic model back to typed models.
-
-	ExtendedBaseModel.__init__ re-injects the raw input after validation, so
-	measures/entities/dimensions may still be plain dicts at this point.
-	"""
-	model.measures = [
-		Measure.model_validate(measure) if isinstance(measure, dict) else measure
-		for measure in (model.measures or [])]
-	model.entities = [
-		Entity.model_validate(entity) if isinstance(entity, dict) else entity
-		for entity in (model.entities or [])]
-	model.dimensions = [
-		Dimension.model_validate(dimension) if isinstance(dimension, dict) else dimension
-		for dimension in (model.dimensions or [])]
-	return model
-
-
-def _normalize_metric(metric: Metric) -> Metric:
-	"""Coerce type_params of a metric back to a typed model (same raw-dict issue)."""
-	if isinstance(metric.type_params, dict):
-		metric.type_params = MetricTypeParams.model_validate(metric.type_params)
-	return metric
+# normalization lives in meta_service (applied once by load_metric_meta_cached);
+# kept as module aliases for backward compatibility within this module
+_normalize_semantic_model = normalize_semantic_model
+_normalize_metric = normalize_metric
 
 
 def _data_source_type_value(value: Any) -> str:
@@ -249,6 +236,12 @@ def resolve_direct_context(
 	measure_models: Dict[str, SemanticModel] = {}
 	for model in semantic_models:
 		for measure in _normalize_semantic_model(model).measures:
+			# dbt errors out on duplicate measure names across models; the direct
+			# path keeps the first binding but at least surfaces the ambiguity
+			if measure.name in measure_models and measure_models[measure.name] is not model:
+				logger.warning(
+					f'Measure [{measure.name}] is defined in both semantic model '
+					f'[{measure_models[measure.name].name}] and [{model.name}]; the first one wins.')
 			measure_models.setdefault(measure.name, model)
 	measure_names: set = set()
 	if not _collect_tree_measures(metric.name, metrics_by_name, set(), measure_names):
@@ -297,15 +290,29 @@ def _production_binding_resolver(
 	bypass_types = ask_direct_bypass_types()
 	topic_service = get_topic_service(principal_service)
 	data_source_service = get_data_source_service(principal_service)
+	# memoize meta lookups: several models of one query typically share the same
+	# topic/data source, and find_by_id opens a meta transaction per call
+	topic_cache: Dict[str, Any] = {}
+	data_source_cache: Dict[str, Any] = {}
+
+	def find_topic(topic_id: str):
+		if topic_id not in topic_cache:
+			topic_cache[topic_id] = trans_readonly(topic_service, lambda: topic_service.find_by_id(topic_id))
+		return topic_cache[topic_id]
+
+	def find_data_source(data_source_id: str):
+		if data_source_id not in data_source_cache:
+			data_source_cache[data_source_id] = trans_readonly(
+				data_source_service, lambda: data_source_service.find_by_id(data_source_id))
+		return data_source_cache[data_source_id]
 
 	def resolver(model: SemanticModel) -> Optional[DirectModelSource]:
 		source_type = _source_type_value(model)
 		if source_type == SemanticModelSourceType.TOPIC.value:
-			topic = trans_readonly(topic_service, lambda: topic_service.find_by_id(model.topicId))
+			topic = find_topic(model.topicId)
 			if topic is None:
 				return None
-			data_source = trans_readonly(
-				data_source_service, lambda: data_source_service.find_by_id(topic.dataSourceId))
+			data_source = find_data_source(topic.dataSourceId)
 			if data_source is None \
 					or _data_source_type_value(data_source.dataSourceType) not in bypass_types:
 				return None
@@ -481,7 +488,36 @@ def _grain_suffix(name: str) -> Optional[str]:
 	return value if value in _GRANULARITIES else None
 
 
-def _parse_group_specs(req: MetricQueryRequest, metric: Metric, force_time: bool) -> List[_GroupSpec]:
+def _dimension_type_value(dimension: Dimension) -> Optional[str]:
+	dimension_type = dimension.type
+	if isinstance(dimension_type, DimensionType):
+		return dimension_type.value
+	return str(dimension_type) if dimension_type is not None else None
+
+
+def _model_dimension(model: SemanticModel, name: str) -> Optional[Dimension]:
+	return model.get_dimension_by_name(name)
+
+
+def _models_have_time_dimension(models: List[SemanticModel], name: str) -> bool:
+	"""True when some model backs `name` as a time dimension."""
+	for model in models:
+		dimension = _model_dimension(model, name)
+		if dimension is not None:
+			return _dimension_type_value(dimension) == DimensionType.TIME.value
+	return False
+
+
+def _models_have_dimension_or_entity(models: List[SemanticModel], name: str) -> bool:
+	for model in models:
+		if model.get_dimension_by_name(name) is not None or model.get_entity_by_name(name) is not None:
+			return True
+	return False
+
+
+def _parse_group_specs(
+		req: MetricQueryRequest, metric: Metric, force_time: bool,
+		models: Optional[List[SemanticModel]] = None) -> List[_GroupSpec]:
 	default_granularity = _normalize_granularity(req.time_granularity or metric.time_granularity or 'day')
 	specs: List[_GroupSpec] = []
 	seen: set = set()
@@ -505,6 +541,14 @@ def _parse_group_specs(req: MetricQueryRequest, metric: Metric, force_time: bool
 			# or plain name
 			parts = item.split('__')
 			grain = _grain_suffix(parts[-1]) if len(parts) >= 2 else None
+			if grain is not None and models:
+				# the trailing segment only looks like a granularity word; when the
+				# middle segment is not a time dimension but the last segment is a
+				# real dimension/entity (e.g. a categorical dimension named 'week'),
+				# treat the last segment as the dimension
+				if not _models_have_time_dimension(models, parts[-2]) \
+						and _models_have_dimension_or_entity(models, parts[-1]):
+					grain = None
 			if grain is not None:
 				attr_name = parts[-2]
 				key = (attr_name, grain)
@@ -556,13 +600,24 @@ def _resolve_named_time_expr(model: SemanticModel, attr_name: str) -> str:
 	raise_400(f'Time dimension [{attr_name}] not found in semantic model [{model.name}].')
 
 
-def _filter_attr_name(raw_name: str) -> str:
+def _filter_attr_name(raw_name: str, model: Optional[SemanticModel] = None) -> str:
 	raw_name = raw_name.strip()
 	if raw_name == 'metric_time' or raw_name.startswith('metric_time__'):
 		return 'metric_time'
 	parts = raw_name.split('__')
 	# a [entity__]dimension__grain filter addresses the dimension, not the grain
 	if len(parts) >= 2 and _grain_suffix(parts[-1]) is not None:
+		if model is not None:
+			# the trailing segment only looks like a granularity word; when the
+			# middle segment is not a time dimension but the last segment is a real
+			# dimension/entity, the filter addresses that dimension
+			base_dimension = _model_dimension(model, parts[-2])
+			is_time_base = base_dimension is not None \
+				and _dimension_type_value(base_dimension) == DimensionType.TIME.value
+			if not is_time_base and (
+					model.get_dimension_by_name(parts[-1]) is not None
+					or model.get_entity_by_name(parts[-1]) is not None):
+				return parts[-1]
 		return parts[-2]
 	return parts[-1]
 
@@ -596,6 +651,53 @@ def _format_datetime(value: Any) -> str:
 	return str(value)
 
 
+def _coerce_filter_value(column_name: str, value: Any) -> Any:
+	"""Coerce a parsed filter value into a type the target column accepts.
+
+	Column types are guessed by name (OntologyTableFactory.guess_column_kind);
+	strict dialects (postgresql) reject cross-type comparisons such as
+	``varchar = integer``, which mysql silently coerces.
+	"""
+	if value is None:
+		return None
+	if isinstance(value, list):
+		return [_coerce_filter_value(column_name, item) for item in value]
+	kind = OntologyTableFactory.guess_column_kind(column_name)
+	if kind == 'string':
+		if isinstance(value, bool):
+			return 'true' if value else 'false'
+		if isinstance(value, (int, float)):
+			return str(value)
+		return value
+	if kind == 'numeric':
+		if isinstance(value, bool):
+			return int(value)
+		if isinstance(value, str):
+			try:
+				return int(value)
+			except ValueError:
+				try:
+					return float(value)
+				except ValueError:
+					return value
+		return value
+	# datetime: ISO strings bind natively on all supported dialects
+	return value
+
+
+def _normalize_range_bound(value: Any, other: Any) -> Any:
+	"""Align date/datetime bounds so both ends of a range share one string format.
+
+	Formatting a date as 'YYYY-MM-DD' and a datetime as 'YYYY-MM-DD HH:MM:SS' in
+	the same between filter breaks comparisons on string-typed columns.
+	"""
+	if isinstance(value, datetime):
+		return value
+	if isinstance(value, date) and isinstance(other, datetime):
+		return datetime.combine(value, dt_time.min)
+	return value
+
+
 def _build_filters(
 		model: SemanticModel, measure: Measure, attributes: Dict[str, str],
 		req: MetricQueryRequest, filter_strings: List[str],
@@ -603,12 +705,13 @@ def _build_filters(
 	filters: Dict[str, Any] = {}
 	for filter_string in filter_strings:
 		for raw_name, operator, value in parse_where_filters(filter_string):
-			attr_name = _filter_attr_name(raw_name)
+			attr_name = _filter_attr_name(raw_name, model)
 			if attr_name not in attributes:
 				attributes[attr_name] = _resolve_time_expr(model, measure) \
 					if attr_name == 'metric_time' else _resolve_dimension_expr(model, attr_name)
 			if attr_name in filters:
 				raise_400(f'Conflicting filters on dimension [{attr_name}].')
+			value = _coerce_filter_value(attributes[attr_name], value)
 			filters[attr_name] = value if operator == 'eq' \
 				else {'operator': operator, 'value': value}
 	start_time, end_time = req.start_time, req.end_time
@@ -620,6 +723,8 @@ def _build_filters(
 			attributes['metric_time'] = _resolve_time_expr(model, measure)
 		if 'metric_time' in filters:
 			raise_400('Time range conflicts with a metric_time filter.')
+		start_time = _normalize_range_bound(start_time, end_time)
+		end_time = _normalize_range_bound(end_time, start_time)
 		if start_time is not None and end_time is not None:
 			filters['metric_time'] = {
 				'operator': 'between', 'value': [_format_datetime(start_time), _format_datetime(end_time)]}
@@ -630,10 +735,22 @@ def _build_filters(
 	return filters
 
 
+# upper bound of rows a single leaf aggregation may return; a leaf hitting this
+# cap means the group-by cardinality exceeds it and the result is silently
+# incomplete, which is logged as a warning in _RunState.run_leaf
+_LEAF_ROW_LIMIT = 10000
+
+# max worker threads for concurrent evaluation of independent metric subtrees
+# (ratio numerator/denominator, derived metric references)
+_LEAF_PARALLELISM = 4
+
+
 def _build_leaf_query(
 		specs: List[_GroupSpec], req: MetricQueryRequest, model: SemanticModel,
 		measure: Measure, table_ref: str, filter_strings: List[str],
-		time_shift: List[Tuple[int, str]]
+		time_shift: List[Tuple[int, str]],
+		order_by: Optional[List[OntologyOrderBy]] = None,
+		limit: Optional[int] = None
 ) -> Tuple[VirtualOntology, OntologyQueryRequest, str]:
 	"""Build the synthetic ontology + query request for one leaf measure aggregation."""
 	leaf_label = measure.name
@@ -677,7 +794,9 @@ def _build_leaf_query(
 		fields=[],
 		groupBy=[OntologyGroupBy(field=spec.attr_name, granularity=spec.granularity) for spec in specs],
 		includeDerived=[leaf_label],
-		limit=10000)
+		orderBy=order_by or [],
+		# OntologyQueryRequest caps limit at _LEAF_ROW_LIMIT; clamp the request limit into range
+		limit=max(1, min(limit, _LEAF_ROW_LIMIT)) if limit is not None else _LEAF_ROW_LIMIT)
 	return ontology, request, leaf_label
 
 
@@ -743,15 +862,38 @@ class _RunState:
 		self.specs = specs
 		self.req = req
 		self.execute = execute
+		# order/limit pushdown for single-leaf (simple metric) queries; consumed
+		# by the first run_leaf call. Set by DirectMetricQueryRunner.run only when
+		# the whole query provably consists of one leaf aggregation.
+		self.pushdown: Optional[Tuple[List[OntologyOrderBy], Optional[int]]] = None
 
 	def run_leaf(
 			self, model: SemanticModel, measure: Measure, filter_strings: List[str],
 			time_shift: List[Tuple[int, str]], fill: Any) -> _Series:
 		source = self.context.model_sources[model.name]
+		order_by, limit = self.pushdown if self.pushdown is not None else (None, None)
+		self.pushdown = None
 		ontology, request, leaf_label = _build_leaf_query(
-			self.specs, self.req, model, measure, source.table_ref, filter_strings, time_shift)
+			self.specs, self.req, model, measure, source.table_ref, filter_strings, time_shift,
+			order_by=order_by, limit=limit)
 		rows = self.execute(ontology, request)
+		if len(rows) >= _LEAF_ROW_LIMIT:
+			logger.warning(
+				f'Leaf query of measure [{measure.name}] hit the row cap [{_LEAF_ROW_LIMIT}]; '
+				f'the group-by cardinality exceeds the cap and the result is incomplete.')
 		return _rows_to_series(rows, self.specs, leaf_label, fill)
+
+	def run_series_parallel(self, tasks: List[Callable[[], _Series]]) -> List[_Series]:
+		"""Evaluate independent metric subtrees concurrently.
+
+		Leaf queries run on the shared engine pool; the SQL compiler and the
+		masking layer are constructed per call (see execute/_mask_rows), so
+		concurrent evaluation is thread-safe. Results keep the task order.
+		"""
+		if len(tasks) <= 1:
+			return [task() for task in tasks]
+		with ThreadPoolExecutor(max_workers=min(len(tasks), _LEAF_PARALLELISM)) as pool:
+			return list(pool.map(lambda task: task(), tasks))
 
 
 def _merge_filter_strings(filter_strings: List[str], extra: Optional[str]) -> List[str]:
@@ -788,8 +930,10 @@ def _eval_metric(
 	if metric_type == MetricType.SIMPLE.value:
 		return _eval_measure_ref(state, params.measure, filters, time_shift, visited)
 	if metric_type == MetricType.RATIO.value:
-		numerator = _eval_measure_ref(state, params.numerator, filters, time_shift, visited)
-		denominator = _eval_measure_ref(state, params.denominator, filters, time_shift, visited)
+		# numerator and denominator are independent leaf queries; run them concurrently
+		numerator, denominator = state.run_series_parallel([
+			lambda: _eval_measure_ref(state, params.numerator, filters, time_shift, visited),
+			lambda: _eval_measure_ref(state, params.denominator, filters, time_shift, visited)])
 		return _ratio_series(numerator, denominator)
 	if metric_type == MetricType.CUMULATIVE.value:
 		cumulative_params = params.cumulative_type_params
@@ -927,13 +1071,20 @@ def _derived_series(
 	# series of refs without offset define the output key set; offset refs only
 	# contribute values aligned onto those keys (shifted times stay out of output)
 	base_series: List[_Series] = []
-	for ref in (params.metrics or []):
-		filters = _merge_filter_strings(filter_strings, ref.filter)
-		ref_shift = _ref_time_shift(ref)
-		ref_series = _eval_metric(state, ref.name, filters, [*time_shift, *ref_shift], visited)
-		if not ref_shift:
+	refs = list(params.metrics or [])
+	# metric references are independent subtrees; evaluate them concurrently
+	ref_series_list = state.run_series_parallel([
+		(lambda ref=ref: _eval_metric(
+			state, ref.name, _merge_filter_strings(filter_strings, ref.filter),
+			[*time_shift, *_ref_time_shift(ref)], visited))
+		for ref in refs])
+	for ref, ref_series in zip(refs, ref_series_list):
+		if not _ref_time_shift(ref):
 			base_series.append(ref_series)
-		series_by_name[ref.alias or ref.name] = _apply_ref_offset(ref_series, ref)
+		ref_key = ref.alias or ref.name
+		if ref_key in series_by_name:
+			raise_400(f'Duplicate metric reference [{ref_key}] in derived metric; use distinct aliases.')
+		series_by_name[ref_key] = _apply_ref_offset(ref_series, ref)
 	all_series = list(series_by_name.values())
 	keys: set = set()
 	for series in (base_series or all_series):
@@ -953,6 +1104,8 @@ def _parse_time_key(key: str, granularity: str) -> date:
 		return datetime.strptime(key, '%Y-%m-%d').date()
 	if granularity == 'week':
 		year, week = key.split('-')
+		# tolerate both '2024-05' and the '2024-W05' rendering
+		week = week[1:] if week[:1] in ('W', 'w') else week
 		return datetime.strptime(f'{year}-W{int(week)}-1', '%G-W%V-%u').date()
 	if granularity == 'month':
 		return datetime.strptime(key, '%Y-%m').date()
@@ -1004,6 +1157,47 @@ def _period_key(time_key: str, leaf_granularity: str, grain: str) -> str:
 	return _format_time_key(value, grain)
 
 
+# cap on periods generated by time-spine filling, guarding against runaway ranges
+_MAX_SPINE_PERIODS = 1000
+
+
+def _fill_time_spine(keys: List[tuple], time_index: int, granularity: str) -> List[tuple]:
+	"""Insert missing period keys between the first and last time key of a group.
+
+	dbt-metricflow joins cumulative metrics against a time spine, so gaps in the
+	underlying data still produce periods (accumulating a zero base value).
+	Without this, window semantics silently degrade from 'last N periods' to
+	'last N rows that happen to have data'.
+	"""
+	ordered = sorted(keys, key=lambda key: (key[time_index] is None, key[time_index]))
+	timed = [key for key in ordered if key[time_index] is not None]
+	untimed = ordered[len(timed):]
+	if len(timed) < 2:
+		return ordered
+	try:
+		start = _parse_time_key(timed[0][time_index], granularity)
+		end = _parse_time_key(timed[-1][time_index], granularity)
+	except (ValueError, TypeError, AttributeError):
+		# unparseable time keys: keep the original rows rather than failing the query
+		return ordered
+	existing = {key[time_index] for key in timed}
+	# all keys of a group share the non-time dimensions; any of them is a template
+	template = timed[0]
+	result = list(timed)
+	current = start
+	while current <= end:
+		period_key = _format_time_key(current, granularity)
+		if period_key not in existing:
+			result.append(template[:time_index] + (period_key,) + template[time_index + 1:])
+		current = _shift_datetime(current, 1, granularity)
+		if len(result) - len(timed) > _MAX_SPINE_PERIODS:
+			logger.warning(
+				f'Cumulative time-spine fill skipped: range exceeds [{_MAX_SPINE_PERIODS}] periods.')
+			return ordered
+	result.sort(key=lambda key: key[time_index])
+	return result + untimed
+
+
 def _cumulative_series(series: _Series, params: Any) -> _Series:
 	if series.time_index is None:
 		raise_400('Cumulative metric requires metric_time in group by.')
@@ -1026,11 +1220,12 @@ def _cumulative_series(series: _Series, params: Any) -> _Series:
 		groups.setdefault(dims, []).append(key)
 	values: Dict[tuple, Any] = {}
 	for keys in groups.values():
-		ordered = sorted(keys, key=lambda key: (key[time_index] is None, key[time_index]))
+		ordered = _fill_time_spine(keys, time_index, granularity)
 		accumulator = 0
 		period: Optional[str] = None
 		trailing: List[Any] = []
 		for key in ordered:
+			# spine-filled periods carry no base value; they contribute 0
 			value = series.values.get(key) or 0
 			if window_count is not None:
 				trailing.append(value)
@@ -1089,6 +1284,18 @@ def _order_column_index(field: str, column_names: List[str], metric_name: str) -
 	return None
 
 
+def _sortable_value(value: Any) -> Tuple[int, Any]:
+	"""Type-safe sort key: numbers compare as float, dates and everything else as
+	strings; the rank prefix keeps mixed-type columns from raising TypeError."""
+	if isinstance(value, bool):
+		return 0, float(value)
+	if isinstance(value, (int, float)):
+		return 0, float(value)
+	if isinstance(value, (date, datetime)):
+		return 1, value.isoformat()
+	return 1, str(value)
+
+
 def _apply_order(
 		rows: List[tuple], column_names: List[str], order: Optional[List[str]],
 		metric_name: str) -> List[tuple]:
@@ -1104,17 +1311,20 @@ def _apply_order(
 		index = _order_column_index(field, column_names, metric_name)
 		if index is None:
 			continue
-		ordered.sort(key=lambda row, i=index: (row[i] is None, row[i]), reverse=desc)
+		# nulls always sort last, regardless of direction (SQL NULLS LAST habit)
+		nulls = [row for row in ordered if row[index] is None]
+		non_nulls = [row for row in ordered if row[index] is not None]
+		non_nulls.sort(key=lambda row, i=index: _sortable_value(row[i]), reverse=desc)
+		ordered = non_nulls + nulls
 	return ordered
 
 
 def _to_response(metric_name: str, specs: List[_GroupSpec], series: _Series, req: MetricQueryRequest):
-	# lazy import to avoid a circular import with the router module
-	from watchmen_metricflow.router.metric_router import MetricFlowResponse
-
 	column_names = [spec.out_name for spec in specs] + [metric_name]
 	rows = [tuple(series.display.get(key, key)) + (value,) for key, value in series.values.items()]
-	rows = _apply_order(rows, column_names, req.order, metric_name)
+	# default ordering matches the dbt path of the router: metric value descending
+	order = req.order if req.order else [f'-{metric_name}']
+	rows = _apply_order(rows, column_names, order, metric_name)
 	if req.limit is not None and req.limit >= 0:
 		rows = rows[:req.limit]
 	return MetricFlowResponse(data=tuple(rows), column_names=column_names)
@@ -1149,6 +1359,64 @@ def _create_db_direct_engine(node_relation: NodeRelation) -> Engine:
 	          f'is not supported by the direct bypass.')
 
 
+# process-level engine cache: a SQLAlchemy Engine owns a connection pool, and
+# creating one per request (the previous behavior) leaked database connections
+# until GC. Keyed by the binding key (datasource id / node coordinates), which
+# is globally unique, so no cross-tenant reuse is possible. Data source changes
+# require dispose_direct_engines() or a restart to take effect.
+_ENGINE_CACHE: Dict[str, Engine] = {}
+_ENGINE_CACHE_LOCK = threading.Lock()
+
+
+def _get_cached_engine(key: str, factory: Callable[[], Engine]) -> Engine:
+	engine = _ENGINE_CACHE.get(key)
+	if engine is None:
+		with _ENGINE_CACHE_LOCK:
+			engine = _ENGINE_CACHE.get(key)
+			if engine is None:
+				engine = factory()
+				_ENGINE_CACHE[key] = engine
+	return engine
+
+
+def dispose_direct_engines() -> None:
+	"""Dispose all cached engines (used by tests and shutdown hooks)."""
+	with _ENGINE_CACHE_LOCK:
+		engines = list(_ENGINE_CACHE.values())
+		_ENGINE_CACHE.clear()
+	for engine in engines:
+		engine.dispose()
+
+
+def _to_ontology_order_by(
+		order: Optional[List[str]], specs: List[_GroupSpec], leaf_label: str,
+		metric_name: str) -> Optional[List[OntologyOrderBy]]:
+	"""Map metric query order entries onto leaf query columns.
+
+	Returns None when any entry cannot be resolved to a leaf column; the caller
+	then skips the pushdown entirely and Python-side ordering handles it.
+	"""
+	entries: List[OntologyOrderBy] = []
+	for entry in (order or []):
+		entry = (entry or '').strip()
+		if not entry:
+			continue
+		desc = entry.startswith('-')
+		field = entry[1:] if desc else entry.lstrip('+')
+		if field == metric_name or field == 'metric':
+			target = leaf_label
+		else:
+			attr_name = _filter_attr_name(field)
+			target = next(
+				(spec.attr_name for spec in specs
+					if spec.attr_name == attr_name or spec.out_name == field),
+				None)
+			if target is None:
+				return None
+		entries.append(OntologyOrderBy(field=target, direction='desc' if desc else 'asc'))
+	return entries
+
+
 class DirectMetricQueryRunner:
 	"""Executes one metric query through the ontology SQL compiler against the bound data source."""
 
@@ -1163,41 +1431,93 @@ class DirectMetricQueryRunner:
 		self.engine = engine
 		# injectable leaf executor for tests; production executes via SQLAlchemy
 		self._execute_leaf = execute_leaf
-		self._compiler = OntologySqlCompiler()
 
 	def run(self, req: MetricQueryRequest):
 		metric = self.context.metric
 		force_time = _tree_needs_time(metric.name, self.context.metrics_by_name, set())
-		specs = _parse_group_specs(req, metric, force_time)
+		specs = _parse_group_specs(req, metric, force_time, list(self.context.measure_models.values()))
 		state = _RunState(self.context, specs, req, self.execute)
+		state.pushdown = self._prepare_single_leaf_pushdown(metric, specs, req)
 		# req.where must seed filter_strings here: downstream _build_filters reads
 		# time range from state.req but takes DSL conditions only via filter_strings
 		series = _eval_metric(state, metric.name, [req.where] if req.where else [], [], set())
 		return _to_response(metric.name, specs, series, req)
 
+	def _prepare_single_leaf_pushdown(
+			self, metric: Metric, specs: List[_GroupSpec],
+			req: MetricQueryRequest) -> Optional[Tuple[List[OntologyOrderBy], Optional[int]]]:
+		"""Order/limit pushdown is only valid when the whole query is one leaf
+		aggregation: a simple metric whose measure reference hits a real measure."""
+		if _metric_type_value(metric) != MetricType.SIMPLE.value:
+			return None
+		params = metric.type_params
+		if params is None or params.measure is None or not params.measure.name:
+			return None
+		model = self.context.measure_models.get(params.measure.name)
+		if model is None:
+			return None
+		measure = model.get_measure_by_name(params.measure.name)
+		if measure is None:
+			return None
+		order_by = _to_ontology_order_by(req.order, specs, measure.name, metric.name)
+		if order_by is None:
+			return None
+		return order_by, req.limit
+
 	def execute(self, ontology: VirtualOntology, request: OntologyQueryRequest) -> List[Dict[str, Any]]:
 		if self._execute_leaf is not None:
 			return self._execute_leaf(ontology, request)
 		engine = self._resolve_engine()
-		compiled = self._compiler.compile(ontology, request, dialect_name=engine.dialect.name)
+		# a fresh compiler per call: compile() resets its internal MetaData, so a
+		# shared instance would race under concurrent leaf evaluation
+		compiled = OntologySqlCompiler().compile(ontology, request, dialect_name=engine.dialect.name)
 		logger.debug(f'Direct bypass executes leaf [{(request.includeDerived or ["?"])[0]}] '
 		             f'on dialect [{engine.dialect.name}]: {compiled.statement}')
 		with engine.connect() as conn:
-			return [dict(row._mapping) for row in conn.execute(compiled.statement).fetchall()]
+			rows = [dict(row._mapping) for row in conn.execute(compiled.statement).fetchall()]
+		return self._mask_rows(ontology, compiled.virtual_object, rows)
+
+	def _mask_rows(
+			self, ontology: VirtualOntology, virtual_object: VirtualObject,
+			rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+		"""Field-level masking of group-by dimension values, same policy as the
+		ontology query API. The aggregate value is a derived column and is never
+		masked; admins always pass through (handled inside mask_rows)."""
+		if self.principal_service is None or not rows:
+			return rows
+		topic_service = None
+		if self.context.binding.data_source_id is not None:
+			# TOPIC bindings resolve factor metadata through the topic; DB_DIRECT
+			# tables have no topic, masking falls back to the name heuristic.
+			# A fresh service per call: its storage/connection must not be shared
+			# across concurrently evaluated leaves.
+			topic_service = get_topic_service(self.principal_service)
+		security = OntologySecurityLayer(
+			self.principal_service,
+			topic_resolver=FactorTypeResolver(topic_service, self.principal_service))
+		if topic_service is not None:
+			# factor resolution reads topic metadata, which requires a transaction
+			return trans_readonly(
+				topic_service,
+				lambda: security.mask_rows(ontology, virtual_object, rows, self.principal_service))
+		return security.mask_rows(ontology, virtual_object, rows, self.principal_service)
 
 	def _resolve_engine(self) -> Engine:
-		# one engine per request, shared by all leaf queries
+		# engines are cached process-wide by binding key; the pool is shared by all requests
 		if self.engine is None:
 			binding = self.context.binding
 			if binding.data_source_id is not None:
 				provider = OntologyRdsEngineProvider(self.principal_service)
 				# get_engine reads the DataSource metadata from meta storage,
 				# which requires an open transaction/connection
-				self.engine = trans_readonly(
-					provider.data_source_service,
-					lambda: provider.get_engine(binding.data_source_id))
+				self.engine = _get_cached_engine(
+					binding.key,
+					lambda: trans_readonly(
+						provider.data_source_service,
+						lambda: provider.get_engine(binding.data_source_id)))
 			else:
-				self.engine = _create_db_direct_engine(binding.node_relation)
+				self.engine = _get_cached_engine(
+					binding.key, lambda: _create_db_direct_engine(binding.node_relation))
 		return self.engine
 
 
@@ -1210,8 +1530,17 @@ async def try_direct_metric_query(
 	to data sources listed in DIRECT_METRIC_BYPASS_TYPES, otherwise None (caller
 	falls through to the dbt path). Decline reasons are logged and, when
 	`decline_reasons` is given, appended there for the caller to surface.
+
+	The body is synchronous (meta reads + leaf SQL) and runs in the threadpool
+	so it never blocks the event loop.
 	"""
-	metrics: List[Metric] = await load_metrics_by_tenant_id(principal_service)
+	return await run_in_threadpool(_try_direct_metric_query_sync, req, principal_service, decline_reasons)
+
+
+def _try_direct_metric_query_sync(
+		req: MetricQueryRequest, principal_service: PrincipalService,
+		decline_reasons: Optional[List[str]] = None):
+	metrics, semantic_models = load_metric_meta_cached(principal_service)
 	metric = next((item for item in metrics if item.name == req.metric), None)
 	if metric is None:
 		_decline(decline_reasons, f'metric [{req.metric}] not found.')
@@ -1219,7 +1548,6 @@ async def try_direct_metric_query(
 	if _metric_type_value(metric) == MetricType.CONVERSION.value:
 		# ConversionTypeParams is an empty model: no defined semantics anywhere
 		raise_400('Conversion metric semantics not defined.')
-	semantic_models: List[SemanticModel] = await load_semantic_models_by_tenant_id(principal_service)
 	context = resolve_direct_context(
 		metric, metrics, semantic_models, _production_binding_resolver(principal_service),
 		decline_reasons)
@@ -1240,13 +1568,16 @@ async def try_direct_metrics_list(
 	Returns None when any semantic model is not bypass-enabled (caller falls
 	through to the dbt path).
 	"""
-	semantic_models: List[SemanticModel] = await load_semantic_models_by_tenant_id(principal_service)
+	return await run_in_threadpool(_try_direct_metrics_list_sync, principal_service)
+
+
+def _try_direct_metrics_list_sync(principal_service: PrincipalService) -> Optional[MetricListResponse]:
+	metrics, semantic_models = load_metric_meta_cached(principal_service)
 	if not semantic_models:
 		return None
 	resolver = _production_binding_resolver(principal_service)
 	if any(resolver(model) is None for model in semantic_models):
 		return None
-	metrics: List[Metric] = await load_metrics_by_tenant_id(principal_service)
 	metric_infos = [
 		MetricInfo(
 			name=metric.name,
@@ -1271,14 +1602,20 @@ async def try_direct_dimensions_by_metrics(
 	otherwise None (caller falls through to the dbt path). Decline reasons are logged
 	and, when `decline_reasons` is given, appended there for the caller to surface.
 	"""
-	metrics: List[Metric] = await load_metrics_by_tenant_id(principal_service)
+	return await run_in_threadpool(
+		_try_direct_dimensions_by_metrics_sync, metric_names, principal_service, decline_reasons)
+
+
+def _try_direct_dimensions_by_metrics_sync(
+		metric_names: List[str], principal_service: PrincipalService,
+		decline_reasons: Optional[List[str]] = None) -> Optional[DimensionListResponse]:
+	metrics, semantic_models = load_metric_meta_cached(principal_service)
 	metrics_by_name = {item.name: item for item in metrics}
 	requested = [metrics_by_name.get(name) for name in metric_names]
 	unknown = [name for name, item in zip(metric_names, requested) if item is None]
 	if unknown:
 		_decline(decline_reasons, f'metrics not found [{", ".join(unknown)}].')
 		return None
-	semantic_models: List[SemanticModel] = await load_semantic_models_by_tenant_id(principal_service)
 	resolver = _production_binding_resolver(principal_service)
 	binding_key: Optional[str] = None
 	models: Dict[str, SemanticModel] = {}
