@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Search, BookOpen, FolderTree, Hash, Plus, Trash2, Edit2, Save, ChevronRight, Globe, User } from "lucide-react";
+import { Search, BookOpen, FolderTree, Hash, Plus, Trash2, Edit2, Save, ChevronRight, Globe, User, Link2 } from "lucide-react";
 import { useSidebar } from "@/contexts/SidebarContext";
 import Sidebar from "@/components/layout/Sidebar";
+import EntityLinkDialog from "@/components/glossary/EntityLinkDialog";
 
 import type { GlossaryBundle, Glossary, Category, Term, GlossaryUpsert, CategoryUpsert, TermUpsert } from "@/model/glossaryV2";
 import { businessGlossaryService } from "@/services/businessGlossaryService";
@@ -42,6 +43,7 @@ const BusinessGlossary: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState<"glossary" | "category" | "term" | null>(null);
   const [editingItem, setEditingItem] = useState<Glossary | Category | Term | null>(null);
+  const [linkingTermId, setLinkingTermId] = useState<string | null>(null);
 
   // Load bundles on mount
   useEffect(() => {
@@ -66,6 +68,12 @@ const BusinessGlossary: React.FC = () => {
   const activeBundle = useMemo(
     () => bundles.find((b) => b.glossary.id === activeGlossaryId),
     [bundles, activeGlossaryId]
+  );
+
+  // derived so the dialog always sees the freshly reloaded term
+  const linkingTerm = useMemo(
+    () => activeBundle?.terms.find((t) => t.id === linkingTermId) || null,
+    [activeBundle, linkingTermId]
   );
 
   const filteredTerms = useMemo(() => {
@@ -427,14 +435,28 @@ const BusinessGlossary: React.FC = () => {
                                 ))}
                               </div>
                             )}
-                            {(term.synonyms.length > 0 || term.related_terms.length > 0) && (
+                            {(term.synonyms.length > 0 || term.related_terms.length > 0 || (term.assigned_entities?.length || 0) > 0) && (
                               <div className="flex flex-wrap gap-2 mt-2 text-xs text-slate-500">
                                 {term.synonyms.length > 0 && <span>Synonyms: {term.synonyms.length}</span>}
                                 {term.related_terms.length > 0 && <span>Related: {term.related_terms.length}</span>}
+                                {(term.assigned_entities?.length || 0) > 0 && (
+                                  <span className="flex items-center gap-0.5">
+                                    <Link2 className="w-3 h-3" />{term.assigned_entities.length} linked
+                                  </span>
+                                )}
                               </div>
                             )}
                           </div>
                           <div className="flex gap-1 ml-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="w-7 h-7 text-blue-600"
+                              title="Linked assets"
+                              onClick={() => setLinkingTermId(term.id)}
+                            >
+                              <Link2 className="w-3 h-3" />
+                            </Button>
                             <Dialog open={dialogOpen && editMode === "term" && editingItem?.id === term.id} onOpenChange={setDialogOpen}>
                               <DialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => { setEditMode("term"); setEditingItem(term); }}>
@@ -526,6 +548,14 @@ const BusinessGlossary: React.FC = () => {
           </div>
         </div>
       </div>
+      {linkingTerm && activeBundle && (
+        <EntityLinkDialog
+          term={linkingTerm}
+          glossaryId={activeBundle.glossary.id}
+          onClose={() => setLinkingTermId(null)}
+          onChanged={loadBundles}
+        />
+      )}
     </div>
   );
 };

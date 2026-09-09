@@ -475,6 +475,7 @@ async def assign_entity_to_term(
 		assignment = TermEntityAssignment(
 			entity_type=request.entity_type,
 			entity_id=request.entity_id,
+			parent_entity_id=request.parent_entity_id,
 			entity_name=request.entity_name,
 			confidence=request.confidence,
 		)

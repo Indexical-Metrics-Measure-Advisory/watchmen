@@ -29,16 +29,24 @@ def import_glossary_seed_data(tenant_id: str = '1') -> None:
 
 	service = GlossaryService(storage, snowflake_generator, principal_service)
 
+	# storage operations must run inside a transaction, otherwise the
+	# underlying connection is not opened yet
+	service.begin_transaction()
 	try:
 		existing = service.list_bundles()
-		if existing and len(existing) > 0:
-			logger.info(f"Glossary table already has {len(existing)} bundles, skipping seed import.")
-			return
+		service.commit_transaction()
 	except Exception as e:
+		service.rollback_transaction()
 		logger.warning(f"Could not check existing glossary data: {e}, proceeding with seed import.")
+		existing = None
+
+	if existing and len(existing) > 0:
+		logger.info(f"Glossary table already has {len(existing)} bundles, skipping seed import.")
+		return
 
 	logger.info("Importing glossary seed data...")
 	for bundle in ALL_SEED_BUNDLES:
+		service.begin_transaction()
 		try:
 			# Set tenant id on glossary
 			bundle.glossary.tenantId = tenant_id
@@ -48,8 +56,10 @@ def import_glossary_seed_data(tenant_id: str = '1') -> None:
 			for term in bundle.terms:
 				term.glossary_id = bundle.glossary.id
 			service.create_bundle(bundle)
+			service.commit_transaction()
 			logger.info(f"  Created glossary: {bundle.glossary.name} ({len(bundle.categories)} categories, {len(bundle.terms)} terms)")
 		except Exception as e:
+			service.rollback_transaction()
 			logger.error(f"  Failed to create glossary {bundle.glossary.name}: {e}")
 
 	logger.info("Glossary seed data import completed.")

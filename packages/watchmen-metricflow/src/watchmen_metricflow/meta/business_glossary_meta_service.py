@@ -2,11 +2,14 @@ from typing import List, Optional
 
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.common import TenantId
-from watchmen_storage import EntityShaper, EntityRow, EntityCriteriaExpression, ColumnNameLiteral
-from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
+from watchmen_model.system import OperationType
+from watchmen_storage import (
+	EntityFinder, EntityHelper, EntityShaper, EntityRow, EntityCriteriaExpression, ColumnNameLiteral
+)
+from watchmen_utilities import is_blank, is_not_blank
 
 from ..model.business_glossary import (
-	Glossary, GlossaryBundle, Category, Term,
+	Glossary, GlossaryBundle, Category, GlossaryStatus, Term,
 	TermEntityAssignment, TermRelationType
 )
 
@@ -25,7 +28,7 @@ class GlossaryShaper(EntityShaper):
 			'display_name': entity.display_name,
 			'description': entity.description,
 			'language': entity.language,
-			'status': entity.status.value if entity.status else None,
+			'status': entity.status.value if isinstance(entity.status, GlossaryStatus) else entity.status,
 			'owner': entity.owner,
 			'tags': entity.tags,
 		})
@@ -88,7 +91,21 @@ class GlossaryBundleShaper(EntityShaper):
 			return []
 		if isinstance(value, list):
 			try:
-				return [Term.model_validate(v) if isinstance(v, dict) else v for v in value]
+				terms = []
+				for v in value:
+					if isinstance(v, dict):
+						# ExtendedBaseModel re-assigns raw constructor values, so nested
+						# assignment dicts would survive model_validate as plain dicts;
+						# coerce them explicitly to keep attribute access working
+						v = {
+							**v,
+							'assigned_entities': [
+								e if isinstance(e, TermEntityAssignment) else TermEntityAssignment(**e)
+								for e in (v.get('assigned_entities') or [])
+							],
+						}
+					terms.append(Term.model_validate(v) if isinstance(v, dict) else v)
+				return terms
 			except Exception:
 				return []
 		return []
@@ -138,17 +155,26 @@ class GlossaryService(TupleService):
 		criteria = []
 		if is_not_blank(tenant_id):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# storage.find deserializes every row with the finder's shaper,
+		# so give it the bundle shaper to get GlossaryBundle objects back
 		# noinspection PyTypeChecker
-		rows: List[EntityRow] = self.storage.find(self.get_entity_finder(criteria))
-		return ArrayHelper(rows).map(lambda r: BUNDLE_SHAPER.deserialize(r)).to_list()
+		return self.storage.find(EntityFinder(
+			name=self.get_entity_name(), shaper=BUNDLE_SHAPER, criteria=criteria))
 
 	def find_bundle(self, glossary_id: str) -> Optional[GlossaryBundle]:
 		if is_blank(glossary_id):
 			return None
-		row = self._find_row(glossary_id)
-		if row is None:
-			return None
-		return BUNDLE_SHAPER.deserialize(row)
+		tenant_id: TenantId = self.principalService.get_tenant_id()
+		criteria = [
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()), right=glossary_id)
+		]
+		if is_not_blank(tenant_id):
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		rows: List[GlossaryBundle] = self.storage.find(EntityFinder(
+			name=self.get_entity_name(), shaper=BUNDLE_SHAPER, criteria=criteria))
+		return rows[0] if rows else None
 
 	def find_bundle_by_name(self, name: str) -> Optional[GlossaryBundle]:
 		if is_blank(name):
@@ -160,15 +186,18 @@ class GlossaryService(TupleService):
 		if is_not_blank(tenant_id):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker
-		rows: List[EntityRow] = self.storage.find(self.get_entity_finder(criteria))
-		if not rows:
-			return None
-		return BUNDLE_SHAPER.deserialize(rows[0])
+		rows: List[GlossaryBundle] = self.storage.find(EntityFinder(
+			name=self.get_entity_name(), shaper=BUNDLE_SHAPER, criteria=criteria))
+		return rows[0] if rows else None
 
 	def create_bundle(self, bundle: GlossaryBundle) -> GlossaryBundle:
 		if is_blank(bundle.glossary.id):
 			bundle.glossary.id = str(self.snowflakeGenerator.next_id())
-		self.storage.insert_one(self.get_entity_writer(BUNDLE_SHAPER.serialize(bundle)))
+		self.try_to_prepare_auditable_on_create(bundle.glossary)
+		self.try_to_prepare_optimistic_lock_on_create(bundle.glossary)
+		self.storage.insert_one(
+			bundle, EntityHelper(name=GLOSSARY_ENTITY_NAME, shaper=BUNDLE_SHAPER))
+		self.record_operation(OperationType.CREATE, bundle.glossary)
 		return bundle
 
 	def update_glossary(self, glossary: Glossary) -> Glossary:
@@ -179,10 +208,14 @@ class GlossaryService(TupleService):
 		row['display_name'] = glossary.display_name
 		row['description'] = glossary.description
 		row['language'] = glossary.language
-		row['status'] = glossary.status.value if glossary.status else None
+		row['status'] = glossary.status.value if isinstance(glossary.status, GlossaryStatus) else glossary.status
 		row['owner'] = glossary.owner
 		row['tags'] = glossary.tags
-		self.storage.update_one(self.get_entity_updater(row['standard_id'], row))
+		self.storage.update_only(self.get_entity_updater(
+			criteria=[EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()), right=glossary.id)],
+			update=self.try_to_ignore_created_columns(row)
+		))
 		return glossary
 
 	def delete_bundle(self, glossary_id: str) -> None:
@@ -204,7 +237,11 @@ class GlossaryService(TupleService):
 			raise ValueError(f'Glossary not found: {bundle.glossary.id}')
 		serialized = BUNDLE_SHAPER.serialize(bundle)
 		row.update(serialized)
-		self.storage.update_one(self.get_entity_updater(row['standard_id'], row))
+		self.storage.update_only(self.get_entity_updater(
+			criteria=[EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()), right=bundle.glossary.id)],
+			update=self.try_to_ignore_created_columns(row)
+		))
 		return bundle
 
 	# ---- Category CRUD ----
@@ -414,15 +451,12 @@ class GlossaryService(TupleService):
 	# ---- Internals ----
 
 	def _find_row(self, glossary_id: str) -> Optional[EntityRow]:
-		tenant_id: TenantId = self.principalService.get_tenant_id()
-		criteria = [
-			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='standard_id'), right=glossary_id)
-		]
-		if is_not_blank(tenant_id):
-			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
-		# noinspection PyTypeChecker
-		rows: List[EntityRow] = self.storage.find(self.get_entity_finder(criteria))
-		return rows[0] if rows else None
+		# storage.find already deserializes into a GlossaryBundle,
+		# serialize it back to get a mutable row for update statements
+		bundle = self.find_bundle(glossary_id)
+		if bundle is None:
+			return None
+		return BUNDLE_SHAPER.serialize(bundle)
 
 	def _save_categories_and_terms(self, glossary_id: str, bundle: GlossaryBundle) -> None:
 		row = self._find_row(glossary_id)
@@ -430,7 +464,11 @@ class GlossaryService(TupleService):
 			return
 		row['categories'] = GlossaryBundleShaper._serialize_list(bundle.categories)
 		row['terms'] = GlossaryBundleShaper._serialize_list(bundle.terms)
-		self.storage.update_one(self.get_entity_updater(glossary_id, row))
+		self.storage.update_only(self.get_entity_updater(
+			criteria=[EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()), right=glossary_id)],
+			update=self.try_to_ignore_created_columns(row)
+		))
 
 	def _find_term_in_bundle(self, bundle: GlossaryBundle, term_id: str) -> Optional[Term]:
 		for term in (bundle.terms or []):

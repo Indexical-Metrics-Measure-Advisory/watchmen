@@ -26,6 +26,7 @@ class EntityType(str, Enum):
 	ONTOLOGY = 'ontology'
 	FACTOR = 'factor'
 	SEMANTIC_MODEL = 'semantic_model'
+	METRIC = 'metric'
 
 
 class TermRelationType(str, Enum):
@@ -71,6 +72,9 @@ class Category(ExtendedBaseModel):
 class TermEntityAssignment(ExtendedBaseModel):
 	entity_type: str = None
 	entity_id: str = None
+	# container asset when the entity lives inside another one,
+	# e.g. topic id for a factor assignment
+	parent_entity_id: Optional[str] = None
 	entity_name: Optional[str] = None
 	relation_guid: str = None
 	confidence: float = 1.0
@@ -163,6 +167,7 @@ class TermEntityAssignmentUpsert(ExtendedBaseModel):
 	"""Payload for assigning/removing an entity to/from a term."""
 	entity_type: str = None
 	entity_id: str = None
+	parent_entity_id: Optional[str] = None
 	entity_name: Optional[str] = None
 	confidence: float = 1.0
 

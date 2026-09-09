@@ -101,10 +101,10 @@ const App = () => (
                 {/* <Route path="/data-catalog" element={<DataCatalog />} /> */}
                 <Route path="/data-catalog/domain-map" element={<BusinessDomainMap />} />
                 <Route path="/data-catalog/ontology-tester" element={<OntologyDataTester />} />
-                <Route path="/data-catalog/business-glossary" element={<BusinessGlossary />} />
                 <Route path="/data-asset/products" element={<DataProductCatalog />} />
                 <Route path="/data-asset/map" element={<AssetMap />} />
                 <Route path="/data-asset/graph" element={<DataProductGraph />} />
+                <Route path="/data-asset/business-glossary" element={<BusinessGlossary />} />
                 {/* <Route path="/metric-detail" element={<MetricDetail />} /> */}
                 <Route path="/analysis" element={<Analysis />} />
                 <Route path="/challenge-analysis" element={<ChallengeAnalysis />} />

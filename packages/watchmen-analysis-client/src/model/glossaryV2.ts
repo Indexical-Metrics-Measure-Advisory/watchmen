@@ -28,9 +28,13 @@ export interface Category {
   order_index: number;
 }
 
+export type GlossaryEntityType = 'metric' | 'topic' | 'factor' | 'ontology' | 'semantic_model';
+
 export interface TermEntityAssignment {
   entity_type: string;
   entity_id: string;
+  /** container asset when the entity lives inside another one, e.g. topic id for a factor */
+  parent_entity_id?: string;
   entity_name?: string;
   relation_guid: string;
   confidence: number;
@@ -106,6 +110,7 @@ export interface TermUpsert {
 export interface TermEntityAssignmentUpsert {
   entity_type: string;
   entity_id: string;
+  parent_entity_id?: string;
   entity_name?: string;
   confidence: number;
 }

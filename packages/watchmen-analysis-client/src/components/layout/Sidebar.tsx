@@ -236,11 +236,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           {/* <NavItem to="/data-catalog" icon={<FolderOpen size={16} />} label="Data Catalog" collapsed={collapsed} isSubItem={true} /> */}
           <NavItem to="/data-catalog/domain-map" icon={<Network size={16} />} label={t('nav:businessOntology')} collapsed={collapsed} isSubItem={true} />
           <NavItem to="/data-catalog/ontology-tester" icon={<FlaskConical size={16} />} label={t('nav:ontologyDataTester')} collapsed={collapsed} isSubItem={true} />
-          {SHOW_BUSINESS_GLOSSARY && (
-            <NavItem to="/data-catalog/business-glossary" icon={<BookOpen size={16} />} label={t('nav:businessGlossary')} collapsed={collapsed} isSubItem={true} />
-          )}
           {/* <NavItem to="/data-profiles" icon={<Database size={16} />} label="Data Profile Management" collapsed={collapsed} isSubItem={true} /> */}
-          
+
         </NavGroup>
         )}
         
@@ -255,6 +252,9 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           <NavItem to="/data-asset/products" icon={<Package size={16} />} label={t('nav:dataProduct')} collapsed={collapsed} isSubItem={true} />
           <NavItem to="/data-asset/map" icon={<MapIcon size={16} />} label={t('nav:assetMap')} collapsed={collapsed} isSubItem={true} />
           <NavItem to="/data-asset/graph" icon={<Share2 size={16} />} label={t('nav:dataProductGraph')} collapsed={collapsed} isSubItem={true} />
+          {SHOW_BUSINESS_GLOSSARY && (
+            <NavItem to="/data-asset/business-glossary" icon={<BookOpen size={16} />} label={t('nav:businessGlossary')} collapsed={collapsed} isSubItem={true} />
+          )}
         </NavGroup>
         )}
 
