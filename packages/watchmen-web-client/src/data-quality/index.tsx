@@ -8,6 +8,7 @@ import {DataQualityCache} from './cache';
 import {DataQualityCacheEventBusProvider} from './cache/cache-event-bus';
 import DataQualityCatalog from './catalog';
 import DataQualityConsanguinity from './consanguinity';
+import DataQualityHome from './home';
 import {DataQualityMenu} from './menu';
 import DataQualityMonitorRules from './rules';
 import DataQualityPii from './pii';
@@ -59,7 +60,7 @@ const DataQualityIndex = () => {
 			<DataQualityMenu/>
 
 			<Routes>
-				{/*{asRoute(Router.DATA_QUALITY_HOME, <DataQualityHome/>, {scrollable: false})}*/}
+				{asRoute(Router.DQC_HOME, <DataQualityHome/>)}
 				{asRoute(Router.DQC_CONSANGUINITY, <DataQualityConsanguinity/>, {scrollable: false})}
 				{asRoute(Router.DQC_CATALOG, <DataQualityCatalog/>, {scrollable: false})}
 				{asRoute(Router.DQC_RULES, <DataQualityMonitorRules/>, {scrollable: false})}
@@ -69,7 +70,7 @@ const DataQualityIndex = () => {
 				{asRoute(Router.DQC_SETTINGS, <DataQualitySettings/>)}
 				{asRoute(Router.DQC_TAG_MANAGEMENT, <DataQualityTagManagement/>)}
 				{asRoute(Router.DQC_PII, <DataQualityPii/>, {scrollable: false})}
-				{asFallbackNavigate(Router.DQC_STATISTICS)}
+				{asFallbackNavigate(Router.DQC_HOME)}
 			</Routes>
 		</DataQualityCacheEventBusProvider>
 	</DataQualityContainer>;

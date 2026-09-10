@@ -16,6 +16,7 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import React, {useEffect, useState} from 'react';
+import {EmptyState} from '../widgets/kpi';
 import {
 	PiiEditorActions,
 	PiiEditorField,
@@ -25,9 +26,9 @@ import {
 	PiiEditorTitle,
 	PiiInfoNote,
 	PiiMonoText,
-	PiiNoData,
 	PiiProgress,
 	PiiProgressFill,
+	PiiProgressRow,
 	PiiProgressText,
 	PiiSourceBadge,
 	PiiStatusBadge,
@@ -217,7 +218,7 @@ export const PiiDiscoveryTab = (props: {
 					<Button ink={ButtonInk.DANGER} onClick={onBatchRemove}>Batch Remove</Button>
 				</PiiToolbar>
 				{results.length === 0
-					? <PiiNoData>No factors discovered.</PiiNoData>
+					? <EmptyState>No factors discovered.</EmptyState>
 					: <PiiTable>
 						<thead>
 							<tr>
@@ -248,12 +249,12 @@ export const PiiDiscoveryTab = (props: {
 										</PiiSourceBadge>
 									</td>
 									<td>
-										<div style={{display: 'flex', alignItems: 'center'}}>
+										<PiiProgressRow>
 											<PiiProgress>
 												<PiiProgressFill percent={confidence}/>
 											</PiiProgress>
 											<PiiProgressText>{confidence}%</PiiProgressText>
-										</div>
+										</PiiProgressRow>
 									</td>
 									<td>
 										<PiiStatusBadge confirmed={lf.confirmed}>
@@ -269,7 +270,7 @@ export const PiiDiscoveryTab = (props: {
 					manually linked factors are preserved across discovery runs.
 				</PiiInfoNote>
 			</>
-			: <PiiNoData>Select a term and run discovery.</PiiNoData>}
+			: <EmptyState>Select a term and run discovery.</EmptyState>}
 		{linking != null
 			? <PiiEditorOverlay onClick={(e) => {
 				if (e.target === e.currentTarget) {

@@ -34,9 +34,12 @@ import {
 	CatalogCardTitle,
 	CatalogEditButtons,
 	CatalogEditCell,
-	CatalogEditLabel
+	CatalogEditLabel,
+	CatalogRuleDot,
+	CatalogRuleRow,
+	CatalogRuleState
 } from './widgets';
-import {TagPicker} from '@/data-quality/widgets/tag-picker';
+import {TagPicker} from '../../widgets/tag-picker';
 
 interface EditCatalog extends Omit<Catalog, 'tags'>, TupleHolder {
 	tagIds: Array<string>;
@@ -306,22 +309,14 @@ export const CatalogCard = (props: { catalog: Catalog; index: number }) => {
 					<CatalogEditLabel>Associated Rules ({rules.length})</CatalogEditLabel>
 					<div>
 						{rulesLoading ? 'Loading...' : rules.map(rule => (
-							<div key={rule.ruleId} style={{
-								display: 'flex',
-								alignItems: 'center',
-								gap: '8px',
-								padding: '4px 0'
-							}}>
-								<div style={{
-									width: '4px', height: '20px',
-									backgroundColor: rule.severity === 'fatal' ? '#ff4d4f' : rule.severity === 'warn' ? '#faad14' : '#d9d9d9'
-								}}/>
+							<CatalogRuleRow key={rule.ruleId}>
+								<CatalogRuleDot severity={rule.severity}/>
 								<span>{rule.code}</span>
-								<span style={{fontSize: '12px', opacity: 0.6}}>{rule.enabled ? 'ON' : 'OFF'}</span>
-							</div>
+								<CatalogRuleState>{rule.enabled ? 'ON' : 'OFF'}</CatalogRuleState>
+							</CatalogRuleRow>
 						))}
 						{!rulesLoading && rules.length === 0 ? (
-							<span style={{opacity: 0.6, fontSize: '14px'}}>No associated rules found.</span>
+							<CatalogRuleState>No associated rules found.</CatalogRuleState>
 						) : null}
 					</div>
 					<CatalogEditLabel/>

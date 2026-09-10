@@ -10,6 +10,7 @@ import {DataQualityCacheEventTypes} from '../../cache/cache-event-bus-types';
 import {DQCCacheData} from '../../cache/types';
 import {RuleDefs} from '../../rule-defs';
 import {getTopicName} from '../../utils';
+import {EmptyState, LoadingRows} from '../../widgets/kpi';
 import {DEFAULT_LAYOUTS} from '../constants';
 import {StatsChart} from '../chart';
 import {DataPanels} from '../types';
@@ -24,7 +25,9 @@ import {
 	DataPanelBodyHeader,
 	DataPanelBodyHeaderCell,
 	DataPanelBodyHeaderSeqCell,
-	DataPanelBodyNoDataCell,
+	DataPanelBreadcrumb,
+	DataPanelBreadcrumbLink,
+	DataPanelBreadcrumbSeparator,
 	HorizontalValue,
 	HorizontalValueBar
 } from './widgets';
@@ -55,11 +58,13 @@ export const PeriodicPanel = (props: {
 	const {fire: fireCache} = useDataQualityCacheEventBus();
 	const {layout} = useLayout(which);
 
-	const [title, setTitle] = useState(givenTitle);
+	const [drill, setDrill] = useState<{ ruleName?: string; topicName?: string }>({});
 	const [state, setState] = useState<State>({});
 	const [data, setData] = useState<Array<DataRow>>([]);
+	const [loaded, setLoaded] = useState(false);
 
 	const loadData = useCallback((ruleCode?: MonitorRuleCode, topicId?: TopicId) => {
+		setLoaded(false);
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 			async () => await fetchMonitorRuleLogs({
 				criteria: {
@@ -102,10 +107,11 @@ export const PeriodicPanel = (props: {
 						if (topicId) {
 							const topic = topicMap[topicId];
 							const topicName = topic ? getTopicName(topic) : topicId;
-							setTitle(`${givenTitle} @ ${RuleDefs[ruleCode].name} @ ${topicName}`);
+							setDrill({ruleName: RuleDefs[ruleCode].name, topicName});
 						} else {
-							setTitle(`${givenTitle} @ ${RuleDefs[ruleCode].name}`);
+							setDrill({ruleName: RuleDefs[ruleCode].name});
 						}
+						setLoaded(true);
 					};
 
 					const askTopics = () => {
@@ -121,11 +127,12 @@ export const PeriodicPanel = (props: {
 					};
 					askTopics();
 				} else {
-					setTitle(givenTitle);
+					setDrill({});
 					setData(logs.sort((r1, r2) => r1.count === r2.count ? 0 : (r1.count < r2.count) ? 1 : -1));
+					setLoaded(true);
 				}
 			});
-	}, [fireGlobal, fireCache, start, end, givenTitle]);
+	}, [fireGlobal, fireCache, start, end]);
 
 	useEffect(() => {
 		loadData();
@@ -213,6 +220,20 @@ export const PeriodicPanel = (props: {
 		{iconProps: {icon: ICON_REFRESH}, tooltip: 'Refresh', action: reload}
 	].filter(x => !!x) as Array<AdditionalDataPanelHeaderButton>;
 
+	const title = !drill.ruleName
+		? givenTitle
+		: <DataPanelBreadcrumb>
+			<DataPanelBreadcrumbLink onClick={onBackToAll}>{givenTitle}</DataPanelBreadcrumbLink>
+			<DataPanelBreadcrumbSeparator>›</DataPanelBreadcrumbSeparator>
+			{drill.topicName != null
+				? <>
+					<DataPanelBreadcrumbLink onClick={onBackToRule}>{drill.ruleName}</DataPanelBreadcrumbLink>
+					<DataPanelBreadcrumbSeparator>›</DataPanelBreadcrumbSeparator>
+					<span>{drill.topicName}</span>
+				</>
+				: <span>{drill.ruleName}</span>}
+		</DataPanelBreadcrumb>;
+
 	return <DataPanel which={which} title={title}
 	                  layout={layout} defaultLayout={DEFAULT_LAYOUTS[which]}
 	                  buttons={headerButtons}>
@@ -224,11 +245,11 @@ export const PeriodicPanel = (props: {
 				<DataPanelBodyHeaderCell>Occurred Times</DataPanelBodyHeaderCell>
 				<DataPanelBodyHeaderCell>Last Occurred</DataPanelBodyHeaderCell>
 			</DataPanelBodyHeader>
-			{data.length === 0
-				? <DataPanelBodyDataRow columns={GRID_COLUMN_ALL}>
-					<DataPanelBodyNoDataCell>No rule monitored.</DataPanelBodyNoDataCell>
-				</DataPanelBodyDataRow>
-				: data.map((row, index) => {
+			{!loaded
+				? <LoadingRows/>
+				: (data.length === 0
+					? <EmptyState>No rule monitored.</EmptyState>
+					: data.map((row, index) => {
 					return <DataPanelBodyDataRow columns={GRID_COLUMN_ALL} key={index}>
 						<DataPanelBodyDataSeqCell>{index + 1}</DataPanelBodyDataSeqCell>
 						{breakdownCell(row)}
@@ -238,7 +259,7 @@ export const PeriodicPanel = (props: {
 						</DataPanelBodyDataCell>
 						<DataPanelBodyDataCell>{row.lastOccurredTime}</DataPanelBodyDataCell>
 					</DataPanelBodyDataRow>;
-				})}
+				}))}
 		</DataPanelBody>
 	</DataPanel>;
 };

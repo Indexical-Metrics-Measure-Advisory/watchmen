@@ -1,6 +1,6 @@
 import Color from 'color';
 import styled from 'styled-components';
-import {MonitorRuleSeverity} from '@/services/data/data-quality/rule-types';
+import {NEUTRAL_COLOR, SEVERITY_COLORS} from '../../widgets/palette';
 
 export const OverviewContainer = styled.div.attrs({'data-widget': 'quality-overview'})`
 	display               : grid;
@@ -54,14 +54,8 @@ export const OverviewCardNoData = styled.div.attrs({'data-widget': 'quality-over
 	font-size   : 0.9em;
 `;
 
-const SEVERITY_COLORS: Record<string, string> = {
-	[MonitorRuleSeverity.FATAL]: '#d64545',
-	[MonitorRuleSeverity.WARN]: '#d8901f',
-	[MonitorRuleSeverity.TRACE]: '#4d6bfe'
-};
-
 export const SeverityBadge = styled.span.attrs<{ severity: string }>(({severity}) => {
-	const color = SEVERITY_COLORS[severity] || '#7a7a7a';
+	const color = SEVERITY_COLORS[severity] || NEUTRAL_COLOR;
 	return {
 		'data-widget': 'quality-overview-severity-badge',
 		'data-severity': severity,
@@ -86,7 +80,7 @@ export const SeverityCountDot = styled.span.attrs<{ severity: string }>(({severi
 	return {
 		'data-widget': 'quality-overview-severity-count-dot',
 		'data-severity': severity,
-		style: {backgroundColor: SEVERITY_COLORS[severity] || '#7a7a7a'}
+		style: {backgroundColor: SEVERITY_COLORS[severity] || NEUTRAL_COLOR}
 	};
 })<{ severity: string }>`
 	display       : inline-block;

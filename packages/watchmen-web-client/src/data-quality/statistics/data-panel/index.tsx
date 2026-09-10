@@ -28,7 +28,7 @@ export interface AdditionalDataPanelHeaderButton {
 
 export const DataPanel = (props: {
 	which: DataPanels;
-	title: string;
+	title: ReactNode;
 	layout: DataPanelLayout;
 	defaultLayout: DataPanelLayout;
 	buttons?: Array<AdditionalDataPanelHeaderButton>;

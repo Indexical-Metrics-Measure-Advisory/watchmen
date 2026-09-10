@@ -3,9 +3,10 @@ import {InputLines} from '@/widgets/basic/input-lines';
 import {TooltipButton} from '@/widgets/basic/tooltip-button';
 import {TupleSearchBarContainer} from '@/widgets/tuple-workbench/tuple-search-bar/widgets';
 import styled from 'styled-components';
+import {EmptyState} from '../widgets/kpi';
 
 export const TagSearchBarContainer = styled(TupleSearchBarContainer)`
-	margin : var(--margin) calc(var(--margin) / 2) calc(var(--margin) / 2);
+	margin : calc(var(--margin) / 2);
 `;
 
 export const TagCardGrid = styled.div.attrs({'data-widget': 'tag-card-grid'})`
@@ -17,19 +18,12 @@ export const TagCardGrid = styled.div.attrs({'data-widget': 'tag-card-grid'})`
 	grid-template-columns : repeat(3, calc((100% - var(--margin)) / 3));
 	grid-column-gap       : calc(var(--margin) / 2);
 	grid-row-gap          : calc(var(--margin) / 2);
-	padding               : 0 calc(var(--margin) / 2) var(--margin);
+	padding               : 0 calc(var(--margin) / 2) calc(var(--margin) / 2);
 `;
 
-export const TagNoData = styled.div.attrs({'data-widget': 'tag-no-data'})`
-	display         : flex;
-	align-items     : center;
-	justify-content : center;
-	padding         : var(--margin) 0;
-	grid-column     : span 3;
-	font-family     : var(--title-font-family);
-	font-weight     : var(--font-demi-bold);
-	font-size       : 1.4em;
-	opacity         : 0.5;
+export const TagNoData = styled(EmptyState).attrs({'data-widget': 'tag-no-data'})`
+	grid-column : span 3;
+	padding     : var(--margin) 0;
 `;
 
 export const TagCardColorDot = styled.div.attrs({'data-widget': 'tag-card-color-dot'})<{ $color: string }>`

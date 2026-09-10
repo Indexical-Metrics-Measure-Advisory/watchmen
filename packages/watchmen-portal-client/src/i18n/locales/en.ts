@@ -67,6 +67,11 @@ const en = {
 			subtitle: "Monitor Client",
 			description: "Monitor platform health, manage alerts, and automate operations",
 		},
+		dqc: {
+			title: "Data Quality",
+			subtitle: "Web Client",
+			description: "Define quality monitoring rules, track quality metrics, and improve overall data quality",
+		},
 	},
 };
 

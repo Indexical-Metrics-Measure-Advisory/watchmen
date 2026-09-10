@@ -13,30 +13,34 @@ import {ButtonInk} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import React, {useEffect, useRef, useState} from 'react';
+import {EmptyState, LoadingRows} from '../widgets/kpi';
+import {PII_LEVEL_COLORS, PIPELINE_COLOR} from '../widgets/palette';
 import {
+	PiiAccentCard,
 	PiiCard,
+	PiiCardHint,
 	PiiCardTitle,
 	PiiCardTitleBadge,
 	PiiChartBox,
 	PiiColumns,
+	PiiDangerCard,
+	PiiDot,
 	PiiKpiLabel,
 	PiiKpiRow,
 	PiiKpiSubtext,
 	PiiKpiValue,
 	PiiLevelBadge,
 	PiiMonoText,
-	PiiNoData,
 	PiiProgress,
 	PiiProgressFill,
+	PiiProgressRow,
 	PiiProgressText,
 	PiiTable,
+	PiiTableScroll,
+	PiiTermListRow,
 	PiiToolbar,
 	PiiToolbarPlaceholder
 } from './widgets';
-
-const COLOR_LEVEL_1 = 'rgb(222,89,99)';
-const COLOR_LEVEL_2 = 'rgb(255,161,0)';
-const COLOR_PRIMARY = 'rgb(13,115,119)';
 
 const useChart = (build: (instance: EChartsType) => void, deps: Array<any>) => {
 	const chartRef = useRef<HTMLDivElement>(null);
@@ -75,7 +79,7 @@ export const PiiReportTab = () => {
 			return {
 				name: PII_SENSITIVITY_LEVEL_LABELS[level] ?? level,
 				value: dashboard!.bySensitivityLevel[level],
-				itemStyle: {color: level === PiiSensitivityLevel.LEVEL_1 ? COLOR_LEVEL_1 : COLOR_LEVEL_2}
+				itemStyle: {color: PII_LEVEL_COLORS[level] ?? PII_LEVEL_COLORS[PiiSensitivityLevel.LEVEL_2]}
 			};
 		});
 		instance.setOption({
@@ -104,14 +108,14 @@ export const PiiReportTab = () => {
 			series: [{
 				type: 'bar',
 				data: categories.map(c => byCategory[c]),
-				itemStyle: {color: COLOR_PRIMARY, borderRadius: [0, 4, 4, 0]},
+				itemStyle: {color: PIPELINE_COLOR, borderRadius: [0, 4, 4, 0]},
 				label: {show: true, position: 'right', fontSize: 10}
 			}]
 		}, {notMerge: true});
 	}, [dashboard]);
 
 	if (dashboard == null) {
-		return <PiiNoData>Loading...</PiiNoData>;
+		return <LoadingRows rows={6}/>;
 	}
 
 	const terms = dashboard.terms ?? [];
@@ -122,6 +126,8 @@ export const PiiReportTab = () => {
 	const level1Plaintext = terms
 		.filter(t => t.sensitivityLevel === PiiSensitivityLevel.LEVEL_1)
 		.reduce((sum, t) => sum + (t.plaintextFactorCount ?? 0), 0);
+	const highRiskTerms = dashboard.highRiskTerms ?? [];
+	const topImpactTerms = (dashboard.topImpactTerms ?? []).slice(0, 5);
 
 	const onExport = (format: 'csv' | 'xlsx') => () => {
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
@@ -178,17 +184,17 @@ export const PiiReportTab = () => {
 				<PiiCard>
 					<PiiCardTitle>Term Overview</PiiCardTitle>
 					{terms.length === 0
-						? <PiiNoData>No terms.</PiiNoData>
-						: <div style={{overflowX: 'auto'}}>
+						? <EmptyState>No terms.</EmptyState>
+						: <PiiTableScroll>
 							<PiiTable>
 								<thead>
 									<tr>
 										<th>Term</th>
 										<th>Level</th>
 										<th>Category</th>
-										<th style={{textAlign: 'right'}}>Factors</th>
-										<th style={{textAlign: 'right'}}>Topics</th>
-										<th style={{textAlign: 'right'}}>Pipelines</th>
+										<th data-numeric={true}>Factors</th>
+										<th data-numeric={true}>Topics</th>
+										<th data-numeric={true}>Pipelines</th>
 										<th>Encryption</th>
 									</tr>
 								</thead>
@@ -204,49 +210,63 @@ export const PiiReportTab = () => {
 												</PiiLevelBadge>
 											</td>
 											<td>{asPiiCategoryLabel(term.category)}</td>
-											<td style={{textAlign: 'right'}}><PiiMonoText>{term.linkedFactorCount}</PiiMonoText></td>
-											<td style={{textAlign: 'right'}}><PiiMonoText>{term.topicCount}</PiiMonoText></td>
-											<td style={{textAlign: 'right'}}><PiiMonoText>{term.pipelineCount}</PiiMonoText></td>
+											<td data-numeric={true}><PiiMonoText>{term.linkedFactorCount}</PiiMonoText></td>
+											<td data-numeric={true}><PiiMonoText>{term.topicCount}</PiiMonoText></td>
+											<td data-numeric={true}><PiiMonoText>{term.pipelineCount}</PiiMonoText></td>
 											<td>
-												<div style={{display: 'flex', alignItems: 'center'}}>
-													<PiiProgress style={{width: 60}}>
+												<PiiProgressRow>
+													<PiiProgress>
 														<PiiProgressFill percent={rate} warn={rate < 75}/>
 													</PiiProgress>
 													<PiiProgressText>{rate}%</PiiProgressText>
-												</div>
+												</PiiProgressRow>
 											</td>
 										</tr>;
 									})}
 								</tbody>
 							</PiiTable>
-						</div>}
+						</PiiTableScroll>}
 				</PiiCard>
-				<PiiCard style={{borderLeft: '3px solid var(--danger-color)'}}>
-					<PiiCardTitle>
-						High-Risk Terms
-						<PiiCardTitleBadge style={{backgroundColor: 'var(--danger-color)'}}>
-							{(dashboard.highRiskTerms ?? []).length}
-						</PiiCardTitleBadge>
-					</PiiCardTitle>
-					<div style={{fontSize: '0.9em', opacity: 0.75, marginBottom: 8}}>
-						Level 1 terms with unencrypted factors. Handle with priority.
-					</div>
-					{(dashboard.highRiskTerms ?? []).length === 0
-						? <PiiNoData>None</PiiNoData>
-						: dashboard.highRiskTerms.map(term => {
-							return <div key={term.termId ?? term.termName}
-							            style={{display: 'flex', alignItems: 'center', padding: '4px 0'}}>
-								<span style={{
-									width: 8, height: 8, borderRadius: 4,
-									backgroundColor: 'var(--danger-color)', marginRight: 8
-								}}/>
-								<span>{term.termName}</span>
-								<PiiMonoText style={{marginLeft: 'auto', opacity: 0.75}}>
-									{term.plaintextFactorCount} factor(s)
-								</PiiMonoText>
-							</div>;
-						})}
-				</PiiCard>
+				<PiiColumns ratio="1fr 1fr">
+					<PiiDangerCard>
+						<PiiCardTitle>
+							High-Risk Terms
+							<PiiCardTitleBadge danger>{highRiskTerms.length}</PiiCardTitleBadge>
+						</PiiCardTitle>
+						<PiiCardHint>
+							Level 1 terms with unencrypted factors. Handle with priority.
+						</PiiCardHint>
+						{highRiskTerms.length === 0
+							? <EmptyState>None</EmptyState>
+							: highRiskTerms.map(term => {
+								return <PiiTermListRow key={term.termId ?? term.termName}>
+									<PiiDot color="var(--danger-color)"/>
+									<span>{term.termName}</span>
+									<PiiMonoText>{term.plaintextFactorCount} factor(s)</PiiMonoText>
+								</PiiTermListRow>;
+							})}
+					</PiiDangerCard>
+					<PiiAccentCard>
+						<PiiCardTitle>
+							Top Impact Terms
+							<PiiCardTitleBadge>{topImpactTerms.length}</PiiCardTitleBadge>
+						</PiiCardTitle>
+						<PiiCardHint>
+							Terms linked to the most factors, topics and pipelines.
+						</PiiCardHint>
+						{topImpactTerms.length === 0
+							? <EmptyState>None</EmptyState>
+							: topImpactTerms.map(term => {
+								return <PiiTermListRow key={term.termId ?? term.termName}>
+									<PiiDot color="var(--primary-color)"/>
+									<span>{term.termName}</span>
+									<PiiMonoText>
+										{term.linkedFactorCount} factor(s) · {term.topicCount} topic(s) · {term.pipelineCount} pipeline(s)
+									</PiiMonoText>
+								</PiiTermListRow>;
+							})}
+					</PiiAccentCard>
+				</PiiColumns>
 			</div>
 		</PiiColumns>
 	</>;

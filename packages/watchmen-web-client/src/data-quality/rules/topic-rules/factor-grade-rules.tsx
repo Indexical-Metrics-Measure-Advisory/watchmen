@@ -2,6 +2,7 @@ import {MonitorRule, MonitorRuleOnFactor, MonitorRules, TopicRuleDefs} from '@/s
 import {isRuleOnFactor} from '@/services/data/data-quality/rules';
 import {Topic} from '@/services/data/tuples/topic-types';
 import React, {useEffect} from 'react';
+import {EmptyState} from '../../widgets/kpi';
 import {useRulesEventBus} from '../rules-event-bus';
 import {RulesEventTypes} from '../rules-event-bus-types';
 import {transformRuleDefsToDisplay} from '../utils';
@@ -54,6 +55,9 @@ export const FactorGradeRules = (props: { topic: Topic; rules: MonitorRules }) =
 	}).length;
 
 	return <>
+		{Object.keys(ruleMap).length === 0
+			? <EmptyState>No factor rules defined yet.</EmptyState>
+			: null}
 		<FactorRulesRows topic={topic} topicDefsCount={topicDefsCount} ruleMap={ruleMap}/>
 		<AddFactorRules topic={topic} topicDefsCount={topicDefsCount} ruleMap={ruleMap}/>
 	</>;

@@ -1,6 +1,8 @@
 import {echarts, EChartsType} from '@/widgets/basic/echarts';
+import Color from 'color';
 import React, {useEffect, useMemo, useRef} from 'react';
 import styled from 'styled-components';
+import {ACCENT_COLOR, CHART_SPLIT_COLOR, NEUTRAL_COLOR} from '../../widgets/palette';
 import {DIMENSION_LABELS, DimensionScore} from './quality-dimensions';
 import {OverviewCard, OverviewCardBody, OverviewCardHeader, OverviewCardNoData} from './widgets';
 
@@ -8,9 +10,6 @@ const RadarWrapper = styled.div.attrs({'data-widget': 'quality-dimension-radar'}
 	width  : 100%;
 	height : 240px;
 `;
-
-const ACCENT = '#4d6bfe';
-const NEUTRAL = 'rgba(127,127,127,0.5)';
 
 /** Five-dimension quality radar (0-100 on every axis). */
 export const DimensionRadarCard = (props: { dimensions: Array<DimensionScore> }) => {
@@ -40,9 +39,9 @@ export const DimensionRadarCard = (props: { dimensions: Array<DimensionScore> })
 				center: ['50%', '54%'],
 				radius: '62%',
 				splitNumber: 4,
-				axisName: {color: NEUTRAL, fontSize: 11},
-				axisLine: {lineStyle: {color: 'rgba(127,127,127,0.35)'}},
-				splitLine: {lineStyle: {color: 'rgba(127,127,127,0.3)'}},
+				axisName: {color: NEUTRAL_COLOR, fontSize: 11},
+				axisLine: {lineStyle: {color: CHART_SPLIT_COLOR}},
+				splitLine: {lineStyle: {color: CHART_SPLIT_COLOR}},
 				splitArea: {show: false}
 			},
 			series: [{
@@ -51,9 +50,9 @@ export const DimensionRadarCard = (props: { dimensions: Array<DimensionScore> })
 				data: [{
 					value: scored.map(dimension => dimension.score),
 					name: 'Score',
-					itemStyle: {color: ACCENT},
-					lineStyle: {color: ACCENT, width: 2},
-					areaStyle: {color: 'rgba(77,107,254,0.25)'}
+					itemStyle: {color: ACCENT_COLOR},
+					lineStyle: {color: ACCENT_COLOR, width: 2},
+					areaStyle: {color: Color(ACCENT_COLOR).alpha(0.25).string()}
 				}]
 			}]
 		}, true);

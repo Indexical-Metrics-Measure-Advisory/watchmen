@@ -72,6 +72,24 @@ export const DataPanelHeaderButton = styled(TooltipButton)`
 	width   : var(--height);
 	padding : 0;
 `;
+export const DataPanelBreadcrumb = styled.div.attrs({'data-widget': 'data-panel-breadcrumb'})`
+	display     : flex;
+	align-items : center;
+	min-width   : 0;
+	overflow    : hidden;
+	white-space : nowrap;
+`;
+export const DataPanelBreadcrumbLink = styled.span.attrs({'data-widget': 'data-panel-breadcrumb-link'})`
+	color  : var(--primary-color);
+	cursor : pointer;
+	&:hover {
+		text-decoration : underline;
+	}
+`;
+export const DataPanelBreadcrumbSeparator = styled.span.attrs({'data-widget': 'data-panel-breadcrumb-separator'})`
+	margin  : 0 calc(var(--margin) / 4);
+	opacity : 0.5;
+`;
 export const DataPanelBody = styled.div.attrs({
 	'data-widget': 'data-panel-body',
 	'data-v-scroll': ''

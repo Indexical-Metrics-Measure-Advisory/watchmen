@@ -3,6 +3,7 @@ import {
   Database,
   BarChart3,
   Server,
+  ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -64,6 +65,15 @@ export const portalModules: PortalModule[] = [
     status: 'available',
     url: '/monitor/',
     requiredRoles: ['admin', 'superadmin'],
+    excludedRoles: ['superadmin'],
+  },
+  {
+    id: 'dqc',
+    icon: ShieldCheck,
+    status: 'available',
+    url: '/dqc/',
+    // The web client's DQC pages require admin and redirect superadmin away
+    requiredRoles: ['admin'],
     excludedRoles: ['superadmin'],
   },
   // {

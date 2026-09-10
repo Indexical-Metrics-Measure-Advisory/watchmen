@@ -19,6 +19,7 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import React, {useEffect, useState} from 'react';
+import {EmptyState} from '../widgets/kpi';
 import {
 	PiiCheckList,
 	PiiCheckListItem,
@@ -31,7 +32,6 @@ import {
 	PiiEditorTextarea,
 	PiiEditorTitle,
 	PiiLevelBadge,
-	PiiNoData,
 	PiiTag,
 	PiiTermCard,
 	PiiTermCardActions,
@@ -230,7 +230,7 @@ export const PiiTermsTab = (props: {
 			<Button ink={ButtonInk.PRIMARY} onClick={onCreate}>New Term</Button>
 		</PiiToolbar>
 		{filtered.length === 0
-			? <PiiNoData>No terms found.</PiiNoData>
+			? <EmptyState>No terms found.</EmptyState>
 			: <PiiTermGrid>{filtered.map(renderCard)}</PiiTermGrid>}
 		{editing != null
 			? <PiiEditorOverlay onClick={(e) => {
@@ -268,7 +268,7 @@ export const PiiTermsTab = (props: {
 						<PiiEditorLabel>{Lang.PII.RELATED_TOPICS}</PiiEditorLabel>
 						<PiiCheckList>
 							{topics.length === 0
-								? <PiiNoData>{Lang.PLAIN.LOADING}</PiiNoData>
+								? <EmptyState>{Lang.PLAIN.LOADING}</EmptyState>
 								: topics.map(topic => {
 									return <PiiCheckListItem key={topic.topicId}
 									                         onClick={() => onTopicToggled(topic.topicId)}>

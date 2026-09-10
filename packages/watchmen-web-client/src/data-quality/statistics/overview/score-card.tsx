@@ -1,14 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
+import {CHART_SPLIT_COLOR, NEUTRAL_COLOR, SCORE_BAND_COLORS} from '../../widgets/palette';
 import {ScoreBand} from './quality-dimensions';
 import {OverviewCard, OverviewCardBody, OverviewCardHeader} from './widgets';
-
-const BAND_COLORS: Record<ScoreBand, string> = {
-	excellent: '#2e9e63',
-	good: '#4d6bfe',
-	fair: '#d8901f',
-	poor: '#d64545'
-};
 
 const BAND_LABELS: Record<ScoreBand, string> = {
 	excellent: 'Excellent',
@@ -81,7 +75,7 @@ export const ScoreCard = (props: {
 }) => {
 	const {score, band, previousScore, hint} = props;
 
-	const color = band ? BAND_COLORS[band] : (void 0);
+	const color = band ? SCORE_BAND_COLORS[band] : (void 0);
 	const progress = score !== null ? Math.max(0, Math.min(100, score)) / 100 : 0;
 	const delta = (score !== null && previousScore != null)
 		? Math.round((score - previousScore) * 10) / 10
@@ -97,7 +91,7 @@ export const ScoreCard = (props: {
 				<ScoreRing size={SIZE}>
 					<svg width={SIZE} height={SIZE} style={{transform: 'rotate(-90deg)'}}>
 						<circle cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} fill="none"
-						        stroke="rgba(127,127,127,0.2)" strokeWidth={STROKE}/>
+						        stroke={CHART_SPLIT_COLOR} strokeWidth={STROKE}/>
 						{score !== null ? <circle cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} fill="none"
 						                          stroke={color} strokeWidth={STROKE} strokeLinecap="round"
 						                          strokeDasharray={CIRCUMFERENCE}
@@ -113,7 +107,7 @@ export const ScoreCard = (props: {
 					</ScoreRingCenter>
 				</ScoreRing>
 				{delta !== null
-					? <ScoreDelta color={delta > 0 ? '#2e9e63' : (delta < 0 ? '#d64545' : '#7a7a7a')}>
+					? <ScoreDelta color={delta > 0 ? SCORE_BAND_COLORS.excellent : (delta < 0 ? SCORE_BAND_COLORS.poor : NEUTRAL_COLOR)}>
 						{delta > 0 ? '▲' : (delta < 0 ? '▼' : '■')} {delta > 0 ? `+${delta.toFixed(1)}` : delta.toFixed(1)} vs previous period
 					</ScoreDelta>
 					: null}

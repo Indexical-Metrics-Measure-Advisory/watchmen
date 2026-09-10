@@ -11,11 +11,14 @@ import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {Fragment, useEffect, useState} from 'react';
 import {getTopicName} from '../utils';
+import {EmptyState} from '../widgets/kpi';
 import {GlobalRules} from './global-rules';
+import {RulesOverview} from './overview';
 import {useRulesEventBus} from './rules-event-bus';
 import {RulesEventTypes} from './rules-event-bus-types';
 import {TopicRules} from './topic-rules';
 import {
+	OverviewContainer,
 	SearchResultBody,
 	SearchResultContainer,
 	SearchResultHeader,
@@ -28,6 +31,7 @@ interface State {
 	grade: MonitorRuleGrade.GLOBAL | MonitorRuleGrade.TOPIC;
 	topic?: Topic;
 	rules: MonitorRules;
+	loaded: boolean;
 }
 
 const useRuleChanged = (topic?: Topic) => {
@@ -169,7 +173,7 @@ const EmptyResult = () => {
 export const SearchResult = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {fire, on, off} = useRulesEventBus();
-	const [state, setState] = useState<State>({grade: MonitorRuleGrade.TOPIC, rules: []});
+	const [state, setState] = useState<State>({grade: MonitorRuleGrade.TOPIC, rules: [], loaded: false});
 	useEffect(() => {
 		const onSearch = async (criteria: MonitorRulesCriteria, topic?: Topic) => {
 			fire(RulesEventTypes.ASK_RULE_CHANGED, (changed) => {
@@ -179,14 +183,14 @@ export const SearchResult = () => {
 						() => {
 							fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 								async () => await fetchMonitorRules({criteria}),
-								(data: MonitorRules) => setState({grade: criteria.grade, topic, rules: data}));
+								(data: MonitorRules) => setState({grade: criteria.grade, topic, rules: data, loaded: true}));
 							fireGlobal(EventTypes.HIDE_DIALOG);
 						},
 						() => fireGlobal(EventTypes.HIDE_DIALOG));
 				} else {
 					fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 						async () => await fetchMonitorRules({criteria}),
-						(data: MonitorRules) => setState({grade: criteria.grade, topic, rules: data}));
+						(data: MonitorRules) => setState({grade: criteria.grade, topic, rules: data, loaded: true}));
 				}
 			});
 		};
@@ -210,11 +214,18 @@ export const SearchResult = () => {
 	const onTopic = state.grade === MonitorRuleGrade.TOPIC;
 	if (onTopic && state.topic == null) {
 		return <SearchResultContainer>
+			<OverviewContainer>
+				<RulesOverview rules={state.rules} loaded={state.loaded}/>
+			</OverviewContainer>
+			<EmptyState>Pick a topic, then click Find to load its rules.</EmptyState>
 			<EmptyResult/>
 		</SearchResultContainer>;
 	}
 
 	return <SearchResultContainer>
+		<OverviewContainer>
+			<RulesOverview rules={state.rules} loaded={state.loaded}/>
+		</OverviewContainer>
 		{onTopic
 			? <TopicResultHeader topic={state.topic!} rules={state.rules}/>
 			: <GlobalResultHeader rules={state.rules}/>}

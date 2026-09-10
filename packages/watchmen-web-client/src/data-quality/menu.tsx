@@ -91,8 +91,7 @@ export const DataQualityMenu = () => {
 		<SideMenuLogo title="Data Quality Center"/>
 		<SideMenuItem icon={ICON_HOME} label="Home" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.DQC_HOME}, location.pathname)}
-		              onClick={navigateTo(Router.DQC_HOME)}
-		              visible={false}/>
+		              onClick={navigateTo(Router.DQC_HOME)}/>
 		<SideMenuItem icon={ICON_STATISTICS} label="Run Statistics" showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.DQC_STATISTICS}, location.pathname)}
 		              onClick={navigateTo(Router.DQC_STATISTICS)}/>

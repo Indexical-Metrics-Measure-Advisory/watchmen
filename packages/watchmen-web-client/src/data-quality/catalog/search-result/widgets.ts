@@ -1,3 +1,4 @@
+import {MonitorRuleSeverity} from '@/services/data/data-quality/rule-types';
 import styled from 'styled-components';
 
 export const SearchResultContainer = styled.div.attrs({'data-widget': 'catalog-result'})`
@@ -12,7 +13,7 @@ export const SearchResultTargetLabel = styled.div.attrs({'data-widget': 'catalog
 	font-weight   : var(--font-bold);
 	font-variant  : petite-caps;
 	height        : 40px;
-	padding       : 0 var(--margin);
+	padding       : 0 calc(var(--margin) / 2);
 	border-bottom : var(--border);
 	> span:first-child {
 		flex-grow : 1;
@@ -75,7 +76,7 @@ export const CatalogCardContainer = styled.div.attrs({'data-widget': 'catalog-ca
 		cursor : default;
 	}
 	&[data-changed=true] {
-		border-left : 3px solid var(--primary-color, #1890ff);
+		border-left : 3px solid var(--primary-color);
 	}
 `;
 // Card title
@@ -155,6 +156,30 @@ export const CatalogEditLabel = styled.div`
 	font-variant : petite-caps;
 	font-weight  : var(--font-demi-bold);
 	height       : var(--height);
+`;
+// associated rules list (expanded card)
+export const CatalogRuleRow = styled.div.attrs({'data-widget': 'catalog-rule-row'})`
+	display     : flex;
+	align-items : center;
+	grid-gap    : 8px;
+	padding     : 4px 0;
+`;
+export const CatalogRuleDot = styled.div.attrs<{ severity?: string }>(({severity}) => {
+	return {
+		'data-widget': 'catalog-rule-dot',
+		style: {
+			backgroundColor: severity === MonitorRuleSeverity.FATAL ? 'var(--danger-color)'
+				: severity === MonitorRuleSeverity.WARN ? 'var(--warn-color)'
+					: 'var(--hover-color)'
+		}
+	};
+})<{ severity?: string }>`
+	width : 4px;
+	height : 20px;
+`;
+export const CatalogRuleState = styled.span.attrs({'data-widget': 'catalog-rule-state'})`
+	font-size : 12px;
+	opacity   : 0.6;
 `;
 export const CatalogEditButtons = styled.div`
 	display               : grid;

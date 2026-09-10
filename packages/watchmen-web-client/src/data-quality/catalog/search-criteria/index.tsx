@@ -18,7 +18,7 @@ import {useDataQualityCacheData} from '../../cache/use-cache-data';
 import {useCatalogEventBus} from '../catalog-event-bus';
 import {CatalogEventTypes} from '../catalog-event-bus-types';
 import {useUserData} from '../user-cache/use-user-data';
-import {TagPicker} from '@/data-quality/widgets/tag-picker';
+import {TagPicker} from '../../widgets/tag-picker';
 import {SearchCriteriaButtons, SearchCriteriaContainer, SearchLabel} from './widgets';
 
 interface StateDataHolder {

@@ -6,6 +6,7 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
+import {EmptyState} from '../../widgets/kpi';
 import {useCatalogEventBus} from '../catalog-event-bus';
 import {CatalogEventTypes} from '../catalog-event-bus-types';
 import {CatalogCard} from './catalog';
@@ -94,7 +95,7 @@ export const SearchResult = () => {
 					<span>Loading...</span>
 				</NoData>
 				: (catalogs.length === 0
-					? <NoData>No catalogs found.</NoData>
+					? <EmptyState>No catalogs found.</EmptyState>
 					: <CatalogCardGrid>
 						{catalogs.map((catalog, index) => {
 							return <CatalogCard catalog={catalog} index={index + 1} key={catalog.catalogId}/>;

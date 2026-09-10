@@ -68,6 +68,11 @@ const zhTW: TranslationKeys = {
 			subtitle: "Monitor Client",
 			description: "監控平台健康狀態，管理告警並實現維運自動化",
 		},
+		dqc: {
+			title: "資料品質",
+			subtitle: "Web Client",
+			description: "定義品質監控規則，追蹤品質指標，全面提升資料品質",
+		},
 	},
 };
 

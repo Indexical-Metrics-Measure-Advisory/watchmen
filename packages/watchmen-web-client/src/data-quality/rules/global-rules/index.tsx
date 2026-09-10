@@ -7,6 +7,7 @@ import {
 } from '@/services/data/data-quality/rule-types';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import React from 'react';
+import {SectionCard} from '../../widgets/kpi';
 import {RuleParameters} from '../parameters';
 import {useEnabledAndSeverity} from '../use-enabled-and-severity';
 import {prepareRuleParams, SeverityOptions, transformRuleDefsToDisplay} from '../utils';
@@ -20,7 +21,7 @@ export const GlobalRules = (props: { rules: MonitorRules }) => {
 
 	const defs = transformRuleDefsToDisplay(GlobalRuleDefs);
 
-	return <>
+	return <SectionCard title="Global Rules" badge={rules.length}>
 		{defs.map((def, index) => {
 			const rule = rules.find(({code}) => code === def.code)
 				?? prepareRuleParams({
@@ -43,5 +44,5 @@ export const GlobalRules = (props: { rules: MonitorRules }) => {
 				</GlobalRuleCell>
 			</GlobalRuleRow>;
 		})}
-	</>;
+	</SectionCard>;
 };

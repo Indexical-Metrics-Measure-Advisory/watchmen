@@ -1,3 +1,4 @@
+import {PiiSensitivityLevel} from '@/services/data/data-quality/pii-types';
 import styled from 'styled-components';
 
 export const PiiBody = styled.div.attrs({'data-widget': 'pii-body'})`
@@ -87,8 +88,8 @@ export const PiiLevelBadge = styled.span.attrs<{ level?: string }>(({level}) => 
 	return {
 		'data-widget': 'pii-level-badge',
 		style: {
-			color: level === '1级' ? 'var(--danger-color)' : 'var(--warn-color)',
-			borderColor: level === '1级' ? 'var(--danger-color)' : 'var(--warn-color)'
+			color: level === PiiSensitivityLevel.LEVEL_1 ? 'var(--danger-color)' : 'var(--warn-color)',
+			borderColor: level === PiiSensitivityLevel.LEVEL_1 ? 'var(--danger-color)' : 'var(--warn-color)'
 		}
 	};
 })<{ level?: string }>`
@@ -154,6 +155,10 @@ export const PiiProgress = styled.div.attrs({'data-widget': 'pii-progress'})`
 	border-radius    : 3px;
 	background-color : var(--hover-color);
 	overflow         : hidden;
+`;
+export const PiiProgressRow = styled.div.attrs({'data-widget': 'pii-progress-row'})`
+	display     : flex;
+	align-items : center;
 `;
 export const PiiProgressFill = styled.div.attrs<{ percent: number; warn?: boolean }>(({percent, warn = false}) => {
 	return {
@@ -274,6 +279,14 @@ export const PiiTable = styled.table.attrs({'data-widget': 'pii-table'})`
 		/* theme-neutral striping; tooltip-bg-color inverts in dark mode and hides text */
 		background-color : rgba(128, 128, 128, 0.1);
 	}
+	> thead > tr > th[data-numeric=true],
+	> tbody > tr > td[data-numeric=true] {
+		text-align : right;
+	}
+`;
+export const PiiTableScroll = styled.div.attrs({'data-widget': 'pii-table-scroll'})`
+	width      : 100%;
+	overflow-x : auto;
 `;
 export const PiiMonoText = styled.span.attrs({'data-widget': 'pii-mono-text'})`
 	font-family : var(--code-font-family);
@@ -302,7 +315,12 @@ export const PiiCardTitle = styled.div.attrs({'data-widget': 'pii-card-title'})`
 	font-variant   : petite-caps;
 	margin-bottom  : calc(var(--margin) / 3);
 `;
-export const PiiCardTitleBadge = styled.span.attrs({'data-widget': 'pii-card-title-badge'})`
+export const PiiCardTitleBadge = styled.span.attrs<{ danger?: boolean }>(({danger = false}) => {
+	return {
+		'data-widget': 'pii-card-title-badge',
+		style: {backgroundColor: danger ? 'var(--danger-color)' : (void 0)}
+	};
+})<{ danger?: boolean }>`
 	display          : inline-flex;
 	align-items      : center;
 	justify-content  : center;
@@ -359,6 +377,39 @@ export const PiiColumns = styled.div.attrs<{ ratio?: string }>(({ratio = '3fr 2f
 	@media (max-width: 1200px) {
 		grid-template-columns : 1fr !important;
 	}
+`;
+export const PiiDangerCard = styled(PiiCard).attrs({'data-widget': 'pii-danger-card'})`
+	border-left : 3px solid var(--danger-color);
+`;
+export const PiiAccentCard = styled(PiiCard).attrs({'data-widget': 'pii-accent-card'})`
+	border-left : 3px solid var(--primary-color);
+`;
+export const PiiCardHint = styled.div.attrs({'data-widget': 'pii-card-hint'})`
+	font-size     : 0.9em;
+	opacity       : 0.75;
+	margin-bottom : 8px;
+`;
+export const PiiTermListRow = styled.div.attrs({'data-widget': 'pii-term-list-row'})`
+	display     : flex;
+	align-items : center;
+	padding     : 6px 0;
+	&:not(:last-child) {
+		border-bottom : var(--border);
+	}
+	> span:last-child {
+		font-size   : 0.85em;
+		opacity     : 0.75;
+		margin-left : auto;
+	}
+`;
+export const PiiDot = styled.span.attrs<{ color?: string }>(({color}) => {
+	return {'data-widget': 'pii-dot', style: {backgroundColor: color}};
+})<{ color?: string }>`
+	width         : 8px;
+	height        : 8px;
+	border-radius : 50%;
+	margin-right  : 8px;
+	flex-shrink   : 0;
 `;
 
 // ——— notes ———

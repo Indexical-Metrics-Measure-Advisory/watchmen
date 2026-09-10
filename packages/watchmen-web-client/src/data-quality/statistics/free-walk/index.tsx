@@ -16,6 +16,7 @@ import {DataQualityCacheEventTypes} from '../../cache/cache-event-bus-types';
 import {DQCCacheData} from '../../cache/types';
 import {RuleDefs} from '../../rule-defs';
 import {getTopicName} from '../../utils';
+import {EmptyState, LoadingRows} from '../../widgets/kpi';
 import {DEFAULT_LAYOUTS} from '../constants';
 import {StatsChart} from '../chart';
 import {DataPanel} from '../data-panel';
@@ -28,7 +29,6 @@ import {
 	DataPanelBodyHeader,
 	DataPanelBodyHeaderCell,
 	DataPanelBodyHeaderSeqCell,
-	DataPanelBodyNoDataCell,
 	HorizontalValue,
 	HorizontalValueBar
 } from '../data-panel/widgets';
@@ -57,6 +57,7 @@ export const FreeWalkPanel = () => {
 		endDate: dayjs().startOf('date').subtract(1, 'millisecond').format('YYYY/MM/DD HH:mm:ss')
 	});
 	const [data, setData] = useState<Array<MonitorRuleLog>>([]);
+	const [loaded, setLoaded] = useState(false);
 
 	const debounceRef = useRef<number | null>(null);
 
@@ -80,12 +81,14 @@ export const FreeWalkPanel = () => {
 			window.clearTimeout(debounceRef.current);
 		}
 		debounceRef.current = window.setTimeout(() => {
+			setLoaded(false);
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 				async () => await fetchMonitorRuleLogs({criteria: c}),
 				(logs: MonitorRuleLogs) => {
 					setData(logs.sort((r1, r2) => {
 						return r1.count === r2.count ? 0 : (r1.count < r2.count) ? 1 : -1;
 					}));
+					setLoaded(true);
 				});
 		}, 300);
 	}, [fireGlobal]);
@@ -193,11 +196,11 @@ export const FreeWalkPanel = () => {
 				<DataPanelBodyHeaderCell>Occurred Times</DataPanelBodyHeaderCell>
 				<DataPanelBodyHeaderCell>Last Occurred</DataPanelBodyHeaderCell>
 			</DataPanelBodyHeader>
-			{data.length === 0
-				? <DataPanelBodyDataRow columns={gridColumns}>
-					<DataPanelBodyNoDataCell>No rule monitored.</DataPanelBodyNoDataCell>
-				</DataPanelBodyDataRow>
-				: data.map((row, index) => {
+			{!loaded
+				? <LoadingRows/>
+				: (data.length === 0
+					? <EmptyState>No rule monitored.</EmptyState>
+					: data.map((row, index) => {
 					const {ruleCode, topicId, factorId} = row;
 					const ruleName = RuleDefs[ruleCode].name;
 					const topic = topicId ? topicMap[topicId] : (void 0);
@@ -220,7 +223,7 @@ export const FreeWalkPanel = () => {
 						</DataPanelBodyDataCell>
 						<DataPanelBodyDataCell>{row.lastOccurredTime}</DataPanelBodyDataCell>
 					</DataPanelBodyDataRow>;
-				})}
+				}))}
 		</DataPanelBody>
 	</DataPanel>;
 };

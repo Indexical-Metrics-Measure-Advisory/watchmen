@@ -5,7 +5,7 @@ export const SearchCriteriaContainer = styled.div.attrs({'data-widget': 'catalog
 	grid-template-columns : auto 1fr auto 1fr 1fr;
 	grid-column-gap       : var(--margin);
 	grid-row-gap          : calc(var(--margin) / 4);
-	padding               : calc(var(--margin) / 4) var(--margin);
+	padding               : calc(var(--margin) / 4) calc(var(--margin) / 2);
 	border-bottom         : var(--border);
 	align-items           : center;
 `;
