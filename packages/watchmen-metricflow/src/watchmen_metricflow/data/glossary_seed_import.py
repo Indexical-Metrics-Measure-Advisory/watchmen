@@ -12,8 +12,9 @@ logger = logging.getLogger(__name__)
 
 def import_glossary_seed_data(tenant_id: str = '1') -> None:
 	"""
-	Import glossary seed data into the database if the table is empty.
-	Called during application startup or by a CLI script.
+	Import glossary seed data into the database.
+	Idempotent per bundle: bundles that already exist (by glossary id) are kept,
+	missing ones are created. Called during application startup or by a CLI script.
 	"""
 	storage = ask_meta_storage()
 	snowflake_generator = ask_snowflake_generator()
@@ -29,25 +30,17 @@ def import_glossary_seed_data(tenant_id: str = '1') -> None:
 
 	service = GlossaryService(storage, snowflake_generator, principal_service)
 
-	# storage operations must run inside a transaction, otherwise the
-	# underlying connection is not opened yet
-	service.begin_transaction()
-	try:
-		existing = service.list_bundles()
-		service.commit_transaction()
-	except Exception as e:
-		service.rollback_transaction()
-		logger.warning(f"Could not check existing glossary data: {e}, proceeding with seed import.")
-		existing = None
-
-	if existing and len(existing) > 0:
-		logger.info(f"Glossary table already has {len(existing)} bundles, skipping seed import.")
-		return
-
 	logger.info("Importing glossary seed data...")
 	for bundle in ALL_SEED_BUNDLES:
+		# storage operations must run inside a transaction, otherwise the
+		# underlying connection is not opened yet
 		service.begin_transaction()
 		try:
+			# per-bundle idempotency: existing bundles are kept, new ones are added
+			if service.find_bundle(bundle.glossary.id) is not None:
+				service.commit_transaction()
+				logger.info(f"  Glossary {bundle.glossary.name} already exists, skipping.")
+				continue
 			# Set tenant id on glossary
 			bundle.glossary.tenantId = tenant_id
 			# Set tenant id on categories and terms

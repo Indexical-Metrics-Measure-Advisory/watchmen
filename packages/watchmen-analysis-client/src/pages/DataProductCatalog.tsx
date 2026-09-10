@@ -2,8 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Search, Plus, Trash2, Edit2, Save, Package, FolderTree, Table2, Layers,
-  ChevronRight, ChevronDown, Upload, FileJson, RefreshCw,
+  ChevronRight, ChevronDown, Upload, FileCode, RefreshCw,
 } from "lucide-react";
+import YAML from "yaml";
 import { useSidebar } from "@/contexts/SidebarContext";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
@@ -343,7 +344,7 @@ const TopicDetailsDialog: React.FC<{
 };
 
 // ---------------------------------------------------------------------------
-// Product form dialog: common fields + full ODPS JSON editor
+// Product form dialog: common fields + full ODPS YAML editor
 // ---------------------------------------------------------------------------
 const emptyProductForm = (): DataProductUpsert => ({
   name: "",
@@ -461,7 +462,7 @@ const ProductFormDialog: React.FC<{
   const { t } = useTranslation("dataAsset");
   const [form, setForm] = useState<DataProductUpsert>(emptyProductForm());
   const [tagsText, setTagsText] = useState("");
-  const [jsonText, setJsonText] = useState("");
+  const [yamlText, setYamlText] = useState("");
   const [assocOptions, setAssocOptions] = useState<AssociationOptions>(emptyAssociationOptions());
 
   useEffect(() => {
@@ -499,11 +500,11 @@ const ProductFormDialog: React.FC<{
       const { id, ...rest } = initial;
       setForm({ ...rest, id });
       setTagsText((initial.tags || []).join(", "));
-      setJsonText(JSON.stringify(initial, null, 2));
+      setYamlText(YAML.stringify(initial));
     } else {
       setForm({ ...emptyProductForm(), catalog_id: defaultCatalogId });
       setTagsText("");
-      setJsonText("");
+      setYamlText("");
     }
   }, [open, initial, defaultCatalogId]);
 
@@ -527,10 +528,10 @@ const ProductFormDialog: React.FC<{
       toast.error(t("form.nameRequired"));
       return;
     }
-    // merge the full ODPS structure from the JSON editor (edit mode only)
-    if (initial && jsonText.trim()) {
+    // merge the full ODPS structure from the YAML editor (edit mode only)
+    if (initial && yamlText.trim()) {
       try {
-        const parsed = JSON.parse(jsonText);
+        const parsed = YAML.parse(yamlText);
         const { id: _omit, name: _n, tenantId: _t, createdAt: _c, createdBy: _cb,
           lastModifiedAt: _lm, lastModifiedBy: _lmb, version: _v, ...odps } = parsed;
         payload = { ...odps, ...payload, id: initial.id };
@@ -749,14 +750,14 @@ const ProductFormDialog: React.FC<{
               <div className="flex items-center justify-between">
                 <Label>{t("form.advancedLabel")}</Label>
                 <Badge variant="outline" className="text-[10px]">
-                  <FileJson className="w-3 h-3 mr-1" /> ODPS v4.1
+                  <FileCode className="w-3 h-3 mr-1" /> ODPS v4.1
                 </Badge>
               </div>
               <Textarea
                 rows={14}
                 className="font-mono text-xs"
-                value={initial ? jsonText : JSON.stringify(form, null, 2)}
-                onChange={(e) => setJsonText(e.target.value)}
+                value={initial ? yamlText : YAML.stringify(form)}
+                onChange={(e) => setYamlText(e.target.value)}
                 readOnly={!initial}
               />
               <p className="text-xs text-slate-400">

@@ -1,5 +1,8 @@
+import json
+from pathlib import Path
+
 from watchmen_metricflow.model.business_glossary import (
-    Glossary, GlossaryBundle, Category, Term, GlossaryStatus, TermStatus
+	Glossary, GlossaryBundle, Category, Term, GlossaryStatus, TermStatus
 )
 
 
@@ -162,7 +165,30 @@ COMMON_BUNDLE = GlossaryBundle(glossary=common_glossary, categories=common_categ
 
 
 # ============================================================================
+# ACORD — ACORD Life & Annuity Data Model (converted from the analysis-client
+# ACORD business glossary, doc/ACORD_DB_Business_Glossary.md, v2.49.00)
+# ============================================================================
+
+ACORD_SEED_PATH = Path(__file__).with_name('acord_seed.json')
+
+
+def _load_acord_bundle() -> GlossaryBundle:
+	# construct nested models explicitly: model_validate would leave the raw
+	# dicts in place because ExtendedBaseModel re-assigns constructor inputs
+	with open(ACORD_SEED_PATH, encoding='utf-8') as f:
+		data = json.load(f)
+	return GlossaryBundle(
+		glossary=Glossary(**data['glossary']),
+		categories=[Category(**c) for c in data['categories']],
+		terms=[Term(**t) for t in data['terms']],
+	)
+
+
+ACORD_BUNDLE = _load_acord_bundle()
+
+
+# ============================================================================
 # All bundles
 # ============================================================================
 
-ALL_SEED_BUNDLES = [EAST_BUNDLE, IDM_BUNDLE, COMMON_BUNDLE]
+ALL_SEED_BUNDLES = [EAST_BUNDLE, IDM_BUNDLE, COMMON_BUNDLE, ACORD_BUNDLE]

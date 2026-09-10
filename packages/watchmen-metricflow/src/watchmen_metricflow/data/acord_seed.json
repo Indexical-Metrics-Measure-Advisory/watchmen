@@ -1,0 +1,1397 @@
+{
+	"glossary": {
+		"id": "acord",
+		"name": "ACORD",
+		"display_name": "ACORD Life Standards",
+		"description": "ACORD Life & Annuity Data Model - 30 aggregates covering policy, party, claim, reinsurance, and financial activity for life/annuity transactions. Source: ACORD Life Standards v2.49.00, 2222 columns.",
+		"language": "en",
+		"status": "active",
+		"owner": null,
+		"tags": [
+			"insurance",
+			"life",
+			"annuity",
+			"ACORD",
+			"data model"
+		],
+		"tenantId": "1"
+	},
+	"categories": [
+		{
+			"id": "acord-dom-transaction",
+			"name": "Transaction",
+			"qualified_name": "Transaction@ACORD",
+			"description": "Transaction domain - 3 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 0
+		},
+		{
+			"id": "acord-dom-party",
+			"name": "Party",
+			"qualified_name": "Party@ACORD",
+			"description": "Party domain - 4 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 1
+		},
+		{
+			"id": "acord-dom-policy",
+			"name": "Policy",
+			"qualified_name": "Policy@ACORD",
+			"description": "Policy domain - 4 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 2
+		},
+		{
+			"id": "acord-dom-coverage",
+			"name": "Coverage",
+			"qualified_name": "Coverage@ACORD",
+			"description": "Coverage domain - 2 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 3
+		},
+		{
+			"id": "acord-dom-participant",
+			"name": "Participant",
+			"qualified_name": "Participant@ACORD",
+			"description": "Participant domain - 2 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 4
+		},
+		{
+			"id": "acord-dom-financial",
+			"name": "Financial",
+			"qualified_name": "Financial@ACORD",
+			"description": "Financial domain - 2 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 5
+		},
+		{
+			"id": "acord-dom-payment",
+			"name": "Payment",
+			"qualified_name": "Payment@ACORD",
+			"description": "Payment domain - 1 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 6
+		},
+		{
+			"id": "acord-dom-underwriting",
+			"name": "Underwriting",
+			"qualified_name": "Underwriting@ACORD",
+			"description": "Underwriting domain - 1 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 7
+		},
+		{
+			"id": "acord-dom-distribution",
+			"name": "Distribution",
+			"qualified_name": "Distribution@ACORD",
+			"description": "Distribution domain - 1 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 8
+		},
+		{
+			"id": "acord-dom-claim",
+			"name": "Claim",
+			"qualified_name": "Claim@ACORD",
+			"description": "Claim domain - 1 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 9
+		},
+		{
+			"id": "acord-dom-reinsurance",
+			"name": "Reinsurance",
+			"qualified_name": "Reinsurance@ACORD",
+			"description": "Reinsurance domain - 2 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 10
+		},
+		{
+			"id": "acord-dom-document",
+			"name": "Document",
+			"qualified_name": "Document@ACORD",
+			"description": "Document domain - 2 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 11
+		},
+		{
+			"id": "acord-dom-holding",
+			"name": "Holding",
+			"qualified_name": "Holding@ACORD",
+			"description": "Holding domain - 1 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 12
+		},
+		{
+			"id": "acord-dom-application",
+			"name": "Application",
+			"qualified_name": "Application@ACORD",
+			"description": "Application domain - 2 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 13
+		},
+		{
+			"id": "acord-dom-security",
+			"name": "Security",
+			"qualified_name": "Security@ACORD",
+			"description": "Security domain - 1 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 14
+		},
+		{
+			"id": "acord-dom-system",
+			"name": "System",
+			"qualified_name": "System@ACORD",
+			"description": "System domain - 1 aggregate(s) defined in ACORD Life Standards.",
+			"glossary_id": "acord",
+			"parent_category_id": null,
+			"order_index": 15
+		},
+		{
+			"id": "acord-tbl-txlife",
+			"name": "txlife",
+			"qualified_name": "txlife.Transaction@ACORD",
+			"description": "Transaction aggregate, 9 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-transaction",
+			"order_index": 0
+		},
+		{
+			"id": "acord-tbl-txlife-request",
+			"name": "txlife_request",
+			"qualified_name": "txlife_request.Transaction@ACORD",
+			"description": "Transaction aggregate, 47 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-transaction",
+			"order_index": 1
+		},
+		{
+			"id": "acord-tbl-txlife-response",
+			"name": "txlife_response",
+			"qualified_name": "txlife_response.Transaction@ACORD",
+			"description": "Transaction aggregate, 44 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-transaction",
+			"order_index": 2
+		},
+		{
+			"id": "acord-tbl-party",
+			"name": "party",
+			"qualified_name": "party.Party@ACORD",
+			"description": "Party aggregate, 69 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-party",
+			"order_index": 3
+		},
+		{
+			"id": "acord-tbl-address",
+			"name": "address",
+			"qualified_name": "address.Party@ACORD",
+			"description": "Party aggregate, 47 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-party",
+			"order_index": 4
+		},
+		{
+			"id": "acord-tbl-phone",
+			"name": "phone",
+			"qualified_name": "phone.Party@ACORD",
+			"description": "Party aggregate, 34 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-party",
+			"order_index": 5
+		},
+		{
+			"id": "acord-tbl-email-address",
+			"name": "email_address",
+			"qualified_name": "email_address.Party@ACORD",
+			"description": "Party aggregate, 22 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-party",
+			"order_index": 6
+		},
+		{
+			"id": "acord-tbl-policy",
+			"name": "policy",
+			"qualified_name": "policy.Policy@ACORD",
+			"description": "Policy aggregate, 168 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-policy",
+			"order_index": 7
+		},
+		{
+			"id": "acord-tbl-life",
+			"name": "life",
+			"qualified_name": "life.Policy@ACORD",
+			"description": "Policy aggregate, 165 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-policy",
+			"order_index": 8
+		},
+		{
+			"id": "acord-tbl-annuity",
+			"name": "annuity",
+			"qualified_name": "annuity.Policy@ACORD",
+			"description": "Policy aggregate, 134 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-policy",
+			"order_index": 9
+		},
+		{
+			"id": "acord-tbl-coverage",
+			"name": "coverage",
+			"qualified_name": "coverage.Coverage@ACORD",
+			"description": "Coverage aggregate, 194 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-coverage",
+			"order_index": 10
+		},
+		{
+			"id": "acord-tbl-cov-option",
+			"name": "cov_option",
+			"qualified_name": "cov_option.Coverage@ACORD",
+			"description": "Coverage aggregate, 142 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-coverage",
+			"order_index": 11
+		},
+		{
+			"id": "acord-tbl-life-participant",
+			"name": "life_participant",
+			"qualified_name": "life_participant.Participant@ACORD",
+			"description": "Participant aggregate, 107 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-participant",
+			"order_index": 12
+		},
+		{
+			"id": "acord-tbl-relation",
+			"name": "relation",
+			"qualified_name": "relation.Participant@ACORD",
+			"description": "Participant aggregate, 57 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-participant",
+			"order_index": 13
+		},
+		{
+			"id": "acord-tbl-financial-activity",
+			"name": "financial_activity",
+			"qualified_name": "financial_activity.Financial@ACORD",
+			"description": "Financial aggregate, 91 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-financial",
+			"order_index": 14
+		},
+		{
+			"id": "acord-tbl-sub-account",
+			"name": "sub_account",
+			"qualified_name": "sub_account.Financial@ACORD",
+			"description": "Financial aggregate, 196 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-financial",
+			"order_index": 15
+		},
+		{
+			"id": "acord-tbl-payment",
+			"name": "payment",
+			"qualified_name": "payment.Payment@ACORD",
+			"description": "Payment aggregate, 37 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-payment",
+			"order_index": 16
+		},
+		{
+			"id": "acord-tbl-medical-exam",
+			"name": "medical_exam",
+			"qualified_name": "medical_exam.Underwriting@ACORD",
+			"description": "Underwriting aggregate, 77 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-underwriting",
+			"order_index": 17
+		},
+		{
+			"id": "acord-tbl-producer",
+			"name": "producer",
+			"qualified_name": "producer.Distribution@ACORD",
+			"description": "Distribution aggregate, 23 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-distribution",
+			"order_index": 18
+		},
+		{
+			"id": "acord-tbl-loan",
+			"name": "loan",
+			"qualified_name": "loan.Policy@ACORD",
+			"description": "Policy aggregate, 67 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-policy",
+			"order_index": 19
+		},
+		{
+			"id": "acord-tbl-claim",
+			"name": "claim",
+			"qualified_name": "claim.Claim@ACORD",
+			"description": "Claim aggregate, 40 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-claim",
+			"order_index": 20
+		},
+		{
+			"id": "acord-tbl-reinsurance-info",
+			"name": "reinsurance_info",
+			"qualified_name": "reinsurance_info.Reinsurance@ACORD",
+			"description": "Reinsurance aggregate, 119 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-reinsurance",
+			"order_index": 21
+		},
+		{
+			"id": "acord-tbl-transfer-info",
+			"name": "transfer_info",
+			"qualified_name": "transfer_info.Reinsurance@ACORD",
+			"description": "Reinsurance aggregate, 9 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-reinsurance",
+			"order_index": 22
+		},
+		{
+			"id": "acord-tbl-form-instance",
+			"name": "form_instance",
+			"qualified_name": "form_instance.Document@ACORD",
+			"description": "Document aggregate, 41 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-document",
+			"order_index": 23
+		},
+		{
+			"id": "acord-tbl-attachment",
+			"name": "attachment",
+			"qualified_name": "attachment.Document@ACORD",
+			"description": "Document aggregate, 45 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-document",
+			"order_index": 24
+		},
+		{
+			"id": "acord-tbl-holding",
+			"name": "holding",
+			"qualified_name": "holding.Holding@ACORD",
+			"description": "Holding aggregate, 54 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-holding",
+			"order_index": 25
+		},
+		{
+			"id": "acord-tbl-application-info",
+			"name": "application_info",
+			"qualified_name": "application_info.Application@ACORD",
+			"description": "Application aggregate, 120 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-application",
+			"order_index": 26
+		},
+		{
+			"id": "acord-tbl-signature-info",
+			"name": "signature_info",
+			"qualified_name": "signature_info.Application@ACORD",
+			"description": "Application aggregate, 30 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-application",
+			"order_index": 27
+		},
+		{
+			"id": "acord-tbl-user-auth-request",
+			"name": "user_auth_request",
+			"qualified_name": "user_auth_request.Security@ACORD",
+			"description": "Security aggregate, 16 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-security",
+			"order_index": 28
+		},
+		{
+			"id": "acord-tbl-system-message",
+			"name": "system_message",
+			"qualified_name": "system_message.System@ACORD",
+			"description": "System aggregate, 18 fields",
+			"glossary_id": "acord",
+			"parent_category_id": "acord-dom-system",
+			"order_index": 29
+		}
+	],
+	"terms": [
+		{
+			"id": "acord-tm-1",
+			"name": "txlife_id",
+			"qualified_name": "txlife_id@ACORD",
+			"description": "Primary key for TXLife Transaction.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-2",
+			"name": "user_auth_request",
+			"qualified_name": "user_auth_request@ACORD",
+			"description": "The UserAuthRequest object is used for security checking. This object can be used in a number of different configurations to provide the security checking. The UserDomain, UserDate, and UserTime prope",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-3",
+			"name": "t_x_life_request",
+			"qualified_name": "t_x_life_request@ACORD",
+			"description": "This aggregate provides a container for a TXLife message request's details. Its complement is TXLifeResponse.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-4",
+			"name": "user_auth_response",
+			"qualified_name": "user_auth_response@ACORD",
+			"description": "This aggregate provides details regarding the User (Sender) of a TXLife Msg.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-5",
+			"name": "t_x_life_response",
+			"qualified_name": "t_x_life_response@ACORD",
+			"description": "This aggregate provides a container for a TXLife message response's details. Its complement is TXLifeRequest.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-6",
+			"name": "o_lif_e_extension",
+			"qualified_name": "o_lif_e_extension@ACORD",
+			"description": "Object used for extending the ACORD model. OLifE Extension uses the ANY construct to allow for any valid XML to be contained in the extension. See section 4.10 How to extend XML for Life Insurance for",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-system-message"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-7",
+			"name": "created_at",
+			"qualified_name": "created_at@ACORD",
+			"description": "Record creation timestamp.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-system-message"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-8",
+			"name": "updated_at",
+			"qualified_name": "updated_at@ACORD",
+			"description": "Record last update timestamp.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-system-message"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-9",
+			"name": "source_system",
+			"qualified_name": "source_system@ACORD",
+			"description": "Source admin/carrier system identifier.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-system-message"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-10",
+			"name": "txlife_request_id",
+			"qualified_name": "txlife_request_id@ACORD",
+			"description": "Primary key for TXLife Request.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-request"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-11",
+			"name": "txlife_id",
+			"qualified_name": "txlife_id@ACORD",
+			"description": "FK → txlife.txlife_id",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-12",
+			"name": "trans_ref_g_u_i_d",
+			"qualified_name": "trans_ref_g_u_i_d@ACORD",
+			"description": "Universally unique identifier. Created by sending/client application. This ID provides a correlation between the request and all associated responses. It is expected to be echoed back in any subsequen",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-13",
+			"name": "trans_tracking_i_d",
+			"qualified_name": "trans_tracking_i_d@ACORD",
+			"description": "This element is valued by the provider for future reference to link responses together. For polling and retrieval purposes for pending responses - this element is used for handling pending responses i",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-14",
+			"name": "trans_type",
+			"qualified_name": "trans_type@ACORD",
+			"description": "Transaction Type name with associated attribute type code (tc)",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-15",
+			"name": "trans_sub_type",
+			"qualified_name": "trans_sub_type@ACORD",
+			"description": "Transaction Sub Types provide additional granularity for their parent transactions. This aids in directing transactions for processing as well as defining expected objects and properties that may be d",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-16",
+			"name": "business_service",
+			"qualified_name": "business_service@ACORD",
+			"description": "Provides information about a specific service supporting a business process. A business process is made up of one or more business services. Each business service then maps one-to-one to a specific me",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-17",
+			"name": "object_type_c_c",
+			"qualified_name": "object_type_c_c@ACORD",
+			"description": "This aggregate defines the available Object Types for selection on the parent object. *(Although this object does not meet all of the rules of a CC as described in the \"Expressing Choice Collections\" ",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-request"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-18",
+			"name": "trans_exe_date",
+			"qualified_name": "trans_exe_date@ACORD",
+			"description": "Transaction Execution Date *(On TXLifeRequest, TransExeDate represents the date the transaction was submitted.)*",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-19",
+			"name": "trans_exe_time",
+			"qualified_name": "trans_exe_time@ACORD",
+			"description": "Transaction Execution Time",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-20",
+			"name": "trans_eff_date",
+			"qualified_name": "trans_eff_date@ACORD",
+			"description": "Effective Date for the action that was or will be taken *(On a TXLifeRequest, this is the date that the requester would like to make the transaction effective.)*",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-21",
+			"name": "trans_mode",
+			"qualified_name": "trans_mode@ACORD",
+			"description": "Indicates the mode used to process this transaction type. Applies to transactions that initiate a business process that takes time to complete, (e.g. NB submission).",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-22",
+			"name": "inquiry_level",
+			"qualified_name": "inquiry_level@ACORD",
+			"description": "InquiryLevel indicates the level or amount of information either requested or returned (depending on context) in the associated message. InquiryLevel is only applicable for Inquiry and Search transact",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-23",
+			"name": "inquiry_view",
+			"qualified_name": "inquiry_view@ACORD",
+			"description": "The aggregate contains information about the view that you are inquiring about. There is a key for predefined views and codes that can be filled in to determine a new view. This object contains inform",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-24",
+			"name": "max_records",
+			"qualified_name": "max_records@ACORD",
+			"description": "Indicates the maximum number of records to return to a result set from a search. Use the MaxRecords property to limit the number of records the provider returns. The MaxRecords property is read/write",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-25",
+			"name": "next_record",
+			"qualified_name": "next_record@ACORD",
+			"description": "Provides the value of the next record available for a subsequent query *(On TXLifeRequest, use StartRecord on TXLifeRequest to indicate the number of the first record to return in a search.)*",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-26",
+			"name": "start_record",
+			"qualified_name": "start_record@ACORD",
+			"description": "Applies to searches. Indicates the number of the first record to return in a search. As the search progresses, the next record will usually be incremented by the MaxRecords to bump down through the se",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-27",
+			"name": "start_date",
+			"qualified_name": "start_date@ACORD",
+			"description": "The start date is inclusive. The default is the beginning of time.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-relation"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-28",
+			"name": "start_time",
+			"qualified_name": "start_time@ACORD",
+			"description": "Start Time *(On TXLifeRequest, StartTime is used in conjunction with StartDate when a time parameter is needed.)*",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-29",
+			"name": "end_date",
+			"qualified_name": "end_date@ACORD",
+			"description": "The last date for which the aggregate is available, effective or active. The end date is inclusive. For example, 2004-12-31 indicates that the aggregate is no longer available on or after January 1, 2",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-relation"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-30",
+			"name": "end_time",
+			"qualified_name": "end_time@ACORD",
+			"description": "End Time *(On TXLifeRequest, EndTime is used in conjunction with EndDate when a time parameter is needed.)*",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-31",
+			"name": "pending_response_o_k",
+			"qualified_name": "pending_response_o_k@ACORD",
+			"description": "TRUE indicates that it is ok to send a pending Response. FALSE indicates that it is not acceptable to pend the transaction. If it cannot immediately be processed, a failure Response should be sent. If",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-32",
+			"name": "no_response_o_k",
+			"qualified_name": "no_response_o_k@ACORD",
+			"description": "TRUE indicates that a response is not needed to the message. This is particularly useful for the Transmittal Request messages. Default is FALSE, and if it is used, you must provide a response. This is",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-33",
+			"name": "test_indicator",
+			"qualified_name": "test_indicator@ACORD",
+			"description": "TRUE indicates this is a test file. A test file should not be processed against live data. It is used to identify transactions that are in a test mode.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-34",
+			"name": "u_r_l_target_request_ind",
+			"qualified_name": "u_r_l_target_request_ind@ACORD",
+			"description": "True indicates notifying called system that the calling (client) application would like to get a URL that he could pass control to.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-35",
+			"name": "supress_notifications_ind",
+			"qualified_name": "supress_notifications_ind@ACORD",
+			"description": "TRUE indicates that notifications attached to the response to a request are not desired. This is used to indicate that no other notifications regarding other messages can be returned in the response t",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-request"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-36",
+			"name": "case_status_on_response_ind",
+			"qualified_name": "case_status_on_response_ind@ACORD",
+			"description": "TRUE indicates that case status information should be returned as part of the response to this request.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-request"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-37",
+			"name": "benefits_inquiry_type",
+			"qualified_name": "benefits_inquiry_type@ACORD",
+			"description": "Identifies that the data being requested or returned is depicting in-network information, out-of-network information, or both.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-38",
+			"name": "primary_object_type",
+			"qualified_name": "primary_object_type@ACORD",
+			"description": "Type of top-level object being referenced. In some cases such as XTbML, PrimaryObjectType may also reference a root element. *(On TXLifeRequest, PrimaryObjectType describes the object referenced by th",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-39",
+			"name": "transaction_context",
+			"qualified_name": "transaction_context@ACORD",
+			"description": "Uniquely identifies a Search Context, Applies to searches. This identifier must be unique per session, since a session may have made multiple search requests. This identifier can expire at any time. *",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-40",
+			"name": "correlation_g_u_i_d",
+			"qualified_name": "correlation_g_u_i_d@ACORD",
+			"description": "A globally unique ID which creates a correlation between two or more TXLife transaction which are part of the same business process. It is the responsibility of the creator of the first TXLife in the",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-41",
+			"name": "correlation_g_u_i_d_state",
+			"qualified_name": "correlation_g_u_i_d_state@ACORD",
+			"description": "When a CorrelationGUID is specified this companion property indicates if the CorrelationGUID is the initial (first time) response, part of an ongoing response or the last of a series of responses. Thi",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-42",
+			"name": "support_multiple_responses_ind",
+			"qualified_name": "support_multiple_responses_ind@ACORD",
+			"description": "TRUE indicates that entities participating in this message (sender /receiver) support multiple messages: a pending Response message along with a later subsequent Response message if the Request messag",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-request"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-43",
+			"name": "criteria_expression",
+			"qualified_name": "criteria_expression@ACORD",
+			"description": "A collection of Logical Operators and Criteria to generate complex selections.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-44",
+			"name": "illustration_request",
+			"qualified_name": "illustration_request@ACORD",
+			"description": "This is used to request an illustration, and includes all the necessary parameters used to guide processing. This transaction is used to request an illustration calculation engine to calculate and ret",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-45",
+			"name": "m_i_b_request",
+			"qualified_name": "m_i_b_request@ACORD",
+			"description": "Used to request MIB information. The MIBRequest object contains a \"Start Group: XOR Required\" grouping containing the object <MIBServiceDescriptor> and the property <MIBServiceConfigurationID>. When u",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-46",
+			"name": "reinsurance_request",
+			"qualified_name": "reinsurance_request@ACORD",
+			"description": "Used to request reinsurance information.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-request"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-47",
+			"name": "change_sub_type",
+			"qualified_name": "change_sub_type@ACORD",
+			"description": "Used to indicate that a specific change is being reported-by or requested in the associated transaction. *(On TXLifeRequest, ChangeSubType is used as a wrapper-level indicator of specific changes taki",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-48",
+			"name": "form_instance_request",
+			"qualified_name": "form_instance_request@ACORD",
+			"description": "Used to request a document. This aggregate contains information about the document that is being requested.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-49",
+			"name": "distinguished_object",
+			"qualified_name": "distinguished_object@ACORD",
+			"description": "A principal object among an ensemble of objects that provides a starting point for navigation, especially when there can be multiple ensembles, each ensemble needing to identify a starting object for ",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-50",
+			"name": "processing_instruction",
+			"qualified_name": "processing_instruction@ACORD",
+			"description": "Contains the instructions for guiding processing. *(On TXLifeRequest, this object contains instructions for guiding the processing for this transaction. This may include automated as well as manual in",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-request"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-51",
+			"name": "o_lif_e",
+			"qualified_name": "o_lif_e@ACORD",
+			"description": "OLifE is a \"Root\" element. This forms the basis of the business data for the ACORD Life and Annuity Standard. In OLifE, the SourceInfo object is an optional, singly occurring object and if it appears ",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-52",
+			"name": "x_tb_m_l",
+			"qualified_name": "x_tb_m_l@ACORD",
+			"description": "The aggregates for XTbML, which is used to define the Society of Actuaries (SOA) ACORD tabular standard.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-53",
+			"name": "o_lif_e_extension",
+			"qualified_name": "o_lif_e_extension@ACORD",
+			"description": "Object used for extending the ACORD model. OLifE Extension uses the ANY construct to allow for any valid XML to be contained in the extension. See section 4.10 How to extend XML for Life Insurance for",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-system-message"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-54",
+			"name": "created_at",
+			"qualified_name": "created_at@ACORD",
+			"description": "Record creation timestamp.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-system-message"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-55",
+			"name": "updated_at",
+			"qualified_name": "updated_at@ACORD",
+			"description": "Record last update timestamp.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-system-message"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-56",
+			"name": "source_system",
+			"qualified_name": "source_system@ACORD",
+			"description": "Source admin/carrier system identifier.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-system-message"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-57",
+			"name": "txlife_response_id",
+			"qualified_name": "txlife_response_id@ACORD",
+			"description": "Primary key for TXLife Response.",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-58",
+			"name": "txlife_id",
+			"qualified_name": "txlife_id@ACORD",
+			"description": "FK → txlife.txlife_id",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-59",
+			"name": "trans_ref_g_u_i_d",
+			"qualified_name": "trans_ref_g_u_i_d@ACORD",
+			"description": "Universally unique identifier. Created by sending/client application. This ID provides a correlation between the request and all associated responses. It is expected to be echoed back in any subsequen",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		},
+		{
+			"id": "acord-tm-60",
+			"name": "trans_tracking_i_d",
+			"qualified_name": "trans_tracking_i_d@ACORD",
+			"description": "This element is valued by the provider for future reference to link responses together. For polling and retrieval purposes for pending responses - this element is used for handling pending responses i",
+			"status": "active",
+			"glossary_id": "acord",
+			"category_ids": [
+				"acord-tbl-txlife-response"
+			],
+			"synonyms": [],
+			"related_terms": [],
+			"antonyms": [],
+			"is_a": [],
+			"assigned_entities": []
+		}
+	]
+}
