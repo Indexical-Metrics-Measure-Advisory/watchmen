@@ -3,7 +3,6 @@ import {Apis, del, post} from '../apis';
 import {fetchMockTopicArchivePolicies, runMockTopicArchive, saveMockTopicArchivePolicy} from '../mock/admin/mock-topic-archive';
 import {TopicArchivePolicy, TopicArchiveResult} from '../tuples/topic-archive-types';
 import {TopicId} from '../tuples/topic-types';
-import {isFakedUuid} from '../tuples/utils';
 import {Page} from '../types';
 import {isMockService} from '../utils';
 
