@@ -110,7 +110,7 @@ const AdminDataSources = () => {
 
 	return <TupleWorkbench title="Data Sources"
 	                       createButtonLabel="Create Data Source" canCreate={true}
-	                       searchPlaceholder="Search by data source name, zone name, etc."
+	                       searchPlaceholder="Search by data source code, etc."
 	                       tupleLabel="Data Source" tupleImage={DataSourceBackground} tupleImagePosition="left 80px"
 	                       renderEditor={renderEditor}
 	                       renderCard={renderCard} getKeyOfTuple={getKeyOfDataSource}
