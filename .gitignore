@@ -77,3 +77,4 @@ packages/watchmen-analysis-client/lint-results.txt
 /packages/watchmen-metricflow/.mimosa
 *.source
 /packages/watchmen-analysis-client/.mimosa
+/packages/watchmen-web-client/.mimosa

@@ -4,6 +4,6 @@ import React from 'react';
 
 export const renderCard = (dataSource: QueryDataSource) => {
 	return <StandardTupleCard key={dataSource.dataSourceId} tuple={dataSource}
-	                          name={() => dataSource.dataSourceCode}
+	                          name={() => dataSource.name || dataSource.dataSourceCode}
 	                          description={() => `${dataSource.dataSourceType || ''} @${dataSource.tenantName || ''}`}/>;
 };
