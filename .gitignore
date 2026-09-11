@@ -78,3 +78,7 @@ packages/watchmen-analysis-client/lint-results.txt
 *.source
 /packages/watchmen-analysis-client/.mimosa
 /packages/watchmen-web-client/.mimosa
+/packages/watchmen-metricflow/src/watchmen_metricflow/data/.mimosa
+DataMo_Glossary_ACORD.pptx
+.~DataMo_Glossary_ACORD.pptx
+/packages/watchmen-metricflow/src/watchmen_metricflow/data/.mimosa
