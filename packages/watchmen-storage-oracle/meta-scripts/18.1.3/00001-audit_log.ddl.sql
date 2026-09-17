@@ -5,7 +5,9 @@ CREATE TABLE audit_log
     user_id        VARCHAR2(50),
     user_name      VARCHAR2(100),
     operation_type VARCHAR2(20) NOT NULL,
-    resource       VARCHAR2(50),
+    -- RESOURCE is an Oracle reserved word and must be quoted in lowercase,
+    -- so the column matches the quoted identifier emitted by sqlalchemy at runtime
+    "resource"     VARCHAR2(50),
     detail        VARCHAR2(512),
     method         VARCHAR2(16),
     path           VARCHAR2(512),
@@ -21,4 +23,4 @@ CREATE INDEX i_audit_log_1 ON audit_log (occurred_at);
 CREATE INDEX i_audit_log_2 ON audit_log (tenant_id);
 CREATE INDEX i_audit_log_3 ON audit_log (user_name);
 CREATE INDEX i_audit_log_4 ON audit_log (operation_type);
-CREATE INDEX i_audit_log_5 ON audit_log (resource);
+CREATE INDEX i_audit_log_5 ON audit_log ("resource");
