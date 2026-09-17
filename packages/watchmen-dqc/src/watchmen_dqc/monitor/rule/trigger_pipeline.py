@@ -1,4 +1,5 @@
-from asyncio import ensure_future, run
+from asyncio import ensure_future, get_running_loop, run
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from logging import getLogger
 from typing import Optional
@@ -16,6 +17,10 @@ from watchmen_utilities import ArrayHelper, is_not_blank
 from .types import RuleResult
 
 logger = getLogger(__name__)
+
+# monitor rules run on plain threads (apscheduler workers, spark driver, http worker pool)
+# where no event loop exists, a shared pool is the only way to trigger pipelines asynchronously
+_pipeline_trigger_pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix='dqc-pipeline-trigger')
 
 
 def get_topic_service(principal_service: PrincipalService) -> TopicService:
@@ -48,8 +53,18 @@ def trigger_pipeline(detected: MonitorRuleDetected, principal_service: Principal
 		asynchronized=asynchronized,
 		handle_monitor_log=handle_monitor_log
 	)
-	if asynchronized:
+	try:
+		running_loop = get_running_loop()
+	except RuntimeError:
+		running_loop = None
+
+	if running_loop is not None:
+		# inside a running event loop a nested blocking loop is impossible, schedule asynchronously
 		ensure_future(pipeline_trigger.invoke())
+	elif asynchronized:
+		# no event loop on this thread (scheduler worker, spark driver, http worker pool),
+		# run the pipeline on the shared pool without blocking the caller
+		_pipeline_trigger_pool.submit(run, pipeline_trigger.invoke())
 	else:
 		run(pipeline_trigger.invoke())
 

@@ -82,3 +82,6 @@ packages/watchmen-analysis-client/lint-results.txt
 DataMo_Glossary_ACORD.pptx
 .~DataMo_Glossary_ACORD.pptx
 /packages/watchmen-metricflow/src/watchmen_metricflow/data/.mimosa
+/packages/watchmen-dqc/.mimosa
+packages/watchmen-dqc/README.md
+/packages/watchmen-dqc/.mimosa

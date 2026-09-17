@@ -7,6 +7,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 import shlex
 import subprocess
 import sys
+import threading
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -15,8 +16,10 @@ from watchmen_data_kernel.meta import TenantService, TopicService
 from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
 from watchmen_data_kernel.storage import TopicDataService
 from watchmen_dqc.common import DqcException, ask_daily_monitor_job_trigger_time, ask_monitor_job_trigger, \
-	ask_monitor_jobs_enabled, ask_monitor_rules_runner_engine, ask_monthly_monitor_job_trigger_time, \
-	ask_weekly_monitor_job_trigger_time, ask_monitor_spark_submit_command, ask_monitor_spark_submit_args
+	ask_monitor_job_lock_stale_seconds, ask_monitor_jobs_enabled, ask_monitor_rules_runner_engine, \
+	ask_monthly_monitor_job_trigger_time, ask_weekly_monitor_job_trigger_time, ask_monitor_spark_python, \
+	ask_monitor_spark_python_path, ask_monitor_spark_submit_command, ask_monitor_spark_submit_args, \
+	ask_monitor_spark_submit_timeout
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.dqc import MonitorJobLockService, MonitorRuleService
 from watchmen_model.admin import Topic
@@ -97,6 +100,32 @@ def should_run_rule(rule: MonitorRule, frequency: Optional[MonitorRuleStatistica
 
 def find_rule(rules: List[MonitorRule], code: MonitorRuleCode) -> Optional[MonitorRule]:
 	return ArrayHelper(rules).find(lambda x: x.code == code)
+
+
+def _remove_temp_file(path: Optional[str], description: str) -> None:
+	if path is None:
+		return
+	try:
+		os.remove(path)
+	except OSError:
+		logger.warning(f'Failed to remove {description}[{path}].')
+
+
+def is_monitor_job_lock_stale(lock: MonitorJobLock) -> bool:
+	"""
+	a lock stuck in ready status longer than MONITOR_JOB_LOCK_STALE_SECONDS is treated as
+	left behind by a dead run (crashed server, killed spark-submit, ...), and can be reclaimed.
+	a finished lock (success / failed) is never stale, it marks the scope as done.
+	"""
+	if lock.status != MonitorJobLockStatus.READY:
+		return False
+	created_at = lock.createdAt
+	if created_at is None:
+		# no timestamp to judge on, never treat as stale
+		return False
+	if created_at.tzinfo is not None:
+		created_at = created_at.replace(tzinfo=None)
+	return (get_current_time_in_seconds() - created_at).total_seconds() > ask_monitor_job_lock_stale_seconds()
 
 
 class MonitorRulesRunner:
@@ -233,7 +262,7 @@ def find_all_topics(tenant_id: TenantId) -> List[Topic]:
 
 # noinspection PyBroadException
 def try_to_lock_topic_for_monitor(
-		topic: Topic, frequency: MonitorRuleStatisticalInterval, process_date: date,
+		topic_id: TopicId, frequency: MonitorRuleStatisticalInterval, process_date: date,
 		principal_service: PrincipalService
 ) -> Tuple[Optional[MonitorJobLock], bool]:
 	if isinstance(process_date, datetime):
@@ -243,14 +272,23 @@ def try_to_lock_topic_for_monitor(
 	lock_service.begin_transaction()
 	try:
 		# find first: a lock row of same scope means the job is already done or running
-		existing = lock_service.find_by_topic_and_process_date(topic.topicId, frequency, process_date)
+		existing = lock_service.find_by_topic_and_process_date(topic_id, frequency, process_date)
 		if existing is not None:
+			if existing.status == MonitorJobLockStatus.READY and is_monitor_job_lock_stale(existing):
+				logger.warning(
+					f'Reclaim stale monitor job lock[id={existing.lockId}] on topic[id={topic_id}], '
+					f'frequency[{frequency}], process_date[{process_date}]: '
+					f'status is still ready since created at[{existing.createdAt}].')
+				lock_service.commit_transaction()
+				# reuse the existing row (the unique constraint forbids a new one),
+				# accomplish_job will update it on finish
+				return existing, True
 			lock_service.commit_transaction()
 			return None, False
 		lock = MonitorJobLock(
 			# lockId: MonitorJobLockId = None
 			tenantId=principal_service.get_tenant_id(),
-			topicId=topic.topicId,
+			topicId=topic_id,
 			frequency=frequency,
 			processDate=process_date,
 			status=MonitorJobLockStatus.READY,
@@ -264,7 +302,7 @@ def try_to_lock_topic_for_monitor(
 		# against concurrent execution; any other failure (e.g. storage unavailable) must be visible
 		# in log instead of being swallowed silently
 		logger.warning(
-			f'Failed to lock topic[id={topic.topicId}] for monitor, '
+			f'Failed to lock topic[id={topic_id}] for monitor, '
 			f'frequency[{frequency}], process_date[{process_date}]: {e}', exc_info=True)
 		lock_service.rollback_transaction()
 		return None, False
@@ -289,57 +327,121 @@ def accomplish_job(lock: MonitorJobLock, status: MonitorJobLockStatus, principal
 		lock_service.close_transaction()
 
 
+def run_locked_topic(
+		topic_id: TopicId, frequency: MonitorRuleStatisticalInterval, process_date: date,
+		lock: MonitorJobLock, principal_service: PrincipalService,
+		pyfiles_bundle: Optional[str] = None) -> None:
+	"""
+	execute monitor rules of one locked topic, then accomplish the lock with the outcome.
+	"""
+	engine = ask_monitor_rules_runner_engine()
+	try:
+		if engine == 'spark_submit':
+			offload_to_spark_submit(
+				principal_service.get_tenant_id(), topic_id, frequency, process_date,
+				pyfiles_bundle=pyfiles_bundle)
+		else:
+			create_monitor_rules_runner(principal_service).run(process_date, topic_id, frequency)
+		accomplish_job(lock, MonitorJobLockStatus.SUCCESS, principal_service)
+	except Exception as e:
+		logger.error(e, exc_info=True, stack_info=True)
+		accomplish_job(lock, MonitorJobLockStatus.FAILED, principal_service)
+
+
 def run_monitor_rules(
 		process_date: date, frequency: MonitorRuleStatisticalInterval
 ) -> None:
 	engine = ask_monitor_rules_runner_engine()
 	tenants = find_all_tenants()
-	for tenant in tenants:
-		topics = find_all_topics(tenant.tenantId)
-		for topic in topics:
-			principal_service = fake_tenant_admin(tenant.tenantId)
-			lock, locked = try_to_lock_topic_for_monitor(topic, frequency, process_date, principal_service)
-			if locked:
-				try:
-					if engine == 'spark_submit':
-						offload_to_spark_submit(tenant.tenantId, topic.topicId, frequency, process_date)
-					else:
-						create_monitor_rules_runner(principal_service).run(process_date, topic.topicId, frequency)
-					accomplish_job(lock, MonitorJobLockStatus.SUCCESS, principal_service)
-				except Exception as e:
-					logger.error(e, exc_info=True, stack_info=True)
-					accomplish_job(lock, MonitorJobLockStatus.FAILED, principal_service)
+	# the py-files bundle is expensive to build, create it lazily and share it
+	# across all spark submissions of this run
+	pyfiles_bundle: Optional[str] = None
+
+	def ask_pyfiles_bundle() -> Optional[str]:
+		nonlocal pyfiles_bundle
+		if pyfiles_bundle is None:
+			pyfiles_bundle = _build_watchmen_pyfiles_bundle()
+		return pyfiles_bundle
+
+	try:
+		for tenant in tenants:
+			topics = find_all_topics(tenant.tenantId)
+			for topic in topics:
+				principal_service = fake_tenant_admin(tenant.tenantId)
+				lock, locked = try_to_lock_topic_for_monitor(
+					topic.topicId, frequency, process_date, principal_service)
+				if locked:
+					run_locked_topic(
+						topic.topicId, frequency, process_date, lock, principal_service,
+						pyfiles_bundle=ask_pyfiles_bundle() if engine == 'spark_submit' else None)
+	finally:
+		_remove_temp_file(pyfiles_bundle, 'spark py-files bundle')
 
 	# clear enumeration cache
 	enum_service.clear()
 
 
+def run_topic_rules_in_background(
+		tenant_id: TenantId, topic_id: TopicId,
+		frequency: MonitorRuleStatisticalInterval, process_date: date) -> bool:
+	"""
+	run monitor rules of one topic on a daemon background thread, guarded by the same job lock
+	as the scheduled run. returns False when the topic is already locked (running or done), so
+	that manual and scheduled triggers never double run the same scope.
+	"""
+	if isinstance(process_date, datetime):
+		process_date = process_date.date()
+	principal_service = fake_tenant_admin(tenant_id)
+	lock, locked = try_to_lock_topic_for_monitor(topic_id, frequency, process_date, principal_service)
+	if not locked:
+		return False
+
+	def run() -> None:
+		run_locked_topic(topic_id, frequency, process_date, lock, principal_service)
+
+	thread = threading.Thread(target=run, name=f'dqc-monitor-topic-{topic_id}', daemon=True)
+	thread.start()
+	return True
+
+
 def offload_to_spark_submit(
-		tenant_id: TenantId, topic_id: TopicId, frequency: MonitorRuleStatisticalInterval, process_date: date
-) -> None:
+		tenant_id: TenantId, topic_id: TopicId, frequency: MonitorRuleStatisticalInterval,
+		process_date: date, pyfiles_bundle: Optional[str] = None) -> None:
+	"""
+	submit the dqc task of one topic to an external spark cluster via spark-submit.
+
+	the py-files bundle is expensive to build, pass an existing one to share it across topics;
+	when omitted, a bundle is built here and removed as soon as the submission finishes.
+	without a bundle (no monorepo source layout found), watchmen packages are assumed to be
+	installed on the spark driver and worker nodes.
+	"""
+	bundle_built_here = False
+	if pyfiles_bundle is None:
+		pyfiles_bundle = _build_watchmen_pyfiles_bundle()
+		bundle_built_here = pyfiles_bundle is not None
+
 	command = ask_monitor_spark_submit_command()
 	args = ask_monitor_spark_submit_args()
 
-	packages_dir = _find_packages_dir()
 	current_dir = os.path.dirname(os.path.abspath(__file__))
 	executor_path = os.path.join(current_dir, "spark", "spark_executor.py")
-	pyfiles_bundle = _build_watchmen_pyfiles_bundle()
 
 	args_parts = shlex.split(args) if args else []
 	if pyfiles_bundle is not None:
 		args_parts.extend(["--py-files", pyfiles_bundle])
 
-	# Prepare PYTHONPATH for executors
-	python_paths = []
-	if pyfiles_bundle:
-		python_paths.append(pyfiles_bundle)
-	
-	# If spark_libs exists, add it to PYTHONPATH. 
-	# We don't zip it because it contains native extensions (.so) which Python cannot import from zip.
-	if packages_dir:
-		spark_libs_dir = packages_dir / "watchmen-rest-dqc" / "spark_libs"
-		if spark_libs_dir.is_dir():
-			python_paths.append(str(spark_libs_dir))
+	# additional python paths must exist with the same path on every worker node,
+	# spark distributes files (--py-files) but never directories
+	python_path = ask_monitor_spark_python_path()
+	if python_path:
+		args_parts.extend(["--conf", f"spark.executorEnv.PYTHONPATH={python_path}"])
+
+	# the driver runs on this host (client mode), pin it to the current interpreter;
+	# the worker python must exist on every worker node, only set it when declared
+	args_parts.extend(["--conf", f"spark.pyspark.driver.python={sys.executable}"])
+	worker_python = ask_monitor_spark_python()
+	if worker_python:
+		args_parts.extend(["--conf", f"spark.pyspark.python={worker_python}"])
 
 	# Propagate watchmen-related environment variables to the Spark driver.
 	# NEVER pass them via --conf: anything on the command line appears in process list
@@ -359,19 +461,6 @@ def offload_to_spark_submit(
 			f.write("\n".join(env_lines))
 		args_parts.extend(["--files", env_file_path])
 
-	# Add PYTHONPATH to executor and driver
-	if python_paths:
-		path_str = os.pathsep.join(python_paths)
-		args_parts.extend([
-			"--conf", f"spark.executorEnv.PYTHONPATH={path_str}",
-			"--conf", f"spark.driver.extraClassPath={path_str}", # Just in case
-		])
-
-	args_parts.extend([
-		"--conf", f"spark.pyspark.python={sys.executable}",
-		"--conf", f"spark.pyspark.driver.python={sys.executable}"
-	])
-
 	cmd_parts = [command]
 	cmd_parts.extend(args_parts)
 	cmd_parts.append(executor_path)
@@ -389,21 +478,27 @@ def offload_to_spark_submit(
 	logger.info(f"Offloading DQC task to spark-submit: {cmd_str}")
 
 	current_env = os.environ.copy()
+	if python_path:
+		# the driver needs the additional python paths as well
+		existing = current_env.get('PYTHONPATH')
+		current_env['PYTHONPATH'] = f'{python_path}{os.pathsep}{existing}' if existing else python_path
+
+	timeout = ask_monitor_spark_submit_timeout()
 	try:
-		result = subprocess.run(cmd_parts, capture_output=True, text=True, env=current_env)
+		result = subprocess.run(cmd_parts, capture_output=True, text=True, env=current_env, timeout=timeout)
+		if result.returncode != 0:
+			logger.error(f"Spark submit failed: {result.stderr}")
+			raise DqcException(f"Spark submit failed with return code {result.returncode}")
+		else:
+			logger.info(f"Spark submit finished successfully: {result.stdout}")
+	except subprocess.TimeoutExpired:
+		logger.error(f"Spark submit timed out after [{timeout}] seconds: {cmd_str}")
+		raise DqcException(f"Spark submit timed out after [{timeout}] seconds.")
 	finally:
 		# remove the temp env file (contains credentials) as soon as submit is done
-		if env_file_path is not None:
-			try:
-				os.remove(env_file_path)
-			except OSError:
-				logger.warning(f'Failed to remove spark env file[{env_file_path}].')
-
-	if result.returncode != 0:
-		logger.error(f"Spark submit failed: {result.stderr}")
-		raise DqcException(f"Spark submit failed with return code {result.returncode}")
-	else:
-		logger.info(f"Spark submit finished successfully: {result.stdout}")
+		_remove_temp_file(env_file_path, 'spark env file')
+		if bundle_built_here:
+			_remove_temp_file(pyfiles_bundle, 'spark py-files bundle')
 
 
 def create_monthly_runner(scheduler: AsyncIOScheduler) -> None:

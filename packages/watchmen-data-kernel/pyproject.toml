@@ -12,6 +12,7 @@ packages = [
 python = "~3.12"
 cacheout = "^0.16.0"
 pycryptodome = "^3.20.0"
+pyspark = { version = "^3.5", optional = true }
 watchmen-meta = { path = "../watchmen-meta", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
@@ -24,6 +25,7 @@ watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true, optiona
 [tool.poetry.group.dev.dependencies]
 
 [tool.poetry.extras]
+spark = ["pyspark"]
 mysql = ["watchmen-storage-mysql"]
 oracle = ["watchmen-storage-oracle"]
 mongodb = ["watchmen-storage-mongodb"]

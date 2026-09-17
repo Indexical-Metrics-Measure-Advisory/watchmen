@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends
 from starlette.responses import Response
@@ -7,11 +7,10 @@ from starlette.responses import Response
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_data_kernel.meta import TenantService, TopicService
-from watchmen_dqc.common import ask_monitor_rules_runner_engine
 from watchmen_dqc.monitor import MonitorDataService
-from watchmen_dqc.monitor.rules_runner import create_monitor_rules_runner, offload_to_spark_submit
+from watchmen_dqc.monitor.rules_runner import run_topic_rules_in_background
 from watchmen_model.admin import User, UserRole
-from watchmen_model.common import TenantId
+from watchmen_model.common import TenantId, TopicId
 from watchmen_model.dqc import MonitorRuleLog, MonitorRuleLogCriteria, MonitorRuleStatisticalInterval
 from watchmen_model.system import Tenant
 from watchmen_rest import get_any_admin_principal
@@ -70,7 +69,7 @@ def run_topics_rules(
 		frequency: Optional[MonitorRuleStatisticalInterval] = None,
 		process_date: Optional[str] = None,
 		tenant_id: Optional[TenantId] = None,
-		principal_service: PrincipalService = Depends(get_any_admin_principal)) -> None:
+		principal_service: PrincipalService = Depends(get_any_admin_principal)) -> Dict[str, int]:
 	principal_service = ask_principal_service(principal_service, tenant_id)
 
 	if is_not_blank(topic_name):
@@ -113,18 +112,22 @@ def run_topics_rules(
 	else:
 		raise_400(f'Given frequency[{frequency}] is not supported.')
 
-	engine = ask_monitor_rules_runner_engine()
-	if engine == 'spark_submit':
-		# on spark_submit engine, rules are executed by external spark cluster, never run locally
-		if is_not_blank(topic_id):
-			topic_ids = [topic_id]
-		else:
-			topic_ids = ArrayHelper(
-				get_topic_service(principal_service).find_should_monitored(principal_service.get_tenant_id())) \
-				.map(lambda x: x.topicId).to_list()
-		# spark executor accepts date only, truncate to date when it is a datetime
-		spark_process_date = process_date.date() if isinstance(process_date, datetime) else process_date
-		ArrayHelper(topic_ids).each(lambda x: offload_to_spark_submit(
-			principal_service.get_tenant_id(), x, frequency, spark_process_date))
+	# run each topic on a background thread, guarded by the same job lock as the scheduled run,
+	# so this request never blocks on (potentially spark-submitted) rule execution and never
+	# double runs a topic that is running or already done
+	if is_not_blank(topic_id):
+		topic_ids: List[TopicId] = [topic_id]
 	else:
-		create_monitor_rules_runner(principal_service).run(process_date, topic_id, frequency)
+		topic_ids = ArrayHelper(
+			get_topic_service(principal_service).find_should_monitored(principal_service.get_tenant_id())) \
+			.map(lambda x: x.topicId).to_list()
+	# the runner accepts date only, truncate to date when it is a datetime
+	background_process_date = process_date.date() if isinstance(process_date, datetime) else process_date
+	submitted, skipped = 0, 0
+	for topic_id_to_run in topic_ids:
+		if run_topic_rules_in_background(
+				principal_service.get_tenant_id(), topic_id_to_run, frequency, background_process_date):
+			submitted = submitted + 1
+		else:
+			skipped = skipped + 1
+	return {'submitted': submitted, 'skipped': skipped, 'total': len(topic_ids)}

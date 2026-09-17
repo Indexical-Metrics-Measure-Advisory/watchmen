@@ -11,6 +11,18 @@ class DqcSettings(ExtendedBaseSettings):
 	MONITOR_RULES_RUNNER_ENGINE: str = "storage"
 	MONITOR_SPARK_SUBMIT_COMMAND: str = "spark-submit"
 	MONITOR_SPARK_SUBMIT_ARGS: str = "--master local[*] --deploy-mode client"
+	# max seconds to wait for one spark-submit process, the job lock is held until it returns
+	MONITOR_SPARK_SUBMIT_TIMEOUT: int = 3600
+	# a job lock staying in ready status longer than this is treated as left behind by a dead
+	# run, and reclaimed by the next run
+	MONITOR_JOB_LOCK_STALE_SECONDS: int = 86400
+	# extra python paths (os.pathsep separated) that must exist with the same path on every
+	# spark worker node (and the driver), e.g. a directory of pre-built native libraries;
+	# spark does not distribute directories
+	MONITOR_SPARK_PYTHON_PATH: str = ""
+	# python executable on spark worker nodes, must exist there; leave empty to use the
+	# default python of worker nodes
+	MONITOR_SPARK_PYTHON: str = ""
 	MONITOR_JOB_TRIGGER: str = "cron"
 	MONITOR_JOB_DAILY_DAY_OF_WEEK: str = "mon-sun"
 	MONITOR_JOB_DAILY_HOURS: int = 0
@@ -42,6 +54,22 @@ def ask_monitor_spark_submit_command() -> str:
 
 def ask_monitor_spark_submit_args() -> str:
 	return settings.MONITOR_SPARK_SUBMIT_ARGS
+
+
+def ask_monitor_spark_submit_timeout() -> int:
+	return settings.MONITOR_SPARK_SUBMIT_TIMEOUT
+
+
+def ask_monitor_job_lock_stale_seconds() -> int:
+	return settings.MONITOR_JOB_LOCK_STALE_SECONDS
+
+
+def ask_monitor_spark_python_path() -> str:
+	return (settings.MONITOR_SPARK_PYTHON_PATH or '').strip()
+
+
+def ask_monitor_spark_python() -> str:
+	return (settings.MONITOR_SPARK_PYTHON or '').strip()
 
 
 def ask_monitor_job_trigger() -> str:
