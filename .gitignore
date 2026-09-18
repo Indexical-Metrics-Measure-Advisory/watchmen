@@ -86,3 +86,10 @@ DataMo_Glossary_ACORD.pptx
 packages/watchmen-dqc/README.md
 /packages/watchmen-dqc/.mimosa
 /packages/watchmen-storage-rds/.mimosa
+/packages/.mimosa
+/packages/watchmen-pipeline-kernel/.mimosa
+/packages/watchmen-test-postman/.mimosa
+/packages/watchmen-test-harness/.mimosa
+/packages/watchmen-pipeline-kernel/.mimosa
+/packages/watchmen-pipeline-kernel/.mimosa
+/packages/watchmen-pipeline-kernel/.mimosa/hook-state

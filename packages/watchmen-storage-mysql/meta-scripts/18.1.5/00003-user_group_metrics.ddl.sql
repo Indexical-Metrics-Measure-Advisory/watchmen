@@ -1,4 +1,13 @@
-ALTER TABLE user_groups DROP COLUMN metric_ids;
+-- drop the legacy inline column only when it exists (fresh installs never had it);
+-- MySQL 8 has no DROP COLUMN IF EXISTS, so guard via information_schema
+SET @drop_metric_ids = IF(
+    EXISTS(SELECT 1 FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_groups' AND COLUMN_NAME = 'metric_ids'),
+    'ALTER TABLE user_groups DROP COLUMN metric_ids',
+    'SELECT ''metric_ids absent, nothing to drop''');
+PREPARE drop_metric_ids_stmt FROM @drop_metric_ids;
+EXECUTE drop_metric_ids_stmt;
+DEALLOCATE PREPARE drop_metric_ids_stmt;
 
 CREATE TABLE user_group_metrics
 (

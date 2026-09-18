@@ -74,6 +74,11 @@ class HarnessSettings(BaseSettings):
 			'PIPELINE_ELASTIC_SEARCH_EXTERNAL_WRITER': 'TRUE',
 			'PIPELINE_PARALLEL_ACTIONS_IN_LOOP_UNIT': 'False',
 			'USE_STORAGE_DIRECTLY': 'TRUE',
+			# VM-deployment parity: run the collector query-CDC scheduler inside the
+			# doll process so scenarios can exercise collect -> pipeline end to end.
+			'COLLECTOR_ON': 'TRUE',
+			'QUERY_BASED_CHANGE_DATA_CAPTURE': 'TRUE',
+			'TASK_LISTENER_ON': 'TRUE',
 			# CI uses DEBUG; INFO keeps local logs readable and is a documented deviation.
 			'LOGGER_LEVEL': 'INFO',
 			'LOGGER_TO_FILE': 'True',

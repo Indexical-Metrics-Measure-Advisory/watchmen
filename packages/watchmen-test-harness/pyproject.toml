@@ -26,7 +26,8 @@ wht = 'watchmen_test_harness.runner:main'
 
 [tool.pytest.ini_options]
 markers = [
-	'smoke: fast core-path checks (~5 minutes), run via `make smoke`'
+	'smoke: fast core-path checks (~5 minutes), run via `make smoke`',
+	'perf: opt-in performance baseline (WHT_PERF=1), slow by design'
 ]
 testpaths = ['scenarios']
 

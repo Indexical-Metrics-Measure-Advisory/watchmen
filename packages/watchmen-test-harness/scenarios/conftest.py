@@ -8,12 +8,29 @@ defaults match the user seeded by watchmen-storage-mysql meta-scripts
 import os
 
 import pytest
+import pymysql
 import requests
 
 
 @pytest.fixture(scope='session')
 def base_url() -> str:
 	return os.environ.get('WHT_BASE_URL', 'http://127.0.0.1:8000')
+
+
+@pytest.fixture(scope='module')
+def db():
+	"""Direct MySQL connection to the database under test (WHT_MYSQL_* env)."""
+	connection = pymysql.connect(
+		host=os.environ.get('WHT_MYSQL_HOST', '127.0.0.1'),
+		port=int(os.environ.get('WHT_MYSQL_PORT', '13306')),
+		user=os.environ.get('WHT_MYSQL_USER', 'admin'),
+		password=os.environ.get('WHT_MYSQL_PASSWORD', 'admin'),
+		database=os.environ.get('WHT_MYSQL_DATABASE', 'watchmen'),
+		charset='utf8mb4',
+		autocommit=True,
+	)
+	yield connection
+	connection.close()
 
 
 @pytest.fixture(scope='session')
