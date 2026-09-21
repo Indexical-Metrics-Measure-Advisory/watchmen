@@ -4,10 +4,14 @@ Opt-in: set WHT_PERF=1 (full suite stays fast otherwise). Scale via WHT_PERF_ROW
 (default 5000 root rows, plus the same number of child rows).
 
 Measures, all wall-clock from the harness side:
-  extract_sec        trigger POST -> all N root PKs present in change_data_record
-  merge_sec          extraction done -> change_data_record drained (record->json stage)
-  first_target_sec   trigger POST -> first row in target topic
-  e2e_sec            trigger POST -> N rows in target topic
+  pickup_wait_sec    trigger POST -> event picked up by the CollectorEventListener
+                     tick (MONITOR_EVENT_WAIT=60s default). Pure tick-phase jitter,
+                     identical code on every branch — reported separately and
+                     EXCLUDED from t0 so it cannot swamp the branch comparison.
+  extract_sec        pickup -> extraction observed done (record queue starts draining)
+  merge_sec          pickup -> change_data_record drained (record->json stage)
+  first_target_sec   pickup -> first row in target topic
+  e2e_sec            pickup -> N rows in target topic
   throughput_rps     N / e2e_sec
   peak_queue_record  max change_data_record depth observed (queue pressure signal)
   db deltas          MySQL SHOW GLOBAL STATUS counters across the run
@@ -217,11 +221,25 @@ def test_perf_baseline_chain(perf_stack, perf_api, db):
 	target_table = perf_stack['targetTable']
 
 	status_before = db_status(db)
-	t0 = time.monotonic()
+	post_at = time.monotonic()
 	perf_api.post('/collector/trigger/event/table', {
 		'startTime': '2020-01-01 00:00:00', 'endTime': '2030-01-01 00:00:00',
 		'tableName': SRC_ORDER_TABLE, 'tenantId': '1',
 	})
+
+	# the event stays INITIAL until the CollectorEventListener's next tick
+	# (MONITOR_EVENT_WAIT=60s default): POST -> pickup is 0~2 ticks of pure
+	# phase jitter on identical code. Chain clock starts at pickup; the gap is
+	# reported as pickup_wait_sec instead of contaminating every stage metric.
+	pickup_deadline = post_at + POLL_TIMEOUT
+	while time.monotonic() < pickup_deadline:
+		if fetch_one(db, 'SELECT COUNT(*) FROM change_data_record') > 0:
+			break
+		time.sleep(1.0)
+	else:
+		pytest.fail(f'event was not picked up within {POLL_TIMEOUT}s after trigger POST')
+	t0 = time.monotonic()
+	pickup_wait_sec = t0 - post_at
 
 	marks = {}
 	peak_record = 0
@@ -261,6 +279,7 @@ def test_perf_baseline_chain(perf_stack, perf_api, db):
 		'run_id': RUN_ID,
 		'rows': ROWS,
 		'child_rows': ROWS,
+		'pickup_wait_sec': round(pickup_wait_sec, 2),
 		'extract_sec': round(marks.get('extract_done', float('nan')), 2),
 		'merge_sec': round(marks.get('merge_done', float('nan')), 2),
 		'first_target_sec': round(marks.get('first_target', float('nan')), 2),
