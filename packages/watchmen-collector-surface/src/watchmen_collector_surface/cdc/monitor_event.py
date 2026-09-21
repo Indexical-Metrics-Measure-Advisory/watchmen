@@ -167,15 +167,17 @@ class CollectorEventListener:
 	def get_initial_trigger_event(self, tenant: Tenant) -> Optional[TriggerEvent]:
 		return self.trigger_event_service.find_initial_event_by_tenant_id(tenant.tenantId)
 
-	def queuing_event(self, tenant: Tenant):
+	def queuing_event(self, tenant: Tenant) -> bool:
 		event = self.get_initial_trigger_event(tenant)
 		if event:
 			self.trigger_event_with_exception_handler(
 				event=event,
 				trigger_func=self.run_event
 			)
+			return True
 		else:
 			logger.info(f'tenant {tenant.name} have no event')
+			return False
 	
 	
 	def run_event(self, event: TriggerEvent) -> None:
@@ -205,16 +207,42 @@ class CollectorEventListener:
 	def get_executing_trigger_event(self, tenant: Tenant) -> Optional[TriggerEvent]:
 		return self.trigger_event_service.find_executing_event_by_tenant_id(tenant.tenantId)
 
-	def check_finished(self, event: TriggerEvent):
+	def check_finished(self, event: TriggerEvent) -> bool:
 		if self.is_all_modules_finished(event) and self.is_all_records_merged(
 				event) and self.is_all_json_posted(event) and self.is_all_tasks_finished(event):
 			event.isFinished = True
 			event.status = Status.SUCCESS.value
 			self.trigger_event_service.update_trigger_event(event)
+			return True
+		return False
 
-	def process_trigger_event(self, tenant: Tenant):
+	def process_trigger_event(self, tenant: Tenant) -> bool:
+		# returns True when a state transition happened (an EXECUTING event was
+		# completed or a queued INITIAL event was picked up), so an immediate
+		# pickup caller can drain completable events and then start the next
+		# queued one within a single attempt; the periodic tick ignores it
 		event = self.get_executing_trigger_event(tenant)
 		if event is None:
-			self.queuing_event(tenant)
+			return self.queuing_event(tenant)
 		else:
-			self.check_finished(event)
+			return self.check_finished(event)
+
+	def pickup_event(self, tenant_id) -> None:
+		# immediate pickup attempt after a trigger REST call, instead of waiting
+		# for the next MONITOR_EVENT_WAIT tick (0~120s of pure phase latency).
+		# Same lock discipline as the periodic tick: losing the lock only means
+		# another node or the tick currently owns the tenant, and the periodic
+		# listener remains the safety net either way. Keeps advancing while the
+		# attempt makes progress: an EXECUTING event whose completion has not
+		# been flipped yet must not consume the attempt — complete it, then pick
+		# the fresh INITIAL event queued behind it
+		tenant = Tenant(tenantId=tenant_id)
+		lock = get_resource_lock(self.snowflake_generator.next_id(),
+		                         self.trigger_event_lock_resource_id(tenant),
+		                         tenant.tenantId)
+		try:
+			if try_lock_nowait(self.competitive_lock_service, lock):
+				while self.process_trigger_event(tenant):
+					pass
+		finally:
+			unlock(self.competitive_lock_service, lock)

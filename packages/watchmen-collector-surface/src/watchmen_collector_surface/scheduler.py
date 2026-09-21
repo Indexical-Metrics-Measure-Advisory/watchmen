@@ -1,3 +1,6 @@
+import threading
+from typing import Optional
+
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from .settings import ask_s3_connector_settings
@@ -13,12 +16,26 @@ class JobScheduler:
 
 	def __init__(self):
 		self.scheduler = BackgroundScheduler()
+		self.event_listener: Optional[CollectorEventListener] = None
 
 	def init_collector_jobs(self):
 		TableExtractor().create_thread(self.scheduler)
 		RecordToJsonService().create_thread(self.scheduler)
 		PostJsonService().create_thread(self.scheduler)
-		CollectorEventListener().create_thread(self.scheduler)
+		self.event_listener = CollectorEventListener()
+		self.event_listener.create_thread(self.scheduler)
+
+	def try_pickup_event_now(self, tenant_id) -> None:
+		# nudge the event pickup right after a trigger REST call; without this,
+		# the fresh INITIAL event waits for the next MONITOR_EVENT_WAIT tick.
+		# no-op on nodes that do not run the event listener (API-only nodes) —
+		# there the periodic tick on a collector node stays the pickup path.
+		# daemon thread on purpose: extraction may run minutes, and its sync
+		# storage calls must stay off the uvicorn event loop
+		listener = self.event_listener
+		if listener is None:
+			return
+		threading.Thread(target=listener.pickup_event, args=(tenant_id,), daemon=True).start()
 
 	def init_collector_cache_update(self):
 		create_collector_cache_update_thread(self.scheduler)

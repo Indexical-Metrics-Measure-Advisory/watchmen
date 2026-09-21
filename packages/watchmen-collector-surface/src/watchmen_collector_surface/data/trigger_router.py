@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 
 from watchmen_collector_kernel.service import get_table_config_service
 from watchmen_collector_surface.cdc import get_collector_table_extractor_service
+from watchmen_collector_surface.scheduler import ask_job_scheduler
 from watchmen_utilities.pydantic_helper import ExtendedBaseModel
 
 from watchmen_auth import PrincipalService
@@ -45,7 +46,9 @@ async def save_event_trigger(
         event.isFinished = False
         event.status = Status.INITIAL.value
         event.type = EventType.DEFAULT.value
-        return trigger_event_service.create_trigger_event(event)
+        created_event = trigger_event_service.create_trigger_event(event)
+        ask_job_scheduler().try_pickup_event_now(created_event.tenantId)
+        return created_event
 
 
 @router.post('/collector/trigger/event/table', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
@@ -69,7 +72,9 @@ async def trigger_event_by_table(
         event.isFinished = False
         event.status = Status.INITIAL.value
         event.type = EventType.BY_TABLE.value
-        return trigger_event_service.create_trigger_event(event)
+        created_event = trigger_event_service.create_trigger_event(event)
+        ask_job_scheduler().try_pickup_event_now(created_event.tenantId)
+        return created_event
 
 
 @router.post('/collector/trigger/event/model', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
@@ -108,7 +113,9 @@ async def trigger_event_by_model(
     trigger_event.status = Status.INITIAL.value
     trigger_event.type = EventType.BY_TABLE.value
     trigger_event.tenantId = principal_service.get_tenant_id()
-    return trigger_event_service.create_trigger_event(trigger_event)
+    created_event = trigger_event_service.create_trigger_event(trigger_event)
+    ask_job_scheduler().try_pickup_event_now(created_event.tenantId)
+    return created_event
 
 
 @router.post('/collector/trigger/event/record', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
@@ -132,7 +139,9 @@ async def trigger_event_by_table(
         event.isFinished = False
         event.status = Status.INITIAL.value
         event.type = EventType.BY_RECORD.value
-        return trigger_event_service.create_trigger_event(event)
+        created_event = trigger_event_service.create_trigger_event(event)
+        ask_job_scheduler().try_pickup_event_now(created_event.tenantId)
+        return created_event
 
 
 @router.get("/collector/trigger/events/unfinished", tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
@@ -208,7 +217,9 @@ async def trigger_event_by_pipeline(
         event.isFinished = False
         event.status = Status.INITIAL.value
         event.type = EventType.BY_PIPELINE.value
-        return trigger_event_service.create_trigger_event(event)
+        created_event = trigger_event_service.create_trigger_event(event)
+        ask_job_scheduler().try_pickup_event_now(created_event.tenantId)
+        return created_event
 
 
 @router.post('/collector/trigger/event/schedule', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
@@ -231,7 +242,9 @@ async def trigger_event_by_schedule(
         event.isFinished = False
         event.status = Status.INITIAL.value
         event.type = EventType.BY_SCHEDULE.value
-        return trigger_event_service.create_trigger_event(event)
+        created_event = trigger_event_service.create_trigger_event(event)
+        ask_job_scheduler().try_pickup_event_now(created_event.tenantId)
+        return created_event
 
 
 @router.post('/collector/count/table/volume', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
