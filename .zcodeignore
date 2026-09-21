@@ -1,0 +1,126 @@
+# ---- IDE ----
+/.idea
+**/.idea/
+.vscode
+.agents
+# ---- OS ----
+.DS_Store
+
+# ---- Agent / tooling scratch ----
+/.trae/
+/.workbuddy
+**/.workbuddy/
+/.zcode
+
+# ---- Python ----
+__pycache__/
+*.pyc
+
+# ---- Virtual env ----
+/venv
+
+# ---- Logs ----
+*.log
+packages/watchmen-rest-doll/log/server.log.1
+
+# ---- Archives ----
+*.zip
+*.tar.gz
+my_source_code.tar.gz
+
+# ---- Lock / transaction files ----
+*.txn
+
+# ---- Run configs ----
+*.run.xml
+.run/doll-app.run.xml
+packages/watchmen-auth/.run/app ai.run.xml
+packages/watchmen-auth/.run/app.run.xml
+packages/watchmen-auth/.run/metricflow.run.xml
+
+# ---- Docs (generated, not source) ----
+/docs
+packages/watchmen-storage/docs
+packages/watchmen-storage-aurora-limitless/docs
+
+# ---- Generated analysis / design artifacts ----
+/admin-code-analysis
+/code-quality-review
+/lambda-pipeline-analysis
+/ontology-analysis
+/ontology-architecture-design
+/ontology-dynamics-layer-design
+/ontology-dynamics-ui-design
+/pii-classification-design
+/pii-dqc-management
+/watchmen-data-monitor
+/watchmen-portal
+/watchmen-ui-navigation-plan
+
+# ---- Frontend redesign folders ----
+/packages/watchmen-analysis-client/datamo-redesign
+/packages/watchmen-analysis-client/metrics-redesign
+/packages/watchmen-analysis-client/ontology-redesign
+
+# ---- Frontend build artifacts ----
+packages/watchmen-portal-client/node_modules
+packages/watchmen-portal-client/dist
+
+# ---- Kuzu graph db files ----
+packages/watchmen-ai-copilot/src/watchmen_ai/knowledge_base/graphdb/knowledge_graph/
+
+# ---- Misc ----
+packages/watchmen-indicator
+packages/watchmen-analysis-client/lint-results.txt
+/.mimosa
+/packages/watchmen-metricflow/.mimosa
+/packages/watchmen-metricflow/.mimosa
+*.source
+/packages/watchmen-analysis-client/.mimosa
+/packages/watchmen-web-client/.mimosa
+/packages/watchmen-metricflow/src/watchmen_metricflow/data/.mimosa
+DataMo_Glossary_ACORD.pptx
+.~DataMo_Glossary_ACORD.pptx
+/packages/watchmen-metricflow/src/watchmen_metricflow/data/.mimosa
+/packages/watchmen-dqc/.mimosa
+packages/watchmen-dqc/README.md
+/packages/watchmen-dqc/.mimosa
+/packages/watchmen-storage-rds/.mimosa
+/packages/.mimosa
+/packages/watchmen-pipeline-kernel/.mimosa
+/packages/watchmen-test-postman/.mimosa
+/packages/watchmen-test-harness/.mimosa
+/packages/watchmen-pipeline-kernel/.mimosa
+/packages/watchmen-pipeline-kernel/.mimosa
+/packages/watchmen-pipeline-kernel/.mimosa/hook-state
+
+# ===== ↑ 以上同步自 .gitignore（「从 .gitignore 同步」只重写以上部分）=====
+.git/
+.hg/
+.svn/
+node_modules/
+bower_components/
+jspm_packages/
+site-packages/
+venv/
+coverage/
+htmlcov/
+lcov-report/
+cmakefiles/
+cmake-build-*/
+bazel-*/
+pods/
+deriveddata/
+storybook-static/
+playwright-report/
+test-results/
+allure-results/
+allure-report/
+cdk.out/
+*.egg-info/
+*.dist-info/
+eggs/
+pip-wheel-metadata/
+wheels/
+# ----- ↑ 以上为 ZCode 默认排除规则（自定义规则请写在本行下方，不会被同步/恢复改动）-----
+# 自定义规则写在下方（本行提示可删除）

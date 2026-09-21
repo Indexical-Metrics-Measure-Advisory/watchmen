@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List, Any, Dict
+from typing import Optional, List, Any, Dict, Tuple
 
 from watchmen_collector_kernel.common import ask_task_partial_size, STATUS
 from watchmen_utilities import ArrayHelper
@@ -8,11 +8,12 @@ from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import ScheduledTask
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
-from watchmen_model.common import Storable, ScheduledTaskId, Pageable
+from watchmen_model.common import Storable, ScheduledTaskId, Pageable, OptimisticLock
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, \
 	EntityCriteriaExpression, ColumnNameLiteral, SnowflakeGenerator, EntitySortColumn, EntitySortMethod, \
 	EntityCriteriaJoint, EntityStraightValuesFinder, EntityStraightColumn, EntityLimitedFinder, EntityCriteriaOperator, \
-	EntityUpdater
+	EntityUpdater, EntityDeleter
+from watchmen_utilities import ArrayHelper
 
 
 class ScheduledTaskShaper(EntityShaper):
@@ -178,6 +179,45 @@ class ScheduledTaskService(TupleService):
 				],
 				sort=[EntitySortColumn(name='created_at', method=EntitySortMethod.ASC)],
 				limit=limit if limit is not None else ask_task_partial_size()
+			))
+
+	def update_by_ids(self, task_ids: List[ScheduledTaskId], data_: Dict[str, Any]) -> int:
+		"""Targeted-column bulk update by primary keys; runs within the caller's transaction."""
+		return self.storage.update(
+			EntityUpdater(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='task_id'),
+					                         operator=EntityCriteriaOperator.IN,
+					                         right=task_ids)
+				],
+				update=data_
+			))
+
+	def add_all(self, tasks: List[ScheduledTask]) -> None:
+		"""Bulk insert without transaction management; caller owns begin/commit."""
+		def prepare_insert(a_tuple: Tuple) -> Tuple:
+			self.try_to_prepare_auditable_on_create(a_tuple)
+			if isinstance(a_tuple, OptimisticLock):
+				a_tuple.version = 1
+			return a_tuple
+
+		tuples = ArrayHelper(tasks).map(lambda task: prepare_insert(task)).to_list()
+		for i in range(0, len(tuples), 1000):
+			self.storage.insert_all(tuples[i:i + 1000], self.get_entity_helper())
+
+	def delete_by_ids(self, task_ids: List[ScheduledTaskId]) -> int:
+		"""Bulk delete by primary keys; runs within the caller's transaction."""
+		return self.storage.delete(
+			EntityDeleter(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='task_id'),
+					                         operator=EntityCriteriaOperator.IN,
+					                         right=task_ids)
+				]
 			))
 
 	def is_existed(self, task: ScheduledTask) -> bool:

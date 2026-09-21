@@ -79,6 +79,9 @@ class HarnessSettings(BaseSettings):
 			'COLLECTOR_ON': 'TRUE',
 			'QUERY_BASED_CHANGE_DATA_CAPTURE': 'TRUE',
 			'TASK_LISTENER_ON': 'TRUE',
+			# monitor-log noise reduction (error-only): every pipeline run otherwise
+			# costs one monitor-log insert + invoker round-trip
+			'PIPELINE_ERROR_HANDLE_MONITOR_LOG': 'TRUE',
 			# CI uses DEBUG; INFO keeps local logs readable and is a documented deviation.
 			'LOGGER_LEVEL': 'INFO',
 			'LOGGER_TO_FILE': 'True',

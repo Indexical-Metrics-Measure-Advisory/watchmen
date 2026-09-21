@@ -75,7 +75,24 @@ def ask_storage_by_data_source( data_source: DataSource) -> TransactionalStorage
     build = CacheService.data_source().get_builder(data_source.dataSourceId)
     if build is not None:
         return build()
-    
+
     build = build_topic_data_storage(data_source)
     CacheService.data_source().put_builder(data_source.dataSourceId, build)
     return build()
+
+
+def is_retryable_storage_error(error: BaseException) -> bool:
+	"""
+	Deadlock (MySQL 1213) and lock-wait-timeout (1205) victims must NOT be archived as
+	FAIL - that silently loses the row. Leave it EXECUTING so CleanOfTimeout resets
+	it for a retry instead.
+	"""
+	# noinspection PyBroadException
+	try:
+		orig = getattr(error, 'orig', error)
+		args = getattr(orig, 'args', None)
+		if args and isinstance(args[0], int):
+			return args[0] in (1213, 1205)
+		return '1213' in str(orig) or '1205' in str(orig)
+	except Exception:
+		return False

@@ -332,9 +332,19 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = select(table)
 		return self.find_on_statement_by_finder(table, statement, finder)
 
+	# noinspection PyMethodMayBeStatic
+	def build_select_statement(self, table: Table, finder: EntityLimitedFinder) -> SQLAlchemyStatement:
+		# optional light-column projection (claim queries): storages/adapters that
+		# do not set columns behave exactly as before (select the whole table)
+		columns = getattr(finder, 'columns', None)
+		if columns:
+			return select(*ArrayHelper(columns).map(lambda column_name: table.c[column_name]).to_list())
+		else:
+			return select(table)
+
 	def find_limited(self, finder: EntityLimitedFinder) -> EntityList:
 		table = self.find_table(finder.name)
-		statement = select(table)
+		statement = self.build_select_statement(table, finder)
 		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
 		statement = self.build_sort_for_statement(statement, finder.sort)
 		statement = self.build_offset_for_statement(statement, finder.limit, 1)
@@ -355,7 +365,7 @@ class StorageRDS(TransactionalStorageSPI):
 
 	def find_for_update_skip_locked(self, finder: EntityLimitedFinder) -> EntityList:
 		table = self.find_table(finder.name)
-		statement = select(table).with_for_update(skip_locked=True)
+		statement = self.build_select_statement(table, finder).with_for_update(skip_locked=True)
 		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
 		statement = self.build_sort_for_statement(statement, finder.sort)
 		statement = self.build_offset_for_statement(statement, finder.limit, 1)

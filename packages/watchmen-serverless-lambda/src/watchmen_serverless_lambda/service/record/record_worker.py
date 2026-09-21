@@ -153,11 +153,10 @@ class RecordWorker:
 
     def is_duplicated(self, change_record: ChangeDataRecord) -> bool:
         resource_id = self.generate_resource_id(change_record)
-        existed_history_json = self.change_json_history_service.find_by_resource_id(resource_id)
-        if existed_history_json:
+        # index-only probes; no content LOB is loaded for the existence check
+        if self.change_json_history_service.exists_by_resource_id(resource_id):
             return True
-        existed_json = self.change_json_service.find_by_resource_id(resource_id)
-        if existed_json:
+        if self.change_json_service.exists_by_resource_id(resource_id):
             return True
         return False
 

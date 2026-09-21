@@ -1,5 +1,8 @@
 from datetime import datetime, timedelta
 from logging import getLogger
+from typing import List
+
+from sqlalchemy.exc import IntegrityError
 
 from watchmen_collector_kernel.model import Status, ChangeDataRecord, ChangeDataJson, ScheduledTask
 from watchmen_utilities import ArrayHelper
@@ -15,6 +18,7 @@ from watchmen_collector_kernel.storage import get_competitive_lock_service, get_
 	get_change_data_json_service, get_scheduled_task_service, get_change_data_json_history_service
 
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 
 logger = getLogger(__name__)
 
@@ -118,62 +122,87 @@ class CleanOfTimeout:
 	def clean_record(self):
 		query_time = datetime.now() - timedelta(seconds=self.timeout)
 		records = self.change_data_record_service.find_timeout_record(query_time)
-
-		def change_status(record: ChangeDataRecord, status: int) -> ChangeDataRecord:
-			record.status = status
-			return record
-
-		ArrayHelper(records).map(
-			lambda record: change_status(record, Status.INITIAL.value)
-		).map(
-			lambda record: self.change_data_record_service.update_change_record(record)
-		)
+		# one targeted UPDATE for the whole timed-out set instead of N full-row updates
+		record_ids = ArrayHelper(records).map(lambda record: record.changeRecordId).to_list()
+		if record_ids:
+			self.change_data_record_service.update_by_ids(record_ids, {
+				'status': Status.INITIAL.value,
+				'last_modified_at': get_current_time_in_seconds()
+			})
 
 	def clean_json(self):
 		query_time = datetime.now() - timedelta(seconds=self.timeout)
-		json = self.change_data_json_service.find_timeout_json(query_time)
-
-		def change_status(record: ChangeDataJson, status: int) -> ChangeDataJson:
-			record.status = status
-			return record
-
-		ArrayHelper(json).map(
-			lambda record: change_status(record, Status.INITIAL.value)
-		).map(
-			lambda record: self.change_data_json_service.update_change_data_json(record)
-		)
+		jsons = self.change_data_json_service.find_timeout_json(query_time)
+		# one targeted UPDATE for the whole timed-out set instead of N full-row updates
+		json_ids = ArrayHelper(jsons).map(lambda change_json: change_json.changeJsonId).to_list()
+		if json_ids:
+			self.change_data_json_service.update_by_ids(json_ids, {
+				'status': Status.INITIAL.value,
+				'last_modified_at': get_current_time_in_seconds()
+			})
 
 	def clean_task(self):
 		query_time = datetime.now() - timedelta(seconds=self.task_timeout)
 		tasks = self.scheduled_task_service.find_timeout_task(query_time)
+		if not tasks:
+			return
 
 		def set_task_timeout(task: ScheduledTask) -> ScheduledTask:
 			task.status = Status.FAIL.value
 			task.result = "timeout"
 			return task
 
-		# noinspection PyTypeChecker
-		def clean_change_json_with_task(task: ScheduledTask):
-			for change_json_id in task.changeJsonIds:
-				change_data_json = self.change_data_json_service.find_json_by_id(change_json_id)
-				if change_data_json:
-					try:
-						self.change_data_json_service.begin_transaction()
-						change_data_json.status = Status.FAIL.value
-						change_data_json.result = "timeout"
-						self.change_data_json_history_service.create(change_data_json)
-						# noinspection PyTypeChecker
-						self.change_data_json_service.delete(change_data_json.changeJsonId)
-						self.change_data_json_service.commit_transaction()
-					except Exception as e:
-						self.change_data_json_service.rollback_transaction()
-						raise e
-					finally:
-						self.change_data_json_service.close_transaction()
+		timeout_tasks = ArrayHelper(tasks).map(set_task_timeout).to_list()
+		self.archive_timeout_tasks(timeout_tasks)
+		self.archive_timeout_jsons(timeout_tasks)
 
+	def archive_timeout_tasks(self, tasks: List[ScheduledTask]) -> None:
+		# whole timed-out set archived in one transaction instead of one per task
+		try:
+			self.scheduled_task_history_service.begin_transaction()
+			self.scheduled_task_history_service.add_all(tasks)
+			self.scheduled_task_service.delete_by_ids(
+				ArrayHelper(tasks).map(lambda task: task.taskId).to_list())
+			self.scheduled_task_history_service.commit_transaction()
+		except IntegrityError:
+			self.scheduled_task_history_service.rollback_transaction()
+			# some tasks may already exist in history; finish one by one so the
+			# existing-row fallback in finish_task applies
+			ArrayHelper(tasks).each(lambda task: self.task_service.finish_task(task))
+		except Exception as e:
+			self.scheduled_task_history_service.rollback_transaction()
+			raise e
+		finally:
+			self.scheduled_task_history_service.close_transaction()
+
+	def archive_timeout_jsons(self, tasks: List[ScheduledTask]) -> None:
+		change_json_ids = []
 		for task in tasks:
-			self.task_service.finish_task(set_task_timeout(task))
-			clean_change_json_with_task(task)
+			change_json_ids.extend(task.changeJsonIds or [])
+		if not change_json_ids:
+			return
+		# one batch fetch + one archive transaction for all timed-out jsons
+		change_jsons = self.change_data_json_service.find_json_by_ids(change_json_ids)
+		if not change_jsons:
+			return
+
+		def mark_timeout(change_json: ChangeDataJson) -> ChangeDataJson:
+			change_json.status = Status.FAIL.value
+			change_json.result = "timeout"
+			return change_json
+
+		change_jsons = ArrayHelper(change_jsons).map(mark_timeout).to_list()
+		try:
+			self.change_data_json_history_service.begin_transaction()
+			self.change_data_json_history_service.add_all(change_jsons)
+			self.change_data_json_service.delete_by_ids(
+				ArrayHelper(change_jsons).map(lambda change_json: change_json.changeJsonId).to_list())
+			self.change_data_json_history_service.commit_transaction()
+		except Exception as e:
+			self.change_data_json_history_service.rollback_transaction()
+			raise e
+		finally:
+			self.change_data_json_history_service.close_transaction()
 
 
 def init_clean():

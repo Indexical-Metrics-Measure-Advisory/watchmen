@@ -143,11 +143,7 @@ class TaskWorker:
             self.handle_execution_result(finished_task)
     
     def is_duplicated(self, change_data_json: ChangeDataJson) -> bool:
-        existed_json = self.change_json_history_service.find_by_resource_id(change_data_json.resourceId)
-        if existed_json:
-            return True
-        else:
-            return False
+        return self.change_json_history_service.exists_by_resource_id(change_data_json.resourceId)
     
     def handle_unfinished_change_json(self, unfinished_change_json_ids: List):
         for unfinished_json_id in unfinished_change_json_ids:

@@ -6,7 +6,7 @@ from watchmen_collector_kernel.storage import get_scheduled_task_service
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
 from watchmen_serverless_lambda.common import ask_serverless_run_task_batch_size
 from watchmen_serverless_lambda.model import ActionType
-from watchmen_utilities import ArrayHelper, serialize_to_json
+from watchmen_utilities import ArrayHelper, serialize_to_json, get_current_time_in_seconds
 
 
 class TaskCoordinator:
@@ -28,10 +28,15 @@ class TaskCoordinator:
         try:
             self.scheduled_task_service.begin_transaction()
             tasks = self.scheduled_task_service.find_tasks_and_locked()
+            # one targeted UPDATE for the whole batch instead of N full-row updates
+            task_ids = ArrayHelper(tasks).map(lambda task: task.taskId).to_list()
+            if task_ids:
+                self.scheduled_task_service.update_by_ids(
+                    task_ids,
+                    {'status': Status.EXECUTING.value, 'last_modified_at': get_current_time_in_seconds()}
+                )
             results = ArrayHelper(tasks).map(
                 lambda task: self.change_status(task, Status.EXECUTING.value)
-            ).map(
-                lambda task: self.scheduled_task_service.update(task)
             ).to_list()
             self.scheduled_task_service.commit_transaction()
             return results

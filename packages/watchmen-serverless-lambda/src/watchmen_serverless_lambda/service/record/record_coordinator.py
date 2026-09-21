@@ -6,7 +6,7 @@ from watchmen_collector_kernel.storage import get_change_data_record_service
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
 from watchmen_serverless_lambda.common import ask_serverless_record_batch_size
 from watchmen_serverless_lambda.model import ActionType
-from watchmen_utilities import ArrayHelper, serialize_to_json
+from watchmen_utilities import ArrayHelper, serialize_to_json, get_current_time_in_seconds
 
 
 class RecordCoordinator:
@@ -35,10 +35,15 @@ class RecordCoordinator:
             self.change_record_service.begin_transaction()
             records = self.change_record_service.find_records_and_locked_by_trigger_event_id(
                 trigger_event.eventTriggerId)
+            # one targeted UPDATE for the whole batch instead of N full-row updates
+            record_ids = ArrayHelper(records).map(lambda record: record.changeRecordId).to_list()
+            if record_ids:
+                self.change_record_service.update_by_ids(
+                    record_ids,
+                    {'status': Status.EXECUTING.value, 'last_modified_at': get_current_time_in_seconds()}
+                )
             results = ArrayHelper(records).map(
                 lambda record: change_status(record, Status.EXECUTING.value)
-            ).map(
-                lambda record: self.change_record_service.update(record)
             ).to_list()
             self.change_record_service.commit_transaction()
             return results

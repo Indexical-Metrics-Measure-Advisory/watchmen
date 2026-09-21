@@ -11,7 +11,7 @@ from watchmen_model.common import Storable, ChangeRecordId, Pageable, Optimistic
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	EntityCriteriaExpression, ColumnNameLiteral, EntityStraightValuesFinder, EntityStraightColumn, EntityColumnType, \
 	EntityPager, EntityLimitedFinder, EntityCriteriaOperator, EntityUpdater, EntitySortColumn, EntitySortMethod, \
-	EntityFinder
+	EntityFinder, EntityDeleter
 from watchmen_utilities import ArrayHelper
 
 
@@ -167,6 +167,45 @@ class ChangeDataRecordService(TupleService):
 				],
 				sort=[EntitySortColumn(name='created_at', method=EntitySortMethod.ASC)],
 				limit=limit if limit is not None else ask_partial_size()
+			))
+
+	def update_by_ids(self, record_ids: List[ChangeRecordId], data_: Dict[str, Any]) -> int:
+		"""Targeted-column bulk update by primary keys; runs within the caller's transaction."""
+		return self.storage.update(
+			EntityUpdater(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=CHANGE_RECORD_ID),
+					                         operator=EntityCriteriaOperator.IN,
+					                         right=record_ids)
+				],
+				update=data_
+			))
+
+	def add_all(self, records: List[ChangeDataRecord]) -> None:
+		"""Bulk insert without transaction management; caller owns begin/commit."""
+		def prepare_insert(a_tuple: Tuple) -> Tuple:
+			self.try_to_prepare_auditable_on_create(a_tuple)
+			if isinstance(a_tuple, OptimisticLock):
+				a_tuple.version = 1
+			return a_tuple
+
+		tuples = ArrayHelper(records).map(lambda record: prepare_insert(record)).to_list()
+		for i in range(0, len(tuples), 1000):
+			self.storage.insert_all(tuples[i:i + 1000], self.get_entity_helper())
+
+	def delete_by_ids(self, record_ids: List[ChangeRecordId]) -> int:
+		"""Bulk delete by primary keys; runs within the caller's transaction."""
+		return self.storage.delete(
+			EntityDeleter(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=CHANGE_RECORD_ID),
+					                         operator=EntityCriteriaOperator.IN,
+					                         right=record_ids)
+				]
 			))
 	
 	def find_records_and_locked_by_trigger_event_id(self, trigger_event_id: int, limit: int = None) -> List:

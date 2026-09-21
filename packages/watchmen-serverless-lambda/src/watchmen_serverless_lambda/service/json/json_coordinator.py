@@ -25,7 +25,7 @@ from watchmen_serverless_lambda.queue import SQSSender
 from watchmen_serverless_lambda.service.time_manager import get_lambda_time_manager, LambdaTimeManager
 from watchmen_serverless_lambda.storage import ask_file_log_service
 from watchmen_serverless_lambda.storage.log_service import FileLogService
-from watchmen_utilities import ArrayHelper, serialize_to_json
+from watchmen_utilities import ArrayHelper, serialize_to_json, get_current_time_in_seconds
 
 logger = logging.getLogger(__name__)
 
@@ -118,8 +118,16 @@ class ModelExecutor(ModelExecutorSPI):
         try:
             self.change_json_service.begin_transaction()
             records = self.change_json_service.find_json_and_locked(model_trigger_id)
-            results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value)).map(
-                lambda record: self.change_json_service.update(record)).to_list()
+            # one targeted UPDATE for the whole batch instead of N full-row updates;
+            # claimed rows are light-column projections (no content) and only their
+            # ids are serialized into worker messages
+            json_ids = ArrayHelper(records).map(lambda record: record.changeJsonId).to_list()
+            if json_ids:
+                self.change_json_service.update_by_ids(
+                    json_ids,
+                    {'status': Status.EXECUTING.value, 'last_modified_at': get_current_time_in_seconds()}
+                )
+            results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value)).to_list()
             self.change_json_service.commit_transaction()
             return results
         finally:

@@ -12,12 +12,14 @@ from watchmen_collector_kernel.model.change_data_json import Dependence
 from watchmen_collector_kernel.model.collector_table_config import Dependence as DependenceConfig
 from watchmen_collector_kernel.service import DataCaptureService, get_table_config_service, ask_source_extractor
 from watchmen_collector_kernel.service.extract_utils import get_data_id
+from watchmen_collector_kernel.service.storage_helper import is_retryable_storage_error
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
 	get_change_data_json_service, get_collector_table_config_service, get_change_data_record_history_service, \
 	get_change_data_json_history_service
-from watchmen_collector_surface.settings import ask_record_to_json_wait
+from watchmen_collector_surface.settings import ask_record_to_json_wait, ask_listener_time_budget_seconds, \
+	ask_record_batch_build_enabled
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 
 
 logger = logging.getLogger('apscheduler')
@@ -84,11 +86,15 @@ class RecordToJsonService:
 		try:
 			self.change_record_service.begin_transaction()
 			records = self.change_record_service.find_records_and_locked()
-			# TODO bulk update. No need
+			# one targeted UPDATE for the whole claim instead of N full-row updates
+			record_ids = ArrayHelper(records).map(lambda record: record.changeRecordId).to_list()
+			if record_ids:
+				self.change_record_service.update_by_ids(record_ids, {
+					'status': Status.EXECUTING.value,
+					'last_modified_at': get_current_time_in_seconds()
+				})
 			results = ArrayHelper(records).map(
 				lambda record: self.change_status(record, Status.EXECUTING.value)
-			).map(
-				lambda record: self.change_record_service.update(record)
 			).to_list()
 			self.change_record_service.commit_transaction()
 			return results
@@ -96,23 +102,141 @@ class RecordToJsonService:
 			self.change_record_service.close_transaction()
 
 	def change_data_record_listener(self):
-		unmerged_records = self.find_records_and_locked()
-		for unmerged_record in unmerged_records:
-			self.performance_result(unmerged_record, True)
-			change_data_record = unmerged_record
+		# keep claiming batches within the tick time budget; an empty claim
+		# short-circuits (listener is idle)
+		deadline = time.monotonic() + ask_listener_time_budget_seconds()
+		while True:
+			unmerged_records = self.find_records_and_locked()
+			if not unmerged_records:
+				break
 			try:
-				self.process_record(change_data_record)
-			except IntegrityError:
-				change_data_record.isMerged = True
-				change_data_record.status = Status.SUCCESS.value
-				self.handle_result(change_data_record, {"result": "duplicated"})
-				self.finish_and_backup_record(change_data_record, None, False)
+				self.process_records(unmerged_records)
+			except Exception as e:
+				if is_retryable_storage_error(e):
+					# deadlock/lock-wait victim: leave the whole batch EXECUTING,
+					# CleanOfTimeout resets it for a retry - never archive FAIL
+					logger.warning('retryable storage error, record batch left EXECUTING for retry',
+					               exc_info=True)
+				else:
+					logger.error(e, exc_info=True, stack_info=True)
+			finally:
+				for change_data_record in unmerged_records:
+					self.finalize(change_data_record)
+					self.performance_result(change_data_record, False)
+			if time.monotonic() >= deadline:
+				break
+
+	def process_records(self, records: List[ChangeDataRecord]) -> None:
+		roots = self.resolve_roots(records)
+		if not roots:
+			return
+		pairs = self.build_pairs(roots)
+		try:
+			self.finish_and_backup_records(pairs)
+		except Exception as archive_error:
+			if is_retryable_storage_error(archive_error):
+				raise
+			logger.error(archive_error, exc_info=True, stack_info=True)
+			# the shared archive transaction failed (e.g. a concurrent insert hit
+			# the unique resource_id): fall back to the proven row-by-row path
+			self.finish_and_backup_records_row_by_row(pairs)
+
+	def resolve_roots(self, records: List[ChangeDataRecord]) -> List[
+		Tuple[ChangeDataRecord, CollectorTableConfig, Optional[Dict[str, Any]]]]:
+		roots = []
+		for record in records:
+			self.performance_result(record, True)
+			try:
+				config = self.table_config_service.find_by_name(record.tableName, record.tenantId)
+				root_config, root_data, record = self.find_root(config, record)
+				roots.append((record, root_config, root_data))
 			except Exception as e:
 				logger.error(e, exc_info=True, stack_info=True)
-				self.update_result(change_data_record, format_exc())
-			finally:
-				self.finalize(change_data_record)
-				self.performance_result(change_data_record, False)
+				self.update_result(record, format_exc())
+		return roots
+
+	def build_pairs(self, roots: List[
+		Tuple[ChangeDataRecord, CollectorTableConfig, Optional[Dict[str, Any]]]]) -> List[
+		Tuple[ChangeDataRecord, Optional[ChangeDataJson]]]:
+		# one IN probe per staging table instead of one probe per record
+		resource_ids = ArrayHelper(roots).map(lambda root: self.generate_resource_id(root[0])).to_list()
+		duplicated_ids = set(self.change_json_history_service.find_existing_resource_ids(resource_ids))
+		duplicated_ids.update(self.change_json_service.find_existing_resource_ids(resource_ids))
+		pairs: List[Tuple[ChangeDataRecord, Optional[ChangeDataJson]]] = []
+		to_build = []
+		for record, root_config, root_data in roots:
+			if self.generate_resource_id(record) in duplicated_ids:
+				record.isMerged = True
+				record.status = Status.SUCCESS.value
+				self.handle_result(record, {"result": "duplicated"})
+				pairs.append((record, None))
+			else:
+				to_build.append((record, root_config, root_data))
+		if to_build:
+			pairs.extend(self.build_json_pairs(to_build))
+		return pairs
+
+	def build_json_pairs(self, to_build: List[
+		Tuple[ChangeDataRecord, CollectorTableConfig, Optional[Dict[str, Any]]]]) -> List[
+		Tuple[ChangeDataRecord, Optional[ChangeDataJson]]]:
+		# group by root table so child rows can be fetched with level-by-level IN
+		# queries (build_jsons) instead of one query per business row (build_json)
+		grouped: Dict[str, list] = {}
+		group_order: List[str] = []
+		for record, root_config, root_data in to_build:
+			if root_config.name not in grouped:
+				grouped[root_config.name] = []
+				group_order.append(root_config.name)
+			grouped[root_config.name].append((record, root_config, root_data))
+		pairs: List[Tuple[ChangeDataRecord, Optional[ChangeDataJson]]] = []
+		for group_name in group_order:
+			items = grouped[group_name]
+			root_config = items[0][1]
+			root_data_list = ArrayHelper(items).map(lambda item: item[2]).to_list()
+			if ask_record_batch_build_enabled():
+				self.data_capture_service.build_jsons(root_config, root_data_list)
+			else:
+				ArrayHelper(root_data_list).each(lambda root_data: self.data_capture_service.build_json(root_config, root_data))
+			for record, _, root_data in items:
+				record.isMerged = True
+				record.status = Status.SUCCESS.value
+				pairs.append((record, self.get_change_data_json(record, root_config, root_data, root_data)))
+		return pairs
+
+	def finish_and_backup_records(self, pairs: List[Tuple[ChangeDataRecord, Optional[ChangeDataJson]]]) -> None:
+		"""Archive a whole processed batch in one transaction."""
+		if not pairs:
+			return
+		self.change_record_service.begin_transaction()
+		try:
+			change_jsons = ArrayHelper(pairs).filter(lambda pair: pair[1] is not None) \
+				.map(lambda pair: pair[1]).to_list()
+			if change_jsons:
+				self.change_json_service.add_all(change_jsons)
+			self.change_record_history_service.add_all(
+				ArrayHelper(pairs).map(lambda pair: pair[0]).to_list())
+			# noinspection PyTypeChecker
+			self.change_record_service.delete_by_ids(
+				ArrayHelper(pairs).map(lambda pair: pair[0].changeRecordId).to_list())
+			self.change_record_service.commit_transaction()
+		except Exception as e:
+			self.change_record_service.rollback_transaction()
+			raise e
+		finally:
+			self.change_record_service.close_transaction()
+
+	def finish_and_backup_records_row_by_row(self, pairs: List[Tuple[ChangeDataRecord, Optional[ChangeDataJson]]]) -> None:
+		for record, change_json in pairs:
+			try:
+				self.finish_and_backup_record(record, change_json, change_json is not None)
+			except IntegrityError:
+				record.isMerged = True
+				record.status = Status.SUCCESS.value
+				self.handle_result(record, {"result": "duplicated"})
+				self.finish_and_backup_record(record, None, False)
+			except Exception:
+				logger.error(format_exc(), exc_info=True, stack_info=True)
+				self.update_result(record, format_exc())
 
 	def finalize(self, change_data_record: ChangeDataRecord):
 		config = self.table_config_service.find_by_name(change_data_record.tableName, change_data_record.tenantId)
@@ -148,19 +272,6 @@ class RecordToJsonService:
 		finally:
 			self.change_record_service.close_transaction()
 
-	def process_record(self, change_data_record: ChangeDataRecord) -> None:
-		config = self.table_config_service.find_by_name(change_data_record.tableName, change_data_record.tenantId)
-		root_config, root_data, record = self.find_root(config, change_data_record)
-		if self.is_duplicated(record):
-			record.isMerged = True
-			record.status = Status.SUCCESS.value
-			self.finish_and_backup_record(record, None, False)
-		else:
-			change_json = self.create_json(root_config, root_data, change_data_record)
-			record.isMerged = True
-			record.status = Status.SUCCESS.value
-			self.finish_and_backup_record(record, change_json, True)
-
 	def find_root(self, config: CollectorTableConfig, change_data_record: ChangeDataRecord) -> Tuple[
 		CollectorTableConfig,
 		Optional[Dict[str, Any]],
@@ -171,23 +282,6 @@ class RecordToJsonService:
 		change_data_record.rootTableName = root_config.tableName
 		change_data_record.rootDataId = get_data_id(root_config.primaryKey, root_data)
 		return root_config, root_data, change_data_record
-
-	def create_json(self, root_config: CollectorTableConfig,
-	                root_data: Optional[Dict[str, Any]],
-	                change_data_record: ChangeDataRecord) -> ChangeDataJson:
-		json_data = root_data.copy()
-		self.data_capture_service.build_json(root_config, json_data)
-		return self.get_change_data_json(change_data_record, root_config, root_data, json_data)
-
-	def is_duplicated(self, change_record: ChangeDataRecord) -> bool:
-		resource_id = self.generate_resource_id(change_record)
-		existed_history_json = self.change_json_history_service.find_by_resource_id(resource_id)
-		if existed_history_json:
-			return True
-		existed_json = self.change_json_service.find_by_resource_id(resource_id)
-		if existed_json:
-			return True
-		return False
 
 	# noinspection PyMethodMayBeStatic
 	def fill_record_root_info(self, config: CollectorTableConfig,

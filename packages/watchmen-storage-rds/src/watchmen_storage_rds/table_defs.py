@@ -1,7 +1,7 @@
 from datetime import datetime  # noqa
 from typing import Dict, Optional, Tuple
 
-from sqlalchemy import Integer, String, Table, UniqueConstraint
+from sqlalchemy import Index, Integer, String, Table, UniqueConstraint
 from watchmen_model.system import AIModel, DataSource
 from watchmen_model.admin import is_aggregation_topic, is_raw_topic, Topic
 from watchmen_model.common import TopicId
@@ -406,7 +406,10 @@ table_scheduled_task = Table(
     create_str('event_id', 200, False), create_int('event_trigger_id', False),
     create_str('pipeline_id', 50), create_int('type', False),
     create_tenant_id(),
-    *create_tuple_audit_columns()
+    *create_tuple_audit_columns(),
+    # keep in sync with tenant/meta DDL scripts (claim + timeout scans)
+    Index('idx_scheduled_task_status_created_at', 'status', 'created_at'),
+    Index('idx_scheduled_task_tenant_status_time', 'tenant_id', 'status', 'last_modified_at')
 )
 table_scheduled_task_history = Table(
     'scheduled_task_history', meta_data,
@@ -526,7 +529,10 @@ table_change_data_record = Table(
     create_bool('is_merged', False), create_int('status', False), create_json('result'),
     create_int('table_trigger_id', False), create_int('model_trigger_id', False),
     create_int('module_trigger_id', False), create_int('event_trigger_id', False),
-    create_tenant_id(), *create_tuple_audit_columns()
+    create_tenant_id(), *create_tuple_audit_columns(),
+    # keep in sync with tenant/meta DDL scripts (claim + timeout scans)
+    Index('idx_change_data_record_status_created_at', 'status', 'created_at'),
+    Index('idx_change_data_record_tenant_status_time', 'tenant_id', 'status', 'last_modified_at')
 )
 table_change_data_record_history = Table(
     'change_data_record_history', meta_data,
@@ -546,7 +552,10 @@ table_change_data_json = Table(
     create_int('status', False), create_json('result'),
     create_int('table_trigger_id', False), create_int('model_trigger_id', False),
     create_int('module_trigger_id', False), create_int('event_trigger_id', False),
-    create_tenant_id(), *create_tuple_audit_columns()
+    create_tenant_id(), *create_tuple_audit_columns(),
+    # keep in sync with tenant/meta DDL scripts (claim by model + timeout scan)
+    Index('idx_change_data_json_status_model_trigger_id', 'status', 'model_trigger_id'),
+    Index('idx_change_data_json_tenant_status_time', 'tenant_id', 'status', 'last_modified_at')
 )
 table_change_data_json_history = Table(
     'change_data_json_history', meta_data,

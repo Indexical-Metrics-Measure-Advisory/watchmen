@@ -45,6 +45,13 @@ class CollectorSurfaceSettings(ExtendedBaseSettings):
 	
 	COLLECTOR_CACHE_HEART_BEAT_ENABLED: bool = False
 	COLLECTOR_CACHE_HEART_BEAT_INTERVAL: int = 60
+
+	# batched record->json build: level-by-level IN queries instead of per-row N+1
+	RECORD_BATCH_BUILD_ENABLED: bool = True
+
+	# multi-batch loop: ②④ listeners keep claiming batches until the time budget
+	# runs out or a claim comes back empty (removes the one-batch-per-tick throttle)
+	LISTENER_TIME_BUDGET_SECONDS: int = 30
 	
 	EXTRACT_TABLE_LIMIT_SIZE: int = 100000
 	EXTRACT_TABLE_RECORD_SHARD_SIZE: int = 10000
@@ -115,6 +122,12 @@ def ask_collector_cache_heart_beat_enabled():
 
 def ask_collector_cache_heart_beat_interval():
 	return settings.COLLECTOR_CACHE_HEART_BEAT_INTERVAL
+
+def ask_record_batch_build_enabled():
+	return settings.RECORD_BATCH_BUILD_ENABLED
+
+def ask_listener_time_budget_seconds():
+	return settings.LISTENER_TIME_BUDGET_SECONDS
 
 def ask_extract_table_limit_size():
 	return settings.EXTRACT_TABLE_LIMIT_SIZE

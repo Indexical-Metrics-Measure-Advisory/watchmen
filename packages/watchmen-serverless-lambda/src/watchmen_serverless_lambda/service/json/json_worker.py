@@ -193,11 +193,7 @@ class JSONWorker:
         return change_data_json
     
     def is_duplicated(self, change_data_json: ChangeDataJson) -> bool:
-        existed_json = self.change_json_history_service.find_by_resource_id(change_data_json.resourceId)
-        if existed_json:
-            return True
-        else:
-            return False
+        return self.change_json_history_service.exists_by_resource_id(change_data_json.resourceId)
     
     def update_result(self, change_data_json: ChangeDataJson, is_duplicated: bool = False):
         try:

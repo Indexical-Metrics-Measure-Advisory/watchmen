@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.common import IS_POSTED, CHANGE_JSON_ID, TENANT_ID, MODEL_TRIGGER_ID, ask_partial_size, \
@@ -7,11 +7,12 @@ from watchmen_collector_kernel.common import IS_POSTED, CHANGE_JSON_ID, TENANT_I
 from watchmen_collector_kernel.model import ChangeDataJson
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
-from watchmen_model.common import Storable, ChangeJsonId, Pageable
+from watchmen_model.common import Storable, ChangeJsonId, Pageable, OptimisticLock
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	ColumnNameLiteral, EntityCriteriaExpression, EntityStraightValuesFinder, EntityStraightColumn, EntitySortColumn, \
 	EntitySortMethod, EntityLimitedFinder, EntityCriteriaOperator, EntityUpdater, EntityDistinctValuesFinder, \
-	EntityLimitedStraightValuesFinder
+	EntityLimitedStraightValuesFinder, EntityDeleter
+from watchmen_utilities import ArrayHelper
 
 
 class ChangeDataJsonShaper(EntityShaper):
@@ -63,6 +64,17 @@ class ChangeDataJsonShaper(EntityShaper):
 
 CHANGE_DATA_JSON_TABLE = 'change_data_json'
 CHANGE_DATA_JSON_ENTITY_SHAPER = ChangeDataJsonShaper()
+
+# light-column projection for the claim query: everything except the content LOB.
+# claimed rows only drive status flips and task-pointer creation; content is
+# re-read by id at execution and at archive time (see post_json/task paths).
+# note: this table has no optimistic-lock column - do not add 'version'
+CHANGE_DATA_JSON_CLAIM_COLUMNS = [
+	'change_json_id', 'resource_id', 'model_name', 'object_id', 'sequence', 'table_name', 'data_id',
+	'depend_on', 'is_posted', 'task_id', 'status', 'result',
+	'table_trigger_id', 'model_trigger_id', 'module_trigger_id', 'event_trigger_id',
+	'tenant_id', 'created_at', 'created_by', 'last_modified_at', 'last_modified_by'
+]
 
 
 class ChangeDataJsonService(TupleService):
@@ -143,7 +155,8 @@ class ChangeDataJsonService(TupleService):
 					                         right=model_trigger_id)
 				],
 				# sort=[EntitySortColumn(name='created_at', method=EntitySortMethod.ASC)],
-				limit=limit if limit is not None else ask_partial_size()
+				limit=limit if limit is not None else ask_partial_size(),
+				columns=CHANGE_DATA_JSON_CLAIM_COLUMNS
 			))
 
 	def find_json(self, model_trigger_id: int, limit: int = None) -> List:
@@ -234,6 +247,86 @@ class ChangeDataJsonService(TupleService):
 			))
 		finally:
 			self.storage.close()
+
+	def exists_by_resource_id(self, resource_id: str) -> bool:
+		"""Index-only existence probe (SELECT 1 ... LIMIT 1); never loads the content LOB."""
+		try:
+			self.storage.connect()
+			return self.storage.exists(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='resource_id'), right=resource_id)
+				]
+			))
+		finally:
+			self.storage.close()
+
+	def find_existing_resource_ids(self, resource_ids: List[str]) -> List[str]:
+		"""Batched existence probe: returns the subset of resource_ids already present
+		in this table (one IN query instead of one probe per id)."""
+		if not resource_ids:
+			return []
+		results: List[str] = []
+		try:
+			self.storage.connect()
+			for i in range(0, len(resource_ids), 500):
+				chunk = list(set(resource_ids[i:i + 500]))
+				found = self.storage.find_straight_values(EntityStraightValuesFinder(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='resource_id'),
+						                         operator=EntityCriteriaOperator.IN,
+						                         right=chunk)
+					],
+					straightColumns=[EntityStraightColumn(columnName='resource_id')]
+				))
+				results.extend(ArrayHelper(found).map(lambda row: row.get('resource_id')).to_list())
+		finally:
+			self.storage.close()
+		return results
+
+	def add_all(self, jsons: List[ChangeDataJson]) -> None:
+		"""Bulk insert without transaction management; caller owns begin/commit."""
+		def prepare_insert(a_tuple: Tuple) -> Tuple:
+			self.try_to_prepare_auditable_on_create(a_tuple)
+			if isinstance(a_tuple, OptimisticLock):
+				a_tuple.version = 1
+			return a_tuple
+
+		tuples = ArrayHelper(jsons).map(lambda json_: prepare_insert(json_)).to_list()
+		for i in range(0, len(tuples), 1000):
+			self.storage.insert_all(tuples[i:i + 1000], self.get_entity_helper())
+
+	def delete_by_ids(self, json_ids: List[ChangeJsonId]) -> int:
+		"""Bulk delete by primary keys; runs within the caller's transaction."""
+		return self.storage.delete(
+			EntityDeleter(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=CHANGE_JSON_ID),
+					                         operator=EntityCriteriaOperator.IN,
+					                         right=json_ids)
+				]
+			))
+
+	def find_json_by_ids(self, json_ids: List[ChangeJsonId]) -> List[ChangeDataJson]:
+		"""Bulk fetch by primary keys (full rows, includes content)."""
+		results: List[ChangeDataJson] = []
+		for i in range(0, len(json_ids), 500):
+			chunk = json_ids[i:i + 500]
+			try:
+				self.storage.connect()
+				results.extend(self.storage.find(self.get_entity_finder(
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName=CHANGE_JSON_ID),
+						                         operator=EntityCriteriaOperator.IN,
+						                         right=chunk)
+					]
+				)))
+			finally:
+				self.storage.close()
+		return results
 
 	def find_by_object_id(self, model_name: str, object_id: str, model_trigger_id: int) -> List:
 		try:

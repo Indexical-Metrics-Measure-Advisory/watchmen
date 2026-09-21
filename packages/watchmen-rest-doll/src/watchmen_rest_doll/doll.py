@@ -86,12 +86,20 @@ class DollApp(RestApp):
 	def ask_collector_enabled(self) -> bool:
 		return self.get_settings().COLLECTOR_ON
 
+	def ask_collector_scheduler_enabled(self) -> bool:
+		# decoupled from COLLECTOR_ON so API-only and collector-only nodes can share
+		# one image; unset falls back to COLLECTOR_ON to keep single-node behavior
+		scheduler_on = self.get_settings().COLLECTOR_SCHEDULER_ON
+		if scheduler_on is None:
+			return self.ask_collector_enabled()
+		return scheduler_on
+
 	def ask_audit_enabled(self) -> bool:
 		return self.get_settings().AUDIT_ON
-	
+
 	# noinspection PyMethodMayBeStatic
 	def init_collector_surface(self) -> None:
-		if self.ask_collector_enabled():
+		if self.ask_collector_scheduler_enabled():
 			from watchmen_collector_surface import collector_surface
 			collector_surface.init()
 		pass

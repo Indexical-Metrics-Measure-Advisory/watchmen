@@ -5,6 +5,7 @@ from typing import List, Optional, Dict
 
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.service import try_lock_nowait, unlock
+from watchmen_collector_kernel.service.storage_helper import is_retryable_storage_error
 from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, TriggerModel, \
 	CollectorModelConfig, TriggerEvent, TriggerModule, Status, EventType
@@ -17,9 +18,8 @@ from watchmen_collector_kernel.storage import get_change_data_json_service, get_
 	ChangeDataJsonHistoryService, ScheduledTaskService, CompetitiveLockService
 from watchmen_collector_surface.settings import ask_post_json_wait, ask_post_object_id_limit_size, \
 	ask_post_sequence_json_limit_size
-
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 
 logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
@@ -60,24 +60,119 @@ class ModelExecutor(ModelExecutorSPI):
 	def process_model(self, trigger_event: TriggerEvent,
 	                  trigger_model: TriggerModel,
 	                  model_config: CollectorModelConfig):
-		self.process_change_data_json(trigger_event, trigger_model, model_config)
+		# keep claiming batches until the model is drained (empty claim returns),
+		# instead of one batch per scheduler tick
+		while True:
+			jsons = self.find_json_and_locked(trigger_model.modelTriggerId)
+			if not jsons:
+				break
+			try:
+				self.distribute_jsons(trigger_event, model_config, jsons)
+			except Exception as e:
+				if is_retryable_storage_error(e):
+					# deadlock/lock-wait victim: leave the batch EXECUTING,
+					# CleanOfTimeout resets it for a retry - never archive FAIL
+					logger.warning('retryable storage error, json batch left EXECUTING for retry', exc_info=True)
+				else:
+					logger.error(e, exc_info=True, stack_info=True)
+				break
 
-	def process_change_data_json(self, trigger_event: TriggerEvent, trigger_model: TriggerModel,
-	                             model_config: CollectorModelConfig):
+	def process_change_data_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
+	                             trigger_model: TriggerModel):
 		jsons = self.find_json_and_locked(trigger_model.modelTriggerId)
-		for change_data_json in jsons:
-			if self.is_duplicated(change_data_json):
-				change_data_json.isPosted = True
-				self.update_result(change_data_json, True)
-			else:
+		if not jsons:
+			return
+		self.distribute_jsons(trigger_event, model_config, jsons)
+
+	def distribute_jsons(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
+	                     jsons: List[ChangeDataJson]) -> None:
+		# one IN probe for the whole claim instead of one probe per json
+		resource_ids = ArrayHelper(jsons).map(lambda change_json: change_json.resourceId).to_list()
+		duplicated_ids = set(self.change_json_history_service.find_existing_resource_ids(resource_ids))
+		duplicated_jsons = ArrayHelper(jsons).filter(
+			lambda change_json: change_json.resourceId in duplicated_ids).to_list()
+		fresh_jsons = ArrayHelper(jsons).filter(
+			lambda change_json: change_json.resourceId not in duplicated_ids).to_list()
+		if duplicated_jsons:
+			for change_json in duplicated_jsons:
+				change_json.isPosted = True
+			self.archive_jsons(duplicated_jsons, with_history=False)
+		if not fresh_jsons:
+			return
+		tasks = ArrayHelper(fresh_jsons) \
+			.map(lambda change_json: self.get_scheduled_task(trigger_event, model_config, change_json)).to_list()
+		try:
+			# all tasks + the status flips of one claim in a single transaction
+			self.post_jsons(tasks, fresh_jsons)
+		except Exception as post_error:
+			if is_retryable_storage_error(post_error):
+				raise
+			logger.error(post_error, exc_info=True, stack_info=True)
+			# the shared transaction failed: fall back to the proven row-by-row path
+			failed_jsons = []
+			for change_data_json in fresh_jsons:
 				try:
 					self.post_json(trigger_event, model_config, change_data_json)
-				except Exception as e:
-					logger.error(e, exc_info=True, stack_info=True)
+				except Exception:
+					logger.error(format_exc(), exc_info=True, stack_info=True)
 					change_data_json.isPosted = True
 					change_data_json.status = Status.FAIL.value
 					change_data_json.result = format_exc()
-					self.update_result(change_data_json)
+					failed_jsons.append(change_data_json)
+			if failed_jsons:
+				self.archive_jsons(failed_jsons, with_history=True)
+
+	def post_jsons(self, tasks: List[ScheduledTask], change_jsons: List[ChangeDataJson]) -> None:
+		try:
+			self.scheduled_task_service.begin_transaction()
+			self.scheduled_task_service.add_all(tasks)
+			# one targeted flip for the whole batch; task_id is intentionally not
+			# written back here (it differs per json; ④ addresses jsons by
+			# task.changeJsonIds, the grouped-path precedent)
+			self.change_json_service.update_by_ids(
+				ArrayHelper(change_jsons).map(lambda change_json: change_json.changeJsonId).to_list(),
+				{'is_posted': True, 'status': Status.WAITING.value}
+			)
+			# tasks were built in the same order as change_jsons
+			for task, change_json in zip(tasks, change_jsons):
+				change_json.isPosted = True
+				change_json.status = Status.WAITING.value
+				change_json.taskId = task.taskId
+			self.scheduled_task_service.commit_transaction()
+		except Exception as e:
+			self.scheduled_task_service.rollback_transaction()
+			raise e
+		finally:
+			self.scheduled_task_service.close_transaction()
+
+	def archive_jsons(self, change_jsons: List[ChangeDataJson], with_history: bool) -> None:
+		if not change_jsons:
+			return
+		# claimed rows are light (no content LOB); reload full rows before the
+		# history archive so the payload is preserved
+		archive_jsons = change_jsons
+		if with_history:
+			claimed_by_id = ArrayHelper(change_jsons).to_map(
+				lambda change_json: change_json.changeJsonId, lambda change_json: change_json)
+			archive_jsons = self.change_json_service.find_json_by_ids(
+				ArrayHelper(change_jsons).map(lambda change_json: change_json.changeJsonId).to_list())
+			for archive_json in archive_jsons:
+				claimed = claimed_by_id.get(archive_json.changeJsonId)
+				if claimed is not None:
+					archive_json.status = claimed.status
+					archive_json.result = claimed.result
+		try:
+			self.change_json_service.begin_transaction()
+			if with_history:
+				self.change_json_history_service.add_all(archive_jsons)
+			self.change_json_service.delete_by_ids(
+				ArrayHelper(change_jsons).map(lambda change_json: change_json.changeJsonId).to_list())
+			self.change_json_service.commit_transaction()
+		except Exception as e:
+			self.change_json_service.rollback_transaction()
+			raise e
+		finally:
+			self.change_json_service.close_transaction()
 
 	def post_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
 	              change_json: ChangeDataJson) -> ScheduledTask:
@@ -85,10 +180,15 @@ class ModelExecutor(ModelExecutorSPI):
 		try:
 			self.scheduled_task_service.begin_transaction()
 			self.scheduled_task_service.create(task)
+			# targeted flip only - the claimed row is a light projection without
+			# content, a full-row update would null the LOB
+			self.change_json_service.update_by_ids(
+				[change_json.changeJsonId],
+				{'is_posted': True, 'status': Status.WAITING.value, 'task_id': task.taskId}
+			)
 			change_json.isPosted = True
 			change_json.status = Status.WAITING.value
 			change_json.taskId = task.taskId
-			self.change_json_service.update(change_json)
 			self.scheduled_task_service.commit_transaction()
 			return task
 		except Exception as e:
@@ -105,8 +205,14 @@ class ModelExecutor(ModelExecutorSPI):
 		try:
 			self.change_json_service.begin_transaction()
 			records = self.change_json_service.find_json_and_locked(model_trigger_id)
-			results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value)).map(
-				lambda record: self.change_json_service.update(record)).to_list()
+			# one targeted UPDATE for the whole claim instead of N full-row updates
+			json_ids = ArrayHelper(records).map(lambda record: record.changeJsonId).to_list()
+			if json_ids:
+				self.change_json_service.update_by_ids(json_ids, {
+					'status': Status.EXECUTING.value,
+					'last_modified_at': get_current_time_in_seconds()
+				})
+			results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value)).to_list()
 			self.change_json_service.commit_transaction()
 			return results
 		finally:

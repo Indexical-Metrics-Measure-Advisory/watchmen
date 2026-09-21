@@ -155,6 +155,10 @@ class EntityFinder(EntityHelper):
 
 class EntityLimitedFinder(EntityFinder):
 	limit: Optional[int] = None
+	# optional column projection for the claim query (light-column claim):
+	# None (default) selects all columns; storages that do not support projection
+	# simply ignore it and behave exactly as before
+	columns: Optional[List[EntityColumnName]] = None
 
 
 class EntityDistinctValuesFinder(EntityLimitedFinder):

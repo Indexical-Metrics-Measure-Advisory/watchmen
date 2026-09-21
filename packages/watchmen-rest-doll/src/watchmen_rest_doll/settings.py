@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 from watchmen_rest import RestSettings
 
@@ -35,6 +36,9 @@ class DollSettings(RestSettings):
 	SAML_SP_X509CERT: str = ''
 
 	COLLECTOR_ON: bool = False
+	# decouple scheduler from rest router mounting (COLLECTOR_ON gates both by default);
+	# None -> follow COLLECTOR_ON, True/False -> explicit per-node role split
+	COLLECTOR_SCHEDULER_ON: Optional[bool] = None
 
 	ADMIN_MCP_ON: bool = False
 
