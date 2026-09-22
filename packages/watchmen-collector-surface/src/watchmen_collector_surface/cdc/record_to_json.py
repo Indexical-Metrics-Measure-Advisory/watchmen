@@ -119,10 +119,17 @@ class RecordToJsonService:
 					               exc_info=True)
 				else:
 					logger.error(e, exc_info=True, stack_info=True)
+					self.fail_unarchived_records(unmerged_records, format_exc())
 			finally:
 				for change_data_record in unmerged_records:
-					self.finalize(change_data_record)
-					self.performance_result(change_data_record, False)
+					if change_data_record.status == Status.EXECUTING.value:
+						# still unarchived (left for retry): keep the source row
+						continue
+					try:
+						self.finalize(change_data_record)
+						self.performance_result(change_data_record, False)
+					except Exception:
+						logger.error(format_exc(), exc_info=True, stack_info=True)
 			if time.monotonic() >= deadline:
 				break
 
@@ -193,14 +200,21 @@ class RecordToJsonService:
 			items = grouped[group_name]
 			root_config = items[0][1]
 			root_data_list = ArrayHelper(items).map(lambda item: item[2]).to_list()
+			# create_json semantics: build children into a per-record copy so
+			# root_data stays clean for objectId/sequence/dataId lookups
+			json_data_list = ArrayHelper(root_data_list).map(
+				lambda root_data: dict(root_data) if root_data is not None else None).to_list()
 			if ask_record_batch_build_enabled():
-				self.data_capture_service.build_jsons(root_config, root_data_list)
+				self.data_capture_service.build_jsons(
+					root_config, ArrayHelper(json_data_list).filter(lambda json_data: json_data is not None).to_list())
 			else:
-				ArrayHelper(root_data_list).each(lambda root_data: self.data_capture_service.build_json(root_config, root_data))
-			for record, _, root_data in items:
+				ArrayHelper(json_data_list).each(
+					lambda json_data: self.data_capture_service.build_json(root_config, json_data)
+					if json_data is not None else None)
+			for (record, _, root_data), json_data in zip(items, json_data_list):
 				record.isMerged = True
 				record.status = Status.SUCCESS.value
-				pairs.append((record, self.get_change_data_json(record, root_config, root_data, root_data)))
+				pairs.append((record, self.get_change_data_json(record, root_config, root_data, json_data)))
 		return pairs
 
 	def finish_and_backup_records(self, pairs: List[Tuple[ChangeDataRecord, Optional[ChangeDataJson]]]) -> None:
@@ -234,9 +248,23 @@ class RecordToJsonService:
 				record.status = Status.SUCCESS.value
 				self.handle_result(record, {"result": "duplicated"})
 				self.finish_and_backup_record(record, None, False)
-			except Exception:
+			except Exception as e:
+				if is_retryable_storage_error(e):
+					# leave this record EXECUTING for CleanOfTimeout to retry
+					raise
 				logger.error(format_exc(), exc_info=True, stack_info=True)
 				self.update_result(record, format_exc())
+
+	def fail_unarchived_records(self, records: List[ChangeDataRecord], result: str) -> None:
+		# archive only records not yet archived (still EXECUTING); records already
+		# terminal were moved to history by process_records
+		for record in records:
+			if record.status != Status.EXECUTING.value:
+				continue
+			try:
+				self.update_result(record, result)
+			except Exception:
+				logger.error(format_exc(), exc_info=True, stack_info=True)
 
 	def finalize(self, change_data_record: ChangeDataRecord):
 		config = self.table_config_service.find_by_name(change_data_record.tableName, change_data_record.tenantId)
@@ -246,7 +274,12 @@ class RecordToJsonService:
 		change_data_record.isMerged = True
 		change_data_record.status = Status.FAIL.value
 		self.handle_result(change_data_record, {"error": result})
-		self.finish_and_backup_record(change_data_record, None, False)
+		try:
+			self.finish_and_backup_record(change_data_record, None, False)
+		except Exception:
+			# archive failed: keep EXECUTING so fail_unarchived_records retries
+			change_data_record.status = Status.EXECUTING.value
+			raise
 
 	def handle_result(self, change_data_record: ChangeDataRecord, result: Dict):
 		if change_data_record.result is None:

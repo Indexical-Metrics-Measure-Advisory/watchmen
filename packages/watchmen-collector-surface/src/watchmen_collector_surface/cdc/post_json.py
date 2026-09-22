@@ -75,6 +75,7 @@ class ModelExecutor(ModelExecutorSPI):
 					logger.warning('retryable storage error, json batch left EXECUTING for retry', exc_info=True)
 				else:
 					logger.error(e, exc_info=True, stack_info=True)
+					self.fail_unarchived_jsons(jsons, format_exc())
 				break
 
 	def process_change_data_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
@@ -113,7 +114,10 @@ class ModelExecutor(ModelExecutorSPI):
 			for change_data_json in fresh_jsons:
 				try:
 					self.post_json(trigger_event, model_config, change_data_json)
-				except Exception:
+				except Exception as row_error:
+					if is_retryable_storage_error(row_error):
+						# do not archive FAIL: leave remaining rows for retry
+						raise
 					logger.error(format_exc(), exc_info=True, stack_info=True)
 					change_data_json.isPosted = True
 					change_data_json.status = Status.FAIL.value
@@ -122,13 +126,27 @@ class ModelExecutor(ModelExecutorSPI):
 			if failed_jsons:
 				self.archive_jsons(failed_jsons, with_history=True)
 
+	def fail_unarchived_jsons(self, change_jsons: List[ChangeDataJson], result: str) -> None:
+		# only still-EXECUTING jsons need archiving; WAITING ones were already
+		# posted, already-archived ones are no longer in the staging table
+		to_fail = ArrayHelper(change_jsons).filter(
+			lambda change_json: change_json.status == Status.EXECUTING.value).to_list()
+		if not to_fail:
+			return
+		for change_json in to_fail:
+			change_json.isPosted = True
+			change_json.status = Status.FAIL.value
+			change_json.result = result
+		try:
+			self.archive_jsons(to_fail, with_history=True)
+		except Exception:
+			logger.error(format_exc(), exc_info=True, stack_info=True)
+
 	def post_jsons(self, tasks: List[ScheduledTask], change_jsons: List[ChangeDataJson]) -> None:
 		try:
 			self.scheduled_task_service.begin_transaction()
 			self.scheduled_task_service.add_all(tasks)
-			# one targeted flip for the whole batch; task_id is intentionally not
-			# written back here (it differs per json; ④ addresses jsons by
-			# task.changeJsonIds, the grouped-path precedent)
+			# one targeted flip for the whole batch
 			self.change_json_service.update_by_ids(
 				ArrayHelper(change_jsons).map(lambda change_json: change_json.changeJsonId).to_list(),
 				{'is_posted': True, 'status': Status.WAITING.value}
@@ -144,6 +162,13 @@ class ModelExecutor(ModelExecutorSPI):
 			raise e
 		finally:
 			self.scheduled_task_service.close_transaction()
+		# task_id differs per json: write it back row by row after the batch commit
+		for task, change_json in zip(tasks, change_jsons):
+			try:
+				self.change_json_service.update_by_ids(
+					[change_json.changeJsonId], {'task_id': task.taskId})
+			except Exception:
+				logger.error(format_exc(), exc_info=True, stack_info=True)
 
 	def archive_jsons(self, change_jsons: List[ChangeDataJson], with_history: bool) -> None:
 		if not change_jsons:

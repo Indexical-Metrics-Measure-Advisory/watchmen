@@ -126,7 +126,6 @@ class TaskListener:
                         self.restore_task(remaining_task)
                     remaining_tasks.clear()
 
-                big_task_processed = False
                 for unfinished_task in unfinished_tasks:
                     del remaining_tasks[unfinished_task.taskId]
 
@@ -134,14 +133,10 @@ class TaskListener:
                         release_remaining_tasks()
                         run(self.process_task_with_change_data_json(unfinished_task))
                         finished_tasks.append(unfinished_task)
-                        big_task_processed = True
                         break
                     else:
                         run(self.process_task_with_change_data_json(unfinished_task))
                         finished_tasks.append(unfinished_task)
-                if big_task_processed:
-                    # the big task blocked the batch; claim a fresh one within the budget
-                    continue
                 if time.monotonic() >= deadline:
                     break
         finally:

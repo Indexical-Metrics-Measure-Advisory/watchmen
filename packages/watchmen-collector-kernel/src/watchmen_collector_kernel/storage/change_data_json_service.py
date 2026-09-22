@@ -311,7 +311,8 @@ class ChangeDataJsonService(TupleService):
 			))
 
 	def find_json_by_ids(self, json_ids: List[ChangeJsonId]) -> List[ChangeDataJson]:
-		"""Bulk fetch by primary keys (full rows, includes content)."""
+		"""Bulk fetch by primary keys (full rows, includes content), ordered like json_ids."""
+		index_of = {json_id: index for index, json_id in enumerate(json_ids)}
 		results: List[ChangeDataJson] = []
 		for i in range(0, len(json_ids), 500):
 			chunk = json_ids[i:i + 500]
@@ -326,6 +327,9 @@ class ChangeDataJsonService(TupleService):
 				)))
 			finally:
 				self.storage.close()
+		# IN queries do not guarantee order: restore the caller's id order so
+		# task processing stays deterministic
+		results.sort(key=lambda json_: index_of.get(json_.changeJsonId, len(index_of)))
 		return results
 
 	def find_by_object_id(self, model_name: str, object_id: str, model_trigger_id: int) -> List:

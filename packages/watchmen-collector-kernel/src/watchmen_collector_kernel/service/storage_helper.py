@@ -83,16 +83,28 @@ def ask_storage_by_data_source( data_source: DataSource) -> TransactionalStorage
 
 def is_retryable_storage_error(error: BaseException) -> bool:
 	"""
-	Deadlock (MySQL 1213) and lock-wait-timeout (1205) victims must NOT be archived as
-	FAIL - that silently loses the row. Leave it EXECUTING so CleanOfTimeout resets
-	it for a retry instead.
+	Deadlock / lock-wait victims must NOT be archived as FAIL - that silently
+	loses the row. Leave it EXECUTING so CleanOfTimeout resets it for a retry.
+	Covers MySQL (1213/1205) and PostgreSQL SQLSTATE (40001/40P01/55P03).
 	"""
 	# noinspection PyBroadException
 	try:
+		retryable_sqlstates = {'40001', '40P01', '55P03'}
 		orig = getattr(error, 'orig', error)
 		args = getattr(orig, 'args', None)
-		if args and isinstance(args[0], int):
-			return args[0] in (1213, 1205)
-		return '1213' in str(orig) or '1205' in str(orig)
+		if args:
+			first = args[0]
+			if isinstance(first, int):
+				return first in (1213, 1205)
+			if isinstance(first, str) and first.strip().upper() in retryable_sqlstates | {'1213', '1205'}:
+				return True
+		pgcode = getattr(orig, 'pgcode', None) or getattr(error, 'pgcode', None)
+		if isinstance(pgcode, str) and pgcode.strip().upper() in retryable_sqlstates:
+			return True
+		sqlstate = getattr(orig, 'sqlstate', None) or getattr(error, 'sqlstate', None)
+		if isinstance(sqlstate, str) and sqlstate.strip().upper() in retryable_sqlstates:
+			return True
+		text = str(orig)
+		return '1213' in text or '1205' in text
 	except Exception:
 		return False

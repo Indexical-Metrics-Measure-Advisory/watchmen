@@ -22,6 +22,14 @@ def chunks_of(values: List[Any], size: int) -> List[List[Any]]:
 	return [values[i:i + size] for i in range(0, len(values), size)]
 
 
+def row_value(row: Dict[str, Any], key: str) -> Any:
+	"""Read a row value tolerating lowercased keys from the source extractor."""
+	value = row.get(key)
+	if value is None and key != key.lower():
+		value = row.get(key.lower())
+	return value
+
+
 class DataCaptureService:
 
 	def __init__(self, storage: TransactionalStorageSPI,
@@ -105,7 +113,7 @@ class DataCaptureService:
 			key_values: List[Any] = []
 			seen = set()
 			for row in data_list:
-				value = row.get(variable_name)
+				value = row_value(row, variable_name)
 				if value is not None and value not in seen:
 					seen.add(value)
 					key_values.append(value)
@@ -125,10 +133,21 @@ class DataCaptureService:
 		if not child_rows:
 			return
 		grouped: Dict[Any, List[Dict[str, Any]]] = {}
+		missing_join_keys = 0
 		for child_row in child_rows:
-			grouped.setdefault(child_row.get(child_key.columnName), []).append(child_row)
+			child_value = row_value(child_row, child_key.columnName)
+			if child_value is None:
+				missing_join_keys += 1
+				continue
+			grouped.setdefault(child_value, []).append(child_row)
+		if missing_join_keys:
+			logger.warning(
+				'mount_child_batch skipped %s child rows without join column %s (table %s)',
+				missing_join_keys, child_key.columnName, child_config.tableName)
 		for parent_row in data_list:
-			key = parent_row.get(variable_name) if variable_name is not None else column_value
+			key = row_value(parent_row, variable_name) if variable_name is not None else column_value
+			if key is None:
+				continue
 			children = grouped.get(key)
 			if children:
 				parent_row[child_config.label] = children if child_config.isList else children[0]
