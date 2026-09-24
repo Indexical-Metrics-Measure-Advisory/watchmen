@@ -1,0 +1,20 @@
+{
+ "run_id": "9271ff",
+ "rows": 1000,
+ "child_rows": 1000,
+ "extract_sec": 62.63,
+ "merge_sec": 258.39,
+ "first_target_sec": 66.68,
+ "e2e_sec": 349.78,
+ "throughput_rps": 2.86,
+ "peak_queue_record": 1000,
+ "config": "defaults (PARTIAL_SIZE=100, tick=3s, no tuning)",
+ "db_delta": {
+  "Questions": 81393,
+  "Innodb_rows_read": 1018010,
+  "Innodb_rows_inserted": 9013,
+  "Innodb_rows_updated": 4011,
+  "Innodb_rows_deleted": 3009,
+  "Slow_queries": 0
+ }
+}

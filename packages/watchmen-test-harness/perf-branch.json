@@ -1,0 +1,21 @@
+{
+ "run_id": "c9f436",
+ "rows": 1000,
+ "child_rows": 1000,
+ "pickup_wait_sec": 1.03,
+ "extract_sec": 4.02,
+ "merge_sec": 14.09,
+ "first_target_sec": 10.06,
+ "e2e_sec": 90.8,
+ "throughput_rps": 11.01,
+ "peak_queue_record": 1000,
+ "config": "defaults (PARTIAL_SIZE=100, tick=3s, no tuning)",
+ "db_delta": {
+  "Questions": 35363,
+  "Innodb_rows_read": 31925,
+  "Innodb_rows_inserted": 8010,
+  "Innodb_rows_updated": 4011,
+  "Innodb_rows_deleted": 3006,
+  "Slow_queries": 0
+ }
+}
