@@ -1,6 +1,7 @@
+import asyncio
 from datetime import datetime
 from logging import getLogger
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from starlette.concurrency import run_in_threadpool
 
@@ -11,10 +12,9 @@ from watchmen_metricflow.meta.materialization_meta_service import Materializatio
 from watchmen_metricflow.model.materialization import Materialization, MaterializationJobLock, \
 	MaterializationJobLockStatus, MaterializationRun, RunStatus, RunTriggerType, ScheduleFrequency
 from watchmen_metricflow.util import trans, trans_readonly
-from watchmen_rest.util import raise_500
 from watchmen_utilities import is_blank
 from .materialization_error import MaterializationError
-from .materialization_executor import execute_metric_query, preview_window
+from .materialization_executor import execute_metric_query, is_rebuild, materialization_window
 from .materialization_factor_mapping import map_result_rows
 from .materialization_write_back import resolve_target_schema, write_back
 
@@ -39,12 +39,13 @@ class MaterializationRunner:
 			self, materialization_ids: List[str],
 			trigger_type: RunTriggerType = RunTriggerType.MANUAL,
 			flow_id: Optional[str] = None, flow_name: Optional[str] = None,
-			wait: bool = False
+			wait: bool = False, sequential: bool = False
 	) -> List[MaterializationRun]:
 		"""
 		Create one run per materialization and start it. By default executions are
 		backgrounded so the caller returns immediately; wait=True runs inline
-		(scheduler/flow need completion before releasing their lock).
+		(scheduler/flow need completion before releasing their lock), sequential
+		executes the members one after another in the given order (flow).
 		"""
 		materializations = await run_in_threadpool(self._load_materializations, materialization_ids)
 		created: List[Tuple[MaterializationRun, Materialization]] = []
@@ -53,17 +54,19 @@ class MaterializationRunner:
 				self._create_run, materialization, trigger_type, flow_id, flow_name)
 			created.append((run, materialization))
 
-		for run, materialization in created:
-			if wait:
+		if wait:
+			for run, materialization in created:
 				await self._execute(run, materialization)
-			else:
-				# noinspection PyBroadException
-				try:
-					import asyncio
-					asyncio.ensure_future(self._execute(run, materialization))
-				except Exception as e:
-					logger.error(f'Failed to background run [{run.runId}]: {e}')
+		elif sequential:
+			asyncio.ensure_future(self._execute_sequential(created))
+		else:
+			for run, materialization in created:
+				asyncio.ensure_future(self._execute(run, materialization))
 		return [run for run, _ in created]
+
+	async def _execute_sequential(self, created: List[Tuple[MaterializationRun, Materialization]]) -> None:
+		for run, materialization in created:
+			await self._execute(run, materialization)
 
 	# ── meta actions, always inside a transaction ─────────────────────────
 
@@ -87,7 +90,7 @@ class MaterializationRunner:
 			self, materialization: Materialization, trigger_type: RunTriggerType,
 			flow_id: Optional[str], flow_name: Optional[str]
 	) -> MaterializationRun:
-		window_start, window_end = preview_window(materialization)
+		window_start, window_end = materialization_window(materialization)
 		run = MaterializationRun(
 			runId=str(self.run_service.snowflakeGenerator.next_id()),
 			materializationId=materialization.materializationId,
@@ -112,6 +115,9 @@ class MaterializationRunner:
 	def _persist_target_topic(self, materialization: Materialization, topic_id: str, topic_name: str) -> None:
 		materialization.targetTopicId = topic_id
 		materialization.targetTopicName = topic_name
+		trans(self.materialization_service, lambda: self.materialization_service.update(materialization))
+
+	def _clear_rebuild_flag(self, materialization: Materialization) -> None:
 		trans(self.materialization_service, lambda: self.materialization_service.update(materialization))
 
 	# ── cron lock ─────────────────────────────────────────────────────────
@@ -142,8 +148,9 @@ class MaterializationRunner:
 
 		try:
 			return trans(self.lock_service, action)
-		except Exception:
+		except Exception as e:
 			# unique constraint raced with another worker
+			logger.info(f'Cron lock transaction for [{materialization.materializationId}] skipped: {e}')
 			return None
 
 	def finish_cron_lock(self, lock: MaterializationJobLock, status: MaterializationJobLockStatus) -> None:
@@ -158,6 +165,7 @@ class MaterializationRunner:
 	async def _execute(self, run: MaterializationRun, materialization: Materialization) -> None:
 		started = datetime.now()
 		actual_engine = materialization.engine
+		rebuild = is_rebuild(materialization)
 		try:
 			run.status = RunStatus.RUNNING
 			run.startedAt = started
@@ -175,7 +183,7 @@ class MaterializationRunner:
 				await run_in_threadpool(
 					self._persist_target_topic, materialization, topic.topicId, topic.name)
 			row_count = await run_in_threadpool(
-				write_back, materialization, schema, rows, self.principal_service)
+				write_back, materialization, schema, rows, self.principal_service, rebuild)
 
 			run.status = RunStatus.SUCCESS
 			run.engine = actual_engine
@@ -184,6 +192,14 @@ class MaterializationRunner:
 			run.finishedAt = datetime.now()
 			run.durationMs = int((run.finishedAt - started).total_seconds() * 1000)
 			run.errorMessage = None
+			# the history is rebuilt now, the flag must not trigger a second rebuild
+			if materialization.rebuildPending:
+				materialization.rebuildPending = False
+				try:
+					await run_in_threadpool(self._clear_rebuild_flag, materialization)
+				except Exception as e:
+					logger.warning(
+						f'Failed to clear rebuild flag of [{materialization.materializationId}]: {e}')
 		except Exception as e:
 			logger.error(f'Materialization run [{run.runId}] failed', exc_info=True, stack_info=True)
 			run.status = RunStatus.FAILED

@@ -36,8 +36,11 @@ def import_glossary_seed_data(tenant_id: str = '1') -> None:
 		# underlying connection is not opened yet
 		service.begin_transaction()
 		try:
-			# per-bundle idempotency: existing bundles are kept, new ones are added
-			if service.find_bundle(bundle.glossary.id) is not None:
+			# per-bundle idempotency: existing bundles are kept, new ones are added.
+			# the check must ignore tenant because the primary key on standard_id
+			# is global — a bundle already imported under another tenant would
+			# otherwise pass the tenant-scoped check and fail the insert
+			if service.find_bundle_any_tenant(bundle.glossary.id) is not None:
 				service.commit_transaction()
 				logger.info(f"  Glossary {bundle.glossary.name} already exists, skipping.")
 				continue

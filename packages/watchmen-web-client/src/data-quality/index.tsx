@@ -14,7 +14,6 @@ import DataQualityMonitorRules from './rules';
 import DataQualityPii from './pii';
 import DataQualitySettings from './settings';
 import DataQualityStatistics from './statistics';
-import DataQualityTagManagement from './tag-management';
 
 const DataQualityContainer = styled.div.attrs({'data-widget': 'data-quality'})`
 	display : flex;
@@ -68,7 +67,6 @@ const DataQualityIndex = () => {
 				{asRoute(Router.DQC_STATISTICS, <DataQualityStatistics/>)}
 				{/*{asRoute(Router.DATA_QUALITY_END_USER, <DataQualityEndUser/>, {scrollable: false})}*/}
 				{asRoute(Router.DQC_SETTINGS, <DataQualitySettings/>)}
-				{asRoute(Router.DQC_TAG_MANAGEMENT, <DataQualityTagManagement/>)}
 				{asRoute(Router.DQC_PII, <DataQualityPii/>, {scrollable: false})}
 				{asFallbackNavigate(Router.DQC_HOME)}
 			</Routes>

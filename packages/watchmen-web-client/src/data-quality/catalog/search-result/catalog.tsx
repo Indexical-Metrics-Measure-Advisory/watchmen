@@ -174,6 +174,12 @@ export const CatalogCard = (props: { catalog: Catalog; index: number }) => {
 			async () => {
 				const catalogToSave: Catalog = {
 					...editingCatalog,
+					// drop dangling topic references (topic deleted elsewhere), otherwise the
+					// backend rejects the save with "Topic ids do not match"; filter only when
+					// the topics list is loaded, an empty list must not wipe the references
+					topicIds: topics.length === 0
+						? editingCatalog.topicIds
+						: (editingCatalog.topicIds || []).filter(topicId => topics.some(topic => topic.topicId == topicId)),
 					tags: (editingCatalog.tagIds || []).map(tagId => tagId.toLowerCase())
 				};
 				// @ts-ignore

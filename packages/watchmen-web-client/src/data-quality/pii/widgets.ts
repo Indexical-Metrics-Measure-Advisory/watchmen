@@ -11,40 +11,39 @@ export const PiiBody = styled.div.attrs({'data-widget': 'pii-body'})`
 
 // ——— tabs ———
 export const PiiTabHeaders = styled.div.attrs({'data-widget': 'pii-tab-headers'})`
-	display       : flex;
-	position      : relative;
-	align-items   : center;
-	min-height    : calc(var(--height) * 1.4);
-	height        : calc(var(--height) * 1.4);
-	padding       : 0 calc(var(--margin) / 2);
-	border-bottom : var(--border);
+	display          : inline-flex;
+	position         : relative;
+	align-items      : center;
+	align-self       : flex-start;
+	grid-gap         : 2px;
+	margin           : 0 0 calc(var(--margin) / 2);
+	padding          : 3px;
+	border           : var(--border);
+	border-radius    : 999px;
+	background-color : var(--invert-color);
+	box-shadow       : 0 1px 2px rgba(37, 38, 94, 0.04);
 `;
 export const PiiTabHeader = styled.div.attrs<{ active: boolean }>(({active}) => {
 	return {
 		'data-widget': 'pii-tab-header',
 		style: {
 			color: active ? 'var(--primary-color)' : (void 0),
-			borderBottomColor: active ? 'var(--primary-color)' : (void 0),
-			fontWeight: active ? 'var(--font-bold)' : (void 0)
+			backgroundColor: active ? 'var(--hover-color)' : (void 0),
+			fontWeight: active ? 'var(--font-demi-bold)' : (void 0)
 		}
 	};
 })<{ active: boolean }>`
-	display        : flex;
-	position       : relative;
-	align-items    : center;
-	height         : 100%;
-	padding        : 0 calc(var(--margin) / 3);
-	font-variant   : petite-caps;
-	white-space    : nowrap;
-	border-bottom  : 2px solid transparent;
-	margin-bottom  : -1px;
-	cursor         : pointer;
-	transition     : color 300ms ease-in-out;
+	display       : flex;
+	position      : relative;
+	align-items   : center;
+	padding       : 4px 14px;
+	font-size     : 0.95em;
+	white-space   : nowrap;
+	border-radius : 999px;
+	cursor        : pointer;
+	transition    : color 200ms ease-in-out, background-color 200ms ease-in-out;
 	&:hover {
 		color : var(--primary-color);
-	}
-	&:not(:last-child) {
-		margin-right : calc(var(--margin) / 3);
 	}
 `;
 export const PiiTabContent = styled.div.attrs({'data-widget': 'pii-tab-content', 'data-v-scroll': ''})`
@@ -52,7 +51,6 @@ export const PiiTabContent = styled.div.attrs({'data-widget': 'pii-tab-content',
 	position       : relative;
 	flex-direction : column;
 	flex-grow      : 1;
-	padding        : calc(var(--margin) / 2);
 	overflow-y     : auto;
 	overflow-x     : hidden;
 `;
@@ -85,40 +83,45 @@ export const PiiToolbarPlaceholder = styled.div`
 
 // ——— badges & tags ———
 export const PiiLevelBadge = styled.span.attrs<{ level?: string }>(({level}) => {
+	const color = level === PiiSensitivityLevel.LEVEL_1 ? 'var(--danger-color)' : 'var(--warn-color)';
 	return {
 		'data-widget': 'pii-level-badge',
 		style: {
-			color: level === PiiSensitivityLevel.LEVEL_1 ? 'var(--danger-color)' : 'var(--warn-color)',
-			borderColor: level === PiiSensitivityLevel.LEVEL_1 ? 'var(--danger-color)' : 'var(--warn-color)'
+			color,
+			backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`
 		}
 	};
 })<{ level?: string }>`
-	display        : inline-flex;
-	align-items    : center;
-	padding        : 0 8px;
-	height         : 20px;
-	font-size      : 0.85em;
-	border         : var(--border);
-	border-radius  : 10px;
-	white-space    : nowrap;
+	display          : inline-flex;
+	align-items      : center;
+	padding          : 1px 9px;
+	height           : 18px;
+	font-size        : 0.78em;
+	font-weight      : var(--font-demi-bold);
+	background-color : var(--hover-color);
+	border-radius    : 999px;
+	white-space      : nowrap;
 `;
 export const PiiSourceBadge = styled.span.attrs<{ source?: string }>(({source}) => {
+	const color = source === 'keyword' ? 'var(--success-color)'
+		: source === 'manual' ? 'var(--info-color, var(--primary-color))' : 'var(--primary-color)';
 	return {
 		'data-widget': 'pii-source-badge',
 		style: {
-			color: source === 'keyword' ? 'var(--success-color)' : source === 'manual' ? 'var(--info-color, var(--primary-color))' : 'var(--primary-color)',
-			borderColor: source === 'keyword' ? 'var(--success-color)' : source === 'manual' ? 'var(--info-color, var(--primary-color))' : 'var(--primary-color)'
+			color,
+			backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`
 		}
 	};
 })<{ source?: string }>`
-	display       : inline-flex;
-	align-items   : center;
-	padding       : 0 8px;
-	height        : 20px;
-	font-size     : 0.85em;
-	border        : var(--border);
-	border-radius : 10px;
-	white-space   : nowrap;
+	display          : inline-flex;
+	align-items      : center;
+	padding          : 1px 9px;
+	height           : 18px;
+	font-size        : 0.78em;
+	font-weight      : var(--font-demi-bold);
+	background-color : var(--hover-color);
+	border-radius    : 999px;
+	white-space      : nowrap;
 `;
 export const PiiStatusBadge = styled.span.attrs<{ confirmed: boolean }>(({confirmed}) => {
 	return {
@@ -129,18 +132,17 @@ export const PiiStatusBadge = styled.span.attrs<{ confirmed: boolean }>(({confir
 	display      : inline-flex;
 	align-items  : center;
 	font-size    : 0.9em;
-	font-variant : petite-caps;
 	white-space  : nowrap;
 `;
 export const PiiTag = styled.span.attrs({'data-widget': 'pii-tag'})`
 	display          : inline-flex;
 	align-items      : center;
-	padding          : 0 6px;
+	padding          : 1px 8px;
 	height           : 18px;
 	font-family      : var(--code-font-family);
 	font-size        : 0.8em;
 	background-color : var(--hover-color);
-	border-radius    : 3px;
+	border-radius    : 999px;
 	margin           : 0 4px 4px 0;
 	white-space      : nowrap;
 `;
@@ -152,7 +154,7 @@ export const PiiProgress = styled.div.attrs({'data-widget': 'pii-progress'})`
 	align-items      : center;
 	width            : 80px;
 	height           : 6px;
-	border-radius    : 3px;
+	border-radius    : 999px;
 	background-color : var(--hover-color);
 	overflow         : hidden;
 `;
@@ -170,7 +172,7 @@ export const PiiProgressFill = styled.div.attrs<{ percent: number; warn?: boolea
 	};
 })<{ percent: number; warn?: boolean }>`
 	height       : 100%;
-	border-radius : 3px;
+	border-radius : 999px;
 	transition   : width 300ms ease-in-out;
 `;
 export const PiiProgressText = styled.span.attrs({'data-widget': 'pii-progress-text'})`
@@ -191,9 +193,14 @@ export const PiiTermCard = styled.div.attrs({'data-widget': 'pii-term-card'})`
 	position         : relative;
 	flex-direction   : column;
 	border           : var(--border);
-	border-radius    : var(--border-radius);
+	border-radius    : calc(var(--border-radius) * 3.5);
 	background-color : var(--invert-color);
-	padding          : calc(var(--margin) / 3);
+	box-shadow       : 0 1px 2px rgba(37, 38, 94, 0.04), 0 6px 18px rgba(37, 38, 94, 0.06);
+	padding          : calc(var(--margin) / 2) calc(var(--margin) / 3);
+	transition       : box-shadow 200ms ease-in-out;
+	&:hover {
+		box-shadow : 0 2px 4px rgba(37, 38, 94, 0.06), 0 10px 26px rgba(37, 38, 94, 0.1);
+	}
 `;
 export const PiiTermCardHeader = styled.div.attrs({'data-widget': 'pii-term-card-header'})`
 	display         : flex;
@@ -217,15 +224,40 @@ export const PiiTermCardMeta = styled.div.attrs({'data-widget': 'pii-term-card-m
 export const PiiTermCardStats = styled.div.attrs({'data-widget': 'pii-term-card-stats'})`
 	display       : flex;
 	align-items   : center;
+	flex-wrap     : wrap;
+	grid-gap      : 4px;
 	font-size     : 0.9em;
 	border-top    : var(--border);
 	padding-top   : 8px;
 	margin-top    : 4px;
-	> span:last-child {
-		font-family : var(--code-font-family);
-		font-weight : var(--font-demi-bold);
-		margin-left : 6px;
-	}
+`;
+/** the numeric value inside the stats row */
+export const PiiTermCardStatValue = styled.span.attrs({'data-widget': 'pii-term-card-stat-value'})`
+	font-family : var(--code-font-family);
+	font-weight : var(--font-demi-bold);
+`;
+/** trailing note in the stats row, e.g. confirmation progress */
+export const PiiTermCardStatNote = styled.span.attrs<{ $ok?: boolean }>(({$ok = false}) => {
+	return {
+		'data-widget': 'pii-term-card-stat-note',
+		style: {color: $ok ? 'var(--success-color)' : (void 0)}
+	};
+})<{ $ok?: boolean }>`
+	margin-left : auto;
+	font-size   : 0.85em;
+	opacity     : 0.65;
+	white-space : nowrap;
+`;
+/** tiny uppercase label prefixing a tag row, distinguishes scope/rules */
+export const PiiTermCardSectionLabel = styled.span.attrs({'data-widget': 'pii-term-card-section-label'})`
+	align-self     : center;
+	flex-shrink    : 0;
+	font-size      : 0.7em;
+	letter-spacing : 0.06em;
+	text-transform : uppercase;
+	opacity        : 0.5;
+	margin-right   : 2px;
+	white-space    : nowrap;
 `;
 export const PiiTermCardTags = styled.div.attrs({'data-widget': 'pii-term-card-tags'})`
 	display     : flex;
@@ -262,11 +294,15 @@ export const PiiTable = styled.table.attrs({'data-widget': 'pii-table'})`
 		position         : sticky;
 		top              : 0;
 		text-align       : left;
-		font-variant     : petite-caps;
+		font-size        : 0.8em;
+		letter-spacing   : 0.05em;
+		text-transform   : uppercase;
 		font-weight      : var(--font-demi-bold);
+		opacity          : 0.65;
 		padding          : 8px 12px;
 		background-color : var(--invert-color);
 		border-bottom    : var(--border);
+		border-bottom-width : 2px;
 		white-space      : nowrap;
 		z-index          : 1;
 	}
@@ -278,6 +314,9 @@ export const PiiTable = styled.table.attrs({'data-widget': 'pii-table'})`
 	> tbody > tr:nth-child(even) > td {
 		/* theme-neutral striping; tooltip-bg-color inverts in dark mode and hides text */
 		background-color : rgba(128, 128, 128, 0.1);
+	}
+	> tbody > tr:hover > td {
+		background-color : var(--hover-color);
 	}
 	> thead > tr > th[data-numeric=true],
 	> tbody > tr > td[data-numeric=true] {
@@ -302,17 +341,17 @@ export const PiiCard = styled.div.attrs({'data-widget': 'pii-card'})`
 	position         : relative;
 	flex-direction   : column;
 	border           : var(--border);
-	border-radius    : var(--border-radius);
+	border-radius    : calc(var(--border-radius) * 3.5);
 	background-color : var(--invert-color);
+	box-shadow       : 0 1px 2px rgba(37, 38, 94, 0.04), 0 6px 18px rgba(37, 38, 94, 0.06);
 	padding          : calc(var(--margin) / 2);
 	margin-bottom    : calc(var(--margin) / 2);
 `;
 export const PiiCardTitle = styled.div.attrs({'data-widget': 'pii-card-title'})`
 	display        : flex;
 	align-items    : center;
-	font-size      : 1.05em;
+	font-size      : 1.1em;
 	font-weight    : var(--font-demi-bold);
-	font-variant   : petite-caps;
 	margin-bottom  : calc(var(--margin) / 3);
 `;
 export const PiiCardTitleBadge = styled.span.attrs<{ danger?: boolean }>(({danger = false}) => {
@@ -326,13 +365,13 @@ export const PiiCardTitleBadge = styled.span.attrs<{ danger?: boolean }>(({dange
 	justify-content  : center;
 	min-width        : 20px;
 	height           : 20px;
-	padding          : 0 6px;
+	padding          : 0 7px;
 	margin-left      : 8px;
 	font-size        : 0.75em;
 	font-family      : var(--code-font-family);
 	color            : var(--invert-color);
 	background-color : var(--primary-color);
-	border-radius    : 10px;
+	border-radius    : 999px;
 `;
 export const PiiKpiRow = styled.div.attrs({'data-widget': 'pii-kpi-row'})`
 	display               : grid;
@@ -346,17 +385,19 @@ export const PiiKpiRow = styled.div.attrs({'data-widget': 'pii-kpi-row'})`
 export const PiiKpiValue = styled.div.attrs<{ danger?: boolean }>(({danger = false}) => {
 	return {
 		'data-widget': 'pii-kpi-value',
-		style: {color: danger ? 'var(--danger-color)' : 'var(--primary-color)'}
+		style: {color: danger ? 'var(--danger-color)' : 'var(--font-color)'}
 	};
 })<{ danger?: boolean }>`
 	font-family : var(--code-font-family);
-	font-size   : 1.8em;
+	font-size   : 2em;
 	font-weight : var(--font-bold);
 	line-height : 1.2;
 `;
 export const PiiKpiLabel = styled.div.attrs({'data-widget': 'pii-kpi-label'})`
-	font-variant : petite-caps;
-	opacity      : 0.8;
+	font-size      : 0.8em;
+	letter-spacing : 0.06em;
+	text-transform : uppercase;
+	opacity        : 0.6;
 `;
 export const PiiKpiSubtext = styled.div.attrs<{ danger?: boolean }>(({danger = false}) => {
 	return {
@@ -466,14 +507,13 @@ export const PiiEditorPanel = styled.div.attrs({'data-widget': 'pii-editor-panel
 	overflow-y       : auto;
 	background-color : var(--invert-color);
 	border           : var(--border);
-	border-radius    : var(--border-radius);
-	box-shadow       : var(--shadow);
+	border-radius    : calc(var(--border-radius) * 3.5);
+	box-shadow       : 0 12px 48px rgba(0, 0, 0, 0.22);
 	padding          : calc(var(--margin) / 2);
 `;
 export const PiiEditorTitle = styled.div.attrs({'data-widget': 'pii-editor-title'})`
-	font-size     : 1.2em;
+	font-size     : 1.15em;
 	font-weight   : var(--font-demi-bold);
-	font-variant  : petite-caps;
 	margin-bottom : calc(var(--margin) / 2);
 `;
 export const PiiEditorField = styled.div.attrs({'data-widget': 'pii-editor-field'})`
@@ -569,24 +609,25 @@ export const PiiLineageListItem = styled.div.attrs({'data-widget': 'pii-lineage-
 	}
 `;
 export const PiiSegmented = styled.div.attrs({'data-widget': 'pii-segmented'})`
-	display       : flex;
-	align-items   : center;
-	border        : var(--border);
-	border-radius : var(--border-radius);
-	overflow      : hidden;
+	display          : inline-flex;
+	align-items      : center;
+	align-self       : flex-start;
+	grid-gap         : 2px;
+	padding          : 3px;
+	border           : var(--border);
+	border-radius    : 999px;
+	background-color : var(--invert-color);
 	> span {
-		display     : flex;
-		align-items : center;
-		height      : var(--height);
-		padding     : 0 12px;
-		cursor      : pointer;
-		white-space : nowrap;
+		display       : flex;
+		align-items   : center;
+		height        : var(--height);
+		padding       : 0 14px;
+		cursor        : pointer;
+		white-space   : nowrap;
+		border-radius : 999px;
 		&[data-active=true] {
 			color            : var(--invert-color);
 			background-color : var(--primary-color);
-		}
-		&:not(:last-child) {
-			border-right : var(--border);
 		}
 	}
 `;
@@ -630,23 +671,19 @@ export const PiiRouteStep = styled.span.attrs<{ kind?: string }>(({kind}) => {
 				: kind === 'pipeline' ? 'var(--primary-color)'
 					: kind === 'topic' ? 'var(--info-color, var(--primary-color))'
 						: (void 0),
-			borderColor: kind === 'topic_factor' ? 'var(--danger-color)'
-				: kind === 'pipeline' ? 'var(--primary-color)'
-					: kind === 'topic' ? 'var(--info-color, var(--primary-color))'
-						: 'var(--border-color)',
 			fontWeight: kind === 'topic_factor' ? 'var(--font-demi-bold)' : (void 0)
 		}
 	};
 })<{ kind?: string }>`
-	display       : inline-flex;
-	align-items   : center;
-	padding       : 0 8px;
-	height        : 20px;
-	font-family   : var(--code-font-family);
-	font-size     : 0.8em;
-	border        : var(--border);
-	border-radius : 10px;
-	white-space   : nowrap;
+	display          : inline-flex;
+	align-items      : center;
+	padding          : 1px 9px;
+	height           : 18px;
+	font-family      : var(--code-font-family);
+	font-size        : 0.8em;
+	background-color : var(--hover-color);
+	border-radius    : 999px;
+	white-space      : nowrap;
 `;
 export const PiiRouteArrow = styled.span.attrs({'data-widget': 'pii-route-arrow'})`
 	font-size : 0.85em;

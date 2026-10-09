@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-import {CHART_SPLIT_COLOR, NEUTRAL_COLOR, SCORE_BAND_COLORS} from '../../widgets/palette';
+import {CardPanelAside, CardPanelTitle, Pill} from '../../widgets/kit';
+import {CHART_SPLIT_COLOR, SCORE_BAND_COLORS} from '../../widgets/palette';
 import {ScoreBand} from './quality-dimensions';
 import {OverviewCard, OverviewCardBody, OverviewCardHeader} from './widgets';
 
@@ -39,17 +40,8 @@ const ScoreValue = styled.div.attrs<{ color?: string }>(({color}) => {
 	line-height : 1.1;
 `;
 
-const ScoreBandLabel = styled.div.attrs<{ color?: string }>(({color}) => {
-	return {'data-widget': 'quality-score-band', style: {color}};
-})<{ color?: string }>`
-	font-size : 0.9em;
-`;
-
-const ScoreDelta = styled.div.attrs<{ color: string }>(({color}) => {
-	return {'data-widget': 'quality-score-delta', style: {color}};
-})<{ color: string }>`
+const ScoreDelta = styled.div`
 	align-self  : center;
-	font-size   : 0.9em;
 	margin-top  : calc(var(--margin) / 3);
 `;
 
@@ -66,7 +58,7 @@ const STROKE = 13;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-/** Quality-score hero: SVG ring gauge + band label + period-over-period delta. */
+/** Quality-score hero: SVG ring gauge + band pill + period-over-period delta. */
 export const ScoreCard = (props: {
 	score: number | null;
 	band: ScoreBand | null;
@@ -80,9 +72,19 @@ export const ScoreCard = (props: {
 	const delta = (score !== null && previousScore != null)
 		? Math.round((score - previousScore) * 10) / 10
 		: null;
+	const deltaTone = delta == null || delta === 0
+		? (void 0)
+		: (delta > 0 ? SCORE_BAND_COLORS.excellent : SCORE_BAND_COLORS.poor);
 
 	return <OverviewCard>
-		<OverviewCardHeader>Quality Score</OverviewCardHeader>
+		<OverviewCardHeader>
+			<CardPanelTitle>Quality Score</CardPanelTitle>
+			{band
+				? <CardPanelAside>
+					<Pill tone={color}>{BAND_LABELS[band]}</Pill>
+				</CardPanelAside>
+				: null}
+		</OverviewCardHeader>
 		<OverviewCardBody>
 			<div style={{
 				display: 'flex', flexDirection: 'column', flex: 1,
@@ -103,12 +105,14 @@ export const ScoreCard = (props: {
 						<ScoreValue color={score !== null ? color : (void 0)}>
 							{score !== null ? score.toFixed(1) : '—'}
 						</ScoreValue>
-						{band ? <ScoreBandLabel color={color}>{BAND_LABELS[band]}</ScoreBandLabel> : null}
 					</ScoreRingCenter>
 				</ScoreRing>
 				{delta !== null
-					? <ScoreDelta color={delta > 0 ? SCORE_BAND_COLORS.excellent : (delta < 0 ? SCORE_BAND_COLORS.poor : NEUTRAL_COLOR)}>
-						{delta > 0 ? '▲' : (delta < 0 ? '▼' : '■')} {delta > 0 ? `+${delta.toFixed(1)}` : delta.toFixed(1)} vs previous period
+					? <ScoreDelta>
+						<Pill tone={deltaTone}>
+							{delta > 0 ? '▲' : (delta < 0 ? '▼' : '■')}
+							{delta > 0 ? `+${delta.toFixed(1)}` : delta.toFixed(1)} vs previous period
+						</Pill>
 					</ScoreDelta>
 					: null}
 				{hint ? <ScoreHint>{hint}</ScoreHint> : null}

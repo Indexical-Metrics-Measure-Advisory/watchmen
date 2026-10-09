@@ -1,8 +1,8 @@
-from datetime import date
+from datetime import date, datetime
 from typing import List, Optional
 
 from watchmen_auth import PrincipalService
-from watchmen_meta.common import AuditableShaper, StorageService, TupleService, TupleShaper, \
+from watchmen_meta.common import StorageService, TupleService, TupleShaper, \
 	UserBasedTupleService, UserBasedTupleShaper
 from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
@@ -11,8 +11,7 @@ from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, Entity
 from watchmen_utilities import get_current_time_in_seconds, is_not_blank
 
 from ..model.materialization import Materialization, MaterializationFlow, MaterializationJobLock, \
-	MaterializationJobLockId, MaterializationRun, MaterializationRunFilter, MaterializationRunId, \
-	MaterializationSchedule, RunStatus
+	MaterializationJobLockId, MaterializationRun, MaterializationRunFilter, MaterializationSchedule, RunStatus
 
 
 class MaterializationShaper(UserBasedTupleShaper):
@@ -62,7 +61,8 @@ class MaterializationShaper(UserBasedTupleShaper):
 			'engine': materialization.engine,
 			'enabled': materialization.enabled,
 			'factor_mapping': self.serialize_factor_mapping(materialization),
-			'description': materialization.description
+			'description': materialization.description,
+			'rebuild_pending': materialization.rebuildPending
 		}
 		row = self.serialize_schedule(materialization.schedule, row)
 		return UserBasedTupleShaper.serialize(materialization, row)
@@ -85,6 +85,7 @@ class MaterializationShaper(UserBasedTupleShaper):
 			factorMapping=row.get('factor_mapping'),
 			enabled=row.get('enabled', True),
 			description=row.get('description'),
+			rebuildPending=bool(row.get('rebuild_pending')),
 			updatedAt=row.get('last_modified_at')
 		)
 		# noinspection PyTypeChecker
@@ -131,6 +132,29 @@ class MaterializationService(UserBasedTupleService):
 			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='enabled'), right=True),
 			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='schedule_enabled'), right=True)
 		]))
+
+	def find_page(self, keyword: Optional[str], pageable: Pageable) -> DataPage:
+		tenant_id = self.principalService.get_tenant_id()
+		criteria = []
+		if is_not_blank(tenant_id):
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		if is_not_blank(keyword):
+			like = f'%{keyword.strip()}%'
+			criteria.append(EntityCriteriaJoint(
+				conjunction=EntityCriteriaJointConjunction.OR,
+				children=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='name'),
+						operator=EntityCriteriaOperator.LIKE, right=like),
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='metric_name'),
+						operator=EntityCriteriaOperator.LIKE, right=like)
+				]
+			))
+		# noinspection PyTypeChecker
+		return self.storage.page(self.get_entity_pager(
+			criteria=criteria, pageable=pageable,
+			sort=[EntitySortColumn(name='id', method=EntitySortMethod.DESC)]))
 
 
 class MaterializationFlowShaper(UserBasedTupleShaper):
@@ -291,7 +315,7 @@ class MaterializationRunService(TupleService):
 						operator=EntityCriteriaOperator.LIKE, right=keyword)
 				]
 			))
-		if is_not_blank(run_filter.status):
+		if is_not_blank(run_filter.status) and str(run_filter.status).upper() != 'ALL':
 			criteria.append(EntityCriteriaExpression(
 				left=ColumnNameLiteral(columnName='status'), right=run_filter.status))
 		if is_not_blank(run_filter.materializationId):
@@ -303,25 +327,47 @@ class MaterializationRunService(TupleService):
 		return self.storage.page(self.get_entity_pager(
 			criteria=criteria, pageable=pageable, sort=RUN_STARTED_AT_DESC_SORT))
 
-	def find_by_materialization_id_desc(self, materialization_id: str) -> List[MaterializationRun]:
+	def find_latest_by_materialization_id(self, materialization_id: str) -> Optional[MaterializationRun]:
+		"""Newest run of one materialization, reads a single row instead of the full history."""
 		# noinspection PyTypeChecker
-		return self.storage.find(self.get_entity_finder(
+		page: DataPage = self.storage.page(self.get_entity_pager(
 			criteria=[
 				EntityCriteriaExpression(
 					left=ColumnNameLiteral(columnName='materialization_id'), right=materialization_id)
 			],
+			pageable=Pageable(pageNumber=1, pageSize=1),
 			sort=RUN_STARTED_AT_DESC_SORT
 		))
+		data = page.data or []
+		return data[0] if data else None
 
 	# noinspection PyTypeChecker
 	def find_latest_status_by_materialization_ids(self, materialization_ids: List[str]) -> dict:
 		"""materialization id -> latest run status, used by flow graph nodes."""
 		latest = {}
 		for materialization_id in materialization_ids:
-			runs = self.find_by_materialization_id_desc(materialization_id)
-			if runs:
-				latest[materialization_id] = runs[0].status
+			run = self.find_latest_by_materialization_id(materialization_id)
+			if run is not None:
+				latest[materialization_id] = run.status
 		return latest
+
+	def find_active_runs_started_before(self, cutoff: datetime) -> List[MaterializationRun]:
+		"""PENDING/RUNNING runs older than the cutoff, left behind by a restart."""
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=[
+			EntityCriteriaJoint(
+				conjunction=EntityCriteriaJointConjunction.OR,
+				children=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='status'), right=RunStatus.PENDING.value),
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='status'), right=RunStatus.RUNNING.value)
+				]
+			),
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='started_at'),
+				operator=EntityCriteriaOperator.LESS_THAN, right=cutoff)
+		]))
 
 
 MATERIALIZATION_JOB_LOCK_ENTITY_NAME = 'materialization_job_locks'

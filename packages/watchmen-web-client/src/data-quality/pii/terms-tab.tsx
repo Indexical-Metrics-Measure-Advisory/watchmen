@@ -37,6 +37,9 @@ import {
 	PiiTermCardActions,
 	PiiTermCardHeader,
 	PiiTermCardMeta,
+	PiiTermCardSectionLabel,
+	PiiTermCardStatNote,
+	PiiTermCardStatValue,
 	PiiTermCardStats,
 	PiiTermCardTags,
 	PiiTermCardTitle,
@@ -108,8 +111,18 @@ export const PiiTermsTab = (props: {
 	];
 
 	const filtered = terms.filter(term => {
-		if (searchText && !term.name.toLowerCase().includes(searchText.toLowerCase())) {
-			return false;
+		const text = searchText.trim().toLowerCase();
+		if (text) {
+			// search matches name, description and match patterns, not only the name
+			const haystack = [
+				term.name,
+				term.description ?? '',
+				...(term.factorTypePatterns ?? []),
+				...(term.keywordPatterns ?? [])
+			].join(' ').toLowerCase();
+			if (!haystack.includes(text)) {
+				return false;
+			}
 		}
 		if (levelFilter && term.sensitivityLevel !== levelFilter) {
 			return false;
@@ -118,6 +131,12 @@ export const PiiTermsTab = (props: {
 			return false;
 		}
 		return true;
+	});
+	// level-1 terms first (highest sensitivity), then by name
+	const sorted = [...filtered].sort((t1, t2) => {
+		const rank1 = t1.sensitivityLevel === PiiSensitivityLevel.LEVEL_1 ? 0 : 1;
+		const rank2 = t2.sensitivityLevel === PiiSensitivityLevel.LEVEL_1 ? 0 : 1;
+		return rank1 !== rank2 ? rank1 - rank2 : t1.name.localeCompare(t2.name);
 	});
 
 	const onCreate = () => setEditing({...EMPTY_EDITOR});
@@ -182,6 +201,8 @@ export const PiiTermsTab = (props: {
 	};
 
 	const renderCard = (term: PiiClassificationTerm) => {
+		const linked = term.linkedFactors ?? [];
+		const confirmed = linked.filter(lf => lf.confirmed).length;
 		return <PiiTermCard key={term.termId}>
 			<PiiTermCardHeader>
 				<PiiTermCardTitle>{term.name}</PiiTermCardTitle>
@@ -194,16 +215,30 @@ export const PiiTermsTab = (props: {
 			</PiiTermCardMeta>
 			<PiiTermCardStats>
 				<span>Linked Factors</span>
-				<span>{(term.linkedFactors ?? []).length}</span>
+				<PiiTermCardStatValue>{linked.length}</PiiTermCardStatValue>
+				{linked.length === 0
+					? <PiiTermCardStatNote>not discovered</PiiTermCardStatNote>
+					: <PiiTermCardStatNote $ok={confirmed === linked.length}>
+						{confirmed}/{linked.length} confirmed
+					</PiiTermCardStatNote>}
 			</PiiTermCardStats>
 			{(term.topicIds ?? []).length !== 0
-				? <PiiTermCardTags>{term.topicIds.map(t => <PiiTag key={t}>{topicNameOf(t)}</PiiTag>)}</PiiTermCardTags>
+				? <PiiTermCardTags>
+					<PiiTermCardSectionLabel>Scope</PiiTermCardSectionLabel>
+					{term.topicIds.map(t => <PiiTag key={t}>{topicNameOf(t)}</PiiTag>)}
+				</PiiTermCardTags>
 				: null}
 			{(term.factorTypePatterns ?? []).length !== 0
-				? <PiiTermCardTags>{term.factorTypePatterns.map(t => <PiiTag key={t}>{t}</PiiTag>)}</PiiTermCardTags>
+				? <PiiTermCardTags>
+					<PiiTermCardSectionLabel>Factor Types</PiiTermCardSectionLabel>
+					{term.factorTypePatterns.map(t => <PiiTag key={t}>{t}</PiiTag>)}
+				</PiiTermCardTags>
 				: null}
 			{(term.keywordPatterns ?? []).length !== 0
-				? <PiiTermCardTags>{term.keywordPatterns.map(t => <PiiTag key={t}>{t}</PiiTag>)}</PiiTermCardTags>
+				? <PiiTermCardTags>
+					<PiiTermCardSectionLabel>Keywords</PiiTermCardSectionLabel>
+					{term.keywordPatterns.map(t => <PiiTag key={t}>{t}</PiiTag>)}
+				</PiiTermCardTags>
 				: null}
 			<PiiTermCardActions>
 				<span onClick={() => onEdit(term)}>Edit</span>
@@ -229,9 +264,9 @@ export const PiiTermsTab = (props: {
 			<PiiToolbarPlaceholder/>
 			<Button ink={ButtonInk.PRIMARY} onClick={onCreate}>New Term</Button>
 		</PiiToolbar>
-		{filtered.length === 0
+		{sorted.length === 0
 			? <EmptyState>No terms found.</EmptyState>
-			: <PiiTermGrid>{filtered.map(renderCard)}</PiiTermGrid>}
+			: <PiiTermGrid>{sorted.map(renderCard)}</PiiTermGrid>}
 		{editing != null
 			? <PiiEditorOverlay onClick={(e) => {
 				if (e.target === e.currentTarget) {

@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService, User, Token, LoginCredentials, LoginConfiguration, SSOTypes } from '@/services/authService';
 import { clearMetricsCache } from '@/services/metricsManagementService';
-import { isConsoleAllowedPath, isConsoleUser } from '@/utils/userRole';
+import { isConsoleAllowedPath, isConsoleUser, isAdmin } from '@/utils/userRole';
 import { setUnauthorizedHandler } from '@/utils/apiConfig';
 
 interface AuthContextType {
@@ -14,6 +14,7 @@ interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
   isConsoleUser: boolean;
+  isAdmin: boolean;
   loadLoginConfiguration: () => Promise<void>;
   handleSSOLogin: (url: string) => Promise<void>;
 }
@@ -166,6 +167,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     isLoading,
     isConsoleUser: isConsole,
+    isAdmin: isAdmin(user),
     loadLoginConfiguration,
     handleSSOLogin
   };

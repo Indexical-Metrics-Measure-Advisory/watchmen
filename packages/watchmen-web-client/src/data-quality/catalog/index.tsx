@@ -1,7 +1,7 @@
 import {FullWidthPage} from '@/widgets/basic/page';
-import {FullWidthPageHeaderContainer, PageTitle} from '@/widgets/basic/page-header';
 import {HELP_KEYS, useHelp} from '@/widgets/help';
 import React from 'react';
+import {AmbientBody, HeroHeader, HeroSubtitle, HeroTitle} from '../widgets/kit';
 import {CatalogEventBusProvider} from './catalog-event-bus';
 import {SearchCriteria} from './search-criteria';
 import {SearchResult} from './search-result';
@@ -12,16 +12,21 @@ const DataQualityCatalogIndex = () => {
 	useHelp(HELP_KEYS.DQC_CATALOG);
 
 	return <FullWidthPage>
-		<FullWidthPageHeaderContainer>
-			<PageTitle>Catalog</PageTitle>
-		</FullWidthPageHeaderContainer>
-		<Body>
-			<CatalogEventBusProvider>
-				<UserCache/>
-				<SearchCriteria/>
-				<SearchResult/>
-			</CatalogEventBusProvider>
-		</Body>
+		<AmbientBody>
+			<HeroHeader>
+				<div>
+					<HeroTitle>Catalog</HeroTitle>
+					<HeroSubtitle>Business catalogs, owners and attached monitor rules.</HeroSubtitle>
+				</div>
+			</HeroHeader>
+			<Body>
+				<CatalogEventBusProvider>
+					<UserCache/>
+					<SearchCriteria/>
+					<SearchResult/>
+				</CatalogEventBusProvider>
+			</Body>
+		</AmbientBody>
 	</FullWidthPage>;
 };
 

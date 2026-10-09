@@ -5,8 +5,9 @@ export const CLIContainer = styled.div.attrs({'data-widget': 'cli'})`
 	display        : flex;
 	flex-direction : column;
 	flex-grow      : 1;
-	padding        : calc(var(--margin) / 2);
-	height         : calc(100vh - var(--page-header-height));
+	padding        : 0 0 calc(var(--margin) / 2);
+	/* hero header (~90px) replaces the old page header */
+	height         : calc(100vh - 120px);
 `;
 
 export const WorkingArea = styled.div.attrs({

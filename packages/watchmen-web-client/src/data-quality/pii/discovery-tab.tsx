@@ -181,6 +181,22 @@ export const PiiDiscoveryTab = (props: {
 
 	const confirmedCount = (results ?? []).filter(lf => lf.confirmed).length;
 
+	// highest confidence first — review the strongest matches before the weak ones
+	const sortedResults = [...(results ?? [])]
+		.sort((a, b) => (b.matchConfidence ?? 0) - (a.matchConfidence ?? 0));
+	const allSelected = sortedResults.length !== 0
+		&& sortedResults.every(lf => selected[asPiiLinkedFactorKey(lf)]);
+	const onToggleAll = () => {
+		if (allSelected) {
+			setSelected({});
+		} else {
+			setSelected(sortedResults.reduce((map: Record<string, boolean>, lf) => {
+				map[asPiiLinkedFactorKey(lf)] = true;
+				return map;
+			}, {}));
+		}
+	};
+
 	const linkingTopic = topics.find(topic => topic.topicId === linking?.topicId);
 	const linkingFactorOptions: Array<DropdownOption> = (linkingTopic?.factors ?? []).map(factor => {
 		return {value: factor.factorId, label: factor.label ?? factor.name};
@@ -189,7 +205,7 @@ export const PiiDiscoveryTab = (props: {
 	return <>
 		<PiiToolbar>
 			<PiiToolbarLabel>Term</PiiToolbarLabel>
-			<PiiToolbarDropdown width={200}>
+			<PiiToolbarDropdown width={260}>
 				<Dropdown options={termOptions} value={termId}
 				          onChange={(option) => setTermId(option.value)}/>
 			</PiiToolbarDropdown>
@@ -217,22 +233,24 @@ export const PiiDiscoveryTab = (props: {
 					<Button ink={ButtonInk.PRIMARY} onClick={onBatchConfirm}>Batch Confirm</Button>
 					<Button ink={ButtonInk.DANGER} onClick={onBatchRemove}>Batch Remove</Button>
 				</PiiToolbar>
-				{results.length === 0
-					? <EmptyState>No factors discovered.</EmptyState>
-					: <PiiTable>
-						<thead>
-							<tr>
-								<th style={{width: 40}}></th>
-								<th>Topic</th>
-								<th>Factor</th>
-								<th>Factor Type</th>
-								<th>Match Source</th>
-								<th>Confidence</th>
-								<th>Status</th>
-							</tr>
-						</thead>
-						<tbody>
-							{results.map(lf => {
+					{results.length === 0
+						? <EmptyState>No factors discovered.</EmptyState>
+						: <PiiTable>
+							<thead>
+								<tr>
+									<th style={{width: 40}}>
+										<CheckBox value={allSelected} onChange={onToggleAll}/>
+									</th>
+									<th>Topic</th>
+									<th>Factor</th>
+									<th>Factor Type</th>
+									<th>Match Source</th>
+									<th>Confidence</th>
+									<th>Status</th>
+								</tr>
+							</thead>
+							<tbody>
+								{sortedResults.map(lf => {
 								const key = asPiiLinkedFactorKey(lf);
 								const confidence = Math.round((lf.matchConfidence ?? 0) * 100);
 								return <tr key={key}>

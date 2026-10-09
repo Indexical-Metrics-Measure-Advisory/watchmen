@@ -22,7 +22,10 @@ import {
   Package,
   Map as MapIcon,
   Share2,
-  Users
+  Users,
+  CalendarClock,
+  History,
+  Workflow
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -130,7 +133,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const { collapsed, toggleSidebar, expandedGroups, toggleGroup } = useSidebar();
-  const { isConsoleUser } = useAuth();
+  const { isConsoleUser, isAdmin } = useAuth();
   const { aiEnabled } = useTenantAiEnabled();
   const { t } = useTranslation(['layout', 'nav']);
 
@@ -214,6 +217,13 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
             <NavItem to="/metrics/semantic-models" icon={<GitBranch size={16} />} label={t('nav:semanticModelManagement')} collapsed={collapsed} isSubItem={true} />
           )}
           <NavItem to="/metrics/management" icon={<TrendingUp size={16} />} label={t('nav:metricsManagement')} collapsed={collapsed} isSubItem={true} />
+          {isAdmin && (
+            <>
+              <NavItem to="/metrics/materialization" icon={<CalendarClock size={16} />} label={t('nav:materialization')} collapsed={collapsed} isSubItem={true} />
+              <NavItem to="/metrics/materialization/runs" icon={<History size={16} />} label={t('nav:materializationRuns')} collapsed={collapsed} isSubItem={true} />
+              <NavItem to="/metrics/compute-flow" icon={<Workflow size={16} />} label={t('nav:computeFlow')} collapsed={collapsed} isSubItem={true} />
+            </>
+          )}
           {!isConsoleUser && (
             <NavItem to="/metrics/user-groups" icon={<Users size={16} />} label={t('nav:userGroupMetrics')} collapsed={collapsed} isSubItem={true} />
           )}

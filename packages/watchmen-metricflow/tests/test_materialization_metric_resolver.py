@@ -12,9 +12,10 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _metric_test_base import admin_principal, make_metric
-from watchmen_metricflow.model.semantic import AggregationType, Dimension, Entity, Measure, \
-    NodeRelation, SemanticModel, SemanticModelSourceType
-from watchmen_metricflow.service import materialization_metric_resolver
+from watchmen_metricflow.model.metrics import MetricTypeParams
+from watchmen_metricflow.model.semantic import AggregationType, Measure, NodeRelation, \
+    SemanticModel, SemanticModelSourceType
+from watchmen_metricflow.service import materialization_metric_resolver, meta_service
 from watchmen_metricflow.service.materialization_metric_resolver import (
     collect_measure_names,
     resolve_metric_source_data_source_id,
@@ -70,6 +71,28 @@ class TestCollectMeasureNames(unittest.TestCase):
         self.assertEqual(set(), collect_measure_names(metric))
 
 
+class TestMetaServiceNormalization(unittest.TestCase):
+    """load_metric_meta_cached relies on these to undo the raw-dict quirk."""
+
+    def test_normalize_metric_coerces_dict_type_params(self):
+        metric = make_metric(name='sales')
+        metric.type_params = {'measure': {'name': 'order_total'}}
+
+        normalized = meta_service.normalize_metric(metric)
+
+        self.assertIsInstance(normalized.type_params, MetricTypeParams)
+        self.assertEqual('order_total', normalized.type_params.measure.name)
+
+    def test_normalize_semantic_model_coerces_dict_measures(self):
+        model = build_semantic_model(measure_name='order_total')
+        model.measures = [{'name': 'order_total', 'agg': 'sum', 'expr': 'amount'}]
+
+        normalized = meta_service.normalize_semantic_model(model)
+
+        self.assertIsInstance(normalized.measures[0], Measure)
+        self.assertEqual('order_total', normalized.measures[0].name)
+
+
 class TestResolveMetricSourceTopics(unittest.TestCase):
     def _resolve(self, metrics, models, topics):
         topic_service = mock.MagicMock()
@@ -102,17 +125,6 @@ class TestResolveMetricSourceTopics(unittest.TestCase):
         result = self._resolve([metric], [model], {'topic-1': topic})
 
         self.assertEqual([], result['sales'])
-
-    def test_model_with_raw_dict_measures_still_matches(self):
-        """Even if measures arrive as dicts, the loader normalization must cover it."""
-        metric = make_metric(name='sales')
-        model = build_semantic_model(measure_name='order_total', topic_id='topic-1')
-        model.measures = [{'name': 'order_total', 'agg': 'sum', 'expr': 'amount'}]
-        topic = Topic(topicId='topic-1', name='orders')
-
-        result = self._resolve([metric], [model], {'topic-1': topic})
-
-        self.assertEqual([topic], result['sales'])
 
     def test_missing_topic_record_is_skipped(self):
         metric = make_metric(name='sales')

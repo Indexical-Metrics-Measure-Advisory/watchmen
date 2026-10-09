@@ -1,8 +1,8 @@
 import {echarts, EChartsType} from '@/widgets/basic/echarts';
-import Color from 'color';
 import React, {useEffect, useMemo, useRef} from 'react';
 import styled from 'styled-components';
-import {ACCENT_COLOR, CHART_SPLIT_COLOR, NEUTRAL_COLOR} from '../../widgets/palette';
+import {CardPanelTitle} from '../../widgets/kit';
+import {ACCENT_COLOR, CHART_SPLIT_COLOR} from '../../widgets/palette';
 import {DIMENSION_LABELS, DimensionScore} from './quality-dimensions';
 import {OverviewCard, OverviewCardBody, OverviewCardHeader, OverviewCardNoData} from './widgets';
 
@@ -36,13 +36,13 @@ export const DimensionRadarCard = (props: { dimensions: Array<DimensionScore> })
 			tooltip: {trigger: 'item'},
 			radar: {
 				indicator: scored.map(dimension => ({name: DIMENSION_LABELS[dimension.dimension], max: 100})),
-				center: ['50%', '54%'],
+				center: ['50%', '52%'],
 				radius: '62%',
 				splitNumber: 4,
-				axisName: {color: NEUTRAL_COLOR, fontSize: 11},
+				axisName: {color: 'rgb(140,150,165)', fontSize: 11},
 				axisLine: {lineStyle: {color: CHART_SPLIT_COLOR}},
 				splitLine: {lineStyle: {color: CHART_SPLIT_COLOR}},
-				splitArea: {show: false}
+				splitArea: {show: true, areaStyle: {color: ['rgba(128,128,128,0.03)', 'rgba(128,128,128,0.08)']}}
 			},
 			series: [{
 				type: 'radar',
@@ -52,7 +52,7 @@ export const DimensionRadarCard = (props: { dimensions: Array<DimensionScore> })
 					name: 'Score',
 					itemStyle: {color: ACCENT_COLOR},
 					lineStyle: {color: ACCENT_COLOR, width: 2},
-					areaStyle: {color: Color(ACCENT_COLOR).alpha(0.25).string()}
+					areaStyle: {color: 'rgba(77,107,254,0.24)'}
 				}]
 			}]
 		}, true);
@@ -66,7 +66,9 @@ export const DimensionRadarCard = (props: { dimensions: Array<DimensionScore> })
 	}, [scored]);
 
 	return <OverviewCard>
-		<OverviewCardHeader>Five Dimensions</OverviewCardHeader>
+		<OverviewCardHeader>
+			<CardPanelTitle>Five Dimensions</CardPanelTitle>
+		</OverviewCardHeader>
 		<OverviewCardBody>
 			{scored.length === 0
 				? <OverviewCardNoData>No scored dimensions.</OverviewCardNoData>

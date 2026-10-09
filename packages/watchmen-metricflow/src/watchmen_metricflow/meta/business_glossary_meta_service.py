@@ -176,6 +176,23 @@ class GlossaryService(TupleService):
 			name=self.get_entity_name(), shaper=BUNDLE_SHAPER, criteria=criteria))
 		return rows[0] if rows else None
 
+	def find_bundle_any_tenant(self, glossary_id: str) -> Optional[GlossaryBundle]:
+		"""
+		Find a bundle by glossary id only, regardless of tenant.
+		The physical primary key on standard_id is global (not tenant-scoped),
+		so any existence check guarding an insert must look across tenants.
+		"""
+		if is_blank(glossary_id):
+			return None
+		criteria = [
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()), right=glossary_id)
+		]
+		# noinspection PyTypeChecker
+		rows: List[GlossaryBundle] = self.storage.find(EntityFinder(
+			name=self.get_entity_name(), shaper=BUNDLE_SHAPER, criteria=criteria))
+		return rows[0] if rows else None
+
 	def find_bundle_by_name(self, name: str) -> Optional[GlossaryBundle]:
 		if is_blank(name):
 			return None

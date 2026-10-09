@@ -7,7 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, BrowserRouter, Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useTenantAiEnabled } from "@/hooks/useTenantAiEnabled";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
@@ -49,6 +49,9 @@ const AnalysisAssistantConfigPage = lazy(() => import('./pages/AnalysisAssistant
 const MetricDependencyTree = lazy(() => import('./pages/MetricDependencyTree'));
 const MetricLineagePage = lazy(() => import('./pages/MetricLineage'));
 const AlertConfigurationPage = lazy(() => import('./pages/AlertConfigurationPage').then(m => ({ default: m.AlertConfigurationPage })));
+const MaterializationManagement = lazy(() => import('./pages/MaterializationManagement'));
+const MaterializationRuns = lazy(() => import('./pages/MaterializationRuns'));
+const ComputeFlow = lazy(() => import('./pages/ComputeFlow'));
 const SharedAnalysisPage = lazy(() => import('./pages/SharedAnalysisPage'));
 
 
@@ -61,6 +64,16 @@ const RequireTenantAi = ({ children }: { children: ReactNode }) => {
   const { aiEnabled, isLoading } = useTenantAiEnabled();
   if (!aiEnabled) {
     // hold rendering until the tenant flag is resolved, then bounce when AI is off
+    return isLoading ? null : <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
+};
+
+// keeps admin-only pages (materialization / runs / compute flow) out of reach for non admins
+const RequireAdmin = ({ children }: { children: ReactNode }) => {
+  const { isAdmin, isLoading } = useAuth();
+  if (!isAdmin) {
+    // hold rendering until auth resolves, then bounce non-admins to the landing page
     return isLoading ? null : <Navigate to="/" replace />;
   }
   return <>{children}</>;
@@ -89,6 +102,9 @@ const App = () => (
                 {/* <Route path="/metrics" element={<Metrics />} /> */}
                 <Route path="/metrics/semantic-models" element={<SemanticModelManagement />} />
                 <Route path="/metrics/management" element={<MetricsManagement />} />
+                <Route path="/metrics/materialization" element={<RequireAdmin><MaterializationManagement /></RequireAdmin>} />
+                <Route path="/metrics/materialization/runs" element={<RequireAdmin><MaterializationRuns /></RequireAdmin>} />
+                <Route path="/metrics/compute-flow" element={<RequireAdmin><ComputeFlow /></RequireAdmin>} />
                 <Route path="/metrics/user-groups" element={<UserGroupMetrics />} />
                 {SHOW_METRIC_AI_AGENT && (
                   <Route path="/metrics/assistant-config" element={<RequireTenantAi><AnalysisAssistantConfigPage /></RequireTenantAi>} />

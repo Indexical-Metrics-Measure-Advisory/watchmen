@@ -4,10 +4,9 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService as KernelTopicService
 from watchmen_metricflow.model.metrics import Metric, MetricTypeParams
 from watchmen_metricflow.model.semantic import SemanticModel, SemanticModelSourceType
-from watchmen_metricflow.service.meta_service import load_metrics_by_tenant_id_sync, \
-	load_semantic_models_by_tenant_id_sync
+from watchmen_metricflow.service.meta_service import load_metric_meta_cached
 from watchmen_model.admin import Topic
-from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
+from watchmen_utilities import is_blank, is_not_blank
 
 MetricName = str
 
@@ -15,6 +14,9 @@ MetricName = str
 def collect_measure_names(metric: Metric) -> Set[str]:
 	"""Measure references a metric relies on, used to locate its semantic model."""
 	params: Optional[MetricTypeParams] = metric.type_params
+	if isinstance(params, dict):
+		# metrics loaded from storage keep raw dicts in ExtendedBaseModel fields
+		params = MetricTypeParams.model_validate(params)
 	if params is None:
 		return set()
 	names: Set[str] = set()
@@ -33,8 +35,8 @@ def resolve_metric_source_topics(
 	"""metric name -> source topics of its TOPIC-bound semantic models (db_direct excluded)."""
 	if is_blank(principal_service.get_tenant_id()):
 		return {}
-	metrics = load_metrics_by_tenant_id_sync(principal_service)
-	models = load_semantic_models_by_tenant_id_sync(principal_service)
+	# load_metric_meta_cached normalizes type_params / measures back to typed models
+	metrics, models = load_metric_meta_cached(principal_service)
 	topic_service = KernelTopicService(principal_service)
 	topic_cache: Dict[str, Optional[Topic]] = {}
 

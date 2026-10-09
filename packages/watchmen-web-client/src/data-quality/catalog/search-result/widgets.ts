@@ -9,12 +9,10 @@ export const SearchResultContainer = styled.div.attrs({'data-widget': 'catalog-r
 export const SearchResultTargetLabel = styled.div.attrs({'data-widget': 'catalog-result-target'})`
 	display       : flex;
 	align-items   : center;
-	font-size     : 1.4em;
-	font-weight   : var(--font-bold);
-	font-variant  : petite-caps;
+	font-size     : 1.15em;
+	font-weight   : var(--font-demi-bold);
 	height        : 40px;
 	padding       : 0 calc(var(--margin) / 2);
-	border-bottom : var(--border);
 	> span:first-child {
 		flex-grow : 1;
 	}
@@ -37,7 +35,9 @@ export const SearchResultBody = styled.div.attrs({
 	display        : flex;
 	flex-direction : column;
 	flex-grow      : 1;
-	height         : calc(100vh - var(--page-header-height) - 81px - 40px);
+	/* hero header (~90px) + criteria card + target band replace the old page header */
+	height         : calc(100vh - 90px - 88px - 40px);
+	min-height     : 320px;
 	overflow-y     : auto;
 	overflow-x     : hidden;
 	padding        : calc(var(--margin) / 2);
@@ -59,18 +59,22 @@ export const CatalogCardGrid = styled.div.attrs({'data-widget': 'catalog-card-gr
 	grid-template-columns : repeat(auto-fill, minmax(320px, 1fr));
 	gap                   : calc(var(--margin) / 2);
 `;
-// Card container — follows TupleCard visual style
+// Card container
 export const CatalogCardContainer = styled.div.attrs({'data-widget': 'catalog-card'})`
 	display         : flex;
 	flex-direction  : column;
 	padding         : calc(var(--margin) / 2) var(--margin);
 	position        : relative;
-	border-radius   : calc(var(--border-radius) * 2);
-	box-shadow      : var(--shadow);
+	border          : var(--border);
+	border-radius   : calc(var(--border-radius) * 3.5);
+	background-color : var(--invert-color);
+	box-shadow      : 0 1px 2px rgba(37, 38, 94, 0.04), 0 6px 18px rgba(37, 38, 94, 0.06);
 	cursor          : pointer;
-	transition      : all 300ms ease-in-out;
+	/* NO hover transform here: a transformed ancestor becomes the containing block
+	   of the fixed-positioned topic-picker dropdown inside this card and breaks its position */
+	transition      : box-shadow 200ms ease-in-out;
 	&:hover {
-		box-shadow : var(--hover-shadow);
+		box-shadow : 0 2px 4px rgba(37, 38, 94, 0.06), 0 10px 26px rgba(37, 38, 94, 0.1);
 	}
 	&[data-expanded=true] {
 		cursor : default;
@@ -121,8 +125,8 @@ export const CatalogCardMetaItem = styled.div.attrs({'data-widget': 'catalog-car
 	align-items   : center;
 	gap           : 4px;
 	padding       : 2px calc(var(--margin) / 4);
-	border-radius : calc(var(--border-radius) / 2);
-	background    : var(--light-color, rgba(0,0,0,0.04));
+	border-radius : 999px;
+	background    : var(--hover-color);
 	white-space   : nowrap;
 `;
 // Edit cell (expanded inside card)

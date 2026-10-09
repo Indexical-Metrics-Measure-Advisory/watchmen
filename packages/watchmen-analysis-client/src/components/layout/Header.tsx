@@ -40,6 +40,12 @@ const Header: React.FC = () => {
         return t('layout:pageTitle.hypothesis');
       case '/metrics/management':
         return t('layout:pageTitle.metricsManagement');
+      case '/metrics/materialization':
+        return t('layout:pageTitle.materialization');
+      case '/metrics/materialization/runs':
+        return t('layout:pageTitle.materializationRuns');
+      case '/metrics/compute-flow':
+        return t('layout:pageTitle.computeFlow');
       case '/metrics/lineage':
         return t('layout:pageTitle.metricLineage');
       case '/metrics/tree':
@@ -64,7 +70,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="relative w-full bg-white/80 dark:bg-card/80 backdrop-blur-md border-b border-border/50 py-3 px-6 flex items-center justify-between z-[9997]">
+    <header className="relative w-full bg-white/80 dark:bg-card/80 backdrop-blur-md border-b border-border/50 py-3 px-6 flex items-center justify-between z-40">
       <h1 className="text-xl font-medium">{getPageTitle()}</h1>
       
       <div className="flex items-center gap-4">

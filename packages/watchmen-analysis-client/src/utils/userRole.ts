@@ -8,6 +8,15 @@ import { User } from '@/services/authService';
 export const isConsoleUser = (user: Pick<User, 'role'> | null | undefined): boolean =>
   user?.role?.toLowerCase() === 'console';
 
+/**
+ * Admin-only areas (materialization / runs / compute flow) are reserved for the
+ * backend roles `admin` and `superadmin`; console users and plain users never see them.
+ */
+export const isAdmin = (user: Pick<User, 'role'> | null | undefined): boolean => {
+  const role = user?.role?.toLowerCase();
+  return role === 'admin' || role === 'superadmin';
+};
+
 // Paths a console user may open; anything else is redirected to the metrics analysis home.
 const CONSOLE_ALLOWED_PATHS = ['/', '/metrics/bi-analysis', '/metrics/tree', '/metrics/lineage', '/metrics/management', '/metrics/alert-configuration'];
 

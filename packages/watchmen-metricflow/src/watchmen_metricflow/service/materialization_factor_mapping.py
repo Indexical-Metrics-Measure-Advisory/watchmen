@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence
 
 from watchmen_metricflow.model.materialization import FactorMappingColumn, FactorRole, Materialization, TimeGrain
 from watchmen_utilities import is_blank
@@ -13,15 +13,14 @@ TIME_SOURCE_PREFIX = 'metric_time'
 DATE_FACTOR_TYPES = ('date',)
 NUMBER_FACTOR_TYPES = ('number', 'unsigned')
 BOOLEAN_FACTOR_TYPES = ('boolean',)
+TIME_GRAINS = ('day', 'week', 'month', 'quarter', 'year')
 
 
 def build_default_factor_mapping(
-		mmetric_name: str, time_grain: Any, group_by: Optional[Sequence[str]]
+		metric_name: str, time_grain: Any, group_by: Optional[Sequence[str]]
 ) -> List[FactorMappingColumn]:
 	"""Default wide table layout: statDate + timeGrain + dimensions + metricValue."""
-	# keep the parameter name typo free
-	metric_name = mmetric_name
-	grain = TimeGrain(time_grain).value if not isinstance(time_grain, str) else time_grain
+	grain = _grain_value(time_grain)
 	columns = [
 		FactorMappingColumn(
 			columnName=TIME_COLUMN_NAME, factorName=TIME_COLUMN_NAME, factorType='date',
@@ -40,6 +39,11 @@ def build_default_factor_mapping(
 		columnName=METRIC_VALUE_COLUMN_NAME, factorName=metric_name, factorType='number',
 		role=FactorRole.METRIC, source=metric_name))
 	return columns
+
+
+def _grain_value(time_grain: Any) -> str:
+	# str enums are also str, so isinstance checks would keep the enum itself
+	return TimeGrain(time_grain).value
 
 
 def get_effective_factor_mapping(materialization: Materialization) -> List[FactorMappingColumn]:
@@ -74,8 +78,7 @@ def find_missing_dimensions(column_names: Sequence[str], group_by: Optional[Sequ
 
 
 def find_time_column(column_names: Sequence[str], time_grain: Any) -> Optional[str]:
-	grain = TimeGrain(time_grain).value if not isinstance(time_grain, str) else time_grain
-	expected = f'{TIME_SOURCE_PREFIX}__{grain}'
+	expected = f'{TIME_SOURCE_PREFIX}__{_grain_value(time_grain)}'
 	if expected in column_names:
 		return expected
 	if TIME_SOURCE_PREFIX in column_names:
@@ -108,6 +111,65 @@ def _cast_value(factor_type: Optional[str], column_name: str, value: Any) -> Any
 	if factor_type in BOOLEAN_FACTOR_TYPES:
 		return bool(value)
 	return value if isinstance(value, str) else str(value)
+
+
+def _grain_of(time_column: Optional[str], time_grain: Any) -> str:
+	"""Grain of the time column actually picked from the result, e.g. the
+	metric_time__year column yields 'year' even when the request asked day."""
+	if time_column is not None and str(time_column).startswith(f'{TIME_SOURCE_PREFIX}__'):
+		suffix = str(time_column)[len(TIME_SOURCE_PREFIX) + 2:]
+		if suffix in TIME_GRAINS:
+			return suffix
+	return _grain_value(time_grain)
+
+
+def _parse_time_value(
+		value: Any, time_grain: Any, time_column: Optional[str], column_name: str) -> date:
+	"""Parse the time key of the metric query result into a date.
+
+	The direct path renders time keys truncated to the group-by grain: day
+	'2026-09-30', week '2026-40', month '2026-09', quarter '2026-Q4', year
+	'2026', so plain fromisoformat is not enough. The key expands to the start
+	of its period, which keeps statDate a stable business key under MERGE."""
+	if isinstance(value, datetime):
+		return value.date()
+	if isinstance(value, date):
+		return value
+	text = str(value).strip()
+	if text.endswith('.0') and text[:-2].isdigit():
+		text = text[:-2]
+	grain = _grain_of(time_column, time_grain)
+	parsed = _try_grain_key(text, grain)
+	if parsed is None:
+		# tolerate a key whose format does not match the requested grain
+		for fallback in ('day', 'month', 'quarter', 'week', 'year'):
+			parsed = _try_grain_key(text, fallback)
+			if parsed is not None:
+				break
+	if parsed is None:
+		raise MaterializationError(
+			f'Column [{column_name}] value [{value}] cannot be parsed as a date.')
+	return parsed
+
+
+def _try_grain_key(text: str, grain: str) -> Optional[date]:
+	try:
+		if grain == 'day':
+			return date.fromisoformat(text[:10])
+		if grain == 'week':
+			year, _, week = text.partition('-')
+			week = week[1:] if week[:1] in ('W', 'w') else week
+			return datetime.strptime(f'{year}-W{int(week)}-1', '%G-W%V-%u').date()
+		if grain == 'month':
+			year, _, month = text.partition('-')
+			return date(int(year), int(month), 1)
+		if grain == 'quarter':
+			year, _, quarter = text.partition('-Q')
+			return date(int(year), (int(quarter) - 1) * 3 + 1, 1)
+		# year
+		return date(int(text[:4]), 1, 1)
+	except (ValueError, IndexError):
+		return None
 
 
 def map_result_rows(
@@ -146,6 +208,10 @@ def map_result_rows(
 				if raw is None:
 					raise MaterializationError(
 						'Time dimension is missing from the metric query result.')
+				if column.factorType in DATE_FACTOR_TYPES:
+					item[column.columnName] = _parse_time_value(
+						raw, time_grain, time_column, column.columnName)
+					continue
 			elif column.role == FactorRole.META:
 				# constant meta column, e.g. timeGrain = 'day'
 				raw = column.source

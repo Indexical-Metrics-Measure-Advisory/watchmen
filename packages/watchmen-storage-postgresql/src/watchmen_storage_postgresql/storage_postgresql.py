@@ -8,7 +8,7 @@ from watchmen_model.admin import FactorType, Topic, Factor
 from watchmen_storage import as_table_name, EntityCriteria, EntitySort, Literal
 from watchmen_storage_rds import build_sort_for_statement, SQLAlchemyStatement, \
 	StorageRDS, TopicDataStorageRDS
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, is_not_blank
 from .table_creator import build_columns_script, build_indexes_script, \
 	build_unique_indexes_script, build_table_script
 from .where_build import build_criteria_for_statement, build_literal
@@ -177,6 +177,10 @@ class TopicDataStoragePostgreSQL(StoragePostgreSQL, TopicDataStorageRDS):
 
 	# noinspection SqlResolve,SqlCaseVsIf
 	def ask_reflect_sql(self, table_name: str, schema: str) -> str:
+		if is_not_blank(schema):
+			schema_condition = f"pg_catalog.pg_namespace.nspname = '{schema}'"
+		else:
+			schema_condition = 'pg_catalog.pg_namespace.nspname = pg_catalog.current_schema()'
 		return \
 			f"SELECT pg_catalog.pg_attribute.attname AS column_name, pg_catalog.format_type(pg_catalog.pg_attribute.atttypid, pg_catalog.pg_attribute.atttypmod) AS column_type, " \
 			f"pg_catalog.pg_attribute.attnotnull AS not_null, pg_catalog.pg_class.relname AS table_name, " \
@@ -186,7 +190,7 @@ class TopicDataStoragePostgreSQL(StoragePostgreSQL, TopicDataStorageRDS):
 			f"pg_catalog.pg_attribute.attisdropped = FALSE LEFT OUTER JOIN pg_catalog.pg_description ON pg_catalog.pg_description.objoid = pg_catalog.pg_attribute.attrelid " \
 			f"AND pg_catalog.pg_description.objsubid = " \
 			f"pg_catalog.pg_attribute.attnum JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace " \
-			f"WHERE pg_catalog.pg_class.relkind = ANY (ARRAY['r', 'p', 'f', 'v', 'm']) AND pg_catalog.pg_namespace.nspname = '{schema}' AND pg_catalog.pg_class.relname IN " \
+			f"WHERE pg_catalog.pg_class.relkind = ANY (ARRAY['r', 'p', 'f', 'v', 'm']) AND {schema_condition} AND pg_catalog.pg_class.relname IN " \
 			f"('{table_name}') ORDER BY pg_catalog.pg_class.relname, pg_catalog.pg_attribute.attnum"
 
 	@cache

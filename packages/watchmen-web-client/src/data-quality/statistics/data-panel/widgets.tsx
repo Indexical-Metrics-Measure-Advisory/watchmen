@@ -16,13 +16,15 @@ export const DataPanelContainer = styled.div
 			}
 		};
 	})<{ layout: DataPanelLayout }>`
-	display       : flex;
-	border-radius : calc(var(--border-radius) * 2);
-	border        : var(--border);
-	overflow      : hidden;
-	transition    : all 300ms ease-in-out;
+	display          : flex;
+	border-radius    : calc(var(--border-radius) * 3.5);
+	border           : var(--border);
+	background-color : var(--invert-color);
+	box-shadow       : 0 1px 2px rgba(37, 38, 94, 0.04), 0 6px 18px rgba(37, 38, 94, 0.06);
+	overflow         : hidden;
+	transition       : all 300ms ease-in-out;
 	&:hover {
-		box-shadow : var(--primary-hover-shadow);
+		box-shadow : 0 2px 4px rgba(37, 38, 94, 0.06), 0 10px 26px rgba(37, 38, 94, 0.1);
 	}
 `;
 export const DataPanelHeader = styled.div.attrs<{ layout: DataPanelLayout }>(({layout}) => {
@@ -52,7 +54,7 @@ export const DataPanelHeaderTitle = styled.div.attrs<{ layout: DataPanelLayout }
 	display       : flex;
 	align-items   : center;
 	font-family   : var(--title-font-family);
-	font-size     : 1.4em;
+	font-size     : 1.25em;
 	white-space   : nowrap;
 	overflow      : hidden;
 	text-overflow : ellipsis;
@@ -113,7 +115,7 @@ export const DataPanelBodyHeader = styled.div.attrs<{ columns: string }>(({colum
 	grid-template-rows : 1fr;
 	width              : 100%;
 	border-bottom      : var(--border);
-	background-color   : var(--bg-color);
+	background-color   : var(--invert-color);
 	z-index            : 1;
 `;
 export const DataPanelBodyHeaderCell = styled.div.attrs({'data-widget': 'data-panel-body-header-cell'})`
@@ -142,7 +144,7 @@ export const DataPanelBodyDataRow = styled.div.attrs<{ columns: string }>(({colu
 	display            : grid;
 	grid-template-rows : 1fr;
 	width              : 100%;
-	background-color   : var(--bg-color);
+	background-color   : var(--invert-color);
 	&:nth-child(2n + 1) {
 		background-color : var(--grid-rib-bg-color);
 	}
@@ -154,7 +156,7 @@ export const DataPanelBodyDataCell = styled.div.attrs({'data-widget': 'data-pane
 	display       : flex;
 	align-items   : center;
 	min-height    : var(--height);
-	padding       : 0 calc(var(--margin) / 4);
+	padding       : 0 calc(var(--margin) / 3);
 	white-space   : nowrap;
 	overflow      : hidden;
 	text-overflow : ellipsis;
@@ -173,7 +175,7 @@ export const DataPanelBodyBreakdownCell = styled(DataPanelBodyDataCell).attrs<{ 
 export const DataPanelBodyDataSeqCell = styled(DataPanelBodyDataCell)`
 	width : ${SEQ_WIDTH}px;
 `;
-const start = Color({r: 223, g: 27, b: 46});
+const start = Color({r: 214, g: 69, b: 69});
 const end = Color({r: 128, g: 128, b: 128});
 const computeColor = (value: number) => {
 	const r = start.red() + (end.red() - start.red()) * (1 - value / 100);
@@ -193,7 +195,7 @@ export const HorizontalValueBar = styled.div.attrs<{ value: number }>(({value}) 
 	display       : flex;
 	align-items   : center;
 	height        : calc(var(--height) * 0.6);
-	border-radius : calc(var(--border-radius) / 2) calc(var(--height) * 0.3) calc(var(--height) * 0.3) calc(var(--border-radius) / 2);
+	border-radius : 999px;
 	padding       : 0 calc(var(--margin) / 4);
 	overflow      : hidden;
 `;

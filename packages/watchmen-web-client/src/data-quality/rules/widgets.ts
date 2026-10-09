@@ -11,8 +11,12 @@ export const SearchCriteriaContainer = styled.div.attrs({'data-widget': 'rules-s
 	grid-template-columns : auto auto auto 1fr auto auto;
 	grid-column-gap       : var(--margin);
 	grid-row-gap          : calc(var(--margin) / 4);
-	padding               : calc(var(--margin) / 4) var(--margin);
-	border-bottom         : var(--border);
+	padding               : calc(var(--margin) / 2) var(--margin);
+	margin-bottom         : calc(var(--margin) / 2);
+	border                : var(--border);
+	border-radius         : calc(var(--border-radius) * 3.5);
+	background-color      : var(--invert-color);
+	box-shadow            : 0 1px 2px rgba(37, 38, 94, 0.04), 0 6px 18px rgba(37, 38, 94, 0.06);
 	align-items           : center;
 `;
 export const GradePickerContainer = styled.div.attrs({'data-widget': 'rules-search-grade'})`
@@ -37,7 +41,8 @@ export const SearchLabel = styled.div.attrs({'data-widget': 'rules-search-label'
 	font-variant : petite-caps;
 `;
 export const OverviewContainer = styled.div.attrs({'data-widget': 'rules-overview'})`
-	padding : calc(var(--margin) / 2) calc(var(--margin) / 2) 0;
+	padding   : 0;
+	margin    : 0 0 calc(var(--margin) / 2);
 `;
 export const SearchResultContainer = styled.div.attrs({'data-widget': 'rules-result'})`
 	display        : flex;
@@ -47,12 +52,10 @@ export const SearchResultContainer = styled.div.attrs({'data-widget': 'rules-res
 export const SearchResultTargetLabel = styled.div.attrs({'data-widget': 'rules-result-target'})`
 	display       : flex;
 	align-items   : center;
-	font-size     : 1.4em;
-	font-weight   : var(--font-bold);
-	font-variant  : petite-caps;
+	font-size     : 1.15em;
+	font-weight   : var(--font-demi-bold);
 	height        : 40px;
-	padding       : 0 var(--margin);
-	border-bottom : var(--border);
+	padding       : 0 calc(var(--margin) / 2);
 	> span:first-child {
 		flex-grow : 1;
 	}
@@ -86,13 +89,19 @@ export const SearchResultHeader = styled.div.attrs<{
 	overflow-x            : hidden;
 `;
 export const SearchResultHeaderCell = styled.div.attrs({'data-widget': 'rules-result-header-cell'})`
-	display      : flex;
-	align-items  : center;
-	font-variant : petite-caps;
-	font-weight  : var(--font-demi-bold);
-	height       : var(--height);
-	padding      : 0 calc(var(--margin) / 2);
-	border-right : var(--border);
+	display         : flex;
+	align-items     : center;
+	font-size       : 0.85em;
+	letter-spacing  : 0.05em;
+	text-transform  : uppercase;
+	font-weight     : var(--font-demi-bold);
+	opacity         : 0.65;
+	height          : var(--height);
+	padding         : 0 calc(var(--margin) / 2);
+	border-right    : var(--border);
+	&:last-child {
+		border-right : none;
+	}
 `;
 export const SearchResultHeaderSeqCell = styled(SearchResultHeaderCell)`
 	padding : 0 calc(var(--margin) / 4);
@@ -104,9 +113,15 @@ export const SearchResultBody = styled.div.attrs({
 	display        : flex;
 	flex-direction : column;
 	flex-grow      : 1;
-	height         : calc(100vh - var(--page-header-height) - 45px - 40px - var(--height) - 2px);
+	/* hero header (~90px) + kpi band + criteria card replace the old page header */
+	height         : calc(100vh - 90px - var(--page-header-height) - 70px - 40px - var(--height) - 2px);
 	overflow-y     : auto;
 	overflow-x     : hidden;
+	border         : var(--border);
+	border-radius  : calc(var(--border-radius) * 3.5);
+	background-color : var(--invert-color);
+	box-shadow     : 0 1px 2px rgba(37, 38, 94, 0.04), 0 6px 18px rgba(37, 38, 94, 0.06);
+	margin-bottom  : calc(var(--margin) / 2);
 `;
 
 export const ColorfulCheckBox = styled(CheckBox).attrs(({value}) => {

@@ -1,41 +1,25 @@
-import Color from 'color';
 import styled from 'styled-components';
+import {CardPanel, CardPanelTitleRow, Pill, tintOf} from '../../widgets/kit';
 import {NEUTRAL_COLOR, SEVERITY_COLORS} from '../../widgets/palette';
 
 export const OverviewContainer = styled.div.attrs({'data-widget': 'quality-overview'})`
 	display               : grid;
 	grid-template-columns : repeat(4, 1fr);
-	grid-column-gap       : var(--margin);
-	padding               : var(--margin) calc(var(--margin) / 2) 0;
+	grid-column-gap       : calc(var(--margin) / 2);
+	grid-row-gap          : calc(var(--margin) / 2);
+	margin-bottom         : calc(var(--margin) / 2);
 	@media (max-width: 1500px) {
 		grid-template-columns : repeat(2, 1fr);
-		grid-row-gap          : var(--margin);
 	}
 `;
 
-export const OverviewCard = styled.div.attrs({'data-widget': 'quality-overview-card'})`
-	display        : flex;
-	flex-direction : column;
-	border         : var(--border);
-	border-radius  : calc(var(--border-radius) * 2);
-	overflow       : hidden;
-	&:hover {
-		box-shadow : var(--primary-hover-shadow);
-	}
+/** same chrome as the home cockpit cards, margin dropped for grid gaps */
+export const OverviewCard = styled(CardPanel)`
+	margin-bottom : 0;
+	overflow      : hidden;
 `;
 
-export const OverviewCardHeader = styled.div.attrs({'data-widget': 'quality-overview-card-header'})`
-	display         : flex;
-	align-items     : center;
-	justify-content : space-between;
-	min-height      : var(--header-height);
-	padding         : 0 calc(var(--margin) / 2);
-	border-bottom   : var(--border);
-	font-family     : var(--title-font-family);
-	font-size       : 1.2em;
-	white-space     : nowrap;
-	overflow        : hidden;
-`;
+export const OverviewCardHeader = CardPanelTitleRow;
 
 export const OverviewCardBody = styled.div.attrs({'data-widget': 'quality-overview-card-body'})`
 	display    : flex;
@@ -54,27 +38,18 @@ export const OverviewCardNoData = styled.div.attrs({'data-widget': 'quality-over
 	font-size   : 0.9em;
 `;
 
-export const SeverityBadge = styled.span.attrs<{ severity: string }>(({severity}) => {
+/** severity pill: same look as the kit pill, tone derived from the severity prop */
+export const SeverityBadge = styled(Pill).attrs<{ severity: string }>(({severity}) => {
 	const color = SEVERITY_COLORS[severity] || NEUTRAL_COLOR;
 	return {
 		'data-widget': 'quality-overview-severity-badge',
 		'data-severity': severity,
 		style: {
 			color,
-			borderColor: Color(color).alpha(0.45).hex(),
-			backgroundColor: Color(color).alpha(0.12).hex()
+			backgroundColor: tintOf(color, 0.12)
 		}
 	};
-})<{ severity: string }>`
-	display       : inline-flex;
-	align-items   : center;
-	border        : 1px solid;
-	border-radius : calc(var(--border-radius) / 2);
-	padding       : 0 calc(var(--margin) / 4);
-	font-size     : 0.75em;
-	text-transform: capitalize;
-	white-space   : nowrap;
-`;
+})<{ severity: string }>``;
 
 export const SeverityCountDot = styled.span.attrs<{ severity: string }>(({severity}) => {
 	return {

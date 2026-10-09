@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from logging import getLogger
 from typing import List, Optional, Tuple
 
@@ -7,9 +7,13 @@ from apscheduler.triggers.interval import IntervalTrigger
 from starlette.concurrency import run_in_threadpool
 
 from watchmen_auth import fake_super_admin, fake_tenant_admin
+from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
+from watchmen_metricflow.meta.materialization_meta_service import MaterializationRunService
 from watchmen_metricflow.model.materialization import Materialization, MaterializationJobLockStatus, \
 	RunStatus, RunTriggerType
-from watchmen_metricflow.settings import ask_materialization_on, ask_materialization_scheduler_heartbeat
+from watchmen_metricflow.settings import ask_materialization_on, ask_materialization_run_stale_minutes, \
+	ask_materialization_scheduler_heartbeat
+from watchmen_metricflow.util import trans, trans_readonly
 from .materialization_runner import MaterializationRunner, is_due
 
 logger = getLogger(__name__)
@@ -54,35 +58,39 @@ def stop_materialization_scheduler() -> None:
 	_scheduler = None
 
 
+def mark_stale_materialization_runs_failed() -> int:
+	"""
+	Runs executed in the background die with the process; on startup anything left
+	PENDING/RUNNING past the stale threshold is closed as FAILED so the run list
+	never shows zombies. Runs regardless of MATERIALIZATION_ON, manual runs die too.
+	"""
+	cutoff = datetime.now() - timedelta(minutes=ask_materialization_run_stale_minutes())
+	run_service = MaterializationRunService(
+		ask_meta_storage(), ask_snowflake_generator(), fake_super_admin())
+
+	def action() -> int:
+		stale = run_service.find_active_runs_started_before(cutoff)
+		for run in stale:
+			run.status = RunStatus.FAILED
+			run.errorMessage = 'Marked failed on service startup: the run never finished.'
+			run.finishedAt = datetime.now()
+			if run.startedAt is not None:
+				run.durationMs = int((run.finishedAt - run.startedAt).total_seconds() * 1000)
+			run_service.update(run)
+		return len(stale)
+
+	try:
+		return trans(run_service, action)
+	except Exception as e:
+		logger.warning(f'Failed to clean up stale materialization runs: {e}')
+		return 0
+
+
 async def _heartbeat() -> None:
 	try:
 		await run_due_materializations(datetime.now())
 	except Exception as e:
 		logger.error(f'Materialization scheduler heartbeat failed: {e}', exc_info=True)
-
-
-def find_due(
-		materialization_service: MaterializationRunner, execution_time: datetime
-) -> List[Tuple[str, Materialization]]:
-	"""(tenant id, materialization) pairs whose schedule hits this moment, all tenants."""
-	def action() -> List[Materialization]:
-		return materialization_service.materialization_service.find_all_enabled_with_schedule()
-
-	rows = run_in_threadpool_sync(action, materialization_service)
-	return [
-		(row.tenantId, row) for row in rows
-		if row.tenantId and is_due(row, execution_time)
-	]
-
-
-def run_in_threadpool_sync(action, runner: MaterializationRunner):
-	from watchmen_metricflow.util import trans_readonly
-	return _trans_readonly(runner.materialization_service, action)
-
-
-def _trans_readonly(service, action):
-	from watchmen_metricflow.util import trans_readonly
-	return trans_readonly(service, action)
 
 
 async def run_due_materializations(execution_time: Optional[datetime] = None) -> int:
@@ -114,8 +122,6 @@ async def run_due_materializations(execution_time: Optional[datetime] = None) ->
 
 
 def _find_due(loader: MaterializationRunner, execution_time: datetime) -> List[Tuple[str, Materialization]]:
-	from watchmen_metricflow.util import trans_readonly
-
 	def action() -> List[Materialization]:
 		return loader.materialization_service.find_all_enabled_with_schedule()
 

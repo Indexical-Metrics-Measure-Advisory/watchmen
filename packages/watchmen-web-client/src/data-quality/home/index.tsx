@@ -2,87 +2,66 @@ import {isPiiClassificationEnabled} from '@/feature-switch';
 import {Router} from '@/routes/types';
 import {fetchPiiReport} from '@/services/data/data-quality/pii';
 import {PiiGlobalDashboard, PII_SENSITIVITY_LEVEL_LABELS, PiiSensitivityLevel} from '@/services/data/data-quality/pii-types';
-import {MonitorRuleGrade, MonitorRuleLogs, MonitorRules} from '@/services/data/data-quality/rule-types';
+import {MonitorRuleGrade, MonitorRuleLogs, MonitorRuleSeverity, MonitorRules} from '@/services/data/data-quality/rule-types';
 import {fetchMonitorRuleLogs, fetchMonitorRules, isRuleOnFactor, isRuleOnTopic} from '@/services/data/data-quality/rules';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
 import {echarts, EChartsType} from '@/widgets/basic/echarts';
 import {FullWidthPage} from '@/widgets/basic/page';
-import {FullWidthPageHeaderContainer, PageTitle} from '@/widgets/basic/page-header';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
+import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {
+	faArrowRightLong,
+	faBell,
+	faCalendarDays,
+	faChartLine,
+	faDatabase,
+	faFingerprint,
+	faGaugeHigh,
+	faListCheck,
+	faLockOpen,
+	faShieldHalved,
+	faTriangleExclamation
+} from '@fortawesome/free-solid-svg-icons';
 import dayjs from 'dayjs';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {ReactNode, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
 import {useDataQualityCacheEventBus} from '../cache/cache-event-bus';
 import {DataQualityCacheEventTypes} from '../cache/cache-event-bus-types';
 import {DQCCacheData} from '../cache/types';
 import {
+	bandOf,
 	computeAlerts,
 	computeQualityScore,
 	DIMENSION_LABELS,
 	DimensionScore
 } from '../statistics/overview/quality-dimensions';
-import {SeverityBadge} from '../statistics/overview/widgets';
-import {EmptyState, KpiCard, KpiRow, LoadingRows, SectionCard} from '../widgets/kpi';
-import {ACCENT_COLOR, CHART_SPLIT_COLOR, PII_LEVEL_COLORS, SCORE_BAND_COLORS} from '../widgets/palette';
+import {EmptyState, LoadingRows} from '../widgets/kpi';
+import {
+	AmbientBody,
+	CardPanel,
+	CardPanelAside,
+	CardPanelTitle,
+	CardPanelTitleRow,
+	HeroHeader,
+	HeroSubtitle,
+	HeroTitle,
+	HeroToolbar,
+	IconChip,
+	Pill,
+	QuickLink,
+	WindowPill
+} from '../widgets/kit';
+import {ACCENT_COLOR, CHART_SPLIT_COLOR, NEUTRAL_COLOR, PII_LEVEL_COLORS, SCORE_BAND_COLORS, SEVERITY_COLORS} from '../widgets/palette';
 
 const DATE_FORMAT = 'YYYY/MM/DD HH:mm:ss.SSS';
 const WINDOW_DAYS = 30;
 
-const HomeBody = styled.div.attrs({'data-widget': 'dqc-home-body'})`
-	display        : flex;
-	flex-direction : column;
-	padding        : 0 calc(var(--margin) / 2) calc(var(--margin) / 2);
-`;
-const HomeColumns = styled.div.attrs({'data-widget': 'dqc-home-columns'})`
-	display               : grid;
-	grid-template-columns : 1fr 1fr;
-	grid-gap              : calc(var(--margin) / 2);
-	@media (max-width: 1200px) {
-		grid-template-columns : 1fr;
-	}
-`;
-const HomeList = styled.div.attrs({'data-widget': 'dqc-home-list'})`
-	display        : flex;
-	flex-direction : column;
-`;
-const HomeListItem = styled.div.attrs({'data-widget': 'dqc-home-list-item'})`
-	display         : flex;
-	align-items     : center;
-	grid-gap        : calc(var(--margin) / 3);
-	padding         : 6px 0;
-	&:not(:last-child) {
-		border-bottom : var(--border);
-	}
-`;
-const HomeListItemText = styled.span.attrs({'data-widget': 'dqc-home-list-item-text'})`
-	flex-grow      : 1;
-	font-family    : var(--code-font-family);
-	font-size      : 0.9em;
-	white-space    : nowrap;
-	overflow       : hidden;
-	text-overflow  : ellipsis;
-`;
-const HomeListItemMeta = styled.span.attrs({'data-widget': 'dqc-home-list-item-meta'})`
-	font-size   : 0.85em;
-	opacity     : 0.7;
-	white-space : nowrap;
-`;
-const HomeLink = styled.span.attrs({'data-widget': 'dqc-home-link'})`
-	font-variant : petite-caps;
-	font-size    : 0.85em;
-	color        : var(--primary-color);
-	cursor       : pointer;
-	white-space  : nowrap;
-	&:hover {
-		text-decoration : underline;
-	}
-`;
-const MiniRadar = styled.div.attrs({'data-widget': 'dqc-home-mini-radar'})`
-	width  : 100%;
-	height : 260px;
-`;
+const DANGER_TONE = SCORE_BAND_COLORS.poor;
+const WARN_TONE = SCORE_BAND_COLORS.fair;
+const SUCCESS_TONE = SCORE_BAND_COLORS.excellent;
 
 const BAND_LABELS: Record<string, string> = {
 	excellent: 'Excellent',
@@ -90,6 +69,227 @@ const BAND_LABELS: Record<string, string> = {
 	fair: 'Fair',
 	poor: 'At Risk'
 };
+
+// ——— kpi tiles ———
+const KpiRow = styled.div.attrs({'data-widget': 'dqc-home-kpi-row'})`
+	display               : grid;
+	grid-template-columns : repeat(4, 1fr);
+	grid-gap              : calc(var(--margin) / 2);
+	margin-bottom         : calc(var(--margin) / 2);
+	@media (max-width: 1200px) {
+		grid-template-columns : repeat(2, 1fr);
+	}
+`;
+const KpiTile = styled.div.attrs({'data-widget': 'dqc-home-kpi-tile'})`
+	display          : flex;
+	flex-direction   : column;
+	border           : var(--border);
+	border-radius    : calc(var(--border-radius) * 3.5);
+	background-color : var(--invert-color);
+	box-shadow       : 0 1px 2px rgba(37, 38, 94, 0.04), 0 6px 18px rgba(37, 38, 94, 0.06);
+	padding          : calc(var(--margin) / 2);
+	transition       : box-shadow 200ms ease-in-out;
+	&:hover {
+		box-shadow : 0 2px 4px rgba(37, 38, 94, 0.06), 0 10px 26px rgba(37, 38, 94, 0.1);
+	}
+`;
+const KpiTileHeader = styled.div.attrs({'data-widget': 'dqc-home-kpi-tile-header'})`
+	display        : flex;
+	align-items    : center;
+	grid-gap       : calc(var(--margin) / 3);
+`;
+const KpiLabel = styled.span.attrs({'data-widget': 'dqc-home-kpi-label'})`
+	font-size      : 0.8em;
+	letter-spacing : 0.06em;
+	text-transform : uppercase;
+	opacity        : 0.6;
+`;
+const KpiValue = styled.div.attrs<{ tone?: string }>(({tone}) => {
+	return {
+		'data-widget': 'dqc-home-kpi-value',
+		style: tone ? {color: tone} : (void 0)
+	};
+})<{ tone?: string }>`
+	margin-top  : calc(var(--margin) / 4);
+	font-family : var(--code-font-family);
+	font-size   : 2.2em;
+	font-weight : var(--font-bold);
+	line-height : 1.15;
+`;
+const KpiFoot = styled.div.attrs({'data-widget': 'dqc-home-kpi-foot'})`
+	display     : flex;
+	align-items : center;
+	grid-gap    : calc(var(--margin) / 4);
+	margin-top  : 8px;
+	min-height  : 18px;
+`;
+const KpiSubtext = styled.span.attrs({'data-widget': 'dqc-home-kpi-subtext'})`
+	font-size      : 0.85em;
+	opacity        : 0.6;
+	white-space    : nowrap;
+	overflow       : hidden;
+	text-overflow  : ellipsis;
+`;
+const BarTrack = styled.div.attrs({'data-widget': 'dqc-home-bar-track'})`
+	flex-grow      : 1;
+	height         : 5px;
+	border-radius  : 999px;
+	overflow       : hidden;
+	background-color : var(--hover-color);
+`;
+const BarFill = styled.div.attrs<{ fill?: string; ratio?: number }>(({fill, ratio = 0}) => {
+	return {
+		'data-widget': 'dqc-home-bar-fill',
+		style: {
+			width: `${Math.max(0, Math.min(100, ratio))}%`,
+			backgroundColor: fill ?? 'var(--border-color)'
+		}
+	};
+})<{ fill?: string; ratio?: number }>`
+	height        : 100%;
+	border-radius : 999px;
+	transition    : width 400ms ease-in-out;
+`;
+
+// ——— section panels ———
+const Columns = styled.div.attrs({'data-widget': 'dqc-home-columns'})`
+	display            : grid;
+	grid-template-columns : 11fr 9fr;
+	grid-column-gap    : calc(var(--margin) / 2);
+	@media (max-width: 1200px) {
+		grid-template-columns : 1fr;
+	}
+`;
+
+// ——— list rows ———
+const List = styled.div.attrs({'data-widget': 'dqc-home-list'})`
+	display        : flex;
+	flex-direction : column;
+`;
+const ListRow = styled.div.attrs({'data-widget': 'dqc-home-list-row'})`
+	display         : flex;
+	align-items     : center;
+	grid-gap        : calc(var(--margin) / 3);
+	padding         : 7px calc(var(--margin) / 6);
+	border-radius   : calc(var(--border-radius) * 1.5);
+	&:hover {
+		background-color : var(--hover-color);
+	}
+`;
+const ListText = styled.span.attrs({'data-widget': 'dqc-home-list-text'})`
+	flex-grow      : 1;
+	min-width      : 0;
+	font-family    : var(--code-font-family);
+	font-size      : 0.9em;
+	font-weight    : var(--font-demi-bold);
+	white-space    : nowrap;
+	overflow       : hidden;
+	text-overflow  : ellipsis;
+`;
+const ListMeta = styled.span.attrs({'data-widget': 'dqc-home-list-meta'})`
+	max-width      : 38%;
+	font-size      : 0.82em;
+	opacity        : 0.65;
+	white-space    : nowrap;
+	overflow       : hidden;
+	text-overflow  : ellipsis;
+`;
+const ActionTexts = styled.div.attrs({'data-widget': 'dqc-home-action-texts'})`
+	display        : flex;
+	flex-direction : column;
+	flex-grow      : 1;
+	min-width      : 0;
+	grid-gap       : 2px;
+`;
+const ActionMain = styled.div.attrs({'data-widget': 'dqc-home-action-main'})`
+	font-size      : 0.95em;
+	font-weight    : var(--font-demi-bold);
+	white-space    : nowrap;
+	overflow       : hidden;
+	text-overflow  : ellipsis;
+`;
+const ActionMeta = styled.div.attrs({'data-widget': 'dqc-home-action-meta'})`
+	font-size      : 0.82em;
+	opacity        : 0.6;
+	white-space    : nowrap;
+	overflow       : hidden;
+	text-overflow  : ellipsis;
+`;
+const ActionButton = styled.button.attrs({'data-widget': 'dqc-home-action-button'})`
+	display          : inline-flex;
+	align-items      : center;
+	grid-gap         : 6px;
+	margin-left      : auto;
+	padding          : 3px 12px;
+	border           : var(--border);
+	border-radius    : 999px;
+	background-color : transparent;
+	color            : var(--primary-color);
+	font-family      : inherit;
+	font-size        : 0.8em;
+	font-weight      : var(--font-demi-bold);
+	white-space      : nowrap;
+	cursor           : pointer;
+	&:hover {
+		border-color     : var(--primary-color);
+		background-color : var(--hover-color);
+	}
+`;
+const ListFooter = styled.div.attrs({'data-widget': 'dqc-home-list-footer'})`
+	display        : flex;
+	justify-content : flex-end;
+	padding-top    : calc(var(--margin) / 4);
+`;
+const TextLink = styled.span.attrs({'data-widget': 'dqc-home-link'})`
+	display       : inline-flex;
+	align-items   : center;
+	grid-gap      : 6px;
+	font-size     : 0.85em;
+	font-weight   : var(--font-demi-bold);
+	color         : var(--primary-color);
+	cursor        : pointer;
+	white-space   : nowrap;
+	&:hover {
+		text-decoration : underline;
+	}
+`;
+
+// ——— quality dimensions ———
+const MiniRadar = styled.div.attrs({'data-widget': 'dqc-home-mini-radar'})`
+	width  : 100%;
+	height : 250px;
+`;
+const DimensionRows = styled.div.attrs({'data-widget': 'dqc-home-dimension-rows'})`
+	display        : flex;
+	flex-direction : column;
+	grid-gap       : 8px;
+	margin-top     : calc(var(--margin) / 3);
+	padding-top    : calc(var(--margin) / 3);
+	border-top     : var(--border);
+`;
+const DimensionRow = styled.div.attrs({'data-widget': 'dqc-home-dimension-row'})`
+	display     : flex;
+	align-items : center;
+	grid-gap    : calc(var(--margin) / 3);
+`;
+const DimensionName = styled.span.attrs({'data-widget': 'dqc-home-dimension-name'})`
+	width      : 110px;
+	font-size  : 0.85em;
+	opacity    : 0.75;
+	white-space: nowrap;
+`;
+const DimensionScoreText = styled.span.attrs<{ tone?: string }>(({tone}) => {
+	return {
+		'data-widget': 'dqc-home-dimension-score',
+		style: tone ? {color: tone} : (void 0)
+	};
+})<{ tone?: string }>`
+	width       : 42px;
+	text-align  : right;
+	font-family : var(--code-font-family);
+	font-size   : 0.85em;
+	font-weight : var(--font-demi-bold);
+`;
 
 /** compact five-dimension radar for the home cockpit */
 const DimensionRadar = (props: { dimensions: Array<DimensionScore> }) => {
@@ -111,13 +311,13 @@ const DimensionRadar = (props: { dimensions: Array<DimensionScore> }) => {
 			tooltip: {trigger: 'item'},
 			radar: {
 				indicator: scored.map(dimension => ({name: DIMENSION_LABELS[dimension.dimension], max: 100})),
-				center: ['50%', '54%'],
-				radius: '64%',
+				center: ['50%', '52%'],
+				radius: '62%',
 				splitNumber: 4,
-				axisName: {color: CHART_SPLIT_COLOR, fontSize: 11},
+				axisName: {color: 'rgb(140,150,165)', fontSize: 11},
 				axisLine: {lineStyle: {color: CHART_SPLIT_COLOR}},
 				splitLine: {lineStyle: {color: CHART_SPLIT_COLOR}},
-				splitArea: {show: false}
+				splitArea: {show: true, areaStyle: {color: ['rgba(128,128,128,0.03)', 'rgba(128,128,128,0.08)']}}
 			},
 			series: [{
 				type: 'radar',
@@ -127,7 +327,7 @@ const DimensionRadar = (props: { dimensions: Array<DimensionScore> }) => {
 					name: 'Score',
 					itemStyle: {color: ACCENT_COLOR},
 					lineStyle: {color: ACCENT_COLOR, width: 2},
-					areaStyle: {color: 'rgba(77,107,254,0.25)'}
+					areaStyle: {color: 'rgba(77,107,254,0.24)'}
 				}]
 			}]
 		}, true);
@@ -141,6 +341,36 @@ const DimensionRadar = (props: { dimensions: Array<DimensionScore> }) => {
 		return <EmptyState>No scored dimensions yet.</EmptyState>;
 	}
 	return <MiniRadar ref={wrapperRef}/>;
+};
+
+const HomeKpi = (props: {
+	icon: IconDefinition;
+	tone?: string;
+	label: string;
+	value: ReactNode;
+	valueTone?: string;
+	foot?: ReactNode;
+}) => {
+	const {icon, tone, label, value, valueTone, foot} = props;
+	return <KpiTile>
+		<KpiTileHeader>
+			<IconChip tone={tone}><FontAwesomeIcon icon={icon}/></IconChip>
+			<KpiLabel>{label}</KpiLabel>
+		</KpiTileHeader>
+		<KpiValue tone={valueTone}>{value}</KpiValue>
+		{foot != null ? <KpiFoot>{foot}</KpiFoot> : null}
+	</KpiTile>;
+};
+
+const HomeSection = (props: { title: ReactNode; aside?: ReactNode; children?: ReactNode }) => {
+	const {title, aside, children} = props;
+	return <CardPanel>
+		<CardPanelTitleRow>
+			<CardPanelTitle>{title}</CardPanelTitle>
+			{aside != null ? <CardPanelAside>{aside}</CardPanelAside> : null}
+		</CardPanelTitleRow>
+		{children}
+	</CardPanel>;
 };
 
 /**
@@ -263,6 +493,11 @@ const DataQualityHomeIndex = () => {
 	// action required: rules which keep hitting in the window
 	const persistentAlerts = useMemo(() => alerts.slice(0, 5), [alerts]);
 
+	const fatalCount = useMemo(
+		() => alerts.filter(alert => alert.severity === MonitorRuleSeverity.FATAL).length, [alerts]);
+	const warnCount = useMemo(
+		() => alerts.filter(alert => alert.severity === MonitorRuleSeverity.WARN).length, [alerts]);
+
 	const unencryptedFactorCount = useMemo(() => {
 		if (!piiReport) {
 			return 0;
@@ -283,131 +518,225 @@ const DataQualityHomeIndex = () => {
 	const loading = rules === null || logs === null;
 
 	return <FullWidthPage>
-		<FullWidthPageHeaderContainer>
-			<PageTitle>Home</PageTitle>
-		</FullWidthPageHeaderContainer>
-		<HomeBody>
+		<AmbientBody>
+			<HeroHeader>
+				<div>
+					<HeroTitle>Data Quality Home</HeroTitle>
+					<HeroSubtitle>One-screen posture of quality, alerts and data security.</HeroSubtitle>
+				</div>
+				<HeroToolbar>
+					<WindowPill>
+						<FontAwesomeIcon icon={faCalendarDays}/>
+						Last 30 days
+					</WindowPill>
+					<QuickLink onClick={() => navigate(Router.DQC_STATISTICS)}>
+						<FontAwesomeIcon icon={faChartLine}/>
+						Statistics
+					</QuickLink>
+					<QuickLink onClick={() => navigate(Router.DQC_RULES)}>
+						<FontAwesomeIcon icon={faListCheck}/>
+						Rules
+					</QuickLink>
+					{piiEnabled
+						? <QuickLink onClick={() => navigate(Router.DQC_PII)}>
+							<FontAwesomeIcon icon={faShieldHalved}/>
+							Classification
+						</QuickLink>
+						: null}
+				</HeroToolbar>
+			</HeroHeader>
+
 			<KpiRow>
-				<KpiCard label="Quality Score"
-				         value={<span style={{color: scoreColor}}>{quality.score ?? '-'}</span>}
-				         subtext={quality.band ? BAND_LABELS[quality.band] : 'No enabled rules yet'}/>
-				<KpiCard label="Alerts (30d)" value={alerts.length}
-				         danger={alerts.length > 0}
-				         subtext="Rule hits within last 30 days"/>
-				<KpiCard label="Monitored Topics" value={topics.length}
-				         subtext={topicsWithoutRules.length === 0
-					         ? 'All topics covered by rules'
-					         : `${topicsWithoutRules.length} topic(s) without rules`}/>
-				<KpiCard label="Enabled Rules" value={enabledRules.length}
-				         subtext={`${(rules ?? []).length} defined in total`}/>
+				<HomeKpi icon={faGaugeHigh} tone={scoreColor ?? NEUTRAL_COLOR}
+				         label="Quality Score"
+				         value={quality.score ?? '—'} valueTone={scoreColor}
+				         foot={quality.score !== null && scoreColor
+					         ? <>
+						         <BarTrack><BarFill fill={scoreColor} ratio={quality.score}/></BarTrack>
+						         <Pill tone={scoreColor}>{quality.band ? BAND_LABELS[quality.band] : ''}</Pill>
+					         </>
+					         : <KpiSubtext>No enabled rules yet</KpiSubtext>}/>
+				<HomeKpi icon={faBell} tone={alerts.length > 0 ? DANGER_TONE : SUCCESS_TONE}
+				         label="Alerts · 30d"
+				         value={alerts.length} valueTone={alerts.length > 0 ? DANGER_TONE : (void 0)}
+				         foot={<>
+					         <KpiSubtext>Rule hits within window</KpiSubtext>
+					         {fatalCount > 0 ? <Pill tone={DANGER_TONE}>{fatalCount} fatal</Pill> : null}
+					         {warnCount > 0 ? <Pill tone={WARN_TONE}>{warnCount} warn</Pill> : null}
+				         </>}/>
+				<HomeKpi icon={faDatabase} tone={ACCENT_COLOR}
+				         label="Monitored Topics"
+				         value={topics.length}
+				         foot={topicsWithoutRules.length === 0
+					         ? <Pill tone={SUCCESS_TONE}>All covered</Pill>
+					         : <Pill tone={WARN_TONE}>{topicsWithoutRules.length} w/o rules</Pill>}/>
+				<HomeKpi icon={faListCheck} tone={ACCENT_COLOR}
+				         label="Enabled Rules"
+				         value={enabledRules.length}
+				         foot={<>
+					         <BarTrack>
+						         <BarFill fill={ACCENT_COLOR}
+						                  ratio={(rules ?? []).length === 0 ? 0 : 100 * enabledRules.length / (rules ?? []).length}/>
+					         </BarTrack>
+					         <KpiSubtext>of {(rules ?? []).length} defined</KpiSubtext>
+				         </>}/>
 			</KpiRow>
 
-			<HomeColumns>
-				<SectionCard title="Quality Dimensions">
-					{loading ? <LoadingRows/> : <DimensionRadar dimensions={quality.dimensions}/>}
-				</SectionCard>
-				<SectionCard title="Top Alerts" badge={alerts.length}>
+			<Columns>
+				<HomeSection title="Quality Dimensions"
+				             aside={quality.score !== null
+					             ? <Pill tone={scoreColor ?? undefined}>
+						             {quality.score}{quality.band ? ` · ${BAND_LABELS[quality.band]}` : ''}
+					             </Pill>
+					             : null}>
+					{loading
+						? <LoadingRows/>
+						: <>
+							<DimensionRadar dimensions={quality.dimensions}/>
+							<DimensionRows>
+								{quality.dimensions.map(dimension => {
+									const tone = dimension.score === null ? null : SCORE_BAND_COLORS[bandOf(dimension.score)];
+									return <DimensionRow key={dimension.dimension}
+									                     title={dimension.score === null ? 'No enabled rules in this dimension' : (void 0)}>
+										<DimensionName>{DIMENSION_LABELS[dimension.dimension]}</DimensionName>
+										<DimensionScoreText tone={tone ?? undefined}
+										                    style={dimension.score === null ? {opacity: 0.4} : (void 0)}>
+											{dimension.score ?? '—'}
+										</DimensionScoreText>
+										<BarTrack><BarFill fill={tone ?? undefined} ratio={dimension.score ?? 0}/></BarTrack>
+									</DimensionRow>;
+								})}
+							</DimensionRows>
+						</>}
+				</HomeSection>
+				<HomeSection title="Top Alerts"
+				             aside={<Pill tone={alerts.length > 0 ? DANGER_TONE : undefined}>{alerts.length}</Pill>}>
 					{loading
 						? <LoadingRows/>
 						: alerts.length === 0
 							? <EmptyState>No alerts in the last 30 days.</EmptyState>
-							: <HomeList>
+							: <List>
 								{alerts.slice(0, 8).map((alert, index) => {
 									const topicName = alert.topicId ? (topicMap[alert.topicId]?.name ?? alert.topicId) : 'All Topics';
-									return <HomeListItem key={`${alert.ruleCode}-${alert.topicId}-${alert.factorId}-${index}`}>
-										<SeverityBadge severity={alert.severity}>{alert.severity}</SeverityBadge>
-										<HomeListItemText>{alert.ruleCode}</HomeListItemText>
-										<HomeListItemMeta>{topicName}</HomeListItemMeta>
-										<HomeListItemMeta>{alert.count} hit(s)</HomeListItemMeta>
-									</HomeListItem>;
+									return <ListRow key={`${alert.ruleCode}-${alert.topicId}-${alert.factorId}-${index}`}>
+										<Pill tone={SEVERITY_COLORS[alert.severity] ?? NEUTRAL_COLOR}>{alert.severity}</Pill>
+										<ListText>{alert.ruleCode}</ListText>
+										<ListMeta>{topicName}</ListMeta>
+										<Pill>{alert.count} hits</Pill>
+									</ListRow>;
 								})}
-								<HomeListItem>
-									<HomeLink onClick={() => navigate(Router.DQC_STATISTICS)}>View run statistics</HomeLink>
-								</HomeListItem>
-							</HomeList>}
-				</SectionCard>
-			</HomeColumns>
+								<ListFooter>
+									<TextLink onClick={() => navigate(Router.DQC_STATISTICS)}>
+										View run statistics
+										<FontAwesomeIcon icon={faArrowRightLong}/>
+									</TextLink>
+								</ListFooter>
+							</List>}
+				</HomeSection>
+			</Columns>
 
-			<SectionCard title="Action Required">
+			<HomeSection title="Action Required">
 				{loading
 					? <LoadingRows/>
-					: <HomeList>
+					: <List>
 						{topicsWithoutRules.length === 0 && persistentAlerts.length === 0 && unencryptedFactorCount === 0
 							? <EmptyState>Nothing requires attention. Looking good.</EmptyState>
 							: null}
 						{topicsWithoutRules.length === 0 ? null : (
-							<HomeListItem>
-								<HomeListItemText>
-									{topicsWithoutRules.length} topic(s) have no enabled monitor rules
-								</HomeListItemText>
-								<HomeListItemMeta>
-									{topicsWithoutRules.slice(0, 3).map(topic => topic.name).join(', ')}
-									{topicsWithoutRules.length > 3 ? ', …' : ''}
-								</HomeListItemMeta>
-								<HomeLink onClick={() => navigate(Router.DQC_RULES)}>Configure rules</HomeLink>
-							</HomeListItem>
+							<ListRow>
+								<IconChip tone={WARN_TONE}><FontAwesomeIcon icon={faTriangleExclamation}/></IconChip>
+								<ActionTexts>
+									<ActionMain>{topicsWithoutRules.length} topic(s) have no enabled monitor rules</ActionMain>
+									<ActionMeta>
+										{topicsWithoutRules.slice(0, 3).map(topic => topic.name).join(', ')}
+										{topicsWithoutRules.length > 3 ? ', …' : ''}
+									</ActionMeta>
+								</ActionTexts>
+								<ActionButton onClick={() => navigate(Router.DQC_RULES)}>
+									Configure rules
+									<FontAwesomeIcon icon={faArrowRightLong}/>
+								</ActionButton>
+							</ListRow>
 						)}
 						{persistentAlerts.length === 0 ? null : (
-							<HomeListItem>
-								<HomeListItemText>
-									{persistentAlerts.length} rule(s) hit repeatedly in the last 30 days
-								</HomeListItemText>
-								<HomeListItemMeta>
-									Top: {persistentAlerts[0].ruleCode} ({persistentAlerts[0].count} hits)
-								</HomeListItemMeta>
-								<HomeLink onClick={() => navigate(Router.DQC_STATISTICS)}>Inspect alerts</HomeLink>
-							</HomeListItem>
+							<ListRow>
+								<IconChip tone={WARN_TONE}><FontAwesomeIcon icon={faTriangleExclamation}/></IconChip>
+								<ActionTexts>
+									<ActionMain>{persistentAlerts.length} rule(s) hit repeatedly in the last 30 days</ActionMain>
+									<ActionMeta>Top: {persistentAlerts[0].ruleCode} ({persistentAlerts[0].count} hits)</ActionMeta>
+								</ActionTexts>
+								<ActionButton onClick={() => navigate(Router.DQC_STATISTICS)}>
+									Inspect alerts
+									<FontAwesomeIcon icon={faArrowRightLong}/>
+								</ActionButton>
+							</ListRow>
 						)}
 						{piiEnabled && unencryptedFactorCount > 0 ? (
-							<HomeListItem>
-								<HomeListItemText>
-									{unencryptedFactorCount} sensitive factor(s) are stored unencrypted
-								</HomeListItemText>
-								<HomeListItemMeta>Encryption recommended</HomeListItemMeta>
-								<HomeLink onClick={() => navigate(Router.DQC_PII)}>Review PII report</HomeLink>
-							</HomeListItem>
+							<ListRow>
+								<IconChip tone={DANGER_TONE}><FontAwesomeIcon icon={faTriangleExclamation}/></IconChip>
+								<ActionTexts>
+									<ActionMain>{unencryptedFactorCount} sensitive factor(s) are stored unencrypted</ActionMain>
+									<ActionMeta>Encryption recommended</ActionMeta>
+								</ActionTexts>
+								<ActionButton onClick={() => navigate(Router.DQC_PII)}>
+									Review PII report
+									<FontAwesomeIcon icon={faArrowRightLong}/>
+								</ActionButton>
+							</ListRow>
 						) : null}
-					</HomeList>}
-			</SectionCard>
+					</List>}
+			</HomeSection>
 
 			{piiEnabled ? <>
 				<KpiRow>
-					<KpiCard label="PII Terms" value={piiReport?.totalTerms ?? '-'}
-					         subtext="Classification terms defined"/>
-					<KpiCard label="Level 1 Factors" value={piiReport ? level1FactorCount : '-'}
-					         danger={level1FactorCount > 0}
-					         subtext={PII_SENSITIVITY_LEVEL_LABELS[PiiSensitivityLevel.LEVEL_1] ?? 'Highest sensitivity'}/>
-					<KpiCard label="Unencrypted Factors" value={piiReport ? unencryptedFactorCount : '-'}
-					         danger={unencryptedFactorCount > 0}
-					         subtext="Sensitive data stored in plaintext"/>
-					<KpiCard label="High-Risk Terms" value={piiReport?.highRiskTerms?.length ?? '-'}
-					         danger={(piiReport?.highRiskTerms?.length ?? 0) > 0}
-					         subtext="Level 1 with wide impact"/>
+					<HomeKpi icon={faShieldHalved} tone={ACCENT_COLOR}
+					         label="PII Terms"
+					         value={piiReport?.totalTerms ?? '—'}
+					         foot={<KpiSubtext>Classification terms defined</KpiSubtext>}/>
+					<HomeKpi icon={faFingerprint} tone={PII_LEVEL_COLORS[PiiSensitivityLevel.LEVEL_1]}
+					         label="Level 1 Factors"
+					         value={piiReport ? level1FactorCount : '—'}
+					         valueTone={level1FactorCount > 0 ? PII_LEVEL_COLORS[PiiSensitivityLevel.LEVEL_1] : (void 0)}
+					         foot={<KpiSubtext>{PII_SENSITIVITY_LEVEL_LABELS[PiiSensitivityLevel.LEVEL_1] ?? 'Highest sensitivity'}</KpiSubtext>}/>
+					<HomeKpi icon={faLockOpen} tone={WARN_TONE}
+					         label="Unencrypted Factors"
+					         value={piiReport ? unencryptedFactorCount : '—'}
+					         valueTone={unencryptedFactorCount > 0 ? WARN_TONE : (void 0)}
+					         foot={<KpiSubtext>Sensitive data stored in plaintext</KpiSubtext>}/>
+					<HomeKpi icon={faTriangleExclamation} tone={DANGER_TONE}
+					         label="High-Risk Terms"
+					         value={piiReport?.highRiskTerms?.length ?? '—'}
+					         valueTone={(piiReport?.highRiskTerms?.length ?? 0) > 0 ? DANGER_TONE : (void 0)}
+					         foot={<KpiSubtext>Level 1 with wide impact</KpiSubtext>}/>
 				</KpiRow>
-				<SectionCard title="High-Risk PII Terms" badge={piiReport?.highRiskTerms?.length ?? 0}>
+				<HomeSection title="High-Risk PII Terms"
+				             aside={<Pill tone={DANGER_TONE}>{piiReport?.highRiskTerms?.length ?? 0}</Pill>}>
 					{piiReport === null
 						? <LoadingRows/>
 						: (piiReport.highRiskTerms ?? []).length === 0
 							? <EmptyState>No high-risk terms detected.</EmptyState>
-							: <HomeList>
+							: <List>
 								{(piiReport.highRiskTerms ?? []).slice(0, 5).map(term => {
-									return <HomeListItem key={term.termId}>
-										<HomeListItemText>{term.termName}</HomeListItemText>
-										<HomeListItemMeta>
+									return <ListRow key={term.termId}>
+										<ListText>{term.termName}</ListText>
+										<ListMeta>
 											{term.linkedFactorCount} factor(s) · {term.topicCount} topic(s)
-										</HomeListItemMeta>
-										<HomeListItemMeta style={{color: PII_LEVEL_COLORS[term.sensitivityLevel ?? '']}}>
+										</ListMeta>
+										<Pill tone={PII_LEVEL_COLORS[term.sensitivityLevel ?? '']}>
 											{PII_SENSITIVITY_LEVEL_LABELS[term.sensitivityLevel ?? ''] ?? term.sensitivityLevel}
-										</HomeListItemMeta>
-									</HomeListItem>;
+										</Pill>
+									</ListRow>;
 								})}
-								<HomeListItem>
-									<HomeLink onClick={() => navigate(Router.DQC_PII)}>Open data classification</HomeLink>
-								</HomeListItem>
-							</HomeList>}
-				</SectionCard>
+								<ListFooter>
+									<TextLink onClick={() => navigate(Router.DQC_PII)}>
+										Open data classification
+										<FontAwesomeIcon icon={faArrowRightLong}/>
+									</TextLink>
+								</ListFooter>
+							</List>}
+				</HomeSection>
 			</> : null}
-		</HomeBody>
+		</AmbientBody>
 	</FullWidthPage>;
 };
 

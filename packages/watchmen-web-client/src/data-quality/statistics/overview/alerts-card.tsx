@@ -2,10 +2,12 @@ import React from 'react';
 import styled from 'styled-components';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
 import {MonitorRuleSeverity} from '@/services/data/data-quality/rule-types';
+import {CardPanelAside, CardPanelTitle, Pill} from '../../widgets/kit';
+import {NEUTRAL_COLOR, SEVERITY_COLORS} from '../../widgets/palette';
 import {RuleDefs} from '../../rule-defs';
 import {getTopicName} from '../../utils';
 import {AlertItem} from './quality-dimensions';
-import {OverviewCard, OverviewCardBody, OverviewCardHeader, OverviewCardNoData, SeverityBadge, SeverityCountDot} from './widgets';
+import {OverviewCard, OverviewCardBody, OverviewCardHeader, OverviewCardNoData, SeverityBadge} from './widgets';
 
 const SEVERITY_ORDER = [MonitorRuleSeverity.FATAL, MonitorRuleSeverity.WARN, MonitorRuleSeverity.TRACE];
 
@@ -15,24 +17,25 @@ const AlertsList = styled.div.attrs({'data-widget': 'quality-overview-alerts-lis
 	flex-direction : column;
 	position    : relative;
 	overflow-y  : auto;
-	max-height  : 240px;
+	max-height  : 260px;
 `;
 
 const AlertRow = styled.div.attrs({'data-widget': 'quality-overview-alert-row'})`
-	display    : flex;
-	align-items: flex-start;
+	display         : flex;
+	align-items     : flex-start;
 	justify-content : space-between;
-	column-gap : calc(var(--margin) / 2);
-	padding    : calc(var(--margin) / 3) calc(var(--margin) / 2);
-	& + & {
-		border-top : var(--border);
+	column-gap      : calc(var(--margin) / 2);
+	padding         : calc(var(--margin) / 3) calc(var(--margin) / 4);
+	border-radius   : calc(var(--border-radius) * 1.5);
+	&:hover {
+		background-color : var(--hover-color);
 	}
 `;
 
 const AlertMain = styled.div`
-	display    : flex;
+	display        : flex;
 	flex-direction : column;
-	min-width  : 0;
+	min-width      : 0;
 `;
 
 const AlertTitle = styled.div`
@@ -43,9 +46,10 @@ const AlertTitle = styled.div`
 `;
 
 const AlertRuleName = styled.span`
-	font-size  : 0.9em;
-	white-space: nowrap;
-	overflow   : hidden;
+	font-size   : 0.9em;
+	font-weight : var(--font-demi-bold);
+	white-space : nowrap;
+	overflow    : hidden;
 	text-overflow : ellipsis;
 `;
 
@@ -59,22 +63,7 @@ const AlertContext = styled.span`
 	margin-top : 2px;
 `;
 
-const AlertCount = styled.span`
-	font-size     : 0.9em;
-	font-weight   : 600;
-	font-variant-numeric : tabular-nums;
-	white-space   : nowrap;
-	padding-top   : 2px;
-`;
-
-const SeverityCounts = styled.div`
-	display : flex;
-	align-items : center;
-	column-gap  : calc(var(--margin) / 2);
-	font-size   : 0.8em;
-`;
-
-/** Alert panel: severity counters plus the top hit logs ranked fatal-first. */
+/** Alert panel: severity-count pills plus the top hit logs ranked fatal-first. */
 export const AlertsCard = (props: { alerts: Array<AlertItem>; topicMap: Record<TopicId, Topic> }) => {
 	const {alerts, topicMap} = props;
 
@@ -85,15 +74,14 @@ export const AlertsCard = (props: { alerts: Array<AlertItem>; topicMap: Record<T
 
 	return <OverviewCard>
 		<OverviewCardHeader>
-			<span>Alerts</span>
-			<SeverityCounts>
+			<CardPanelTitle>Alerts</CardPanelTitle>
+			<CardPanelAside>
 				{SEVERITY_ORDER.map(severity => counts.get(severity)
-					? <span key={severity}>
-						<SeverityCountDot severity={severity}/>
-						{counts.get(severity)}
-					</span>
+					? <Pill key={severity} tone={SEVERITY_COLORS[severity] || NEUTRAL_COLOR}>
+						{counts.get(severity)} {severity}
+					</Pill>
 					: null)}
-			</SeverityCounts>
+			</CardPanelAside>
 		</OverviewCardHeader>
 		<OverviewCardBody>
 			{alerts.length === 0
@@ -109,14 +97,14 @@ export const AlertsCard = (props: { alerts: Array<AlertItem>; topicMap: Record<T
 						return <AlertRow key={`${alert.ruleCode}-${alert.topicId}-${alert.factorId}-${index}`}>
 							<AlertMain>
 								<AlertTitle>
-									<SeverityBadge severity={alert.severity}/>
+									<SeverityBadge severity={alert.severity}>{alert.severity}</SeverityBadge>
 									<AlertRuleName>{ruleName}</AlertRuleName>
 								</AlertTitle>
 								<AlertContext>
 									{[topicName, factorName, alert.lastOccurredTime].filter(x => !!x).join(' · ')}
 								</AlertContext>
 							</AlertMain>
-							<AlertCount>{new Intl.NumberFormat(undefined, {useGrouping: true}).format(alert.count)}</AlertCount>
+							<Pill>{new Intl.NumberFormat(undefined, {useGrouping: true}).format(alert.count)}</Pill>
 						</AlertRow>;
 					})}
 				</AlertsList>}

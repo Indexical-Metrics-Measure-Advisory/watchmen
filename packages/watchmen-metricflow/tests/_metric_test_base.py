@@ -26,14 +26,19 @@ for _package_dir in _PACKAGES_ROOT.iterdir():
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from watchmen_rest import get_admin_principal, get_console_principal, get_any_principal
+from watchmen_rest import get_admin_principal, get_console_principal, get_any_principal, \
+    get_any_admin_principal
 
 from watchmen_metricflow.meta.metrics_meta_service import MetricService
 from watchmen_metricflow.meta.metric_category_meta_service import CategoryService
 from watchmen_metricflow.meta.metric_subscription_meta_service import SubscriptionService
+from watchmen_metricflow.meta.materialization_meta_service import MaterializationFlowService, \
+    MaterializationRunService, MaterializationService
 from watchmen_metricflow.model.metrics import MetricWithCategory
 from watchmen_metricflow.model.metric_category import Category
 from watchmen_metricflow.model.metric_subscription import Subscription
+from watchmen_metricflow.model.materialization import Materialization, MaterializationFlow, \
+    MaterializationRun
 
 TENANT_ID = 'tenant-1'
 USER_ID = 'user-1'
@@ -245,6 +250,73 @@ def make_subscription_dict(subscription_id='sub-1', analysis_id='an-1', **overri
     return data
 
 
+# ---- Materialization fixtures ---- #
+
+def make_materialization(materialization_id='mat-1', name='daily sales', **overrides):
+    """Build a Materialization instance with sensible defaults."""
+    data = {
+        'materializationId': materialization_id,
+        'name': name,
+        'metricName': 'sales_amount',
+        'timeGrain': 'day',
+        'groupBy': ['region'],
+    }
+    data.update(overrides)
+    return Materialization.model_validate(data)
+
+
+def make_materialization_dict(materialization_id=None, name='daily sales', **overrides):
+    """Return a JSON-serialisable dict for a materialization request body."""
+    data = {
+        'name': name,
+        'metricName': 'sales_amount',
+        'timeGrain': 'day',
+        'groupBy': ['region'],
+    }
+    if materialization_id is not None:
+        data['materializationId'] = materialization_id
+    data.update(overrides)
+    return data
+
+
+def make_flow(flow_id='flow-1', name='nightly', materialization_ids=None, **overrides):
+    """Build a MaterializationFlow instance with sensible defaults."""
+    data = {
+        'flowId': flow_id,
+        'name': name,
+        'materializationIds': materialization_ids if materialization_ids is not None else ['mat-1'],
+        'tenantId': TENANT_ID,
+    }
+    data.update(overrides)
+    return MaterializationFlow.model_validate(data)
+
+
+def make_flow_dict(flow_id=None, name='nightly', materialization_ids=None, **overrides):
+    """Return a JSON-serialisable dict for a flow request body."""
+    data = {
+        'name': name,
+        'materializationIds': materialization_ids if materialization_ids is not None else ['mat-1'],
+    }
+    if flow_id is not None:
+        data['flowId'] = flow_id
+    data.update(overrides)
+    return data
+
+
+def make_run(run_id='run-1', materialization_id='mat-1', **overrides):
+    """Build a MaterializationRun instance with sensible defaults."""
+    data = {
+        'runId': run_id,
+        'materializationId': materialization_id,
+        'metricName': 'sales_amount',
+        'status': 'SUCCESS',
+        'triggerType': 'manual',
+        'tenantId': TENANT_ID,
+    }
+    data.update(overrides)
+    return MaterializationRun.model_validate(data)
+
+
 # --------------------------------------------------------------------------- #
 # Mock service factories
 # --------------------------------------------------------------------------- #
@@ -270,6 +342,27 @@ def mock_subscription_service():
     return service
 
 
+def mock_materialization_service():
+    """A MagicMock with the MaterializationService spec."""
+    service = mock.MagicMock(spec=MaterializationService)
+    service.snowflakeGenerator.next_id.return_value = 4001
+    return service
+
+
+def mock_flow_service():
+    """A MagicMock with the MaterializationFlowService spec."""
+    service = mock.MagicMock(spec=MaterializationFlowService)
+    service.snowflakeGenerator.next_id.return_value = 5001
+    return service
+
+
+def mock_run_service():
+    """A MagicMock with the MaterializationRunService spec."""
+    service = mock.MagicMock(spec=MaterializationRunService)
+    service.snowflakeGenerator.next_id.return_value = 6001
+    return service
+
+
 # --------------------------------------------------------------------------- #
 # TestClient / FastAPI app builder
 # --------------------------------------------------------------------------- #
@@ -288,4 +381,5 @@ def build_client(*routers, principal=None, admin=None, console=None):
     app.dependency_overrides[get_admin_principal] = lambda: admin or p
     app.dependency_overrides[get_console_principal] = lambda: console or p
     app.dependency_overrides[get_any_principal] = lambda: p
+    app.dependency_overrides[get_any_admin_principal] = lambda: admin or p
     return TestClient(app)

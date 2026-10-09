@@ -152,7 +152,7 @@ export interface QualityScore {
 
 const round1 = (value: number): number => Math.round(value * 10) / 10;
 
-const bandOf = (score: number): ScoreBand => {
+export const bandOf = (score: number): ScoreBand => {
 	if (score >= 90) {
 		return 'excellent';
 	} else if (score >= 75) {

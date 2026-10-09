@@ -1,6 +1,6 @@
 from typing import List, Optional
 import urllib.parse
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import NullPool
 
@@ -29,6 +29,25 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 	def __init__(self, data_source: DataSource, params: PostgreSQLDataSourceParams = PostgreSQLDataSourceParams()):
 		super().__init__(data_source)
 		self.engine = self.acquire_engine(params)
+		self.apply_schema_search_path(self.engine, data_source)
+
+	@staticmethod
+	def apply_schema_search_path(engine: Engine, data_source: DataSource) -> None:
+		schema = PostgreSQLDataSourceHelper.find_param(data_source.params, 'schema')
+		if is_blank(schema) or engine.dialect.name != 'postgresql':
+			return
+		escaped_schema = schema.replace('"', '""')
+		script = f'SET search_path TO "{escaped_schema}", public'
+
+		def set_search_path(dbapi_connection, connection_record) -> None:
+			cursor = dbapi_connection.cursor()
+			try:
+				cursor.execute(script)
+			finally:
+				cursor.close()
+			dbapi_connection.commit()
+
+		event.listen(engine, 'connect', set_search_path)
 
 	@staticmethod
 	def acquire_engine_by_url(url: str, params: PostgreSQLDataSourceParams) -> Engine:

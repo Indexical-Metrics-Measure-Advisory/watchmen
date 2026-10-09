@@ -21,6 +21,12 @@ from watchmen_metricflow.service.materialization_scheduler import (
 )
 
 
+def _without_tenant(materialization):
+    # tenantId is a required string on the tuple, clear it after construction
+    materialization.tenantId = None
+    return materialization
+
+
 def due_materialization(**overrides):
     data = dict(schedule={
         'enabled': True, 'frequency': 'day', 'time': '03:00',
@@ -55,6 +61,57 @@ class TestSchedulerLifecycle(unittest.TestCase):
     def test_stop_without_start_is_a_noop(self):
         materialization_scheduler.stop_materialization_scheduler()
         self.assertIsNone(materialization_scheduler._scheduler)
+
+
+class TestHeartbeatConfig(unittest.TestCase):
+    def test_heartbeat_defaults_and_cap(self):
+        from watchmen_metricflow import settings
+        with mock.patch.object(settings.mf_settings, 'MATERIALIZATION_SCHEDULER_HEARTBEAT', 0):
+            self.assertEqual(30, settings.ask_materialization_scheduler_heartbeat())
+        with mock.patch.object(settings.mf_settings, 'MATERIALIZATION_SCHEDULER_HEARTBEAT', 90):
+            # intervals above one minute can skip a scheduled minute entirely
+            self.assertEqual(60, settings.ask_materialization_scheduler_heartbeat())
+        with mock.patch.object(settings.mf_settings, 'MATERIALIZATION_SCHEDULER_HEARTBEAT', 45):
+            self.assertEqual(45, settings.ask_materialization_scheduler_heartbeat())
+
+
+class TestStaleRunCleanup(unittest.TestCase):
+    def _cleanup(self, run_service):
+        with mock.patch.object(
+                materialization_scheduler, 'MaterializationRunService',
+                return_value=run_service), mock.patch.object(
+                materialization_scheduler, 'ask_materialization_run_stale_minutes',
+                return_value=120):
+            return materialization_scheduler.mark_stale_materialization_runs_failed()
+
+    def test_stale_active_runs_are_failed(self):
+        stale = make_run(status=RunStatus.RUNNING, startedAt=datetime(2026, 9, 30, 0, 0))
+        run_service = mock.MagicMock()
+        run_service.find_active_runs_started_before.return_value = [stale]
+
+        count = self._cleanup(run_service)
+
+        self.assertEqual(1, count)
+        run_service.update.assert_called_once()
+        failed = run_service.update.call_args[0][0]
+        self.assertEqual(RunStatus.FAILED, failed.status)
+        self.assertIsNotNone(failed.finishedAt)
+        self.assertIsNotNone(failed.errorMessage)
+
+    def test_without_stale_runs_nothing_is_updated(self):
+        run_service = mock.MagicMock()
+        run_service.find_active_runs_started_before.return_value = []
+
+        count = self._cleanup(run_service)
+
+        self.assertEqual(0, count)
+        run_service.update.assert_not_called()
+
+    def test_storage_failure_is_swallowed(self):
+        run_service = mock.MagicMock()
+        run_service.find_active_runs_started_before.side_effect = RuntimeError('db down')
+
+        self.assertEqual(0, self._cleanup(run_service))
 
 
 class TestRunDueMaterializations(unittest.TestCase):
@@ -117,9 +174,9 @@ class TestRunDueMaterializations(unittest.TestCase):
             due_materialization(
                 materialization_id='mat-2', tenantId=TENANT_ID,
                 schedule={'enabled': False, 'frequency': 'day', 'time': '03:00'}),
-            due_materialization(
-                materialization_id='mat-3', tenantId=None,
-                schedule={'enabled': True, 'frequency': 'day', 'time': '03:00'}),
+            _without_tenant(due_materialization(
+                materialization_id='mat-3',
+                schedule={'enabled': True, 'frequency': 'day', 'time': '03:00'})),
         ]
 
         triggered, runner_cls, worker = self._run_scenario(

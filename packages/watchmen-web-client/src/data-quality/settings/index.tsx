@@ -1,26 +1,30 @@
-import {VerticalMarginOneUnit} from '@/widgets/basic/margin';
 import {SettingsPage} from '@/widgets/basic/page';
-import {PageHeader} from '@/widgets/basic/page-header';
 import {PersonalAccessToken} from '@/widgets/common-settings/personal-access-token';
 import {ThemeSettings} from '@/widgets/common-settings/theme';
 import React from 'react';
+import {AmbientBody, HeroHeader, HeroSubtitle, HeroTitle} from '../widgets/kit';
 import {CacheSettings} from './cache';
 import {ClassificationSettings} from './classification';
 
 export const DataQualitySettings = () => {
 	return <SettingsPage>
-		<PageHeader title="Settings"/>
-		<VerticalMarginOneUnit/>
+		<HeroHeader>
+			<div>
+				<HeroTitle>Settings</HeroTitle>
+				<HeroSubtitle>Theme, access tokens, classification and cache of the workbench.</HeroSubtitle>
+			</div>
+		</HeroHeader>
 		<ThemeSettings/>
 		<PersonalAccessToken/>
 		<ClassificationSettings/>
 		<CacheSettings/>
-		<VerticalMarginOneUnit/>
 	</SettingsPage>;
 };
 
 const DataQualitySettingsIndex = () => {
-	return <DataQualitySettings/>;
+	return <AmbientBody>
+		<DataQualitySettings/>
+	</AmbientBody>;
 };
 
 export default DataQualitySettingsIndex;

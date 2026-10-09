@@ -15,6 +15,7 @@ from _metric_test_base import (
     TENANT_ID,
     admin_principal,
     build_client,
+    make_flow,
     make_flow_dict,
     make_materialization,
     make_materialization_dict,
@@ -36,7 +37,7 @@ def data_page(data, total=None):
         data=data,
         pageNumber=1,
         pageSize=10,
-        totalCount=total if total is not None else len(data))
+        itemCount=total if total is not None else len(data))
 
 
 # --------------------------------------------------------------------------- #
@@ -70,6 +71,18 @@ class TestSaveMaterialization(unittest.TestCase):
         self.assertEqual(400, response.status_code)
         service.create.assert_not_called()
 
+    def test_create_falls_back_metric_id_to_metric_name(self):
+        # metric_id is a not-null column, API callers may only know the name
+        service = mock_materialization_service()
+        service.create.side_effect = lambda m: m
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post(
+                '/metricflow/materialization', json=make_materialization_dict())
+        self.assertEqual(200, response.status_code)
+        created = service.create.call_args[0][0]
+        self.assertEqual('sales_amount', created.metricId)
+
     def test_update_applies_only_sent_keys(self):
         stored = make_materialization(name='old name', tenantId=TENANT_ID)
         service = mock_materialization_service()
@@ -88,6 +101,125 @@ class TestSaveMaterialization(unittest.TestCase):
         # untouched fields keep their stored values
         self.assertEqual('sales_amount', updated.metricName)
 
+    def test_update_ignores_protected_keys(self):
+        # tenant/user/audit fields are never copied from the payload
+        stored = make_materialization(tenantId=TENANT_ID, userId='owner-1')
+        service = mock_materialization_service()
+        service.find_by_id.return_value = stored
+        service.update.side_effect = lambda m: m
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization', json={
+                'materializationId': stored.materializationId,
+                'name': 'renamed',
+                'tenantId': 'other-tenant',
+                'userId': 'hacker',
+                'createdAt': '2000-01-01T00:00:00',
+            })
+        self.assertEqual(200, response.status_code)
+        updated = service.update.call_args[0][0]
+        self.assertEqual(TENANT_ID, updated.tenantId)
+        self.assertEqual('owner-1', updated.userId)
+        self.assertEqual('renamed', updated.name)
+
+    def test_update_blank_target_topic_clears_stored_topic(self):
+        # the UI sends '' when switching back to auto-create, None is stored
+        stored = make_materialization(
+            tenantId=TENANT_ID, targetTopicId='t-1', targetTopicName='old_topic')
+        service = mock_materialization_service()
+        service.find_by_id.return_value = stored
+        service.update.side_effect = lambda m: m
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization', json={
+                'materializationId': stored.materializationId,
+                'targetTopicId': '',
+                'targetTopicName': '',
+            })
+        self.assertEqual(200, response.status_code)
+        updated = service.update.call_args[0][0]
+        self.assertIsNone(updated.targetTopicId)
+        self.assertIsNone(updated.targetTopicName)
+
+    def test_update_group_by_change_marks_rebuild(self):
+        # stored rows are keyed by the old dimensions, the flag forces a full rebuild
+        stored = make_materialization(groupBy=['region'], tenantId=TENANT_ID)
+        service = mock_materialization_service()
+        service.find_by_id.return_value = stored
+        service.update.side_effect = lambda m: m
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization', json={
+                'materializationId': stored.materializationId,
+                'groupBy': ['region', 'channel'],
+            })
+        self.assertEqual(200, response.status_code)
+        updated = service.update.call_args[0][0]
+        self.assertTrue(updated.rebuildPending)
+        self.assertEqual(['region', 'channel'], updated.groupBy)
+
+    def test_update_time_grain_change_marks_rebuild(self):
+        stored = make_materialization(timeGrain='day', tenantId=TENANT_ID)
+        service = mock_materialization_service()
+        service.find_by_id.return_value = stored
+        service.update.side_effect = lambda m: m
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization', json={
+                'materializationId': stored.materializationId,
+                'timeGrain': 'month',
+            })
+        self.assertEqual(200, response.status_code)
+        updated = service.update.call_args[0][0]
+        self.assertTrue(updated.rebuildPending)
+
+    def test_update_identical_group_by_keeps_flag_clear(self):
+        stored = make_materialization(groupBy=['region'], tenantId=TENANT_ID)
+        service = mock_materialization_service()
+        service.find_by_id.return_value = stored
+        service.update.side_effect = lambda m: m
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization', json={
+                'materializationId': stored.materializationId,
+                'groupBy': ['region'],
+            })
+        self.assertEqual(200, response.status_code)
+        updated = service.update.call_args[0][0]
+        self.assertFalse(updated.rebuildPending)
+
+    def test_update_unrelated_field_keeps_pending_rebuild(self):
+        # a failed or pending rebuild must not be cancelled by an unrelated save
+        stored = make_materialization(tenantId=TENANT_ID, rebuildPending=True)
+        service = mock_materialization_service()
+        service.find_by_id.return_value = stored
+        service.update.side_effect = lambda m: m
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization', json={
+                'materializationId': stored.materializationId,
+                'name': 'renamed',
+            })
+        self.assertEqual(200, response.status_code)
+        updated = service.update.call_args[0][0]
+        self.assertTrue(updated.rebuildPending)
+
+    def test_update_cannot_clear_rebuild_flag_from_payload(self):
+        # only a successful run clears the flag, never a client payload
+        stored = make_materialization(tenantId=TENANT_ID, rebuildPending=True)
+        service = mock_materialization_service()
+        service.find_by_id.return_value = stored
+        service.update.side_effect = lambda m: m
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization', json={
+                'materializationId': stored.materializationId,
+                'rebuildPending': False,
+            })
+        self.assertEqual(200, response.status_code)
+        updated = service.update.call_args[0][0]
+        self.assertTrue(updated.rebuildPending)
+
     def test_update_not_found_returns_404(self):
         service = mock_materialization_service()
         service.find_by_id.return_value = None
@@ -97,6 +229,33 @@ class TestSaveMaterialization(unittest.TestCase):
                 'materializationId': 'no_such', 'metricName': 'm'})
         self.assertEqual(404, response.status_code)
         service.update.assert_not_called()
+
+
+class TestMaterializationRebuildFlagShaper(unittest.TestCase):
+    """rebuild_pending survives the meta shaper round trip and defaults to False."""
+
+    def test_default_is_false(self):
+        self.assertFalse(make_materialization().rebuildPending)
+
+    def test_round_trip_keeps_true(self):
+        from watchmen_metricflow.meta.materialization_meta_service import (
+            MATERIALIZATION_ENTITY_SHAPER)
+        materialization = make_materialization(
+            tenantId=TENANT_ID, groupBy=['region'], rebuildPending=True)
+        row = MATERIALIZATION_ENTITY_SHAPER.serialize(materialization)
+        self.assertTrue(row['rebuild_pending'])
+        restored = MATERIALIZATION_ENTITY_SHAPER.deserialize(row)
+        self.assertTrue(restored.rebuildPending)
+
+    def test_round_trip_keeps_false_when_column_missing(self):
+        # rows written before the 18.1.8 migration have no rebuild_pending column
+        from watchmen_metricflow.meta.materialization_meta_service import (
+            MATERIALIZATION_ENTITY_SHAPER)
+        materialization = make_materialization(tenantId=TENANT_ID)
+        row = MATERIALIZATION_ENTITY_SHAPER.serialize(materialization)
+        del row['rebuild_pending']
+        restored = MATERIALIZATION_ENTITY_SHAPER.deserialize(row)
+        self.assertFalse(restored.rebuildPending)
 
 
 class TestDeleteMaterialization(unittest.TestCase):
@@ -147,9 +306,22 @@ class TestPageMaterialization(unittest.TestCase):
                 'pageNumber': 1, 'pageSize': 10})
         self.assertEqual(200, response.status_code)
         body = response.json()
-        self.assertEqual(1, body['totalCount'])
+        self.assertEqual(1, body['itemCount'])
         self.assertEqual('mat-1', body['data'][0]['materializationId'])
         service.find_page.assert_called_once()
+
+    def test_page_forwards_keyword_and_defaults_paging(self):
+        service = mock_materialization_service()
+        service.find_page.return_value = data_page([], total=0)
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization/page', json={
+                'keyword': 'sales', 'pageNumber': 0, 'pageSize': -5})
+        self.assertEqual(200, response.status_code)
+        keyword, pageable = service.find_page.call_args[0]
+        self.assertEqual('sales', keyword)
+        self.assertEqual(1, pageable.pageNumber)
+        self.assertEqual(10, pageable.pageSize)
 
 
 # --------------------------------------------------------------------------- #
@@ -191,7 +363,7 @@ class TestRunsPage(unittest.TestCase):
                 'pageNumber': 1, 'pageSize': 10, 'status': 'ALL'})
         self.assertEqual(200, response.status_code)
         body = response.json()
-        self.assertEqual(1, body['totalCount'])
+        self.assertEqual(1, body['itemCount'])
         self.assertEqual('run-1', body['data'][0]['runId'])
         run_filter = service.find_page.call_args[0][0]
         # 'ALL' reaches the meta service, which skips the status criteria there
@@ -213,6 +385,7 @@ class TestSaveFlow(unittest.TestCase):
     def test_create_flow_success(self):
         flow_service = mock_flow_service()
         flow_service.create.side_effect = lambda f: f
+        flow_service.find_by_id.return_value = None
         materialization_service = mock_materialization_service()
         materialization_service.find_by_id.return_value = make_materialization(tenantId=TENANT_ID)
         p1, p2 = self._patches(flow_service, materialization_service)
@@ -246,6 +419,29 @@ class TestSaveFlow(unittest.TestCase):
             response = client.post('/metricflow/materialization/flow', json=make_flow_dict(
                 materialization_ids=['mat-1', 'mat-1']))
         self.assertEqual(400, response.status_code)
+
+    def test_flow_update_ignores_protected_keys(self):
+        existing = make_flow(flowId='flow-1', tenantId=TENANT_ID, name='old')
+        flow_service = mock_flow_service()
+        flow_service.find_by_id.return_value = existing
+        flow_service.update.side_effect = lambda f: f
+        materialization_service = mock_materialization_service()
+        materialization_service.find_by_id.return_value = make_materialization(tenantId=TENANT_ID)
+        p1, p2 = self._patches(flow_service, materialization_service)
+        with p1, p2, mock.patch.object(
+                materialization_flow_graph, 'resolve_metric_source_topics', return_value={}):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization/flow', json={
+                'flowId': 'flow-1',
+                'name': 'renamed',
+                'materializationIds': ['mat-1'],
+                'tenantId': 'other-tenant',
+                'userId': 'hacker'})
+        self.assertEqual(200, response.status_code)
+        flow_service.update.assert_called_once()
+        updated = flow_service.update.call_args[0][0]
+        self.assertEqual('renamed', updated.name)
+        self.assertEqual(TENANT_ID, updated.tenantId)
 
     def test_flow_with_unknown_member_returns_404(self):
         flow_service = mock_flow_service()

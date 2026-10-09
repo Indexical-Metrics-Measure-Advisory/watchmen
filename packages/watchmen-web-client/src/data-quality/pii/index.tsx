@@ -3,11 +3,11 @@ import {Router} from '@/routes/types';
 import {fetchPiiTerms} from '@/services/data/data-quality/pii';
 import {PiiClassificationTerm} from '@/services/data/data-quality/pii-types';
 import {FullWidthPage} from '@/widgets/basic/page';
-import {FullWidthPageHeaderContainer, PageTitle} from '@/widgets/basic/page-header';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import React, {useCallback, useEffect, useState} from 'react';
 import {Navigate} from 'react-router-dom';
+import {AmbientBody, HeroHeader, HeroSubtitle, HeroTitle} from '../widgets/kit';
 import {PiiDiscoveryTab} from './discovery-tab';
 import {PiiLineageTab} from './lineage-tab';
 import {PiiReportTab} from './report-tab';
@@ -51,10 +51,14 @@ const DataQualityPiiIndex = () => {
 	}
 
 	return <FullWidthPage>
-		<FullWidthPageHeaderContainer>
-			<PageTitle>Data Classification</PageTitle>
-		</FullWidthPageHeaderContainer>
-		<PiiBody>
+		<AmbientBody>
+			<HeroHeader>
+				<div>
+					<HeroTitle>Data Classification</HeroTitle>
+					<HeroSubtitle>Sensitive-data terms, discovery, lineage and posture report.</HeroSubtitle>
+				</div>
+			</HeroHeader>
+			<PiiBody>
 			<PiiTabHeaders>
 				{TABS.map(tab => {
 					return <PiiTabHeader key={tab.key} active={activeTab === tab.key}
@@ -78,6 +82,7 @@ const DataQualityPiiIndex = () => {
 					: null}
 			</PiiTabContent>
 		</PiiBody>
+		</AmbientBody>
 	</FullWidthPage>;
 };
 

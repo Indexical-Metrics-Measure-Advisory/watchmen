@@ -18,6 +18,21 @@ class MetricFlowSettings(RestSettings):
     # the bypass instead of dbt:
     # DIRECT_METRIC_BYPASS_TYPES=mysql,postgresql,oracle
     DIRECT_METRIC_BYPASS_TYPES: str = 'mysql,postgresql,oracle'
+    # materialization batch compute, off by default
+    MATERIALIZATION_ON: bool = False
+    # AUTO/STORAGE/SPARK, how a materialization run computes its metric query
+    MATERIALIZATION_ENGINE: str = 'AUTO'
+    # spark offload, empty command falls back to the storage engine
+    MATERIALIZATION_SPARK_SUBMIT_COMMAND: str = ''
+    MATERIALIZATION_SPARK_SUBMIT_ARGS: str = ''
+    MATERIALIZATION_SPARK_SUBMIT_TIMEOUT: int = 3600
+    MATERIALIZATION_SPARK_PYTHON: str = 'python3'
+    MATERIALIZATION_SPARK_PYTHON_PATH: str = ''
+    # scheduler heartbeat interval in seconds, capped at 60 so no scheduled minute is skipped
+    MATERIALIZATION_SCHEDULER_HEARTBEAT: int = 30
+    # a run stuck in PENDING/RUNNING longer than this is marked FAILED on service startup;
+    # keep it above the longest expected run, a live run older than the threshold is failed too
+    MATERIALIZATION_RUN_STALE_MINUTES: int = 120
 
 
 mf_settings = MetricFlowSettings()
@@ -33,6 +48,31 @@ def ask_analysis_web_base_url() -> str:
 
 def ask_ontology_query_require_filters() -> bool:
     return mf_settings.ONTOLOGY_QUERY_REQUIRE_FILTERS
+
+
+def ask_materialization_on() -> bool:
+    return mf_settings.MATERIALIZATION_ON
+
+
+def ask_materialization_engine() -> str:
+    return (mf_settings.MATERIALIZATION_ENGINE or 'AUTO').strip().upper()
+
+
+def ask_materialization_spark_submit_command() -> str:
+    return (mf_settings.MATERIALIZATION_SPARK_SUBMIT_COMMAND or '').strip()
+
+
+def ask_materialization_scheduler_heartbeat() -> int:
+    value = mf_settings.MATERIALIZATION_SCHEDULER_HEARTBEAT
+    if not value or value <= 0:
+        return 30
+    # intervals above one minute can skip a scheduled minute entirely
+    return min(value, 60)
+
+
+def ask_materialization_run_stale_minutes() -> int:
+    value = mf_settings.MATERIALIZATION_RUN_STALE_MINUTES
+    return value if value and value > 0 else 120
 
 
 def ask_direct_bypass_types() -> set:

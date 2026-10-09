@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _metric_test_base import make_materialization
-from watchmen_metricflow.model.materialization import FactorRole, FactorMappingColumn
+from watchmen_metricflow.model.materialization import FactorMappingColumn, FactorRole, TimeGrain
 from watchmen_metricflow.service.materialization_error import MaterializationError
 from watchmen_metricflow.service.materialization_factor_mapping import (
     build_default_factor_mapping,
@@ -47,7 +47,7 @@ class TestBuildDefaultFactorMapping(unittest.TestCase):
             [column.columnName for column in columns])
 
     def test_time_grain_enum_is_flattened_to_value(self):
-        columns = build_default_factor_mapping('m1', 'week', [])
+        columns = build_default_factor_mapping('m1', TimeGrain.WEEK, [])
         by_name = {column.columnName: column for column in columns}
         self.assertEqual('week', by_name['timeGrain'].source)
         self.assertEqual('metric_time__week', by_name['statDate'].source)
@@ -77,7 +77,7 @@ class TestColumnName(unittest.TestCase):
     def test_physical_column_name_rule(self):
         self.assertEqual('sales_region', to_column_name('Sales.Region'))
         self.assertEqual('order_id', to_column_name('Order-Id'))
-        self.assertEqual('ship city', to_column_name('  Ship City  '))
+        self.assertEqual('ship_city', to_column_name('  Ship City  '))
 
 
 class TestMissingDimensions(unittest.TestCase):
@@ -157,6 +157,69 @@ class TestMapResultRows(unittest.TestCase):
             'day',
             materialization=materialization)
         self.assertEqual(date(2026, 1, 1), rows[0]['statDate'])
+
+    def test_year_time_key_is_parsed_to_period_start(self):
+        materialization = make_materialization(metricName='sales_amount', timeGrain='year')
+        rows = map_result_rows(
+            ['metric_time__year', 'timeGrain', 'region', 'sales_amount'],
+            [['2026', 'year', 'east', 1.0]],
+            'year',
+            materialization=materialization)
+        self.assertEqual(date(2026, 1, 1), rows[0]['statDate'])
+
+    def test_month_time_key_is_parsed_to_period_start(self):
+        materialization = make_materialization(metricName='sales_amount', timeGrain='month')
+        rows = map_result_rows(
+            ['metric_time__month', 'timeGrain', 'region', 'sales_amount'],
+            [['2026-09', 'month', 'east', 1.0]],
+            'month',
+            materialization=materialization)
+        self.assertEqual(date(2026, 9, 1), rows[0]['statDate'])
+
+    def test_quarter_time_key_is_parsed_to_period_start(self):
+        materialization = make_materialization(metricName='sales_amount', timeGrain='quarter')
+        rows = map_result_rows(
+            ['metric_time__quarter', 'timeGrain', 'region', 'sales_amount'],
+            [['2026-Q4', 'quarter', 'east', 1.0]],
+            'quarter',
+            materialization=materialization)
+        self.assertEqual(date(2026, 10, 1), rows[0]['statDate'])
+
+    def test_week_time_key_is_parsed_to_monday(self):
+        materialization = make_materialization(metricName='sales_amount', timeGrain='week')
+        rows = map_result_rows(
+            ['metric_time__week', 'timeGrain', 'region', 'sales_amount'],
+            [['2026-40', 'week', 'east', 1.0]],
+            'week',
+            materialization=materialization)
+        self.assertEqual(date(2026, 9, 28), rows[0]['statDate'])
+
+    def test_year_time_key_tolerated_under_day_grain(self):
+        materialization = make_materialization(metricName='sales_amount')
+        rows = map_result_rows(
+            self.COLUMNS,
+            [['2026', 'day', 'east', 1.0]],
+            'day',
+            materialization=materialization)
+        self.assertEqual(date(2026, 1, 1), rows[0]['statDate'])
+
+    def test_integer_year_time_value_is_parsed(self):
+        materialization = make_materialization(metricName='sales_amount', timeGrain='year')
+        rows = map_result_rows(
+            ['metric_time__year', 'timeGrain', 'region', 'sales_amount'],
+            [[2026, 'year', 'east', 1.0]],
+            'year',
+            materialization=materialization)
+        self.assertEqual(date(2026, 1, 1), rows[0]['statDate'])
+
+    def test_unparsable_time_value_raises(self):
+        materialization = make_materialization(metricName='sales_amount')
+        with self.assertRaises(MaterializationError):
+            map_result_rows(
+                self.COLUMNS,
+                [['oops', 'day', 'east', 1.0]],
+                'day',
+                materialization=materialization)
 
 
 if __name__ == '__main__':

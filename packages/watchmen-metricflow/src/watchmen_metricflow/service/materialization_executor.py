@@ -8,7 +8,8 @@ from starlette.concurrency import run_in_threadpool
 from watchmen_auth import PrincipalService
 from watchmen_metricflow.meta.metric_access_service import check_metric_names_allowed
 from watchmen_metricflow.metricflow.main_api import query as dbt_query
-from watchmen_metricflow.model.materialization import Materialization, MaterializationEngine, TimeGrain
+from watchmen_metricflow.model.materialization import Materialization, MaterializationEngine, TimeGrain, \
+	WriteMode
 from watchmen_metricflow.model.metric_request import MetricQueryRequest
 from watchmen_metricflow.model.semantic import TimeGranularity
 from watchmen_metricflow.router.metric_router import build_metric_config, ensure_dbt_path
@@ -112,7 +113,7 @@ async def execute_metric_query(
 		check_metric_names_allowed, get_metric_service(principal_service), principal_service,
 		[materialization.metricName])
 
-	window_start, window_end = compute_window(materialization.timeGrain)
+	window_start, window_end = materialization_window(materialization)
 	request = build_request(materialization, window_start, window_end)
 	requested = _resolve_requested_engine(materialization)
 
@@ -171,4 +172,27 @@ async def execute_metric_query(
 
 
 def preview_window(materialization: Materialization, now: Optional[datetime] = None) -> Tuple[date, date]:
+	return compute_window(materialization.timeGrain, now)
+
+
+# earliest bound used for a one-off full history rebuild after a key change
+REBUILD_MIN_DATE = date(1970, 1, 1)
+
+
+def is_rebuild(materialization: Materialization) -> bool:
+	"""A pending rebuild only widens MERGE jobs; truncate jobs replace everything anyway."""
+	# compare directly, str(writeMode) on the enum member yields 'WriteMode.MERGE'
+	return bool(materialization.rebuildPending) and materialization.writeMode == WriteMode.MERGE
+
+
+def rebuild_window(now: Optional[datetime] = None) -> Tuple[date, date]:
+	moment = now if now is not None else datetime.now()
+	return REBUILD_MIN_DATE, moment.date()
+
+
+def materialization_window(
+		materialization: Materialization, now: Optional[datetime] = None) -> Tuple[date, date]:
+	"""Query bounds of the next run: full history while a rebuild is pending."""
+	if is_rebuild(materialization):
+		return rebuild_window(now)
 	return compute_window(materialization.timeGrain, now)

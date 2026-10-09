@@ -1,5 +1,6 @@
 import React, {ReactNode} from 'react';
 import styled from 'styled-components';
+import {CardPanel, CardPanelTitle} from './kit';
 
 /**
  * Shared KPI / card / state components for the data-quality module.
@@ -18,34 +19,31 @@ export const KpiRow = styled.div.attrs({'data-widget': 'dqc-kpi-row'})`
 	}
 `;
 
-const KpiCardContainer = styled.div.attrs({'data-widget': 'dqc-kpi-card'})`
-	display          : flex;
-	flex-direction   : column;
-	border           : var(--border);
-	border-radius    : var(--border-radius);
-	background-color : var(--invert-color);
-	padding          : calc(var(--margin) / 2);
-	transition       : box-shadow 300ms ease-in-out;
+const KpiCardContainer = styled(CardPanel)`
+	padding    : calc(var(--margin) / 2);
+	margin-bottom : 0;
+	transition : box-shadow 200ms ease-in-out;
 	&:hover {
-		box-shadow : var(--primary-hover-shadow);
+		box-shadow : 0 2px 4px rgba(37, 38, 94, 0.06), 0 10px 26px rgba(37, 38, 94, 0.1);
 	}
 `;
 const KpiCardHeader = styled.div.attrs({'data-widget': 'dqc-kpi-card-header'})`
 	display        : flex;
 	align-items    : center;
-	font-variant   : petite-caps;
-	font-size      : 0.9em;
-	opacity        : 0.8;
+	font-size      : 0.8em;
+	letter-spacing : 0.06em;
+	text-transform : uppercase;
+	opacity        : 0.6;
 	margin-bottom  : 4px;
 `;
 const KpiCardValue = styled.div.attrs<{ danger?: boolean }>(({danger = false}) => {
 	return {
 		'data-widget': 'dqc-kpi-card-value',
-		style: {color: danger ? 'var(--danger-color)' : 'var(--primary-color)'}
+		style: {color: danger ? 'var(--danger-color)' : 'var(--font-color)'}
 	};
 })<{ danger?: boolean }>`
 	font-family : var(--code-font-family);
-	font-size   : 1.8em;
+	font-size   : 2em;
 	font-weight : var(--font-bold);
 	line-height : 1.2;
 `;
@@ -56,7 +54,7 @@ const KpiCardSubtext = styled.div.attrs<{ danger?: boolean }>(({danger = false})
 	};
 })<{ danger?: boolean }>`
 	font-size  : 0.85em;
-	opacity    : 0.85;
+	opacity    : 0.6;
 	margin-top : 4px;
 `;
 
@@ -77,23 +75,11 @@ export const KpiCard = (props: {
 };
 
 // ——— section card ———
-export const SectionCardContainer = styled.div.attrs({'data-widget': 'dqc-section-card'})`
-	display          : flex;
-	position         : relative;
-	flex-direction   : column;
-	border           : var(--border);
-	border-radius    : var(--border-radius);
-	background-color : var(--invert-color);
-	padding          : calc(var(--margin) / 2);
-	margin-bottom    : calc(var(--margin) / 2);
+export const SectionCardContainer = styled(CardPanel)`
+	padding : calc(var(--margin) / 2);
 `;
-export const SectionCardTitle = styled.div.attrs({'data-widget': 'dqc-section-card-title'})`
-	display        : flex;
-	align-items    : center;
-	font-size      : 1.05em;
-	font-weight    : var(--font-demi-bold);
-	font-variant   : petite-caps;
-	margin-bottom  : calc(var(--margin) / 3);
+export const SectionCardTitle = styled(CardPanelTitle)`
+	margin-bottom : calc(var(--margin) / 3);
 `;
 export const SectionCardTitleBadge = styled.span.attrs({'data-widget': 'dqc-section-card-title-badge'})`
 	display          : inline-flex;
@@ -101,13 +87,13 @@ export const SectionCardTitleBadge = styled.span.attrs({'data-widget': 'dqc-sect
 	justify-content  : center;
 	min-width        : 20px;
 	height           : 20px;
-	padding          : 0 6px;
+	padding          : 0 7px;
 	margin-left      : 8px;
 	font-size        : 0.75em;
 	font-family      : var(--code-font-family);
 	color            : var(--invert-color);
 	background-color : var(--primary-color);
-	border-radius    : 10px;
+	border-radius    : 999px;
 `;
 
 export const SectionCard = (props: {

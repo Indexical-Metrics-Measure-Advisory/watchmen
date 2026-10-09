@@ -52,30 +52,30 @@ export const StatsChart = (props: StatsChartProps) => {
 					trigger: 'item',
 					formatter: '{b}: {c} ({d}%)'
 				},
-				legend: {
-					orient: 'horizontal',
-					bottom: 10,
-					type: 'scroll',
-					textStyle: {color: NEUTRAL_COLOR}
-				},
-				series: [{
-					type: 'pie',
-					radius: ['40%', '70%'],
-					center: ['50%', title ? '55%' : '50%'],
-					avoidLabelOverlap: true,
-					itemStyle: {
-						borderRadius: 4,
-						// echarts cannot consume css variables; use theme-neutral split color as slice separator
-						borderColor: CHART_SPLIT_COLOR,
-						borderWidth: 2
+					legend: {
+						orient: 'horizontal',
+						bottom: 0,
+						type: 'scroll',
+						itemWidth: 10,
+						itemHeight: 10,
+						textStyle: {color: NEUTRAL_COLOR, fontSize: 11}
 					},
-					label: {
-						show: true,
-						formatter: '{b}: {d}%',
-						color: NEUTRAL_COLOR
-					},
-					data: data.length > 0 ? data : [{name: 'No Data', value: 0}]
-				}]
+					series: [{
+						type: 'pie',
+						radius: ['42%', '68%'],
+						center: ['50%', '44%'],
+						avoidLabelOverlap: true,
+						itemStyle: {
+							borderRadius: 4,
+							// echarts cannot consume css variables; use theme-neutral split color as slice separator
+							borderColor: CHART_SPLIT_COLOR,
+							borderWidth: 2
+						},
+						label: {
+							show: false
+						},
+						data: data.length > 0 ? data : [{name: 'No Data', value: 0}]
+					}]
 			});
 		} else {
 			instance.setOption({

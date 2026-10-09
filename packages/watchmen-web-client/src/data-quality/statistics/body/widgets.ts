@@ -8,8 +8,8 @@ export const StatisticsBodyContainer = styled.div.attrs(() => {
 	grid-column-gap       : var(--margin);
 	grid-template-rows    : var(--header-height) 1fr 1fr var(--header-height);
 	grid-row-gap          : var(--margin);
-	padding               : var(--margin) calc(var(--margin) / 2);
+	padding               : var(--margin) 0 var(--margin);
 	width                 : 100%;
-	min-height            : calc(100vh - var(--page-header-height));
+	min-height            : calc(100vh - var(--header-height));
 	transition            : all 300ms ease-in-out;
 `;

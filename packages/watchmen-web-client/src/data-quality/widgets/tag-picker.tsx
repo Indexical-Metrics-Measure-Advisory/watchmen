@@ -1,8 +1,13 @@
-import {TagDef, createTag, loadTags, saveTags} from '@/services/data/tuples/tag-types';
+import {listTagsByType, saveTag} from '@/services/data/tuples/tag';
+import {PRESET_COLORS, Tag, TagType} from '@/services/data/tuples/tag-types';
+import {generateUuid} from '@/services/data/tuples/utils';
+import {getCurrentTime} from '@/services/data/utils';
 import React, {ChangeEvent, useEffect, useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {ICON_ADD, ICON_DROPDOWN} from '@/widgets/basic/constants';
 import {DropdownOption} from '@/widgets/basic/types';
+import {useEventBus} from '@/widgets/events/event-bus';
+import {EventTypes} from '@/widgets/events/types';
 import {
 	TagPickerContainer,
 	TagItem,
@@ -19,16 +24,25 @@ interface TagPickerProps {
 	placeholder?: string;
 }
 
-const getTagById = (tags: Array<TagDef>, tagId: string): TagDef | undefined => {
+/** admin tags carry no color; derive a stable one from the name for the dots */
+const colorOfName = (name: string): string => {
+	let hash = 0;
+	for (let i = 0; i < name.length; i++) {
+		hash = (hash * 31 + name.charCodeAt(i)) % 997;
+	}
+	return PRESET_COLORS[hash % PRESET_COLORS.length];
+};
+
+const getTagById = (tags: Array<Tag>, tagId: string): Tag | undefined => {
 	return tags.find(tag => tag.tagId === tagId);
 };
 
-const getTagOptions = (tags: Array<TagDef>, selectedIds: Array<string>): Array<DropdownOption> => {
+const getTagOptions = (tags: Array<Tag>, selectedIds: Array<string>): Array<DropdownOption> => {
 	return tags
-		.filter(tag => !selectedIds.includes(tag.tagId))
+		.filter(tag => !selectedIds.includes(tag.tagId ?? ''))
 		.map(tag => ({
-			value: tag.tagId,
-			label: tag.name
+			value: tag.tagId ?? '',
+			label: tag.name ?? ''
 		}))
 		.sort((a, b) => a.label.localeCompare(b.label));
 };
@@ -36,22 +50,22 @@ const getTagOptions = (tags: Array<TagDef>, selectedIds: Array<string>): Array<D
 export const TagPicker = (props: TagPickerProps) => {
 	const {value, onChange, placeholder = 'Select tags...'} = props;
 
-	const [availableTags, setAvailableTags] = useState<Array<TagDef>>([]);
+	const {fire} = useEventBus();
+	const [availableTags, setAvailableTags] = useState<Array<Tag>>([]);
 	const [dropdownActive, setDropdownActive] = useState(false);
 	const [atBottom, setAtBottom] = useState(true);
 	const [searchText, setSearchText] = useState('');
 	const [showCreateForm, setShowCreateForm] = useState(false);
 	const [newTagName, setNewTagName] = useState('');
-	const [newTagColor, setNewTagColor] = useState('#1890ff');
-	const [newTagCategory, setNewTagCategory] = useState('');
 	const containerRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 
-	// 加载可用标签
+	// load topic-type tags from the admin tag store
 	useEffect(() => {
-		const tags = loadTags();
-		setAvailableTags(tags);
-	}, []);
+		fire(EventTypes.INVOKE_REMOTE_REQUEST,
+			async () => await listTagsByType(TagType.TOPIC),
+			(loaded: Array<Tag>) => setAvailableTags(loaded ?? []));
+	}, [fire]);
 
 	// 点击外部关闭下拉
 	useEffect(() => {
@@ -65,7 +79,7 @@ export const TagPicker = (props: TagPickerProps) => {
 		return () => document.removeEventListener('mousedown', handler);
 	}, []);
 
-	const selectedTags = value.map(tagId => getTagById(availableTags, tagId)).filter(Boolean) as Array<TagDef>;
+	const selectedTags = value.map(tagId => getTagById(availableTags, tagId)).filter(Boolean) as Array<Tag>;
 
 	const toggleDropdown = () => {
 		if (!dropdownActive) {
@@ -95,16 +109,24 @@ export const TagPicker = (props: TagPickerProps) => {
 		if (!newTagName.trim()) {
 			return;
 		}
-		const newTag = createTag(newTagName.trim(), newTagColor, newTagCategory || undefined);
-		const updatedTags = [...availableTags, newTag];
-		saveTags(updatedTags);
-		setAvailableTags(updatedTags);
-		onChange([...value, newTag.tagId]);
-		setNewTagName('');
-		setNewTagColor('#1890ff');
-		setNewTagCategory('');
-		setShowCreateForm(false);
-		setSearchText('');
+		// saveTag fills the server-generated tagId back into the object on creation
+		const tag: Tag = {
+			tagId: generateUuid(),
+			name: newTagName.trim(),
+			type: TagType.TOPIC,
+			version: 1,
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
+		};
+		fire(EventTypes.INVOKE_REMOTE_REQUEST,
+			async () => await saveTag(tag),
+			() => {
+				setAvailableTags(prev => [...prev, tag]);
+				onChange([...value, tag.tagId]);
+				setNewTagName('');
+				setShowCreateForm(false);
+				setSearchText('');
+			});
 	};
 
 	const filteredOptions = getTagOptions(availableTags, value).filter(option => {
@@ -112,7 +134,7 @@ export const TagPicker = (props: TagPickerProps) => {
 			return true;
 		}
 		const tag = availableTags.find(t => t.tagId === option.value);
-		return tag?.name.toLowerCase().includes(searchText.toLowerCase());
+		return (tag?.name ?? '').toLowerCase().includes(searchText.toLowerCase());
 	});
 
 	return (
@@ -126,12 +148,12 @@ export const TagPicker = (props: TagPickerProps) => {
 				? <span style={{opacity: 0.6, fontStyle: 'italic'}}>{placeholder}</span>
 				: null}
 			{selectedTags.map(tag => (
-				<TagItem key={tag.tagId} color={tag.color}>
-					<TagColorDot color={tag.color}/>
+				<TagItem key={tag.tagId} color={colorOfName(tag.name ?? '')}>
+					<TagColorDot color={colorOfName(tag.name ?? '')}/>
 					<span>{tag.name}</span>
 					<TagRemoveButton data-widget="tag-remove" onClick={(e) => {
 						e.stopPropagation();
-						removeTag(tag.tagId);
+						removeTag(tag.tagId ?? '');
 					}}>×</TagRemoveButton>
 				</TagItem>
 			))}
@@ -165,15 +187,16 @@ export const TagPicker = (props: TagPickerProps) => {
 									toggleTag(option.value);
 								}}
 							>
-								<TagColorDot color={tag.color}/>
+								<TagColorDot color={colorOfName(tag.name ?? '')}/>
 								<span>{tag.name}</span>
 							</TagDropdownItem>
 						);
 					})}
-					{searchText && !availableTags.some(t => t.name.toLowerCase() === searchText.toLowerCase()) ? (
+					{searchText && !availableTags.some(t => (t.name ?? '').toLowerCase() === searchText.toLowerCase()) ? (
 						<CreateTagButton onClick={(e) => {
 							e.stopPropagation();
 							setShowCreateForm(true);
+							setNewTagName(searchText);
 						}}>
 							<FontAwesomeIcon icon={ICON_ADD}/>
 							<span>Create "{searchText}"</span>
@@ -199,22 +222,6 @@ export const TagPicker = (props: TagPickerProps) => {
 									fontSize: '14px'
 								}}
 							/>
-							<div style={{display: 'flex', gap: '4px', flexWrap: 'wrap'}}>
-								{['#ff4d4f', '#fa8c16', '#faad14', '#52c41a', '#1890ff', '#2f54eb', '#722ed1', '#eb2f96'].map(color => (
-									<div
-										key={color}
-										onClick={() => setNewTagColor(color)}
-										style={{
-											width: '20px',
-											height: '20px',
-											borderRadius: '50%',
-											backgroundColor: color,
-											cursor: 'pointer',
-											border: color === newTagColor ? '2px solid #000' : '2px solid transparent'
-										}}
-									/>
-								))}
-							</div>
 							<div style={{display: 'flex', gap: '4px'}}>
 								<button
 									onClick={handleCreateTag}

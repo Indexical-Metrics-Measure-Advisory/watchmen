@@ -21,10 +21,15 @@ from _metric_test_base import (
     mock_materialization_service,
     mock_run_service,
 )
-from watchmen_metricflow.model.materialization import MaterializationJobLockStatus, RunStatus
+from watchmen_metricflow.model.materialization import MaterializationJobLockStatus, RunStatus, WriteMode
 from watchmen_metricflow.service import materialization_runner
 from watchmen_metricflow.service.materialization_error import MaterializationError
-from watchmen_metricflow.service.materialization_executor import QueryOutcome, compute_window
+from watchmen_metricflow.service.materialization_executor import (
+    QueryOutcome,
+    compute_window,
+    is_rebuild,
+    materialization_window,
+)
 from watchmen_metricflow.service.materialization_runner import (
     ERROR_MESSAGE_MAX_LENGTH,
     MaterializationRunner,
@@ -78,12 +83,34 @@ class TestComputeWindow(unittest.TestCase):
         self.assertEqual(date(2026, 1, 1), end)
 
 
-class TestIsDue(unittest.TestCase):
-    def _at(self, text, day=1, month=10, year=2026, weekday=None):
-        moment = datetime(year, month, day)
-        # weekday for schedule comparison uses the execution moment itself
-        return moment
+class TestRebuildWindow(unittest.TestCase):
+    def test_without_pending_flag_keeps_regular_window(self):
+        materialization = make_materialization(timeGrain='day')
+        start, end = materialization_window(materialization, datetime(2026, 10, 1))
+        self.assertEqual(date(2026, 9, 30), start)
+        self.assertEqual(date(2026, 9, 30), end)
 
+    def test_pending_rebuild_covers_full_history(self):
+        materialization = make_materialization(timeGrain='day', rebuildPending=True)
+        start, end = materialization_window(materialization, datetime(2026, 10, 1))
+        self.assertEqual(date(1970, 1, 1), start)
+        self.assertEqual(date(2026, 10, 1), end)
+
+    def test_truncate_job_with_pending_flag_keeps_regular_window(self):
+        # truncate jobs replace everything anyway, the flag is only cleared
+        materialization = make_materialization(
+            timeGrain='day', rebuildPending=True, writeMode=WriteMode.TRUNCATE_INSERT)
+        self.assertFalse(is_rebuild(materialization))
+        start, end = materialization_window(materialization, datetime(2026, 10, 1))
+        self.assertEqual(date(2026, 9, 30), start)
+
+    def test_merge_job_without_flag_is_not_a_rebuild(self):
+        self.assertFalse(is_rebuild(make_materialization(writeMode=WriteMode.MERGE)))
+        self.assertTrue(is_rebuild(make_materialization(
+            writeMode=WriteMode.MERGE, rebuildPending=True)))
+
+
+class TestIsDue(unittest.TestCase):
     def test_disabled_materialization_is_never_due(self):
         materialization = schedule_materialization(enabled=False)
         self.assertFalse(is_due(materialization, datetime(2026, 10, 1, 3, 0)))
@@ -287,6 +314,89 @@ class TestExecuteRun(unittest.TestCase):
         runner.materialization_service.update.assert_called_once()
         self.assertEqual('topic-9', materialization.targetTopicId)
         self.assertEqual('auto_wide', materialization.targetTopicName)
+
+    def test_rebuild_run_queries_full_history_and_truncates(self):
+        runner = build_runner()
+        materialization = self._materialization()
+        materialization.rebuildPending = True
+        runner.run_service.create.side_effect = lambda run: run
+        runner.run_service.update.side_effect = lambda run: run
+        runner.materialization_service.update.side_effect = lambda m: m
+        run = runner._create_run(materialization, 'manual', None, None)
+
+        outcome = QueryOutcome(
+            column_names=['metric_time__day', 'metricValue'],
+            rows=[(date(2026, 9, 30), 1.0)],
+            engine='STORAGE', sql_preview='select 3')
+        p1, p2, p3, wb_patch = self._success_patches(
+            runner, materialization, self._schema(), outcome, [{'metricValue': 1.0}])
+        with p1, p2, p3, wb_patch as write_back_mock:
+            asyncio.run(runner._execute(run, materialization))
+
+        self.assertEqual(RunStatus.SUCCESS, run.status)
+        # a rebuild replaces the table instead of merging by the old business key
+        self.assertTrue(write_back_mock.call_args[0][4])
+        # the flag is cleared only after the rebuild succeeded
+        self.assertFalse(materialization.rebuildPending)
+        runner.materialization_service.update.assert_called_once()
+        self.assertFalse(runner.materialization_service.update.call_args[0][0].rebuildPending)
+
+    def test_regular_run_neither_truncates_nor_clears(self):
+        runner = build_runner()
+        materialization = self._materialization()
+        runner.run_service.create.side_effect = lambda run: run
+        runner.run_service.update.side_effect = lambda run: run
+        run = runner._create_run(materialization, 'manual', None, None)
+
+        outcome = QueryOutcome(
+            column_names=['metric_time__day'], rows=[(date(2026, 9, 30),)],
+            engine='STORAGE', sql_preview='select 4')
+        p1, p2, p3, wb_patch = self._success_patches(
+            runner, materialization, self._schema(), outcome, [{}])
+        with p1, p2, p3, wb_patch as write_back_mock:
+            asyncio.run(runner._execute(run, materialization))
+
+        self.assertEqual(RunStatus.SUCCESS, run.status)
+        self.assertFalse(write_back_mock.call_args[0][4])
+        runner.materialization_service.update.assert_not_called()
+
+    def test_failed_rebuild_keeps_the_flag(self):
+        runner = build_runner()
+        materialization = self._materialization()
+        materialization.rebuildPending = True
+        runner.run_service.create.side_effect = lambda run: run
+        runner.run_service.update.side_effect = lambda run: run
+        run = runner._create_run(materialization, 'manual', None, None)
+
+        with mock.patch.object(
+                materialization_runner, 'execute_metric_query',
+                mock.AsyncMock(side_effect=MaterializationError('boom'))):
+            asyncio.run(runner._execute(run, materialization))
+
+        self.assertEqual(RunStatus.FAILED, run.status)
+        self.assertTrue(materialization.rebuildPending)
+        runner.materialization_service.update.assert_not_called()
+
+    def test_clear_flag_failure_does_not_fail_the_run(self):
+        # the data is already rebuilt, only the bookkeeping write failed
+        runner = build_runner()
+        materialization = self._materialization()
+        materialization.rebuildPending = True
+        runner.run_service.create.side_effect = lambda run: run
+        runner.run_service.update.side_effect = lambda run: run
+        runner.materialization_service.update.side_effect = RuntimeError('meta down')
+        run = runner._create_run(materialization, 'manual', None, None)
+
+        outcome = QueryOutcome(
+            column_names=['metric_time__day'], rows=[(date(2026, 9, 30),)],
+            engine='STORAGE', sql_preview='select 5')
+        p1, p2, p3, p4 = self._success_patches(
+            runner, materialization, self._schema(), outcome, [{}])
+        with p1, p2, p3, p4:
+            asyncio.run(runner._execute(run, materialization))
+
+        self.assertEqual(RunStatus.SUCCESS, run.status)
+        self.assertIsNone(run.errorMessage)
 
 
 class TestCronLock(unittest.TestCase):

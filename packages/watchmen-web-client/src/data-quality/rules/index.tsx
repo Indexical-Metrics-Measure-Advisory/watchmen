@@ -1,7 +1,7 @@
 import {FullWidthPage} from '@/widgets/basic/page';
-import {FullWidthPageHeaderContainer, PageTitle} from '@/widgets/basic/page-header';
 import {HELP_KEYS, useHelp} from '@/widgets/help';
 import React from 'react';
+import {AmbientBody, HeroHeader, HeroSubtitle, HeroTitle} from '../widgets/kit';
 import {RulesEventBusProvider} from './rules-event-bus';
 import {SearchCriteria} from './search-criteria';
 import {SearchResult} from './search-result';
@@ -11,15 +11,20 @@ const DataQualityMonitorRulesIndex = () => {
 	useHelp(HELP_KEYS.DQC_MONITOR_RULES);
 
 	return <FullWidthPage>
-		<FullWidthPageHeaderContainer>
-			<PageTitle>Monitor Rules</PageTitle>
-		</FullWidthPageHeaderContainer>
-		<Body>
-			<RulesEventBusProvider>
-				<SearchCriteria/>
-				<SearchResult/>
-			</RulesEventBusProvider>
-		</Body>
+		<AmbientBody>
+			<HeroHeader>
+				<div>
+					<HeroTitle>Monitor Rules</HeroTitle>
+					<HeroSubtitle>Define and run topic, factor and global monitor rules.</HeroSubtitle>
+				</div>
+			</HeroHeader>
+			<Body>
+				<RulesEventBusProvider>
+					<SearchCriteria/>
+					<SearchResult/>
+				</RulesEventBusProvider>
+			</Body>
+		</AmbientBody>
 	</FullWidthPage>;
 };
 

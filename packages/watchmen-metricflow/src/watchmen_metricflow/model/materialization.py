@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from enum import Enum
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from pydantic import ConfigDict
 from watchmen_model.common import Auditable, TenantBasedTuple, UserBasedTuple
@@ -71,10 +71,10 @@ class FactorMappingColumn(ExtendedBaseModel):
 
 
 class Materialization(ExtendedBaseModel, UserBasedTuple, Auditable):
-	materializationId: MaterializationId = None
+	materializationId: Optional[MaterializationId] = None
 	name: Optional[str] = None
-	metricId: str = None
-	metricName: str = None
+	metricId: Optional[str] = None
+	metricName: Optional[str] = None
 	metricLabel: Optional[str] = None
 	targetTopicId: Optional[str] = None
 	targetTopicName: Optional[str] = None
@@ -88,14 +88,31 @@ class Materialization(ExtendedBaseModel, UserBasedTuple, Auditable):
 	factorMapping: Optional[List[FactorMappingColumn]] = None
 	enabled: bool = True
 	description: Optional[str] = None
+	# set on save when groupBy/timeGrain change; the next run rebuilds the
+	# history under the new business key, then clears the flag
+	rebuildPending: bool = False
 	# presentation only, mirrors lastModifiedAt on read
 	updatedAt: Optional[datetime] = None
 
 	model_config = ConfigDict(use_enum_values=True)
 
+	def __init__(self, **data: Any):
+		# ExtendedBaseModel.__init__ re-assigns the raw input over the validated
+		# values, leaving nested models as plain dicts; coerce them back.
+		super().__init__(**data)
+		raw_schedule = self.__dict__.get('schedule')
+		if not isinstance(raw_schedule, MaterializationSchedule):
+			self.__dict__['schedule'] = MaterializationSchedule.model_validate(raw_schedule or {})
+		raw_factor_mapping = self.__dict__.get('factorMapping')
+		if isinstance(raw_factor_mapping, list):
+			self.__dict__['factorMapping'] = [
+				column if isinstance(column, FactorMappingColumn) else FactorMappingColumn.model_validate(column)
+				for column in raw_factor_mapping
+			]
+
 
 class MaterializationFlow(ExtendedBaseModel, UserBasedTuple, Auditable):
-	flowId: MaterializationFlowId = None
+	flowId: Optional[MaterializationFlowId] = None
 	name: Optional[str] = None
 	materializationIds: List[MaterializationId] = []
 	schedule: MaterializationSchedule = MaterializationSchedule()
@@ -104,6 +121,13 @@ class MaterializationFlow(ExtendedBaseModel, UserBasedTuple, Auditable):
 	updatedAt: Optional[datetime] = None
 
 	model_config = ConfigDict(use_enum_values=True)
+
+	def __init__(self, **data: Any):
+		# see Materialization.__init__, ExtendedBaseModel drops nested coercion
+		super().__init__(**data)
+		raw_schedule = self.__dict__.get('schedule')
+		if not isinstance(raw_schedule, MaterializationSchedule):
+			self.__dict__['schedule'] = MaterializationSchedule.model_validate(raw_schedule or {})
 
 
 class RunStatus(str, Enum):
@@ -120,8 +144,8 @@ class RunTriggerType(str, Enum):
 
 
 class MaterializationRun(ExtendedBaseModel, TenantBasedTuple):
-	runId: MaterializationRunId = None
-	materializationId: MaterializationId = None
+	runId: Optional[MaterializationRunId] = None
+	materializationId: Optional[MaterializationId] = None
 	materializationName: Optional[str] = None
 	metricName: Optional[str] = None
 	flowId: Optional[MaterializationFlowId] = None
@@ -139,6 +163,16 @@ class MaterializationRun(ExtendedBaseModel, TenantBasedTuple):
 	finishedAt: Optional[datetime] = None
 
 	model_config = ConfigDict(use_enum_values=True)
+
+	def __init__(self, **data: Any):
+		# ExtendedBaseModel.__init__ keeps raw string dates/datetimes from input;
+		# coerce them so the shaper binds real date/datetime values.
+		super().__init__(**data)
+		for key, value_type in (('windowStart', date), ('windowEnd', date),
+		                        ('startedAt', datetime), ('finishedAt', datetime)):
+			value = self.__dict__.get(key)
+			if isinstance(value, str):
+				self.__dict__[key] = value_type.fromisoformat(value)
 
 
 class MaterializationJobLockStatus(str, Enum):
@@ -160,14 +194,19 @@ class MaterializationJobLock(ExtendedBaseModel):
 	model_config = ConfigDict(use_enum_values=True)
 
 
-class MaterializationRunFilter(ExtendedBaseModel):
+class MaterializationPageRequest(ExtendedBaseModel):
 	keyword: Optional[str] = None
-	status: Optional[RunStatus] = None
-	materializationId: Optional[MaterializationId] = None
 	pageNumber: Optional[int] = None
 	pageSize: Optional[int] = None
 
-	model_config = ConfigDict(use_enum_values=True)
+
+class MaterializationRunFilter(ExtendedBaseModel):
+	keyword: Optional[str] = None
+	# plain string, the UI sends 'ALL' to clear the filter
+	status: Optional[str] = None
+	materializationId: Optional[MaterializationId] = None
+	pageNumber: Optional[int] = None
+	pageSize: Optional[int] = None
 
 
 class MaterializationRunRequest(ExtendedBaseModel):

@@ -11,14 +11,25 @@ from watchmen_utilities import is_blank
 from watchmen_metricflow.meta.materialization_meta_service import MaterializationFlowService, \
 	MaterializationRunService, MaterializationService
 from watchmen_metricflow.model.materialization import FlowGraph, Materialization, \
-	MaterializationFlow, MaterializationRun, MaterializationRunFilter, MaterializationRunRequest, \
-	RunTriggerType
+	MaterializationFlow, MaterializationPageRequest, MaterializationRun, MaterializationRunFilter, \
+	MaterializationRunRequest, RunTriggerType
 from watchmen_metricflow.service.materialization_flow_graph import build_flow_graph, detect_cycle
 from watchmen_metricflow.service.materialization_runner import MaterializationRunner
 from watchmen_metricflow.service.materialization_scheduler import run_due_materializations
 from watchmen_metricflow.util import trans, trans_readonly
 
 router = APIRouter()
+
+# partial updates only copy these payload keys onto the stored tuple, everything
+# else (tenantId, userId, ids, audit fields) is ignored
+UPDATABLE_MATERIALIZATION_KEYS = {
+	'name', 'metricId', 'metricName', 'metricLabel', 'targetTopicId', 'targetTopicName',
+	'autoCreateTopic', 'timeGrain', 'groupBy', 'writeMode', 'engine', 'schedule',
+	'factorMapping', 'enabled', 'description'
+}
+# blank values clear the stored target topic, the UI sends '' when switching back to auto-create
+CLEARABLE_MATERIALIZATION_KEYS = ('targetTopicId', 'targetTopicName')
+UPDATABLE_FLOW_KEYS = {'name', 'materializationIds', 'schedule', 'enabled', 'description'}
 
 
 def get_materialization_service(principal_service: PrincipalService) -> MaterializationService:
@@ -35,17 +46,17 @@ def get_run_service(principal_service: PrincipalService) -> MaterializationRunSe
 
 @router.post('/metricflow/materialization/page', tags=['ADMIN'], response_model=DataPage)
 async def page_materializations(
-		pageable: Pageable = Body(default=Pageable(pageNumber=1, pageSize=10)),
+		request: MaterializationPageRequest = Body(default=MaterializationPageRequest()),
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> DataPage:
+	page_number = request.pageNumber if request.pageNumber and request.pageNumber > 0 else 1
+	page_size = request.pageSize if request.pageSize and request.pageSize > 0 else 10
+	pageable = Pageable(pageNumber=page_number, pageSize=page_size)
 	service = get_materialization_service(principal_service)
 
 	def action() -> DataPage:
-		page = service.find_page(None, pageable)
-		# the UI reads updatedAt from presentation only
-		for item in page.data or []:
-			item.updatedAt = item.lastModifiedAt  # type: ignore[attr-defined]
-		return page
+		# the shaper already maps last_modified_at onto the presentation field updatedAt
+		return service.find_page(request.keyword, pageable)
 
 	return trans_readonly(service, action)
 
@@ -59,11 +70,14 @@ async def save_materialization(
 	if not isinstance(payload, dict):
 		raise_400('Materialization body is required.')
 	materialization = Materialization.model_validate(payload)
-	if is_blank(materialization.metricName):
-		raise_400('Metric is required.')
 
 	service = get_materialization_service(principal_service)
 	if is_blank(materialization.materializationId):
+		if is_blank(materialization.metricName):
+			raise_400('Metric is required.')
+		if is_blank(materialization.metricId):
+			# metric_id is a not-null column and API callers may only know the name
+			materialization.metricId = materialization.metricName
 		materialization.tenantId = principal_service.get_tenant_id()
 		materialization.userId = principal_service.userId
 		materialization.materializationId = str(service.snowflakeGenerator.next_id())
@@ -73,20 +87,36 @@ async def save_materialization(
 
 		return trans(service, action)
 
-	def load() -> Materialization:
+	def update() -> Materialization:
 		stored = service.find_by_id(materialization.materializationId)
 		if stored is None or stored.tenantId != principal_service.get_tenant_id():
 			raise_404()
-		return stored
-
-	def update() -> Materialization:
-		stored = trans_readonly(service, load)
-		# partial body: only the sent keys overwrite the stored fields
-		for key, value in payload.items():
-			setattr(stored, key, getattr(materialization, key, value))
+		key_changed = _business_key_changed(stored, payload, materialization)
+		# partial body: only whitelisted keys sent by the caller overwrite the stored fields
+		for key in UPDATABLE_MATERIALIZATION_KEYS:
+			if key not in payload:
+				continue
+			value = getattr(materialization, key, None)
+			if key in CLEARABLE_MATERIALIZATION_KEYS and is_blank(value):
+				value = None
+			setattr(stored, key, value)
+		if key_changed:
+			# the stored rows are keyed by the old business key; the next run
+			# rebuilds the full history under the new one, then clears the flag
+			stored.rebuildPending = True
 		return service.update(stored)
 
 	return trans(service, update)
+
+
+def _business_key_changed(
+		stored: Materialization, payload: dict, incoming: Materialization) -> bool:
+	"""Group-by set or time grain changes invalidate the stored business key."""
+	if 'groupBy' in payload and set(incoming.groupBy or []) != set(stored.groupBy or []):
+		return True
+	if 'timeGrain' in payload and incoming.timeGrain != stored.timeGrain:
+		return True
+	return False
 
 
 @router.delete('/metricflow/materialization/delete', tags=['ADMIN'], response_model=None)
@@ -178,16 +208,19 @@ async def save_flow(
 			found.append(materialization)
 		return found
 
+	found = trans_readonly(materialization_service, members)
+	cycle = _detect_flow_cycle(flow, found, principal_service)
+	if cycle is not None:
+		raise_400(f'Flow contains a cycle: {" -> ".join(cycle)}.')
+
 	def action() -> MaterializationFlow:
-		found = trans_readonly(materialization_service, members)
-		_cycle = _detect_flow_cycle(flow, found, principal_service)
-		if _cycle is not None:
-			raise_400(f'Flow contains a cycle: {" -> ".join(_cycle)}.')
 		existing = service.find_by_id(flow.flowId)
 		if existing is None:
 			return service.create(flow)
-		for key, value in payload.items():
-			setattr(existing, key, getattr(flow, key, value))
+		# partial body: only whitelisted keys sent by the caller overwrite the stored fields
+		for key in UPDATABLE_FLOW_KEYS:
+			if key in payload:
+				setattr(existing, key, getattr(flow, key, None))
 		return service.update(existing)
 
 	return trans(service, action)
@@ -212,18 +245,27 @@ async def flow_graph(
 	materialization_service = get_materialization_service(principal_service)
 	run_service = get_run_service(principal_service)
 
-	def action() -> FlowGraph:
+	def load_flow() -> MaterializationFlow:
 		flow = flow_service.find_by_id(flow_id)
 		if flow is None or flow.tenantId != principal_service.get_tenant_id():
 			raise_404()
-		materializations = [
-			materialization for materialization_id in flow.materializationIds
-			if (materialization := materialization_service.find_by_id(materialization_id)) is not None
-		]
-		statuses = run_service.find_latest_status_by_materialization_ids(flow.materializationIds)
-		return build_flow_graph(flow, materializations, statuses, principal_service)
+		return flow
 
-	return trans_readonly(flow_service, action)
+	flow = trans_readonly(flow_service, load_flow)
+
+	def load_members() -> List[Materialization]:
+		found = []
+		for materialization_id in flow.materializationIds:
+			materialization = materialization_service.find_by_id(materialization_id)
+			if materialization is not None and materialization.tenantId == principal_service.get_tenant_id():
+				found.append(materialization)
+		return found
+
+	materializations = trans_readonly(materialization_service, load_members)
+	statuses = trans_readonly(
+		run_service,
+		lambda: run_service.find_latest_status_by_materialization_ids(flow.materializationIds))
+	return build_flow_graph(flow, materializations, statuses, principal_service)
 
 
 @router.post('/metricflow/materialization/flow/run/{flow_id}', tags=['ADMIN'], response_model=None)
@@ -235,13 +277,13 @@ async def run_flow(
 		raise_400('Flow id is required.')
 	flow_service = get_flow_service(principal_service)
 
-	def action() -> MaterializationFlow:
+	def load_flow() -> MaterializationFlow:
 		flow = flow_service.find_by_id(flow_id)
 		if flow is None or flow.tenantId != principal_service.get_tenant_id():
 			raise_404()
 		return flow
 
-	flow = trans_readonly(flow_service, action)
+	flow = trans_readonly(flow_service, load_flow)
 	runner = MaterializationRunner(principal_service)
 	return await runner.run_ids(
 		flow.materializationIds, trigger_type=RunTriggerType.FLOW,
