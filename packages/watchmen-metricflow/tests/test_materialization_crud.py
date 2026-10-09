@@ -1,0 +1,389 @@
+"""Tests for the materialization admin router (materialization_router).
+
+Covers materialization CRUD, run/runs pages, flow save with cycle rejection,
+flow graph, flow run and the external scheduler entry point.  Meta services
+and the runner are mocked so no storage or query execution occurs.
+"""
+import sys
+import unittest
+from pathlib import Path
+from unittest import mock
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from _metric_test_base import (
+    TENANT_ID,
+    admin_principal,
+    build_client,
+    make_flow_dict,
+    make_materialization,
+    make_materialization_dict,
+    make_run,
+    mock_flow_service,
+    mock_materialization_service,
+    mock_run_service,
+)
+from watchmen_model.admin import Topic
+from watchmen_model.common import DataPage
+
+from watchmen_metricflow.model.materialization import RunStatus, RunTriggerType
+from watchmen_metricflow.router import materialization_router
+from watchmen_metricflow.service import materialization_flow_graph
+
+
+def data_page(data, total=None):
+    return DataPage(
+        data=data,
+        pageNumber=1,
+        pageSize=10,
+        totalCount=total if total is not None else len(data))
+
+
+# --------------------------------------------------------------------------- #
+# Materialization CRUD
+# --------------------------------------------------------------------------- #
+
+class TestSaveMaterialization(unittest.TestCase):
+    _patch = staticmethod(lambda service: mock.patch.object(
+        materialization_router, 'get_materialization_service', return_value=service))
+
+    def test_create_assigns_id_tenant_and_user(self):
+        service = mock_materialization_service()
+        service.create.side_effect = lambda m: m
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post(
+                '/metricflow/materialization', json=make_materialization_dict())
+        self.assertEqual(200, response.status_code)
+        service.create.assert_called_once()
+        created = service.create.call_args[0][0]
+        self.assertEqual('4001', created.materializationId)
+        self.assertEqual(TENANT_ID, created.tenantId)
+        self.assertEqual('user-1', created.userId)
+        self.assertEqual('sales_amount', response.json()['metricName'])
+
+    def test_create_without_metric_is_rejected(self):
+        service = mock_materialization_service()
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization', json={'name': 'x'})
+        self.assertEqual(400, response.status_code)
+        service.create.assert_not_called()
+
+    def test_update_applies_only_sent_keys(self):
+        stored = make_materialization(name='old name', tenantId=TENANT_ID)
+        service = mock_materialization_service()
+        service.find_by_id.return_value = stored
+        service.update.side_effect = lambda m: m
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization', json={
+                'materializationId': stored.materializationId,
+                'name': 'new name',
+            })
+        self.assertEqual(200, response.status_code)
+        service.update.assert_called_once()
+        updated = service.update.call_args[0][0]
+        self.assertEqual('new name', updated.name)
+        # untouched fields keep their stored values
+        self.assertEqual('sales_amount', updated.metricName)
+
+    def test_update_not_found_returns_404(self):
+        service = mock_materialization_service()
+        service.find_by_id.return_value = None
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization', json={
+                'materializationId': 'no_such', 'metricName': 'm'})
+        self.assertEqual(404, response.status_code)
+        service.update.assert_not_called()
+
+
+class TestDeleteMaterialization(unittest.TestCase):
+    _patch = staticmethod(lambda service: mock.patch.object(
+        materialization_router, 'get_materialization_service', return_value=service))
+
+    def test_delete_success(self):
+        stored = make_materialization(tenantId=TENANT_ID)
+        service = mock_materialization_service()
+        service.find_by_id.return_value = stored
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.delete(
+                '/metricflow/materialization/delete',
+                params={'materialization_id': stored.materializationId})
+        self.assertEqual(200, response.status_code)
+        service.delete.assert_called_once_with(stored.materializationId)
+
+    def test_delete_without_id_is_rejected(self):
+        service = mock_materialization_service()
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.delete('/metricflow/materialization/delete')
+        self.assertEqual(400, response.status_code)
+        service.delete.assert_not_called()
+
+    def test_delete_not_found_returns_404(self):
+        service = mock_materialization_service()
+        service.find_by_id.return_value = None
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.delete(
+                '/metricflow/materialization/delete',
+                params={'materialization_id': 'no_such'})
+        self.assertEqual(404, response.status_code)
+
+
+class TestPageMaterialization(unittest.TestCase):
+    _patch = staticmethod(lambda service: mock.patch.object(
+        materialization_router, 'get_materialization_service', return_value=service))
+
+    def test_page_returns_data_page(self):
+        service = mock_materialization_service()
+        service.find_page.return_value = data_page([make_materialization()], total=1)
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization/page', json={
+                'pageNumber': 1, 'pageSize': 10})
+        self.assertEqual(200, response.status_code)
+        body = response.json()
+        self.assertEqual(1, body['totalCount'])
+        self.assertEqual('mat-1', body['data'][0]['materializationId'])
+        service.find_page.assert_called_once()
+
+
+# --------------------------------------------------------------------------- #
+# Runs
+# --------------------------------------------------------------------------- #
+
+class TestRunMaterializations(unittest.TestCase):
+    def test_run_creates_manual_runs(self):
+        with mock.patch.object(materialization_router, 'MaterializationRunner') as MockRunner:
+            runner = MockRunner.return_value
+            expected = [make_run()]
+            runner.run_ids = mock.AsyncMock(return_value=expected)
+            client = build_client(materialization_router.router)
+            response = client.post(
+                '/metricflow/materialization/run',
+                json={'materializationIds': ['mat-1', 'mat-2']})
+        self.assertEqual(200, response.status_code)
+        runner.run_ids.assert_awaited_once_with(
+            ['mat-1', 'mat-2'], trigger_type=RunTriggerType.MANUAL)
+
+    def test_run_without_ids_is_rejected(self):
+        with mock.patch.object(materialization_router, 'MaterializationRunner') as MockRunner:
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization/run', json={})
+        self.assertEqual(400, response.status_code)
+        MockRunner.assert_not_called()
+
+
+class TestRunsPage(unittest.TestCase):
+    _patch = staticmethod(lambda service: mock.patch.object(
+        materialization_router, 'get_run_service', return_value=service))
+
+    def test_runs_page_returns_data_page(self):
+        service = mock_run_service()
+        service.find_page.return_value = data_page([make_run()], total=1)
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization/runs/page', json={
+                'pageNumber': 1, 'pageSize': 10, 'status': 'ALL'})
+        self.assertEqual(200, response.status_code)
+        body = response.json()
+        self.assertEqual(1, body['totalCount'])
+        self.assertEqual('run-1', body['data'][0]['runId'])
+        run_filter = service.find_page.call_args[0][0]
+        # 'ALL' reaches the meta service, which skips the status criteria there
+        self.assertEqual('ALL', run_filter.status)
+
+
+# --------------------------------------------------------------------------- #
+# Flows
+# --------------------------------------------------------------------------- #
+
+class TestSaveFlow(unittest.TestCase):
+    _patches = staticmethod(lambda flow_service, materialization_service: (
+        mock.patch.object(materialization_router, 'get_flow_service', return_value=flow_service),
+        mock.patch.object(
+            materialization_router, 'get_materialization_service',
+            return_value=materialization_service),
+    ))
+
+    def test_create_flow_success(self):
+        flow_service = mock_flow_service()
+        flow_service.create.side_effect = lambda f: f
+        materialization_service = mock_materialization_service()
+        materialization_service.find_by_id.return_value = make_materialization(tenantId=TENANT_ID)
+        p1, p2 = self._patches(flow_service, materialization_service)
+        with p1, p2, mock.patch.object(
+                materialization_flow_graph, 'resolve_metric_source_topics', return_value={}):
+            client = build_client(materialization_router.router)
+            response = client.post(
+                '/metricflow/materialization/flow',
+                json=make_flow_dict(materialization_ids=['mat-1']))
+        self.assertEqual(200, response.status_code)
+        flow_service.create.assert_called_once()
+        created = flow_service.create.call_args[0][0]
+        self.assertEqual('5001', created.flowId)
+        self.assertEqual(TENANT_ID, created.tenantId)
+
+    def test_flow_without_name_is_rejected(self):
+        flow_service = mock_flow_service()
+        p1, p2 = self._patches(flow_service, mock_materialization_service())
+        with p1, p2:
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization/flow', json={
+                'materializationIds': ['mat-1']})
+        self.assertEqual(400, response.status_code)
+        flow_service.create.assert_not_called()
+
+    def test_flow_with_duplicate_members_is_rejected(self):
+        flow_service = mock_flow_service()
+        p1, p2 = self._patches(flow_service, mock_materialization_service())
+        with p1, p2:
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization/flow', json=make_flow_dict(
+                materialization_ids=['mat-1', 'mat-1']))
+        self.assertEqual(400, response.status_code)
+
+    def test_flow_with_unknown_member_returns_404(self):
+        flow_service = mock_flow_service()
+        materialization_service = mock_materialization_service()
+        materialization_service.find_by_id.return_value = None
+        p1, p2 = self._patches(flow_service, materialization_service)
+        with p1, p2:
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization/flow', json=make_flow_dict(
+                materialization_ids=['no_such']))
+        self.assertEqual(404, response.status_code)
+        flow_service.create.assert_not_called()
+
+    def test_flow_with_data_cycle_is_rejected(self):
+        """producer/consumer loop derived from the metric lineage must be refused."""
+        first = make_materialization(
+            materialization_id='mat-1', metricName='metric_b', targetTopicName='topic_a',
+            tenantId=TENANT_ID)
+        second = make_materialization(
+            materialization_id='mat-2', metricName='metric_a', targetTopicName='topic_b',
+            tenantId=TENANT_ID)
+        source_topics = {
+            'metric_a': [Topic(topicId='t-a', name='topic_a')],
+            'metric_b': [Topic(topicId='t-b', name='topic_b')],
+        }
+
+        def find_by_id(materialization_id):
+            return {'mat-1': first, 'mat-2': second}.get(materialization_id)
+
+        flow_service = mock_flow_service()
+        materialization_service = mock_materialization_service()
+        materialization_service.find_by_id.side_effect = find_by_id
+        p1, p2 = self._patches(flow_service, materialization_service)
+        with p1, p2, mock.patch.object(
+                materialization_flow_graph, 'resolve_metric_source_topics',
+                return_value=source_topics):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization/flow', json=make_flow_dict(
+                materialization_ids=['mat-1', 'mat-2']))
+        self.assertEqual(400, response.status_code)
+        self.assertIn('cycle', response.json()['detail'])
+        flow_service.create.assert_not_called()
+
+
+class TestFlowRead(unittest.TestCase):
+    def test_all_flows(self):
+        flow_service = mock_flow_service()
+        flow_service.find_all_by_tenant_id.return_value = []
+        with mock.patch.object(
+                materialization_router, 'get_flow_service', return_value=flow_service):
+            client = build_client(materialization_router.router)
+            response = client.get('/metricflow/materialization/flow/all')
+        self.assertEqual(200, response.status_code)
+        self.assertEqual([], response.json())
+        flow_service.find_all_by_tenant_id.assert_called_once_with(TENANT_ID)
+
+    def test_flow_graph_returns_nodes(self):
+        flow_service = mock_flow_service()
+        flow_service.find_by_id.return_value = make_flow(materialization_ids=['mat-1'])
+        materialization_service = mock_materialization_service()
+        materialization_service.find_by_id.return_value = make_materialization(tenantId=TENANT_ID)
+        run_service = mock_run_service()
+        run_service.find_latest_status_by_materialization_ids.return_value = {
+            'mat-1': RunStatus.SUCCESS}
+        with mock.patch.object(
+                materialization_router, 'get_flow_service', return_value=flow_service), \
+                mock.patch.object(
+                    materialization_router, 'get_materialization_service',
+                    return_value=materialization_service), \
+                mock.patch.object(
+                    materialization_router, 'get_run_service', return_value=run_service), \
+                mock.patch.object(
+                    materialization_flow_graph, 'resolve_metric_source_topics',
+                    return_value={}):
+            client = build_client(materialization_router.router)
+            response = client.get('/metricflow/materialization/flow/flow-1/graph')
+        self.assertEqual(200, response.status_code)
+        body = response.json()
+        self.assertEqual('flow-1', body['flowId'])
+        self.assertEqual(1, len(body['nodes']))
+        self.assertEqual('SUCCESS', body['nodes'][0]['status'])
+
+    def test_flow_graph_not_found_returns_404(self):
+        flow_service = mock_flow_service()
+        flow_service.find_by_id.return_value = None
+        with mock.patch.object(
+                materialization_router, 'get_flow_service', return_value=flow_service), \
+                mock.patch.object(
+                    materialization_router, 'get_materialization_service',
+                    return_value=mock_materialization_service()), \
+                mock.patch.object(
+                    materialization_router, 'get_run_service', return_value=mock_run_service()):
+            client = build_client(materialization_router.router)
+            response = client.get('/metricflow/materialization/flow/no_such/graph')
+        self.assertEqual(404, response.status_code)
+
+
+class TestRunFlow(unittest.TestCase):
+    def test_run_flow_executes_members_sequentially(self):
+        flow_service = mock_flow_service()
+        flow_service.find_by_id.return_value = make_flow(
+            materialization_ids=['mat-1', 'mat-2'])
+        with mock.patch.object(
+                materialization_router, 'get_flow_service', return_value=flow_service), \
+                mock.patch.object(materialization_router, 'MaterializationRunner') as MockRunner:
+            runner = MockRunner.return_value
+            runner.run_ids = mock.AsyncMock(return_value=[make_run()])
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization/flow/run/flow-1')
+        self.assertEqual(200, response.status_code)
+        kwargs = runner.run_ids.call_args.kwargs
+        self.assertEqual(['mat-1', 'mat-2'], runner.run_ids.call_args.args[0])
+        self.assertEqual(RunTriggerType.FLOW, kwargs['trigger_type'])
+        self.assertEqual('flow-1', kwargs['flow_id'])
+        self.assertTrue(kwargs['sequential'])
+
+    def test_run_unknown_flow_returns_404(self):
+        flow_service = mock_flow_service()
+        flow_service.find_by_id.return_value = None
+        with mock.patch.object(
+                materialization_router, 'get_flow_service', return_value=flow_service), \
+                mock.patch.object(materialization_router, 'MaterializationRunner') as MockRunner:
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization/flow/run/no_such')
+        self.assertEqual(404, response.status_code)
+        MockRunner.assert_not_called()
+
+
+class TestSchedulerEntry(unittest.TestCase):
+    def test_external_scheduler_runs_due(self):
+        with mock.patch.object(
+                materialization_router, 'run_due_materializations',
+                new=mock.AsyncMock(return_value=2)):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization/scheduler/run')
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(2, response.json())
+
+
+if __name__ == '__main__':
+    unittest.main()
