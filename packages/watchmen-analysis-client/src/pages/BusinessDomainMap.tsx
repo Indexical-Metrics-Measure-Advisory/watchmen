@@ -5,9 +5,6 @@ import {
 	Pencil, X, Keyboard, Boxes, Link2, Sigma, Table2, ArrowRight, Workflow,
 	Trash2, Loader2,
 } from 'lucide-react';
-import { useSidebar } from '@/contexts/SidebarContext';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +24,6 @@ import {
 import { ontologyService } from '@/services/ontologyService';
 
 const BusinessDomainMap: React.FC = () => {
-	const { collapsed } = useSidebar();
 	const { t } = useTranslation('ontology');
 	const [ontologies, setOntologies] = useState<VirtualOntology[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -182,9 +178,7 @@ const BusinessDomainMap: React.FC = () => {
 
 	return (
 		<div className="min-h-screen bg-background">
-			<Sidebar />
-			<div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-				<Header />
+				<div className="min-h-screen">
 
 				<main className="container py-6">
 					{/* Header */}

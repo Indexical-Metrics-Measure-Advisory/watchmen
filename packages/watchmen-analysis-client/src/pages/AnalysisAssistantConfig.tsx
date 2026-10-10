@@ -1,7 +1,4 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useSidebar } from '@/contexts/SidebarContext';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,7 +48,6 @@ const languageOptions = [
 ];
 
 const AnalysisAssistantConfigPage: React.FC = () => {
-  const { collapsed } = useSidebar();
   const { toast } = useToast();
 
   const [assistants, setAssistants] = useState<AssistantProfile[]>([]);
@@ -305,9 +301,7 @@ const AnalysisAssistantConfigPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
+      <div className="min-h-screen transition-all duration-300">
         <main className="container py-6">
           <div className="flex items-center justify-between mb-4">
             <div className="text-xl font-semibold">Analysis Assistant Configuration</div>

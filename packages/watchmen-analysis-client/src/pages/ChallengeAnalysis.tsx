@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { ArrowLeft, Loader2, BarChart2, Lightbulb, CheckCircle, XCircle, ArrowRight, Search, BrainCircuit, HelpCircle, Download, Edit3, ChevronDown, Target, TrendingUp, AlertTriangle, Calendar, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { ChallengeAnalysisResult } from '@/model/challengeAnalysis';
 import { challengeAnalysisService } from '@/services/challengeAnalysisService';
 import { BusinessChallengeWithHypotheses } from '@/model/business';
 
 const ChallengeAnalysis: React.FC = () => {
-  const { collapsed } = useSidebar();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const challengeId = searchParams.get('challengeId');
@@ -197,9 +193,7 @@ const ChallengeAnalysis: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Sidebar />
-        <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-          <Header />
+        <div className="min-h-screen">
           <main className="container py-6">
             <div className="flex justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -213,9 +207,7 @@ const ChallengeAnalysis: React.FC = () => {
   if (error || !challenge || !analysis) {
     return (
       <div className="min-h-screen bg-background">
-        <Sidebar />
-        <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-          <Header />
+        <div className="min-h-screen">
           <main className="container py-6">
             <div className="flex flex-col items-center justify-center py-12">
               <h2 className="text-xl font-semibold mb-4">{error || 'Analysis not found'}</h2>
@@ -239,9 +231,7 @@ const ChallengeAnalysis: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
+      <div className="min-h-screen">
         <div className="flex h-[calc(100vh-4rem)]">
           {/* Left Navigation Bar */}
           <div className="w-64 bg-card border-r border-border p-4 overflow-y-auto">

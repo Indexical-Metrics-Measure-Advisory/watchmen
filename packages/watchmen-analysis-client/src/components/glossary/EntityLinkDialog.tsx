@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import { Search, X, BarChart3, Table2, Link2, Loader2, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -162,12 +162,12 @@ const EntityLinkDialog: React.FC<{
         });
         ok += 1;
       } catch (err) {
-        toast.error(`Failed to link "${item.name}": ${err instanceof Error ? err.message : String(err)}`);
+        toast({ title: `Failed to link "${item.name}": ${err instanceof Error ? err.message : String(err)}`, variant: "destructive" });
       }
     }
     setSaving(false);
     if (ok > 0) {
-      toast.success(`Linked ${ok} asset${ok > 1 ? "s" : ""}`);
+      toast({ title: `Linked ${ok} asset${ok > 1 ? "s" : ""}` });
       setSelectedKeys(new Set());
       onChanged();
     }
@@ -184,10 +184,10 @@ const EntityLinkDialog: React.FC<{
         entity_name: a.entity_name,
         confidence: a.confidence,
       });
-      toast.success("Link removed");
+      toast({ title: "Link removed" });
       onChanged();
     } catch (err) {
-      toast.error(`Failed to remove link: ${err instanceof Error ? err.message : String(err)}`);
+      toast({ title: `Failed to remove link: ${err instanceof Error ? err.message : String(err)}`, variant: "destructive" });
     } finally {
       setRemovingKey(null);
     }

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import {
   BarChart3, Database, Layers, Package, HardDrive, Camera, RefreshCw,
   Trophy, Table2,
@@ -8,9 +8,6 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, BarChart, Bar,
 } from "recharts";
-import { useSidebar } from "@/contexts/SidebarContext";
-import Sidebar from "@/components/layout/Sidebar";
-import Header from "@/components/layout/Header";
 import { useTranslation } from "react-i18next";
 
 import type { AssetMapResponse } from "@/model/dataProduct";
@@ -98,7 +95,6 @@ const ValueScoreTooltip: React.FC<{
 };
 
 const AssetMap: React.FC = () => {
-  const { collapsed } = useSidebar();
   const { t } = useTranslation("dataAsset");
   const [data, setData] = useState<AssetMapResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,7 +106,7 @@ const AssetMap: React.FC = () => {
       const resp = await dataProductService.getAssetMap();
       setData(resp);
     } catch (err) {
-      toast.error(t("assetMapPage.loadFailed", { message: err instanceof Error ? err.message : String(err) }));
+      toast({ title: t("assetMapPage.loadFailed", { message: err instanceof Error ? err.message : String(err) }), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -125,10 +121,10 @@ const AssetMap: React.FC = () => {
     setSnapshotting(true);
     try {
       await dataProductService.takeSnapshot();
-      toast.success(t("assetMapPage.snapshotSaved"));
+      toast({ title: t("assetMapPage.snapshotSaved") });
       loadMap();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     } finally {
       setSnapshotting(false);
     }
@@ -164,9 +160,7 @@ const AssetMap: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <Sidebar />
-      <div className={`flex-1 flex flex-col h-screen transition-all duration-300 ${collapsed ? "ml-20" : "ml-56"}`}>
-        <Header />
+      <div className="flex-1 flex flex-col h-screen">
         <div className="flex-1 min-h-0 overflow-auto p-6 space-y-4">
           {/* header */}
           <div className="flex items-center justify-between">
@@ -277,6 +271,7 @@ const AssetMap: React.FC = () => {
                     <div className="text-sm text-slate-400 text-center py-10">{t("assetMapPage.noDomains")}</div>
                   ) : (
                     <ScrollArea className="h-full max-h-56">
+                      <div className="overflow-x-auto">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -297,6 +292,7 @@ const AssetMap: React.FC = () => {
                           ))}
                         </TableBody>
                       </Table>
+                      </div>
                     </ScrollArea>
                   )}
                 </RankingPanel>

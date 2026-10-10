@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useSidebar } from '@/contexts/SidebarContext';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import HypothesisForm from '@/components/hypothesis/HypothesisForm';
 import AIHypothesisGenerator from '@/components/hypothesis/AIHypothesisGenerator';
 import WorkbenchStats from '@/components/hypothesis/workbench/WorkbenchStats';
@@ -17,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Plus, Search, Sparkles, X } from 'lucide-react';
 
 const Hypotheses: React.FC = () => {
-  const { collapsed } = useSidebar();
   const { t } = useTranslation('hypothesis');
   const navigate = useNavigate();
   const [formMode, setFormMode] = useState<'edit' | 'link'>('link');
@@ -61,11 +57,7 @@ const Hypotheses: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
-
+      <div className="min-h-screen">
         <main className="container py-6">
           <div className="flex justify-between items-center mb-6">
             <div>

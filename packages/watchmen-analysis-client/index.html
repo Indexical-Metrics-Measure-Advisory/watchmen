@@ -4,7 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>watchmen-analysis-platform</title>
-
+    <script>
+      // apply the persisted theme before first paint to avoid a light-theme flash
+      try {
+        var stored = localStorage.getItem('theme');
+        if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) { /* localStorage unavailable */ }
+    </script>
   </head>
 
   <body>

@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Loader2, Bot, Sparkles, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,8 +7,6 @@ import { Input } from '@/components/ui/input';
 import BusinessChallengeCard from '@/components/business/BusinessChallengeCard';
 import BusinessChallengeForm from '@/components/business/BusinessChallengeForm';
 import AIHypothesisGenerator from '@/components/hypothesis/AIHypothesisGenerator';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { useToast } from '@/components/ui/use-toast';
 import { BusinessChallenge } from "@/model/business";
 import { HypothesisType } from '@/model/Hypothesis';
@@ -17,7 +14,6 @@ import { businessService } from '@/services/businessService';
 import { hypothesisService } from '@/services/hypothesisService';
 
 const BusinessChallenges: React.FC = () => {
-  const { collapsed } = useSidebar();
   const [challenges, setChallenges] = useState<BusinessChallenge[]>([]);
   const [hypotheses, setHypotheses] = useState<HypothesisType[]>([]);
   const [challengeFormOpen, setChallengeFormOpen] = useState(false);
@@ -155,11 +151,7 @@ const BusinessChallenges: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
-        
+      <div className="min-h-screen">
         <main className="container py-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">Business Challenges</h1>

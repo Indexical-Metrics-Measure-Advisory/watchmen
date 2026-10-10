@@ -14,6 +14,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
 	AlertDialog,
@@ -42,6 +43,7 @@ import type {
 } from '@/model/materialization';
 import type { CellValue } from '@/model/metricFlow';
 import { buildGroupBy, isTimeDimensionByName } from '@/utils/dimensionQuery';
+import { isTimeDimensionOption, resolveTargetTopicIdOnLoad } from '@/utils/materializationForm';
 import { buildMockFactorMapping } from '@/services/materializationMockData';
 import { materializationService } from '@/services/materializationService';
 import { metricsService } from '@/services/metricsService';
@@ -52,6 +54,8 @@ const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 // rows requested from the engine / shown in the preview table
 const PREVIEW_LIMIT = 500;
 const PREVIEW_DISPLAY_ROWS = 100;
+// dimension list cap before the show-all toggle (same as the chart builder)
+const MAX_DIM_DISPLAY = 24;
 
 interface MaterializationFormDialogProps {
 	open: boolean;
@@ -98,6 +102,8 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 	const [timeGrain, setTimeGrain] = useState<TimeGrain>('day');
 	const [groupBy, setGroupBy] = useState<string[]>([]);
 	const [dimKeyword, setDimKeyword] = useState('');
+	const [dimType, setDimType] = useState<'TIME' | 'CATEGORICAL'>('CATEGORICAL');
+	const [showAllDims, setShowAllDims] = useState(false);
 	const [writeMode, setWriteMode] = useState<WriteMode>('MERGE');
 	const [targetTopicId, setTargetTopicId] = useState<string>('auto');
 	const [autoCreateTopic, setAutoCreateTopic] = useState(true);
@@ -140,6 +146,8 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 		setSaving(false);
 		setPreview(EMPTY_PREVIEW);
 		setDimKeyword('');
+		setDimType('CATEGORICAL');
+		setShowAllDims(false);
 		setRebuildConfirmOpen(false);
 		if (mode === 'edit' && initial) {
 			setName(initial.name ?? '');
@@ -148,7 +156,9 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 			setGroupBy(initial.groupBy ?? []);
 			setWriteMode(initial.writeMode);
 			setAutoCreateTopic(initial.autoCreateTopic);
-			setTargetTopicId(initial.targetTopicId ?? 'auto');
+			// auto-create rows keep the flag even after a run persisted the
+			// concrete topic id; otherwise the select would render blank
+			setTargetTopicId(resolveTargetTopicIdOnLoad(initial));
 			setDescription(initial.description ?? '');
 			setEnabled(initial.enabled);
 			setScheduleEnabled(initial.schedule?.enabled ?? false);
@@ -305,23 +315,73 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 		[metricName, timeGrain, groupBy]
 	);
 
-	const filteredDimensions = useMemo(() => {
+	// Build a Chart style dimension picker: a type tab (time / categorical),
+	// a keyword filter, and a capped list with a show-all toggle.
+	// The active tab falls back to the first type actually present so a metric
+	// with only time dimensions never renders an empty list.
+	const presentDimTypes = useMemo(() => {
+		const types = new Set<'TIME' | 'CATEGORICAL'>();
+		dimensions.forEach((d) => types.add(isTimeDimensionOption(d) ? 'TIME' : 'CATEGORICAL'));
+		return types;
+	}, [dimensions]);
+	const activeDimType = presentDimTypes.has(dimType)
+		? dimType
+		: Array.from(presentDimTypes)[0] ?? dimType;
+
+	const { matchedDimensions, visibleDimensions, dimsTruncated } = useMemo(() => {
 		const keyword = dimKeyword.trim().toLowerCase();
-		if (!keyword) {
-			return dimensions;
-		}
-		return dimensions.filter(
-			(d) =>
-				d.name.toLowerCase().includes(keyword) ||
-				(d.qualifiedName ?? '').toLowerCase().includes(keyword)
+		const byType = dimensions.filter((d) =>
+			activeDimType === 'TIME' ? isTimeDimensionOption(d) : !isTimeDimensionOption(d)
 		);
-	}, [dimensions, dimKeyword]);
+		const matched = keyword
+			? byType.filter(
+					(d) =>
+						d.name.toLowerCase().includes(keyword) ||
+						(d.qualifiedName ?? '').toLowerCase().includes(keyword)
+				)
+			: byType;
+		return {
+			matchedDimensions: matched,
+			visibleDimensions: showAllDims ? matched : matched.slice(0, MAX_DIM_DISPLAY),
+			dimsTruncated: !showAllDims && matched.length > MAX_DIM_DISPLAY
+		};
+	}, [dimensions, activeDimType, dimKeyword, showAllDims]);
 
 	const toggleDimension = (id: string) => {
 		setGroupBy((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 	};
 
+	// a stored topic may be missing from the (datamart-filtered) topic list —
+	// inject it as an option so the select never renders blank on reopen
+	const topicOptions = useMemo(() => {
+		if (!targetTopicId || targetTopicId === 'auto' || topics.some((tp) => tp.id === targetTopicId)) {
+			return topics;
+		}
+		return [...topics, { id: targetTopicId, name: initial?.targetTopicName || targetTopicId }];
+	}, [topics, targetTopicId, initial]);
+
 	const dimLabel = (id: string) => dimensions.find((d) => d.id === id)?.name ?? id;
+
+	const renderDimensionRow = (dim: MockDimensionOption) => (
+		<label
+			key={dim.id}
+			className={cn(
+				'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors',
+				groupBy.includes(dim.id) ? 'bg-accent/50' : 'hover:bg-accent/20'
+			)}
+		>
+			<Checkbox
+				checked={groupBy.includes(dim.id)}
+				onCheckedChange={() => toggleDimension(dim.id)}
+			/>
+			<span className="min-w-0 flex-1 truncate">{dim.name}</span>
+			{dim.qualifiedName && (
+				<span className="max-w-[40%] truncate text-xs text-muted-foreground">
+					{dim.qualifiedName}
+				</span>
+			)}
+		</label>
+	);
 
 	const handleSave = async (skipRebuildConfirm = false) => {
 		if (!metricName) {
@@ -570,52 +630,52 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 														{t('materialization:form.noDimensions')}
 													</div>
 												) : (
-													<>
-														{dimensions.length > 8 && (
-															<div className="relative">
-																<Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-																<Input
-																	value={dimKeyword}
-																	onChange={(e) => setDimKeyword(e.target.value)}
-																	placeholder={t('materialization:form.dimFilter')}
-																	className="h-8 pl-7 text-xs"
-																/>
-															</div>
-														)}
+													<Tabs
+														value={activeDimType}
+														onValueChange={(v) => setDimType(v as 'TIME' | 'CATEGORICAL')}
+														className="w-full"
+													>
+														<TabsList className="mb-2 grid w-full grid-cols-2">
+															<TabsTrigger value="TIME" className="text-xs">
+																{t('materialization:form.dimGroupTime')}
+															</TabsTrigger>
+															<TabsTrigger value="CATEGORICAL" className="text-xs">
+																{t('materialization:form.dimGroupCategory')}
+															</TabsTrigger>
+														</TabsList>
+														<div className="relative mb-2">
+															<Search className="absolute left-2 top-2.5 h-3 w-3 text-muted-foreground" />
+															<Input
+																value={dimKeyword}
+																onChange={(e) => setDimKeyword(e.target.value)}
+																placeholder={t('materialization:form.dimFilter')}
+																className="h-8 pl-7 text-xs"
+															/>
+														</div>
 														<ScrollArea className="h-[200px] rounded-md border p-2">
 															<div className="grid grid-cols-1 gap-1">
-																{filteredDimensions.map((dim) => (
-																	<label
-																		key={dim.id}
-																		className={cn(
-																			'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors',
-																			groupBy.includes(dim.id)
-																				? 'bg-accent/50'
-																				: 'hover:bg-accent/20'
-																		)}
-																	>
-																		<Checkbox
-																			checked={groupBy.includes(dim.id)}
-																			onCheckedChange={() => toggleDimension(dim.id)}
-																		/>
-																		<span className="min-w-0 flex-1 truncate">
-																			{dim.name}
-																		</span>
-																		{dim.qualifiedName && (
-																			<span className="max-w-[40%] truncate text-xs text-muted-foreground">
-																				{dim.qualifiedName}
-																			</span>
-																		)}
-																	</label>
-																))}
-																{filteredDimensions.length === 0 && (
+																{visibleDimensions.map(renderDimensionRow)}
+																{matchedDimensions.length === 0 && (
 																	<p className="py-4 text-center text-xs text-muted-foreground">
 																		{t('materialization:form.dimNoMatch')}
 																	</p>
 																)}
 															</div>
 														</ScrollArea>
-													</>
+														{dimsTruncated && (
+															<button
+																type="button"
+																className="w-full py-1.5 text-center text-xs text-primary hover:underline"
+																onClick={() => setShowAllDims((v) => !v)}
+															>
+																{showAllDims
+																	? t('materialization:form.dimShowTop')
+																	: t('materialization:form.dimShowAll', {
+																			count: matchedDimensions.length
+																		})}
+															</button>
+														)}
+													</Tabs>
 												)}
 											</div>
 										</section>
@@ -643,7 +703,7 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 														<SelectItem value="auto">
 															{t('materialization:form.autoCreateTopic')}
 														</SelectItem>
-														{topics.map((tp) => (
+														{topicOptions.map((tp) => (
 															<SelectItem key={tp.id} value={tp.id}>
 																{tp.name}
 															</SelectItem>

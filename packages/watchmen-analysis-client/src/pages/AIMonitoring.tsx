@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { AIMonitoringDetail, AIMonitoringLog } from '@/components/ai/AIMonitoringDetail';
 import AIAnalysisAgent from '@/components/ai/AIAnalysisAgent';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,8 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Bot, Filter, Search, Calendar as CalendarIcon, ArrowLeft, BrainCircuit } from 'lucide-react';
 import { format } from 'date-fns';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 
 interface AIMonitoringPageProps {}
 
@@ -44,7 +41,6 @@ const mockLogs:AIMonitoringLog[] = [
 ];
 
 const AIMonitoringPage: React.FC<AIMonitoringPageProps> = () => {
-  const { collapsed } = useSidebar();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -56,9 +52,7 @@ const AIMonitoringPage: React.FC<AIMonitoringPageProps> = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
+      <div className="min-h-screen">
         <main className="container py-6 space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">

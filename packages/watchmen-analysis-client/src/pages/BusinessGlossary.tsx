@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import { Search, BookOpen, FolderTree, Hash, Plus, Trash2, Edit2, Save, ChevronRight, Globe, User, Link2 } from "lucide-react";
-import { useSidebar } from "@/contexts/SidebarContext";
-import Sidebar from "@/components/layout/Sidebar";
 import EntityLinkDialog from "@/components/glossary/EntityLinkDialog";
 
 import type { GlossaryBundle, Glossary, Category, Term, GlossaryUpsert, CategoryUpsert, TermUpsert } from "@/model/glossaryV2";
@@ -34,7 +32,6 @@ const statusColor = (status: string) => {
 // Main Component
 // ---------------------------------------------------------------------------
 const BusinessGlossary: React.FC = () => {
-  const { collapsed } = useSidebar();
   const [bundles, setBundles] = useState<GlossaryBundle[]>([]);
   const [activeGlossaryId, setActiveGlossaryId] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -59,7 +56,7 @@ const BusinessGlossary: React.FC = () => {
         setActiveGlossaryId(data[0].glossary.id);
       }
     } catch (err: unknown) {
-      toast.error(`Failed to load glossaries: ${err instanceof Error ? err.message : String(err)}`);
+      toast({ title: `Failed to load glossaries: ${err instanceof Error ? err.message : String(err)}`, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -99,23 +96,23 @@ const BusinessGlossary: React.FC = () => {
   const handleCreateGlossary = async (payload: GlossaryUpsert) => {
     try {
       await businessGlossaryService.createGlossary(payload);
-      toast.success("Glossary created");
+      toast({ title: "Glossary created" });
       setDialogOpen(false);
       loadBundles();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
 
   const handleUpdateGlossary = async (payload: GlossaryUpsert) => {
     try {
       await businessGlossaryService.updateGlossary(payload);
-      toast.success("Glossary updated");
+      toast({ title: "Glossary updated" });
       setEditMode(null);
       setEditingItem(null);
       loadBundles();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
 
@@ -123,11 +120,11 @@ const BusinessGlossary: React.FC = () => {
     if (!confirm("Delete this glossary and all its categories/terms?")) return;
     try {
       await businessGlossaryService.deleteGlossary(id);
-      toast.success("Glossary deleted");
+      toast({ title: "Glossary deleted" });
       if (activeGlossaryId === id) setActiveGlossaryId("");
       loadBundles();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
 
@@ -138,11 +135,11 @@ const BusinessGlossary: React.FC = () => {
     if (!activeGlossaryId) return;
     try {
       await businessGlossaryService.createCategory(activeGlossaryId, payload);
-      toast.success("Category created");
+      toast({ title: "Category created" });
       setDialogOpen(false);
       loadBundles();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
 
@@ -150,12 +147,12 @@ const BusinessGlossary: React.FC = () => {
     if (!activeGlossaryId) return;
     try {
       await businessGlossaryService.updateCategory(activeGlossaryId, payload);
-      toast.success("Category updated");
+      toast({ title: "Category updated" });
       setEditMode(null);
       setEditingItem(null);
       loadBundles();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
 
@@ -164,10 +161,10 @@ const BusinessGlossary: React.FC = () => {
     if (!confirm("Delete this category?")) return;
     try {
       await businessGlossaryService.deleteCategory(activeGlossaryId, id);
-      toast.success("Category deleted");
+      toast({ title: "Category deleted" });
       loadBundles();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
 
@@ -178,11 +175,11 @@ const BusinessGlossary: React.FC = () => {
     if (!activeGlossaryId) return;
     try {
       await businessGlossaryService.createTerm(activeGlossaryId, payload);
-      toast.success("Term created");
+      toast({ title: "Term created" });
       setDialogOpen(false);
       loadBundles();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
 
@@ -190,12 +187,12 @@ const BusinessGlossary: React.FC = () => {
     if (!activeGlossaryId) return;
     try {
       await businessGlossaryService.updateTerm(activeGlossaryId, payload);
-      toast.success("Term updated");
+      toast({ title: "Term updated" });
       setEditMode(null);
       setEditingItem(null);
       loadBundles();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
 
@@ -204,10 +201,10 @@ const BusinessGlossary: React.FC = () => {
     if (!confirm("Delete this term?")) return;
     try {
       await businessGlossaryService.deleteTerm(activeGlossaryId, id);
-      toast.success("Term deleted");
+      toast({ title: "Term deleted" });
       loadBundles();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
 
@@ -260,8 +257,7 @@ const BusinessGlossary: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <Sidebar />
-      <div className={`flex-1 transition-all duration-300 ${collapsed ? 'ml-20' : 'ml-56'}`}>
+      <div className="flex-1 transition-all duration-300">
         <div className="flex h-screen">
           {/* Left Sidebar - Glossary List */}
       <div className="w-72 bg-white border-r border-slate-200 flex flex-col">

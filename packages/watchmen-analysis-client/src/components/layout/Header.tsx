@@ -2,8 +2,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LogIn, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { LogIn, LogOut, Settings, ChevronDown, Menu } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSidebar } from '@/contexts/SidebarContext';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '@/i18n/hooks/use-locale';
 
@@ -11,6 +12,7 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, isConsoleUser } = useAuth();
+  const { openMobile, closeMobile } = useSidebar();
   const { t } = useTranslation(['common', 'layout']);
   const { language, setLanguage } = useLocale();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -30,14 +32,23 @@ const Header: React.FC = () => {
     };
   }, []);
 
+  // Close the mobile drawer whenever navigation happens
+  useEffect(() => {
+    closeMobile();
+  }, [location.pathname, closeMobile]);
+
   const isAuthenticated = !!user;
   
   const getPageTitle = () => {
     switch (location.pathname) {
       case '/':
         return t('layout:pageTitle.smartConsole');
+      case '/challenges':
+        return t('layout:pageTitle.challenges');
       case '/hypotheses':
         return t('layout:pageTitle.hypothesis');
+      case '/metrics/semantic-models':
+        return t('layout:pageTitle.semanticModelManagement');
       case '/metrics/management':
         return t('layout:pageTitle.metricsManagement');
       case '/metrics/materialization':
@@ -46,22 +57,57 @@ const Header: React.FC = () => {
         return t('layout:pageTitle.materializationRuns');
       case '/metrics/compute-flow':
         return t('layout:pageTitle.computeFlow');
-      case '/metrics/lineage':
-        return t('layout:pageTitle.metricLineage');
+      case '/metrics/user-groups':
+        return t('layout:pageTitle.userGroupMetrics');
+      case '/metrics/assistant-config':
+        return t('layout:pageTitle.assistantConfig');
+      case '/metrics/bi-analysis':
+      case '/bi-analysis':
+        return t('layout:pageTitle.metricsAnalysis');
       case '/metrics/tree':
         return t('layout:pageTitle.metricDependencyTree');
-      case '/metrics/semantic-models':
-        return t('layout:pageTitle.semanticModelManagement');
-      case '/analysis':
-        return t('layout:pageTitle.aiAnalysis');
-      case '/chat':
-        return t('layout:pageTitle.aiChatAnalyst');
-      case '/login':
-        return t('layout:pageTitle.signIn');
+      case '/metrics/lineage':
+        return t('layout:pageTitle.metricLineage');
+      case '/metrics/alert-configuration':
+        return t('layout:pageTitle.alertConfiguration');
+      case '/metrics/data-profiles':
+        return t('layout:pageTitle.dataProfiles');
+      case '/data-catalog/domain-map':
+        return t('layout:pageTitle.businessOntology');
+      case '/data-catalog/ontology-tester':
+        return t('layout:pageTitle.ontologyDataTester');
       case '/data-asset/products':
         return t('layout:pageTitle.dataProduct');
       case '/data-asset/map':
         return t('layout:pageTitle.assetMap');
+      case '/data-asset/graph':
+        return t('layout:pageTitle.dataProductGraph');
+      case '/data-asset/business-glossary':
+        return t('layout:pageTitle.businessGlossary');
+      case '/analysis':
+        return t('layout:pageTitle.aiAnalysis');
+      case '/ai-analysis-workflow':
+        return t('layout:pageTitle.aiAnalysisWorkflow');
+      case '/challenge-analysis':
+        return t('layout:pageTitle.challengeAnalysis');
+      case '/graph':
+        return t('layout:pageTitle.graphView');
+      case '/learning':
+        return t('layout:pageTitle.learning');
+      case '/ai-monitoring':
+        return t('layout:pageTitle.aiMonitoring');
+      case '/ai-agent-management':
+        return t('layout:pageTitle.aiAgentManagement');
+      case '/retrieval-testing':
+        return t('layout:pageTitle.retrievalTesting');
+      case '/evaluation/offline':
+        return t('layout:pageTitle.offlineEvaluation');
+      case '/evaluation/datasets':
+        return t('layout:pageTitle.datasetManagement');
+      case '/chat':
+        return t('layout:pageTitle.aiChatAnalyst');
+      case '/login':
+        return t('layout:pageTitle.signIn');
       case '/settings':
         return t('layout:pageTitle.settings');
       default:
@@ -70,8 +116,19 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="relative w-full bg-white/80 dark:bg-card/80 backdrop-blur-md border-b border-border/50 py-3 px-6 flex items-center justify-between z-40">
-      <h1 className="text-xl font-medium">{getPageTitle()}</h1>
+    <header className="relative w-full bg-white/80 dark:bg-card/80 backdrop-blur-md border-b border-border/50 py-3 px-4 md:px-6 flex items-center justify-between z-40">
+      <div className="flex items-center gap-2 min-w-0">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden shrink-0"
+          onClick={openMobile}
+          aria-label="Open navigation"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        <h1 className="text-xl font-medium truncate">{getPageTitle()}</h1>
+      </div>
       
       <div className="flex items-center gap-4">
         <label className="flex items-center gap-2 text-xs text-muted-foreground">

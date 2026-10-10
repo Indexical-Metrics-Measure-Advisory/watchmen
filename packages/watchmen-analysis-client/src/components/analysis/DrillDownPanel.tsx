@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -202,16 +203,16 @@ export const DrillDownPanel: React.FC<DrillDownPanelProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-xl font-semibold">
-            <BarChart3 className="inline-block w-5 h-5 mr-2" />
-            Drill Down Analysis: {metricName}
-          </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+        <Card className="border-0 shadow-none">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 pr-10">
+          <DialogTitle asChild>
+            <CardTitle className="text-xl font-semibold">
+              <BarChart3 className="inline-block w-5 h-5 mr-2" />
+              Drill Down Analysis: {metricName}
+            </CardTitle>
+          </DialogTitle>
         </CardHeader>
         
         <CardContent className="space-y-4">
@@ -352,6 +353,7 @@ export const DrillDownPanel: React.FC<DrillDownPanelProps> = ({
           )}
         </CardContent>
       </Card>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };

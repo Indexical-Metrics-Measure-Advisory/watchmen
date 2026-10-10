@@ -1,12 +1,9 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Zap, BarChart2, AlertTriangle, LineChart } from 'lucide-react';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 
 // Import components
 import AIInsightsTab from '@/components/analysis/AIInsightsTab';
@@ -46,7 +43,6 @@ import { useToast } from '@/components/ui/use-toast';
  * - Clear separation of concerns and data flow
  */
 const Analysis: React.FC = () => {
-  const { collapsed } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
   const [hypothesis, setHypothesis] = useState<HypothesisType | null>(null);
@@ -180,11 +176,7 @@ const Analysis: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Sidebar />
-        
-        <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-          <Header />
-          
+        <div className="min-h-screen">
           <main className="container py-6 flex items-center justify-center">
             <Card className="glass-card border-0 shadow-sm p-8 text-center">
               <div className="flex flex-col items-center space-y-4">
@@ -207,11 +199,7 @@ const Analysis: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
-        
+      <div className="min-h-screen">
         <main className="container py-6">
           <AnalysisProvider initialHypothesis={currentHypothesis}>
             {currentHypothesis ? (

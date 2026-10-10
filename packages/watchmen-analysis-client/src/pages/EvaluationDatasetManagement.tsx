@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useSidebar } from '@/contexts/SidebarContext';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -55,7 +52,6 @@ import {
 } from '@/services/evaluationDatasetService';
 
 const EvaluationDatasetManagement = () => {
-  const { collapsed } = useSidebar();
   const [datasets, setDatasets] = useState<EvaluationDataset[]>([]);
   const [summary, setSummary] = useState<DatasetSummary | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -385,9 +381,7 @@ const EvaluationDatasetManagement = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-64'}`}>
-        <Header />
+      <div className="flex-1 min-w-0 flex flex-col">
         <main className="flex-1 p-6 overflow-auto">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Header */}

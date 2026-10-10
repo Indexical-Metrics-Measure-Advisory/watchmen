@@ -79,10 +79,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       // Load login configuration
       await loadLoginConfiguration();
-      
+
       // Check if user is already logged in
       const storedToken = authService.getStoredToken();
-      
+
       if (storedToken) {
         try {
           // Validate the stored token and get user info

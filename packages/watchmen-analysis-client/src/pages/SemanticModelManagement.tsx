@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,8 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { Plus, Edit, Trash2, Database, GitBranch, BarChart3, Users, Calendar } from 'lucide-react';
 import { SemanticModel, SemanticModelSummary } from '@/model/semanticModel';
 import { getSemanticModels, createSemanticModel, updateSemanticModel, deleteSemanticModel } from '@/services/semanticModelService';
@@ -36,7 +33,6 @@ const getAggregationBadgeColor = (agg: string) => {
 };
 
 const SemanticModelManagement: React.FC = () => {
-  const { collapsed } = useSidebar();
   const { t, i18n } = useTranslation(['common', 'semanticModel']);
   const locale = i18n.resolvedLanguage ?? 'en';
   const { toast } = useToast();
@@ -169,9 +165,7 @@ const SemanticModelManagement: React.FC = () => {
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-background">
-        <Sidebar />
-        <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-          <Header />
+        <div className="min-h-screen">
           <main className="container py-6 space-y-6">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 border-b pb-6">
@@ -307,6 +301,7 @@ const SemanticModelManagement: React.FC = () => {
                                 </TabsList>
                                 <TabsContent value="entities" className="space-y-4">
                                   <ScrollArea className="h-[400px]">
+                                    <div className="overflow-x-auto">
                                     <Table>
                                       <TableHeader>
                                         <TableRow>
@@ -325,10 +320,12 @@ const SemanticModelManagement: React.FC = () => {
                                         ))}
                                       </TableBody>
                                     </Table>
+                                    </div>
                                   </ScrollArea>
                                 </TabsContent>
                                 <TabsContent value="measures" className="space-y-4">
                                   <ScrollArea className="h-[400px]">
+                                    <div className="overflow-x-auto">
                                     <Table>
                                       <TableHeader>
                                         <TableRow>
@@ -349,10 +346,12 @@ const SemanticModelManagement: React.FC = () => {
                                         ))}
                                       </TableBody>
                                     </Table>
+                                    </div>
                                   </ScrollArea>
                                 </TabsContent>
                                 <TabsContent value="dimensions" className="space-y-4">
                                   <ScrollArea className="h-[400px]">
+                                    <div className="overflow-x-auto">
                                     <Table>
                                       <TableHeader>
                                         <TableRow>
@@ -373,6 +372,7 @@ const SemanticModelManagement: React.FC = () => {
                                         ))}
                                       </TableBody>
                                     </Table>
+                                    </div>
                                   </ScrollArea>
                                 </TabsContent>
                               </Tabs>

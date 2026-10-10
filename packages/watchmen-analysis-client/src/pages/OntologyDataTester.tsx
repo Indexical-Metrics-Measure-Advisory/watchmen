@@ -4,9 +4,6 @@ import {
 	Boxes, Table2, FlaskConical, RefreshCw, Play, Copy, Check, Loader2,
 	AlertTriangle, Sigma, Plus, X, Database, ChevronDown, ChevronRight,
 } from 'lucide-react';
-import { useSidebar } from '@/contexts/SidebarContext';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -41,7 +38,6 @@ const filterOperatorLabel = (op: RuntimeFilterOperator, t: (key: string) => stri
 
 const OntologyDataTester: React.FC = () => {
 	const { t } = useTranslation('ontologyDataTester');
-	const { collapsed } = useSidebar();
 
 	const [ontologies, setOntologies] = useState<VirtualOntology[]>([]);
 	const [loadingMeta, setLoadingMeta] = useState(true);
@@ -266,9 +262,7 @@ const OntologyDataTester: React.FC = () => {
 
 	return (
 		<div className="min-h-screen bg-background">
-			<Sidebar />
-			<div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-				<Header />
+			<div className="min-h-screen transition-all duration-300">
 				<main className="container py-6">
 					{/* 标题区 */}
 					<div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">

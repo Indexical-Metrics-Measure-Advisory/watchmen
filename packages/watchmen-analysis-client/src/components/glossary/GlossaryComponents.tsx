@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import {
   type SectionId,
   type Standard,
@@ -162,7 +162,7 @@ export const EditEntryDialog: React.FC<{
   const handleSubmit = () => {
     for (const f of fields) {
       if (f.required && !form[f.key]?.trim()) {
-        toast.error(`${f.label} is required`);
+        toast({ title: `${f.label} is required`, variant: 'destructive' });
         return;
       }
     }
@@ -235,7 +235,7 @@ export const EditStandardDialog: React.FC<{
 
   const handleSubmit = () => {
     if (!form.id.trim() || !form.name.trim() || !form.abbreviation.trim()) {
-      toast.error('ID, Abbreviation and Name are required');
+      toast({ title: 'ID, Abbreviation and Name are required', variant: 'destructive' });
       return;
     }
     onSave({

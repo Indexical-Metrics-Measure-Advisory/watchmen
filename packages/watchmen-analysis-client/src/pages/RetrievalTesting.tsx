@@ -1,18 +1,14 @@
 import React, { useState, useRef } from 'react';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { useNavigate } from 'react-router-dom';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Search, FileText, ArrowLeft, Loader2 } from 'lucide-react';
 
 const RetrievalTesting: React.FC = () => {
-  const { collapsed } = useSidebar();
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -75,11 +71,7 @@ const RetrievalTesting: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
-        
+      <div className="min-h-screen transition-all duration-300">
         <main className="container py-6">
           <div className="flex items-center gap-4 mb-6">
             <Button

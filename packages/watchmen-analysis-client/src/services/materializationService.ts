@@ -318,10 +318,11 @@ class MaterializationService {
 		);
 		const data = await checkResponse(response);
 		const dims = Array.isArray(data) ? data : (data?.dimensions ?? []);
-		return dims.map((d: { name: string; qualified_name?: string }) => ({
+		return dims.map((d: { name: string; qualified_name?: string; type?: string }) => ({
 			id: d.name,
 			name: d.name,
-			qualifiedName: d.qualified_name
+			qualifiedName: d.qualified_name,
+			type: d.type
 		}));
 	}
 

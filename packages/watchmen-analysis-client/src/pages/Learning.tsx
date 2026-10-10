@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -183,11 +181,7 @@ const Learning: React.FC = () => {
   
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      
-      <div className="pl-56 min-h-screen">
-        <Header />
-        
+      <div className="min-h-screen">
         <main className="container py-6">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center">

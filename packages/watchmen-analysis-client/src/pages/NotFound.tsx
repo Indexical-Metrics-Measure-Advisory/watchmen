@@ -1,14 +1,10 @@
 import React from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { useSidebar } from '@/contexts/SidebarContext';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 
 const NotFound: React.FC = () => {
-  const { collapsed } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -21,11 +17,7 @@ const NotFound: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
-        
+      <div className="min-h-screen transition-all duration-300">
         <main className="container py-6 flex flex-col items-center justify-center">
           <div className="text-center max-w-md mx-auto py-12">
             <h1 className="text-4xl font-bold mb-4">404</h1>

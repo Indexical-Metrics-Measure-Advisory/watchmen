@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSidebar } from '@/contexts/SidebarContext';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BrainCircuit, CheckCircle, RefreshCw, Loader2, XCircle, Maximize2, Minimize2, X, FileText, Lightbulb } from 'lucide-react';
+import { BrainCircuit, CheckCircle, RefreshCw, Loader2, XCircle, Maximize2, Minimize2, FileText, Lightbulb } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { MermaidDiagram } from 'react-mermaid-js';
@@ -23,7 +21,6 @@ const AIAnalysisAgent: React.FC<AIAnalysisAgentProps> = ({
   challengeId: propChallengeId,
   onComplete
 }) => {
-  const { collapsed } = useSidebar();
   const navigate = useNavigate();
 
   // Get agentId from URL query parameters
@@ -170,9 +167,7 @@ const AIAnalysisAgent: React.FC<AIAnalysisAgentProps> = ({
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
+      <div className="min-h-screen">
         <main className="container py-4 sm:py-6 px-4 sm:px-6 max-w-full overflow-hidden">
           <Card className="mt-4">
             <CardHeader>
@@ -437,30 +432,32 @@ const AIAnalysisAgent: React.FC<AIAnalysisAgentProps> = ({
       </div>
 
       {/* Fallback Fullscreen Mermaid Modal */}
-      {isFullscreenDiagram && !document.fullscreenElement && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full h-full max-w-7xl max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <Dialog
+        open={isFullscreenDiagram && !document.fullscreenElement}
+        onOpenChange={(open) => { if (!open) setIsFullscreenDiagram(false); }}
+      >
+        <DialogContent className="max-w-7xl w-[95vw] h-[90vh] p-0 gap-0 flex flex-col">
+          <div className="flex items-center justify-between p-4 pr-12 border-b border-gray-200 dark:border-gray-700">
+            <DialogTitle asChild>
               <h2 className="text-lg font-semibold">Business Challenge Hierarchy Visualization - Fullscreen</h2>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => setMermaidKey(prevKey => prevKey + 1)}><RefreshCw className="h-4 w-4 mr-2" />Refresh</Button>
-                <Button variant="outline" size="sm" onClick={() => setIsFullscreenDiagram(false)}><Minimize2 className="h-4 w-4 mr-2" />Exit</Button>
-                <Button variant="ghost" size="sm" onClick={() => setIsFullscreenDiagram(false)}><X className="h-4 w-4" /></Button>
-              </div>
-            </div>
-            <div className="flex-1 p-6 overflow-auto">
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="mermaid-container-fullscreen" style={{ width: '100%', height: '100%', minHeight: '500px' }}>
-                  <MermaidDiagram key={`fullscreen-${mermaidKey}`} diagram={generateMermaidDiagram(businessChallengeWithProblems)} />
-                </div>
-              </div>
-            </div>
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-              <p className="text-sm text-gray-600 dark:text-gray-400 text-center">Use mouse wheel to zoom and drag to pan around the diagram.</p>
+            </DialogTitle>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setMermaidKey(prevKey => prevKey + 1)}><RefreshCw className="h-4 w-4 mr-2" />Refresh</Button>
+              <Button variant="outline" size="sm" onClick={() => setIsFullscreenDiagram(false)}><Minimize2 className="h-4 w-4 mr-2" />Exit</Button>
             </div>
           </div>
-        </div>
-      )}
+          <div className="flex-1 p-6 overflow-auto">
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="mermaid-container-fullscreen" style={{ width: '100%', height: '100%', minHeight: '500px' }}>
+                <MermaidDiagram key={`fullscreen-${mermaidKey}`} diagram={generateMermaidDiagram(businessChallengeWithProblems)} />
+              </div>
+            </div>
+          </div>
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center">Use mouse wheel to zoom and drag to pan around the diagram.</p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

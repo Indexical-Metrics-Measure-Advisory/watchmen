@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GlobalAlertRuleList } from '@/components/alert/GlobalAlertRuleList';
 import { SuggestedActionManagement } from '@/components/suggested-action/SuggestedActionManagement';
@@ -11,7 +8,6 @@ import { actionTypeService } from '@/services/actionTypeService';
 import { useTranslation } from 'react-i18next';
 
 export const AlertConfigurationPage: React.FC = () => {
-  const { collapsed } = useSidebar();
   const { t } = useTranslation('alertConfig');
   const [activeTab, setActiveTab] = useState("alert-rules");
   const [types, setTypes] = useState<ActionType[]>([]);
@@ -22,10 +18,7 @@ export const AlertConfigurationPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
-
+      <div className="min-h-screen transition-all duration-300">
         <main className="container py-8 space-y-6">
           <div className="flex justify-between items-start mb-2">
             <div>

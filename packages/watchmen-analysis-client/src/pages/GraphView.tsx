@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from 'react';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   ReactFlow,
@@ -13,8 +12,6 @@ import {
   ReactFlowProvider
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import GraphToolbar from '@/components/graph/GraphToolbar';
 import { ChallengeNode, HypothesisNode } from '@/components/graph/NodeTypes';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -275,7 +272,6 @@ const FlowContent = ({ onEntitySelect }: { onEntitySelect: (entity: any) => void
 
 // Main component that provides the ReactFlowProvider
 const GraphView: React.FC = () => {
-  const { collapsed } = useSidebar();
   const navigate = useNavigate();
   const [selectedEntity, setSelectedEntity] = useState<{
     id: string;
@@ -308,11 +304,7 @@ const GraphView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
-        
+      <div className="min-h-screen">
         <main className="container py-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">

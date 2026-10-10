@@ -14,9 +14,6 @@ import {
 	MarkerType
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -167,7 +164,6 @@ const edgeKindColor: Record<string, string> = {
 };
 
 const ComputeFlow: React.FC = () => {
-	const { collapsed } = useSidebar();
 	const { t } = useTranslation(['common', 'materialization']);
 	const { toast } = useToast();
 
@@ -303,10 +299,7 @@ const ComputeFlow: React.FC = () => {
 
 	return (
 		<div className="min-h-screen bg-background flex flex-col">
-			<Sidebar />
-			<div className={`${collapsed ? 'pl-20' : 'pl-56'} flex-1 flex flex-col transition-[padding] duration-300`}>
-				<Header />
-
+			<div className="flex-1 flex flex-col transition-[padding] duration-300">
 				<main className="flex-1 flex flex-col p-6 h-[calc(100vh-64px)]">
 					<div className="flex flex-wrap items-center gap-4 mb-4 shrink-0">
 						<div className="p-3 bg-primary/10 rounded-xl">

@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { useNavigate } from 'react-router-dom';
 import { Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { useToast } from '@/components/ui/use-toast';
 import AgentCard from '@/components/ai/AgentCard';
 import { a2aService } from '@/services/a2aService';
@@ -14,7 +11,6 @@ import { AgentCard as AgentCardType } from '@/model/A2ASpec';
 
 
 const AIAgentManagement: React.FC = () => {
-  const { collapsed } = useSidebar();
   const [agents, setAgents] = useState<AgentCardType[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -59,11 +55,7 @@ const AIAgentManagement: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
-        
+      <div className="min-h-screen">
         <main className="container py-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">AI Agent Management</h1>

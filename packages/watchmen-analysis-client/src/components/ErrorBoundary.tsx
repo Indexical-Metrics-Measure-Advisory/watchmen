@@ -38,16 +38,16 @@ export class ErrorBoundary extends Component<Props, State> {
             <AlertTriangle className="h-6 w-6 text-destructive" />
           </div>
           <div className="space-y-2">
-            <h3 className="font-semibold text-lg">Something went wrong</h3>
+            <h3 className="font-semibold text-lg">Something went wrong / 页面出错了</h3>
             <p className="text-sm text-muted-foreground max-w-[400px]">
-              {this.state.error?.message || "An unexpected error occurred."}
+              {this.state.error?.message || "An unexpected error occurred. / 发生了意外错误。"}
             </p>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => this.setState({ hasError: false, error: null })}
           >
-            Try again
+            Try again / 重试
           </Button>
         </div>
       );

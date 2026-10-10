@@ -7,6 +7,9 @@ interface SidebarContextType {
   expandedGroups: Record<string, boolean>;
   setGroupExpanded: (group: string, expanded: boolean) => void;
   toggleGroup: (group: string) => void;
+  mobileOpen: boolean;
+  openMobile: () => void;
+  closeMobile: () => void;
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
@@ -68,8 +71,13 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
     }));
   }, []);
 
+  // mobile drawer state is intentionally not persisted: it should start closed on every load
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const openMobile = useCallback(() => setMobileOpen(true), []);
+  const closeMobile = useCallback(() => setMobileOpen(false), []);
+
   return (
-    <SidebarContext.Provider value={{ collapsed, setCollapsed, toggleSidebar, expandedGroups, setGroupExpanded, toggleGroup }}>
+    <SidebarContext.Provider value={{ collapsed, setCollapsed, toggleSidebar, expandedGroups, setGroupExpanded, toggleGroup, mobileOpen, openMobile, closeMobile }}>
       {children}
     </SidebarContext.Provider>
   );

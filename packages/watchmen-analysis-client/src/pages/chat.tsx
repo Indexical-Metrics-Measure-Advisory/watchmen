@@ -50,9 +50,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Textarea } from '@/components/ui/textarea';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { getAssistants } from '@/services/analysisAssistantService';
 import type { AssistantProfile } from '@/model/analysisAssistant';
 import HypothesisArtifactCard, { type HypothesisArtifact } from '@/components/chat/HypothesisArtifactCard';
@@ -352,7 +349,6 @@ const ChartRenderer: React.FC<{ chart: ChartDescriptor }> = React.memo(({ chart 
 // --- Main Page Component ---
 
 const ChatPage: React.FC = () => {
-  const { collapsed } = useSidebar();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -475,9 +471,7 @@ const ChatPage: React.FC = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
-      <Sidebar className="hidden md:flex" />
-      <div className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ${collapsed ? 'md:pl-20' : 'md:pl-56'}`}>
-        <Header />
+      <div className="flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300">
         <main className="flex-1 overflow-hidden flex flex-col relative">
           {/* --- Chat Header (Toolbar) --- */}
           <header className="flex-none h-14 border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm sticky top-0 z-10 px-4 md:px-6 flex items-center justify-between">

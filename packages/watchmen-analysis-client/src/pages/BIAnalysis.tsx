@@ -1,7 +1,4 @@
 import React, { useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -49,7 +46,6 @@ import { HypothesisQuickCreateSheet } from '@/components/hypothesis/HypothesisQu
 
 const BIAnalysisPage: React.FC = () => {
   const { toast } = useToast();
-  const { collapsed } = useSidebar();
   const { user, token } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'biAnalysis']);
@@ -265,11 +261,7 @@ const BIAnalysisPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-[padding] duration-300`}>
-        <Header />
-
+      <div className="min-h-screen">
         <main className="container py-6 space-y-6">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 border-b pb-4">
             <div className="flex items-center gap-4">

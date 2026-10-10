@@ -1,8 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -44,7 +41,6 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
-import { cn } from '@/lib/utils';
 import type { Materialization, ScheduleFrequency } from '@/model/materialization';
 import { materializationService } from '@/services/materializationService';
 import MaterializationFormDialog from '@/components/materialization/MaterializationFormDialog';
@@ -72,7 +68,6 @@ const formatSchedule = (
 };
 
 const MaterializationManagement: React.FC = () => {
-	const { collapsed } = useSidebar();
 	const { t } = useTranslation(['common', 'materialization']);
 	const { toast } = useToast();
 
@@ -274,10 +269,7 @@ const MaterializationManagement: React.FC = () => {
 
 	return (
 		<div className="min-h-screen bg-background">
-			<Sidebar />
-			<div className={cn('min-h-screen transition-all duration-300', collapsed ? 'pl-20' : 'pl-56')}>
-				<Header />
-
+			<div className="min-h-screen transition-all duration-300">
 				<main className="container py-8 space-y-6">
 					<div className="flex flex-wrap items-start justify-between gap-4">
 						<div>
@@ -356,6 +348,7 @@ const MaterializationManagement: React.FC = () => {
 								<Loader2 className="h-8 w-8 animate-spin text-primary" />
 							</div>
 						) : (
+							<div className="overflow-x-auto">
 							<Table>
 								<TableHeader>
 									<TableRow>
@@ -505,6 +498,7 @@ const MaterializationManagement: React.FC = () => {
 									))}
 								</TableBody>
 							</Table>
+							</div>
 						)}
 					</Card>
 				</main>

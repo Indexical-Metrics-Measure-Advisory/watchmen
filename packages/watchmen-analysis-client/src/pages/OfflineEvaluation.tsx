@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useSidebar } from '@/contexts/SidebarContext';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -61,7 +58,6 @@ interface EvaluationConfig {
 }
 
 const OfflineEvaluation = () => {
-  const { collapsed } = useSidebar();
   const [evaluations, setEvaluations] = useState<EvaluationResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -255,9 +251,7 @@ const OfflineEvaluation = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
+      <div className="min-h-screen transition-all duration-300">
         <main className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
@@ -549,6 +543,7 @@ const OfflineEvaluation = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -621,6 +616,7 @@ const OfflineEvaluation = () => {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

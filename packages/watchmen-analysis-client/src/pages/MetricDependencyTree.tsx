@@ -13,9 +13,6 @@ import {
   MarkerType
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Minus, LayoutDashboard, BarChart3 } from 'lucide-react';
@@ -178,7 +175,6 @@ const nodeTypes = {
 };
 
 const MetricDependencyTree: React.FC = () => {
-  const { collapsed } = useSidebar();
   const { t } = useTranslation(['metricTree', 'metricsEnum']);
   const location = useLocation();
   const getTypeLabel = useCallback((type?: string) => {
@@ -364,10 +360,7 @@ const MetricDependencyTree: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Sidebar />
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} flex-1 flex flex-col transition-[padding] duration-300`}>
-        <Header />
-        
+      <div className="flex-1 flex flex-col transition-[padding] duration-300">
         <main className="flex-1 flex flex-col p-6 h-[calc(100vh-64px)]">
           <div className="flex items-center gap-4 mb-6 shrink-0">
             <div className="p-3 bg-primary/10 rounded-xl">

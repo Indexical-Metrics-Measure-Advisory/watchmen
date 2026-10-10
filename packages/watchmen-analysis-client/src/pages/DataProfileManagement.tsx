@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { TestTube, Eye, EyeOff, Save } from 'lucide-react';
-import { useSidebar } from '@/contexts/SidebarContext';
-import { cn } from '@/lib/utils';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { DataProfile, DatabaseType } from '@/model/dataProfile';
 import {
   createDataProfile,
@@ -14,7 +10,6 @@ import {
 import DataService, { DataProfileFormData, ConnectionResult } from '@/services/dataService';
 
 const DataProfileManagement: React.FC = () => {
-  const { collapsed } = useSidebar();
   const [currentProfile, setCurrentProfile] = useState<DataProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -98,12 +93,7 @@ const DataProfileManagement: React.FC = () => {
   };
 
   return (
-    <div className={cn(
-      "min-h-screen flex flex-col transition-all duration-300",
-      collapsed ? "ml-[80px]" : "ml-[224px]"
-    )}>
-      <Sidebar />
-      <Header />
+    <div className="min-h-screen flex flex-col">
       
       <main className="flex-1 p-6">
         {loading ? (

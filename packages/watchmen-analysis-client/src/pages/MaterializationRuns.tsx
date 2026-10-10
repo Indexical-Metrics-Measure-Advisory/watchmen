@@ -1,8 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -68,7 +65,6 @@ const formatDateTime = (iso?: string): string => {
 };
 
 const MaterializationRuns: React.FC = () => {
-	const { collapsed } = useSidebar();
 	const { t } = useTranslation(['common', 'materialization']);
 	const { toast } = useToast();
 
@@ -140,10 +136,7 @@ const MaterializationRuns: React.FC = () => {
 
 	return (
 		<div className="min-h-screen bg-background">
-			<Sidebar />
-			<div className={cn('min-h-screen transition-all duration-300', collapsed ? 'pl-20' : 'pl-56')}>
-				<Header />
-
+			<div className="min-h-screen transition-all duration-300">
 				<main className="container py-8 space-y-6">
 					<div className="flex flex-wrap items-start justify-between gap-4">
 						<div>
@@ -207,8 +200,9 @@ const MaterializationRuns: React.FC = () => {
 								<Loader2 className="h-8 w-8 animate-spin text-primary" />
 							</div>
 						) : (
-							<>
-								<Table>
+								<>
+									<div className="overflow-x-auto">
+									<Table>
 									<TableHeader>
 										<TableRow>
 											<TableHead className="w-8" />
@@ -337,6 +331,7 @@ const MaterializationRuns: React.FC = () => {
 										))}
 									</TableBody>
 								</Table>
+									</div>
 
 								{pageCount > 1 && (
 									<div className="flex justify-center border-t py-4">

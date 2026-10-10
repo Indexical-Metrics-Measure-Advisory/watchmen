@@ -1,13 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { BarChart3, CheckCircle2, Loader2, Save, Search, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -33,7 +30,6 @@ const sameIdSet = (a: Set<string>, b: Set<string>) => {
 };
 
 const UserGroupMetrics: React.FC = () => {
-	const { collapsed } = useSidebar();
 	const { t } = useTranslation('userGroupMetrics');
 	const { toast } = useToast();
 
@@ -156,12 +152,7 @@ const UserGroupMetrics: React.FC = () => {
 	const isDirty = selectedGroupId !== null && !assignmentsLoading && !sameIdSet(assignedIds, savedIds);
 
 	return (
-		<div className={cn(
-			"min-h-screen flex flex-col transition-all duration-300",
-			collapsed ? "ml-[80px]" : "ml-[224px]"
-		)}>
-			<Sidebar />
-			<Header />
+		<div className="min-h-screen flex flex-col">
 
 			<main className="flex-1 p-6 space-y-4">
 				<div>

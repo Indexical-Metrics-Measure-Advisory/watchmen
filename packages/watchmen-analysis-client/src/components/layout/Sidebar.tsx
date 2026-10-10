@@ -53,10 +53,12 @@ interface NavItemProps {
 const NavItem: React.FC<NavItemProps> = ({ to, icon, label, collapsed, isSubItem = false }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
-  
+  const { closeMobile } = useSidebar();
+
   return (
-    <Link 
-      to={to} 
+    <Link
+      to={to}
+      onClick={closeMobile}
       className={cn(
         "flex items-center gap-3 py-2 rounded-lg text-sidebar-foreground/80 transition-all duration-200",
         isSubItem ? "px-8 ml-2" : "px-4",
@@ -132,17 +134,27 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ className }) => {
-  const { collapsed, toggleSidebar, expandedGroups, toggleGroup } = useSidebar();
+  const { collapsed, toggleSidebar, expandedGroups, toggleGroup, mobileOpen, closeMobile } = useSidebar();
   const { isConsoleUser, isAdmin } = useAuth();
   const { aiEnabled } = useTenantAiEnabled();
   const { t } = useTranslation(['layout', 'nav']);
 
   return (
-    <aside className={cn(
-      "h-screen bg-sidebar fixed top-0 left-0 border-r border-border/50 flex flex-col transition-all duration-300 z-50",
-      collapsed ? "w-20" : "w-56",
-      className
-    )}>
+    <>
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-[45] bg-black/50 md:hidden"
+          onClick={closeMobile}
+          aria-hidden="true"
+        />
+      )}
+      <aside className={cn(
+        "h-screen bg-sidebar fixed top-0 left-0 border-r border-border/50 flex flex-col transition-all duration-300 z-50",
+        collapsed ? "w-20" : "w-56",
+        mobileOpen ? "translate-x-0" : "-translate-x-full",
+        "md:translate-x-0",
+        className
+      )}>
       <div className="p-4 border-b border-border/50 relative">
         <div className={cn(
           "flex items-center gap-3 px-2",
@@ -289,6 +301,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         )}
       </div>
     </aside>
+    </>
   );
 };
 

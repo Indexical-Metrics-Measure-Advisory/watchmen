@@ -1,13 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import {
   Search, Plus, Trash2, Edit2, Save, Package, FolderTree, Table2, Layers,
   ChevronRight, ChevronDown, Upload, FileCode, RefreshCw,
 } from "lucide-react";
 import YAML from "yaml";
-import { useSidebar } from "@/contexts/SidebarContext";
-import Sidebar from "@/components/layout/Sidebar";
-import Header from "@/components/layout/Header";
 import { useTranslation } from "react-i18next";
 
 import type {
@@ -275,7 +272,7 @@ const TopicDetailsDialog: React.FC<{
     dataProductService
       .getTopicDetails(topicId)
       .then(setDetails)
-      .catch((err) => toast.error(t("details.loadFailed", { message: err instanceof Error ? err.message : String(err) })))
+      .catch((err) => toast({ title: t("details.loadFailed", { message: err instanceof Error ? err.message : String(err) }), variant: "destructive" }))
       .finally(() => setLoading(false));
   }, [topicId, t]);
 
@@ -313,6 +310,7 @@ const TopicDetailsDialog: React.FC<{
               <p className="text-sm text-slate-600">{details.description}</p>
             )}
             <ScrollArea className="h-64 border rounded-md">
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -335,6 +333,7 @@ const TopicDetailsDialog: React.FC<{
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </ScrollArea>
           </div>
         )}
@@ -525,7 +524,7 @@ const ProductFormDialog: React.FC<{
     const tags = tagsText.split(/[,，]/).map((t) => t.trim()).filter(Boolean);
     let payload: DataProductUpsert = { ...form, name: (form.name || "").trim(), tags };
     if (!payload.name) {
-      toast.error(t("form.nameRequired"));
+      toast({ title: t("form.nameRequired"), variant: "destructive" });
       return;
     }
     // merge the full ODPS structure from the YAML editor (edit mode only)
@@ -536,7 +535,7 @@ const ProductFormDialog: React.FC<{
           lastModifiedAt: _lm, lastModifiedBy: _lmb, version: _v, ...odps } = parsed;
         payload = { ...odps, ...payload, id: initial.id };
       } catch {
-        toast.error(t("form.jsonInvalid"));
+        toast({ title: t("form.jsonInvalid"), variant: "destructive" });
         return;
       }
     }
@@ -857,7 +856,6 @@ const CatalogTreeItem: React.FC<{
 // Main page
 // ---------------------------------------------------------------------------
 const DataProductCatalog: React.FC = () => {
-  const { collapsed } = useSidebar();
   const { t } = useTranslation("dataAsset");
   const [catalogs, setCatalogs] = useState<DataAssetCatalog[]>([]);
   const [products, setProducts] = useState<DataProduct[]>([]);
@@ -886,7 +884,7 @@ const DataProductCatalog: React.FC = () => {
       setCatalogs(cats);
       setProducts(prods);
     } catch (err) {
-      toast.error(t("form.loadFailed", { message: err instanceof Error ? err.message : String(err) }));
+      toast({ title: t("form.loadFailed", { message: err instanceof Error ? err.message : String(err) }), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -941,17 +939,17 @@ const DataProductCatalog: React.FC = () => {
     try {
       if (payload.id) {
         await dataProductService.updateCatalog(payload);
-        toast.success(t("catalogPanel.updated"));
+        toast({ title: t("catalogPanel.updated") });
       } else {
         await dataProductService.createCatalog(payload);
-        toast.success(t("catalogPanel.created"));
+        toast({ title: t("catalogPanel.created") });
       }
       setCatalogDialogOpen(false);
       setEditingCatalog(null);
       setNewCatalogParentId(null);
       loadAll();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
 
@@ -959,11 +957,11 @@ const DataProductCatalog: React.FC = () => {
     if (!confirm(t("catalogPanel.deleteConfirm", { name: node.name }))) return;
     try {
       await dataProductService.deleteCatalog(node.id);
-      toast.success(t("catalogPanel.deleted"));
+        toast({ title: t("catalogPanel.deleted") });
       if (selectedCatalogId === node.id) setSelectedCatalogId("");
       loadAll();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
 
@@ -972,16 +970,16 @@ const DataProductCatalog: React.FC = () => {
     try {
       if (payload.id) {
         await dataProductService.updateProduct(payload);
-        toast.success(t("form.updated"));
+        toast({ title: t("form.updated") });
       } else {
         await dataProductService.createProduct(payload);
-        toast.success(t("form.created"));
+        toast({ title: t("form.created") });
       }
       setProductDialogOpen(false);
       setEditingProduct(null);
       loadAll();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
 
@@ -989,10 +987,10 @@ const DataProductCatalog: React.FC = () => {
     if (!confirm(t("form.deleteConfirm"))) return;
     try {
       await dataProductService.deleteProduct(id);
-      toast.success(t("form.deleted"));
+        toast({ title: t("form.deleted") });
       loadAll();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
 
@@ -1003,11 +1001,11 @@ const DataProductCatalog: React.FC = () => {
         catalog_id: selectedCatalogId || undefined,
         status: "draft",
       });
-      toast.success(t("batchAdd.created", { count: created.length }));
+      toast({ title: t("batchAdd.created", { count: created.length }) });
       setBatchAddOpen(false);
       loadAll();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
 
@@ -1024,9 +1022,7 @@ const DataProductCatalog: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <Sidebar />
-      <div className={`flex-1 flex flex-col h-screen transition-all duration-300 ${collapsed ? "ml-20" : "ml-56"}`}>
-        <Header />
+      <div className="flex-1 flex flex-col h-screen">
         <div className="flex flex-1 min-h-0 overflow-hidden">
           {/* Left: catalog tree */}
           <div className="w-72 bg-white border-r border-slate-200 flex flex-col">
@@ -1146,6 +1142,7 @@ const DataProductCatalog: React.FC = () => {
             </div>
 
             <ScrollArea className="flex-1">
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -1259,6 +1256,7 @@ const DataProductCatalog: React.FC = () => {
                   )}
                 </TableBody>
               </Table>
+              </div>
             </ScrollArea>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import {
   RefreshCw, Focus, X, Share2, Loader2,
 } from "lucide-react";
@@ -8,9 +8,6 @@ import {
   BaseEdge, EdgeLabelRenderer, useInternalNode,
   type Node, type Edge, type NodeProps, type EdgeProps,
 } from "@xyflow/react";
-import { useSidebar } from "@/contexts/SidebarContext";
-import Sidebar from "@/components/layout/Sidebar";
-import Header from "@/components/layout/Header";
 import { useTranslation } from "react-i18next";
 import type { ProductGraph, ProductGraphNode } from "@/model/dataProduct";
 import { dataProductService } from "@/services/dataProductService";
@@ -211,7 +208,6 @@ const computeLayout = (
 };
 
 const DataProductGraph: React.FC = () => {
-  const { collapsed } = useSidebar();
   const { t } = useTranslation("dataAsset");
   const [graph, setGraph] = useState<ProductGraph | null>(null);
   const [loading, setLoading] = useState(true);
@@ -231,7 +227,7 @@ const DataProductGraph: React.FC = () => {
       });
       setGraph(resp);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast({ title: err instanceof Error ? err.message : String(err), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -346,9 +342,7 @@ const DataProductGraph: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <Sidebar />
-      <div className={`flex-1 flex flex-col h-screen transition-all duration-300 ${collapsed ? "ml-20" : "ml-56"}`}>
-        <Header />
+      <div className="flex-1 flex flex-col h-screen transition-all duration-300">
         <div className="flex-1 min-h-0 flex flex-col p-4 gap-3">
           {/* toolbar */}
           <div className="flex items-center gap-2 flex-wrap">

@@ -3,18 +3,9 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { useTheme } from '@/contexts/ThemeContext';
-import { useSidebar } from '@/contexts/SidebarContext';
-import { cn } from '@/lib/utils';
-import Header from '@/components/layout/Header';
-import { Sun, Moon, ArrowLeft, Key, Search, Plus, Github, Database, Figma, MessageSquare, GitBranch, Sparkles } from 'lucide-react';
+import { ArrowLeft, Database, Sparkles } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { Toaster } from '@/components/ui/toaster';
-import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/AuthContext';
-import { Separator } from '@/components/ui/separator';
 import MCPServerConfigModal from '@/components/settings/MCPServerConfigModal';
 import {
   Select,
@@ -34,8 +25,6 @@ const AI_MODELS = [
 ];
 
 const Settings = () => {
-  const { theme, toggleTheme } = useTheme();
-  const { collapsed } = useSidebar();
   const navigate = useNavigate();
   const [mcpToken, setMcpToken] = React.useState('');
   const [mcpUrl, setMcpUrl] = React.useState('');
@@ -155,13 +144,7 @@ const Settings = () => {
   };
   
   return (
-    <div className={cn(
-      "min-h-screen flex flex-col transition-all duration-300",
-      collapsed ? "ml-[80px]" : "ml-[224px]"
-    )}>
-      <Header />
-      <Toaster />
-      
+    <div className="flex flex-1 flex-col">
       <main className="flex-1 container max-w-5xl mx-auto py-8 px-4">
         <div className="flex items-center gap-4 mb-8">
           <Button
@@ -178,40 +161,10 @@ const Settings = () => {
           </div>
         </div>
         
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Appearance</CardTitle>
-            <CardDescription>Customize how the application looks</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                {theme === 'dark' ? (
-                  <Moon className="h-5 w-5" />
-                ) : (
-                  <Sun className="h-5 w-5" />
-                )}
-                <div>
-                  <Label htmlFor="theme-toggle">Dark Mode</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {theme === 'dark' 
-                      ? 'Using dark theme' 
-                      : 'Using light theme'}
-                  </p>
-                </div>
-              </div>
-              <Switch
-                id="theme-toggle"
-                checked={theme === 'dark'}
-                onCheckedChange={toggleTheme}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Dark-mode entry point intentionally removed: most pages still use raw
+            light palette classes, so the toggle produced a broken mix. Re-add an
+            Appearance card once pages migrate to semantic color tokens. */}
 
-        
-        
-        
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>AI Configuration</CardTitle>

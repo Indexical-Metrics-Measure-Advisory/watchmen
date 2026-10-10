@@ -141,4 +141,6 @@ export interface MockDimensionOption {
 	id: string;
 	name: string;
 	qualifiedName?: string;
+	// backend dimension type: TIME / CATEGORICAL / ENTITY / CUSTOM (upper or lower case)
+	type?: string;
 }

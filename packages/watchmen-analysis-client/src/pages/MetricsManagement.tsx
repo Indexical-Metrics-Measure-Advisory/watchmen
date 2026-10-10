@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,8 +13,6 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import {
   Plus, Edit, Trash2, BarChart3, GitBranch, Calculator, Search, Filter, Eye, Folder, FolderOpen, Tag, MoreHorizontal, LayoutGrid, List as ListIcon, Clock, RefreshCcw,
   CheckCircle2, XCircle, CircleDot, ShieldCheck, AlertTriangle, History
@@ -82,7 +79,6 @@ const PublishBadge = ({ status, size = 'default' }: { status?: MetricPublishStat
 };
 
 const MetricsManagement: React.FC = () => {
-  const { collapsed } = useSidebar();
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'metricsEnum', 'metricsManagement']);
   const { toast } = useToast();
@@ -296,10 +292,8 @@ const MetricsManagement: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
 
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-all duration-300`}>
-        <Header />
+      <div className="min-h-screen">
 
         <main className="flex-1 p-6 space-y-6 overflow-y-auto">
           {/* Top Header & Actions */}

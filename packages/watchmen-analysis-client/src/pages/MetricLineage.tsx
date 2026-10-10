@@ -1,9 +1,6 @@
 import React from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import Sidebar from '@/components/layout/Sidebar';
-import Header from '@/components/layout/Header';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
@@ -65,7 +62,6 @@ const mergePathDetail = (
 };
 
 const MetricLineagePage: React.FC = () => {
-  const { collapsed } = useSidebar();
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation('metricLineage');
@@ -276,11 +272,7 @@ const MetricLineagePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-
-      <div className={`${collapsed ? 'pl-20' : 'pl-56'} min-h-screen transition-[padding] duration-300`}>
-        <Header />
-
+      <div className="min-h-screen transition-[padding] duration-300">
         <main className="container py-6 space-y-4">
           {/* Page header: title + resolution status + actions */}
           <div className="flex flex-wrap items-center justify-between gap-3">
