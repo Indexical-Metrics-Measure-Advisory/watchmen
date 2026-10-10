@@ -26,13 +26,32 @@ import {
 } from '@/components/ui/select';
 import {
 	Loader2,
+	Pencil,
 	Play,
+	Plus,
 	RefreshCw,
+	Trash2,
 	Workflow
 } from 'lucide-react';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
-import type { FlowGraph, MaterializationFlow, MaterializationRunStatus } from '@/model/materialization';
+import FlowFormDialog from '@/components/materialization/FlowFormDialog';
+import type {
+	FlowGraph,
+	Materialization,
+	MaterializationFlow,
+	MaterializationRunStatus
+} from '@/model/materialization';
 import { materializationService } from '@/services/materializationService';
 
 // Deterministic rank layout for the flow DAG (same approach as MetricDependencyTree)
@@ -174,6 +193,32 @@ const ComputeFlow: React.FC = () => {
 	const [running, setRunning] = useState(false);
 	const [nodes, setNodes, onNodesChange] = useNodesState([]);
 	const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+	const [materializations, setMaterializations] = useState<Materialization[]>([]);
+	const [editorOpen, setEditorOpen] = useState(false);
+	const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
+	const [deleteOpen, setDeleteOpen] = useState(false);
+	const [deleting, setDeleting] = useState(false);
+
+	const loadFlows = useCallback(
+		async (preselectFlowId?: string) => {
+			try {
+				const list = await materializationService.listFlows();
+				setFlows(list);
+				if (preselectFlowId && list.some((f) => f.flowId === preselectFlowId)) {
+					setSelectedFlowId(preselectFlowId);
+				} else if (!list.some((f) => f.flowId === selectedFlowId)) {
+					setSelectedFlowId(list.length > 0 ? list[0].flowId : '');
+				}
+			} catch (error) {
+				toast({
+					title: t('materialization:flow.loadFailed'),
+					description: error instanceof Error ? error.message : String(error),
+					variant: 'destructive'
+				});
+			}
+		},
+		[toast, t, selectedFlowId]
+	);
 
 	useEffect(() => {
 		let alive = true;
@@ -200,10 +245,21 @@ const ComputeFlow: React.FC = () => {
 					setLoading(false);
 				}
 			});
+		materializationService
+			.listMaterializations()
+			.then((list) => {
+				if (alive) {
+					setMaterializations(list);
+				}
+			})
+			.catch(() => {
+				// the editor shows an empty member picker, page itself stays usable
+			});
 		return () => {
 			alive = false;
 		};
-	}, [toast, t]);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const loadGraph = useCallback(
 		async (flowId: string) => {
@@ -288,6 +344,41 @@ const ComputeFlow: React.FC = () => {
 		}
 	};
 
+	const selectedFlow = flows.find((f) => f.flowId === selectedFlowId);
+
+	const handleSaveFlow = async (value: Partial<MaterializationFlow>) => {
+		const saved = await materializationService.saveFlow(value);
+		toast({ title: t('materialization:flow.editor.saved') });
+		const wasSelected = selectedFlowId === saved.flowId;
+		await loadFlows(saved.flowId);
+		if (wasSelected) {
+			// re-selecting the same flow does not refire the graph effect, load explicitly
+			await loadGraph(saved.flowId);
+		}
+	};
+
+	const handleDeleteFlow = async () => {
+		if (!selectedFlowId) {
+			return;
+		}
+		setDeleting(true);
+		try {
+			await materializationService.deleteFlow(selectedFlowId);
+			toast({ title: t('materialization:flow.editor.deleted') });
+			setSelectedFlowId('');
+			await loadFlows();
+		} catch (error) {
+			toast({
+				title: t('materialization:flow.editor.deleteFailed'),
+				description: error instanceof Error ? error.message : String(error),
+				variant: 'destructive'
+			});
+		} finally {
+			setDeleting(false);
+			setDeleteOpen(false);
+		}
+	};
+
 	const legendItems = useMemo(
 		() => [
 			{ kind: 'data', label: t('materialization:flow.edgeData') },
@@ -323,30 +414,63 @@ const ComputeFlow: React.FC = () => {
 								</SelectContent>
 							</Select>
 							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => void loadGraph(selectedFlowId)}
-								disabled={loading || !selectedFlowId}
-							>
-								{loading ? (
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								) : (
-									<RefreshCw className="mr-2 h-4 w-4" />
-								)}
-								{t('common:refresh')}
-							</Button>
-							<Button
-								size="sm"
-								onClick={() => void handleRunFlow()}
-								disabled={running || !selectedFlowId}
-							>
-								{running ? (
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								) : (
-									<Play className="mr-2 h-4 w-4" />
-								)}
-								{t('materialization:flow.runFlow')}
-							</Button>
+									variant="outline"
+									size="sm"
+									onClick={() => void loadGraph(selectedFlowId)}
+									disabled={loading || !selectedFlowId}
+								>
+									{loading ? (
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									) : (
+										<RefreshCw className="mr-2 h-4 w-4" />
+									)}
+									{t('common:refresh')}
+								</Button>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => {
+										setEditorMode('create');
+										setEditorOpen(true);
+									}}
+								>
+									<Plus className="mr-2 h-4 w-4" />
+									{t('materialization:flow.editor.create')}
+								</Button>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => {
+										setEditorMode('edit');
+										setEditorOpen(true);
+									}}
+									disabled={!selectedFlow}
+								>
+									<Pencil className="mr-2 h-4 w-4" />
+									{t('materialization:flow.editor.edit')}
+								</Button>
+								<Button
+									variant="outline"
+									size="sm"
+									className="text-destructive hover:text-destructive"
+									onClick={() => setDeleteOpen(true)}
+									disabled={!selectedFlow}
+								>
+									<Trash2 className="mr-2 h-4 w-4" />
+									{t('materialization:flow.editor.delete')}
+								</Button>
+								<Button
+									size="sm"
+									onClick={() => void handleRunFlow()}
+									disabled={running || !selectedFlowId}
+								>
+									{running ? (
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									) : (
+										<Play className="mr-2 h-4 w-4" />
+									)}
+									{t('materialization:flow.runFlow')}
+								</Button>
 							<Button variant="outline" size="sm" asChild>
 								<Link to="/metrics/materialization">
 									{t('materialization:flow.backToList')}
@@ -416,6 +540,45 @@ const ComputeFlow: React.FC = () => {
 					</div>
 				</main>
 			</div>
+			<FlowFormDialog
+				open={editorOpen}
+				onOpenChange={setEditorOpen}
+				mode={editorMode}
+				initial={editorMode === 'edit' ? selectedFlow : undefined}
+				materializations={materializations}
+				onSave={handleSaveFlow}
+			/>
+			<AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>{t('materialization:flow.editor.deleteConfirmTitle')}</AlertDialogTitle>
+						<AlertDialogDescription>
+							{t('materialization:flow.editor.deleteConfirmDescription', {
+								name: selectedFlow?.name ?? ''
+							})}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel disabled={deleting}>{t('common:cancel')}</AlertDialogCancel>
+						<AlertDialogAction
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							disabled={deleting}
+							onClick={(event) => {
+								// keep the dialog open until the delete settles
+								event.preventDefault();
+								void handleDeleteFlow();
+							}}
+						>
+							{deleting ? (
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							) : (
+								<Trash2 className="mr-2 h-4 w-4" />
+							)}
+							{t('materialization:flow.editor.delete')}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 };

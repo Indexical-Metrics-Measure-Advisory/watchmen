@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime
 from logging import getLogger
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from starlette.concurrency import run_in_threadpool
 
@@ -9,8 +9,9 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_metricflow.meta.materialization_meta_service import MaterializationJobLockService, \
 	MaterializationRunService, MaterializationService
-from watchmen_metricflow.model.materialization import Materialization, MaterializationJobLock, \
-	MaterializationJobLockStatus, MaterializationRun, RunStatus, RunTriggerType, ScheduleFrequency
+from watchmen_metricflow.model.materialization import Materialization, MaterializationFlow, \
+	MaterializationJobLock, MaterializationJobLockStatus, MaterializationRun, RunStatus, \
+	RunTriggerType, ScheduleFrequency
 from watchmen_metricflow.util import trans, trans_readonly
 from watchmen_utilities import is_blank
 from .materialization_error import MaterializationError
@@ -123,19 +124,21 @@ class MaterializationRunner:
 	# ── cron lock ─────────────────────────────────────────────────────────
 
 	def try_acquire_cron_lock(
-			self, materialization: Materialization, process_date
+			self, job_id: str, frequency: str, process_date
 	) -> Optional[MaterializationJobLock]:
-		"""One execution per tenant/materialization/frequency/day, None when already claimed."""
+		"""One execution per tenant/job/frequency/day, None when already claimed.
+
+		job_id is a materialization id or a flow id; the lock scope is the same.
+		"""
 		def action() -> Optional[MaterializationJobLock]:
 			existing = self.lock_service.find_by_scope(
-				self.principal_service.get_tenant_id(), materialization.materializationId,
-				str(materialization.schedule.frequency), process_date)
+				self.principal_service.get_tenant_id(), job_id, frequency, process_date)
 			if existing is not None:
 				return None
 			lock = MaterializationJobLock(
 				tenantId=self.principal_service.get_tenant_id(),
-				materializationId=materialization.materializationId,
-				frequency=materialization.schedule.frequency,
+				materializationId=job_id,
+				frequency=frequency,
 				processDate=process_date,
 				status=MaterializationJobLockStatus.READY,
 				userId=self.principal_service.userId
@@ -143,14 +146,14 @@ class MaterializationRunner:
 			try:
 				return self.lock_service.create(lock)
 			except Exception as e:
-				logger.info(f'Cron lock already claimed for [{materialization.materializationId}]: {e}')
+				logger.info(f'Cron lock already claimed for [{job_id}]: {e}')
 				return None
 
 		try:
 			return trans(self.lock_service, action)
 		except Exception as e:
 			# unique constraint raced with another worker
-			logger.info(f'Cron lock transaction for [{materialization.materializationId}] skipped: {e}')
+			logger.info(f'Cron lock transaction for [{job_id}] skipped: {e}')
 			return None
 
 	def finish_cron_lock(self, lock: MaterializationJobLock, status: MaterializationJobLockStatus) -> None:
@@ -221,12 +224,14 @@ def _error_message(error: BaseException) -> str:
 	return message[:ERROR_MESSAGE_MAX_LENGTH]
 
 
-def is_due(materialization: Materialization, execution_time: datetime) -> bool:
-	"""Whether the schedule hits the given moment (same semantics as subscriptions)."""
-	if not materialization.enabled or materialization.schedule is None \
-			or not materialization.schedule.enabled:
+def is_due(job: Union[Materialization, 'MaterializationFlow'], execution_time: datetime) -> bool:
+	"""Whether the schedule hits the given moment (same semantics as subscriptions).
+
+	Also answers for flows: both tuples expose enabled + schedule.
+	"""
+	if not job.enabled or job.schedule is None or not job.schedule.enabled:
 		return False
-	schedule = materialization.schedule
+	schedule = job.schedule
 	if is_blank(schedule.time):
 		return False
 	if schedule.time != execution_time.strftime('%H:%M'):

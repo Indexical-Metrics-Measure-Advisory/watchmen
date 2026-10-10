@@ -405,7 +405,7 @@ class TestCronLock(unittest.TestCase):
         materialization = schedule_materialization()
         runner.lock_service.find_by_scope.return_value = mock.MagicMock()
 
-        lock = runner.try_acquire_cron_lock(materialization, date(2026, 10, 1))
+        lock = runner.try_acquire_cron_lock('mat-1', 'day', date(2026, 10, 1))
 
         self.assertIsNone(lock)
         runner.lock_service.create.assert_not_called()
@@ -417,7 +417,7 @@ class TestCronLock(unittest.TestCase):
         created = mock.MagicMock()
         runner.lock_service.create.return_value = created
 
-        lock = runner.try_acquire_cron_lock(materialization, date(2026, 10, 1))
+        lock = runner.try_acquire_cron_lock('mat-1', 'day', date(2026, 10, 1))
 
         self.assertIs(created, lock)
         args = runner.lock_service.create.call_args[0][0]
@@ -431,7 +431,7 @@ class TestCronLock(unittest.TestCase):
         runner.lock_service.find_by_scope.return_value = None
         runner.lock_service.create.side_effect = Exception('duplicate key')
 
-        lock = runner.try_acquire_cron_lock(materialization, date(2026, 10, 1))
+        lock = runner.try_acquire_cron_lock('mat-1', 'day', date(2026, 10, 1))
 
         self.assertIsNone(lock)
 

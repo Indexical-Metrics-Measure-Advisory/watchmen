@@ -286,6 +286,55 @@ class MaterializationService {
 		return checkResponse(response);
 	}
 
+	async saveFlow(input: Partial<MaterializationFlow>): Promise<MaterializationFlow> {
+		if (USE_MOCK) {
+			await delay(400);
+			if (input.flowId) {
+				const index = mockFlows.findIndex((f) => f.flowId === input.flowId);
+				if (index === -1) {
+					throw new Error('Flow not found');
+				}
+				mockFlows[index] = { ...mockFlows[index], ...input, updatedAt: nowISO() };
+				return clone(mockFlows[index]);
+			}
+			const created: MaterializationFlow = {
+				flowId: `flow_${String(++idSeq).padStart(3, '0')}`,
+				name: input.name ?? '',
+				materializationIds: input.materializationIds ?? [],
+				manualEdges: input.manualEdges ?? [],
+				schedule: input.schedule ?? { enabled: false, frequency: 'day', time: '02:00' },
+				enabled: input.enabled ?? true,
+				description: input.description,
+				createdAt: nowISO(),
+				updatedAt: nowISO()
+			};
+			mockFlows.push(created);
+			return clone(created);
+		}
+		const response = await fetch(`${API_BASE_URL}/metricflow/materialization/flow`, {
+			method: 'POST',
+			headers: getDefaultHeaders(),
+			body: JSON.stringify(input)
+		});
+		return checkResponse(response);
+	}
+
+	async deleteFlow(flowId: string): Promise<void> {
+		if (USE_MOCK) {
+			await delay(300);
+			const index = mockFlows.findIndex((f) => f.flowId === flowId);
+			if (index !== -1) {
+				mockFlows.splice(index, 1);
+			}
+			return;
+		}
+		const response = await fetch(
+			`${API_BASE_URL}/metricflow/materialization/flow/delete?flow_id=${flowId}`,
+			{ method: 'DELETE', headers: getDefaultHeaders() }
+		);
+		await checkResponse(response);
+	}
+
 	// --- helpers for form dialog data ---
 
 	async getMetricOptions(): Promise<MockMetricOption[]> {

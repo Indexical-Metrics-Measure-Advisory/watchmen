@@ -13,7 +13,8 @@ from watchmen_metricflow.meta.materialization_meta_service import Materializatio
 from watchmen_metricflow.model.materialization import FlowGraph, Materialization, \
 	MaterializationFlow, MaterializationPageRequest, MaterializationRun, MaterializationRunFilter, \
 	MaterializationRunRequest, RunTriggerType
-from watchmen_metricflow.service.materialization_flow_graph import build_flow_graph, detect_cycle
+from watchmen_metricflow.service.materialization_flow_graph import build_flow_graph, detect_cycle, \
+	order_flow_materializations
 from watchmen_metricflow.service.materialization_runner import MaterializationRunner
 from watchmen_metricflow.service.materialization_scheduler import run_due_materializations
 from watchmen_metricflow.util import trans, trans_readonly
@@ -29,7 +30,7 @@ UPDATABLE_MATERIALIZATION_KEYS = {
 }
 # blank values clear the stored target topic, the UI sends '' when switching back to auto-create
 CLEARABLE_MATERIALIZATION_KEYS = ('targetTopicId', 'targetTopicName')
-UPDATABLE_FLOW_KEYS = {'name', 'materializationIds', 'schedule', 'enabled', 'description'}
+UPDATABLE_FLOW_KEYS = {'name', 'materializationIds', 'manualEdges', 'schedule', 'enabled', 'description'}
 
 
 def get_materialization_service(principal_service: PrincipalService) -> MaterializationService:
@@ -144,8 +145,28 @@ async def run_materializations(
 ) -> List[MaterializationRun]:
 	if not request.materializationIds:
 		raise_400('Materialization ids are required.')
+	_reject_conflicting_runs(get_run_service(principal_service), request.materializationIds)
 	runner = MaterializationRunner(principal_service)
 	return await runner.run_ids(request.materializationIds, trigger_type=RunTriggerType.MANUAL)
+
+
+def _reject_conflicting_runs(run_service: MaterializationRunService, materialization_ids: List[str]) -> None:
+	"""Refuse a trigger while a PENDING/RUNNING run of the same job exists.
+
+	The check-then-create window is not transactional, it closes the practical
+	duplicate-trigger gap (double click, second operator) but not a true race.
+	"""
+	def action() -> List[MaterializationRun]:
+		return run_service.find_active_by_materialization_ids(materialization_ids)
+
+	active = trans_readonly(run_service, action)
+	if active:
+		names = sorted({
+			run.materializationName or run.materializationId or 'unknown'
+			for run in active})
+		raise_400(
+			f'Materializations are already running: {", ".join(names)}. '
+			f'Wait until they finish before triggering again.')
 
 
 @router.post('/metricflow/materialization/runs/page', tags=['ADMIN'], response_model=DataPage)
@@ -194,6 +215,7 @@ async def save_flow(
 
 	service = get_flow_service(principal_service)
 	materialization_service = get_materialization_service(principal_service)
+	_validate_manual_edges(flow)
 	if is_blank(flow.flowId):
 		flow.tenantId = principal_service.get_tenant_id()
 		flow.userId = principal_service.userId
@@ -217,6 +239,8 @@ async def save_flow(
 		existing = service.find_by_id(flow.flowId)
 		if existing is None:
 			return service.create(flow)
+		if existing.tenantId != principal_service.get_tenant_id():
+			raise_404()
 		# partial body: only whitelisted keys sent by the caller overwrite the stored fields
 		for key in UPDATABLE_FLOW_KEYS:
 			if key in payload:
@@ -232,6 +256,38 @@ def _detect_flow_cycle(
 ) -> Optional[List[str]]:
 	graph = build_flow_graph(flow, materializations, {}, principal_service)
 	return detect_cycle(flow.materializationIds, graph.edges)
+
+
+def _validate_manual_edges(flow: MaterializationFlow) -> None:
+	"""Manual edges must connect two distinct members and never repeat a pair."""
+	pairs = set()
+	for edge in flow.manualEdges or []:
+		if edge.source not in flow.materializationIds or edge.target not in flow.materializationIds:
+			raise_400(f'Manual edge [{edge.source} -> {edge.target}] must connect flow members.')
+		if edge.source == edge.target:
+			raise_400('A manual edge cannot point a member to itself.')
+		pair = (edge.source, edge.target)
+		if pair in pairs:
+			raise_400(f'Manual edge [{edge.source} -> {edge.target}] is declared twice.')
+		pairs.add(pair)
+
+
+@router.delete('/metricflow/materialization/flow/delete', tags=['ADMIN'], response_model=None)
+async def delete_flow(
+		flow_id: Optional[str] = Query(default=None, alias='flow_id'),
+		principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> None:
+	if is_blank(flow_id):
+		raise_400('Flow id is required.')
+	service = get_flow_service(principal_service)
+
+	def action() -> None:
+		stored = service.find_by_id(flow_id)
+		if stored is None or stored.tenantId != principal_service.get_tenant_id():
+			raise_404()
+		service.delete(stored.flowId)
+
+	trans(service, action)
 
 
 @router.get('/metricflow/materialization/flow/{flow_id}/graph', tags=['ADMIN'], response_model=None)
@@ -276,6 +332,7 @@ async def run_flow(
 	if is_blank(flow_id):
 		raise_400('Flow id is required.')
 	flow_service = get_flow_service(principal_service)
+	materialization_service = get_materialization_service(principal_service)
 
 	def load_flow() -> MaterializationFlow:
 		flow = flow_service.find_by_id(flow_id)
@@ -284,9 +341,22 @@ async def run_flow(
 		return flow
 
 	flow = trans_readonly(flow_service, load_flow)
+
+	def load_members() -> List[Materialization]:
+		found = []
+		for materialization_id in flow.materializationIds:
+			materialization = materialization_service.find_by_id(materialization_id)
+			if materialization is not None and materialization.tenantId == principal_service.get_tenant_id():
+				found.append(materialization)
+		return found
+
+	materializations = trans_readonly(materialization_service, load_members)
+	_reject_conflicting_runs(get_run_service(principal_service), flow.materializationIds)
+	# members run after their data/manual dependencies, not in list order
+	ordered = order_flow_materializations(flow, materializations, principal_service)
 	runner = MaterializationRunner(principal_service)
 	return await runner.run_ids(
-		flow.materializationIds, trigger_type=RunTriggerType.FLOW,
+		ordered, trigger_type=RunTriggerType.FLOW,
 		flow_id=flow.flowId, flow_name=flow.name, sequential=True)
 
 

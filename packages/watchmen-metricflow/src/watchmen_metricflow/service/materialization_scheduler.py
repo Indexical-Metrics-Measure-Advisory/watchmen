@@ -8,12 +8,14 @@ from starlette.concurrency import run_in_threadpool
 
 from watchmen_auth import fake_super_admin, fake_tenant_admin
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_metricflow.meta.materialization_meta_service import MaterializationRunService
-from watchmen_metricflow.model.materialization import Materialization, MaterializationJobLockStatus, \
-	RunStatus, RunTriggerType
+from watchmen_metricflow.meta.materialization_meta_service import MaterializationFlowService, \
+	MaterializationRunService
+from watchmen_metricflow.model.materialization import Materialization, MaterializationFlow, \
+	MaterializationJobLockStatus, RunStatus, RunTriggerType
 from watchmen_metricflow.settings import ask_materialization_on, ask_materialization_run_stale_minutes, \
 	ask_materialization_scheduler_heartbeat
 from watchmen_metricflow.util import trans, trans_readonly
+from .materialization_flow_graph import order_flow_materializations
 from .materialization_runner import MaterializationRunner, is_due
 
 logger = getLogger(__name__)
@@ -94,15 +96,20 @@ async def _heartbeat() -> None:
 
 
 async def run_due_materializations(execution_time: Optional[datetime] = None) -> int:
-	"""Claim each due materialization through its daily lock, then run it inline."""
+	"""Claim each due materialization and flow through its daily lock, then run it inline."""
 	moment = execution_time if execution_time is not None else datetime.now()
 	loader = MaterializationRunner(fake_super_admin())
 	due = await run_in_threadpool(_find_due, loader, moment)
+	flow_loader = MaterializationFlowService(
+		ask_meta_storage(), ask_snowflake_generator(), fake_super_admin())
+	due_flows = await run_in_threadpool(_find_due_flows, flow_loader, moment)
 
 	triggered = 0
 	for tenant_id, materialization in due:
 		runner = MaterializationRunner(fake_tenant_admin(tenant_id))
-		lock = await run_in_threadpool(runner.try_acquire_cron_lock, materialization, moment.date())
+		lock = await run_in_threadpool(
+			runner.try_acquire_cron_lock, materialization.materializationId,
+			str(materialization.schedule.frequency), moment.date())
 		if lock is None:
 			continue
 		try:
@@ -118,7 +125,50 @@ async def run_due_materializations(execution_time: Optional[datetime] = None) ->
 				f'Cron materialization [{materialization.materializationId}] failed: {e}',
 				exc_info=True)
 			await run_in_threadpool(runner.finish_cron_lock, lock, MaterializationJobLockStatus.FAILED)
+	triggered += await _run_due_flows(due_flows, moment)
 	return triggered
+
+
+async def _run_due_flows(due_flows: List[Tuple[str, MaterializationFlow]], moment: datetime) -> int:
+	"""One flow run per tenant/flow/frequency/day; members run in dependency order.
+
+	A member that also carries its own schedule stays independent: both triggers
+	fire, each write is idempotent under the business key.
+	"""
+	triggered = 0
+	for tenant_id, flow in due_flows:
+		runner = MaterializationRunner(fake_tenant_admin(tenant_id))
+		lock = await run_in_threadpool(
+			runner.try_acquire_cron_lock, flow.flowId, str(flow.schedule.frequency), moment.date())
+		if lock is None:
+			continue
+		try:
+			runs = await runner.run_ids(
+				_flow_member_ids_in_order(runner, flow), trigger_type=RunTriggerType.CRON,
+				flow_id=flow.flowId, flow_name=flow.name, wait=True)
+			status = MaterializationJobLockStatus.SUCCESS
+			if runs and all(run.status == RunStatus.FAILED for run in runs):
+				status = MaterializationJobLockStatus.FAILED
+			await run_in_threadpool(runner.finish_cron_lock, lock, status)
+			triggered += 1
+		except Exception as e:
+			logger.error(f'Cron flow [{flow.flowId}] failed: {e}', exc_info=True)
+			await run_in_threadpool(runner.finish_cron_lock, lock, MaterializationJobLockStatus.FAILED)
+	return triggered
+
+
+def _flow_member_ids_in_order(runner: MaterializationRunner, flow: MaterializationFlow) -> List[str]:
+	"""Flow members of the runner's tenant, ordered after their dependencies."""
+	def action() -> List[Materialization]:
+		found = []
+		for materialization_id in flow.materializationIds:
+			materialization = runner.materialization_service.find_by_id(materialization_id)
+			if materialization is not None and materialization.tenantId == flow.tenantId:
+				found.append(materialization)
+		return found
+
+	materializations = trans_readonly(runner.materialization_service, action)
+	return order_flow_materializations(flow, materializations, runner.principal_service)
 
 
 def _find_due(loader: MaterializationRunner, execution_time: datetime) -> List[Tuple[str, Materialization]]:
@@ -126,6 +176,19 @@ def _find_due(loader: MaterializationRunner, execution_time: datetime) -> List[T
 		return loader.materialization_service.find_all_enabled_with_schedule()
 
 	rows = trans_readonly(loader.materialization_service, action)
+	return [
+		(row.tenantId, row) for row in rows
+		if row.tenantId and is_due(row, execution_time)
+	]
+
+
+def _find_due_flows(
+		flow_service: MaterializationFlowService, execution_time: datetime
+) -> List[Tuple[str, MaterializationFlow]]:
+	def action() -> List[MaterializationFlow]:
+		return flow_service.find_all_enabled_with_schedule()
+
+	rows = trans_readonly(flow_service, action)
 	return [
 		(row.tenantId, row) for row in rows
 		if row.tenantId and is_due(row, execution_time)

@@ -111,10 +111,19 @@ class Materialization(ExtendedBaseModel, UserBasedTuple, Auditable):
 			]
 
 
+class ManualFlowEdge(ExtendedBaseModel):
+	"""Manually declared dependency: source must finish before target starts."""
+	source: MaterializationId
+	target: MaterializationId
+
+
 class MaterializationFlow(ExtendedBaseModel, UserBasedTuple, Auditable):
 	flowId: Optional[MaterializationFlowId] = None
 	name: Optional[str] = None
 	materializationIds: List[MaterializationId] = []
+	# manually declared execution order, merged with the derived data edges
+	# when the flow graph is built; members without any edge keep list order
+	manualEdges: List[ManualFlowEdge] = []
 	schedule: MaterializationSchedule = MaterializationSchedule()
 	enabled: bool = True
 	description: Optional[str] = None
@@ -128,6 +137,12 @@ class MaterializationFlow(ExtendedBaseModel, UserBasedTuple, Auditable):
 		raw_schedule = self.__dict__.get('schedule')
 		if not isinstance(raw_schedule, MaterializationSchedule):
 			self.__dict__['schedule'] = MaterializationSchedule.model_validate(raw_schedule or {})
+		raw_manual_edges = self.__dict__.get('manualEdges')
+		if isinstance(raw_manual_edges, list):
+			self.__dict__['manualEdges'] = [
+				edge if isinstance(edge, ManualFlowEdge) else ManualFlowEdge.model_validate(edge)
+				for edge in raw_manual_edges
+			]
 
 
 class RunStatus(str, Enum):

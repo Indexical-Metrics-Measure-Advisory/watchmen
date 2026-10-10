@@ -179,7 +179,7 @@ export const CatalogCard = (props: { catalog: Catalog; index: number }) => {
 					// the topics list is loaded, an empty list must not wipe the references
 					topicIds: topics.length === 0
 						? editingCatalog.topicIds
-						: (editingCatalog.topicIds || []).filter(topicId => topics.some(topic => topic.topicId == topicId)),
+						: (editingCatalog.topicIds || []).filter(topicId => topics.some(topic => topic.topicId === topicId)),
 					tags: (editingCatalog.tagIds || []).map(tagId => tagId.toLowerCase())
 				};
 				// @ts-ignore

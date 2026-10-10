@@ -1009,6 +1009,7 @@ table_materialization_flows = Table(
     create_pk('id'),
     create_str('name', 200),
     create_json('materialization_ids'),
+    create_json('manual_edges'),
     create_str('frequency', 20), create_str('time', 10),
     create_str('date', 20), create_str('weekday', 10), create_int('day_of_month'),
     create_bool('schedule_enabled', False), create_bool('enabled', False),

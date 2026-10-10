@@ -96,10 +96,17 @@ export interface PageResult<T> {
 
 export type FlowEdgeKind = 'data' | 'manual' | 'metricRef';
 
+export interface ManualFlowEdge {
+	source: string;
+	target: string;
+}
+
 export interface MaterializationFlow {
 	flowId: string;
 	name: string;
 	materializationIds: string[];
+	// manually declared execution order, merged with derived data edges server-side
+	manualEdges?: ManualFlowEdge[];
 	schedule: MaterializationSchedule;
 	enabled: boolean;
 	description?: string;

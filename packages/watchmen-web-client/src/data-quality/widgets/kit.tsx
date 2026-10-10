@@ -1,5 +1,4 @@
 import Color from 'color';
-import React from 'react';
 import styled from 'styled-components';
 
 /**

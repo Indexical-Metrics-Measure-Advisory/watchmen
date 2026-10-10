@@ -158,11 +158,18 @@ class MaterializationService(UserBasedTupleService):
 
 
 class MaterializationFlowShaper(UserBasedTupleShaper):
+	@staticmethod
+	def serialize_manual_edges(flow: MaterializationFlow) -> Optional[list]:
+		if flow.manualEdges is None:
+			return None
+		return [edge if isinstance(edge, dict) else edge.model_dump() for edge in flow.manualEdges]
+
 	def serialize(self, flow: MaterializationFlow) -> EntityRow:
 		row = {
 			'id': flow.flowId,
 			'name': flow.name,
 			'materialization_ids': flow.materializationIds,
+			'manual_edges': self.serialize_manual_edges(flow),
 			'enabled': flow.enabled,
 			'description': flow.description
 		}
@@ -174,6 +181,7 @@ class MaterializationFlowShaper(UserBasedTupleShaper):
 			flowId=row.get('id'),
 			name=row.get('name'),
 			materializationIds=row.get('materialization_ids') or [],
+			manualEdges=row.get('manual_edges') or [],
 			schedule=MaterializationShaper.deserialize_schedule(row),
 			enabled=row.get('enabled', True),
 			description=row.get('description'),
@@ -368,6 +376,31 @@ class MaterializationRunService(TupleService):
 				left=ColumnNameLiteral(columnName='started_at'),
 				operator=EntityCriteriaOperator.LESS_THAN, right=cutoff)
 		]))
+
+	# noinspection PyTypeChecker
+	def find_active_by_materialization_ids(self, materialization_ids: List[str]) -> List[MaterializationRun]:
+		"""PENDING/RUNNING runs of the given jobs, used to reject duplicate triggers."""
+		if not materialization_ids:
+			return []
+		criteria = [
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='materialization_id'),
+				operator=EntityCriteriaOperator.IN, right=list(materialization_ids)),
+			EntityCriteriaJoint(
+				conjunction=EntityCriteriaJointConjunction.OR,
+				children=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='status'), right=RunStatus.PENDING.value),
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='status'), right=RunStatus.RUNNING.value)
+				]
+			)
+		]
+		tenant_id = self.principalService.get_tenant_id()
+		if is_not_blank(tenant_id):
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
 
 
 MATERIALIZATION_JOB_LOCK_ENTITY_NAME = 'materialization_job_locks'

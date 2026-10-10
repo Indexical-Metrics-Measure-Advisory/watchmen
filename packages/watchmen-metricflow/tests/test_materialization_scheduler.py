@@ -13,7 +13,7 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _metric_test_base import TENANT_ID, make_materialization, make_run
+from _metric_test_base import TENANT_ID, make_flow, make_materialization, make_run
 from watchmen_metricflow.model.materialization import MaterializationJobLockStatus, RunStatus
 from watchmen_metricflow.service import materialization_scheduler
 from watchmen_metricflow.service.materialization_scheduler import (
@@ -33,6 +33,16 @@ def due_materialization(**overrides):
     })
     data.update(overrides)
     return make_materialization(**data)
+
+
+def due_flow(**overrides):
+    data = dict(schedule={
+        'enabled': True, 'frequency': 'day', 'time': '03:00',
+    })
+    data.update(overrides)
+    return make_flow(
+        flow_id='flow-1', name='nightly',
+        materialization_ids=['mat-1', 'mat-2'], **data)
 
 
 class TestSchedulerLifecycle(unittest.TestCase):
@@ -117,7 +127,7 @@ class TestStaleRunCleanup(unittest.TestCase):
 class TestRunDueMaterializations(unittest.TestCase):
     MOMENT = datetime(2026, 10, 1, 3, 0)
 
-    def _run_scenario(self, rows, lock, runs, finish_statuses=None, moment=None):
+    def _run_scenario(self, rows, lock, runs, finish_statuses=None, moment=None, flow_rows=None):
         loader = mock.MagicMock()
         loader.materialization_service.find_all_enabled_with_schedule.return_value = rows
         worker = mock.MagicMock()
@@ -128,8 +138,14 @@ class TestRunDueMaterializations(unittest.TestCase):
             if finish_statuses is not None else (lambda lock_arg, status: None)
         )
 
+        flow_service = mock.MagicMock()
+        flow_service.find_all_enabled_with_schedule.return_value = flow_rows or []
+
         runner_cls = mock.MagicMock(side_effect=[loader, worker])
-        with mock.patch.object(materialization_scheduler, 'MaterializationRunner', runner_cls):
+        with mock.patch.object(materialization_scheduler, 'MaterializationRunner', runner_cls), \
+                mock.patch.object(
+                    materialization_scheduler, 'MaterializationFlowService',
+                    return_value=flow_service):
             triggered = asyncio.run(run_due_materializations(moment or self.MOMENT))
         return triggered, runner_cls, worker
 
@@ -186,6 +202,82 @@ class TestRunDueMaterializations(unittest.TestCase):
         # at 04:00 nothing is due, only the loader was constructed
         self.assertEqual(0, triggered)
         self.assertEqual(1, runner_cls.call_count)
+        worker.try_acquire_cron_lock.assert_not_called()
+
+
+class TestRunDueFlows(unittest.TestCase):
+    MOMENT = datetime(2026, 10, 1, 3, 0)
+
+    def _run_flow_scenario(self, flow_rows, lock, runs, finish_statuses=None):
+        loader = mock.MagicMock()
+        loader.materialization_service.find_all_enabled_with_schedule.return_value = []
+        worker = mock.MagicMock()
+        worker.materialization_service.find_by_id.side_effect = lambda mid: make_materialization(
+            materialization_id=mid, tenantId=TENANT_ID)
+        worker.try_acquire_cron_lock.return_value = lock
+        worker.run_ids = mock.AsyncMock(return_value=runs)
+        worker.finish_cron_lock.side_effect = (
+            (lambda lock_arg, status: finish_statuses.append(status))
+            if finish_statuses is not None else (lambda lock_arg, status: None)
+        )
+        flow_service = mock.MagicMock()
+        flow_service.find_all_enabled_with_schedule.return_value = flow_rows
+
+        runner_cls = mock.MagicMock(side_effect=[loader, worker])
+        with mock.patch.object(materialization_scheduler, 'MaterializationRunner', runner_cls), \
+                mock.patch.object(
+                    materialization_scheduler, 'MaterializationFlowService',
+                    return_value=flow_service), \
+                mock.patch.object(
+                    materialization_scheduler, 'order_flow_materializations',
+                    side_effect=lambda flow, mats, ps: [m.materializationId for m in mats]):
+            triggered = asyncio.run(run_due_materializations(self.MOMENT))
+        return triggered, worker
+
+    def test_claims_lock_and_runs_flow_members_inline(self):
+        statuses = []
+
+        triggered, worker = self._run_flow_scenario(
+            [due_flow(tenantId=TENANT_ID)], object(),
+            [make_run(status=RunStatus.SUCCESS)], statuses)
+
+        self.assertEqual(1, triggered)
+        worker.try_acquire_cron_lock.assert_called_once_with('flow-1', 'day', self.MOMENT.date())
+        worker.run_ids.assert_awaited_once()
+        args, kwargs = worker.run_ids.call_args
+        self.assertEqual(['mat-1', 'mat-2'], args[0])
+        self.assertEqual('cron', kwargs['trigger_type'])
+        self.assertEqual('flow-1', kwargs['flow_id'])
+        self.assertEqual('nightly', kwargs['flow_name'])
+        self.assertTrue(kwargs['wait'])
+        self.assertEqual([MaterializationJobLockStatus.SUCCESS], statuses)
+
+    def test_locked_flow_is_skipped(self):
+        triggered, worker = self._run_flow_scenario([due_flow(tenantId=TENANT_ID)], None, [])
+
+        self.assertEqual(0, triggered)
+        worker.run_ids.assert_not_awaited()
+
+    def test_failed_flow_runs_mark_the_lock_failed(self):
+        statuses = []
+
+        triggered, _ = self._run_flow_scenario(
+            [due_flow(tenantId=TENANT_ID)], object(),
+            [make_run(status=RunStatus.FAILED)], statuses)
+
+        self.assertEqual(1, triggered)
+        self.assertEqual([MaterializationJobLockStatus.FAILED], statuses)
+
+    def test_not_due_flow_is_never_claimed(self):
+        rows = [due_flow(
+            tenantId=TENANT_ID,
+            schedule={'enabled': True, 'frequency': 'day', 'time': '04:00'}),
+            due_flow(tenantId=TENANT_ID, enabled=False),
+            _without_tenant(due_flow())]
+
+        triggered, worker = self._run_flow_scenario(rows, object(), [])
+
+        self.assertEqual(0, triggered)
         worker.try_acquire_cron_lock.assert_not_called()
 
 

@@ -12,7 +12,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _metric_test_base import admin_principal, make_flow, make_materialization
 from watchmen_metricflow.service import materialization_flow_graph
-from watchmen_metricflow.service.materialization_flow_graph import build_flow_graph, detect_cycle
+from watchmen_metricflow.service.materialization_flow_graph import (
+    build_flow_graph,
+    detect_cycle,
+    order_flow_materializations,
+    topological_order
+)
 from watchmen_model.admin import Topic
 
 
@@ -93,6 +98,52 @@ class TestBuildFlowGraph(unittest.TestCase):
 
         self.assertEqual(['mat-1->mat-2'], [edge.id for edge in graph.edges])
 
+    def _build_with_manual_edges(self, materializations, source_topics, manual_edges):
+        flow = make_flow(
+            flow_id='flow-1', name='nightly',
+            materialization_ids=[item.materializationId for item in materializations],
+            manualEdges=manual_edges)
+        with mock.patch.object(
+                materialization_flow_graph, 'resolve_metric_source_topics', return_value=source_topics
+        ):
+            return build_flow_graph(flow, materializations, {}, admin_principal())
+
+    def test_manual_edges_are_appended_as_manual_kind(self):
+        first = make_materialization(materialization_id='mat-1')
+        second = make_materialization(materialization_id='mat-2', metricName='other')
+
+        graph = self._build_with_manual_edges(
+            [first, second], {}, [{'source': 'mat-2', 'target': 'mat-1'}])
+
+        self.assertEqual(1, len(graph.edges))
+        self.assertEqual('manual', graph.edges[0].edgeKind)
+        self.assertEqual('mat-2', graph.edges[0].source)
+        self.assertEqual('mat-1', graph.edges[0].target)
+
+    def test_data_edge_wins_over_manual_edge_on_the_same_pair(self):
+        producer = make_materialization(
+            materialization_id='mat-1', metricName='left', targetTopicName='shared')
+        consumer = make_materialization(
+            materialization_id='mat-2', metricName='right')
+        source_topics = {'right': [source_topic('topic-a', 'shared')]}
+
+        # the manual edge repeats the derived pair in the same direction
+        graph = self._build_with_manual_edges(
+            [producer, consumer], source_topics, [{'source': 'mat-1', 'target': 'mat-2'}])
+
+        self.assertEqual(1, len(graph.edges))
+        self.assertEqual('data', graph.edges[0].edgeKind)
+
+    def test_manual_edges_referencing_non_members_are_dropped(self):
+        first = make_materialization(materialization_id='mat-1')
+        second = make_materialization(materialization_id='mat-2')
+
+        graph = self._build_with_manual_edges(
+            [first, second], {},
+            [{'source': 'mat-9', 'target': 'mat-1'}, {'source': 'mat-1', 'target': 'mat-1'}])
+
+        self.assertEqual([], graph.edges)
+
 
 class TestDetectCycle(unittest.TestCase):
     @staticmethod
@@ -124,6 +175,58 @@ class TestDetectCycle(unittest.TestCase):
     def test_edges_between_unknown_nodes_are_ignored(self):
         edges = [self._edge('x', 'y')]
         self.assertIsNone(detect_cycle(['a', 'b'], edges))
+
+
+class TestTopologicalOrder(unittest.TestCase):
+    @staticmethod
+    def _edge(source, target):
+        from watchmen_metricflow.model.materialization import FlowEdgeKind, FlowGraphEdge
+        return FlowGraphEdge(
+            id=f'{source}->{target}', source=source, target=target, edgeKind=FlowEdgeKind.MANUAL)
+
+    def test_independent_nodes_keep_list_order(self):
+        self.assertEqual(['a', 'b', 'c'], topological_order(['a', 'b', 'c'], []))
+
+    def test_dependencies_move_nodes_after_their_upstream(self):
+        edges = [self._edge('b', 'a')]
+        # b first, then a (originally listed before c) once it is ready
+        self.assertEqual(['b', 'a', 'c'], topological_order(['a', 'b', 'c'], edges))
+
+    def test_diamond_is_ordered_level_by_level(self):
+        # a feeds b and c, both feed d
+        edges = [self._edge('a', 'b'), self._edge('a', 'c'), self._edge('b', 'd'), self._edge('c', 'd')]
+        self.assertEqual(['a', 'b', 'c', 'd'], topological_order(['a', 'b', 'c', 'd'], edges))
+
+    def test_edges_between_unknown_nodes_do_not_block(self):
+        edges = [self._edge('x', 'a')]
+        self.assertEqual(['a', 'b'], topological_order(['a', 'b'], edges))
+
+    def test_cycle_falls_back_to_the_original_order(self):
+        edges = [self._edge('a', 'b'), self._edge('b', 'a')]
+        self.assertEqual(['a', 'b'], topological_order(['a', 'b'], edges))
+
+
+class TestOrderFlowMaterializations(unittest.TestCase):
+    def test_members_are_ordered_after_their_dependencies(self):
+        # mat-2 produces the topic mat-1 reads, and a manual edge asks mat-3 to
+        # wait for mat-1; the configured order lists them backwards
+        producer = make_materialization(
+            materialization_id='mat-2', metricName='region_total',
+            targetTopicId='topic-a', targetTopicName='region_total_topic')
+        consumer = make_materialization(
+            materialization_id='mat-1', metricName='margin')
+        third = make_materialization(materialization_id='mat-3', metricName='adhoc')
+        flow = make_flow(
+            flow_id='flow-1', materialization_ids=['mat-1', 'mat-2', 'mat-3'],
+            manualEdges=[{'source': 'mat-1', 'target': 'mat-3'}])
+        source_topics = {'margin': [source_topic('topic-a', 'region_total_topic')]}
+
+        with mock.patch.object(
+                materialization_flow_graph, 'resolve_metric_source_topics',
+                return_value=source_topics):
+            ordered = order_flow_materializations(flow, [consumer, producer, third], admin_principal())
+
+        self.assertEqual(['mat-2', 'mat-1', 'mat-3'], ordered)
 
 
 if __name__ == '__main__':
