@@ -15,7 +15,9 @@ from watchmen_metricflow.service import materialization_flow_graph
 from watchmen_metricflow.service.materialization_flow_graph import (
     build_flow_graph,
     detect_cycle,
+    level_flow_materializations,
     order_flow_materializations,
+    topological_levels,
     topological_order
 )
 from watchmen_model.admin import Topic
@@ -175,6 +177,82 @@ class TestDetectCycle(unittest.TestCase):
     def test_edges_between_unknown_nodes_are_ignored(self):
         edges = [self._edge('x', 'y')]
         self.assertIsNone(detect_cycle(['a', 'b'], edges))
+
+
+class TestTopologicalLevels(unittest.TestCase):
+    @staticmethod
+    def _edge(source, target):
+        from watchmen_metricflow.model.materialization import FlowEdgeKind, FlowGraphEdge
+        return FlowGraphEdge(
+            id=f'{source}->{target}', source=source, target=target, edgeKind=FlowEdgeKind.DATA)
+
+    def test_independent_nodes_share_one_level_in_list_order(self):
+        self.assertEqual([['a', 'b', 'c']], topological_levels(['a', 'b', 'c'], []))
+
+    def test_diamond_produces_three_levels(self):
+        edges = [self._edge('a', 'b'), self._edge('a', 'c'), self._edge('b', 'd'), self._edge('c', 'd')]
+        self.assertEqual([['a'], ['b', 'c'], ['d']], topological_levels(['a', 'b', 'c', 'd'], edges))
+
+    def test_chain_produces_one_member_levels(self):
+        edges = [self._edge('b', 'a')]
+        self.assertEqual([['b'], ['a']], topological_levels(['a', 'b'], edges))
+
+    def test_level_order_keeps_the_original_positions(self):
+        # c has no dependency and is listed first, so it joins level 0 ahead of b
+        edges = [self._edge('b', 'a')]
+        self.assertEqual([['c', 'b'], ['a']], topological_levels(['c', 'a', 'b'], edges))
+
+    def test_cycle_leftovers_join_the_last_level(self):
+        edges = [self._edge('a', 'b'), self._edge('b', 'a')]
+        self.assertEqual([['c'], ['a', 'b']], topological_levels(['a', 'b', 'c'], edges))
+
+
+class TestSharedTargetLevels(unittest.TestCase):
+    def test_conflict_key_defers_members_within_one_level(self):
+        levels = topological_levels(
+            ['a', 'b', 'c'], [],
+            conflict_key_of=lambda node_id: 'shared' if node_id in ('a', 'b') else None)
+        self.assertEqual([['a', 'c'], ['b']], levels)
+
+    def test_same_auto_topic_never_shares_a_level(self):
+        # two materializations of one metric resolve to the same auto topic name
+        first = make_materialization(materialization_id='mat-1', metricName='total_claim_cases')
+        second = make_materialization(
+            materialization_id='mat-2', metricName='total_claim_cases', groupBy=['region'])
+        flow = make_flow(flow_id='flow-1', materialization_ids=['mat-1', 'mat-2'])
+
+        with mock.patch.object(
+                materialization_flow_graph, 'resolve_metric_source_topics', return_value={}):
+            levels = level_flow_materializations(flow, [first, second], admin_principal())
+
+        self.assertEqual([['mat-1'], ['mat-2']], levels)
+
+    def test_same_explicit_topic_never_shares_a_level(self):
+        first = make_materialization(materialization_id='mat-1', targetTopicId='topic-9')
+        second = make_materialization(materialization_id='mat-2', targetTopicId='topic-9')
+        third = make_materialization(materialization_id='mat-3', targetTopicId='topic-8')
+        flow = make_flow(flow_id='flow-1', materialization_ids=['mat-1', 'mat-2', 'mat-3'])
+
+        with mock.patch.object(
+                materialization_flow_graph, 'resolve_metric_source_topics', return_value={}):
+            levels = level_flow_materializations(flow, [first, second, third], admin_principal())
+
+        self.assertEqual([['mat-1', 'mat-3'], ['mat-2']], levels)
+
+    def test_conflict_respects_existing_dependencies(self):
+        # manual edge says mat-2 before mat-1; the shared target must not force
+        # a cycle, mat-1 simply lands after mat-2 either way
+        first = make_materialization(materialization_id='mat-1', metricName='claims')
+        second = make_materialization(materialization_id='mat-2', metricName='claims')
+        flow = make_flow(
+            flow_id='flow-1', materialization_ids=['mat-1', 'mat-2'],
+            manualEdges=[{'source': 'mat-2', 'target': 'mat-1'}])
+
+        with mock.patch.object(
+                materialization_flow_graph, 'resolve_metric_source_topics', return_value={}):
+            levels = level_flow_materializations(flow, [first, second], admin_principal())
+
+        self.assertEqual([['mat-2'], ['mat-1']], levels)
 
 
 class TestTopologicalOrder(unittest.TestCase):

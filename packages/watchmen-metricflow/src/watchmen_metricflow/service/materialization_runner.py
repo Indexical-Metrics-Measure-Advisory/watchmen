@@ -1,7 +1,9 @@
 import asyncio
-from datetime import datetime
+from contextlib import asynccontextmanager
+from datetime import date, datetime
 from logging import getLogger
-from typing import List, Optional, Tuple, Union
+from typing import AsyncIterator, List, Optional, Set, Tuple, Union
+from weakref import WeakKeyDictionary
 
 from starlette.concurrency import run_in_threadpool
 
@@ -12,16 +14,50 @@ from watchmen_metricflow.meta.materialization_meta_service import Materializatio
 from watchmen_metricflow.model.materialization import Materialization, MaterializationFlow, \
 	MaterializationJobLock, MaterializationJobLockStatus, MaterializationRun, RunStatus, \
 	RunTriggerType, ScheduleFrequency
+from watchmen_metricflow.settings import ask_materialization_flow_parallelism, \
+	ask_materialization_max_concurrent_runs, ask_materialization_rebuild_chunk_days
 from watchmen_metricflow.util import trans, trans_readonly
 from watchmen_utilities import is_blank
 from .materialization_error import MaterializationError
-from .materialization_executor import execute_metric_query, is_rebuild, materialization_window
+from .materialization_executor import compute_window, execute_metric_query, is_rebuild, \
+	materialization_window, rebuild_chunks, rebuild_window
 from .materialization_factor_mapping import map_result_rows
 from .materialization_write_back import resolve_target_schema, write_back
 
 logger = getLogger(__name__)
 
 ERROR_MESSAGE_MAX_LENGTH = 2000
+
+# fire-and-forget tasks need a strong reference, otherwise the garbage collector
+# may cancel them mid-run
+_BACKGROUND_TASKS: Set[asyncio.Task] = set()
+
+
+def spawn_background(coroutine) -> asyncio.Task:
+	task = asyncio.ensure_future(coroutine)
+	_BACKGROUND_TASKS.add(task)
+	task.add_done_callback(_BACKGROUND_TASKS.discard)
+	return task
+
+
+# one slot pool per event loop: tests run many throwaway loops, a single module
+# level semaphore would outlive its loop and break
+_RUN_SLOTS: WeakKeyDictionary = WeakKeyDictionary()
+
+
+def _run_slots() -> asyncio.Semaphore:
+	loop = asyncio.get_running_loop()
+	slots = _RUN_SLOTS.get(loop)
+	if slots is None:
+		slots = asyncio.Semaphore(ask_materialization_max_concurrent_runs())
+		_RUN_SLOTS[loop] = slots
+	return slots
+
+
+@asynccontextmanager
+async def _run_slot() -> AsyncIterator[None]:
+	async with _run_slots():
+		yield
 
 
 class MaterializationRunner:
@@ -45,8 +81,8 @@ class MaterializationRunner:
 		"""
 		Create one run per materialization and start it. By default executions are
 		backgrounded so the caller returns immediately; wait=True runs inline
-		(scheduler/flow need completion before releasing their lock), sequential
-		executes the members one after another in the given order (flow).
+		(scheduler needs completion before releasing its lock), sequential
+		executes the members one after another in the given order.
 		"""
 		materializations = await run_in_threadpool(self._load_materializations, materialization_ids)
 		created: List[Tuple[MaterializationRun, Materialization]] = []
@@ -59,10 +95,52 @@ class MaterializationRunner:
 			for run, materialization in created:
 				await self._execute(run, materialization)
 		elif sequential:
-			asyncio.ensure_future(self._execute_sequential(created))
+			spawn_background(self._execute_sequential(created))
 		else:
 			for run, materialization in created:
-				asyncio.ensure_future(self._execute(run, materialization))
+				spawn_background(self._execute(run, materialization))
+		return [run for run, _ in created]
+
+	async def run_levels(
+			self, levels: List[List[str]],
+			trigger_type: RunTriggerType = RunTriggerType.FLOW,
+			flow_id: Optional[str] = None, flow_name: Optional[str] = None,
+			parallelism: Optional[int] = None, wait: bool = False
+	) -> List[MaterializationRun]:
+		"""
+		Execute dependency levels of a flow: all members of one level compute at
+		the same time (bounded by parallelism), the next level starts only after
+		the previous one finished. Runs are created upfront so the whole flow
+		shows up as PENDING immediately; wait=True (cron) executes the levels
+		inline before returning.
+		"""
+		materialization_ids = [materialization_id for level in levels for materialization_id in level]
+		materializations = await run_in_threadpool(self._load_materializations, materialization_ids)
+		created: List[Tuple[MaterializationRun, Materialization]] = []
+		for materialization in materializations:
+			run = await run_in_threadpool(
+				self._create_run, materialization, trigger_type, flow_id, flow_name)
+			created.append((run, materialization))
+
+		gate = asyncio.Semaphore(parallelism if parallelism and parallelism > 0
+		                         else ask_materialization_flow_parallelism())
+
+		async def run_one(run: MaterializationRun, materialization: Materialization) -> None:
+			async with gate:
+				await self._execute(run, materialization)
+
+		async def execute_levels() -> None:
+			for level in levels:
+				await asyncio.gather(*[
+					run_one(run, materialization)
+					for run, materialization in created
+					if materialization.materializationId in level
+				])
+
+		if wait:
+			await execute_levels()
+		else:
+			spawn_background(execute_levels())
 		return [run for run, _ in created]
 
 	async def _execute_sequential(self, created: List[Tuple[MaterializationRun, Materialization]]) -> None:
@@ -174,24 +252,23 @@ class MaterializationRunner:
 			run.startedAt = started
 			await run_in_threadpool(self._update_run, run)
 
-			outcome = await execute_metric_query(materialization, self.principal_service)
-			actual_engine = outcome.engine
-			rows = map_result_rows(
-				outcome.column_names, outcome.rows, materialization.timeGrain,
-				materialization=materialization)
 			schema = await run_in_threadpool(
 				resolve_target_schema, materialization, self.principal_service)
 			topic = schema.get_topic()
 			if materialization.targetTopicId != topic.topicId:
 				await run_in_threadpool(
 					self._persist_target_topic, materialization, topic.topicId, topic.name)
-			row_count = await run_in_threadpool(
-				write_back, materialization, schema, rows, self.principal_service, rebuild)
+
+			# the run slot bounds how many materializations compute at the same
+			# time; a rebuild holds it for all of its chunks because it is one run
+			async with _run_slot():
+				row_count, sql_preview, actual_engine = \
+					await self._compute_and_write(materialization, schema, rebuild)
 
 			run.status = RunStatus.SUCCESS
 			run.engine = actual_engine
 			run.rowCount = row_count
-			run.sqlPreview = outcome.sql_preview
+			run.sqlPreview = sql_preview
 			run.finishedAt = datetime.now()
 			run.durationMs = int((run.finishedAt - started).total_seconds() * 1000)
 			run.errorMessage = None
@@ -215,6 +292,35 @@ class MaterializationRunner:
 		except Exception as e:
 			logger.error(f'Failed to persist run [{run.runId}] final status: {e}')
 
+	async def _compute_and_write(
+			self, materialization: Materialization, schema, rebuild: bool
+	) -> Tuple[int, Optional[str], Optional[str]]:
+		"""Query and write one materialization; a rebuild loops grain-aligned chunks."""
+		written = 0
+		sql_preview = None
+		engine = None
+		for index, window in enumerate(self._run_windows(materialization, rebuild)):
+			outcome = await execute_metric_query(materialization, self.principal_service, window)
+			engine = outcome.engine
+			rows = map_result_rows(
+				outcome.column_names, outcome.rows, materialization.timeGrain,
+				materialization=materialization)
+			# only the first chunk of a rebuild truncates, later chunks merge into it
+			force_truncate = rebuild and index == 0
+			written += await run_in_threadpool(
+				write_back, materialization, schema, rows, self.principal_service,
+				force_truncate, window)
+			sql_preview = outcome.sql_preview
+		return written, sql_preview, engine
+
+	def _run_windows(self, materialization: Materialization, rebuild: bool) -> List[Tuple[date, date]]:
+		"""Query windows of one run: a single window, or grain-aligned rebuild chunks."""
+		if not rebuild:
+			return [compute_window(materialization.timeGrain)]
+		full = rebuild_window()
+		return rebuild_chunks(
+			materialization.timeGrain, full, ask_materialization_rebuild_chunk_days()) or [full]
+
 
 def _error_message(error: BaseException) -> str:
 	if isinstance(error, MaterializationError):
@@ -224,17 +330,20 @@ def _error_message(error: BaseException) -> str:
 	return message[:ERROR_MESSAGE_MAX_LENGTH]
 
 
-def is_due(job: Union[Materialization, 'MaterializationFlow'], execution_time: datetime) -> bool:
-	"""Whether the schedule hits the given moment (same semantics as subscriptions).
+def is_due(job: Union[Materialization, MaterializationFlow], execution_time: datetime) -> bool:
+	"""Whether the schedule is due at the given moment.
 
-	Also answers for flows: both tuples expose enabled + schedule.
+	Due-window semantics: due from the scheduled HH:MM until the day ends, so a
+	heartbeat delayed by a long run still catches the job later the same day;
+	the daily job lock keeps it to a single execution. Also answers for flows:
+	both tuples expose enabled + schedule.
 	"""
 	if not job.enabled or job.schedule is None or not job.schedule.enabled:
 		return False
 	schedule = job.schedule
 	if is_blank(schedule.time):
 		return False
-	if schedule.time != execution_time.strftime('%H:%M'):
+	if schedule.time > execution_time.strftime('%H:%M'):
 		return False
 
 	frequency = str(schedule.frequency)

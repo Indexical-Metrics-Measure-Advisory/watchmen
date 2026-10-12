@@ -11,12 +11,12 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_metricflow.meta.materialization_meta_service import MaterializationFlowService, \
 	MaterializationRunService
 from watchmen_metricflow.model.materialization import Materialization, MaterializationFlow, \
-	MaterializationJobLockStatus, RunStatus, RunTriggerType
+	MaterializationJobLock, MaterializationJobLockStatus, RunStatus, RunTriggerType
 from watchmen_metricflow.settings import ask_materialization_on, ask_materialization_run_stale_minutes, \
 	ask_materialization_scheduler_heartbeat
 from watchmen_metricflow.util import trans, trans_readonly
-from .materialization_flow_graph import order_flow_materializations
-from .materialization_runner import MaterializationRunner, is_due
+from .materialization_flow_graph import level_flow_materializations
+from .materialization_runner import MaterializationRunner, is_due, spawn_background
 
 logger = getLogger(__name__)
 
@@ -96,7 +96,11 @@ async def _heartbeat() -> None:
 
 
 async def run_due_materializations(execution_time: Optional[datetime] = None) -> int:
-	"""Claim each due materialization and flow through its daily lock, then run it inline."""
+	"""
+	Claim each due materialization and flow through its daily lock; the claimed
+	jobs execute in background tasks so a long run never delays the heartbeat
+	nor loses the due minutes of other jobs.
+	"""
 	moment = execution_time if execution_time is not None else datetime.now()
 	loader = MaterializationRunner(fake_super_admin())
 	due = await run_in_threadpool(_find_due, loader, moment)
@@ -112,53 +116,62 @@ async def run_due_materializations(execution_time: Optional[datetime] = None) ->
 			str(materialization.schedule.frequency), moment.date())
 		if lock is None:
 			continue
-		try:
-			runs = await runner.run_ids(
-				[materialization.materializationId], trigger_type=RunTriggerType.CRON, wait=True)
-			status = MaterializationJobLockStatus.SUCCESS
-			if runs and all(run.status == RunStatus.FAILED for run in runs):
-				status = MaterializationJobLockStatus.FAILED
-			await run_in_threadpool(runner.finish_cron_lock, lock, status)
-			triggered += 1
-		except Exception as e:
-			logger.error(
-				f'Cron materialization [{materialization.materializationId}] failed: {e}',
-				exc_info=True)
-			await run_in_threadpool(runner.finish_cron_lock, lock, MaterializationJobLockStatus.FAILED)
-	triggered += await _run_due_flows(due_flows, moment)
-	return triggered
-
-
-async def _run_due_flows(due_flows: List[Tuple[str, MaterializationFlow]], moment: datetime) -> int:
-	"""One flow run per tenant/flow/frequency/day; members run in dependency order.
-
-	A member that also carries its own schedule stays independent: both triggers
-	fire, each write is idempotent under the business key.
-	"""
-	triggered = 0
+		spawn_background(_run_claimed_job(
+			runner, lock, [materialization.materializationId], None, None))
+		triggered += 1
 	for tenant_id, flow in due_flows:
 		runner = MaterializationRunner(fake_tenant_admin(tenant_id))
 		lock = await run_in_threadpool(
 			runner.try_acquire_cron_lock, flow.flowId, str(flow.schedule.frequency), moment.date())
 		if lock is None:
 			continue
-		try:
-			runs = await runner.run_ids(
-				_flow_member_ids_in_order(runner, flow), trigger_type=RunTriggerType.CRON,
-				flow_id=flow.flowId, flow_name=flow.name, wait=True)
-			status = MaterializationJobLockStatus.SUCCESS
-			if runs and all(run.status == RunStatus.FAILED for run in runs):
-				status = MaterializationJobLockStatus.FAILED
-			await run_in_threadpool(runner.finish_cron_lock, lock, status)
-			triggered += 1
-		except Exception as e:
-			logger.error(f'Cron flow [{flow.flowId}] failed: {e}', exc_info=True)
-			await run_in_threadpool(runner.finish_cron_lock, lock, MaterializationJobLockStatus.FAILED)
+		spawn_background(_run_claimed_flow(runner, lock, flow))
+		triggered += 1
 	return triggered
 
 
-def _flow_member_ids_in_order(runner: MaterializationRunner, flow: MaterializationFlow) -> List[str]:
-	"""Flow members of the runner's tenant, ordered after their dependencies."""
+async def _run_claimed_job(
+		runner: MaterializationRunner, lock: MaterializationJobLock,
+		materialization_ids: List[str], flow_id: Optional[str], flow_name: Optional[str]
+) -> None:
+	"""Execute an already-claimed cron job and finalize its lock."""
+	status = MaterializationJobLockStatus.SUCCESS
+	try:
+		runs = await runner.run_ids(
+			materialization_ids, trigger_type=RunTriggerType.CRON,
+			flow_id=flow_id, flow_name=flow_name, wait=True)
+		if runs and all(run.status == RunStatus.FAILED for run in runs):
+			status = MaterializationJobLockStatus.FAILED
+	except Exception as e:
+		logger.error(f'Cron job [{lock.materializationId}] failed: {e}', exc_info=True)
+		status = MaterializationJobLockStatus.FAILED
+	await run_in_threadpool(runner.finish_cron_lock, lock, status)
+
+
+async def _run_claimed_flow(
+		runner: MaterializationRunner, lock: MaterializationJobLock, flow: MaterializationFlow
+) -> None:
+	"""One flow run per tenant/flow/frequency/day; members run level by level.
+
+	A member that also carries its own schedule stays independent: both triggers
+	fire, each write is idempotent under the business key.
+	"""
+	status = MaterializationJobLockStatus.SUCCESS
+	try:
+		levels = await run_in_threadpool(_flow_member_levels, runner, flow)
+		runs = await runner.run_levels(
+			levels, trigger_type=RunTriggerType.CRON,
+			flow_id=flow.flowId, flow_name=flow.name, wait=True)
+		if runs and all(run.status == RunStatus.FAILED for run in runs):
+			status = MaterializationJobLockStatus.FAILED
+	except Exception as e:
+		logger.error(f'Cron flow [{flow.flowId}] failed: {e}', exc_info=True)
+		status = MaterializationJobLockStatus.FAILED
+	await run_in_threadpool(runner.finish_cron_lock, lock, status)
+
+
+def _flow_member_levels(runner: MaterializationRunner, flow: MaterializationFlow) -> List[List[str]]:
+	"""Flow members of the runner's tenant, grouped in dependency levels."""
 	def action() -> List[Materialization]:
 		found = []
 		for materialization_id in flow.materializationIds:
@@ -168,7 +181,7 @@ def _flow_member_ids_in_order(runner: MaterializationRunner, flow: Materializati
 		return found
 
 	materializations = trans_readonly(runner.materialization_service, action)
-	return order_flow_materializations(flow, materializations, runner.principal_service)
+	return level_flow_materializations(flow, materializations, runner.principal_service)
 
 
 def _find_due(loader: MaterializationRunner, execution_time: datetime) -> List[Tuple[str, Materialization]]:

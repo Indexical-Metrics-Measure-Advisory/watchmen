@@ -103,7 +103,8 @@ def _resolve_requested_engine(materialization: Materialization) -> Materializati
 
 
 async def execute_metric_query(
-		materialization: Materialization, principal_service: PrincipalService
+		materialization: Materialization, principal_service: PrincipalService,
+		window: Optional[Tuple[date, date]] = None
 ) -> QueryOutcome:
 	"""Run the metric query, storage engine (direct bypass first, dbt fallback) or spark."""
 	if is_blank(materialization.metricName):
@@ -113,7 +114,7 @@ async def execute_metric_query(
 		check_metric_names_allowed, get_metric_service(principal_service), principal_service,
 		[materialization.metricName])
 
-	window_start, window_end = materialization_window(materialization)
+	window_start, window_end = window if window is not None else materialization_window(materialization)
 	request = build_request(materialization, window_start, window_end)
 	requested = _resolve_requested_engine(materialization)
 
@@ -188,6 +189,59 @@ def is_rebuild(materialization: Materialization) -> bool:
 def rebuild_window(now: Optional[datetime] = None) -> Tuple[date, date]:
 	moment = now if now is not None else datetime.now()
 	return REBUILD_MIN_DATE, moment.date()
+
+
+def rebuild_chunks(
+		time_grain: Any, window: Tuple[date, date], max_days: int
+) -> List[Tuple[date, date]]:
+	"""
+	Split a rebuild window at grain bucket boundaries so no bucket is ever
+	computed partially by two chunks: chunk boundaries always sit on bucket
+	starts (Monday for weeks, the 1st for months/quarters/years, any date for
+	days). The last chunk ends at the window end and may hold the partial
+	current period, which every later run rewrites anyway. Consecutive buckets
+	are packed into chunks of at most max_days days; the first bucket may start
+	slightly before the window (bucket alignment), which only reads extra empty
+	days.
+	"""
+	start, end = window
+	if start >= end:
+		return []
+	grain = TimeGrain(time_grain) if not isinstance(time_grain, TimeGrain) else time_grain
+	bucket_starts = _grain_bucket_starts(grain, start, end)
+
+	chunks: List[Tuple[date, date]] = []
+	i = 0
+	while i < len(bucket_starts):
+		j = i
+		# extend the chunk while the next bucket start still fits into max_days
+		while j + 1 < len(bucket_starts) \
+				and (bucket_starts[j + 1] - bucket_starts[i]).days < max_days:
+			j += 1
+		next_start = bucket_starts[j + 1] if j + 1 < len(bucket_starts) else end + timedelta(days=1)
+		chunks.append((bucket_starts[i], min(next_start - timedelta(days=1), end)))
+		i = j + 1
+	return chunks
+
+
+def _grain_bucket_starts(grain: TimeGrain, start: date, end: date) -> List[date]:
+	"""Bucket starts of the grain covering [start, end], first one clipped at start."""
+	if grain == TimeGrain.DAY:
+		return [start + timedelta(days=i) for i in range((end - start).days + 1)]
+	if grain == TimeGrain.WEEK:
+		# align back to the Monday of the first week, buckets step by 7 days
+		first = start - timedelta(days=start.weekday())
+		return [first + timedelta(days=7 * i) for i in range((end - first).days // 7 + 1)]
+	if grain in (TimeGrain.MONTH, TimeGrain.QUARTER, TimeGrain.YEAR):
+		step = {'month': 1, 'quarter': 3, 'year': 12}[grain.value]
+		starts = []
+		year, month = start.year, start.month - (start.month - 1) % step
+		while date(year, month, 1) <= end:
+			starts.append(date(year, month, 1))
+			month += step
+			year, month = year + (month - 1) // 12, (month - 1) % 12 + 1
+		return starts
+	return [start]
 
 
 def materialization_window(

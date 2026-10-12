@@ -33,6 +33,14 @@ class MetricFlowSettings(RestSettings):
     # a run stuck in PENDING/RUNNING longer than this is marked FAILED on service startup;
     # keep it above the longest expected run, a live run older than the threshold is failed too
     MATERIALIZATION_RUN_STALE_MINUTES: int = 120
+    # upper bound of materialization runs computing at the same time, per process;
+    # further triggers wait for a free slot instead of piling queries onto the database
+    MATERIALIZATION_MAX_CONCURRENT_RUNS: int = 4
+    # how many members of one flow may compute at the same time inside a dependency level
+    MATERIALIZATION_FLOW_PARALLELISM: int = 2
+    # a pending rebuild recomputes the full history in grain-aligned windows of at most
+    # this many days, so the query result never sits fully in memory
+    MATERIALIZATION_REBUILD_CHUNK_DAYS: int = 365
 
 
 mf_settings = MetricFlowSettings()
@@ -73,6 +81,21 @@ def ask_materialization_scheduler_heartbeat() -> int:
 def ask_materialization_run_stale_minutes() -> int:
     value = mf_settings.MATERIALIZATION_RUN_STALE_MINUTES
     return value if value and value > 0 else 120
+
+
+def ask_materialization_max_concurrent_runs() -> int:
+    value = mf_settings.MATERIALIZATION_MAX_CONCURRENT_RUNS
+    return value if value and value > 0 else 4
+
+
+def ask_materialization_flow_parallelism() -> int:
+    value = mf_settings.MATERIALIZATION_FLOW_PARALLELISM
+    return value if value and value > 0 else 2
+
+
+def ask_materialization_rebuild_chunk_days() -> int:
+    value = mf_settings.MATERIALIZATION_REBUILD_CHUNK_DAYS
+    return value if value and value > 0 else 365
 
 
 def ask_direct_bypass_types() -> set:

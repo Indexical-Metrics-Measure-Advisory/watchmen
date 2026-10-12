@@ -17,9 +17,10 @@ from watchmen_metricflow.model.materialization import FactorRole, FactorMappingC
 from watchmen_metricflow.service import materialization_write_back
 from watchmen_metricflow.service.materialization_error import MaterializationError
 from watchmen_metricflow.service.materialization_write_back import (
-    _build_key_criteria,
+    _business_key,
     _factor_type_of,
     _index_group_of,
+    _key_part,
     _merge_topic_factors,
     _sync_target_topic_factors,
     auto_topic_name,
@@ -89,26 +90,31 @@ class TestFactorTypes(unittest.TestCase):
         self.assertIsNone(_index_group_of(by_name['metricValue'], mapping))
 
 
-class TestKeyCriteria(unittest.TestCase):
-    def test_criteria_use_physical_column_names(self):
+class TestBusinessKey(unittest.TestCase):
+    def test_key_covers_time_and_dimensions_in_mapping_order(self):
         materialization = make_materialization()
         materialization.factorMapping = default_mapping()
         prepared = {'statDate': date(2026, 1, 1), 'region': 'east', 'metricValue': 1.0}
 
-        criteria = _build_key_criteria(materialization, prepared)
+        key = _business_key(materialization, prepared)
 
-        self.assertEqual(2, len(criteria))
-        # physical column name of statDate is lowercase
-        self.assertEqual('statdate', criteria[0].left.columnName)
-        self.assertEqual(date(2026, 1, 1), criteria[0].right)
-        self.assertEqual('region', criteria[1].left.columnName)
-        self.assertEqual('east', criteria[1].right)
+        self.assertEqual((_key_part(date(2026, 1, 1)), _key_part('east')), key)
+
+    def test_numeric_and_null_parts_are_type_normalized(self):
+        from decimal import Decimal
+        self.assertEqual(_key_part(1.0), _key_part(1))
+        self.assertEqual(_key_part(Decimal('1.50')), _key_part(1.5))
+        self.assertNotEqual(_key_part(None), _key_part(''))
+        self.assertNotEqual(_key_part(True), _key_part('true'))
 
     def test_missing_key_columns_raise(self):
         materialization = make_materialization()
-        materialization.factorMapping = default_mapping()
+        materialization.factorMapping = [
+            FactorMappingColumn(
+                columnName='metricValue', factorName='sales_amount', factorType='number',
+                role=FactorRole.METRIC)]
         with self.assertRaises(MaterializationError):
-            _build_key_criteria(materialization, {'metricValue': 1.0})
+            _business_key(materialization, {'metricValue': 1.0})
 
 
 class TestWriteBack(unittest.TestCase):
@@ -144,33 +150,63 @@ class TestWriteBack(unittest.TestCase):
         materialization.factorMapping = default_mapping()
         schema = self._schema()
         service = mock.MagicMock()
-        service.find_one.return_value = {'id_': 'existing-1'}
+        # one windowed lookup returns the stored row of the same business key
+        service.find.return_value = [
+            {'id_': 'existing-1', 'statDate': date(2026, 1, 1), 'region': 'east'}]
         rows = [{'statDate': date(2026, 1, 1), 'region': 'east', 'metricValue': 1.0}]
         with mock.patch.object(materialization_write_back, 'ask_topic_storage'), \
                 mock.patch.object(
                     materialization_write_back, 'ask_topic_data_service',
                     return_value=service):
-            written = write_back(materialization, schema, rows, admin_principal())
+            written = write_back(
+                materialization, schema, rows, admin_principal(),
+                window=(date(2026, 1, 1), date(2026, 1, 1)))
 
         self.assertEqual(1, written)
         service.truncate.assert_not_called()
+        self.assertEqual(1, service.find.call_count)
         service.trigger_by_merge.assert_called_once()
         merged = service.trigger_by_merge.call_args[0][0]
         self.assertEqual('existing-1', merged['id_'])
         service.trigger_by_insert.assert_not_called()
+
+    def test_merge_lookup_reads_only_the_write_window_on_the_time_column(self):
+        materialization = make_materialization(writeMode=WriteMode.MERGE)
+        materialization.factorMapping = default_mapping()
+        schema = self._schema()
+        service = mock.MagicMock()
+        service.find.return_value = []
+        rows = [{'statDate': date(2026, 1, 1), 'region': 'east', 'metricValue': 1.0}]
+        with mock.patch.object(materialization_write_back, 'ask_topic_storage'), \
+                mock.patch.object(
+                    materialization_write_back, 'ask_topic_data_service',
+                    return_value=service):
+            write_back(materialization, schema, rows, admin_principal(),
+                       window=(date(2026, 1, 1), date(2026, 1, 31)))
+
+        criteria = service.find.call_args[0][0]
+        self.assertEqual(2, len(criteria))
+        # physical column name of statDate is lowercase
+        self.assertEqual('statdate', criteria[0].left.columnName)
+        self.assertEqual('greater-than-or-equals', criteria[0].operator.value)
+        self.assertEqual(date(2026, 1, 1), criteria[0].right)
+        self.assertEqual('less-than-or-equals', criteria[1].operator.value)
+        self.assertEqual(date(2026, 1, 31), criteria[1].right)
 
     def test_merge_inserts_when_no_business_key_match(self):
         materialization = make_materialization(writeMode=WriteMode.MERGE)
         materialization.factorMapping = default_mapping()
         schema = self._schema()
         service = mock.MagicMock()
-        service.find_one.return_value = None
+        service.find.return_value = []
         rows = [{'statDate': date(2026, 1, 1), 'region': 'east', 'metricValue': 1.0}]
         with mock.patch.object(materialization_write_back, 'ask_topic_storage'), \
                 mock.patch.object(
                     materialization_write_back, 'ask_topic_data_service',
                     return_value=service):
-            written = write_back(materialization, schema, rows, admin_principal())
+            written = write_back(
+                materialization, schema, rows, admin_principal(),
+                window=(date(2026, 1, 1), date(2026, 1, 1)))
 
         self.assertEqual(1, written)
         service.trigger_by_insert.assert_called_once()
@@ -204,7 +240,7 @@ class TestWriteBack(unittest.TestCase):
         service.truncate.assert_called_once()
         self.assertEqual(2, service.trigger_by_insert.call_count)
         service.trigger_by_merge.assert_not_called()
-        service.find_one.assert_not_called()
+        service.find.assert_not_called()
 
     def test_force_truncate_with_empty_rows_still_clears_table(self):
         # a rebuild must drop old-key rows even when the recomputed history is empty
@@ -225,7 +261,7 @@ class TestWriteBack(unittest.TestCase):
         materialization.factorMapping = default_mapping()
         schema = self._schema()
         service = mock.MagicMock()
-        service.find_one.return_value = None
+        service.find.return_value = []
         rows = [{'statDate': date(2026, 1, 1), 'region': 'east', 'metricValue': 1.0}]
         with mock.patch.object(materialization_write_back, 'ask_topic_storage'), \
                 mock.patch.object(
@@ -454,6 +490,44 @@ class TestSyncTargetTopicFactors(unittest.TestCase):
         updated_topic, original_topic, _ = structure.call_args[0]
         self.assertIn('notification_date', {factor.name for factor in updated_topic.factors})
         self.assertNotIn('notification_date', {factor.name for factor in original_topic.factors})
+
+    def test_optimistic_lock_race_is_retried_once(self):
+        # a concurrent writer of the same target topic wins the version race:
+        # the update misses, the topic is reloaded and the merge retried once
+        from fastapi import HTTPException
+        topic = self._topic('statDate', 'timeGrain', 'accident_time', 'metricValue')
+        schema = self._schema(topic)
+        physical = [
+            self._factor(name, physical=True)
+            for name in ['statDate', 'timeGrain', 'accident_time', 'notification_date', 'metricValue']]
+        outcomes = ['raise', 'ok']
+
+        def trans_with_race(service, action):
+            if outcomes.pop(0) == 'raise':
+                raise HTTPException(status_code=500, detail='Entity not found by updater')
+            return action()
+
+        with mock.patch.object(materialization_write_back, 'get_data_source_service'), \
+                mock.patch.object(materialization_write_back, 'KernelTopicService') as kernel, \
+                mock.patch.object(materialization_write_back, 'MetaTopicService'), \
+                mock.patch.object(materialization_write_back, 'trans', side_effect=trans_with_race), \
+                mock.patch.object(materialization_write_back, 'ask_snowflake_generator') as snowflake, \
+                mock.patch.object(
+                    materialization_write_back, '_table_reflected', return_value=True), \
+                mock.patch.object(
+                    materialization_write_back, '_reflect_factors', return_value=physical), \
+                mock.patch.object(materialization_write_back, 'update_topic_structure') as structure:
+            snowflake.return_value.next_id.return_value = 123456789
+            # the retry reloads the unchanged topic, so the merge produces the
+            # same factor set again
+            kernel.return_value.find_schema_by_id.return_value = schema
+            result = _sync_target_topic_factors(self._materialization(), schema, admin_principal())
+
+        self.assertEqual([], outcomes)
+        self.assertIs(schema, result)
+        structure.assert_called_once()
+        updated_topic, _, _ = structure.call_args[0]
+        self.assertIn('notification_date', {factor.name for factor in updated_topic.factors})
 
 
 class TestResolveTargetSchema(unittest.TestCase):

@@ -611,20 +611,19 @@ class TestRunFlow(unittest.TestCase):
                 return_value=source_topics), \
                 mock.patch.object(materialization_router, 'MaterializationRunner') as MockRunner:
             runner = MockRunner.return_value
-            runner.run_ids = mock.AsyncMock(return_value=[make_run()])
+            runner.run_levels = mock.AsyncMock(return_value=[make_run()])
             client = build_client(materialization_router.router)
             response = client.post('/metricflow/materialization/flow/run/flow-1')
         return response, runner
 
-    def test_run_flow_executes_members_in_dependency_order(self):
+    def test_run_flow_executes_members_in_dependency_levels(self):
         response, runner = self._post_run_flow()
         self.assertEqual(200, response.status_code)
-        kwargs = runner.run_ids.call_args.kwargs
-        self.assertEqual(['mat-2', 'mat-1'], runner.run_ids.call_args.args[0])
+        kwargs = runner.run_levels.call_args.kwargs
+        self.assertEqual([['mat-2'], ['mat-1']], runner.run_levels.call_args.args[0])
         self.assertEqual(RunTriggerType.FLOW, kwargs['trigger_type'])
         self.assertEqual('flow-1', kwargs['flow_id'])
         self.assertEqual('nightly', kwargs['flow_name'])
-        self.assertTrue(kwargs['sequential'])
 
     def test_run_flow_rejected_while_a_member_is_running(self):
         flow_service = mock_flow_service()

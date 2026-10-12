@@ -1,7 +1,10 @@
 import re
+from decimal import Decimal
+from datetime import date, datetime
 from logging import getLogger
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
+from fastapi import HTTPException
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService as KernelTopicService
 from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
@@ -15,10 +18,12 @@ from watchmen_metricflow.model.materialization import FactorMappingColumn, Facto
 	WriteMode
 from watchmen_metricflow.util import trans
 from watchmen_model.admin import Factor, FactorIndexGroup, FactorType, Topic, TopicKind, TopicType
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, as_table_name
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, \
+	as_table_name
 from watchmen_storage_rds.topic_table_generate import get_schema_from_datasource
 from watchmen_utilities import is_blank, is_not_blank
 from .materialization_error import MaterializationError
+from .materialization_executor import materialization_window
 from .materialization_factor_mapping import get_effective_factor_mapping, to_column_name
 from .materialization_metric_resolver import resolve_metric_source_data_source_id
 
@@ -126,7 +131,8 @@ def _sync_target_topic_factors(
 	if updated is not None:
 		meta_topic_service = MetaTopicService(
 			ask_meta_storage(), ask_snowflake_generator(), principal_service)
-		trans(meta_topic_service, lambda: meta_topic_service.update(updated))
+		updated = _update_topic_meta_with_retry(
+			meta_topic_service, updated, mapping, topic.topicId, principal_service)
 		# evolve the physical table when it exists; otherwise skip here and let
 		# _ensure_physical_table create it from the updated factors
 		if _table_reflected(topic, table_name, db_schema, principal_service) is not False:
@@ -152,6 +158,33 @@ def _sync_target_topic_factors(
 		f'Materialization [{materialization.materializationId}] synced factors of topic '
 		f'[{topic.name}] to the current mapping.')
 	return reloaded
+
+
+def _update_topic_meta_with_retry(
+		meta_topic_service: MetaTopicService, updated: Topic,
+		mapping: List[FactorMappingColumn], topic_id: str,
+		principal_service: PrincipalService
+) -> Topic:
+	"""Persist the factor sync; on a lost optimistic-lock race (a concurrent
+	writer of the same target topic) reload it and retry the merge once."""
+	try:
+		trans(meta_topic_service, lambda: meta_topic_service.update(updated))
+		return updated
+	except HTTPException as e:
+		if e.status_code != 500:
+			raise
+		reloaded = KernelTopicService(principal_service).find_schema_by_id(
+			topic_id, principal_service.get_tenant_id())
+		if reloaded is None:
+			raise
+		logger.info(
+			f'Topic [{topic_id}] changed concurrently, retrying the factor sync once.')
+		retried = _merge_topic_factors(reloaded.get_topic(), mapping)
+		if retried is None:
+			# the concurrent writer already carried the needed factors
+			return reloaded.get_topic()
+		trans(meta_topic_service, lambda: meta_topic_service.update(retried))
+		return retried
 
 
 def _align_physical_factors(
@@ -305,12 +338,14 @@ def resolve_data_source_id(
 
 def write_back(
 		materialization: Materialization, schema: TopicSchema, rows: List[Dict[str, Any]],
-		principal_service: PrincipalService, 	force_truncate: bool = False
+		principal_service: PrincipalService, force_truncate: bool = False,
+		window: Optional[Tuple[date, date]] = None
 ) -> int:
 	"""TRUNCATE_INSERT replaces the whole table, MERGE upserts by business key.
 
 	force_truncate makes a MERGE job replace the table once while its rebuild is
-	pending, because rows keyed by the old business key cannot be merged."""
+	pending, because rows keyed by the old business key cannot be merged. The
+	window bounds the one existing-rows lookup of the MERGE path."""
 	if not rows:
 		# a pending rebuild must clear rows keyed by the old business key even when
 		# the recomputed history is empty; plain jobs keep their previous behaviour
@@ -329,12 +364,16 @@ def write_back(
 			service.trigger_by_insert(schema.prepare_data(dict(row), principal_service))
 		return len(rows)
 
+	if window is None:
+		window = materialization_window(materialization)
+	prepared_rows = [schema.prepare_data(dict(row), principal_service) for row in rows]
+	existing_by_key = _find_existing_by_key(materialization, service, window)
+
 	written = 0
-	for row in rows:
-		prepared = schema.prepare_data(dict(row), principal_service)
-		existing = service.find_one(_build_key_criteria(materialization, prepared))
-		if existing is not None and existing.get('id_') is not None:
-			prepared['id_'] = existing['id_']
+	for prepared in prepared_rows:
+		existing_id = existing_by_key.get(_business_key(materialization, prepared))
+		if existing_id is not None:
+			prepared['id_'] = existing_id
 			service.trigger_by_merge(prepared)
 		else:
 			service.trigger_by_insert(prepared)
@@ -342,21 +381,60 @@ def write_back(
 	return written
 
 
-def _build_key_criteria(
-		materialization: Materialization, prepared: Dict[str, Any]
-) -> List[EntityCriteriaExpression]:
-	"""Business key criteria on physical column names, matched against mapped factor values."""
-	criteria = []
-	for column in get_effective_factor_mapping(materialization):
-		if column.role not in (FactorRole.TIME, FactorRole.DIMENSION):
-			continue
-		if is_blank(column.columnName) or column.columnName not in prepared:
-			continue
-		value = prepared[column.columnName]
-		if value is None:
-			continue
-		criteria.append(EntityCriteriaExpression(
-			left=ColumnNameLiteral(columnName=to_column_name(column.columnName)), right=value))
-	if not criteria:
+def _key_columns(materialization: Materialization) -> List[FactorMappingColumn]:
+	"""Business key members of the effective mapping: the time column plus dimensions."""
+	columns = [
+		column for column in get_effective_factor_mapping(materialization)
+		if column.role in (FactorRole.TIME, FactorRole.DIMENSION) and is_not_blank(column.columnName)
+	]
+	if not columns:
 		raise MaterializationError('Business key columns are missing from the mapped rows.')
-	return criteria
+	return columns
+
+
+def _business_key(materialization: Materialization, row: Dict[str, Any]) -> Tuple:
+	"""Hashable, type-normalized business key of one prepared row."""
+	return tuple(_key_part(row.get(column.columnName)) for column in _key_columns(materialization))
+
+
+def _key_part(value: Any) -> Tuple:
+	"""Type-tagged, normalized key member so query-side and stored-side values
+	compare equal regardless of int/float/Decimal or date-vs-text differences."""
+	if value is None:
+		return ('none',)
+	if isinstance(value, bool):
+		return ('bool', value)
+	if isinstance(value, (date, datetime)):
+		return ('date', value.isoformat())
+	if isinstance(value, (int, float, Decimal)):
+		try:
+			return ('num', str(Decimal(str(value)).normalize()))
+		except ArithmeticError:
+			return ('num', str(value))
+	return ('text', str(value))
+
+
+def _find_existing_by_key(
+		materialization: Materialization, service, window: Tuple[date, date]
+) -> Dict[Tuple, str]:
+	"""
+	One windowed query replacing the former find_one per row (the MERGE N+1):
+	rows that can collide on the business key carry the same time value, so
+	reading the window's existing rows is enough to decide insert vs merge.
+	"""
+	time_column = next(
+		(column for column in _key_columns(materialization) if column.role == FactorRole.TIME), None)
+	if time_column is None:
+		raise MaterializationError('Business key columns are missing from the mapped rows.')
+	existing_rows = service.find([
+		EntityCriteriaExpression(
+			left=ColumnNameLiteral(columnName=to_column_name(time_column.columnName)),
+			operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS, right=window[0]),
+		EntityCriteriaExpression(
+			left=ColumnNameLiteral(columnName=to_column_name(time_column.columnName)),
+			operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS, right=window[1])
+	])
+	return {
+		_business_key(materialization, row): row['id_']
+		for row in existing_rows if row.get('id_') is not None
+	}

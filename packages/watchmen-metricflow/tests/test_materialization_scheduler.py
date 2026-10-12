@@ -140,16 +140,28 @@ class TestRunDueMaterializations(unittest.TestCase):
 
         flow_service = mock.MagicMock()
         flow_service.find_all_enabled_with_schedule.return_value = flow_rows or []
+        # the heartbeat backgrounds claimed jobs; collect them and drain after
+        spawned = []
 
         runner_cls = mock.MagicMock(side_effect=[loader, worker])
+        # the claimed jobs drain inside the patch context, the spawned coroutines
+        # still resolve their module globals when awaited
         with mock.patch.object(materialization_scheduler, 'MaterializationRunner', runner_cls), \
                 mock.patch.object(
                     materialization_scheduler, 'MaterializationFlowService',
-                    return_value=flow_service):
+                    return_value=flow_service), \
+                mock.patch.object(materialization_scheduler, 'spawn_background', spawned.append):
             triggered = asyncio.run(run_due_materializations(moment or self.MOMENT))
+
+            async def drain():
+                for coroutine in spawned:
+                    await coroutine
+
+            if spawned:
+                asyncio.run(drain())
         return triggered, runner_cls, worker
 
-    def test_claims_lock_and_runs_due_materialization_inline(self):
+    def test_claims_lock_and_runs_due_materialization_in_background(self):
         rows = [due_materialization(tenantId=TENANT_ID)]
         lock = object()
         statuses = []
@@ -184,9 +196,10 @@ class TestRunDueMaterializations(unittest.TestCase):
         self.assertEqual([MaterializationJobLockStatus.FAILED], statuses)
 
     def test_not_due_rows_are_never_claimed(self):
-        # wrong time of day, schedule disabled and foreign rows are all filtered by _find_due
+        # time still ahead, schedule disabled and foreign rows are all filtered by _find_due
         rows = [
-            due_materialization(tenantId=TENANT_ID),
+            due_materialization(tenantId=TENANT_ID,
+                                schedule={'enabled': True, 'frequency': 'day', 'time': '04:30'}),
             due_materialization(
                 materialization_id='mat-2', tenantId=TENANT_ID,
                 schedule={'enabled': False, 'frequency': 'day', 'time': '03:00'}),
@@ -204,6 +217,16 @@ class TestRunDueMaterializations(unittest.TestCase):
         self.assertEqual(1, runner_cls.call_count)
         worker.try_acquire_cron_lock.assert_not_called()
 
+    def test_late_heartbeat_catches_up_a_missed_minute(self):
+        # scheduled 03:00, heartbeat arrives 03:20: due-window semantics still fire it
+        rows = [due_materialization(tenantId=TENANT_ID)]
+
+        triggered, _, worker = self._run_scenario(
+            rows, object(), [make_run()], moment=datetime(2026, 10, 1, 3, 20))
+
+        self.assertEqual(1, triggered)
+        worker.run_ids.assert_awaited_once()
+
 
 class TestRunDueFlows(unittest.TestCase):
     MOMENT = datetime(2026, 10, 1, 3, 0)
@@ -215,26 +238,37 @@ class TestRunDueFlows(unittest.TestCase):
         worker.materialization_service.find_by_id.side_effect = lambda mid: make_materialization(
             materialization_id=mid, tenantId=TENANT_ID)
         worker.try_acquire_cron_lock.return_value = lock
-        worker.run_ids = mock.AsyncMock(return_value=runs)
+        worker.run_levels = mock.AsyncMock(return_value=runs)
         worker.finish_cron_lock.side_effect = (
             (lambda lock_arg, status: finish_statuses.append(status))
             if finish_statuses is not None else (lambda lock_arg, status: None)
         )
         flow_service = mock.MagicMock()
         flow_service.find_all_enabled_with_schedule.return_value = flow_rows
+        spawned = []
 
         runner_cls = mock.MagicMock(side_effect=[loader, worker])
+        # the claimed flows drain inside the patch context, the spawned coroutines
+        # still resolve their module globals when awaited
         with mock.patch.object(materialization_scheduler, 'MaterializationRunner', runner_cls), \
                 mock.patch.object(
                     materialization_scheduler, 'MaterializationFlowService',
                     return_value=flow_service), \
+                mock.patch.object(materialization_scheduler, 'spawn_background', spawned.append), \
                 mock.patch.object(
-                    materialization_scheduler, 'order_flow_materializations',
-                    side_effect=lambda flow, mats, ps: [m.materializationId for m in mats]):
+                    materialization_scheduler, 'level_flow_materializations',
+                    side_effect=lambda flow, mats, ps: [[m.materializationId for m in mats]]):
             triggered = asyncio.run(run_due_materializations(self.MOMENT))
+
+            async def drain():
+                for coroutine in spawned:
+                    await coroutine
+
+            if spawned:
+                asyncio.run(drain())
         return triggered, worker
 
-    def test_claims_lock_and_runs_flow_members_inline(self):
+    def test_claims_lock_and_runs_flow_levels_in_background(self):
         statuses = []
 
         triggered, worker = self._run_flow_scenario(
@@ -243,9 +277,9 @@ class TestRunDueFlows(unittest.TestCase):
 
         self.assertEqual(1, triggered)
         worker.try_acquire_cron_lock.assert_called_once_with('flow-1', 'day', self.MOMENT.date())
-        worker.run_ids.assert_awaited_once()
-        args, kwargs = worker.run_ids.call_args
-        self.assertEqual(['mat-1', 'mat-2'], args[0])
+        worker.run_levels.assert_awaited_once()
+        args, kwargs = worker.run_levels.call_args
+        self.assertEqual([['mat-1', 'mat-2']], args[0])
         self.assertEqual('cron', kwargs['trigger_type'])
         self.assertEqual('flow-1', kwargs['flow_id'])
         self.assertEqual('nightly', kwargs['flow_name'])
@@ -256,7 +290,7 @@ class TestRunDueFlows(unittest.TestCase):
         triggered, worker = self._run_flow_scenario([due_flow(tenantId=TENANT_ID)], None, [])
 
         self.assertEqual(0, triggered)
-        worker.run_ids.assert_not_awaited()
+        worker.run_levels.assert_not_awaited()
 
     def test_failed_flow_runs_mark_the_lock_failed(self):
         statuses = []
@@ -271,7 +305,7 @@ class TestRunDueFlows(unittest.TestCase):
     def test_not_due_flow_is_never_claimed(self):
         rows = [due_flow(
             tenantId=TENANT_ID,
-            schedule={'enabled': True, 'frequency': 'day', 'time': '04:00'}),
+            schedule={'enabled': True, 'frequency': 'day', 'time': '04:30'}),
             due_flow(tenantId=TENANT_ID, enabled=False),
             _without_tenant(due_flow())]
 

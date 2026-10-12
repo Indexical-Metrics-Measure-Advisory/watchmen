@@ -1,10 +1,12 @@
 from heapq import heappop, heappush, heapify
-from typing import Dict, List, Optional, Set
+from typing import Callable, Dict, List, Optional, Set
 
 from watchmen_auth import PrincipalService
 from watchmen_metricflow.model.materialization import FlowEdgeKind, FlowGraph, FlowGraphEdge, \
 	FlowGraphNode, Materialization, MaterializationFlow, RunStatus
+from watchmen_utilities import is_not_blank
 from .materialization_metric_resolver import resolve_metric_source_topics
+from .materialization_write_back import auto_topic_name
 
 
 def build_flow_graph(
@@ -155,11 +157,88 @@ def topological_order(node_ids: List[str], edges: List[FlowGraphEdge]) -> List[s
 	return ordered
 
 
+def topological_levels(
+		node_ids: List[str], edges: List[FlowGraphEdge],
+		conflict_key_of: Optional[Callable[[str], Optional[str]]] = None
+) -> List[List[str]]:
+	"""
+	Members grouped into dependency levels: level 0 has no dependencies, level
+	N only depends on levels < N. Original list order is kept inside a level.
+	Members mapped to the same conflict key (e.g. two materializations writing
+	one target table) never share a level, so they never compute at the same
+	time. Cycle leftovers (save-time checks prevent them) join the last level.
+	"""
+	remaining = list(node_ids)
+	upstream: Dict[str, Set[str]] = {node_id: set() for node_id in node_ids}
+	for edge in edges:
+		if edge.source in upstream and edge.target in upstream:
+			upstream[edge.target].add(edge.source)
+
+	levels: List[List[str]] = []
+	placed = set()
+	while remaining:
+		level: List[str] = []
+		deferred: List[str] = []
+		used_keys: Set[str] = set()
+		for node_id in remaining:
+			blocked = any(upstream_id not in placed for upstream_id in upstream[node_id])
+			key = conflict_key_of(node_id) if conflict_key_of is not None else None
+			conflicted = key is not None and key in used_keys
+			if not blocked and not conflicted:
+				level.append(node_id)
+				if key is not None:
+					used_keys.add(key)
+			else:
+				deferred.append(node_id)
+		if not level:
+			# only cycle leftovers remain (save-time checks prevent them)
+			level = deferred
+			deferred = []
+		levels.append(level)
+		placed.update(level)
+		remaining = deferred
+	return levels
+
+
 def order_flow_materializations(
 		flow: MaterializationFlow, materializations: List[Materialization],
 		principal_service: PrincipalService
 ) -> List[str]:
 	"""Member ids ordered so every member runs after its data/manual dependencies."""
+	return [node_id for level in level_flow_materializations(flow, materializations, principal_service)
+	        for node_id in level]
+
+
+def level_flow_materializations(
+		flow: MaterializationFlow, materializations: List[Materialization],
+		principal_service: PrincipalService
+) -> List[List[str]]:
+	"""Member ids grouped in dependency levels, see topological_levels.
+
+	Besides the data/manual edges, members writing the same target table are
+	kept out of one level: concurrent factor syncs on one topic lose the
+	optimistic lock, and concurrent MERGE writes on one table race.
+	"""
 	graph = build_flow_graph(flow, materializations, {}, principal_service)
-	return topological_order(
-		[item.materializationId for item in materializations if item.materializationId], graph.edges)
+	target_keys = _shared_target_keys(materializations)
+	return topological_levels(
+		[item.materializationId for item in materializations if item.materializationId],
+		graph.edges, conflict_key_of=target_keys.get)
+
+
+def _shared_target_keys(materializations: List[Materialization]) -> Dict[str, str]:
+	"""materialization id -> conflict key of its target table.
+
+	An explicit target topic id when set, otherwise the auto-created topic name
+	derived from the metric (two materializations of one metric collide there).
+	Members without any resolvable target get no key and never conflict.
+	"""
+	keys: Dict[str, str] = {}
+	for item in materializations:
+		if not item.materializationId:
+			continue
+		if is_not_blank(item.targetTopicId):
+			keys[item.materializationId] = f'topic:{item.targetTopicId}'
+		elif item.autoCreateTopic:
+			keys[item.materializationId] = f'auto:{auto_topic_name(item)}'
+	return keys

@@ -14,7 +14,7 @@ from watchmen_metricflow.model.materialization import FlowGraph, Materialization
 	MaterializationFlow, MaterializationPageRequest, MaterializationRun, MaterializationRunFilter, \
 	MaterializationRunRequest, RunTriggerType
 from watchmen_metricflow.service.materialization_flow_graph import build_flow_graph, detect_cycle, \
-	order_flow_materializations
+	level_flow_materializations
 from watchmen_metricflow.service.materialization_runner import MaterializationRunner
 from watchmen_metricflow.service.materialization_scheduler import run_due_materializations
 from watchmen_metricflow.util import trans, trans_readonly
@@ -352,12 +352,13 @@ async def run_flow(
 
 	materializations = trans_readonly(materialization_service, load_members)
 	_reject_conflicting_runs(get_run_service(principal_service), flow.materializationIds)
-	# members run after their data/manual dependencies, not in list order
-	ordered = order_flow_materializations(flow, materializations, principal_service)
+	# members run level by level: every member after its data/manual dependencies,
+	# independent members of one level compute in parallel
+	levels = level_flow_materializations(flow, materializations, principal_service)
 	runner = MaterializationRunner(principal_service)
-	return await runner.run_ids(
-		ordered, trigger_type=RunTriggerType.FLOW,
-		flow_id=flow.flowId, flow_name=flow.name, sequential=True)
+	return await runner.run_levels(
+		levels, trigger_type=RunTriggerType.FLOW,
+		flow_id=flow.flowId, flow_name=flow.name)
 
 
 @router.post('/metricflow/materialization/scheduler/run', tags=['ADMIN'], response_model=None)

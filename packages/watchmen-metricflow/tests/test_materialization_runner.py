@@ -29,6 +29,7 @@ from watchmen_metricflow.service.materialization_executor import (
     compute_window,
     is_rebuild,
     materialization_window,
+    rebuild_chunks,
 )
 from watchmen_metricflow.service.materialization_runner import (
     ERROR_MESSAGE_MAX_LENGTH,
@@ -125,10 +126,13 @@ class TestIsDue(unittest.TestCase):
         materialization.schedule.time = None
         self.assertFalse(is_due(materialization, datetime(2026, 10, 1, 3, 0)))
 
-    def test_time_must_match_exactly(self):
+    def test_due_from_the_scheduled_minute_until_the_day_ends(self):
         materialization = schedule_materialization()
         self.assertTrue(is_due(materialization, datetime(2026, 10, 1, 3, 0)))
-        self.assertFalse(is_due(materialization, datetime(2026, 10, 1, 3, 1)))
+        # catch-up: a delayed heartbeat still fires the job later the same day
+        self.assertTrue(is_due(materialization, datetime(2026, 10, 1, 3, 1)))
+        self.assertTrue(is_due(materialization, datetime(2026, 10, 1, 23, 59)))
+        self.assertFalse(is_due(materialization, datetime(2026, 10, 1, 2, 59)))
 
     def test_day_frequency_is_due_every_day(self):
         materialization = schedule_materialization()
@@ -280,7 +284,8 @@ class TestExecuteRun(unittest.TestCase):
         runner.run_service.update.side_effect = lambda run: run
         run = runner._create_run(materialization, 'manual', None, None)
 
-        with mock.patch.object(
+        with mock.patch.object(materialization_runner, 'resolve_target_schema',
+                               return_value=self._schema()), mock.patch.object(
                 materialization_runner, 'execute_metric_query',
                 mock.AsyncMock(side_effect=MaterializationError('metric is gone'))):
             asyncio.run(runner._execute(run, materialization))
@@ -330,7 +335,10 @@ class TestExecuteRun(unittest.TestCase):
             engine='STORAGE', sql_preview='select 3')
         p1, p2, p3, wb_patch = self._success_patches(
             runner, materialization, self._schema(), outcome, [{'metricValue': 1.0}])
-        with p1, p2, p3, wb_patch as write_back_mock:
+        # one chunk only: the whole history fits a single window
+        with p1, p2, p3, wb_patch as write_back_mock, mock.patch.object(
+                materialization_runner, 'ask_materialization_rebuild_chunk_days',
+                return_value=99999):
             asyncio.run(runner._execute(run, materialization))
 
         self.assertEqual(RunStatus.SUCCESS, run.status)
@@ -340,6 +348,35 @@ class TestExecuteRun(unittest.TestCase):
         self.assertFalse(materialization.rebuildPending)
         runner.materialization_service.update.assert_called_once()
         self.assertFalse(runner.materialization_service.update.call_args[0][0].rebuildPending)
+
+    def test_rebuild_runs_in_grain_aligned_chunks(self):
+        runner = build_runner()
+        materialization = self._materialization()
+        materialization.rebuildPending = True
+        runner.run_service.create.side_effect = lambda run: run
+        runner.run_service.update.side_effect = lambda run: run
+        run = runner._create_run(materialization, 'manual', None, None)
+
+        windows = [(date(1970, 1, 1), date(2020, 12, 31)), (date(2021, 1, 1), date(2026, 10, 10))]
+        outcome = QueryOutcome(
+            column_names=['metric_time__day', 'metricValue'],
+            rows=[(date(2026, 9, 30), 1.0)],
+            engine='STORAGE', sql_preview='select 5')
+        p1, p2, p3, wb_patch = self._success_patches(
+            runner, materialization, self._schema(), outcome, [{'metricValue': 1.0}])
+        with p1, p2, p3, wb_patch as write_back_mock, mock.patch.object(
+                materialization_runner, 'rebuild_chunks', return_value=windows):
+            asyncio.run(runner._execute(run, materialization))
+
+        self.assertEqual(RunStatus.SUCCESS, run.status)
+        self.assertEqual(2, write_back_mock.call_count)
+        # only the first chunk truncates, the following ones merge into it
+        first, second = write_back_mock.call_args_list
+        self.assertTrue(first[0][4])
+        self.assertFalse(second[0][4])
+        self.assertEqual(windows[0], first[0][5])
+        self.assertEqual(windows[1], second[0][5])
+        self.assertEqual(2, run.rowCount)
 
     def test_regular_run_neither_truncates_nor_clears(self):
         runner = build_runner()
@@ -397,6 +434,147 @@ class TestExecuteRun(unittest.TestCase):
 
         self.assertEqual(RunStatus.SUCCESS, run.status)
         self.assertIsNone(run.errorMessage)
+
+
+class TestRebuildChunks(unittest.TestCase):
+    def test_window_fits_one_chunk(self):
+        chunks = rebuild_chunks('day', (date(2026, 1, 1), date(2026, 1, 3)), 365)
+        self.assertEqual([(date(2026, 1, 1), date(2026, 1, 3))], chunks)
+
+    def test_empty_window_has_no_chunks(self):
+        self.assertEqual([], rebuild_chunks('day', (date(2026, 1, 2), date(2026, 1, 1)), 365))
+
+    def test_day_grain_packs_by_max_days(self):
+        chunks = rebuild_chunks('day', (date(2026, 1, 1), date(2026, 1, 10)), 5)
+        # boundaries on bucket starts: 01-01, 01-06, 01-11(close)
+        self.assertEqual([
+            (date(2026, 1, 1), date(2026, 1, 5)),
+            (date(2026, 1, 6), date(2026, 1, 10))], chunks)
+
+    def test_month_grain_splits_only_on_month_starts(self):
+        chunks = rebuild_chunks('month', (date(2025, 11, 15), date(2026, 2, 20)), 90)
+        # buckets 11-01, 12-01, 01-01, 02-01; 90-day packing ends before 02-01
+        self.assertEqual([
+            (date(2025, 11, 1), date(2026, 1, 31)),
+            (date(2026, 2, 1), date(2026, 2, 20))], chunks)
+
+    def test_week_grain_splits_on_mondays(self):
+        # 2026-09-30 is a Wednesday; the first Monday bucket is 09-28
+        chunks = rebuild_chunks('week', (date(2026, 9, 30), date(2026, 10, 15)), 7)
+        self.assertEqual([
+            (date(2026, 9, 28), date(2026, 10, 4)),
+            (date(2026, 10, 5), date(2026, 10, 11)),
+            (date(2026, 10, 12), date(2026, 10, 15))], chunks)
+
+    def test_last_chunk_never_passes_the_window_end(self):
+        chunks = rebuild_chunks('month', (date(2026, 1, 1), date(2026, 3, 10)), 365)
+        self.assertEqual([(date(2026, 1, 1), date(2026, 3, 10))], chunks)
+
+
+class TestRunLevels(unittest.TestCase):
+    def _runner_with_members(self, materializations):
+        runner = build_runner()
+        runner._load_materializations = mock.Mock(return_value=materializations)
+        runner.run_service.create.side_effect = lambda run: run
+        return runner
+
+    def test_wait_true_runs_levels_one_after_another(self):
+        # kept in the flat level order, the mocked loader ignores the requested ids
+        materializations = [
+            make_materialization(materialization_id='mat-2', tenantId=TENANT_ID),
+            make_materialization(materialization_id='mat-1', tenantId=TENANT_ID),
+            make_materialization(materialization_id='mat-3', tenantId=TENANT_ID),
+        ]
+        runner = self._runner_with_members(materializations)
+        order = []
+
+        async def record(run, materialization):
+            order.append(materialization.materializationId)
+
+        runner._execute = mock.AsyncMock(side_effect=record)
+
+        async def scenario():
+            return await runner.run_levels([['mat-2'], ['mat-1', 'mat-3']], wait=True, parallelism=1)
+
+        runs = asyncio.run(scenario())
+
+        self.assertEqual(['mat-2', 'mat-1', 'mat-3'], order)
+        self.assertEqual(['mat-2', 'mat-1', 'mat-3'], [run.materializationId for run in runs])
+        self.assertTrue(all(run.status == RunStatus.PENDING for run in runs))
+
+    def test_level_members_start_before_the_level_finishes(self):
+        materializations = [
+            make_materialization(materialization_id='mat-1', tenantId=TENANT_ID),
+            make_materialization(materialization_id='mat-2', tenantId=TENANT_ID),
+        ]
+        runner = self._runner_with_members(materializations)
+        seen = []
+
+        async def record(run, materialization):
+            seen.append(('start', materialization.materializationId))
+            await asyncio.sleep(0.01)
+            seen.append(('end', materialization.materializationId))
+
+        runner._execute = mock.AsyncMock(side_effect=record)
+
+        async def scenario():
+            await runner.run_levels([['mat-1', 'mat-2']], wait=True, parallelism=2)
+
+        asyncio.run(scenario())
+
+        # same level: both start while the other is still running
+        self.assertEqual(['start', 'start', 'end', 'end'], [kind for kind, _ in seen])
+
+    def test_next_level_waits_for_the_previous_one(self):
+        materializations = [
+            make_materialization(materialization_id='mat-1', tenantId=TENANT_ID),
+            make_materialization(materialization_id='mat-2', tenantId=TENANT_ID),
+        ]
+        runner = self._runner_with_members(materializations)
+        seen = []
+
+        async def record(run, materialization):
+            seen.append(('start', materialization.materializationId))
+            await asyncio.sleep(0.01)
+            seen.append(('end', materialization.materializationId))
+
+        runner._execute = mock.AsyncMock(side_effect=record)
+
+        async def scenario():
+            await runner.run_levels([['mat-1'], ['mat-2']], wait=True, parallelism=2)
+
+        asyncio.run(scenario())
+
+        self.assertEqual(
+            [('start', 'mat-1'), ('end', 'mat-1'), ('start', 'mat-2'), ('end', 'mat-2')], seen)
+
+
+class TestRunSlots(unittest.TestCase):
+    def test_slot_pool_bounds_concurrent_runs(self):
+        from watchmen_metricflow import settings
+
+        async def scenario():
+            with mock.patch.object(settings.mf_settings, 'MATERIALIZATION_MAX_CONCURRENT_RUNS', 1):
+                materialization_runner._RUN_SLOTS.clear()
+                entered = []
+
+                async def hold():
+                    async with materialization_runner._run_slot():
+                        entered.append(True)
+                        await asyncio.sleep(0.05)
+
+                first = asyncio.ensure_future(hold())
+                await asyncio.sleep(0.01)
+                second = asyncio.ensure_future(hold())
+                await asyncio.sleep(0.01)
+                self.assertEqual(1, len(entered))
+                self.assertFalse(second.done())
+                await first
+                await second
+                self.assertEqual(2, len(entered))
+
+        asyncio.run(scenario())
+        materialization_runner._RUN_SLOTS.clear()
 
 
 class TestCronLock(unittest.TestCase):
