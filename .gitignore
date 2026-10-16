@@ -94,3 +94,6 @@ packages/watchmen-dqc/README.md
 /packages/watchmen-pipeline-kernel/.mimosa
 /packages/watchmen-pipeline-kernel/.mimosa/hook-state
 /ui-layer
+/packages/watchmen-rest-doll/test/.mimosa
+/packages/watchmen-rest-doll/test/.mimosa
+packages/watchmen-rest-doll/test/.mimosa/hook-status/sess_ad805695-9c88-4359-84a0-21600285ca18-975bc6334d.json
