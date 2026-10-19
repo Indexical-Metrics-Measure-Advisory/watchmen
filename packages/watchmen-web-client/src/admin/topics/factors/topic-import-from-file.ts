@@ -15,8 +15,8 @@ import {FactorPrecisions} from '../../topics/constants';
 import {createFactor, createTopic, isFactorCanBeFlatten} from '../utils';
 
 const ValidIndexGroups = [
-	...new Array(10).fill(1).map((_, index) => `i-${index + 1}`),
-	...new Array(10).fill(1).map((_, index) => `u-${index + 1}`)
+	...new Array(15).fill(1).map((_, index) => `i-${index + 1}`),
+	...new Array(15).fill(1).map((_, index) => `u-${index + 1}`)
 ];
 const isIndexGroupValid = (indexGroup?: string): boolean => {
 	return !indexGroup || ValidIndexGroups.includes(indexGroup);

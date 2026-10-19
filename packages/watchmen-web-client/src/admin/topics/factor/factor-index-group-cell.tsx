@@ -25,10 +25,10 @@ export const FactorIndexGroupCell = (props: { factor: Factor }) => {
 
 	const options: Array<DropdownOption> = [
 		{value: '', label: 'No Index'},
-		...new Array(10).fill(1).map((item, index) => {
+		...new Array(15).fill(1).map((item, index) => {
 			return {value: `u-${index + 1}`, label: `Unique Index ${index + 1}`};
 		}),
-		...new Array(10).fill(1).map((item, index) => {
+		...new Array(15).fill(1).map((item, index) => {
 			return {value: `i-${index + 1}`, label: `Index ${index + 1}`};
 		})
 	];

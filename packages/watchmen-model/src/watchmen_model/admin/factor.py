@@ -90,6 +90,11 @@ class FactorIndexGroup(str, Enum):
 	INDEX_8 = 'i-8',
 	INDEX_9 = 'i-9',
 	INDEX_10 = 'i-10',
+	INDEX_11 = 'i-11',
+	INDEX_12 = 'i-12',
+	INDEX_13 = 'i-13',
+	INDEX_14 = 'i-14',
+	INDEX_15 = 'i-15',
 	UNIQUE_INDEX_1 = 'u-1',
 	UNIQUE_INDEX_2 = 'u-2',
 	UNIQUE_INDEX_3 = 'u-3',
@@ -100,6 +105,11 @@ class FactorIndexGroup(str, Enum):
 	UNIQUE_INDEX_8 = 'u-8',
 	UNIQUE_INDEX_9 = 'u-9',
 	UNIQUE_INDEX_10 = 'u-10',
+	UNIQUE_INDEX_11 = 'u-11',
+	UNIQUE_INDEX_12 = 'u-12',
+	UNIQUE_INDEX_13 = 'u-13',
+	UNIQUE_INDEX_14 = 'u-14',
+	UNIQUE_INDEX_15 = 'u-15',
 
 
 class FactorEncryptMethod(str, Enum):

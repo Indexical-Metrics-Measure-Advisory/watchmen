@@ -313,8 +313,8 @@ export const FactorEncryptMethodLabels = {
 export type FactorId = string;
 
 export type FactorIndexGroup =
-	'i-1' | 'i-2' | 'i-3' | 'i-4' | 'i-5' | 'i-6' | 'i-7' | 'i-8' | 'i-9' | 'i-10'
-	| 'u-1' | 'u-2' | 'u-3' | 'u-4' | 'u-5' | 'u-6' | 'u-7' | 'u-8' | 'u-9' | 'u-10';
+	'i-1' | 'i-2' | 'i-3' | 'i-4' | 'i-5' | 'i-6' | 'i-7' | 'i-8' | 'i-9' | 'i-10' | 'i-11' | 'i-12' | 'i-13' | 'i-14' | 'i-15'
+	| 'u-1' | 'u-2' | 'u-3' | 'u-4' | 'u-5' | 'u-6' | 'u-7' | 'u-8' | 'u-9' | 'u-10' | 'u-11' | 'u-12' | 'u-13' | 'u-14' | 'u-15';
 
 export interface Factor {
 	factorId: FactorId;
