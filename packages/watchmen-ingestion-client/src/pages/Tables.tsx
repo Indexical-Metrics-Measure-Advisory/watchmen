@@ -304,6 +304,14 @@ const TableForm = ({
   disableSubmit?: boolean;
   t: TFunction;
 }) => {
+  // Primary keys are typed as raw comma-separated text and parsed into an array on blur.
+  // Parsing on every keystroke strips the separator the moment it is typed,
+  // which makes entering more than one key impossible.
+  const [primaryKeyText, setPrimaryKeyText] = useState<string>(formData.primaryKey?.join(', ') || '');
+  useEffect(() => {
+    setPrimaryKeyText(formData.primaryKey?.join(', ') || '');
+  }, [formData.primaryKey]);
+
   return (
     <div className="space-y-6">
       {/* Basic Information */}
@@ -398,10 +406,11 @@ const TableForm = ({
             <Label htmlFor="form-primary-key">{t('form.primaryKey')}</Label>
             <Input
               id="form-primary-key"
-              value={formData.primaryKey?.join(', ') || ''}
-              onChange={(e) => setFormData({ 
-                ...formData, 
-                primaryKey: e.target.value.split(',').map(k => k.trim()).filter(k => k) 
+              value={primaryKeyText}
+              onChange={(e) => setPrimaryKeyText(e.target.value)}
+              onBlur={() => setFormData({
+                ...formData,
+                primaryKey: primaryKeyText.split(',').map(k => k.trim()).filter(k => k)
               })}
               placeholder={t('form.primaryKeyPlaceholder')}
               className={errors.primaryKey ? "border-red-500" : ""}
