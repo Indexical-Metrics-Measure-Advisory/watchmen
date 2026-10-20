@@ -13,16 +13,16 @@ from watchmen_lineage.model.lineage import DatasetColumnFacet, LineageNode, Line
 from watchmen_lineage.service.builder.index import get_builder
 from watchmen_lineage.service.builder.loader import LineageBuilder
 from watchmen_lineage.service.builder.pipeline_lineage import is_valid_factor_id
+from watchmen_lineage.service.constant_dependencies import build_variable_context, extract_factor_dependencies
 from watchmen_lineage.service.lineage_cache import lineage_cache_manager
 from watchmen_lineage.utils.id_utils import build_node_id, parse_node_id
-from watchmen_lineage.utils.utils import get_source_and_target_key, is_datetime_compute, is_number_calculate, \
-	trans_readonly
+from watchmen_lineage.utils.utils import get_source_and_target_key, trans_readonly
 from watchmen_meta.admin import TopicService, PipelineService
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
 from watchmen_model.admin import Topic, Pipeline, PipelineAction, WriteTopicAction, MappingRow, ToTopic, FromTopic, \
 	WriteFactorAction
 from watchmen_model.common import FactorId, ObjectiveTargetId, SubjectDatasetColumnId, SubjectId, TopicId, ObjectiveId, \
-	IndicatorId, PipelineId, Parameter, ParameterKind, ParameterComputeType
+	IndicatorId, PipelineId
 from watchmen_utilities import ArrayHelper
 from watchmen_model.console import Subject
 from watchmen_model.indicator import Indicator, Objective
@@ -142,13 +142,15 @@ class LineageService(object):
 	                          resolve_topic, topic_name) -> List[TopicLineageLink]:
 		grouped: Dict[tuple, TopicLineageLink] = {}
 		for pipeline in pipelines:
+			variable_context = build_variable_context(pipeline)
 			for stage in pipeline.stages or []:
 				for unit in stage.units or []:
 					for action in unit.do or []:
 						for target_factor_id, source, relation_type, arithmetic in \
 								self.__iter_write_mappings(action, topic_id):
 							for source_topic_id, source_factor_id, pair_relation, pair_arithmetic in \
-									self.__extract_factor_dependencies(source, relation_type, arithmetic):
+									extract_factor_dependencies(
+										source, relation_type, arithmetic, variable_context, resolve_topic):
 								key = (source_topic_id, pipeline.pipelineId)
 								link = grouped.get(key)
 								if link is None:
@@ -178,6 +180,7 @@ class LineageService(object):
 		"""
 		edges: List[FactorLineageEdge] = []
 		for pipeline in pipelines:
+			variable_context = build_variable_context(pipeline)
 			for stage in pipeline.stages or []:
 				for unit in stage.units or []:
 					for action in unit.do or []:
@@ -186,7 +189,8 @@ class LineageService(object):
 							if target_factor_id != factor_id:
 								continue
 							for source_topic_id, source_factor_id, pair_relation, pair_arithmetic in \
-									self.__extract_factor_dependencies(source, relation_type, arithmetic):
+									extract_factor_dependencies(
+										source, relation_type, arithmetic, variable_context, resolve_topic):
 								if source_topic_id is None or source_factor_id is None:
 									continue
 								edges.append(FactorLineageEdge(
@@ -295,38 +299,6 @@ class LineageService(object):
 			for mapping in action.mapping or []:
 				if is_valid_factor_id(mapping.factorId):
 					yield mapping.factorId, mapping.source, RelationType.Direct, mapping.arithmetic
-
-	@staticmethod
-	def __extract_factor_dependencies(source: Parameter, relation_type: RelationType, arithmetic):
-		"""
-		Walk a structured mapping source and return (topicId, factorId, relationType, arithmetic)
-		for every topic factor it references. Mirrors the graph builder semantics: computed
-		parameters re-tag the relation as Computed with the compute operator as arithmetic.
-		Free-form constant strings are skipped — parsing them was the crash source, and they
-		carry no structured factor references.
-		"""
-		if source is None:
-			return []
-		if source.kind == ParameterKind.TOPIC:
-			return [(source.topicId, source.factorId, relation_type, arithmetic)]
-		elif source.kind == ParameterKind.COMPUTED:
-			relation_type = RelationType.Computed
-			arithmetic = source.type
-			if is_number_calculate(source) or source.type == ParameterComputeType.CASE_THEN:
-				nested_parameters = source.parameters or []
-			elif is_datetime_compute(source):
-				nested = source.parameters or []
-				nested_parameters = nested if len(nested) == 1 else []
-			else:
-				nested_parameters = []
-			dependencies = []
-			for nested_parameter in nested_parameters:
-				dependencies.extend(
-					LineageService.__extract_factor_dependencies(nested_parameter, relation_type, arithmetic))
-			return dependencies
-		else:
-			# ParameterKind.CONSTANT and anything else: no structured factor references
-			return []
 
 	@staticmethod
 	def __find_factor_name(topic: Optional[Topic], factor_id: FactorId) -> Optional[str]:
