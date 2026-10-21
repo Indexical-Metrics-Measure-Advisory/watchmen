@@ -18,6 +18,10 @@ watchmen-indicator-surface = { path = "../watchmen-indicator-surface", develop =
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 networkx = "^3.4.2"
 
+[tool.poetry.extras]
+trino = ["watchmen-inquiry-trino"]
+mysql = ["watchmen-storage-mysql"]
+
 
 [build-system]
 requires = ["poetry-core"]
