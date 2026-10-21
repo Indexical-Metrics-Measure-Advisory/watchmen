@@ -133,7 +133,7 @@ else
 fi
 
 echo "==> Installing watchmen-rest-doll (offline, from bundled wheels)"
-"$PIP" install --no-index --find-links "$DIR/wheels" watchmen-rest-doll
+"$PIP" install --no-index --find-links "$DIR/wheels" watchmen-rest-doll[postgresql]
 
 echo "==> Done. Start the server with:"
 echo "    uvicorn watchmen_rest_doll.main:app --host 0.0.0.0 --port 8000"
