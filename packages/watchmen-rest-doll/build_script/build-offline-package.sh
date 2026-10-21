@@ -29,20 +29,7 @@ PACKAGES_DIR="$(cd "$PKG_DIR/.." && pwd)"
 BUILD_DIR="$PKG_DIR/dist/offline"
 WHEELS_DIR="$BUILD_DIR/wheels"
 
-# Internal watchmen packages required at runtime but NOT reachable from
-# rest-doll's dependency graph: they are declared `optional = true` in
-# watchmen-lineage's pyproject.toml without a matching extras section,
-# so poetry bakes them into lineage's wheel as hard dependencies.
-EXTRA_INTERNAL_PACKAGES="watchmen-inquiry-trino watchmen-storage-mysql watchmen-storage-rds"
 
-# Third-party dependencies introduced by the packages above
-# (version constraints copied from their pyproject.toml).
-EXTRA_EXTERNAL_REQUIREMENTS=(
-	"trino>=0.329.0,<0.330.0"
-	"PyMySQL>=1.1.1,<2.0.0"
-	"cryptography>=42.0.8,<43.0.0"
-	"starlette-prometheus>=0.9.0,<0.10.0"
-)
 
 log() {
 	echo "==> $*"
@@ -80,7 +67,9 @@ cp "dist/watchmen_rest_doll-${VERSION}-py3-none-any.whl" "$WHEELS_DIR/"
 # (pip downloads their metadata but does not save wheels for them;
 # internal packages are built separately in step 4.)
 log "[3/7] Downloading third-party dependencies (this may take a few minutes)"
-poetry export -f requirements.txt --without-hashes -o "$BUILD_DIR/requirements.txt"
+# poetry export -f requirements.txt --without-hashes -o "$BUILD_DIR/requirements.txt"
+poetry export -f requirements.txt --without-hashes --extras postgresql -o "$BUILD_DIR/requirements.txt"
+
 sed 's|^-e file:///|file:///|' "$BUILD_DIR/requirements.txt" > "$BUILD_DIR/requirements-download.txt"
 "$PY_BIN" -m pip download -r "$BUILD_DIR/requirements-download.txt" -d "$WHEELS_DIR"
 
@@ -88,7 +77,7 @@ sed 's|^-e file:///|file:///|' "$BUILD_DIR/requirements.txt" > "$BUILD_DIR/requi
 log "[4/7] Building internal watchmen packages"
 INTERNAL_PACKAGES=$(grep "^file://" "$BUILD_DIR/requirements-download.txt" \
 	| sed -E 's|^file://[^ ]*/([^/ ]+) ;.*|\1|')
-for pkg in $INTERNAL_PACKAGES $EXTRA_INTERNAL_PACKAGES; do
+for pkg in $INTERNAL_PACKAGES; do
 	(
 		cd "$PACKAGES_DIR/$pkg"
 		poetry build -f wheel >/dev/null
@@ -97,9 +86,6 @@ for pkg in $INTERNAL_PACKAGES $EXTRA_INTERNAL_PACKAGES; do
 	echo "    built $pkg"
 done
 
-# [5] download third-party deps of the extra internal packages
-log "[5/7] Downloading additional third-party dependencies"
-"$PY_BIN" -m pip download --only-binary=:all: -d "$WHEELS_DIR" "${EXTRA_EXTERNAL_REQUIREMENTS[@]}"
 
 # [6] poetry bakes path dependencies into wheel METADATA as
 # "Requires-Dist: xxx @ file:///abs/path", which does not exist on the
@@ -147,7 +133,7 @@ else
 fi
 
 echo "==> Installing watchmen-rest-doll (offline, from bundled wheels)"
-"$PIP" install --no-index --find-links "$DIR/wheels" watchmen-rest-doll
+"$PIP" install --no-index --find-links "$DIR/wheels" watchmen-rest-doll[postgresql]
 
 echo "==> Done. Start the server with:"
 echo "    uvicorn watchmen_rest_doll.main:app --host 0.0.0.0 --port 8000"
