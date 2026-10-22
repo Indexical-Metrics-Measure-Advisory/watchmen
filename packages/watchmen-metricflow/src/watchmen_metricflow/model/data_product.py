@@ -31,13 +31,11 @@ class DataProductVisibility(str, Enum):
 
 
 class DataProductType(str, Enum):
-	'''ODPS information product type.'''
-	RAW_DATA = 'raw data'
-	DERIVED_DATA = 'derived data'
-	DATASET = 'dataset'
-	REPORTS = 'reports'
-	ANALYTIC_VIEW = 'analytic view'
-	APPLICATION = 'application'
+	'''Watchmen-native product type: what the product is built from.'''
+	TOPICS = 'topics'
+	SUBJECT = 'subject'
+	METRICS = 'metrics'
+	SEMANTIC_MODEL = 'semantic model'
 	OTHER = 'other'
 
 
@@ -221,7 +219,7 @@ class DataProduct(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	display_name: Optional[str] = None
 	visibility: DataProductVisibility = DataProductVisibility.PRIVATE
 	status: DataProductStatus = DataProductStatus.DRAFT
-	product_type: DataProductType = DataProductType.DATASET
+	product_type: DataProductType = DataProductType.TOPICS
 	value_proposition: Optional[str] = None
 	description: Optional[str] = None
 	categories: List[str] = []

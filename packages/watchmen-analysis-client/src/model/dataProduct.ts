@@ -10,7 +10,7 @@ export type DataProductStatus =
 
 export type DataProductVisibility = 'private' | 'invitation' | 'organisation' | 'dataspace' | 'public';
 
-export type DataProductType = 'raw data' | 'derived data' | 'dataset' | 'reports' | 'analytic view' | 'application' | 'other';
+export type DataProductType = 'topics' | 'subject' | 'metrics' | 'semantic model' | 'other';
 
 export type PortfolioPriority = 'critical' | 'high' | 'medium' | 'low';
 

@@ -171,6 +171,7 @@ export const resources = {
 				title: "Data Product Graph",
 				subtitle: "Product dependency graph derived from pipelines (ODPG v1.0 shaped)",
 				searchPlaceholder: "Search product...",
+				searchAction: "Search",
 				domainAll: "All domains",
 				loading: "Loading graph...",
 				noData: "No data products to draw. Create products and bind tables first.",
@@ -186,7 +187,9 @@ export const resources = {
 				panelUpstream: "Upstream products",
 				panelDownstream: "Downstream products",
 				legendDeclared: "dependsOn (declared)",
-				legendInferred: "derived from pipelines"
+				legendInferred: "derived from pipelines",
+				flowDirection: "Upstream → downstream (data flow)",
+				legendTypes: "Product types"
 			},
 			actions: {
 				refresh: "Refresh",
@@ -2411,6 +2414,7 @@ export const resources = {
 				title: "数据产品图谱",
 				subtitle: "由管道推导的产品依赖图谱（ODPG v1.0 形状）",
 				searchPlaceholder: "搜索产品...",
+				searchAction: "搜索",
 				domainAll: "全部领域",
 				loading: "图谱加载中...",
 				noData: "暂无可绘制的产品，请先创建产品并绑定数据表。",
@@ -2426,7 +2430,9 @@ export const resources = {
 				panelUpstream: "上游产品",
 				panelDownstream: "下游产品",
 				legendDeclared: "dependsOn（人工声明）",
-				legendInferred: "由管道推导"
+				legendInferred: "由管道推导",
+				flowDirection: "上游 → 下游（数据流向）",
+				legendTypes: "产品类型"
 			},
 			actions: {
 				refresh: "刷新",
@@ -4626,6 +4632,7 @@ export const resources = {
 				title: "資料產品圖譜",
 				subtitle: "由管道推導的產品依賴圖譜（ODPG v1.0 形狀）",
 				searchPlaceholder: "搜尋產品...",
+				searchAction: "搜尋",
 				domainAll: "全部領域",
 				loading: "圖譜載入中...",
 				noData: "暫無可繪製的產品，請先建立產品並綁定資料表。",
@@ -4641,7 +4648,9 @@ export const resources = {
 				panelUpstream: "上游產品",
 				panelDownstream: "下游產品",
 				legendDeclared: "dependsOn（人工聲明）",
-				legendInferred: "由管道推導"
+				legendInferred: "由管道推導",
+				flowDirection: "上游 → 下游（資料流向）",
+				legendTypes: "產品類型"
 			},
 			actions: {
 				refresh: "重新整理",

@@ -349,7 +349,7 @@ const emptyProductForm = (): DataProductUpsert => ({
   name: "",
   display_name: "",
   status: "draft",
-  product_type: "dataset",
+  product_type: "topics",
   visibility: "private",
   domain: "",
   owner: "",
@@ -375,27 +375,25 @@ interface AssociationOption {
 
 type AssocField = "topic_ids" | "metric_names" | "metric_category_ids" | "board_ids" | "subject_ids" | "ontology_ids";
 
-// coarse mapping from ODPS product type to associable contents:
-// data types (raw data/derived data/dataset) -> tables, metrics, categories, subjects
-// analytic types (reports/analytic view) -> metrics, categories, boards, subjects, ontologies
-// application/other -> everything
-const DATA_PRODUCT_TYPES = ["raw data", "derived data", "dataset"];
-const ANALYTIC_PRODUCT_TYPES = ["reports", "analytic view"];
+// mapping from product type to associable contents:
+// topics -> tables; subject -> subjects + source tables; metrics -> metrics, categories, boards;
+// semantic model -> metrics, categories; other/unknown -> everything
 const ALL_ASSOC_FIELDS: AssocField[] = [
   "topic_ids", "metric_names", "metric_category_ids", "board_ids", "subject_ids", "ontology_ids",
 ];
+const ASSOC_FIELDS_BY_TYPE: Record<string, AssocField[]> = {
+  "topics": ["topic_ids"],
+  "subject": ["subject_ids", "topic_ids"],
+  "metrics": ["metric_names", "metric_category_ids", "board_ids"],
+  "semantic model": ["metric_names", "metric_category_ids"],
+};
 
 const visibleAssocFields = (productType: string | undefined, form: DataProductUpsert): Set<AssocField> => {
   // a group carrying saved selections always stays visible, so nothing gets lost
   const hasSaved = (field: AssocField) => ((form[field] as string[]) || []).length > 0;
-  if (!productType || productType === "application" || productType === "other") {
-    return new Set(ALL_ASSOC_FIELDS);
-  }
-  const allowed: AssocField[] = DATA_PRODUCT_TYPES.includes(productType)
-    ? ["topic_ids", "metric_names", "metric_category_ids", "subject_ids"]
-    : ANALYTIC_PRODUCT_TYPES.includes(productType)
-      ? ["metric_names", "metric_category_ids", "board_ids", "subject_ids", "ontology_ids"]
-      : ALL_ASSOC_FIELDS;
+  const allowed = !productType || productType === "other"
+    ? ALL_ASSOC_FIELDS
+    : ASSOC_FIELDS_BY_TYPE[productType] ?? ALL_ASSOC_FIELDS;
   return new Set([...allowed, ...ALL_ASSOC_FIELDS.filter(hasSaved)]);
 };
 
@@ -582,7 +580,7 @@ const ProductFormDialog: React.FC<{
                   <Select value={form.product_type} onValueChange={(v) => set({ product_type: v as DataProductType })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {["raw data", "derived data", "dataset", "reports", "analytic view", "application", "other"].map((s) => (
+                      {["topics", "subject", "metrics", "semantic model", "other"].map((s) => (
                         <SelectItem key={s} value={s}>{s}</SelectItem>
                       ))}
                     </SelectContent>
