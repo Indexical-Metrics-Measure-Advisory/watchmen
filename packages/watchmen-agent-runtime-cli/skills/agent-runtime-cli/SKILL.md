@@ -80,6 +80,12 @@ Configuration is stored in:
   - Args: `ontology_id`, `--virtual-object`, `--filters`, `--fields`, `--group-by`, `--include-derived`, `--order-by`, `--limit`, `--offset`, `--file`, `--vault`
 - `ontology compile`
   - Args: same as `ontology query`
+- `eval run`
+  - Args: `file_path`, `--vault`
+- `eval log`
+  - Args: `--correlation-id`, `--limit`, `--vault`
+
+All data-plane commands also accept `--correlation-id` to link a group of calls to one business question.
 
 ## Common Usage
 
@@ -148,6 +154,37 @@ poetry run agent-runtime-cli ontology compile <ontology_id> \
 
 - The file used by `metrics query-file` must be a top-level JSON array.
 - Each item should be a metric query payload accepted by `/metricflow/query_metrics`.
+
+## Eval Mode
+
+Use eval mode to prove answer accuracy: every query is recorded, golden question sets can be replayed, and results are compared against expectations.
+
+- Every data-plane call is always recorded: one JSON line appended to `<vault>/.agent-runtime-cli/query-log.jsonl` with timestamp, command, correlation id, params, status, duration, result summary or error.
+- Correlation id precedence: `--correlation-id` > `AGENT_RUNTIME_CLI_CORRELATION_ID` > auto-generated `cli-<uuid>`. The id is sent as the `X-Correlation-Id` header, so every call is traceable even when nothing is set.
+- Set one shared id per business question (flag or env var) when several calls belong to the same question; otherwise each call gets its own auto id.
+- `eval log [--correlation-id X] [--limit N]` reads the ledger back — use it to show the full call chain behind one business question.
+- `eval run <file>` executes a golden question set: a top-level JSON array of `{id, question, queries: [...]}` items. Each query is `{"type": "metric"|"ontology", "ontology_id"?, "request": {...}, "expect"?}`; `expect` supports `row_count`, `rows` (subset match per row) and `tolerance` for floats.
+- Each question runs under a generated correlation id (`eval-<runId>-<questionId>`); a markdown report lands in `<vault>/eval-reports/report-<runId>.md`. Exit code is 0 when all questions pass, 2 otherwise.
+
+Example question set:
+
+```json
+[
+  {
+    "id": "q1",
+    "question": "Total premium by product line, Q1 2026",
+    "queries": [
+      {
+        "type": "metric",
+        "request": {"metric": "total_premium", "group_by": ["product_line"],
+                    "start_time": "2026-01-01T00:00:00", "end_time": "2026-03-31T23:59:59"},
+        "expect": {"row_count": 3, "tolerance": 0.01,
+                   "rows": [{"product_line": "life", "total_premium": 12300.0}]}
+      }
+    ]
+  }
+]
+```
 
 ## Ontology Notes
 

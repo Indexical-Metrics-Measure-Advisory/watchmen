@@ -4,12 +4,16 @@ import argparse
 import json
 import os
 import sys
+import time
 import traceback
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
+from uuid import uuid4
 
+from agent_runtime_cli.eval_service import run_question_set
 from agent_runtime_cli.exceptions import AgentRuntimeCliException
 from agent_runtime_cli.http_client import RestClient
+from agent_runtime_cli.query_log import append_query_log, now_iso, read_query_log, summarize_result
 from agent_runtime_cli.runtime_service import RuntimeService
 from agent_runtime_cli.settings import settings
 from agent_runtime_cli.vault import ensure_vault, load_config, save_config
@@ -64,6 +68,8 @@ DISCOVER_COMMANDS = {
         "--file",
         "--vault",
     ],
+    "eval run": ["file_path", "--vault"],
+    "eval log": ["--correlation-id", "--limit", "--vault"],
 }
 
 
@@ -99,6 +105,7 @@ def build_parser() -> argparse.ArgumentParser:
     register_runtime_commands(subparsers)
     register_metrics_commands(subparsers)
     register_ontology_commands(subparsers)
+    register_eval_commands(subparsers)
     return parser
 
 
@@ -187,7 +194,7 @@ def handle_ontology_meta(args: argparse.Namespace) -> None:
         return svc.list_ontologies_agent_view()
 
     # agent-view is YAML text, print as-is instead of JSON wrapping
-    print(action(build_runtime_service(args.vault)))
+    print(execute_logged(args, action))
 
 
 def handle_ontology_get(args: argparse.Namespace) -> None:
@@ -202,6 +209,24 @@ def handle_ontology_query(args: argparse.Namespace) -> None:
 def handle_ontology_compile(args: argparse.Namespace) -> None:
     request = build_ontology_query_request(args)
     run_with_runtime_service(args, lambda svc: svc.compile_ontology_query(args.ontology_id, request))
+
+
+def handle_eval_run(args: argparse.Namespace) -> None:
+    vault_path = settings.resolved_vault(args.vault)
+    question_set = json.loads(Path(args.file_path).read_text(encoding="utf-8"))
+    if not isinstance(question_set, list):
+        raise AgentRuntimeCliException("Eval file must be a JSON array of questions.")
+    service_factory = lambda correlation_id: build_runtime_service(args.vault, correlation_id)
+    report, all_passed = run_question_set(service_factory, vault_path, question_set)
+    output_json(report)
+    if not all_passed:
+        raise SystemExit(2)
+
+
+def handle_eval_log(args: argparse.Namespace) -> None:
+    vault_path = settings.resolved_vault(args.vault)
+    entries = read_query_log(vault_path, correlation_id=args.correlation_id, limit=args.limit)
+    output_json({"count": len(entries), "entries": entries})
 
 
 def build_ontology_query_request(args: argparse.Namespace) -> Dict[str, Any]:
@@ -269,7 +294,7 @@ def parse_order_by(raw: Optional[str]) -> Optional[List[Dict[str, str]]]:
     return result
 
 
-def build_runtime_service(vault: Optional[str]) -> RuntimeService:
+def build_runtime_service(vault: Optional[str], correlation_id: Optional[str] = None) -> RuntimeService:
     vault_path = settings.resolved_vault(vault)
     cfg = load_config(vault_path)
     client = RestClient(
@@ -277,12 +302,62 @@ def build_runtime_service(vault: Optional[str]) -> RuntimeService:
         pat=cfg.get("pat"),
         username=cfg.get("username"),
         password=cfg.get("password"),
+        correlation_id=correlation_id or settings.correlation_id,
     )
     return RuntimeService(client=client)
 
 
+def command_name_of(args: argparse.Namespace) -> str:
+    parts = [getattr(args, "command", "") or ""]
+    for attr in ("metrics_cmd", "ontology_cmd", "eval_cmd"):
+        sub = getattr(args, attr, None)
+        if sub:
+            parts.append(sub)
+    return " ".join(part for part in parts if part)
+
+
+def params_snapshot(args: argparse.Namespace) -> Dict[str, Any]:
+    return {k: v for k, v in vars(args).items() if k not in {"handler", "debug"}}
+
+
+def resolve_correlation_id(args: argparse.Namespace) -> str:
+    explicit = getattr(args, "correlation_id", None) or settings.correlation_id
+    if explicit:
+        return explicit
+    generated = f"cli-{uuid4()}"
+    if should_show_traceback(args):
+        output_error(f"correlation-id: {generated} (auto-generated)")
+    return generated
+
+
+def execute_logged(
+    args: argparse.Namespace,
+    action: Callable[[RuntimeService], Dict[str, Any] | List[Any] | Any],
+) -> Any:
+    vault_path = settings.resolved_vault(args.vault)
+    correlation_id = resolve_correlation_id(args)
+    svc = build_runtime_service(args.vault, correlation_id)
+    entry: Dict[str, Any] = {
+        "ts": now_iso(),
+        "command": command_name_of(args),
+        "correlationId": correlation_id,
+        "params": params_snapshot(args),
+    }
+    started = time.perf_counter()
+    try:
+        result = action(svc)
+        entry.update({"status": "ok", "durationMs": round((time.perf_counter() - started) * 1000)})
+        entry["resultSummary"] = summarize_result(result)
+        return result
+    except Exception as e:
+        entry.update({"status": "error", "durationMs": round((time.perf_counter() - started) * 1000), "error": str(e)})
+        raise
+    finally:
+        append_query_log(vault_path, entry)
+
+
 def run_with_runtime_service(args: argparse.Namespace, action: Callable[[RuntimeService], Dict[str, Any] | List[Any] | Any]) -> None:
-    output_json(action(build_runtime_service(args.vault)))
+    output_json(execute_logged(args, action))
 
 
 def parse_csv_list(raw: Optional[str]) -> Optional[List[str]]:
@@ -323,6 +398,10 @@ def add_vault_arg(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--vault", required=False)
 
 
+def add_correlation_arg(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--correlation-id", required=False, help="Correlation id linking a group of calls to one business question")
+
+
 def create_subparser(subparsers: argparse._SubParsersAction, name: str, help_text: str) -> argparse.ArgumentParser:
     parser = subparsers.add_parser(name, help=help_text)
     add_help_alias(parser)
@@ -353,10 +432,12 @@ def register_discover_command(subparsers: argparse._SubParsersAction) -> None:
 def register_runtime_commands(subparsers: argparse._SubParsersAction) -> None:
     health_parser = create_subparser(subparsers, "health", "Call /metricflow/health")
     add_vault_arg(health_parser)
+    add_correlation_arg(health_parser)
     health_parser.set_defaults(handler=handle_health)
 
     date_parser = create_subparser(subparsers, "date", "Call /metricflow/current_date")
     add_vault_arg(date_parser)
+    add_correlation_arg(date_parser)
     date_parser.set_defaults(handler=handle_current_date)
 
 
@@ -366,16 +447,19 @@ def register_metrics_commands(subparsers: argparse._SubParsersAction) -> None:
 
     metrics_list = create_subparser(metrics_sub, "list", "Call /metricflow/list_metrics")
     add_vault_arg(metrics_list)
+    add_correlation_arg(metrics_list)
     metrics_list.set_defaults(handler=handle_metrics_list)
 
     dimensions = create_subparser(metrics_sub, "dimensions", "Call /metricflow/dimensions_by_metric")
     dimensions.add_argument("metric_name")
     add_vault_arg(dimensions)
+    add_correlation_arg(dimensions)
     dimensions.set_defaults(handler=handle_metrics_dimensions)
 
     find_dimensions = create_subparser(metrics_sub, "find-dimensions", "Call /metricflow/find_dimensions")
     find_dimensions.add_argument("--metrics", required=True, help="Comma-separated metrics, e.g. m1,m2")
     add_vault_arg(find_dimensions)
+    add_correlation_arg(find_dimensions)
     find_dimensions.set_defaults(handler=handle_metrics_find_dimensions)
 
     metric_value = create_subparser(metrics_sub, "value", "Call /metricflow/get_metric_value")
@@ -388,11 +472,13 @@ def register_metrics_commands(subparsers: argparse._SubParsersAction) -> None:
     metric_value.add_argument("--limit", required=False, type=int)
     metric_value.add_argument("--time-granularity", required=False)
     add_vault_arg(metric_value)
+    add_correlation_arg(metric_value)
     metric_value.set_defaults(handler=handle_metrics_value)
 
     query_file = create_subparser(metrics_sub, "query-file", "Call /metricflow/query_metrics from JSON file")
     query_file.add_argument("file_path")
     add_vault_arg(query_file)
+    add_correlation_arg(query_file)
     query_file.set_defaults(handler=handle_metrics_query_file)
 
 
@@ -405,6 +491,7 @@ def register_ontology_commands(subparsers: argparse._SubParsersAction) -> None:
     ontology_list.add_argument("--page", required=False, type=int, help="Page number")
     ontology_list.add_argument("--size", required=False, type=int, help="Page size")
     add_vault_arg(ontology_list)
+    add_correlation_arg(ontology_list)
     ontology_list.set_defaults(handler=handle_ontology_list)
 
     meta = create_subparser(
@@ -414,6 +501,7 @@ def register_ontology_commands(subparsers: argparse._SubParsersAction) -> None:
     )
     meta.add_argument("--name", required=False, help="Ontology name; omit to print all ontologies")
     add_vault_arg(meta)
+    add_correlation_arg(meta)
     meta.set_defaults(handler=handle_ontology_meta)
 
     get = create_subparser(
@@ -423,6 +511,7 @@ def register_ontology_commands(subparsers: argparse._SubParsersAction) -> None:
     )
     get.add_argument("ontology_id")
     add_vault_arg(get)
+    add_correlation_arg(get)
     get.set_defaults(handler=handle_ontology_get)
 
     def add_query_args(parser: argparse.ArgumentParser) -> None:
@@ -449,6 +538,7 @@ def register_ontology_commands(subparsers: argparse._SubParsersAction) -> None:
         parser.add_argument("--offset", required=False, type=int)
         parser.add_argument("--file", required=False, help="JSON file with full OntologyQueryRequest body")
         add_vault_arg(parser)
+        add_correlation_arg(parser)
 
     query = create_subparser(ontology_sub, "query", "Call /metricflow/ontology/{id}/query")
     add_query_args(query)
@@ -458,6 +548,22 @@ def register_ontology_commands(subparsers: argparse._SubParsersAction) -> None:
         ontology_sub, "compile", "Call /metricflow/ontology/{id}/query/compile (SQL preview only)")
     add_query_args(compile_parser)
     compile_parser.set_defaults(handler=handle_ontology_compile)
+
+
+def register_eval_commands(subparsers: argparse._SubParsersAction) -> None:
+    eval_parser = create_subparser(subparsers, "eval", "Evaluation mode: run golden question sets and inspect the query log")
+    eval_sub = eval_parser.add_subparsers(dest="eval_cmd", required=True)
+
+    eval_run = create_subparser(eval_sub, "run", "Run a golden question set (JSON array) and produce a comparison report")
+    eval_run.add_argument("file_path", help="JSON file: [{id, question, queries: [{type, request, expect}]}]")
+    add_vault_arg(eval_run)
+    eval_run.set_defaults(handler=handle_eval_run)
+
+    eval_log = create_subparser(eval_sub, "log", "Read the recorded query log (JSONL ledger in the vault)")
+    eval_log.add_argument("--correlation-id", required=False, help="Only entries with this correlation id")
+    eval_log.add_argument("--limit", required=False, type=int, help="Keep only the latest N entries")
+    add_vault_arg(eval_log)
+    eval_log.set_defaults(handler=handle_eval_log)
 
 
 if __name__ == "__main__":
