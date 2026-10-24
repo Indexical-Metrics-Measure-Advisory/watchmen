@@ -1,4 +1,5 @@
 import logging
+import time
 from abc import ABC, abstractmethod
 from traceback import format_exc
 from typing import List, Optional, Dict
@@ -17,7 +18,7 @@ from watchmen_collector_kernel.storage import get_change_data_json_service, get_
 	get_collector_module_config_service, get_trigger_module_service, ChangeDataRecordService, ChangeDataJsonService, \
 	ChangeDataJsonHistoryService, ScheduledTaskService, CompetitiveLockService
 from watchmen_collector_surface.settings import ask_post_json_wait, ask_post_object_id_limit_size, \
-	ask_post_sequence_json_limit_size
+	ask_post_sequence_json_limit_size, ask_listener_time_budget_seconds
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 
@@ -60,8 +61,7 @@ class ModelExecutor(ModelExecutorSPI):
 	def process_model(self, trigger_event: TriggerEvent,
 	                  trigger_model: TriggerModel,
 	                  model_config: CollectorModelConfig):
-		# keep claiming batches until the model is drained (empty claim returns),
-		# instead of one batch per scheduler tick
+		deadline = time.monotonic() + ask_listener_time_budget_seconds()
 		while True:
 			jsons = self.find_json_and_locked(trigger_model.modelTriggerId)
 			if not jsons:
@@ -76,6 +76,8 @@ class ModelExecutor(ModelExecutorSPI):
 				else:
 					logger.error(e, exc_info=True, stack_info=True)
 					self.fail_unarchived_jsons(jsons, format_exc())
+				break
+			if time.monotonic() >= deadline:
 				break
 
 	def process_change_data_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
@@ -156,19 +158,14 @@ class ModelExecutor(ModelExecutorSPI):
 				change_json.isPosted = True
 				change_json.status = Status.WAITING.value
 				change_json.taskId = task.taskId
+				self.change_json_service.update_by_ids(
+					[change_json.changeJsonId], {'task_id': task.taskId})
 			self.scheduled_task_service.commit_transaction()
 		except Exception as e:
 			self.scheduled_task_service.rollback_transaction()
 			raise e
 		finally:
 			self.scheduled_task_service.close_transaction()
-		# task_id differs per json: write it back row by row after the batch commit
-		for task, change_json in zip(tasks, change_jsons):
-			try:
-				self.change_json_service.update_by_ids(
-					[change_json.changeJsonId], {'task_id': task.taskId})
-			except Exception:
-				logger.error(format_exc(), exc_info=True, stack_info=True)
 
 	def archive_jsons(self, change_jsons: List[ChangeDataJson], with_history: bool) -> None:
 		if not change_jsons:

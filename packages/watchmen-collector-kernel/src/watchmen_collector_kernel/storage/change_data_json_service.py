@@ -299,16 +299,19 @@ class ChangeDataJsonService(TupleService):
 
 	def delete_by_ids(self, json_ids: List[ChangeJsonId]) -> int:
 		"""Bulk delete by primary keys; runs within the caller's transaction."""
-		return self.storage.delete(
-			EntityDeleter(
-				name=self.get_entity_name(),
-				shaper=self.get_entity_shaper(),
-				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=CHANGE_JSON_ID),
-					                         operator=EntityCriteriaOperator.IN,
-					                         right=json_ids)
-				]
-			))
+		deleted_count = 0
+		for i in range(0, len(json_ids), 500):
+			deleted_count += self.storage.delete(
+				EntityDeleter(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName=CHANGE_JSON_ID),
+						                         operator=EntityCriteriaOperator.IN,
+						                         right=json_ids[i:i + 500])
+					]
+				))
+		return deleted_count
 
 	def find_json_by_ids(self, json_ids: List[ChangeJsonId]) -> List[ChangeDataJson]:
 		"""Bulk fetch by primary keys (full rows, includes content), ordered like json_ids."""
@@ -515,12 +518,19 @@ class ChangeDataJsonService(TupleService):
 	def find_timeout_json(self, query_time: datetime) -> List:
 		try:
 			self.storage.connect()
-			return self.storage.find(self.get_entity_finder(criteria=[
-				EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName='last_modified_at'),
-					operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1)
-			]))
+			return self.storage.find_limited(EntityLimitedFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='last_modified_at'),
+						operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1)
+				],
+				columns=[CHANGE_JSON_ID],
+				sort=[EntitySortColumn(name=CHANGE_JSON_ID, method=EntitySortMethod.ASC)],
+				limit=500
+			))
 		finally:
 			self.storage.close()
 
@@ -579,18 +589,21 @@ class ChangeDataJsonService(TupleService):
 			self.close_transaction()
 	
 	def update_by_ids(self, json_ids: List[int], data_: Dict[str, Any]) -> int:
-		return self.storage.update(
-			EntityUpdater(
-				name=self.get_entity_name(),
-				shaper=self.get_entity_shaper(),
-				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='change_json_id'),
-					                         operator=EntityCriteriaOperator.IN,
-					                         right=json_ids)
-				],
-				update=data_
+		updated_count = 0
+		for i in range(0, len(json_ids), 500):
+			updated_count += self.storage.update(
+				EntityUpdater(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='change_json_id'),
+						                         operator=EntityCriteriaOperator.IN,
+						                         right=json_ids[i:i + 500])
+					],
+					update=data_
+				)
 			)
-		)
+		return updated_count
 	
 	def find_jsons_by_timeout(self, tenant_id: str, query_time: datetime, status: int) -> List:
 		try:

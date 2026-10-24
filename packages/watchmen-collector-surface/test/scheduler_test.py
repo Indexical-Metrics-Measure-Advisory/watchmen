@@ -1,7 +1,10 @@
+import os
 import threading
 import time
 import unittest
 from unittest.mock import Mock, patch
+
+os.environ['SNOWFLAKE_COMPETITIVE_WORKERS'] = 'false'
 
 from watchmen_collector_surface.scheduler import JobScheduler
 
@@ -10,6 +13,7 @@ class JobSchedulerTest(unittest.TestCase):
 
 	def setUp(self):
 		self.scheduler = JobScheduler()
+		self.scheduler.scheduler.shutdown = Mock()
 		self.scheduler.event_listener = Mock()
 		self.listener_patch = patch('watchmen_collector_surface.scheduler.CollectorEventListener')
 		self.listener_class = self.listener_patch.start()
@@ -89,7 +93,8 @@ class JobSchedulerTest(unittest.TestCase):
 					started += 1
 					active += 1
 					condition.notify_all()
-					condition.wait_for(release.is_set, timeout=5)
+				release.wait(5)
+				with condition:
 					active -= 1
 
 		self.listener_class.side_effect = Listener
@@ -127,7 +132,8 @@ class JobSchedulerTest(unittest.TestCase):
 					started += 1
 					active += 1
 					condition.notify_all()
-					condition.wait_for(release.is_set, timeout=5)
+				release.wait(5)
+				with condition:
 					active -= 1
 
 		self.listener_class.side_effect = Listener

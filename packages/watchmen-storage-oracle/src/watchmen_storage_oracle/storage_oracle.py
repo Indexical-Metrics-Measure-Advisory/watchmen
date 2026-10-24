@@ -27,7 +27,7 @@ class StorageOracle(StorageRDS):
 		
 	def find_for_update_skip_locked(self, finder: EntityLimitedFinder) -> EntityList:
 		table = self.find_table(finder.name)
-		statement = select(table).with_for_update(skip_locked=True)
+		statement = self.build_select_statement(table, finder).with_for_update(skip_locked=True)
 		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
 		if finder.limit:
 			statement = statement.where(text(f'rownum <= {finder.limit}'))

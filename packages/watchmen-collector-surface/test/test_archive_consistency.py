@@ -73,12 +73,12 @@ class ArchiveConsistencyTest(TestCase):
 
 		def commit():
 			if deleted_ids[-1] == 2:
-				raise RuntimeError('deadlock 1213')
+				raise RuntimeError('Deadlock found when trying to get lock')
 
 		service.change_record_service.commit_transaction.side_effect = commit
 		archived_record_ids = set()
 
-		with self.assertRaisesRegex(RuntimeError, '1213'):
+		with self.assertRaisesRegex(RuntimeError, 'Deadlock'):
 			service.finish_and_backup_records_row_by_row([
 				(first_record, None),
 				(second_record, None)

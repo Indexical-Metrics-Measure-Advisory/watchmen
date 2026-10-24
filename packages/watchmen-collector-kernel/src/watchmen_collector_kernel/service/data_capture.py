@@ -2,7 +2,7 @@ from logging import getLogger
 from typing import Optional, Dict, Any, Tuple, List
 
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.model import CollectorTableConfig, Condition
+from watchmen_collector_kernel.model import CollectorTableConfig, Condition, ConditionExpression
 from .criteria_builder import CriteriaBuilder
 from .table_config_service import get_table_config_service
 from .extract_source import ask_source_extractor
@@ -88,7 +88,8 @@ class DataCaptureService:
 		matching children simply do not get the label key, isList mounts the whole
 		list, otherwise the first row. Grandchildren are handled by recursing on
 		the fetched child rows. Shapes unsuitable for batching (multi-join keys,
-		non-template join values) fall back to the row-by-row path.
+		non-equals expressions, non-template join values, null or non-scalar values)
+		fall back to the row-by-row path.
 		"""
 		child_configs = self.table_config_service.find_by_parent_name(config.name, config.tenantId)
 		if not child_configs:
@@ -98,28 +99,35 @@ class DataCaptureService:
 
 	def mount_child_batch(self, child_config: CollectorTableConfig, data_list: List[Dict[str, Any]]) -> None:
 		join_keys = child_config.joinKeys or []
-		if len(join_keys) != 1 or join_keys[0].childKey is None:
-			# multi-join or missing join definition: keep the proven row-by-row path
+		if len(join_keys) != 1:
 			ArrayHelper(data_list).each(lambda data: self.get_child_data(child_config, data))
 			return
 		child_key = join_keys[0].childKey
+		if not isinstance(child_key, ConditionExpression) or child_key.operator != EntityCriteriaOperator.EQUALS:
+			ArrayHelper(data_list).each(lambda data: self.get_child_data(child_config, data))
+			return
 		column_value = child_key.columnValue
-		variable_name = None
-		if isinstance(column_value, str) and column_value.startswith('{') and column_value.endswith('}'):
-			variable_name = column_value[1:-1]
+		if not isinstance(column_value, str) or not column_value.startswith('{') or not column_value.endswith('}'):
+			ArrayHelper(data_list).each(lambda data: self.get_child_data(child_config, data))
+			return
 
-		if variable_name is not None:
-			# one distinct key value per parent row (order preserved)
-			key_values: List[Any] = []
-			seen = set()
-			for row in data_list:
-				value = row_value(row, variable_name)
-				if value is not None and value not in seen:
-					seen.add(value)
-					key_values.append(value)
-		else:
-			# constant (or null) join value: identical criteria for every row
-			key_values = [column_value] if column_value is not None else []
+		parent_keys: List[Any] = []
+		key_values: List[Any] = []
+		seen = set()
+		for row in data_list:
+			value = CriteriaBuilder(row).parse_condition_value(column_value)
+			if value is None or isinstance(value, (list, tuple, set, frozenset, dict)):
+				ArrayHelper(data_list).each(lambda data: self.get_child_data(child_config, data))
+				return
+			try:
+				hash(value)
+			except TypeError:
+				ArrayHelper(data_list).each(lambda data: self.get_child_data(child_config, data))
+				return
+			parent_keys.append(value)
+			if value not in seen:
+				seen.add(value)
+				key_values.append(value)
 
 		child_rows: List[Dict[str, Any]] = []
 		for chunk in chunks_of(key_values, BATCH_BUILD_IN_CHUNK_SIZE):
@@ -144,10 +152,7 @@ class DataCaptureService:
 			logger.warning(
 				'mount_child_batch skipped %s child rows without join column %s (table %s)',
 				missing_join_keys, child_key.columnName, child_config.tableName)
-		for parent_row in data_list:
-			key = row_value(parent_row, variable_name) if variable_name is not None else column_value
-			if key is None:
-				continue
+		for parent_row, key in zip(data_list, parent_keys):
 			children = grouped.get(key)
 			if children:
 				parent_row[child_config.label] = children if child_config.isList else children[0]

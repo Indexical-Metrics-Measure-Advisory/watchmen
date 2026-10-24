@@ -15,7 +15,8 @@ from watchmen_collector_kernel.common import ask_clean_of_timeout_interval, ask_
 	ask_clean_up_lock_timeout, ask_trigger_event_lock_timeout, ask_extract_table_lock_timeout, \
 	ask_s3_connector_lock_timeout, ask_collector_task_timeout, ask_trigger_model_lock_timeout
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
-	get_change_data_json_service, get_scheduled_task_service, get_change_data_json_history_service
+	get_change_data_json_service, get_scheduled_task_service, get_change_data_json_history_service, \
+	get_scheduled_task_history_service
 
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
@@ -44,6 +45,9 @@ class CleanOfTimeout:
 		self.scheduled_task_service = get_scheduled_task_service(self.storage,
 		                                                         self.snowflake_generator,
 		                                                         self.principal_service)
+		self.scheduled_task_history_service = get_scheduled_task_history_service(self.storage,
+		                                                                         self.snowflake_generator,
+		                                                                         self.principal_service)
 		self.task_service = get_task_service(self.storage,
 		                                     self.snowflake_generator,
 		                                     self.principal_service)
@@ -122,24 +126,40 @@ class CleanOfTimeout:
 	def clean_record(self):
 		query_time = datetime.now() - timedelta(seconds=self.timeout)
 		records = self.change_data_record_service.find_timeout_record(query_time)
-		# one targeted UPDATE for the whole timed-out set instead of N full-row updates
 		record_ids = ArrayHelper(records).map(lambda record: record.changeRecordId).to_list()
-		if record_ids:
+		if not record_ids:
+			return
+		try:
+			self.change_data_record_service.begin_transaction()
 			self.change_data_record_service.update_by_ids(record_ids, {
 				'status': Status.INITIAL.value,
 				'last_modified_at': get_current_time_in_seconds()
 			})
+			self.change_data_record_service.commit_transaction()
+		except Exception as e:
+			self.change_data_record_service.rollback_transaction()
+			raise e
+		finally:
+			self.change_data_record_service.close_transaction()
 
 	def clean_json(self):
 		query_time = datetime.now() - timedelta(seconds=self.timeout)
 		jsons = self.change_data_json_service.find_timeout_json(query_time)
-		# one targeted UPDATE for the whole timed-out set instead of N full-row updates
 		json_ids = ArrayHelper(jsons).map(lambda change_json: change_json.changeJsonId).to_list()
-		if json_ids:
+		if not json_ids:
+			return
+		try:
+			self.change_data_json_service.begin_transaction()
 			self.change_data_json_service.update_by_ids(json_ids, {
 				'status': Status.INITIAL.value,
 				'last_modified_at': get_current_time_in_seconds()
 			})
+			self.change_data_json_service.commit_transaction()
+		except Exception as e:
+			self.change_data_json_service.rollback_transaction()
+			raise e
+		finally:
+			self.change_data_json_service.close_transaction()
 
 	def clean_task(self):
 		query_time = datetime.now() - timedelta(seconds=self.task_timeout)

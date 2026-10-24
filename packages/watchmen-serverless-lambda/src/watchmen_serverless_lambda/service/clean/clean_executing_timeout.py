@@ -10,7 +10,7 @@ def clean_record_executing_timeout(tenant_id: str,
     query_time = datetime.now() - timedelta(seconds=timeout)
     records = change_data_record_service.find_records_by_timeout(tenant_id, query_time, 1)
     if records:
-       record_ids = ArrayHelper(records).map(lambda record: record.change_data_id).to_list()
+       record_ids = ArrayHelper(records).map(lambda record: record.changeRecordId).to_list()
        try:
            change_data_record_service.begin_transaction()
            change_data_record_service.update_by_ids(record_ids, {"status": 0})
@@ -28,7 +28,7 @@ def clean_json_executing_timeout(tenant_id: str,
     query_time = datetime.now() - timedelta(seconds=timeout)
     jsons = change_data_json_service.find_jsons_by_timeout(tenant_id, query_time, 1)
     if jsons:
-       json_ids = ArrayHelper(jsons).map(lambda item: item.change_json_id).to_list()
+       json_ids = ArrayHelper(jsons).map(lambda item: item.changeJsonId).to_list()
        try:
            change_data_json_service.begin_transaction()
            change_data_json_service.update_by_ids(json_ids, {"status": 0})
@@ -45,7 +45,7 @@ def clean_task_executing_timeout(tenant_id: str,
     query_time = datetime.now() - timedelta(seconds=timeout)
     tasks = scheduled_task_service.find_tasks_by_timeout(tenant_id, query_time, 1)
     if tasks:
-       tasks_ids = ArrayHelper(tasks).map(lambda item: item.task_id).to_list()
+       tasks_ids = ArrayHelper(tasks).map(lambda item: item.taskId).to_list()
        try:
            scheduled_task_service.begin_transaction()
            scheduled_task_service.update_by_ids(tasks_ids, {"status": 0})

@@ -18,7 +18,8 @@ class StorageMSSQL(StorageRDS):
 	
 	def find_for_update_skip_locked(self, finder: EntityLimitedFinder) -> EntityList:
 		table = self.find_table(finder.name)
-		statement = select(table).with_hint(table, "WITH (UPDLOCK, READPAST)", dialect_name="mssql")
+		statement = self.build_select_statement(table, finder).with_hint(
+			table, "WITH (UPDLOCK, READPAST)", dialect_name="mssql")
 		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
 		statement = self.build_sort_for_statement(statement, finder.sort)
 		statement = self.build_offset_for_statement(statement, finder.limit, 1)

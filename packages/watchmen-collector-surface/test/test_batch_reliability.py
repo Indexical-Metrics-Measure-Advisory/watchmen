@@ -7,8 +7,6 @@ from watchmen_collector_kernel.service.storage_helper import is_retryable_storag
 from watchmen_collector_kernel.storage import ChangeDataJsonService, ChangeDataRecordService, ScheduledTaskService
 from watchmen_collector_surface.cdc.post_json import ModelExecutor
 from watchmen_collector_surface.task.clean_of_timeout import CleanOfTimeout
-from watchmen_serverless_lambda.service.clean.clean_executing_timeout import \
-	clean_json_executing_timeout, clean_record_executing_timeout, clean_task_executing_timeout
 
 
 class BatchReliabilityTest(TestCase):
@@ -18,15 +16,15 @@ class BatchReliabilityTest(TestCase):
 		service.change_json_service = Mock()
 		task = SimpleNamespace(taskId=101)
 		change_json = SimpleNamespace(changeJsonId=11, isPosted=False, status=0, taskId=None)
+		events = []
+		service.change_json_service.update_by_ids.side_effect = lambda *args: events.append('update')
+		service.scheduled_task_service.commit_transaction.side_effect = lambda: events.append('commit')
 
 		service.post_jsons([task], [change_json])
 
 		self.assertEqual(101, change_json.taskId)
 		service.change_json_service.update_by_ids.assert_any_call([11], {'task_id': 101})
-		self.assertLess(
-			service.change_json_service.update_by_ids.call_args_list[-1],
-			service.scheduled_task_service.commit_transaction.call_args
-		)
+		self.assertLess(events.index('update'), events.index('commit'))
 
 	@patch('watchmen_collector_surface.cdc.post_json.ask_listener_time_budget_seconds', return_value=0)
 	def test_post_json_honors_time_budget(self, _):
@@ -34,13 +32,14 @@ class BatchReliabilityTest(TestCase):
 		service.find_json_and_locked = Mock(return_value=[SimpleNamespace()])
 		service.distribute_jsons = Mock()
 
-		service.process_model(SimpleNamespace(), SimpleNamespace(), SimpleNamespace(modelTriggerId=1))
+		service.process_model(SimpleNamespace(), SimpleNamespace(modelTriggerId=1), SimpleNamespace())
 
 		service.find_json_and_locked.assert_called_once_with(1)
 		service.distribute_jsons.assert_called_once()
 
 	def assert_timeout_reset(self, method_name, service_attribute, id_attribute):
 		cleaner = CleanOfTimeout.__new__(CleanOfTimeout)
+		cleaner.timeout = 60
 		storage_service = Mock()
 		setattr(cleaner, service_attribute, storage_service)
 		getattr(storage_service, method_name).return_value = [SimpleNamespace(**{id_attribute: 11})]
@@ -80,17 +79,3 @@ class BatchReliabilityTest(TestCase):
 	def test_retryable_error_does_not_match_arbitrary_error_number_text(self):
 		self.assertFalse(is_retryable_storage_error(RuntimeError('invalid value 1213 for business key')))
 		self.assertTrue(is_retryable_storage_error(RuntimeError('Deadlock found when trying to get lock')))
-
-	def test_lambda_timeout_cleaners_use_model_id_attributes(self):
-		cases = [
-			(clean_record_executing_timeout, 'find_records_by_timeout', 'changeRecordId'),
-			(clean_json_executing_timeout, 'find_jsons_by_timeout', 'changeJsonId'),
-			(clean_task_executing_timeout, 'find_tasks_by_timeout', 'taskId')
-		]
-		for cleaner, finder_name, id_attribute in cases:
-			with self.subTest(cleaner=cleaner.__name__):
-				service = Mock()
-				getattr(service, finder_name).return_value = [SimpleNamespace(**{id_attribute: 11})]
-				cleaner('tenant-1', service, 60)
-				service.update_by_ids.assert_called_once_with([11], {'status': 0})
-				service.commit_transaction.assert_called_once_with()

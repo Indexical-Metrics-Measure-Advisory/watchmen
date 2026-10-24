@@ -1,6 +1,6 @@
 import logging
 from traceback import format_exc
-from typing import Dict, Tuple, Optional, List, Any
+from typing import Dict, Tuple, Optional, List, Any, Set
 import time
 
 from sqlalchemy.exc import IntegrityError
@@ -109,8 +109,9 @@ class RecordToJsonService:
 			unmerged_records = self.find_records_and_locked()
 			if not unmerged_records:
 				break
+			archived_record_ids = set()
 			try:
-				self.process_records(unmerged_records)
+				self.process_records(unmerged_records, archived_record_ids)
 			except Exception as e:
 				if is_retryable_storage_error(e):
 					# deadlock/lock-wait victim: leave the whole batch EXECUTING,
@@ -119,11 +120,10 @@ class RecordToJsonService:
 					               exc_info=True)
 				else:
 					logger.error(e, exc_info=True, stack_info=True)
-					self.fail_unarchived_records(unmerged_records, format_exc())
+					self.fail_unarchived_records(unmerged_records, format_exc(), archived_record_ids)
 			finally:
 				for change_data_record in unmerged_records:
-					if change_data_record.status == Status.EXECUTING.value:
-						# still unarchived (left for retry): keep the source row
+					if change_data_record.changeRecordId not in archived_record_ids:
 						continue
 					try:
 						self.finalize(change_data_record)
@@ -133,22 +133,26 @@ class RecordToJsonService:
 			if time.monotonic() >= deadline:
 				break
 
-	def process_records(self, records: List[ChangeDataRecord]) -> None:
-		roots = self.resolve_roots(records)
+	def process_records(self, records: List[ChangeDataRecord],
+	                    archived_record_ids: Optional[Set[int]] = None) -> None:
+		if archived_record_ids is None:
+			archived_record_ids = set()
+		roots = self.resolve_roots(records, archived_record_ids)
 		if not roots:
 			return
 		pairs = self.build_pairs(roots)
 		try:
-			self.finish_and_backup_records(pairs)
+			self.finish_and_backup_records(pairs, archived_record_ids)
 		except Exception as archive_error:
 			if is_retryable_storage_error(archive_error):
 				raise
 			logger.error(archive_error, exc_info=True, stack_info=True)
 			# the shared archive transaction failed (e.g. a concurrent insert hit
 			# the unique resource_id): fall back to the proven row-by-row path
-			self.finish_and_backup_records_row_by_row(pairs)
+			self.finish_and_backup_records_row_by_row(pairs, archived_record_ids)
 
-	def resolve_roots(self, records: List[ChangeDataRecord]) -> List[
+	def resolve_roots(self, records: List[ChangeDataRecord],
+	                  archived_record_ids: Optional[Set[int]] = None) -> List[
 		Tuple[ChangeDataRecord, CollectorTableConfig, Optional[Dict[str, Any]]]]:
 		roots = []
 		for record in records:
@@ -159,7 +163,7 @@ class RecordToJsonService:
 				roots.append((record, root_config, root_data))
 			except Exception as e:
 				logger.error(e, exc_info=True, stack_info=True)
-				self.update_result(record, format_exc())
+				self.update_result(record, format_exc(), archived_record_ids)
 		return roots
 
 	def build_pairs(self, roots: List[
@@ -171,13 +175,16 @@ class RecordToJsonService:
 		duplicated_ids.update(self.change_json_service.find_existing_resource_ids(resource_ids))
 		pairs: List[Tuple[ChangeDataRecord, Optional[ChangeDataJson]]] = []
 		to_build = []
+		batch_resource_ids = set()
 		for record, root_config, root_data in roots:
-			if self.generate_resource_id(record) in duplicated_ids:
+			resource_id = self.generate_resource_id(record)
+			if resource_id in duplicated_ids or resource_id in batch_resource_ids:
 				record.isMerged = True
 				record.status = Status.SUCCESS.value
 				self.handle_result(record, {"result": "duplicated"})
 				pairs.append((record, None))
 			else:
+				batch_resource_ids.add(resource_id)
 				to_build.append((record, root_config, root_data))
 		if to_build:
 			pairs.extend(self.build_json_pairs(to_build))
@@ -186,18 +193,19 @@ class RecordToJsonService:
 	def build_json_pairs(self, to_build: List[
 		Tuple[ChangeDataRecord, CollectorTableConfig, Optional[Dict[str, Any]]]]) -> List[
 		Tuple[ChangeDataRecord, Optional[ChangeDataJson]]]:
-		# group by root table so child rows can be fetched with level-by-level IN
-		# queries (build_jsons) instead of one query per business row (build_json)
-		grouped: Dict[str, list] = {}
-		group_order: List[str] = []
+		# group by tenant and root config so child rows can be fetched with
+		# level-by-level IN queries instead of one query per business row
+		grouped: Dict[Tuple[Optional[str], Optional[str]], list] = {}
+		group_order: List[Tuple[Optional[str], Optional[str]]] = []
 		for record, root_config, root_data in to_build:
-			if root_config.name not in grouped:
-				grouped[root_config.name] = []
-				group_order.append(root_config.name)
-			grouped[root_config.name].append((record, root_config, root_data))
+			group_key = (root_config.tenantId, root_config.configId)
+			if group_key not in grouped:
+				grouped[group_key] = []
+				group_order.append(group_key)
+			grouped[group_key].append((record, root_config, root_data))
 		pairs: List[Tuple[ChangeDataRecord, Optional[ChangeDataJson]]] = []
-		for group_name in group_order:
-			items = grouped[group_name]
+		for group_key in group_order:
+			items = grouped[group_key]
 			root_config = items[0][1]
 			root_data_list = ArrayHelper(items).map(lambda item: item[2]).to_list()
 			# create_json semantics: build children into a per-record copy so
@@ -217,10 +225,13 @@ class RecordToJsonService:
 				pairs.append((record, self.get_change_data_json(record, root_config, root_data, json_data)))
 		return pairs
 
-	def finish_and_backup_records(self, pairs: List[Tuple[ChangeDataRecord, Optional[ChangeDataJson]]]) -> None:
+	def finish_and_backup_records(self, pairs: List[Tuple[ChangeDataRecord, Optional[ChangeDataJson]]],
+	                              archived_record_ids: Optional[Set[int]] = None) -> None:
 		"""Archive a whole processed batch in one transaction."""
 		if not pairs:
 			return
+		if archived_record_ids is None:
+			archived_record_ids = set()
 		self.change_record_service.begin_transaction()
 		try:
 			change_jsons = ArrayHelper(pairs).filter(lambda pair: pair[1] is not None) \
@@ -233,36 +244,46 @@ class RecordToJsonService:
 			self.change_record_service.delete_by_ids(
 				ArrayHelper(pairs).map(lambda pair: pair[0].changeRecordId).to_list())
 			self.change_record_service.commit_transaction()
+			archived_record_ids.update(
+				ArrayHelper(pairs).map(lambda pair: pair[0].changeRecordId).to_list())
 		except Exception as e:
 			self.change_record_service.rollback_transaction()
 			raise e
 		finally:
 			self.change_record_service.close_transaction()
 
-	def finish_and_backup_records_row_by_row(self, pairs: List[Tuple[ChangeDataRecord, Optional[ChangeDataJson]]]) -> None:
+	def finish_and_backup_records_row_by_row(self, pairs: List[Tuple[ChangeDataRecord, Optional[ChangeDataJson]]],
+	                                         archived_record_ids: Optional[Set[int]] = None) -> None:
+		if archived_record_ids is None:
+			archived_record_ids = set()
 		for record, change_json in pairs:
+			if record.changeRecordId in archived_record_ids:
+				continue
 			try:
-				self.finish_and_backup_record(record, change_json, change_json is not None)
+				self.finish_and_backup_record(record, change_json, change_json is not None, archived_record_ids)
 			except IntegrityError:
+				if record.changeRecordId in archived_record_ids:
+					continue
 				record.isMerged = True
 				record.status = Status.SUCCESS.value
 				self.handle_result(record, {"result": "duplicated"})
-				self.finish_and_backup_record(record, None, False)
+				self.finish_and_backup_record(record, None, False, archived_record_ids)
 			except Exception as e:
+				if record.changeRecordId in archived_record_ids:
+					continue
 				if is_retryable_storage_error(e):
-					# leave this record EXECUTING for CleanOfTimeout to retry
+					# leave this record unarchived for CleanOfTimeout to retry
 					raise
 				logger.error(format_exc(), exc_info=True, stack_info=True)
-				self.update_result(record, format_exc())
+				self.update_result(record, format_exc(), archived_record_ids)
 
-	def fail_unarchived_records(self, records: List[ChangeDataRecord], result: str) -> None:
-		# archive only records not yet archived (still EXECUTING); records already
-		# terminal were moved to history by process_records
+	def fail_unarchived_records(self, records: List[ChangeDataRecord], result: str,
+	                            archived_record_ids: Optional[Set[int]] = None) -> None:
 		for record in records:
-			if record.status != Status.EXECUTING.value:
+			if archived_record_ids is not None and record.changeRecordId in archived_record_ids:
 				continue
 			try:
-				self.update_result(record, result)
+				self.update_result(record, result, archived_record_ids)
 			except Exception:
 				logger.error(format_exc(), exc_info=True, stack_info=True)
 
@@ -270,12 +291,13 @@ class RecordToJsonService:
 		config = self.table_config_service.find_by_name(change_data_record.tableName, change_data_record.tenantId)
 		ask_source_extractor(config).delete_one_by_primary_keys(change_data_record.dataId)
 
-	def update_result(self, change_data_record: ChangeDataRecord, result: str) -> None:
+	def update_result(self, change_data_record: ChangeDataRecord, result: str,
+	                  archived_record_ids: Optional[Set[int]] = None) -> None:
 		change_data_record.isMerged = True
 		change_data_record.status = Status.FAIL.value
 		self.handle_result(change_data_record, {"error": result})
 		try:
-			self.finish_and_backup_record(change_data_record, None, False)
+			self.finish_and_backup_record(change_data_record, None, False, archived_record_ids)
 		except Exception:
 			# archive failed: keep EXECUTING so fail_unarchived_records retries
 			change_data_record.status = Status.EXECUTING.value
@@ -290,7 +312,8 @@ class RecordToJsonService:
 	def finish_and_backup_record(self,
 	                             change_data_record: ChangeDataRecord,
 	                             change_data_json: Optional[ChangeDataJson] = None,
-	                             is_create_json: bool = False):
+	                             is_create_json: bool = False,
+	                             archived_record_ids: Optional[Set[int]] = None):
 		self.change_record_service.begin_transaction()
 		try:
 			if is_create_json:
@@ -299,6 +322,8 @@ class RecordToJsonService:
 			# noinspection PyTypeChecker
 			self.change_record_service.delete(change_data_record.changeRecordId)
 			self.change_record_service.commit_transaction()
+			if archived_record_ids is not None:
+				archived_record_ids.add(change_data_record.changeRecordId)
 		except Exception as e:
 			self.change_record_service.rollback_transaction()
 			raise e

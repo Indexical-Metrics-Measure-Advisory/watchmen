@@ -171,17 +171,20 @@ class ChangeDataRecordService(TupleService):
 
 	def update_by_ids(self, record_ids: List[ChangeRecordId], data_: Dict[str, Any]) -> int:
 		"""Targeted-column bulk update by primary keys; runs within the caller's transaction."""
-		return self.storage.update(
-			EntityUpdater(
-				name=self.get_entity_name(),
-				shaper=self.get_entity_shaper(),
-				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=CHANGE_RECORD_ID),
-					                         operator=EntityCriteriaOperator.IN,
-					                         right=record_ids)
-				],
-				update=data_
-			))
+		updated_count = 0
+		for i in range(0, len(record_ids), 500):
+			updated_count += self.storage.update(
+				EntityUpdater(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName=CHANGE_RECORD_ID),
+						                         operator=EntityCriteriaOperator.IN,
+						                         right=record_ids[i:i + 500])
+					],
+					update=data_
+				))
+		return updated_count
 
 	def add_all(self, records: List[ChangeDataRecord]) -> None:
 		"""Bulk insert without transaction management; caller owns begin/commit."""
@@ -197,16 +200,19 @@ class ChangeDataRecordService(TupleService):
 
 	def delete_by_ids(self, record_ids: List[ChangeRecordId]) -> int:
 		"""Bulk delete by primary keys; runs within the caller's transaction."""
-		return self.storage.delete(
-			EntityDeleter(
-				name=self.get_entity_name(),
-				shaper=self.get_entity_shaper(),
-				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=CHANGE_RECORD_ID),
-					                         operator=EntityCriteriaOperator.IN,
-					                         right=record_ids)
-				]
-			))
+		deleted_count = 0
+		for i in range(0, len(record_ids), 500):
+			deleted_count += self.storage.delete(
+				EntityDeleter(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName=CHANGE_RECORD_ID),
+						                         operator=EntityCriteriaOperator.IN,
+						                         right=record_ids[i:i + 500])
+					]
+				))
+		return deleted_count
 	
 	def find_records_and_locked_by_trigger_event_id(self, trigger_event_id: int, limit: int = None) -> List:
 		return self.storage.find_for_update_skip_locked(
@@ -386,12 +392,19 @@ class ChangeDataRecordService(TupleService):
 	def find_timeout_record(self, query_time: datetime) -> List:
 		try:
 			self.storage.connect()
-			return self.storage.find(self.get_entity_finder(criteria=[
-				EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName='last_modified_at'),
-					operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1)
-			]))
+			return self.storage.find_limited(EntityLimitedFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='last_modified_at'),
+						operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1)
+				],
+				columns=[CHANGE_RECORD_ID],
+				sort=[EntitySortColumn(name=CHANGE_RECORD_ID, method=EntitySortMethod.ASC)],
+				limit=500
+			))
 		finally:
 			self.storage.close()
 	
@@ -414,19 +427,7 @@ class ChangeDataRecordService(TupleService):
 		finally:
 			self.storage.close()
 			
-	def update_by_ids(self, record_ids: List[int], data_: Dict[str, Any]) -> int:
-		return self.storage.update(
-			EntityUpdater(
-				name=self.get_entity_name(),
-				shaper=self.get_entity_shaper(),
-				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='change_record_id'),
-					                         operator=EntityCriteriaOperator.IN,
-					                         right=record_ids)
-				],
-				update=data_
-			)
-		)
+
 	
 	def is_existed_by_table_trigger_id(self, table_trigger_id: int) -> bool:
 		try:

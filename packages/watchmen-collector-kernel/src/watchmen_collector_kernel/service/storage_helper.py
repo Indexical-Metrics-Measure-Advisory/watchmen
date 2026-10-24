@@ -104,7 +104,14 @@ def is_retryable_storage_error(error: BaseException) -> bool:
 		sqlstate = getattr(orig, 'sqlstate', None) or getattr(error, 'sqlstate', None)
 		if isinstance(sqlstate, str) and sqlstate.strip().upper() in retryable_sqlstates:
 			return True
-		text = str(orig)
-		return '1213' in text or '1205' in text
+		text = str(orig).lower()
+		return any(message in text for message in (
+			'deadlock found when trying to get lock',
+			'lock wait timeout exceeded',
+			'error 1213',
+			'error 1205',
+			'mysql error 1213',
+			'mysql error 1205'
+		))
 	except Exception:
 		return False

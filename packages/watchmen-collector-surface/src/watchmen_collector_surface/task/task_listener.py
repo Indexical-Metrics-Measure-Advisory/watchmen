@@ -109,8 +109,8 @@ class TaskListener:
         self.process_tasks()
 
     def process_tasks(self):
-        # keep claiming batches within the tick time budget; finished tasks are
-        # archived together in one transaction at the end of the tick
+        # archive each claimed batch in one transaction instead of holding task
+        # terminal states until the whole listener time budget has elapsed
         deadline = time.monotonic() + ask_listener_time_budget_seconds()
         finished_tasks: List[ScheduledTask] = []
         try:
@@ -137,6 +137,9 @@ class TaskListener:
                     else:
                         run(self.process_task_with_change_data_json(unfinished_task))
                         finished_tasks.append(unfinished_task)
+                if finished_tasks:
+                    self.archive_finished_tasks(finished_tasks)
+                    finished_tasks.clear()
                 if time.monotonic() >= deadline:
                     break
         finally:
@@ -167,7 +170,6 @@ class TaskListener:
                     await self.process_sub_tasks(unfinished_task, change_json)
                     change_json.status = Status.SUCCESS.value
                     success_jsons.append(change_json)
-                    finished_json_ids.append(change_json.changeJsonId)
                     processed_resource_ids.add(change_json.resourceId)
                 except Exception as e:
                     logger.error(e, exc_info=True, stack_info=True)
@@ -182,6 +184,9 @@ class TaskListener:
                         failed_jsons.append(rest_json)
                     break
             self.archive_task_jsons(success_jsons, duplicated_jsons, failed_jsons)
+            finished_json_ids.extend(
+                ArrayHelper(success_jsons + duplicated_jsons + failed_jsons)
+                .map(lambda change_json: change_json.changeJsonId).to_list())
             if failed_jsons:
                 # original semantics: the first failed json fails the whole task
                 self.update_task_status(unfinished_task, Status.FAIL.value, failed_jsons[0].result)

@@ -183,17 +183,20 @@ class ScheduledTaskService(TupleService):
 
 	def update_by_ids(self, task_ids: List[ScheduledTaskId], data_: Dict[str, Any]) -> int:
 		"""Targeted-column bulk update by primary keys; runs within the caller's transaction."""
-		return self.storage.update(
-			EntityUpdater(
-				name=self.get_entity_name(),
-				shaper=self.get_entity_shaper(),
-				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='task_id'),
-					                         operator=EntityCriteriaOperator.IN,
-					                         right=task_ids)
-				],
-				update=data_
-			))
+		updated_count = 0
+		for i in range(0, len(task_ids), 500):
+			updated_count += self.storage.update(
+				EntityUpdater(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='task_id'),
+						                         operator=EntityCriteriaOperator.IN,
+						                         right=task_ids[i:i + 500])
+					],
+					update=data_
+				))
+		return updated_count
 
 	def add_all(self, tasks: List[ScheduledTask]) -> None:
 		"""Bulk insert without transaction management; caller owns begin/commit."""
@@ -209,16 +212,19 @@ class ScheduledTaskService(TupleService):
 
 	def delete_by_ids(self, task_ids: List[ScheduledTaskId]) -> int:
 		"""Bulk delete by primary keys; runs within the caller's transaction."""
-		return self.storage.delete(
-			EntityDeleter(
-				name=self.get_entity_name(),
-				shaper=self.get_entity_shaper(),
-				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='task_id'),
-					                         operator=EntityCriteriaOperator.IN,
-					                         right=task_ids)
-				]
-			))
+		deleted_count = 0
+		for i in range(0, len(task_ids), 500):
+			deleted_count += self.storage.delete(
+				EntityDeleter(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='task_id'),
+						                         operator=EntityCriteriaOperator.IN,
+						                         right=task_ids[i:i + 500])
+					]
+				))
+		return deleted_count
 
 	def is_existed(self, task: ScheduledTask) -> bool:
 		self.begin_transaction()
@@ -312,12 +318,18 @@ class ScheduledTaskService(TupleService):
 	def find_timeout_task(self, query_time: datetime) -> List:
 		try:
 			self.storage.connect()
-			return self.storage.find(self.get_entity_finder(criteria=[
-				EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName='last_modified_at'),
-					operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1)
-			]))
+			return self.storage.find_limited(EntityLimitedFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='last_modified_at'),
+						operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1)
+				],
+				sort=[EntitySortColumn(name='task_id', method=EntitySortMethod.ASC)],
+				limit=500
+			))
 		finally:
 			self.storage.close()
 
@@ -386,19 +398,7 @@ class ScheduledTaskService(TupleService):
 		finally:
 			self.storage.close()
 			
-	def update_by_ids(self, task_ids: List[int], data_: Dict[str, Any]) -> int:
-		return self.storage.update(
-			EntityUpdater(
-				name=self.get_entity_name(),
-				shaper=self.get_entity_shaper(),
-				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='task_id'),
-					                         operator=EntityCriteriaOperator.IN,
-					                         right=task_ids)
-				],
-				update=data_
-			)
-		)
+
 
 def get_scheduled_task_service(storage: TransactionalStorageSPI,
                                snowflake_generator: SnowflakeGenerator,
