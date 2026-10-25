@@ -175,10 +175,13 @@ class TriggerEventService(TupleService):
 	def find_initial_event_by_tenant_id(self, tenant_id: str) -> Optional[TriggerEvent]:
 		self.begin_transaction()
 		try:
-			res = self.storage.find(self.get_entity_finder(
+			res = self.storage.find_limited(EntityLimitedFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
 				criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=0),
 				          EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)],
-				sort=[EntitySortColumn(name=self.get_storable_id_column_name(), method=EntitySortMethod.ASC)]
+				sort=[EntitySortColumn(name=self.get_storable_id_column_name(), method=EntitySortMethod.ASC)],
+				limit=1
 			))
 			if res:
 				# noinspection PyTypeChecker
@@ -191,11 +194,14 @@ class TriggerEventService(TupleService):
 	def find_executing_event_by_tenant_id(self, tenant_id: str) -> Optional[TriggerEvent]:
 		self.begin_transaction()
 		try:
-			res = self.storage.find(self.get_entity_finder(
+			res = self.storage.find_limited(EntityLimitedFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
-				    ]
+				    ],
+				limit=1
 			))
 			if res:
 				# noinspection PyTypeChecker

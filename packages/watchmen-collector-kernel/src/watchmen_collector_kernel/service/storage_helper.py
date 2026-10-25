@@ -1,4 +1,6 @@
-from typing import Optional, List, Callable
+from threading import Lock
+from time import monotonic
+from typing import Optional, List, Callable, Dict, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.cache import CollectorCacheService
@@ -11,6 +13,11 @@ from watchmen_model.common import TenantId
 from watchmen_model.system import DataSource
 from watchmen_storage import TransactionalStorageSPI
 from watchmen_utilities import ArrayHelper
+
+
+DATASOURCE_NEGATIVE_CACHE_TTL_SECONDS = 5
+_datasource_negative_cache: Dict[Tuple[TenantId, str], float] = {}
+_datasource_negative_cache_lock = Lock()
 
 
 class CollectorDataSourceService:
@@ -57,6 +64,14 @@ def ask_collector_storage(tenant_id: str, principal_service: PrincipalService) -
 
 
 def ask_datasource_by_param_name(tenant_id: str, principal_service: PrincipalService, param_name: str) -> Optional[DataSource]:
+    cache_key = (tenant_id, param_name)
+    now = monotonic()
+    with _datasource_negative_cache_lock:
+        expires_at = _datasource_negative_cache.get(cache_key)
+        if expires_at is not None:
+            if expires_at > now:
+                return None
+            del _datasource_negative_cache[cache_key]
     
     def filter_datasource(datasource: DataSource) -> bool:
         if datasource.params:
@@ -68,6 +83,9 @@ def ask_datasource_by_param_name(tenant_id: str, principal_service: PrincipalSer
     collector_datasource_service = get_collector_data_source_service(principal_service)
     data_source: DataSource = collector_datasource_service.find_datasource_by_tenant_id(tenant_id,
                                                                                         filter_datasource)
+    if data_source is None:
+        with _datasource_negative_cache_lock:
+            _datasource_negative_cache[cache_key] = monotonic() + DATASOURCE_NEGATIVE_CACHE_TTL_SECONDS
     return data_source
 
 

@@ -121,6 +121,25 @@ class ScheduledTaskService(TupleService):
 		finally:
 			self.close_transaction()
 
+	def find_existing_task_ids(self, task_ids: List[ScheduledTaskId]) -> List[ScheduledTaskId]:
+		if not task_ids:
+			return []
+		existing_ids = []
+		try:
+			self.storage.connect()
+			for i in range(0, len(task_ids), 500):
+				rows = self.storage.find_straight_values(EntityStraightValuesFinder(
+					name=self.get_entity_name(),
+					criteria=[EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='task_id'), operator=EntityCriteriaOperator.IN,
+						right=task_ids[i:i + 500])],
+					straightColumns=[EntityStraightColumn(columnName='task_id')]
+				))
+				existing_ids.extend(ArrayHelper(rows).map(lambda row: row.get('task_id')).to_list())
+			return existing_ids
+		finally:
+			self.storage.close()
+
 	def find_and_lock_by_id(self, task_id: int) -> Optional[ScheduledTask]:
 		row = self.storage.find_and_lock_by_id(task_id, self.get_entity_id_helper())
 		if row:
@@ -279,7 +298,7 @@ class ScheduledTaskService(TupleService):
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker
-			return self.storage.count(self.get_entity_finder(
+			return not self.storage.exists(self.get_entity_finder(
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'),
 					                         right=model_name),
@@ -290,7 +309,7 @@ class ScheduledTaskService(TupleService):
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
 					                         right=tenant_id)
 				]
-			)) == 0
+			))
 		finally:
 			self.close_transaction()
 
@@ -327,7 +346,7 @@ class ScheduledTaskService(TupleService):
 						operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1)
 				],
-				sort=[EntitySortColumn(name='task_id', method=EntitySortMethod.ASC)],
+								sort=[EntitySortColumn(name='task_id', method=EntitySortMethod.ASC)],
 				limit=500
 			))
 		finally:
@@ -335,52 +354,26 @@ class ScheduledTaskService(TupleService):
 
 	def is_model_finished(self, model_name: str, event_trigger_id: int) -> bool:
 		try:
-			self.begin_transaction()
-			results = self.storage.find_limited(
-				EntityLimitedFinder(
-					name=self.get_entity_name(),
-					shaper=self.get_entity_shaper(),
-					criteria=[
-						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
-						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)
-					],
-					limit=1
-				)
-			)
-			self.commit_transaction()
-			if len(results) == 0:
-				return True
-			else:
-				return False
-		except Exception as e:
-			self.rollback_transaction()
-			raise e
+			self.storage.connect()
+			return not self.storage.exists(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)
+				]
+			))
 		finally:
-			self.close_transaction()
+			self.storage.close()
 
 	def is_event_finished(self, event_trigger_id: int) -> bool:
 		try:
-			self.begin_transaction()
-			results = self.storage.find_limited(
-				EntityLimitedFinder(
-					name=self.get_entity_name(),
-					shaper=self.get_entity_shaper(),
-					criteria=[
-						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)
-					],
-					limit=1
-				)
-			)
-			self.commit_transaction()
-			if len(results) == 0:
-				return True
-			else:
-				return False
-		except Exception as e:
-			self.rollback_transaction()
-			raise e
+			self.storage.connect()
+			return not self.storage.exists(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)
+				]
+			))
 		finally:
-			self.close_transaction()
+			self.storage.close()
 
 	def find_tasks_by_timeout(self, tenant_id: str, query_time: datetime, status: int) -> List:
 		try:
@@ -392,6 +385,7 @@ class ScheduledTaskService(TupleService):
 				                                   operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
 				          EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=status),
 				          EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)],
+				columns=['task_id'] if status == 1 else None,
 				sort=[EntitySortColumn(name='task_id', method=EntitySortMethod.ASC)],
 				limit=100
 			))

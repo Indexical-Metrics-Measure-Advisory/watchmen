@@ -17,13 +17,14 @@ class BatchReliabilityTest(TestCase):
 		task = SimpleNamespace(taskId=101)
 		change_json = SimpleNamespace(changeJsonId=11, isPosted=False, status=0, taskId=None)
 		events = []
-		service.change_json_service.update_by_ids.side_effect = lambda *args: events.append('update')
+		service.change_json_service.update_task_ids.side_effect = lambda *args: events.append('update')
 		service.scheduled_task_service.commit_transaction.side_effect = lambda: events.append('commit')
 
 		service.post_jsons([task], [change_json])
 
 		self.assertEqual(101, change_json.taskId)
-		service.change_json_service.update_by_ids.assert_any_call([11], {'task_id': 101})
+		service.change_json_service.update_task_ids.assert_called_once_with(
+			{11: 101}, {'is_posted': True, 'status': Status.WAITING.value})
 		self.assertLess(events.index('update'), events.index('commit'))
 
 	@patch('watchmen_collector_surface.cdc.post_json.ask_listener_time_budget_seconds', return_value=0)

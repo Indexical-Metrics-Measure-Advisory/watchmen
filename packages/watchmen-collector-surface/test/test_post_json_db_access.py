@@ -116,13 +116,50 @@ class PostJsonDbAccessTest(TestCase):
 		service.post_grouped_json_v2 = Mock()
 		events = []
 		service.scheduled_task_service.close_transaction.side_effect = lambda: events.append('close')
-		service.post_grouped_json_v2.side_effect = lambda *args: events.append(args[1])
+		service.post_grouped_json_v2.side_effect = lambda *args: events.append(args[2])
 		trigger_model = SimpleNamespace(modelName='orders', modelTriggerId=7)
 
 		service.process_object_ids(SimpleNamespace(), trigger_model, SimpleNamespace(), ['object-1', 'object-2'])
 
 		self.assertEqual(['close', 'object-1', 'object-2'], events)
 		service.scheduled_task_service.rollback_transaction.assert_called_once_with()
+
+	def test_sequenced_commit_failure_does_not_retry_ambiguous_commit(self):
+		service = SequencedModelExecutor.__new__(SequencedModelExecutor)
+		service.scheduled_task_service = Mock()
+		service.change_json_service = Mock()
+		service.change_json_service.find_grouped_ids_by_object_ids.return_value = [
+			{'object_id': 'object-1', 'change_json_id': 11}]
+		service.get_grouped_json_scheduled_task = Mock(return_value=SimpleNamespace(
+			taskId=101, objectId='object-1', changeJsonIds=[11]))
+		service.scheduled_task_service.commit_transaction.side_effect = RuntimeError('commit result unknown')
+		service.post_grouped_json_v2 = Mock()
+		trigger_model = SimpleNamespace(modelName='orders', modelTriggerId=7)
+
+		with self.assertLogs('apscheduler', level='ERROR'):
+			service.process_object_ids(SimpleNamespace(), trigger_model, SimpleNamespace(), ['object-1'])
+
+		service.post_grouped_json_v2.assert_not_called()
+		service.scheduled_task_service.rollback_transaction.assert_called_once_with()
+		service.scheduled_task_service.close_transaction.assert_called_once_with()
+
+	def test_module_priority_rechecks_unfinished_dependencies(self):
+		service = PostJsonService.__new__(PostJsonService)
+		service.trigger_module_service = Mock()
+		modules = [
+			SimpleNamespace(moduleTriggerId=1, eventTriggerId=9, priority=2, moduleName='last'),
+			SimpleNamespace(moduleTriggerId=2, eventTriggerId=9, priority=0, moduleName='base'),
+			SimpleNamespace(moduleTriggerId=3, eventTriggerId=9, priority=1, moduleName='next')]
+		service.trigger_module_service.find_by_event_trigger_id.return_value = modules
+		service.is_trigger_module_finished = Mock(side_effect=[False, True])
+		service.process_models = Mock()
+
+		service.process_modules(SimpleNamespace(eventTriggerId=9))
+
+		self.assertEqual(2, service.is_trigger_module_finished.call_count)
+		self.assertEqual(
+			[modules[1], modules[2]],
+			[call.args[1] for call in service.process_models.call_args_list])
 
 	def test_module_priority_reuses_list_and_memoizes_within_event_pass(self):
 		service = PostJsonService.__new__(PostJsonService)
@@ -141,8 +178,10 @@ class PostJsonDbAccessTest(TestCase):
 		service.process_modules(event)
 
 		self.assertEqual(2, service.trigger_module_service.find_by_event_trigger_id.call_count)
-		self.assertEqual(2, service.is_trigger_module_finished.call_count)
-		service.is_trigger_module_finished.assert_called_with(modules[0])
+		self.assertEqual(4, service.is_trigger_module_finished.call_count)
+		self.assertEqual(
+			[modules[0], modules[1], modules[0], modules[1]],
+			[call.args[0] for call in service.is_trigger_module_finished.call_args_list])
 		self.assertEqual(6, service.process_models.call_count)
 
 	@patch('watchmen_collector_surface.cdc.post_json.get_model_executor')
@@ -170,8 +209,10 @@ class PostJsonDbAccessTest(TestCase):
 		service.process_models(SimpleNamespace(), trigger_module)
 
 		self.assertEqual(2, service.trigger_model_service.find_by_module_trigger_id.call_count)
-		self.assertEqual(2, service.is_trigger_model_post_json_finished.call_count)
-		service.is_trigger_model_post_json_finished.assert_called_with(models[0])
+		self.assertEqual(4, service.is_trigger_model_post_json_finished.call_count)
+		self.assertEqual(
+			[models[0], models[1], models[0], models[1]],
+			[call.args[0] for call in service.is_trigger_model_post_json_finished.call_args_list])
 		self.assertEqual(6, get_executor.return_value.process_model.call_count)
 
 	def test_completion_checks_use_exists_with_connect_and_close(self):
@@ -203,3 +244,21 @@ class PostJsonDbAccessTest(TestCase):
 		service.storage.connect.assert_called_once_with()
 		service.storage.close.assert_called_once_with()
 		self.assertEqual(3, service.storage.find.call_count)
+
+	def test_grouped_object_id_query_is_chunked_and_projects_sequence_inputs(self):
+		service = ChangeDataJsonService.__new__(ChangeDataJsonService)
+		service.storage = Mock()
+		service.storage.find_straight_values.return_value = []
+
+		service.find_grouped_ids_by_object_ids('orders', [str(index) for index in range(1200)], 7)
+
+		service.storage.connect.assert_called_once_with()
+		service.storage.close.assert_called_once_with()
+		calls = service.storage.find_straight_values.call_args_list
+		self.assertEqual(3, len(calls))
+		self.assertEqual([500, 500, 200], [len(call.args[0].criteria[1].right) for call in calls])
+		for call in calls:
+			finder = call.args[0]
+			self.assertEqual(['object_id', 'change_json_id'], [
+				column.columnName for column in finder.straightColumns])
+			self.assertEqual('sequence', finder.sort[0].name)

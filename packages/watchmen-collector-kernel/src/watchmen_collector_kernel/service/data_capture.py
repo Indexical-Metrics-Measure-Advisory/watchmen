@@ -5,7 +5,7 @@ from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import CollectorTableConfig, Condition, ConditionExpression
 from .criteria_builder import CriteriaBuilder
 from .table_config_service import get_table_config_service
-from .extract_source import ask_source_extractor
+from .extract_source import ask_source_extractor, SourceS3Extractor
 from watchmen_collector_kernel.storage import get_collector_table_config_service
 from watchmen_storage import TransactionalStorageSPI, SnowflakeGenerator, EntityCriteria, \
 	EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaOperator
@@ -46,6 +46,45 @@ class DataCaptureService:
 	# noinspection PyMethodMayBeStatic
 	def find_data_by_data_id(self, config: CollectorTableConfig, data_id: Dict) -> Optional[Dict[str, Any]]:
 		return ask_source_extractor(config).find_one_by_primary_keys(data_id)
+
+	def find_data_by_data_ids(self, config: CollectorTableConfig,
+	                          data_ids: List[Dict]) -> Optional[Dict[Any, List[Dict[str, Any]]]]:
+		primary_key = config.primaryKey or []
+		if config.parentName or len(primary_key) != 1 or not data_ids:
+			return None
+		column_name = primary_key[0]
+		values = []
+		seen = set()
+		for data_id in data_ids:
+			if len(data_id) != 1:
+				return None
+			key, value = next(iter(data_id.items()))
+			if key.lower() != column_name.lower() or value is None:
+				return None
+			try:
+				hash(value)
+			except TypeError:
+				return None
+			if value not in seen:
+				seen.add(value)
+				values.append(value)
+
+		extractor = ask_source_extractor(config)
+		if isinstance(extractor, SourceS3Extractor):
+			return None
+		grouped = {value: [] for value in values}
+		for chunk in chunks_of(values, BATCH_BUILD_IN_CHUNK_SIZE):
+			criteria = [EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName=column_name),
+				operator=EntityCriteriaOperator.IN,
+				right=chunk
+			)]
+			for row in extractor.find_records_by_criteria(criteria) or []:
+				normalized_row = {key.lower(): value for key, value in row.items()}
+				value = normalized_row.get(column_name.lower())
+				if value in grouped:
+					grouped[value].append(row)
+		return grouped
 
 	def find_parent_node(self, config: CollectorTableConfig,
 	                     data_: Dict) -> Tuple[CollectorTableConfig, Optional[Dict[str, Any]]]:

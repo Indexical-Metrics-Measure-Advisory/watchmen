@@ -270,103 +270,51 @@ class ChangeDataRecordService(TupleService):
 
 	def is_event_finished(self, event_trigger_id: int) -> bool:
 		try:
-			self.begin_transaction()
-			results = self.storage.find_limited(
-				EntityLimitedFinder(
-					name=self.get_entity_name(),
-					shaper=self.get_entity_shaper(),
-					criteria=[
-						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
-						                         right=event_trigger_id)
-					],
-					limit=1
-				)
-			)
-			self.commit_transaction()
-			if len(results) == 0:
-				return True
-			else:
-				return False
-		except Exception as e:
-			self.rollback_transaction()
-			raise e
+			self.storage.connect()
+			return not self.storage.exists(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
+					                         right=event_trigger_id)
+				]
+			))
 		finally:
-			self.close_transaction()
+			self.storage.close()
 
 	def is_model_finished(self, model_trigger_id: int) -> bool:
 		try:
-			self.begin_transaction()
-			results = self.storage.find_limited(
-				EntityLimitedFinder(
-					name=self.get_entity_name(),
-					shaper=self.get_entity_shaper(),
-					criteria=[
-						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
-						                         right=model_trigger_id)
-					],
-					limit=1
-				)
-			)
-			self.commit_transaction()
-			if len(results) == 0:
-				return True
-			else:
-				return False
-		except Exception as e:
-			self.rollback_transaction()
-			raise e
+			self.storage.connect()
+			return not self.storage.exists(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
+					                         right=model_trigger_id)
+				]
+			))
 		finally:
-			self.close_transaction()
+			self.storage.close()
 
 	def is_module_finished(self, module_trigger_id: int) -> bool:
 		try:
-			self.begin_transaction()
-			results = self.storage.find_limited(
-				EntityLimitedFinder(
-					name=self.get_entity_name(),
-					shaper=self.get_entity_shaper(),
-					criteria=[
-						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='module_trigger_id'),
-						                         right=module_trigger_id)
-					],
-					limit=1
-				)
-			)
-			self.commit_transaction()
-			if len(results) == 0:
-				return True
-			else:
-				return False
-		except Exception as e:
-			self.rollback_transaction()
-			raise e
+			self.storage.connect()
+			return not self.storage.exists(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='module_trigger_id'),
+					                         right=module_trigger_id)
+				]
+			))
 		finally:
-			self.close_transaction()
+			self.storage.close()
 			
 	def is_table_finished(self, table_trigger_id: int) -> bool:
 		try:
-			self.begin_transaction()
-			results = self.storage.find_limited(
-				EntityLimitedFinder(
-					name=self.get_entity_name(),
-					shaper=self.get_entity_shaper(),
-					criteria=[
-						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_trigger_id'),
-						                         right=table_trigger_id)
-					],
-					limit=1
-				)
-			)
-			self.commit_transaction()
-			if len(results) == 0:
-				return True
-			else:
-				return False
-		except Exception as e:
-			self.rollback_transaction()
-			raise e
+			self.storage.connect()
+			return not self.storage.exists(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_trigger_id'),
+					                         right=table_trigger_id)
+				]
+			))
 		finally:
-			self.close_transaction()
+			self.storage.close()
 
 	def count_change_data_record(self, event_trigger_id: int) -> int:
 		return self.storage.count(self.get_entity_finder(
@@ -421,6 +369,7 @@ class ChangeDataRecordService(TupleService):
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=status),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
 				],
+				columns=[CHANGE_RECORD_ID] if status == 1 else None,
 				sort=[EntitySortColumn(name='change_record_id', method=EntitySortMethod.ASC)],
 				limit=100
 			))

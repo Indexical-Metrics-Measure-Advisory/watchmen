@@ -12,9 +12,10 @@ def clean_json_waiting_timeout(tenant_id: str,
                                timeout: float):
     query_time = datetime.now() - timedelta(seconds=timeout)
     change_jsons = change_json_service.find_jsons_by_timeout(tenant_id, query_time, 4)
+    task_ids = list({change_json.taskId for change_json in change_jsons if change_json.taskId is not None})
+    existing_task_ids = set(scheduled_task_service.find_existing_task_ids(task_ids))
     for change_json in change_jsons:
-        task = scheduled_task_service.find_task_by_id(change_json.taskId)
-        if task:
+        if change_json.taskId in existing_task_ids:
             continue
         else:
             try:

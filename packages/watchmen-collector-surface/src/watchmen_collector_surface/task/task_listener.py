@@ -126,7 +126,10 @@ class TaskListener:
                         self.restore_task(remaining_task)
                     remaining_tasks.clear()
 
-                for unfinished_task in unfinished_tasks:
+                task_index = 0
+                claim_processed_resource_ids = set()
+                while task_index < len(unfinished_tasks):
+                    unfinished_task = unfinished_tasks[task_index]
                     del remaining_tasks[unfinished_task.taskId]
 
                     if len(unfinished_task.changeJsonIds) > self.data_size_threshold:
@@ -134,9 +137,43 @@ class TaskListener:
                         run(self.process_task_with_change_data_json(unfinished_task))
                         finished_tasks.append(unfinished_task)
                         break
-                    else:
+                    if len(unfinished_task.changeJsonIds) > 500:
                         run(self.process_task_with_change_data_json(unfinished_task))
                         finished_tasks.append(unfinished_task)
+                        task_index += 1
+                        continue
+
+                    task_window = []
+                    window_json_ids = set()
+                    while task_index + len(task_window) < len(unfinished_tasks):
+                        candidate = unfinished_tasks[task_index + len(task_window)]
+                        candidate_json_ids = set(candidate.changeJsonIds)
+                        if len(candidate.changeJsonIds) > self.data_size_threshold or \
+                                len(candidate.changeJsonIds) > 500:
+                            break
+                        if task_window and len(window_json_ids | candidate_json_ids) > 500:
+                            break
+                        task_window.append(candidate)
+                        window_json_ids.update(candidate_json_ids)
+
+                    try:
+                        prefetched_jsons, duplicated_resource_ids = self.prefetch_change_data_jsons(task_window)
+                    except Exception as e:
+                        logger.error(e, exc_info=True, stack_info=True)
+                        prefetched_jsons = None
+                        duplicated_resource_ids = None
+                    for window_task in task_window:
+                        if window_task is not unfinished_task:
+                            del remaining_tasks[window_task.taskId]
+                        self.prefetch_failed = False
+                        run(self.process_task_with_change_data_json(
+                            window_task, prefetched_jsons, duplicated_resource_ids,
+                            claim_processed_resource_ids))
+                        finished_tasks.append(window_task)
+                        if self.prefetch_failed:
+                            prefetched_jsons = None
+                            duplicated_resource_ids = None
+                    task_index += len(task_window)
                 if finished_tasks:
                     self.archive_finished_tasks(finished_tasks)
                     finished_tasks.clear()
@@ -146,23 +183,46 @@ class TaskListener:
             if finished_tasks:
                 self.archive_finished_tasks(finished_tasks)
 
-    async def process_task_with_change_data_json(self, unfinished_task: ScheduledTask):
+    def prefetch_change_data_jsons(self, tasks: List[ScheduledTask]):
+        change_json_ids = list(dict.fromkeys(
+            change_json_id for task in tasks for change_json_id in task.changeJsonIds))
+        change_jsons = self.change_json_service.find_json_by_ids(change_json_ids)
+        prefetched_jsons = {change_json.changeJsonId: change_json for change_json in change_jsons}
+        resource_ids = list(dict.fromkeys(
+            change_json.resourceId for change_json in change_jsons))
+        duplicated_resource_ids = set(
+            self.change_json_history_service.find_existing_resource_ids(resource_ids))
+        return prefetched_jsons, duplicated_resource_ids
+
+    async def process_task_with_change_data_json(self, unfinished_task: ScheduledTask,
+                                                 prefetched_jsons: Optional[Dict[int, ChangeDataJson]] = None,
+                                                 duplicated_resource_ids: Optional[set] = None,
+                                                 claim_processed_resource_ids: Optional[set] = None):
         finished_json_ids = []
         success_jsons: List[ChangeDataJson] = []
         duplicated_jsons: List[ChangeDataJson] = []
         failed_jsons: List[ChangeDataJson] = []
         try:
-            # one batch fetch (full rows incl. content) instead of one point fetch
-            # per change json id
-            change_jsons = self.change_json_service.find_json_by_ids(list(unfinished_task.changeJsonIds))
-            # one IN probe for the whole task; a json processed earlier in this
-            # task shadows a later one with the same resource_id, exactly like the
-            # original per-json history visibility
+            # standalone calls retain the per-task batches; claimed tasks reuse
+            # the rows and history probe from their prefetch window
+            if prefetched_jsons is None:
+                change_jsons = self.change_json_service.find_json_by_ids(list(unfinished_task.changeJsonIds))
+            else:
+                change_jsons = [prefetched_jsons[change_json_id]
+                                for change_json_id in unfinished_task.changeJsonIds
+                                if change_json_id in prefetched_jsons]
+            # a json processed earlier in this task or claim shadows a later one
+            # with the same resource_id, exactly like the original history visibility
             resource_ids = ArrayHelper(change_jsons).map(lambda change_json: change_json.resourceId).to_list()
-            duplicated_ids = set(self.change_json_history_service.find_existing_resource_ids(resource_ids))
+            if duplicated_resource_ids is None:
+                duplicated_ids = set(self.change_json_history_service.find_existing_resource_ids(resource_ids))
+            else:
+                duplicated_ids = duplicated_resource_ids
             processed_resource_ids = set()
             for index, change_json in enumerate(change_jsons):
-                if change_json.resourceId in duplicated_ids or change_json.resourceId in processed_resource_ids:
+                if change_json.resourceId in duplicated_ids or change_json.resourceId in processed_resource_ids or \
+                        (claim_processed_resource_ids is not None and
+                         change_json.resourceId in claim_processed_resource_ids):
                     change_json.isPosted = True
                     duplicated_jsons.append(change_json)
                     continue
@@ -184,6 +244,10 @@ class TaskListener:
                         failed_jsons.append(rest_json)
                     break
             self.archive_task_jsons(success_jsons, duplicated_jsons, failed_jsons)
+            if claim_processed_resource_ids is not None:
+                claim_processed_resource_ids.update(
+                    ArrayHelper(success_jsons + failed_jsons)
+                    .map(lambda change_json: change_json.resourceId).to_list())
             finished_json_ids.extend(
                 ArrayHelper(success_jsons + duplicated_jsons + failed_jsons)
                 .map(lambda change_json: change_json.changeJsonId).to_list())
@@ -192,12 +256,15 @@ class TaskListener:
                 self.update_task_status(unfinished_task, Status.FAIL.value, failed_jsons[0].result)
             else:
                 self.update_task_status(unfinished_task, Status.SUCCESS.value)
+            return True
         except Exception as e:
+            self.prefetch_failed = True
             logger.error(e, exc_info=True, stack_info=True)
             unfinished_json_ids = [change_json_id for change_json_id in unfinished_task.changeJsonIds if
                                    change_json_id not in finished_json_ids]
             self.handle_unfinished_change_json(unfinished_json_ids)
             self.update_task_status(unfinished_task, Status.FAIL.value, format_exc())
+            return False
 
     def archive_task_jsons(self, success_jsons: List[ChangeDataJson],
                            duplicated_jsons: List[ChangeDataJson],

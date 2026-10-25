@@ -52,6 +52,8 @@ class TaskBatchPrefetchTest(TestCase):
 		         self.build_json(3, 'resource-3')]
 		listener = self.build_listener(tasks)
 		listener.change_json_service.find_json_by_ids.return_value = [jsons[0], jsons[2], jsons[1]]
+		archived_tasks = []
+		listener.archive_finished_tasks.side_effect = lambda claimed_tasks: archived_tasks.extend(claimed_tasks)
 
 		self.process_tasks(listener)
 
@@ -61,8 +63,8 @@ class TaskBatchPrefetchTest(TestCase):
 		self.assertEqual([2, 1, 3], [
 			call.args[1].changeJsonId for call in listener.process_sub_tasks.call_args_list
 		])
-		self.assertEqual(3, listener.archive_task_jsons.call_count)
-		listener.archive_finished_tasks.assert_called_once_with(tasks)
+		self.assertEqual(2, listener.archive_task_jsons.call_count)
+		self.assertEqual(tasks, archived_tasks)
 
 	def test_successful_task_shadows_same_resource_in_next_task(self):
 		tasks = [self.build_task(1, [1]), self.build_task(2, [2])]
@@ -140,3 +142,20 @@ class TaskBatchPrefetchTest(TestCase):
 		])
 		self.assertEqual(2, listener.change_json_history_service.find_existing_resource_ids.call_count)
 		self.assertEqual(600, listener.process_sub_tasks.call_count)
+
+	def test_archive_failure_invalidates_prefetch_for_remaining_tasks(self):
+		tasks = [self.build_task(1, [1]), self.build_task(2, [2])]
+		jsons = [self.build_json(1, 'resource-1'), self.build_json(2, 'resource-1')]
+		listener = self.build_listener(tasks)
+		listener.change_json_service.find_json_by_ids.side_effect = [jsons, [jsons[1]]]
+		listener.change_json_history_service.find_existing_resource_ids.side_effect = [set(), {'resource-1'}]
+		listener.archive_task_jsons.side_effect = [RuntimeError('archive failed'), None]
+
+		with self.assertLogs('apscheduler', level='ERROR'):
+			self.process_tasks(listener)
+
+		self.assertEqual([[1, 2], [2]], [
+			call.args[0] for call in listener.change_json_service.find_json_by_ids.call_args_list
+		])
+		self.assertEqual(1, listener.process_sub_tasks.call_count)
+		self.assertEqual(([], [jsons[1]], []), listener.archive_task_jsons.call_args_list[1].args)

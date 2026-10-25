@@ -42,8 +42,8 @@ class RootBatchTest(TestCase):
 		]
 		extractor = Mock()
 		extractor.find_records_by_criteria.return_value = [
-			{'ID': 1, 'PAYLOAD': {'items': ['first']}},
-			{'ID': 2, 'PAYLOAD': {'items': ['second']}}
+			{'id': 1, 'payload': {'items': ['first']}},
+			{'id': 2, 'payload': {'items': ['second']}}
 		]
 
 		with patch('watchmen_collector_kernel.service.data_capture.ask_source_extractor', return_value=extractor):
@@ -80,7 +80,20 @@ class RootBatchTest(TestCase):
 		])
 		service.find_root.assert_not_called()
 
-	def test_missing_and_multiple_matches_use_find_root_once_per_unique_id(self):
+	def test_topic_root_batch_preserves_column_name_case(self):
+		config = self.create_config(configId='f-topic-1', primaryKey=['ID'])
+		service = self.create_service(config)
+		record = self.create_record(1, {'ID': 1}, config)
+		extractor = Mock()
+		extractor.find_records_by_criteria.return_value = [{'ID': 1, 'productCode': 'A'}]
+
+		with patch('watchmen_collector_kernel.service.data_capture.ask_source_extractor', return_value=extractor):
+			roots = service.resolve_roots([record])
+
+		self.assertEqual({'ID': 1, 'productCode': 'A'}, roots[0][2])
+		self.assertNotIn('productcode', roots[0][2])
+
+	def test_missing_and_multiple_matches_retry_failed_root_resolution(self):
 		config = self.create_config()
 		service = self.create_service(config)
 		service.find_root = Mock(side_effect=RuntimeError('invalid root'))
@@ -94,11 +107,14 @@ class RootBatchTest(TestCase):
 		extractor.find_records_by_criteria.return_value = [
 			{'ID': 1}, {'ID': 2}, {'ID': 2}]
 
-		with patch('watchmen_collector_kernel.service.data_capture.ask_source_extractor', return_value=extractor):
+		with patch('watchmen_collector_kernel.service.data_capture.ask_source_extractor', return_value=extractor), \
+				self.assertLogs('apscheduler', level='ERROR'):
 			roots = service.resolve_roots(records)
 
 		self.assertEqual([1], [record.changeRecordId for record, _, _ in roots])
-		self.assertEqual([call(config, records[1]), call(config, records[2])], service.find_root.call_args_list)
+		self.assertEqual(
+			[call(config, records[1]), call(config, records[2]), call(config, records[3])],
+			service.find_root.call_args_list)
 		self.assertEqual(3, service.update_result.call_count)
 
 	def test_ancestors_and_composite_keys_use_memoized_find_root(self):
@@ -149,3 +165,22 @@ class RootBatchTest(TestCase):
 			service.resolve_roots([self.create_record(2, {'id': 1}, config)])
 
 		self.assertEqual(2, extractor.find_records_by_criteria.call_count)
+
+	def test_missing_config_fails_only_its_own_record(self):
+		config = self.create_config()
+		service = self.create_service(config)
+		service.table_config_service.find_by_name.side_effect = [None, config]
+		missing = self.create_record(1, {'id': 1}, config)
+		missing.tableName = 'missing'
+		valid = self.create_record(2, {'id': 2}, config)
+		extractor = Mock()
+		extractor.find_records_by_criteria.return_value = [{'ID': 2}]
+
+		with patch('watchmen_collector_kernel.service.data_capture.ask_source_extractor', return_value=extractor), \
+				self.assertLogs('apscheduler', level='ERROR'):
+			roots = service.resolve_roots([missing, valid])
+
+		self.assertEqual(1, len(roots))
+		self.assertEqual(valid, roots[0][0])
+		service.update_result.assert_called_once()
+		self.assertEqual(missing, service.update_result.call_args.args[0])

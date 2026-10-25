@@ -1,14 +1,19 @@
 from types import SimpleNamespace
-from unittest import TestCase
+from unittest import TestCase, skipIf
 from unittest.mock import Mock, call, patch
 
 from watchmen_collector_kernel.service import storage_helper
-from watchmen_serverless_lambda.service.json.json_worker import JSONWorker
+
+try:
+	from watchmen_serverless_lambda.service.json.json_worker import JSONWorker
+except ModuleNotFoundError as e:
+	if e.name != 'watchmen_serverless_lambda':
+		raise
+	JSONWorker = None
 
 
+@skipIf(JSONWorker is None, 'watchmen-serverless-lambda is not installed')
 class LambdaDBAccessTest(TestCase):
-	def setUp(self):
-		storage_helper._datasource_negative_cache.clear()
 
 	def build_json_worker(self):
 		worker = JSONWorker.__new__(JSONWorker)
@@ -39,13 +44,29 @@ class LambdaDBAccessTest(TestCase):
 		worker.change_json_history_service.exists_by_resource_id.assert_not_called()
 		self.assertEqual([
 			call(trigger_event, model_config, first),
+			call(trigger_event, model_config, later_duplicate),
 			call(trigger_event, model_config, fresh)
 		], worker.post_json.call_args_list)
-		self.assertEqual([
-			call(already_archived, True), call(later_duplicate, True)
-		], worker.update_result.call_args_list)
+		worker.update_result.assert_called_once_with(already_archived, True)
 		self.assertTrue(already_archived.isPosted)
-		self.assertTrue(later_duplicate.isPosted)
+
+	def test_failed_post_shadows_later_duplicate_after_history_archive(self):
+		worker = self.build_json_worker()
+		first = SimpleNamespace(changeJsonId=1, resourceId='shared', isPosted=False)
+		second = SimpleNamespace(changeJsonId=2, resourceId='shared', isPosted=False)
+		worker.change_json_service.find_json_by_ids.return_value = [first, second]
+		worker.change_json_history_service.find_existing_resource_ids.return_value = []
+		worker.post_json.side_effect = RuntimeError('post failed')
+		trigger_event = SimpleNamespace()
+		model_config = SimpleNamespace()
+
+		worker.process_single_change_data_json(trigger_event, model_config, [1, 2])
+
+		worker.post_json.assert_called_once_with(trigger_event, model_config, first)
+		self.assertEqual([call(first), call(second, True)], worker.update_result.call_args_list)
+		self.assertTrue(first.isPosted)
+		self.assertTrue(second.isPosted)
+		self.assertIn('RuntimeError: post failed', first.result)
 
 	def test_object_ids_reads_trigger_model_and_config_once(self):
 		worker = self.build_json_worker()
@@ -69,6 +90,11 @@ class LambdaDBAccessTest(TestCase):
 			call(trigger_event, model_config, 'object-1', [1]),
 			call(trigger_event, model_config, 'object-2', [2])
 		], worker.post_grouped_json.call_args_list)
+
+
+class DatasourceNegativeCacheTest(TestCase):
+	def setUp(self):
+		storage_helper._datasource_negative_cache.clear()
 
 	@patch('watchmen_collector_kernel.service.storage_helper.get_collector_data_source_service')
 	def test_negative_datasource_cache_avoids_repeated_reads_and_isolates_param_names(self, get_service):

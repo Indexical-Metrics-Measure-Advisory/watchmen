@@ -148,18 +148,14 @@ class ModelExecutor(ModelExecutorSPI):
 		try:
 			self.scheduled_task_service.begin_transaction()
 			self.scheduled_task_service.add_all(tasks)
-			# one targeted flip for the whole batch
-			self.change_json_service.update_by_ids(
-				ArrayHelper(change_jsons).map(lambda change_json: change_json.changeJsonId).to_list(),
-				{'is_posted': True, 'status': Status.WAITING.value}
-			)
-			# tasks were built in the same order as change_jsons
+			task_id_by_json_id = {}
 			for task, change_json in zip(tasks, change_jsons):
 				change_json.isPosted = True
 				change_json.status = Status.WAITING.value
 				change_json.taskId = task.taskId
-				self.change_json_service.update_by_ids(
-					[change_json.changeJsonId], {'task_id': task.taskId})
+				task_id_by_json_id[change_json.changeJsonId] = task.taskId
+			self.change_json_service.update_task_ids(
+				task_id_by_json_id, {'is_posted': True, 'status': Status.WAITING.value})
 			self.scheduled_task_service.commit_transaction()
 		except Exception as e:
 			self.scheduled_task_service.rollback_transaction()
@@ -431,9 +427,9 @@ class SequencedModelExecutor(ModelExecutor):
 		try:
 			self.scheduled_task_service.begin_transaction()
 			self.scheduled_task_service.create(task)
-			self.change_json_service.update_by_ids(
-				change_json_ids,
-				{"is_posted": True, "status": Status.WAITING.value, "task_id": task.taskId}
+			self.change_json_service.update_task_ids(
+				{json_id: task.taskId for json_id in change_json_ids},
+				{'is_posted': True, 'status': Status.WAITING.value}
 			)
 			self.scheduled_task_service.commit_transaction()
 			return task
@@ -442,25 +438,63 @@ class SequencedModelExecutor(ModelExecutor):
 			raise e
 		finally:
 			self.scheduled_task_service.close_transaction()
-			
+
 	def process_object_ids(self, trigger_event: TriggerEvent,
 	                       trigger_model: TriggerModel,
 	                       model_config: CollectorModelConfig,
 	                       object_ids: List[str]):
 		try:
-			for object_id in object_ids:
-				json_ids = self.change_json_service.find_grouped_ids_by_object_id(trigger_model.modelName,
-				                                                                  object_id,
-				                                                                  trigger_model.modelTriggerId)
-				ids_ = ArrayHelper(json_ids).map(
-					lambda x: x.get("change_json_id")
-				).to_list()
-				self.post_grouped_json_v2(trigger_event,
-				                          model_config,
-				                          object_id,
-				                          ids_)
+			rows = self.change_json_service.find_grouped_ids_by_object_ids(
+				trigger_model.modelName, object_ids, trigger_model.modelTriggerId)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
+			return
+
+		grouped_json_ids: Dict[str, List[int]] = {}
+		for row in rows:
+			object_id = row.get('object_id')
+			json_id = row.get('change_json_id')
+			if object_id is not None and json_id is not None:
+				grouped_json_ids.setdefault(object_id, []).append(json_id)
+
+		tasks = []
+		for object_id in object_ids:
+			json_ids = grouped_json_ids.get(object_id)
+			if json_ids:
+				tasks.append(self.get_grouped_json_scheduled_task(
+					trigger_event, model_config, object_id, json_ids))
+		if not tasks:
+			return
+
+		task_id_by_json_id = {
+			json_id: task.taskId
+			for task in tasks
+			for json_id in task.changeJsonIds
+		}
+		commit_started = False
+		try:
+			try:
+				self.scheduled_task_service.begin_transaction()
+				self.scheduled_task_service.add_all(tasks)
+				self.change_json_service.update_task_ids(
+					task_id_by_json_id, {'is_posted': True, 'status': Status.WAITING.value})
+				commit_started = True
+				self.scheduled_task_service.commit_transaction()
+			except Exception:
+				self.scheduled_task_service.rollback_transaction()
+				raise
+			finally:
+				self.scheduled_task_service.close_transaction()
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+			if commit_started:
+				return
+			for task in tasks:
+				try:
+					self.post_grouped_json_v2(
+						trigger_event, model_config, task.objectId, task.changeJsonIds)
+				except Exception as fallback_error:
+					logger.error(fallback_error, exc_info=True, stack_info=True)
 			
 	def process_change_data_json_v2(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
 	                             trigger_model: TriggerModel):
@@ -630,6 +664,7 @@ class PostJsonService:
 
 	def process_modules(self, unfinished_event: TriggerEvent):
 		trigger_modules = self.trigger_module_service.find_by_event_trigger_id(unfinished_event.eventTriggerId)
+		module_completion = {}
 
 		def is_higher_priority_module(trigger_module: TriggerModule, current_trigger_module: TriggerModule) -> bool:
 			if trigger_module.priority < current_trigger_module.priority:
@@ -637,15 +672,22 @@ class PostJsonService:
 			else:
 				return False
 
+		def is_module_finished(trigger_module: TriggerModule) -> bool:
+			module_trigger_id = trigger_module.moduleTriggerId
+			if module_completion.get(module_trigger_id) is True:
+				return True
+			is_finished = self.is_trigger_module_finished(trigger_module)
+			if is_finished:
+				module_completion[module_trigger_id] = True
+			return is_finished
+
 		def check_module_priority(trigger_module: TriggerModule) -> bool:
 			if trigger_module.priority == 0:
 				return True
 			else:
-				all_trigger_modules = self.trigger_module_service.find_by_event_trigger_id(
-					trigger_module.eventTriggerId)
-				return ArrayHelper(all_trigger_modules).filter(
+				return ArrayHelper(trigger_modules).filter(
 					lambda trigger: is_higher_priority_module(trigger, trigger_module)
-				).every(self.is_trigger_module_finished)
+				).every(is_module_finished)
 
 		def process_module(trigger_module: TriggerModule):
 			if check_module_priority(trigger_module):
@@ -657,6 +699,7 @@ class PostJsonService:
 
 	def process_models(self, trigger_event: TriggerEvent, trigger_module: TriggerModule):
 		trigger_models = self.trigger_model_service.find_by_module_trigger_id(trigger_module.moduleTriggerId)
+		model_completion = {}
 
 		def process_model(trigger_model: TriggerModel):
 			model_config = self.model_config_service.find_by_name(trigger_model.modelName, trigger_model.tenantId)
@@ -671,14 +714,22 @@ class PostJsonService:
 			else:
 				logger.debug(f'priority not fit: {trigger_model.priority}')
 
+		def is_model_finished(trigger_model: TriggerModel) -> bool:
+			model_trigger_id = trigger_model.modelTriggerId
+			if model_completion.get(model_trigger_id) is True:
+				return True
+			is_finished = self.is_trigger_model_post_json_finished(trigger_model)
+			if is_finished:
+				model_completion[model_trigger_id] = True
+			return is_finished
+
 		def check_model_priority(trigger_model: TriggerModel) -> bool:
 			if trigger_model.priority == 0:
 				return True
 			else:
-				all_trigger_model = self.trigger_model_service.find_by_module_trigger_id(trigger_model.moduleTriggerId)
-				return ArrayHelper(all_trigger_model).filter(
+				return ArrayHelper(trigger_models).filter(
 					lambda trigger: is_higher_priority_model(trigger, trigger_model)
-				).every(self.is_trigger_model_post_json_finished)
+				).every(is_model_finished)
 
 		def is_higher_priority_model(trigger_model: TriggerModel, current_trigger_model: TriggerModel) -> bool:
 			if trigger_model.priority < current_trigger_model.priority:

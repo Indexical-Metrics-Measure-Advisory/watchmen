@@ -106,7 +106,7 @@ class DbAccessOptimizationTest(TestCase):
 				actual_sort = None if finder.sort is None else [(column.name, column.method) for column in finder.sort]
 				self.assertEqual(sort, actual_sort)
 
-	def test_timeout_task_scan_projects_only_task_id(self):
+	def test_timeout_task_scan_keeps_full_rows_for_history_archive(self):
 		service = self.build_service(ScheduledTaskService)
 		query_time = datetime(2026, 1, 2, 3, 4, 5)
 		service.storage.find_limited.return_value = []
@@ -116,7 +116,7 @@ class DbAccessOptimizationTest(TestCase):
 		service.storage.connect.assert_called_once_with()
 		service.storage.close.assert_called_once_with()
 		finder = service.storage.find_limited.call_args.args[0]
-		self.assertEqual(['task_id'], finder.columns)
+		self.assertIsNone(finder.columns)
 		self.assertEqual(500, finder.limit)
 		self.assert_criteria(finder, [
 			('last_modified_at', EntityCriteriaOperator.LESS_THAN, query_time),

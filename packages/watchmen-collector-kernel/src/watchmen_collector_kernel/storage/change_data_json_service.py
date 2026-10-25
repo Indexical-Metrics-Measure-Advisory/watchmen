@@ -317,10 +317,10 @@ class ChangeDataJsonService(TupleService):
 		"""Bulk fetch by primary keys (full rows, includes content), ordered like json_ids."""
 		index_of = {json_id: index for index, json_id in enumerate(json_ids)}
 		results: List[ChangeDataJson] = []
-		for i in range(0, len(json_ids), 500):
-			chunk = json_ids[i:i + 500]
-			try:
-				self.storage.connect()
+		try:
+			self.storage.connect()
+			for i in range(0, len(json_ids), 500):
+				chunk = json_ids[i:i + 500]
 				results.extend(self.storage.find(self.get_entity_finder(
 					criteria=[
 						EntityCriteriaExpression(left=ColumnNameLiteral(columnName=CHANGE_JSON_ID),
@@ -328,8 +328,8 @@ class ChangeDataJsonService(TupleService):
 						                         right=chunk)
 					]
 				)))
-			finally:
-				self.storage.close()
+		finally:
+			self.storage.close()
 		# IN queries do not guarantee order: restore the caller's id order so
 		# task processing stays deterministic
 		results.sort(key=lambda json_: index_of.get(json_.changeJsonId, len(index_of)))
@@ -367,6 +367,32 @@ class ChangeDataJsonService(TupleService):
 		finally:
 			self.storage.close()
 
+	def find_grouped_ids_by_object_ids(
+			self, model_name: str, object_ids: List[str], model_trigger_id: int) -> List:
+		results = []
+		try:
+			self.storage.connect()
+			for i in range(0, len(object_ids), 500):
+				results.extend(self.storage.find_straight_values(EntityStraightValuesFinder(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'),
+						                         operator=EntityCriteriaOperator.IN, right=object_ids[i:i + 500]),
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
+						                         right=model_trigger_id)
+					],
+					straightColumns=[
+						EntityStraightColumn(columnName='object_id'),
+						EntityStraightColumn(columnName=CHANGE_JSON_ID)
+					],
+					sort=[EntitySortColumn(name='sequence', method=EntitySortMethod.ASC)]
+				)))
+		finally:
+			self.storage.close()
+		return results
+
 	"""
 	def is_event_finished(self, event_trigger_id: int) -> bool:
 		self.begin_transaction()
@@ -384,103 +410,51 @@ class ChangeDataJsonService(TupleService):
 
 	def is_event_finished(self, event_trigger_id: int) -> bool:
 		try:
-			self.begin_transaction()
-			results = self.storage.find_limited(
-				EntityLimitedFinder(
-					name=self.get_entity_name(),
-					shaper=self.get_entity_shaper(),
-					criteria=[
-						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
-						                         right=event_trigger_id)
-					],
-					limit=1
-				)
-			)
-			self.commit_transaction()
-			if len(results) == 0:
-				return True
-			else:
-				return False
-		except Exception as e:
-			self.rollback_transaction()
-			raise e
+			self.storage.connect()
+			return not self.storage.exists(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
+					                         right=event_trigger_id)
+				]
+			))
 		finally:
-			self.close_transaction()
+			self.storage.close()
 
 	def is_model_finished(self, model_trigger_id: int) -> bool:
 		try:
-			self.begin_transaction()
-			results = self.storage.find_limited(
-				EntityLimitedFinder(
-					name=self.get_entity_name(),
-					shaper=self.get_entity_shaper(),
-					criteria=[
-						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
-						                         right=model_trigger_id)
-					],
-					limit=1
-				)
-			)
-			self.commit_transaction()
-			if len(results) == 0:
-				return True
-			else:
-				return False
-		except Exception as e:
-			self.rollback_transaction()
-			raise e
+			self.storage.connect()
+			return not self.storage.exists(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
+					                         right=model_trigger_id)
+				]
+			))
 		finally:
-			self.close_transaction()
+			self.storage.close()
 
 	def is_module_finished(self, module_trigger_id: int) -> bool:
 		try:
-			self.begin_transaction()
-			results = self.storage.find_limited(
-				EntityLimitedFinder(
-					name=self.get_entity_name(),
-					shaper=self.get_entity_shaper(),
-					criteria=[
-						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='module_trigger_id'),
-						                         right=module_trigger_id)
-					],
-					limit=1
-				)
-			)
-			self.commit_transaction()
-			if len(results) == 0:
-				return True
-			else:
-				return False
-		except Exception as e:
-			self.rollback_transaction()
-			raise e
+			self.storage.connect()
+			return not self.storage.exists(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='module_trigger_id'),
+					                         right=module_trigger_id)
+				]
+			))
 		finally:
-			self.close_transaction()
-			
+			self.storage.close()
+
 	def is_table_finished(self, table_trigger_id: int) -> bool:
 		try:
-			self.begin_transaction()
-			results = self.storage.find_limited(
-				EntityLimitedFinder(
-					name=self.get_entity_name(),
-					shaper=self.get_entity_shaper(),
-					criteria=[
-						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_trigger_id'),
-						                         right=table_trigger_id)
-					],
-					limit=1
-				)
-			)
-			self.commit_transaction()
-			if len(results) == 0:
-				return True
-			else:
-				return False
-		except Exception as e:
-			self.rollback_transaction()
-			raise e
+			self.storage.connect()
+			return not self.storage.exists(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_trigger_id'),
+					                         right=table_trigger_id)
+				]
+			))
 		finally:
-			self.close_transaction()
+			self.storage.close()
 
 	def count_change_data_json(self, event_trigger_id: int) -> int:
 		return self.storage.count(self.get_entity_finder(
@@ -604,6 +578,19 @@ class ChangeDataJsonService(TupleService):
 				)
 			)
 		return updated_count
+
+	def update_task_ids(self, task_id_by_json_id: Dict[ChangeJsonId, int], data_: Dict[str, Any]) -> int:
+		items = list(task_id_by_json_id.items())
+		updated_count = 0
+		bulk_update = getattr(self.storage, 'update_by_ids_with_case', None)
+		for i in range(0, len(items), 500):
+			chunk = dict(items[i:i + 500])
+			if callable(bulk_update):
+				updated_count += bulk_update(self.get_entity_id_helper(), chunk, 'task_id', data_)
+			else:
+				for json_id, task_id in chunk.items():
+					updated_count += self.update_by_ids([json_id], {**data_, 'task_id': task_id})
+		return updated_count
 	
 	def find_jsons_by_timeout(self, tenant_id: str, query_time: datetime, status: int) -> List:
 		try:
@@ -615,6 +602,7 @@ class ChangeDataJsonService(TupleService):
 				                                   operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
 				          EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=status),
 				          EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)],
+				columns=[CHANGE_JSON_ID] if status == 1 else None,
 				sort=[EntitySortColumn(name='change_json_id', method=EntitySortMethod.ASC)],
 				limit=100
 			))

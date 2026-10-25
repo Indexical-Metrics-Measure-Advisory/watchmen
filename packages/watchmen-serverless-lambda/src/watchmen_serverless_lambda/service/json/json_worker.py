@@ -113,21 +113,25 @@ class JSONWorker:
                                         trigger_event: TriggerEvent,
                                         model_config: CollectorModelConfig,
                                         jsonIds: List[int]):
-        for id_ in jsonIds:
-            change_data_json = self.change_json_service.find_json_by_id(id_)
-            if change_data_json:
-                if self.is_duplicated(change_data_json):
+        change_jsons = self.change_json_service.find_json_by_ids(jsonIds)
+        change_json_by_id = {change_json.changeJsonId: change_json for change_json in change_jsons}
+        ordered_change_jsons = [change_json_by_id[id_] for id_ in jsonIds if id_ in change_json_by_id]
+        resource_ids = ArrayHelper(ordered_change_jsons).map(lambda change_json: change_json.resourceId).to_list()
+        duplicated_ids = set(self.change_json_history_service.find_existing_resource_ids(resource_ids))
+        for change_data_json in ordered_change_jsons:
+            if change_data_json.resourceId in duplicated_ids:
+                change_data_json.isPosted = True
+                self.update_result(change_data_json, True)
+            else:
+                try:
+                    self.post_json(trigger_event, model_config, change_data_json)
+                except Exception as e:
+                    logger.error(e, exc_info=True, stack_info=True)
                     change_data_json.isPosted = True
-                    self.update_result(change_data_json, True)
-                else:
-                    try:
-                        self.post_json(trigger_event, model_config, change_data_json)
-                    except Exception as e:
-                        logger.error(e, exc_info=True, stack_info=True)
-                        change_data_json.isPosted = True
-                        change_data_json.status = Status.FAIL.value
-                        change_data_json.result = format_exc()
-                        self.update_result(change_data_json)
+                    change_data_json.status = Status.FAIL.value
+                    change_data_json.result = format_exc()
+                    self.update_result(change_data_json)
+                    duplicated_ids.add(change_data_json.resourceId)
                     
                     
     def post_json(self, trigger_event: TriggerEvent, model_config: CollectorModelConfig,
@@ -223,9 +227,9 @@ class JSONWorker:
     
     def process_object_ids(self, trigger_event: TriggerEvent, trigger_model_id: int, object_ids: List[str]):
         try:
+            trigger_model = self.trigger_model_service.find_trigger_by_id(trigger_model_id)
+            model_config = self.model_config_service.find_by_name(trigger_model.modelName, trigger_model.tenantId)
             for object_id in object_ids:
-                trigger_model = self.trigger_model_service.find_trigger_by_id(trigger_model_id)
-                model_config = self.model_config_service.find_by_name(trigger_model.modelName, trigger_model.tenantId)
                 json_ids = self.change_json_service.find_grouped_ids_by_object_id(trigger_model.modelName, object_id, trigger_model_id)
                 ids_ = ArrayHelper(json_ids).map(
                     lambda x: x.get("change_json_id")

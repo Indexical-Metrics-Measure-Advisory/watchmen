@@ -6,7 +6,7 @@ from logging import getLogger
 from threading import Thread
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import delete, distinct, func, insert, select, Table, text, update, RowMapping
+from sqlalchemy import case, delete, distinct, func, insert, select, Table, text, update, RowMapping
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.sql.elements import literal_column
 from time import sleep, time
@@ -180,6 +180,24 @@ class StorageRDS(TransactionalStorageSPI):
 		table = self.find_table(updater.name)
 		statement = update(table).values(updater.update)
 		statement = self.build_criteria_for_statement([table], statement, updater.criteria, True)
+		result = self.connection.execute(statement)
+		return result.rowcount
+
+	def update_by_ids_with_case(
+			self, helper: EntityIdHelper, id_values: Dict[EntityId, Any], column_name: str,
+			data: Dict[str, Any]) -> int:
+		if not id_values:
+			return 0
+		table = self.find_table(helper.name)
+		id_column = table.c[helper.idColumnName]
+		value_column = table.c[column_name]
+		statement = update(table).where(id_column.in_(list(id_values.keys()))).values({
+			**data,
+			column_name: case(
+				*[(id_column == entity_id, value) for entity_id, value in id_values.items()],
+				else_=value_column
+			)
+		})
 		result = self.connection.execute(statement)
 		return result.rowcount
 

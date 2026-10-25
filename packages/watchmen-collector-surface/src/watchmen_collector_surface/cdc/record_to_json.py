@@ -1,4 +1,5 @@
 import logging
+from copy import deepcopy
 from traceback import format_exc
 from typing import Dict, Tuple, Optional, List, Any, Set
 import time
@@ -154,17 +155,80 @@ class RecordToJsonService:
 	def resolve_roots(self, records: List[ChangeDataRecord],
 	                  archived_record_ids: Optional[Set[int]] = None) -> List[
 		Tuple[ChangeDataRecord, CollectorTableConfig, Optional[Dict[str, Any]]]]:
-		roots = []
+		prepared = []
+		configs = {}
 		for record in records:
-			self.performance_result(record, True)
 			try:
-				config = self.table_config_service.find_by_name(record.tableName, record.tenantId)
-				root_config, root_data, record = self.find_root(config, record)
-				roots.append((record, root_config, root_data))
+				config_key = (record.tenantId, record.tableName)
+				if config_key not in configs:
+					configs[config_key] = self.table_config_service.find_by_name(record.tableName, record.tenantId)
+				config = configs[config_key]
+				if config is None:
+					raise RuntimeError(f'Table config not found: {record.tableName}, tenant: {record.tenantId}')
+				prepared.append((record, config, None))
+			except Exception as e:
+				prepared.append((record, None, e))
+
+		groups = {}
+		for record, config, error in prepared:
+			if error is not None:
+				continue
+			cache_key = self.get_root_resolution_key(config, record)
+			if cache_key is None:
+				continue
+			group_key = (record.tenantId, config.configId, config.name)
+			if group_key not in groups:
+				groups[group_key] = (config, {})
+			entries = groups[group_key][1]
+			if cache_key not in entries:
+				value = next(iter(record.dataId.values())) if len(record.dataId) == 1 else None
+				entries[cache_key] = (record.dataId, value)
+
+		batched = {}
+		for config, entries in groups.values():
+			try:
+				grouped = self.data_capture_service.find_data_by_data_ids(
+					config, [data_id for data_id, _ in entries.values()])
+			except Exception:
+				continue
+			if grouped is not None:
+				for cache_key, (_, value) in entries.items():
+					batched[cache_key] = grouped.get(value, [])
+
+		roots = []
+		resolved = {}
+		for record, config, prepare_error in prepared:
+			self.performance_result(record, True)
+			cache_key = None if prepare_error is not None else self.get_root_resolution_key(config, record)
+			try:
+				if prepare_error is not None:
+					raise prepare_error
+				if cache_key in resolved:
+					root_config, root_data = resolved[cache_key]
+				else:
+					matches = batched.get(cache_key)
+					if matches is not None and len(matches) == 1:
+						root_config, root_data = config, matches[0]
+					else:
+						root_config, root_data, _ = self.find_root(config, record)
+					if cache_key is not None:
+						resolved[cache_key] = (root_config, root_data)
+				record.rootTableName = root_config.tableName
+				record.rootDataId = get_data_id(root_config.primaryKey, root_data)
+				roots.append((record, root_config, deepcopy(root_data)))
 			except Exception as e:
 				logger.error(e, exc_info=True, stack_info=True)
 				self.update_result(record, format_exc(), archived_record_ids)
 		return roots
+
+	# noinspection PyMethodMayBeStatic
+	def get_root_resolution_key(self, config: CollectorTableConfig, record: ChangeDataRecord):
+		try:
+			data_id = tuple(sorted(record.dataId.items()))
+			hash(data_id)
+			return record.tenantId, config.configId, config.name, data_id
+		except (TypeError, ValueError):
+			return None
 
 	def build_pairs(self, roots: List[
 		Tuple[ChangeDataRecord, CollectorTableConfig, Optional[Dict[str, Any]]]]) -> List[
