@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
 
-from watchmen_auth import AuthenticationScheme, PrincipalService
+from watchmen_auth import AuthenticationScheme, AuthFailOn401, PrincipalService
 from watchmen_meta.admin import UserService
 from watchmen_meta.auth import build_find_user_by_name
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
@@ -18,7 +18,7 @@ from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params,
 	ask_sso_enabled, ask_oidc_enabled, ask_oidc_settings
 from watchmen_rest_doll.audit import record_login_audit
 from watchmen_rest_doll.settings import SSOTypes
-from watchmen_rest_doll.util import verify_password
+from watchmen_rest_doll.util import trans, verify_password
 from watchmen_utilities import ExtendedBaseModel
 
 router = APIRouter()
@@ -91,12 +91,33 @@ async def login_by_user_pwd(request: Request, form_data: OAuth2PasswordRequestFo
 	)
 
 
+@router.post('/logout', response_model=None, tags=['authenticate'])
+async def logout(principal_service: PrincipalService = Depends(get_any_principal)) -> None:
+	"""
+	revoke all jwt tokens of the current user,
+	by refreshing the last modified time of the user so that tokens issued before it are rejected
+	"""
+	user_id = principal_service.get_user_id()
+	user_service = UserService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+	def action() -> None:
+		user: Optional[User] = user_service.find_by_id(user_id)
+		if user is not None:
+			# update the loaded user as-is, it only refreshes audit columns, which is enough to revoke old tokens
+			user_service.update(user)
+
+	return trans(user_service, action)
+
+
 @router.get('/token/validate/jwt', response_model=None, tags=['authenticate'])
 async def validate_jwt_token(token: str) -> User:
 	"""
 	Validate given token, returns user of this token when validated
 	"""
-	return retrieve_authentication_manager().authenticate(AuthenticationScheme.JWT.value, token)
+	try:
+		return retrieve_authentication_manager().authenticate(AuthenticationScheme.JWT.value, token)
+	except AuthFailOn401:
+		raise_401('Unauthorized visit.')
 
 
 @router.get('/token/exchange-user', response_model=None, tags=['authenticate'])
