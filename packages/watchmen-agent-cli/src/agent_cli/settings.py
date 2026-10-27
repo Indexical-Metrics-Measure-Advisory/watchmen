@@ -11,6 +11,7 @@ class Settings:
     password: Optional[str] = os.getenv("AGENT_CLI_PASSWORD")
     pat: Optional[str] = os.getenv("AGENT_CLI_PAT")
     vault: Optional[str] = os.getenv("AGENT_CLI_VAULT")
+    correlation_id: Optional[str] = os.getenv("AGENT_CLI_CORRELATION_ID")
 
     def resolved_vault(self, explicit: Optional[str]) -> Path:
         vault = explicit or self.vault

@@ -2,6 +2,10 @@ class AgentCliException(Exception):
     exit_code = 1
 
 
+class ExecutionException(AgentCliException):
+    exit_code = 2
+
+
 class ConfigException(AgentCliException):
     exit_code = 3
 

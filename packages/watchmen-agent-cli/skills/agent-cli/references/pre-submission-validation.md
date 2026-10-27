@@ -33,11 +33,11 @@ If a local file already exists, **read it directly** — no need to pull from re
 | **Topic**            | `agent-cli topic list-remote --vault <vault>`         | Use same `name`; server upserts by topic name    |
 | **Pipeline**         | `agent-cli pipeline list-remote --vault <vault>`      | Use same `name`; server upserts by pipeline name |
 | **Enum**             | `agent-cli enum list-remote --vault <vault>`          | Set `enumId` to existing ID, update in place     |
-| **Semantic Model**   | `agent-cli semantic list-remote --vault <vault>`      | Set `modelId` to existing ID, update in place    |
-| **Metric**           | `agent-cli metric list-remote --vault <vault>`        | Set `metricId` to existing ID, update in place   |
+| **Semantic Model**   | `agent-cli semantic list-remote --vault <vault>`      | Set `id` to existing ID, update in place         |
+| **Metric**           | `agent-cli metric list-remote --vault <vault>`        | Set `id` to existing ID, update in place         |
 | **Ingestion Table**  | `agent-cli ingest table list-remote --vault <vault>`  | Set `configId` to existing ID, update in place   |
-| **Ingestion Model**  | `agent-cli ingest model list-remote --vault <vault>`  | Set `configId` to existing ID, update in place   |
-| **Ingestion Module** | `agent-cli ingest module list-remote --vault <vault>` | Set `configId` to existing ID, update in place   |
+| **Ingestion Model**  | `agent-cli ingest model list-remote --vault <vault>`  | Set `modelId` to existing ID, update in place    |
+| **Ingestion Module** | `agent-cli ingest module list-remote --vault <vault>` | Set `moduleId` to existing ID, update in place   |
 | **DataSource**       | `agent-cli datasource list-remote --vault <vault>`    | Use existing datasource, do not create duplicate |
 
 ### Standard Workflow for Any Entity
@@ -89,6 +89,8 @@ For Topic/Pipeline, do not manage IDs manually; server upserts by `name`. For le
 - Use `topicName` and `factorName` for action/parameter references.
 - `mapping[].factorName` must exist in the target `topicName`.
 - `source.topicName` / `source.factorName` and `by` conditions must reference existing topics/factors by name.
+- For multiple fields read from the same other Topic, prefer one `read-row`; for a single `read-factor`, use `variableName: <topicName>_<factorName>`.
+- Read variables used in `mapping[].source` must use `kind: constant`: `{<topicName>_row.<factorName>}` for rows and `{<topicName>_<factorName>}` for factors.
 
 ### BY Condition Validation
 
@@ -145,4 +147,27 @@ agent-cli pipeline pull <pipeline_id> --vault <vault>
 
 ---
 
-_Last Updated: 2026-05-18_
+## Collector Run and Repair Validation
+
+Load `references/collector-operations.md` before operating Collector events.
+
+### Before `collector run`
+
+- [ ] Choose exactly one form: model time window, table time window (optionally one named Pipeline), or table records.
+- [ ] Supply both start/end times for model and table time-window triggers.
+- [ ] For records, validate a JSON object or non-empty array of objects; do not submit an empty array.
+- [ ] Use `--wait` when the next step needs the final diagnosis, and treat timeout as “may still be running,” not as permission to retry.
+- [ ] Keep `--auto-fix off` unless the user explicitly requested the narrowly scoped safe retry behavior.
+
+### Before `apply-plan` or event `retry`
+
+- [ ] Review `diagnose` output, especially `derivedStatus`, successful/failed Pipeline counts, `retryPipelineCandidates`, `eventRetryEligible`, and `manualActions`.
+- [ ] For `apply-plan`, confirm the host, event ID, current `diagnosisHash`, exactly one eligible `retry_pipeline` action, and explicit `--yes`.
+- [ ] For safe automation, require exactly one failed Pipeline with complete rerun evidence and only `TRANSIENT_INFRASTRUCTURE` issues. Configuration errors receive `manualActions`, not automatic changes.
+- [ ] For event `retry`, require explicit `--yes`; never retry an unfinished event, one with any successful Pipeline execution, or one with untraceable task records.
+- [ ] After retry, track `newEventTriggerId`; after Pipeline rerun, track the returned `traceId`. Neither is a CLI `correlationId`.
+- [ ] If Metric/Ontology result validation is still required, hand off to `agent-runtime-cli` and its `eval run` / `eval log` workflow.
+
+---
+
+_Last Updated: 2026-10-26_

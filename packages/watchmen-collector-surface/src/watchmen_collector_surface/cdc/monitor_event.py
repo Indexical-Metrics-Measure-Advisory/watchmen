@@ -11,7 +11,8 @@ from watchmen_collector_kernel.service import try_lock_nowait, unlock, trigger_e
 	trigger_event_by_schedule
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_trigger_event_service, \
 	get_trigger_model_service, get_trigger_table_service, get_change_data_record_service, get_change_data_json_service, \
-	get_trigger_module_service, get_scheduled_task_service
+	get_trigger_module_service, get_scheduled_task_service, get_change_data_record_history_service, \
+	get_change_data_json_history_service, get_scheduled_task_history_service
 from watchmen_collector_surface.settings import ask_monitor_event_wait
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
 from watchmen_utilities import ArrayHelper
@@ -47,12 +48,21 @@ class CollectorEventListener:
 		self.data_record_service = get_change_data_record_service(self.storage,
 		                                                          self.snowflake_generator,
 		                                                          self.principal_service)
+		self.data_record_history_service = get_change_data_record_history_service(self.storage,
+		                                                                          self.snowflake_generator,
+		                                                                          self.principal_service)
 		self.data_json_service = get_change_data_json_service(self.storage,
 		                                                      self.snowflake_generator,
 		                                                      self.principal_service)
+		self.data_json_history_service = get_change_data_json_history_service(self.storage,
+		                                                                      self.snowflake_generator,
+		                                                                      self.principal_service)
 		self.scheduled_task_service = get_scheduled_task_service(self.storage,
 		                                                         self.snowflake_generator,
 		                                                         self.principal_service)
+		self.scheduled_task_history_service = get_scheduled_task_history_service(self.storage,
+		                                                                         self.snowflake_generator,
+		                                                                         self.principal_service)
 		self.tenant_service = TenantService(self.principal_service)
 
 	def create_thread(self, scheduler=None) -> None:
@@ -205,11 +215,19 @@ class CollectorEventListener:
 	def get_executing_trigger_event(self, tenant: Tenant) -> Optional[TriggerEvent]:
 		return self.trigger_event_service.find_executing_event_by_tenant_id(tenant.tenantId)
 
+	def is_event_failed(self, event: TriggerEvent) -> bool:
+		return len(self.data_record_history_service.find_by_event_trigger_id_and_tenant_id(
+			event.eventTriggerId, event.tenantId, 1, Status.FAIL.value)) > 0 or \
+			len(self.data_json_history_service.find_by_event_trigger_id_and_tenant_id(
+				event.eventTriggerId, event.tenantId, 1, Status.FAIL.value)) > 0 or \
+			len(self.scheduled_task_history_service.find_by_event_trigger_id_and_tenant_id(
+				event.eventTriggerId, event.tenantId, 1, Status.FAIL.value)) > 0
+
 	def check_finished(self, event: TriggerEvent):
 		if self.is_all_modules_finished(event) and self.is_all_records_merged(
 				event) and self.is_all_json_posted(event) and self.is_all_tasks_finished(event):
 			event.isFinished = True
-			event.status = Status.SUCCESS.value
+			event.status = Status.FAIL.value if self.is_event_failed(event) else Status.SUCCESS.value
 			self.trigger_event_service.update_trigger_event(event)
 
 	def process_trigger_event(self, tenant: Tenant):

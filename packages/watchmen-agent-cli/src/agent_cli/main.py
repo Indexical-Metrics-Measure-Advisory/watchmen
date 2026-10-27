@@ -10,6 +10,7 @@ from importlib.metadata import PackageNotFoundError, version as package_version
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
+from agent_cli.collector_commands import DISCOVER_COMMANDS as COLLECTOR_DISCOVER_COMMANDS, register_argparse as register_collector_commands
 from agent_cli.exceptions import AgentCliException
 from agent_cli.http_client import RestClient
 from agent_cli.settings import settings
@@ -65,6 +66,7 @@ DISCOVER_COMMANDS = {
     "config": ["--vault"],
     "discover": [],
 }
+DISCOVER_COMMANDS.update(COLLECTOR_DISCOVER_COMMANDS)
 
 
 def get_cli_version() -> str:
@@ -115,6 +117,7 @@ def build_parser() -> argparse.ArgumentParser:
     register_semantic_commands(subparsers)
     register_metric_commands(subparsers)
     register_ingest_commands(subparsers)
+    register_collector_commands(subparsers)
     register_datasource_commands(subparsers)
     register_ontology_commands(subparsers)
     register_tenant_command(subparsers)
@@ -626,7 +629,8 @@ def register_ingest_commands(subparsers: argparse._SubParsersAction) -> None:
 
 def register_datasource_commands(subparsers: argparse._SubParsersAction) -> None:
     datasource_parser = create_subparser(subparsers, "datasource", "DataSource list commands")
-    datasource_list_remote = create_subparser(datasource_parser, "list-remote", "List all data sources on server")
+    datasource_sub = datasource_parser.add_subparsers(dest="datasource_cmd", required=True)
+    datasource_list_remote = create_subparser(datasource_sub, "list-remote", "List all data sources on server")
     add_vault_arg(datasource_list_remote)
     datasource_list_remote.set_defaults(handler=handle_datasource_list_remote)
 

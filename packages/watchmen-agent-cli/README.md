@@ -1,8 +1,8 @@
 # Watchmen Agent CLI
 
-Watchmen Agent CLI is a tool for syncing Topics, Pipelines, Enums, MetricFlow Semantics, and Metrics between a **local vault** and the **Watchmen server**. It is designed for daily data development, configuration migration, and AI-assisted automation workflows.
+Watchmen Agent CLI is a tool for syncing Topics, Pipelines, Enums, MetricFlow Semantics, Metrics, Ingestion configs, and Virtual Ontologies between a **local vault** and the **Watchmen server**. It also runs Collector events, diagnoses execution failures, and performs explicitly controlled Pipeline retries. It is designed for daily data development, configuration migration, operations, and AI-assisted automation workflows.
 
-It also ships with a reusable Agent Skill (`agent-cli`) that lets AI directly perform pull, push, dependency sync, and remote listing operations within a conversation.
+It also ships with a reusable Agent Skill (`agent-cli`) that lets AI directly perform sync, Collector operations, and remote listing within a conversation.
 
 ## Core Capabilities
 
@@ -12,7 +12,10 @@ It also ships with a reusable Agent Skill (`agent-cli`) that lets AI directly pe
 - MetricFlow Semantic Model YAML sync (pull by name, push single file, remote listing)
 - MetricFlow Metric YAML sync (pull by name, push single file, remote listing)
 - Ingest Table/Model/Module YAML sync (pull all, push single file, remote listing)
-- Batch pull all modules with `pull --all`
+- Virtual Ontology YAML sync through the standalone `ontology` command group
+- Batch pull all modules with `pull --all` (Ontology remains separate)
+- Collector model/table/record triggers, optional waiting, status, logs, and diagnosis
+- Reviewable fix plans, confirmed Pipeline reruns, guarded event retries, and local call logs
 - Automatic multi-entity dependency resolution:
   - Pipelines depend on Topics
   - Topics depend on Enums via `enumId`
@@ -91,6 +94,26 @@ poetry run agent-cli push --target topic --vault ./my_vault
   - `agent-cli metric push-file <file_path> --vault <vault>`
   - `agent-cli metric list --vault <vault>`
   - `agent-cli metric list-remote --vault <vault>`
+- Collector
+  - `agent-cli collector run --model "<model_name>" --start-time <time> --end-time <time> --wait --vault <vault>`
+  - `agent-cli collector run --table "<table_name>" --start-time <time> --end-time <time> [--pipeline "<pipeline_name>"] --wait --vault <vault>`
+  - `agent-cli collector run --table "<table_name>" --records-file <json_path> --wait --vault <vault>`
+  - `agent-cli collector status|logs|diagnose <event_trigger_id> --vault <vault>`
+  - `agent-cli collector fix-plan <event_trigger_id> --output <plan_path> --vault <vault>`
+  - `agent-cli collector apply-plan <plan_path> --yes --vault <vault>`
+  - `agent-cli collector retry <event_trigger_id> --yes --wait --vault <vault>`
+  - `agent-cli collector calls [--correlation-id <id>] [--limit N] --vault <vault>`
+
+## Collector Operations and Safety
+
+A model or table time-window trigger needs both times. A record trigger needs `--table` and a JSON object or non-empty array of objects. Without `--wait`, `run` returns after triggering; with it, the CLI waits for the finished event and adds a diagnosis. `logs` includes linked Pipeline logs by default (`--no-pipeline-logs` disables them; `--errors-only` filters them).
+
+- `fix-plan` writes a reviewable JSON plan. `apply-plan --yes` validates its host, event ID, current diagnosis hash, and single eligible Pipeline retry before rerunning and waiting on the returned `traceId`.
+- `retry --yes` creates a **new** Collector event. It blocks unfinished events, truncated execution evidence, events with any successful Pipeline execution (partial-success protection), and events where any task record lacks traceable `task.result.traceLinks`. Track the returned `newEventTriggerId`.
+- `run --wait --auto-fix safe` only reruns a **unique failed Pipeline** with untruncated execution detail and complete `topicId`/`dataId`/`pipelineId` evidence when every diagnosed issue is `TRANSIENT_INFRASTRUCTURE`. Configuration and unknown errors remain `manualActions`; there is no general LLM automatic repair or configuration rewrite.
+- `correlationId` groups CLI calls (`collector calls`), `eventTriggerId` identifies a Collector event, and `traceId` identifies a Pipeline execution. They are not interchangeable.
+
+See `skills/agent-cli/references/collector-operations.md` for the full workflow. After operational recovery, use `agent-runtime-cli` for Metric/Ontology queries and eval; this CLI does not provide a unified Durable Runtime, Lambda support, or cross-resource atomic builds.
 
 ## How It Works with the Skill
 
@@ -121,7 +144,7 @@ Skill definition:
 - CLI entry point error
   - Try `poetry run python -m agent_cli.main ...`
 - Push new Topic returns 500
-  - Use a fake id (`f-` prefix) or an empty id for new Topics/Factors to let the server regenerate them
+  - Use the no-id agent YAML view: omit `topicId` and `factorId`, keep business names, and do not invent `f-` placeholder IDs
 
 ## Development Layout
 

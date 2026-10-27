@@ -7,19 +7,45 @@ from watchmen_data_kernel.storage import TopicTrigger
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin
 from watchmen_model.admin import PipelineTriggerType
 from watchmen_model.common import PipelineId
-from watchmen_model.pipeline_kernel import PipelineTriggerData, TopicDataColumnNames
+from watchmen_model.pipeline_kernel import MonitorLogStatus, PipelineTriggerData, TopicDataColumnNames
+from watchmen_pipeline_kernel.common import PipelineKernelException
 from watchmen_pipeline_kernel.pipeline import create_monitor_log_pipeline_invoker, PipelineTrigger
 
 logger = getLogger(__name__)
 
 
-async def handle_trigger_data(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger, pipeline_id: Optional[PipelineId] = None) -> str:
+def ask_monitor_error(monitor_log) -> Optional[str]:
+	if monitor_log.error:
+		return monitor_log.error
+	for stage in monitor_log.stages or []:
+		for unit in stage.units or []:
+			for action in unit.actions or []:
+				if action.error:
+					return action.error
+	return None
+
+
+async def handle_trigger_data(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger,
+                              pipeline_id: Optional[PipelineId] = None, trace_id: Optional[str] = None) -> str:
 	# use super admin
 	principal_service = ask_super_admin()
 	# change the tenant_id
 	principal_service.tenantId = trigger_data.tenantId
 	schema = TopicService(principal_service).find_schema_by_name(trigger_data.code, trigger_data.tenantId)
-	trace_id = str(ask_snowflake_generator().next_id())
+	if trace_id is None:
+		trace_id = str(ask_snowflake_generator().next_id())
+	monitor_log_invoker = create_monitor_log_pipeline_invoker(trace_id, principal_service)
+	monitor_statuses = []
+	monitor_errors = []
+
+	def capture_monitor_status(monitor_log, asynchronized):
+		monitor_statuses.append(monitor_log.status)
+		if monitor_log.status == MonitorLogStatus.ERROR:
+			error = ask_monitor_error(monitor_log)
+			if error:
+				monitor_errors.append(error)
+		monitor_log_invoker(monitor_log, asynchronized)
+
 	await PipelineTrigger(
 		trigger_topic_schema=schema,
 		trigger_type=trigger_data.triggerType,
@@ -27,8 +53,11 @@ async def handle_trigger_data(trigger_data: PipelineTriggerData, topic_trigger: 
 		trace_id=trace_id,
 		principal_service=principal_service,
 		asynchronized=False,
-		handle_monitor_log=create_monitor_log_pipeline_invoker(trace_id, principal_service)
+		handle_monitor_log=capture_monitor_status
 	).start(topic_trigger, pipeline_id)
+	if any(status == MonitorLogStatus.ERROR for status in monitor_statuses):
+		detail = '\n'.join(monitor_errors) if monitor_errors else 'Unknown pipeline error.'
+		raise PipelineKernelException(f'Pipeline failed, traceId={trace_id}.\n{detail}')
 	return trace_id
 
 
@@ -46,18 +75,20 @@ def save_topic_data(trigger_data: PipelineTriggerData) -> TopicTrigger:
 	return service.trigger_by_insert(data)
 
 
-async def pipeline_data(topic_code: str, data: Dict, tenant_id: str) -> str:
+async def pipeline_data(topic_code: str, data: Dict, tenant_id: str, trace_id: Optional[str] = None) -> str:
 	trigger_data = PipelineTriggerData(code=topic_code, data=data, tenantId=tenant_id)
 	topic_trigger = save_topic_data(trigger_data)
-	return await trigger_pipeline(trigger_data, topic_trigger)
+	return await trigger_pipeline(trigger_data, topic_trigger, trace_id)
 	
 
 # noinspection PyMethodMayBeStatic
-async def trigger_pipeline(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger) -> str:
-	return await handle_trigger_data(trigger_data, topic_trigger)
+async def trigger_pipeline(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger,
+                           trace_id: Optional[str] = None) -> str:
+	return await handle_trigger_data(trigger_data, topic_trigger, trace_id=trace_id)
 
 
-async def run_pipeline(topic_code: str, data: Dict, tenant_id: str,  pipeline_id: PipelineId) -> str:
+async def run_pipeline(topic_code: str, data: Dict, tenant_id: str, pipeline_id: PipelineId,
+                       trace_id: Optional[str] = None) -> str:
 	trigger_data = PipelineTriggerData(code=topic_code, data=data, tenantId=tenant_id)
 	topic_trigger = TopicTrigger(
 		previous=None,
@@ -65,7 +96,7 @@ async def run_pipeline(topic_code: str, data: Dict, tenant_id: str,  pipeline_id
 		triggerType=PipelineTriggerType.INSERT,
 		internalDataId=data.get(TopicDataColumnNames.ID.value)
 	)
-	return await handle_trigger_data(trigger_data, topic_trigger, pipeline_id)
+	return await handle_trigger_data(trigger_data, topic_trigger, pipeline_id, trace_id)
 
 
 

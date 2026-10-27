@@ -279,13 +279,51 @@ For write-row style actions, action-level `topicName` is the target topic. `mapp
       factorName: source_value
 ```
 
-### Read Factor
+### Cross-Topic Read and Mapping
+
+When several target fields come from the same non-trigger Topic, prefer one `read-row` and map its fields. Do not issue a separate `read-factor` for every field unless each field has a different lookup condition or aggregation requirement.
+
+Use `<topicName>_row` for a read-row variable. In write mapping, reference its fields with `kind: constant` and `{<topicName>_row.<factorName>}`:
+
+```yaml
+- type: read-row
+  topicName: lookup_topic
+  variableName: lookup_topic_row
+  by:
+      jointType: and
+      filters:
+          - left:
+                kind: topic
+                topicName: lookup_topic
+                factorName: lookup_code
+            operator: equals
+            right:
+                kind: topic
+                topicName: source_topic
+                factorName: source_code
+- type: insert-or-merge-row
+  topicName: target_topic
+  accumulateMode: standard
+  mapping:
+      - factorName: target_value
+        arithmetic: none
+        source:
+            kind: constant
+            value: "{lookup_topic_row.lookup_value}"
+      - factorName: target_label
+        arithmetic: none
+        source:
+            kind: constant
+            value: "{lookup_topic_row.lookup_label}"
+```
+
+For a single-field lookup, `read-factor` is acceptable. Its `variableName` must combine the source Topic and Factor as `<topicName>_<factorName>`, making the origin explicit. Use the variable directly as a constant in mapping, not as a `kind: topic` reference:
 
 ```yaml
 - type: read-factor
   topicName: lookup_topic
   factorName: lookup_value
-  variableName: lookupValue
+  variableName: lookup_topic_lookup_value
   arithmetic: none
   by:
       jointType: and
@@ -299,6 +337,15 @@ For write-row style actions, action-level `topicName` is the target topic. `mapp
                 kind: topic
                 topicName: source_topic
                 factorName: source_code
+- type: insert-or-merge-row
+  topicName: target_topic
+  accumulateMode: standard
+  mapping:
+      - factorName: target_value
+        arithmetic: none
+        source:
+            kind: constant
+            value: "{lookup_topic_lookup_value}"
 ```
 
 ### Copy To Memory

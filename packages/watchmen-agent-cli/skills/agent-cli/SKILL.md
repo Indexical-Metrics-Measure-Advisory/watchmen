@@ -1,6 +1,6 @@
 ---
 name: agent-cli
-description: Synchronizes Watchmen metadata (topic/pipeline/enum/semantic/metric/ingest/ontology) via CLI+REST. Invoke for init, pull/push, list-remote, pull by name/id, and YAML sync.
+description: Synchronizes Watchmen metadata and operates Collector executions via CLI+REST. Invoke for init, YAML pull/push, remote listing, Collector run/status/logs/diagnose, controlled fix plans and retries, and local call tracing.
 ---
 
 # Agent CLI for Watchmen
@@ -10,7 +10,7 @@ Thin orchestration layer for `agent-cli`. Keep this file concise; load detailed 
 ## Skill Layout
 
 - `SKILL.md`: invocation rules and execution flow.
-- `references/`: command catalog, dependency model, troubleshooting, source-of-truth notes.
+- `references/`: command catalog, Collector operations, dependency model, troubleshooting, source-of-truth notes.
 - `assets/`: reusable templates and examples.
 
 ## When To Invoke
@@ -20,6 +20,9 @@ Thin orchestration layer for `agent-cli`. Keep this file concise; load detailed 
 - User asks to list remote metadata or pull data sources.
 - User asks to pull by name/id, or push local YAML files.
 - User asks to create a raw topic from a collector model (generate Topic YAML from Ingestion model).
+- User asks to trigger a Collector model, table time window, or table records, optionally with `--wait`.
+- User asks to inspect Collector status/logs/diagnosis, create or apply a fix plan, retry an event, or inspect CLI calls.
+- After Collector recovery, hand Metric/Ontology correctness checks and eval execution to the `agent-runtime-cli` skill.
 
 ## Critical Rules
 
@@ -27,10 +30,13 @@ Thin orchestration layer for `agent-cli`. Keep this file concise; load detailed 
 - **Topic/Pipeline/Ontology Agent YAML**: Topic, Pipeline, and Ontology YAML are no-id agent views. Do NOT include `topicId`, `factorId`, `pipelineId`, `stageId`, `unitId`, `actionId`, `ontologyId`, internal object/link IDs, `tenantId`, or `version`. Use `name` as the local file index. → `references/source-of-truth.md`
 - **Topic datasource**: use `dataSourceCode` (not `dataSourceId`) in topic YAML. If unknown, run `datasource list-remote` or ASK the user. → `references/source-of-truth.md`
 - **Pipeline references**: use `sourceTopicName`, `topicName`, and `factorName` instead of `topicId` / `factorId`. → `references/pipeline-development.md`
+- **Cross-topic mapping**: when mapping multiple fields from another Topic, prefer one `read-row` over repeated `read-factor` actions. For a single-field `read-factor`, name the variable `<topicName>_<factorName>`. Reference read variables in `mapping[].source` with `kind: constant` and `{variable}` or `{variable.factor}` values. → `references/pipeline-development.md`
 - **Ontology references**: use `sourceObjectName` and `targetObjectName` (referencing `virtualObjects[].name`) instead of internal object IDs. → `references/source-of-truth.md`
 - **IDs**: For Topic/Pipeline/Ontology, omit IDs entirely. For legacy entities (Enum/Semantic/Metric/Ingestion), new IDs still use `null`. → `references/id-management-guide.md`
 - **Ontology scope**: Ontology sync is a standalone command group, NOT included in `pull --target all`. Use `ontology pull-name` / `push-file` / `list-remote` separately. → `references/command-catalog.md`
-- **Validation**: Run all pre-submission checks before pushing any YAML. → `references/pre-submission-validation.md`
+- **Collector confirmation**: `apply-plan` and event `retry` require `--yes`. Never bypass partial-success or untraceable-task retry guards. → `references/collector-operations.md`
+- **Safe auto-fix**: `run --auto-fix safe` only reruns one failed Pipeline when all issues are `TRANSIENT_INFRASTRUCTURE` and complete rerun evidence identifies that unique failure. Configuration errors remain `manualActions`; no general LLM repair is available.
+- **Validation**: Run all pre-submission checks before pushing any YAML or applying a repair. → `references/pre-submission-validation.md`
 - **Data Layers**: Four-layer architecture (Bronze→Silver→Gold→Datamart). → `references/data-layer-architecture.md`
 
 ## Install CLI and Init
@@ -56,11 +62,12 @@ Thin orchestration layer for `agent-cli`. Keep this file concise; load detailed 
 ## On-Demand Loading Rules
 
 - Load `references/command-catalog.md` when deciding exact command/args.
+- Load `references/collector-operations.md` before Collector triggers, diagnosis, repair, retry, or runtime handoff.
 - Load `references/dependency-chain.md` when deciding related entities to sync.
 - Load `references/troubleshooting.md` when command fails.
 - Load `references/source-of-truth.md` when generating or validating YAML/JSON payloads.
 - Load `references/pipeline-development.md` when user asks to build/modify pipeline logic.
-- Load `references/pre-submission-validation.md` before pushing any topic or pipeline YAML.
+- Load `references/pre-submission-validation.md` before pushing YAML or applying a repair.
 - Load `references/id-management-guide.md` when creating new entities with IDs.
 - Load `references/data-layer-architecture.md` when user asks about data layer design or topic naming by layer.
 - Load `assets/templates/` only when user asks to generate starter content.
@@ -71,13 +78,15 @@ Thin orchestration layer for `agent-cli`. Keep this file concise; load detailed 
 2. **Check remote** for existing entities with the same name (`list-remote`) before creating anything new.
 3. Load minimal required reference file(s).
 4. Resolve prerequisites (`--vault`, auth, host).
-5. Execute smallest safe command.
-6. Return structured JSON result summary.
-7. If failure occurs, load troubleshooting reference and retry with fix.
+5. Execute smallest safe command; obtain `--yes` for confirmed repair/retry and never weaken safety guards.
+6. Return structured JSON result summary with relevant `correlationId`, `eventTriggerId`, and `traceId` kept distinct.
+7. If failure occurs, load troubleshooting reference; do not blindly retry partial or untraceable executions.
+8. If Metric/Ontology eval is required next, hand off to `agent-runtime-cli`.
 
 ## Scope
 
 - Supported entities: Topic, Pipeline, Enum, MetricFlow Semantic Model, MetricFlow Metric, Ingestion Module/Model/Table, Virtual Ontology, DataSource.
-- Supported actions: pull, push, list, list-remote, pull by name/id, push local YAML files, create raw topic from ingestion model.
-- Protocol: YAML for topic/pipeline/enum/ingestion/ontology.
+- Supported actions: pull, push, list, list-remote, pull by name/id, push local YAML files, create raw topic from ingestion model, Collector run/status/logs/diagnose, fix-plan/apply-plan, guarded retry, and call-ledger reads.
+- Protocol: YAML for metadata sync; JSON for Collector results and fix plans.
 - Outputs: JSON summaries suitable for agent chaining.
+- Exclusions: general LLM automatic repair, unified Durable Runtime, Lambda execution, cross-resource atomic builds, and Metric/Ontology eval (use `agent-runtime-cli`).

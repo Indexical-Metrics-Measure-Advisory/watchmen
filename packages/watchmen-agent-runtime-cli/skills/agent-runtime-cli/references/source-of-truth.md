@@ -62,3 +62,15 @@
 ## Output
 - Successful commands print formatted JSON to stdout (`ontology meta` prints raw YAML).
 - Errors print plain text to stderr.
+
+## Eval and Local Evidence
+- Data-plane calls append JSON lines to `<vault>/.agent-runtime-cli/query-log.jsonl`; `eval log` reads this runtime ledger.
+- `eval run` executes local golden-set orchestration over Metric and Ontology queries. Each question receives `eval-<runId>-<questionId>` as its correlation ID.
+- Reports are written to `<vault>/eval-reports/report-<runId>.md`. Exit code 0 means all questions passed; exit code 2 means at least one failed.
+- Runtime `correlationId` groups runtime calls. It is not a Collector `eventTriggerId` or Pipeline `traceId`; the latter two arrive only as external handoff context from `agent-cli`.
+
+## Collector Handoff Boundary
+- `agent-cli` owns Collector triggers, diagnosis, fix plans, and guarded retries. This CLI owns subsequent Metric/Ontology queries and eval; it does not execute Collector repair or read Collector fix plans.
+- Preserve Collector event/trace/correlation identifiers and diagnosis as handoff evidence, but resolve Metric names, Ontology IDs, and VirtualObject IDs through this CLI before querying.
+- The runtime vault and query ledger are separate from the `agent-cli` vault and ledger. Eval generates its own correlation IDs rather than inheriting the Collector correlation ID.
+- This handoff does not imply a unified Durable Runtime, Lambda support, general LLM automatic repair, or cross-resource atomic builds.

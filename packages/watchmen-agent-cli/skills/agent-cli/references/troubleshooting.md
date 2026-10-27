@@ -43,65 +43,39 @@
       parentName: CustomerOrder
     ```
 
-## Pipeline push failed: Column 'topic_id' cannot be null
-   - Symptom: Server returns `(1048, "Column 'topic_id' cannot be null")` when pushing a Pipeline YAML.
-   - Cause: Pipeline YAML is missing the `topicId` field at the **root level**, which the server uses to link the pipeline to its source topic.
-   - **CRITICAL**: The `topicId` field MUST be at the root level of the YAML (same level as `name`, `type`, `tenantId`, etc.), NOT inside `stages`.
-   - Fix:
-     - Add `topicId` at the root level pointing to the **source topic** (not target topic).
-     - Example correct structure:
-       ```yaml
-       version: 1
-       createdAt: '2026-05-15T16:45:00'
-       createdBy: '1486435408748227584'
-       tenantId: '1486434545505938432'
-       # topicId MUST be at root level (source topic)
-       topicId: '1504877556737592320'
-       name: ETL CRM Customer to Customer
-       type: insert-or-merge
-       enabled: true
-       sourceTopicId: '1504877556737592320'   # source topic id
-       targetTopicId: '1504879695669054464'  # target topic id
-       stages:
-         - stageId: etl-customer-s-1
-           name: ETL Stage 1
-           units:
-             - unitId: etl-u-1
-               name: ETL Unit 1
-               do:
-                 - actionId: etl-a-1
-                   type: insert-row
-                   topicId: '1504879695669054464'  # target topic id
-                   accumulateMode: standard
-                   mapping:
-                     - source:
-                         kind: topic
-                         topicId: '1504877556737592320'  # source topic id
-                         factorId: 'source_factor_id'
-                       factorId: 'target_factor_id'
-       ```
+## Pipeline push failed: missing source Topic or duplicate Pipeline
+- Agent Pipeline YAML uses root `sourceTopicName`, not `topicId` or `sourceTopicId`. The source Topic must already exist and the name must match exactly.
+- Updates are resolved by `pipeline.name`; keep the existing name and do not add `pipelineId`.
+- Do not reintroduce `stageId`, `unitId`, `actionId`, `topicId`, or `factorId` to fix a push error. Use `topicName` and `factorName` references instead.
+- Check remote names with `agent-cli pipeline list-remote --vault <vault>` before pushing. If duplicates already exist, remove them through the Watchmen UI; there is no CLI delete command.
 
-## Pipeline push creates duplicate instead of updating existing
-   - Symptom: After pushing a pipeline update, a new pipeline is created instead of updating the existing one.
-   - Cause: When pushing a modified pipeline, the YAML is missing the `pipelineId` field, so the server treats it as a new pipeline.
-   - Fix:
-     - When updating an existing pipeline, **keep the `pipelineId` field** in the YAML.
-     - The YAML structure should include `pipelineId` at root level to trigger an update:
-       ```yaml
-       version: 1
-       createdAt: '2026-05-15T16:45:00'
-       createdBy: '1486435408748227584'
-       lastModifiedAt: '2026-05-15T16:50:00'
-       lastModifiedBy: '1486435408748227584'
-       tenantId: '1486434545505938432'
-       pipelineId: '1504880793700092928'   # MUST exist to update
-       topicId: '1504877556737592320'      # source topic
-       name: ETL CRM Customer to Customer
-       type: insert-or-merge
-       enabled: true
-       ...
-       ```
-   - If duplicate pipelines exist, they must be manually deleted via the Watchmen UI (no CLI delete command available).
+## Collector run arguments are rejected
+Use exactly one input form:
+- Model: `--model <name> --start-time <time> --end-time <time>`.
+- Table time window: `--table <name> --start-time <time> --end-time <time>`; optionally add `--pipeline <name>`.
+- Records: `--table <name> --records-file <path>` with a JSON object or non-empty array of objects.
+Model and Pipeline names must each match exactly one remote resource. Do not combine model, table records, and time-window forms.
+
+## Collector wait times out
+The event or Pipeline may still be running. Do not immediately retry it. Re-run `collector status <event_trigger_id>` or `collector diagnose <event_trigger_id>`, and inspect `collector logs <event_trigger_id>` when needed.
+
+## Collector failure has no actionable details
+`manualActions` intentionally directs inspection of Collector task history and server logs when failure evidence is unavailable. Missing logs or an `UNKNOWN` category are not evidence that automatic repair is safe.
+
+## Safe auto-fix stops without changes
+For `run --auto-fix safe`, all of the following must hold: exactly one failed Pipeline, complete `topicId`/`dataId`/`pipelineId` rerun evidence, and an issue category set of exactly `TRANSIENT_INFRASTRUCTURE`. Configuration, authentication, permission, metadata, conversion, and unknown errors stay in `manualActions`. A failed automatic rerun also stops further attempts.
+
+## Fix plan cannot be applied
+- `apply-plan` requires `--yes`.
+- Regenerate the plan if its host or event differs from the current vault/diagnosis, or if `diagnosisHash` is stale.
+- The plan must contain exactly one eligible `retry_pipeline` action. A `manual_review` action cannot be applied.
+- A rerun response without `traceId` is not a successful recovery; inspect the server response and Pipeline logs.
+
+## Event retry is blocked
+`collector retry` requires `--yes` and a finished `FAILED`/`PARTIAL` event. It refuses to retry when any successful Pipeline execution exists (partial-success protection), or when task records exist without `task.result.traceLinks` (untraceable-task protection). Inspect the successful work or task history instead of forcing a duplicate event. A successful retry returns `newEventTriggerId`; track that new ID with `status`/`diagnose`, optionally using retry `--wait`.
+
+## Finding related Collector calls
+Use `collector calls --correlation-id <id> --vault <vault>` for the local CLI ledger. `correlationId` groups calls; it is not an `eventTriggerId` (Collector event) or `traceId` (Pipeline execution). See `references/collector-operations.md`.
 
 ## PAT can list but cannot push
 - Verify tenant and permission:

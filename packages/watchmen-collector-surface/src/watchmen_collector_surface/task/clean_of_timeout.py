@@ -149,7 +149,15 @@ class CleanOfTimeout:
 
 		def set_task_timeout(task: ScheduledTask) -> ScheduledTask:
 			task.status = Status.FAIL.value
-			task.result = "timeout"
+			if isinstance(task.result, dict):
+				result = dict(task.result)
+			elif task.result is None:
+				result = {}
+			else:
+				result = {'legacyResult': task.result}
+			result['traceLinks'] = list(result.get('traceLinks') or [])
+			result['error'] = 'timeout'
+			task.result = result
 			return task
 
 		# noinspection PyTypeChecker
@@ -160,7 +168,7 @@ class CleanOfTimeout:
 					try:
 						self.change_data_json_service.begin_transaction()
 						change_data_json.status = Status.FAIL.value
-						change_data_json.result = "timeout"
+						change_data_json.result = {'error': 'timeout'}
 						self.change_data_json_history_service.create(change_data_json)
 						# noinspection PyTypeChecker
 						self.change_data_json_service.delete(change_data_json.changeJsonId)

@@ -6,7 +6,8 @@ from watchmen_meta.common import TupleShaper, TupleService
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, TableTriggerId, Pageable, DataPage
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
-	EntityCriteriaJoint, EntityCriteriaExpression, ColumnNameLiteral, EntitySortColumn, EntitySortMethod
+	EntityCriteriaJoint, EntityCriteriaExpression, ColumnNameLiteral, EntitySortColumn, EntitySortMethod, \
+	EntityLimitedFinder
 
 
 class TriggerTableShaper(EntityShaper):
@@ -139,6 +140,24 @@ class TriggerTableService(TupleService):
 		finally:
 			self.close_transaction()
 	
+	def find_by_event_trigger_id_and_tenant_id(
+			self, event_trigger_id: int, tenant_id: str, limit: int) -> List[TriggerTable]:
+		try:
+			self.storage.connect()
+			return self.storage.find_limited(EntityLimitedFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
+					                         right=event_trigger_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+				],
+				sort=[EntitySortColumn(name='table_trigger_id', method=EntitySortMethod.ASC)],
+				limit=limit
+			))
+		finally:
+			self.storage.close()
+
 	def find_page_by_event_trigger_id(self, event_trigger_id: int, pageable: Pageable) -> DataPage:
 		try:
 			self.storage.connect()

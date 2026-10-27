@@ -17,17 +17,22 @@ class RestClient:
         username: Optional[str] = None,
         password: Optional[str] = None,
         timeout_seconds: int = 30,
+        correlation_id: Optional[str] = None,
     ) -> None:
         self.host = host.rstrip("/")
         self.pat = pat
         self.username = username
         self.password = password
         self.timeout_seconds = timeout_seconds
+        self.correlation_id = correlation_id
         self._token: Optional[str] = None
 
     def auth_header(self) -> Dict[str, str]:
         token = self._login()
-        return {"Authorization": token}
+        headers = {"Authorization": token}
+        if self.correlation_id:
+            headers["X-Correlation-Id"] = self.correlation_id
+        return headers
 
     def get_json(self, path: str, params: Optional[Dict[str, Any]] = None) -> Any:
         url = self._url(path)

@@ -51,7 +51,7 @@ class ScheduledTask(TenantBasedTuple, ExtendedBaseModel):
 	parentTaskId:  Optional[List[int]] = None
 	isFinished:  Optional[bool] = None
 	status:  Optional[int] = None
-	result:  Optional[Dict] = None
+	result:  Optional[Union[Dict, str]] = None
 	eventId:  Optional[str] = None  # Deprecated
 	eventTriggerId:  Optional[int] = None
 	pipelineId:  Optional[str] = None

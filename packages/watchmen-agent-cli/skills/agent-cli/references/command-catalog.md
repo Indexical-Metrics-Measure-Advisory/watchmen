@@ -81,3 +81,20 @@
 - `ontology push-file <file_path> --vault`
 - `ontology list --vault`
 - `ontology list-remote --vault`
+
+## Collector
+
+Trigger exactly one supported input form. Model and table time-window triggers require both times; record triggers require `--table` and a JSON object or non-empty array of objects.
+
+- `collector run --model "<model_name>" --start-time <time> --end-time <time> [--wait] [--auto-fix off|safe] [--max-fix-attempts N] [--timeout N] [--poll-interval N] --vault`
+- `collector run --table "<table_name>" --start-time <time> --end-time <time> [--pipeline "<pipeline_name>"] [--wait] [--auto-fix off|safe] [--max-fix-attempts N] [--timeout N] [--poll-interval N] --vault`
+- `collector run --table "<table_name>" --records-file <json_path> [--wait] [--auto-fix off|safe] [--max-fix-attempts N] [--timeout N] [--poll-interval N] --vault`
+- `collector status <event_trigger_id> --vault`
+- `collector logs <event_trigger_id> [--no-pipeline-logs] [--errors-only] --vault`
+- `collector diagnose <event_trigger_id> --vault`
+- `collector fix-plan <event_trigger_id> --output <plan_path> --vault`
+- `collector apply-plan <plan_path> --yes [--timeout N] [--poll-interval N] --vault`
+- `collector retry <event_trigger_id> --yes [--wait] [--timeout N] [--poll-interval N] --vault`
+- `collector calls [--correlation-id <id>] [--limit N] --vault`
+
+All Collector commands except `calls` also accept `--correlation-id`. `run` defaults to `--auto-fix off`; safe auto-fix runs only when `--wait` is present. `apply-plan` and `retry` refuse their mutations unless `--yes` is present. A waited `run`, `apply-plan`, or `retry` exits with code 2 when its final execution status is `FAILED` or `PARTIAL`; status/log inspection commands still return the observed evidence. See `references/collector-operations.md` for safety gates, output identifiers, and the runtime eval handoff.

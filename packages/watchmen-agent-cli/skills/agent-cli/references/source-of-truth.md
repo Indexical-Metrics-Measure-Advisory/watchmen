@@ -178,3 +178,16 @@ For detailed ID management rules, templates, and workflows for all entity types,
 - `joinType` candidates: `inner`, `left`, `right`, `full`.
 - YAML endpoints: `/ontology/name/yaml/agent-view`, `/ontology/yaml/agent-upsert`, `/ontology/all/yaml/agent-view`.
 - CLI sync commands are NOT part of `pull --target all`; use the standalone `ontology` command group.
+
+## Collector Execution and Repair
+
+The executable contract is `src/agent_cli/collector_commands.py`, `collector_service.py`, `diagnostics.py`, and `repair_service.py`. Operational procedures and examples are in `references/collector-operations.md`.
+
+- Trigger routes are model (`/collector/trigger/event/model`), table time window (`/collector/trigger/event/table`), table plus Pipeline (`/collector/trigger/event/pipeline`), and table records (`/collector/trigger/event/record`). A model name and optional Pipeline name must each resolve to exactly one remote resource.
+- `--wait` polls the Collector event until `isFinished`, then builds a diagnosis from execution detail and linked Pipeline logs. A timeout does not prove failure; the event may still be running.
+- Diagnosis derives `RUNNING`, `SUCCEEDED`, `COMPLETED`, `FAILED`, or `PARTIAL`; it does not substitute for the raw event status. `PARTIAL` is possible when successful and failed Pipeline evidence coexist.
+- A Pipeline retry candidate requires `topicId`, `dataId`, and `pipelineId` from one failed Pipeline log. A plan has exactly one action, plus the host, event ID, and diagnosis hash used to reject stale or cross-environment application.
+- `run --auto-fix safe` is limited to a unique failed Pipeline with complete rerun evidence and an issue category set of exactly `TRANSIENT_INFRASTRUCTURE`. It reruns that Pipeline; it does not edit configuration or perform general LLM repair. Authentication, permission, missing metadata, table/column, type-conversion, and unknown errors remain manual work through `manualActions`.
+- Event `retry` creates a new Collector event. It is blocked for unfinished events, truncated execution evidence, events with any successful Pipeline execution, and events where any active/history task lacks `task.result.traceLinks`. These guards prevent duplicate processing and unsafe retries when work cannot be traced.
+- `correlationId` groups CLI calls, `eventTriggerId` identifies a Collector event, and `traceId` identifies a Pipeline execution. They are not interchangeable; event retry returns a new event ID.
+- Metric/Ontology eval after operational recovery belongs to `agent-runtime-cli`. There is no unified Durable Runtime, Lambda execution support, or cross-resource atomic build in this command group.

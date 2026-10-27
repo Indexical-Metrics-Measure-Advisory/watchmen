@@ -1,11 +1,11 @@
 ---
 name: "agent-runtime-cli"
-description: "Queries Watchmen MetricFlow runtime APIs via CLI. Invoke when user wants runtime health checks, metric discovery, dimensions lookup, metric value/query-file execution, or ontology meta/data queries."
+description: "Queries Watchmen Metric/Ontology runtime APIs and runs golden-set eval. Invoke for runtime health, metric and ontology queries, eval run/log, and post-Collector correctness validation handed off from agent-cli."
 ---
 
 # Agent Runtime CLI
 
-This skill covers the `agent-runtime-cli` package for querying runtime MetricFlow APIs from a local terminal or automation flow.
+This skill covers the `agent-runtime-cli` package for querying runtime Metric/Ontology APIs and evaluating answer correctness from a local terminal or automation flow.
 
 ## When To Invoke
 
@@ -18,6 +18,8 @@ Invoke this skill when the user wants to:
 - run batch metric queries from a JSON file
 - discover ontology graphs (agent-view YAML or full JSON with IDs)
 - query business data through a defined ontology (filters, grouping, derived attributes)
+- run or inspect Metric/Ontology golden-question eval
+- validate Metric/Ontology results after `agent-cli` has finished Collector diagnosis or repair
 
 ## Install CLI And Init
 
@@ -37,7 +39,9 @@ Before using this skill:
 
 - Initializes a local vault and saves runtime connection config
 - Uses PAT-based authentication
-- Calls runtime endpoints under `/metricflow/*`
+- Calls Metric and Ontology runtime endpoints under `/metricflow/*`
+- Records data-plane calls and runs golden-question eval with local Markdown reports
+- Accepts post-Collector handoff context for correctness validation, while `agent-cli` retains ownership of Collector repair
 - Returns JSON output suitable for agents, scripts, and pipelines
 
 ## Vault Layout
@@ -185,6 +189,18 @@ Example question set:
   }
 ]
 ```
+
+## Post-Collector Handoff
+
+Use this skill after `agent-cli` has triggered, diagnosed, or repaired Collector work and the user still needs Metric/Ontology correctness validation.
+
+1. Carry the Collector `eventTriggerId`, Pipeline `traceId` values, source `correlationId`, diagnosis, and repair result as external evidence. They are not runtime query parameters.
+2. Initialize or select the runtime vault separately and run `health`. The runtime vault and query ledger are separate from the `agent-cli` vault and ledger.
+3. Discover current Metric/Ontology definitions, run the affected queries, and encode repeatable checks in a golden question set.
+4. Run `eval run <file>` and inspect the generated question correlation IDs with `eval log`. Eval does not inherit the Collector correlation ID.
+5. Return the report path and pass/fail summary. Hand back to `agent-cli` only if more Collector operational work is required.
+
+This is an explicit CLI/skill handoff, not a unified Durable Runtime. It does not add Lambda support, general LLM automatic repair, or cross-resource atomic builds.
 
 ## Ontology Notes
 

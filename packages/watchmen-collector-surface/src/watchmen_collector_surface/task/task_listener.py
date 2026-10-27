@@ -24,11 +24,11 @@ logger.setLevel(logging.ERROR)
 class TaskExecutorSPI(ABC):
 
     @abstractmethod
-    async def process_scheduled_task(self, task: ScheduledTask) -> ScheduledTask:
+    async def process_scheduled_task(self, task: ScheduledTask, trace_id: Optional[str] = None) -> str:
         pass
 
     @abstractmethod
-    async def executing_task(self, task: ScheduledTask):
+    async def executing_task(self, task: ScheduledTask, trace_id: Optional[str] = None) -> str:
         pass
 
 
@@ -37,22 +37,22 @@ class TaskExecutor(TaskExecutorSPI):
     def __init__(self, task_service: TaskService):
         self.task_service = task_service
     
-    async def process_scheduled_task(self, task: ScheduledTask):
-        await self.executing_task(task)
+    async def process_scheduled_task(self, task: ScheduledTask, trace_id: Optional[str] = None) -> str:
+        return await self.executing_task(task, trace_id)
     
     @abstractmethod
-    async def executing_task(self, task: ScheduledTask):
+    async def executing_task(self, task: ScheduledTask, trace_id: Optional[str] = None) -> str:
         pass
 
 
 class DataTaskExecutor(TaskExecutor):
-    async def executing_task(self, task: ScheduledTask):
-       await pipeline_data(task.topicCode, task.content, task.tenantId)
+    async def executing_task(self, task: ScheduledTask, trace_id: Optional[str] = None) -> str:
+       return await pipeline_data(task.topicCode, task.content, task.tenantId, trace_id)
     
        
 class PipelineTaskExecutor(TaskExecutor):
-    async def executing_task(self, task: ScheduledTask):
-        await run_pipeline(task.topicCode, task.content, task.tenantId, task.pipelineId)
+    async def executing_task(self, task: ScheduledTask, trace_id: Optional[str] = None) -> str:
+        return await run_pipeline(task.topicCode, task.content, task.tenantId, task.pipelineId, trace_id)
 
 
 def get_task_executor(task_service: TaskService, task: ScheduledTask) -> TaskExecutorSPI:
@@ -126,8 +126,30 @@ class TaskListener:
                 break
             else:
                 run(self.process_task_with_change_data_json(unfinished_task))
-    
+
+    # noinspection PyMethodMayBeStatic
+    def get_task_result(self, result) -> Dict:
+        if isinstance(result, dict):
+            task_result = dict(result)
+        elif result is None:
+            task_result = {}
+        else:
+            task_result = {'legacyResult': result}
+        trace_links = task_result.get('traceLinks')
+        task_result['traceLinks'] = list(trace_links) if isinstance(trace_links, list) else []
+        return task_result
+
+    # noinspection PyMethodMayBeStatic
+    def create_trace_link(self, change_json_id: int, trace_id: Optional[str], status: int,
+                          error: Optional[str] = None) -> Dict:
+        trace_link = {'changeJsonId': change_json_id, 'traceId': trace_id, 'status': status}
+        if error is not None:
+            trace_link['error'] = error
+        return trace_link
+
     async def process_task_with_change_data_json(self, unfinished_task: ScheduledTask):
+        task_result = self.get_task_result(unfinished_task.result)
+        trace_links = task_result['traceLinks']
         try:
             finished_json_ids = []
             for change_json_id in unfinished_task.changeJsonIds:
@@ -136,17 +158,26 @@ class TaskListener:
                     if self.is_duplicated(change_json):
                         self.delete_change_json(change_json)
                     else:
-                        await self.process_sub_tasks(unfinished_task, change_json)
+                        trace_id = str(self.snowflake_generator.next_id())
+                        try:
+                            await self.process_sub_tasks(unfinished_task, change_json, trace_id)
+                            trace_links.append(self.create_trace_link(
+                                change_json_id, trace_id, Status.SUCCESS.value))
+                        except Exception:
+                            trace_links.append(self.create_trace_link(
+                                change_json_id, trace_id, Status.FAIL.value, format_exc()))
+                            raise
                         self.update_change_json_result(change_json, Status.SUCCESS.value)
                         finished_json_ids.append(change_json.changeJsonId)
 
-            finished_task = self.update_task_status(unfinished_task, Status.SUCCESS.value)
+            finished_task = self.update_task_status(unfinished_task, Status.SUCCESS.value, task_result)
             self.handle_execution_result(finished_task)
         except Exception as e:
             logger.error(e, exc_info=True, stack_info=True)
             unfinished_json_ids = [change_json_id for change_json_id in unfinished_task.changeJsonIds if change_json_id not in finished_json_ids]
             self.handle_unfinished_change_json(unfinished_json_ids)
-            finished_task = self.update_task_status(unfinished_task, Status.FAIL.value, format_exc())
+            task_result['error'] = format_exc()
+            finished_task = self.update_task_status(unfinished_task, Status.FAIL.value, task_result)
             self.handle_execution_result(finished_task)
 
     def is_duplicated(self, change_data_json: ChangeDataJson) -> bool:
@@ -166,13 +197,14 @@ class TaskListener:
                 logger.error(e, exc_info=True, stack_info=True)
 
     # noinspection PyMethodMayBeStatic
-    def update_task_status(self, task: ScheduledTask, status: int, result: str = None) -> ScheduledTask:
+    def update_task_status(self, task: ScheduledTask, status: int, result: Dict = None) -> ScheduledTask:
         task.isFinished = True
         task.status = status
         task.result = result
         return task
 
-    async def process_sub_tasks(self, sub_task: ScheduledTask, change_data_json: ChangeDataJson):
+    async def process_sub_tasks(self, sub_task: ScheduledTask, change_data_json: ChangeDataJson,
+                                trace_id: Optional[str] = None):
         def get_content(change_json: ChangeDataJson) -> Optional[Dict]:
             if sub_task.type == TaskType.RUN_PIPELINE.value:
                 if "data_" in change_json.content:
@@ -184,7 +216,7 @@ class TaskListener:
 
         sub_task.content = get_content(change_data_json)
         task_executor = get_task_executor(self.task_service, sub_task)
-        await task_executor.process_scheduled_task(sub_task)
+        return await task_executor.process_scheduled_task(sub_task, trace_id)
 
     # noinspection PyTypeChecker
     def get_change_data_json(self, change_json_id: int) -> ChangeDataJson:

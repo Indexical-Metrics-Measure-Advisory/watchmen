@@ -6,6 +6,7 @@ from typing import Callable, Optional
 
 import typer
 
+from agent_cli.collector_commands import register_typer as register_collector_commands
 from agent_cli.exceptions import AgentCliException
 from agent_cli.main import (
     get_cli_version,
@@ -525,6 +526,9 @@ def ontology_list_remote_command(
     vault: Optional[str] = typer.Option(None, "--vault"),
 ) -> None:
     _run_with_guard(ctx, lambda: handle_ontology_list_remote(_namespace(vault=vault)))
+
+
+register_collector_commands(app, _run_with_guard)
 
 
 def run() -> None:

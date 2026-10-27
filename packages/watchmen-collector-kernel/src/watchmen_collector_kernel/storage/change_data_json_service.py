@@ -382,6 +382,28 @@ class ChangeDataJsonService(TupleService):
 		finally:
 			self.close_transaction()
 
+	def find_by_event_trigger_id_and_tenant_id(
+			self, event_trigger_id: int, tenant_id: str, limit: int,
+			status: Optional[int] = None) -> List[ChangeDataJson]:
+		criteria = [
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
+			                         right=event_trigger_id),
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+		]
+		if status is not None:
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=status))
+		try:
+			self.storage.connect()
+			return self.storage.find_limited(EntityLimitedFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=criteria,
+				sort=[EntitySortColumn(name='change_json_id', method=EntitySortMethod.ASC)],
+				limit=limit
+			))
+		finally:
+			self.storage.close()
+
 	def count_change_data_json(self, event_trigger_id: int) -> int:
 		return self.storage.count(self.get_entity_finder(
 			criteria=[
