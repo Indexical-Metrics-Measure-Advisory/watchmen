@@ -4,7 +4,6 @@ import {doFetch, getServiceHost} from './utils';
 export const Apis = {
 	LOGIN_CONFIG: 'auth/config',
 	LOGIN: 'login',
-	LOGOUT: 'logout',
 	EXCHANGE_SAML2_TOKEN: 'token/exchange-saml',
 	EXCHANGE_OIDC_TOKEN: 'token/exchange-oidc',
 

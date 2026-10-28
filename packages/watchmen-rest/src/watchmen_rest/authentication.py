@@ -1,4 +1,3 @@
-from calendar import timegm
 from datetime import datetime, timedelta
 from logging import getLogger
 from typing import Callable, List, Optional, Tuple, Dict
@@ -20,8 +19,7 @@ logger = getLogger(__name__)
 
 
 def create_jwt_token(subject: str, expires_delta: timedelta, secret_key: str, algorithm: str) -> str:
-	now = datetime.now()
-	to_encode = {'exp': now + expires_delta, 'iat': now, 'sub': subject}
+	to_encode = {'exp': datetime.now() + expires_delta, 'sub': subject}
 	encoded_jwt = encode(to_encode, secret_key, algorithm=algorithm)
 	return encoded_jwt
 
@@ -31,17 +29,6 @@ def validate_jwt(token, secret_key: str, algorithm: str):
 		return decode(token, secret_key, algorithms=[algorithm])
 	except (JWTError, ValidationError):
 		raise AuthFailOn401('Unauthorized caused by unrecognized token.')
-
-
-def is_token_issued_before(issued_at, moment: Optional[datetime]) -> bool:
-	"""
-	compare the numeric iat claim of a token with a naive datetime.
-	iat is encoded by jose from a naive datetime with utctimetuple,
-	so the same convention is used here to keep both sides on the same wall clock
-	"""
-	if moment is None:
-		return False
-	return issued_at < timegm(moment.utctimetuple())
 
 
 class JWTAuthenticationProvider(AuthenticationProvider):
@@ -58,20 +45,7 @@ class JWTAuthenticationProvider(AuthenticationProvider):
 			token = details.token
 			payload = validate_jwt(token, self.secretKey, self.algorithm)
 			username = payload['sub']
-			issued_at = payload.get('iat')
-			if issued_at is None:
-				# every token issued by this platform carries an iat claim,
-				# a token without it is either forged or issued before iat validation was deployed
-				return None
-			# noinspection PyTypeChecker
-			user: Optional[User] = self.find_user_by_name(username)
-			if user is None:
-				return None
-			if is_token_issued_before(issued_at, user.lastModifiedAt):
-				# token was issued before the last update of the user,
-				# e.g. a password change or a logout, thus must be rejected
-				return None
-			return user
+			return self.find_user_by_name(username)
 		except AuthFailOn401 as e:
 			logger.error(e, exc_info=True, stack_info=True)
 			return None
