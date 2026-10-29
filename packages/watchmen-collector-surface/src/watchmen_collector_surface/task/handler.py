@@ -87,15 +87,28 @@ async def trigger_pipeline(trigger_data: PipelineTriggerData, topic_trigger: Top
 	return await handle_trigger_data(trigger_data, topic_trigger, trace_id=trace_id)
 
 
-async def run_pipeline(topic_code: str, data: Dict, tenant_id: str, pipeline_id: PipelineId,
-                       trace_id: Optional[str] = None) -> str:
-	trigger_data = PipelineTriggerData(code=topic_code, data=data, tenantId=tenant_id)
+def build_topic_data(trigger_data: PipelineTriggerData) -> TopicTrigger:
+	# use super admin
+	principal_service = ask_super_admin()
+	# change the tenant_id
+	principal_service.tenantId = trigger_data.tenantId
+	schema = TopicService(principal_service).find_schema_by_name(trigger_data.code, trigger_data.tenantId)
+	if schema is None:
+		raise Exception("schema is not not found. %s, %s", trigger_data.code, trigger_data.tenantId)
+	data = schema.prepare_data(trigger_data.data, principal_service)
 	topic_trigger = TopicTrigger(
 		previous=None,
 		current=data,
 		triggerType=PipelineTriggerType.INSERT,
 		internalDataId=data.get(TopicDataColumnNames.ID.value)
 	)
+	return topic_trigger
+
+
+async def run_pipeline(topic_code: str, data: Dict, tenant_id: str, pipeline_id: PipelineId,
+                       trace_id: Optional[str] = None) -> str:
+	trigger_data = PipelineTriggerData(code=topic_code, data=data, tenantId=tenant_id)
+	topic_trigger = build_topic_data(trigger_data)
 	return await handle_trigger_data(trigger_data, topic_trigger, pipeline_id, trace_id)
 
 
