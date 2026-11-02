@@ -40,9 +40,12 @@ agent-cli collector logs <event_trigger_id> --errors-only --vault <vault>
 
 `status` and `diagnose` return the derived diagnosis. `logs` includes Collector execution detail and, by default, pages for every linked Pipeline `traceId`; `--errors-only` reduces Collector detail to errors and keeps only Pipeline pages containing errors.
 
+The raw Collector event status describes orchestration only. A normally completed event remains `SUCCESS` even when a synchronization task fails; only an initialization/program error can make the event itself `FAIL`. Synchronization failures come from `status=3` records in change-record, change-JSON, and scheduled-task history, plus linked Pipeline logs. Diagnosing these records never writes the event status.
+
 Important diagnosis fields:
 
-- `derivedStatus`: `RUNNING`, `SUCCEEDED`, `COMPLETED`, `FAILED`, or `PARTIAL`. This is derived from event and log evidence, not a replacement for raw `eventStatus`.
+- `eventStatus`: the raw orchestration status described above; it is not the synchronization result.
+- `derivedStatus`: `RUNNING`, `SUCCEEDED`, `COMPLETED`, `FAILED`, or `PARTIAL`. This is derived from history records, event initialization errors, and Pipeline log evidence, not a replacement for raw `eventStatus`.
 - `evidenceComplete`: whether the server execution detail is untruncated. If false, fix plans become `manual_review` and event retry is blocked.
 - `issues`: categorized Collector and nested Pipeline errors, with evidence and stable signatures.
 - `traceIds`, `pipelineLogCount`, `failedPipelineCount`, `successfulPipelineCount`: observed execution evidence.

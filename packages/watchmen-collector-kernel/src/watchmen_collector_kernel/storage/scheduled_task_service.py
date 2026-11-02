@@ -12,7 +12,7 @@ from watchmen_model.common import Storable, ScheduledTaskId, Pageable
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, \
 	EntityCriteriaExpression, ColumnNameLiteral, SnowflakeGenerator, EntitySortColumn, EntitySortMethod, \
 	EntityCriteriaJoint, EntityStraightValuesFinder, EntityStraightColumn, EntityLimitedFinder, EntityCriteriaOperator, \
-	EntityUpdater
+	EntityUpdater, EntityLimitedStraightValuesFinder
 
 
 class ScheduledTaskShaper(EntityShaper):
@@ -260,13 +260,20 @@ class ScheduledTaskService(TupleService):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=status))
 		try:
 			self.storage.connect()
-			return self.storage.find_limited(EntityLimitedFinder(
+			rows = self.storage.find_limited_straight_values(EntityLimitedStraightValuesFinder(
 				name=self.get_entity_name(),
 				shaper=self.get_entity_shaper(),
 				criteria=criteria,
 				sort=[EntitySortColumn(name='task_id', method=EntitySortMethod.ASC)],
+				straightColumns=[EntityStraightColumn(columnName=column_name) for column_name in (
+					'task_id', 'resource_id', 'topic_code', 'change_json_ids', 'model_name', 'object_id',
+					'depend_on', 'parent_task_id', 'tenant_id', 'is_finished', 'status', 'result', 'event_id',
+					'event_trigger_id', 'pipeline_id', 'type', 'created_at', 'created_by', 'last_modified_at',
+					'last_modified_by'
+				)],
 				limit=limit
 			))
+			return ArrayHelper(rows).map(self.get_entity_shaper().deserialize).to_list()
 		finally:
 			self.storage.close()
 

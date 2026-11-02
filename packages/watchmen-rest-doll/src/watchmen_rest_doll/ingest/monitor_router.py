@@ -287,8 +287,6 @@ async def monitor_event_execution_detail(
         trigger_event_id, tenant_id, query_limit, Status.FAIL.value)
     failed_json = change_json_history_service.find_by_event_trigger_id_and_tenant_id(
         trigger_event_id, tenant_id, query_limit, Status.FAIL.value)
-    failed_tasks = scheduled_task_history_service.find_by_event_trigger_id_and_tenant_id(
-        trigger_event_id, tenant_id, query_limit, Status.FAIL.value)
 
     tables_truncated = len(tables) > EXECUTION_DETAIL_LIMIT
     active_tasks_truncated = len(active_tasks) > EXECUTION_DETAIL_LIMIT
@@ -304,7 +302,8 @@ async def monitor_event_execution_detail(
         errors.append(create_execution_detail_error('event', event))
     errors.extend(create_execution_detail_error('record', record) for record in failed_records)
     errors.extend(create_execution_detail_error('json', change_json) for change_json in failed_json)
-    errors.extend(create_execution_detail_error('task', task) for task in failed_tasks)
+    errors.extend(create_execution_detail_error('task', task) for task in task_history
+                  if task.status == Status.FAIL.value)
     errors_truncated = len(errors) > EXECUTION_DETAIL_LIMIT
 
     return {
