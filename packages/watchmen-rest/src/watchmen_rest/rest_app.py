@@ -70,7 +70,7 @@ class RestApp:
 	def init_authentication(self) -> None:
 		register_authentication_manager(build_authentication_manager(
 			self.settings, self.build_find_user_by_name(), self.build_find_user_by_pat(),
-			self.get_authentication_providers()
+			self.get_authentication_providers(), self.build_find_revoked_token()
 		))
 
 	def get_jwt_params(self) -> Tuple[str, str]:
@@ -92,6 +92,13 @@ class RestApp:
 	@abstractmethod
 	def build_find_user_by_pat(self) -> Callable[[str], Optional[User]]:
 		pass
+
+	# noinspection PyMethodMayBeStatic
+	def build_find_revoked_token(self) -> Optional[Callable[[str], bool]]:
+		"""
+		returns None by default which disables jwt revocation-list checking, override me to enable it
+		"""
+		return None
 
 	@abstractmethod
 	def post_construct(self, app: FastAPI) -> None:

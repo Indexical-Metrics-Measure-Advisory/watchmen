@@ -3,7 +3,7 @@ import json
 
 import azure.functions as func
 import asyncio
-from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat
+from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat, is_token_revoked
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import UserRole
 from watchmen_model.pipeline_kernel import PipelineTriggerDataWithPAT, PipelineTriggerTraceId
@@ -21,7 +21,7 @@ def handler(myblob: func.InputStream):
 	settings = RestSettings()
 	register_authentication_manager(build_authentication_manager(
 		settings, build_find_user_by_name(), build_find_user_by_pat(),
-		[]
+		[], is_token_revoked
 	))
 	
 	trigger_data = PipelineTriggerDataWithPAT(pat=evt.get('pat'), code=evt.get('code'), data=evt.get('data'))

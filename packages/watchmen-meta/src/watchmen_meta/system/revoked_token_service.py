@@ -69,14 +69,14 @@ class RevokedTokenService(StorageService):
 
 	def revoke(self, revoked: RevokedToken) -> RevokedToken:
 		revoked.revokedAt = get_current_time_in_seconds()
-		self.storage.insert_one(self.get_entity_helper(), revoked, self.get_entity_shaper().serialize(revoked))
+		self.storage.insert_one(revoked, self.get_entity_helper())
 		return revoked
 
-	def delete_expired(self) -> int:
+	def delete_expired(self) -> None:
 		"""
 		remove rows whose token has already reached its own expiration, no value to keep them
 		"""
-		return self.storage.delete_directly(EntityDeleter(
+		self.storage.delete(EntityDeleter(
 			name=self.get_entity_name(),
 			criteria=[
 				EntityCriteriaExpression(

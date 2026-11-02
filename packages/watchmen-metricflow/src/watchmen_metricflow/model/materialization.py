@@ -82,14 +82,17 @@ class Materialization(ExtendedBaseModel, UserBasedTuple, Auditable):
 	autoCreateTopic: bool = True
 	timeGrain: TimeGrain = TimeGrain.DAY
 	groupBy: List[str] = []
+	where: Optional[str] = None
+	valueBucketId: Optional[str] = None
+	valueBucketVersion: Optional[int] = None
 	writeMode: WriteMode = WriteMode.MERGE
 	engine: MaterializationEngine = MaterializationEngine.AUTO
 	schedule: MaterializationSchedule = MaterializationSchedule()
 	factorMapping: Optional[List[FactorMappingColumn]] = None
 	enabled: bool = True
 	description: Optional[str] = None
-	# set on save when groupBy/timeGrain change; the next run rebuilds the
-	# history under the new business key, then clears the flag
+	# set when the business key, query scope or bucket version changes; the next
+	# run rebuilds the history under the new configuration, then clears the flag
 	rebuildPending: bool = False
 	# presentation only, mirrors lastModifiedAt on read
 	updatedAt: Optional[datetime] = None

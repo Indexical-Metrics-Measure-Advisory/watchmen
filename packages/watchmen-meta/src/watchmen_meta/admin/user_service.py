@@ -18,6 +18,7 @@ class UserShaper(EntityShaper):
 			'is_active': user.isActive,
 			'group_ids': user.groupIds,
 			'role': user.role,
+			'credential_changed_at': user.credentialChangedAt,
 		})
 
 	def deserialize(self, row: EntityRow) -> User:
@@ -30,7 +31,8 @@ class UserShaper(EntityShaper):
 			email=row.get('email'),
 			isActive=row.get('is_active'),
 			groupIds=row.get('group_ids'),
-			role=row.get('role')
+			role=row.get('role'),
+			credentialChangedAt=row.get('credential_changed_at')
 		))
 
 

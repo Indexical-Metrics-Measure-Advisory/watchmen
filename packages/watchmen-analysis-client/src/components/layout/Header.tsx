@@ -51,6 +51,8 @@ const Header: React.FC = () => {
         return t('layout:pageTitle.semanticModelManagement');
       case '/metrics/management':
         return t('layout:pageTitle.metricsManagement');
+      case '/metrics/buckets':
+        return t('layout:pageTitle.metricBuckets');
       case '/metrics/materialization':
         return t('layout:pageTitle.materialization');
       case '/metrics/materialization/runs':

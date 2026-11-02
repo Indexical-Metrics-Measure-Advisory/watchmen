@@ -30,6 +30,7 @@ const AIAgentManagement = lazy(() => import('./pages/AIAgentManagement'));
 const AIAnalysisAgent = lazy(() => import('./components/ai/AIAnalysisAgent'));
 const SemanticModelManagement = lazy(() => import('./pages/SemanticModelManagement'));
 const MetricsManagement = lazy(() => import('./pages/MetricsManagement'));
+const MetricBucketManagement = lazy(() => import('./pages/MetricBucketManagement'));
 const UserGroupMetrics = lazy(() => import('./pages/UserGroupMetrics'));
 const DataProfileManagement = lazy(() => import('./pages/DataProfileManagement'));
 const BusinessDomainMap = lazy(() => import('./pages/BusinessDomainMap'));
@@ -107,6 +108,7 @@ const App = () => (
                   <Route path="/hypotheses" element={<Hypotheses />} />
                   <Route path="/metrics/semantic-models" element={<SemanticModelManagement />} />
                   <Route path="/metrics/management" element={<MetricsManagement />} />
+                  <Route path="/metrics/buckets" element={<RequireAdmin><MetricBucketManagement /></RequireAdmin>} />
                   <Route path="/metrics/materialization" element={<RequireAdmin><MaterializationManagement /></RequireAdmin>} />
                   <Route path="/metrics/materialization/runs" element={<RequireAdmin><MaterializationRuns /></RequireAdmin>} />
                   <Route path="/metrics/compute-flow" element={<RequireAdmin><ComputeFlow /></RequireAdmin>} />

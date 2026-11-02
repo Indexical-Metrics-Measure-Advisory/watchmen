@@ -18,11 +18,13 @@ from watchmen_metricflow.settings import ask_materialization_flow_parallelism, \
 	ask_materialization_max_concurrent_runs, ask_materialization_rebuild_chunk_days
 from watchmen_metricflow.util import trans, trans_readonly
 from watchmen_utilities import is_blank
+from watchmen_model.indicator import Bucket
 from .materialization_error import MaterializationError
 from .materialization_executor import compute_window, execute_metric_query, is_rebuild, \
 	materialization_window, rebuild_chunks, rebuild_window
 from .materialization_factor_mapping import map_result_rows
 from .materialization_write_back import resolve_target_schema, write_back
+from .metric_value_bucket_service import load_value_bucket
 
 logger = getLogger(__name__)
 
@@ -196,7 +198,7 @@ class MaterializationRunner:
 		materialization.targetTopicName = topic_name
 		trans(self.materialization_service, lambda: self.materialization_service.update(materialization))
 
-	def _clear_rebuild_flag(self, materialization: Materialization) -> None:
+	def _persist_run_config(self, materialization: Materialization) -> None:
 		trans(self.materialization_service, lambda: self.materialization_service.update(materialization))
 
 	# ── cron lock ─────────────────────────────────────────────────────────
@@ -246,11 +248,22 @@ class MaterializationRunner:
 	async def _execute(self, run: MaterializationRun, materialization: Materialization) -> None:
 		started = datetime.now()
 		actual_engine = materialization.engine
-		rebuild = is_rebuild(materialization)
+		value_bucket: Optional[Bucket] = None
+		bucket_version: Optional[int] = None
+		bucket_changed = False
 		try:
 			run.status = RunStatus.RUNNING
 			run.startedAt = started
 			await run_in_threadpool(self._update_run, run)
+
+			value_bucket = await run_in_threadpool(
+				load_value_bucket, materialization.valueBucketId, self.principal_service)
+			bucket_version = value_bucket.version if value_bucket is not None else None
+			bucket_changed = bucket_version != materialization.valueBucketVersion
+			if bucket_changed:
+				materialization.rebuildPending = True
+				await run_in_threadpool(self._persist_run_config, materialization)
+			rebuild = is_rebuild(materialization)
 
 			schema = await run_in_threadpool(
 				resolve_target_schema, materialization, self.principal_service)
@@ -263,7 +276,7 @@ class MaterializationRunner:
 			# time; a rebuild holds it for all of its chunks because it is one run
 			async with _run_slot():
 				row_count, sql_preview, actual_engine = \
-					await self._compute_and_write(materialization, schema, rebuild)
+					await self._compute_and_write(materialization, schema, rebuild, value_bucket)
 
 			run.status = RunStatus.SUCCESS
 			run.engine = actual_engine
@@ -272,14 +285,14 @@ class MaterializationRunner:
 			run.finishedAt = datetime.now()
 			run.durationMs = int((run.finishedAt - started).total_seconds() * 1000)
 			run.errorMessage = None
-			# the history is rebuilt now, the flag must not trigger a second rebuild
-			if materialization.rebuildPending:
+			if materialization.rebuildPending or bucket_changed:
 				materialization.rebuildPending = False
+				materialization.valueBucketVersion = bucket_version
 				try:
-					await run_in_threadpool(self._clear_rebuild_flag, materialization)
+					await run_in_threadpool(self._persist_run_config, materialization)
 				except Exception as e:
 					logger.warning(
-						f'Failed to clear rebuild flag of [{materialization.materializationId}]: {e}')
+						f'Failed to persist rebuilt configuration of [{materialization.materializationId}]: {e}')
 		except Exception as e:
 			logger.error(f'Materialization run [{run.runId}] failed', exc_info=True, stack_info=True)
 			run.status = RunStatus.FAILED
@@ -293,14 +306,16 @@ class MaterializationRunner:
 			logger.error(f'Failed to persist run [{run.runId}] final status: {e}')
 
 	async def _compute_and_write(
-			self, materialization: Materialization, schema, rebuild: bool
+			self, materialization: Materialization, schema, rebuild: bool,
+			value_bucket: Optional[Bucket] = None
 	) -> Tuple[int, Optional[str], Optional[str]]:
 		"""Query and write one materialization; a rebuild loops grain-aligned chunks."""
 		written = 0
 		sql_preview = None
 		engine = None
 		for index, window in enumerate(self._run_windows(materialization, rebuild)):
-			outcome = await execute_metric_query(materialization, self.principal_service, window)
+			outcome = await execute_metric_query(
+				materialization, self.principal_service, window, value_bucket)
 			engine = outcome.engine
 			rows = map_result_rows(
 				outcome.column_names, outcome.rows, materialization.timeGrain,

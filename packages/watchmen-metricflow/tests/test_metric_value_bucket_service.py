@@ -9,7 +9,7 @@ from fastapi import HTTPException
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _metric_test_base import admin_principal
-from watchmen_model.indicator import Bucket
+from watchmen_model.indicator import Bucket, NumericValueSegment
 from watchmen_metricflow.model.metric_response import MetricFlowResponse
 from watchmen_metricflow.service import metric_value_bucket_service
 from watchmen_metricflow.service.metric_value_bucket_service import apply_value_bucket, \
@@ -29,7 +29,12 @@ def make_bucket(include='include-min', **overrides):
 		],
 	}
 	data.update(overrides)
-	return Bucket(**data)
+	data['segments'] = [NumericValueSegment(**segment) for segment in data['segments']]
+	bucket = Bucket.model_construct(**data)
+	bucket.include = data['include']
+	if 'measure' in data:
+		bucket.measure = data['measure']
+	return bucket
 
 
 class TestClassifyValue(unittest.TestCase):

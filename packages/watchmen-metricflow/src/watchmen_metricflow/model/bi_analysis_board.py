@@ -60,7 +60,13 @@ class BIDimensionSelection(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
     dimensions: Optional[List[str]] = None
+    axisDimension: Optional[str] = None
+    seriesDimension: Optional[str] = None
+    facetDimension: Optional[str] = None
+    valueBucketId: Optional[str] = None
     timeRange: Optional[str] = None
+    timeGranularity: Optional[str] = None
+    limit: Optional[int] = None
 
 
 

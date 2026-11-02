@@ -1,25 +1,28 @@
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from logging import getLogger
 from typing import Optional, Union
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
+from jose import JWTError
+from jose.jwt import decode
 from starlette.requests import Request
 
-from watchmen_auth import AuthenticationScheme, PrincipalService
+from watchmen_auth import AuthenticationScheme, AuthFailOn401, PrincipalService
 from watchmen_meta.admin import UserService
 from watchmen_meta.auth import build_find_user_by_name
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
+from watchmen_meta.system import RevokedTokenService
 from watchmen_model.admin import User
-from watchmen_model.system import Token
+from watchmen_model.system import RevokedToken, Token
 from watchmen_rest import create_jwt_token, get_any_principal, retrieve_authentication_manager
 from watchmen_rest.util import raise_401
 from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, ask_saml2_enabled, ask_saml2_settings, \
 	ask_sso_enabled, ask_oidc_enabled, ask_oidc_settings
 from watchmen_rest_doll.audit import record_login_audit
 from watchmen_rest_doll.settings import SSOTypes
-from watchmen_rest_doll.util import verify_password
-from watchmen_utilities import ExtendedBaseModel
+from watchmen_rest_doll.util import trans, verify_password
+from watchmen_utilities import ExtendedBaseModel, is_blank
 
 router = APIRouter()
 logger = getLogger(__name__)
@@ -91,12 +94,52 @@ async def login_by_user_pwd(request: Request, form_data: OAuth2PasswordRequestFo
 	)
 
 
+@router.post('/logout', response_model=None, tags=['authenticate'])
+async def logout(
+		request: Request,
+		principal_service: PrincipalService = Depends(get_any_principal)
+) -> None:
+	"""
+	revoke the jwt token sent with the current request.
+	other tokens of the same user, e.g. sessions of other people sharing the account, are unaffected
+	"""
+	scheme, _, token = request.headers.get('Authorization', '').partition(' ')
+	if scheme.lower() != 'bearer' or is_blank(token):
+		return None
+	jwt_secret_key, jwt_algorithm = ask_jwt_params()
+	try:
+		payload = decode(token, jwt_secret_key, algorithms=[jwt_algorithm])
+	except JWTError:
+		return None
+	jti = payload.get('jti')
+	if is_blank(jti):
+		return None
+	expires_at = payload.get('exp')
+	revoked_token_service = RevokedTokenService(
+		ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+	def action() -> None:
+		revoked_token_service.revoke(RevokedToken(
+			jti=jti,
+			userId=principal_service.get_user_id(),
+			tenantId=principal_service.get_tenant_id(),
+			expiresAt=datetime.fromtimestamp(expires_at, tz=timezone.utc).replace(tzinfo=None) if expires_at else None
+		))
+		# lazily drop rows of tokens that are already expired on their own
+		revoked_token_service.delete_expired()
+
+	return trans(revoked_token_service, action)
+
+
 @router.get('/token/validate/jwt', response_model=None, tags=['authenticate'])
 async def validate_jwt_token(token: str) -> User:
 	"""
 	Validate given token, returns user of this token when validated
 	"""
-	return retrieve_authentication_manager().authenticate(AuthenticationScheme.JWT.value, token)
+	try:
+		return retrieve_authentication_manager().authenticate(AuthenticationScheme.JWT.value, token)
+	except AuthFailOn401:
+		raise_401('Unauthorized visit.')
 
 
 @router.get('/token/exchange-user', response_model=None, tags=['authenticate'])

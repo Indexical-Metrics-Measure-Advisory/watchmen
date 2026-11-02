@@ -35,7 +35,9 @@ import { cn } from '@/lib/utils';
 import type {
 	FactorMappingColumn,
 	Materialization,
+	MaterializationFilter,
 	MockDimensionOption,
+	MockMeasureOption,
 	MockMetricOption,
 	ScheduleFrequency,
 	TimeGrain,
@@ -43,10 +45,17 @@ import type {
 } from '@/model/materialization';
 import type { CellValue } from '@/model/metricFlow';
 import { buildGroupBy, isTimeDimensionByName } from '@/utils/dimensionQuery';
-import { isTimeDimensionOption, resolveTargetTopicIdOnLoad } from '@/utils/materializationForm';
+import {
+	buildMaterializationWhere,
+	isTimeDimensionOption,
+	parseMaterializationWhere,
+	resolveTargetTopicIdOnLoad
+} from '@/utils/materializationForm';
 import { buildMockFactorMapping } from '@/services/materializationMockData';
 import { materializationService } from '@/services/materializationService';
 import { metricsService } from '@/services/metricsService';
+import MaterializationFilterEditor from './MaterializationFilterEditor';
+import ValueBucketSelect from '@/components/metric-buckets/ValueBucketSelect';
 
 const TIME_GRAINS: TimeGrain[] = ['day', 'week', 'month', 'quarter', 'year'];
 const WRITE_MODES: WriteMode[] = ['TRUNCATE_INSERT', 'MERGE'];
@@ -94,6 +103,7 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 	const [saving, setSaving] = useState(false);
 	const [metrics, setMetrics] = useState<MockMetricOption[]>([]);
 	const [dimensions, setDimensions] = useState<MockDimensionOption[]>([]);
+	const [measures, setMeasures] = useState<MockMeasureOption[]>([]);
 	const [topics, setTopics] = useState<{ id: string; name: string }[]>([]);
 	const [loadingOptions, setLoadingOptions] = useState(false);
 
@@ -101,6 +111,8 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 	const [metricName, setMetricName] = useState('');
 	const [timeGrain, setTimeGrain] = useState<TimeGrain>('day');
 	const [groupBy, setGroupBy] = useState<string[]>([]);
+	const [valueBucketId, setValueBucketId] = useState('');
+	const [filters, setFilters] = useState<MaterializationFilter[]>([]);
 	const [dimKeyword, setDimKeyword] = useState('');
 	const [dimType, setDimType] = useState<'TIME' | 'CATEGORICAL'>('CATEGORICAL');
 	const [showAllDims, setShowAllDims] = useState(false);
@@ -120,8 +132,7 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 	const [previewNonce, setPreviewNonce] = useState(0);
 	const [rebuildConfirmOpen, setRebuildConfirmOpen] = useState(false);
 
-	// groupBy/timeGrain form the business key of the stored rows; changing either
-	// one makes the backend flag the job so the next run rebuilds full history
+	// Business-key and query-scope changes require a full history rebuild.
 	const rebuildChange = useMemo(() => {
 		if (mode !== 'edit' || !initial) {
 			return null;
@@ -133,11 +144,12 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 		const added = after.filter((d) => !beforeSet.has(d));
 		const removed = before.filter((d) => !afterSet.has(d));
 		const grainChanged = initial.timeGrain !== timeGrain;
-		if (added.length === 0 && removed.length === 0 && !grainChanged) {
+		const bucketChanged = (initial.valueBucketId ?? '') !== valueBucketId;
+		if (added.length === 0 && removed.length === 0 && !grainChanged && !bucketChanged) {
 			return null;
 		}
-		return { added, removed, grainChanged, from: initial.timeGrain };
-	}, [mode, initial, groupBy, timeGrain]);
+		return { added, removed, grainChanged, bucketChanged, from: initial.timeGrain };
+	}, [mode, initial, groupBy, timeGrain, valueBucketId]);
 
 	useEffect(() => {
 		if (!open) {
@@ -154,6 +166,8 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 			setMetricName(initial.metricName);
 			setTimeGrain(initial.timeGrain);
 			setGroupBy(initial.groupBy ?? []);
+			setValueBucketId(initial.valueBucketId ?? '');
+			setFilters(parseMaterializationWhere(initial.where));
 			setWriteMode(initial.writeMode);
 			setAutoCreateTopic(initial.autoCreateTopic);
 			// auto-create rows keep the flag even after a run persisted the
@@ -172,6 +186,8 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 			setMetricName('');
 			setTimeGrain('day');
 			setGroupBy([]);
+			setValueBucketId('');
+			setFilters([]);
 			setWriteMode('MERGE');
 			setAutoCreateTopic(true);
 			setTargetTopicId('auto');
@@ -220,21 +236,30 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 	useEffect(() => {
 		if (!open || !metricName) {
 			setDimensions([]);
+			setMeasures([]);
 			return;
 		}
 		let alive = true;
-		materializationService
-			.getDimensionsByMetric(metricName)
-			.then((dims) => {
+		Promise.all([
+			materializationService.getDimensionsByMetric(metricName),
+			materializationService.getMeasuresByMetric(metricName)
+		])
+			.then(([dims, availableMeasures]) => {
 				if (alive) {
 					setDimensions(dims);
-					// drop selected dims that no longer exist for this metric
+					setMeasures(availableMeasures);
+					// drop selections that no longer exist for this metric
 					setGroupBy((prev) => prev.filter((id) => dims.some((d) => d.id === id)));
+					setFilters((prev) => prev.filter((filter) => filter.referenceType === 'Metric'
+						? availableMeasures.some((measure) => measure.id === filter.field)
+						: dims.some((dimension) => dimension.id === filter.field)));
 				}
 			})
 			.catch(() => {
 				if (alive) {
 					setDimensions([]);
+					setMeasures([]);
+					setFilters([]);
 				}
 			});
 		return () => {
@@ -250,6 +275,7 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[groupByKey, timeGrain]
 	);
+	const where = useMemo(() => buildMaterializationWhere(filters), [filters]);
 
 	useEffect(() => {
 		if (!open || !metricName) {
@@ -260,12 +286,19 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 		setPreview((prev) => ({ ...prev, status: 'loading' }));
 		const timer = setTimeout(async () => {
 			try {
-				const columns = [...(previewGroupBy ?? []), metricName];
+				const columns = [
+					...(previewGroupBy ?? []),
+					...(valueBucketId ? ['valueBucket'] : []),
+					metricName
+				];
 				if (materializationService.isMockMode) {
 					const rows = Array.from({ length: 8 }, (_, i) =>
 						columns.map((col) => {
 							if (col === metricName) {
 								return 1200 + i * 137;
+							}
+							if (col === 'valueBucket') {
+								return `Segment ${(i % 3) + 1}`;
 							}
 							if (col.includes('__') || /(date|time|day|month|year|week|quarter)/i.test(col)) {
 								return `2026-${String((i % 9) + 1).padStart(2, '0')}-${String((i % 27) + 1).padStart(2, '0')}`;
@@ -281,6 +314,8 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 				const resp = await metricsService.getMetricValue({
 					metric: metricName,
 					group_by: previewGroupBy,
+					where,
+					valueBucketId: valueBucketId || undefined,
 					limit: PREVIEW_LIMIT
 				});
 				if (alive) {
@@ -305,14 +340,14 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 			alive = false;
 			clearTimeout(timer);
 		};
-	}, [open, metricName, previewGroupBy, previewNonce]);
+	}, [open, metricName, previewGroupBy, where, valueBucketId, previewNonce]);
 
 	const selectedMetric = metrics.find((m) => m.name === metricName);
 	const targetTopic = topics.find((tp) => tp.id === targetTopicId);
 
 	const factorMapping: FactorMappingColumn[] = useMemo(
-		() => buildMockFactorMapping(metricName || 'metric_value', timeGrain, groupBy),
-		[metricName, timeGrain, groupBy]
+		() => buildMockFactorMapping(metricName || 'metric_value', timeGrain, groupBy, valueBucketId || undefined),
+		[metricName, timeGrain, groupBy, valueBucketId]
 	);
 
 	// Build a Chart style dimension picker: a type tab (time / categorical),
@@ -384,7 +419,7 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 	);
 
 	const handleSave = async (skipRebuildConfirm = false) => {
-		if (!metricName) {
+		if (!metricName || filters.some((filter) => !filter.field || !filter.value.trim())) {
 			return;
 		}
 		if (rebuildChange && !skipRebuildConfirm) {
@@ -407,6 +442,8 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 				targetTopicName: isAuto ? '' : targetTopic?.name,
 				timeGrain,
 				groupBy,
+				where: where ?? '',
+				valueBucketId,
 				writeMode,
 				engine: initial?.engine ?? 'AUTO',
 				schedule: {
@@ -612,6 +649,13 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 												</Select>
 											</div>
 											<div className="space-y-2">
+												<Label>{t('metricBuckets:list.title')}</Label>
+												<ValueBucketSelect value={valueBucketId} onChange={setValueBucketId} />
+												<p className="text-xs text-muted-foreground">
+													{t('materialization:form.valueBucketHint')}
+												</p>
+											</div>
+											<div className="space-y-2">
 												<div className="flex items-center justify-between">
 													<Label>{t('materialization:form.groupBy')}</Label>
 													{groupBy.length > 0 && (
@@ -683,8 +727,20 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 										<Separator />
 
 										<section className="space-y-4">
+											<SectionTitle index={3} title={t('materialization:form.sectionFilters')} />
+											<MaterializationFilterEditor
+												dimensions={dimensions}
+												measures={measures}
+												filters={filters}
+												onChange={setFilters}
+											/>
+										</section>
+
+										<Separator />
+
+										<section className="space-y-4">
 											<SectionTitle
-												index={3}
+												index={4}
 												title={t('materialization:form.sectionMaterialize')}
 											/>
 											<div className="space-y-2">
@@ -971,7 +1027,7 @@ const MaterializationFormDialog: React.FC<MaterializationFormDialogProps> = ({
 										</Button>
 										<Button
 											onClick={() => void handleSave()}
-											disabled={saving || loadingOptions || !metricName}
+											disabled={saving || loadingOptions || !metricName || filters.some((filter) => !filter.value.trim())}
 										>
 											{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 											{mode === 'edit'

@@ -53,7 +53,7 @@ const buildCardCacheKey = (card: BIChartCard, context?: CardQueryContext): strin
     ? `${context.globalCustomDateRange.from?.toISOString() ?? ''}~${context.globalCustomDateRange.to?.toISOString() ?? ''}`
     : '';
   const filterPart = JSON.stringify(context?.filtersOverride ?? context?.globalFilterValues ?? {});
-  return `${card.id}|${timePart}|${customPart}|${filterPart}`;
+  return `${card.id}|${timePart}|${customPart}|${filterPart}|${card.selection?.valueBucketId ?? ''}`;
 };
 
 const resolveTimeRange = (
@@ -207,6 +207,7 @@ export const useCardDataLoader = () => {
 
       const req: MetricQueryRequest = {
         metric: card.metricId,
+        valueBucketId: selection?.valueBucketId,
         group_by: groupBy,
         where,
         start_time: start,

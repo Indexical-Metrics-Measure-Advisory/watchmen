@@ -12,6 +12,8 @@ import { inferType } from './utils';
 
 export type DimensionRole = 'axis' | 'series' | 'facet' | 'detail';
 
+export const VALUE_BUCKET_DIMENSION = 'valueBucket';
+
 export interface ResolvedDimensionRoles {
   axisDimension?: string;
   seriesDimension?: string;
@@ -52,10 +54,11 @@ const isTimeDimensionName = (dim: string): boolean =>
  * explicitly (small multiples change the layout too much to infer silently).
  */
 export const resolveDimensionRoles = (
-  selection: Pick<BIDimensionSelection, 'dimensions' | 'axisDimension' | 'seriesDimension' | 'facetDimension'>,
+  selection: Partial<Pick<BIDimensionSelection, 'dimensions' | 'axisDimension' | 'seriesDimension' | 'facetDimension' | 'valueBucketId'>>,
   isTimeDimension: (dim: string) => boolean = isTimeDimensionName,
 ): ResolvedDimensionRoles => {
   const dimensions = (selection.dimensions ?? []).filter(Boolean);
+  if (selection.valueBucketId) dimensions.push(VALUE_BUCKET_DIMENSION);
   const available = new Set(dimensions);
   // Explicit roles are only honoured when the dimension is actually selected
   const explicitAxis = selection.axisDimension && available.has(selection.axisDimension)

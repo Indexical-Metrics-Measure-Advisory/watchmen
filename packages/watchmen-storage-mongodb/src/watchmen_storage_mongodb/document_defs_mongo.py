@@ -87,7 +87,16 @@ table_users = MongoDocument(
 		create_str('name', False), create_str('nickname'), create_str('password'),
 		create_str('email'),
 		create_bool('is_active'), create_json('group_ids'), create_str('role'),
+		create_datetime('credential_changed_at'),
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+	]
+)
+table_revoked_tokens = MongoDocument(
+	name='revoked_tokens',
+	columns=[
+		create_pk('jti'),
+		create_tuple_id_column('user_id', False), create_tuple_id_column('tenant_id'),
+		create_datetime('expires_at'), create_datetime('revoked_at', False)
 	]
 )
 table_user_groups = MongoDocument(
@@ -500,6 +509,7 @@ tables: Dict[str, MongoDocument] = {
 	SNOWFLAKE_WORKER_ID_TABLE: table_snowflake_competitive_workers,
 	# system
 	'pats': table_pats,
+	'revoked_tokens': table_revoked_tokens,
 	'tenants': table_tenants,
 	'external_writers': table_external_writers,
 	'plugins': table_plugins,

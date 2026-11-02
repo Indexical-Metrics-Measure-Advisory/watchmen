@@ -59,9 +59,8 @@ class Bucket(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 				super().__setattr__(name, value)
 		elif name == 'type':
 			if self.segments is not None:
-				super().__setattr__(name, construct_bucket_segments(self.segments, value))
-			else:
-				super().__setattr__(name, value)
+				super().__setattr__('segments', construct_bucket_segments(self.segments, value))
+			super().__setattr__(name, value)
 		else:
 			super().__setattr__(name, value)
 
@@ -97,7 +96,7 @@ class NumericSegmentsHolder(Bucket):
 
 
 class NumericValueBucket(NumericSegmentsHolder):
-	type: BucketType.VALUE = BucketType.VALUE
+	type: Literal[BucketType.VALUE] = BucketType.VALUE
 
 
 class MeasureBucket(Bucket):
@@ -105,8 +104,8 @@ class MeasureBucket(Bucket):
 
 
 class NumericValueMeasureBucket(MeasureBucket, NumericSegmentsHolder):
-	type: BucketType.VALUE_MEASURE = BucketType.VALUE_MEASURE
-	measure: Union[
+	type: Literal[BucketType.VALUE_MEASURE] = BucketType.VALUE_MEASURE
+	measure: Literal[
 		MeasureMethod.FLOOR, MeasureMethod.RESIDENTIAL_AREA, MeasureMethod.AGE, MeasureMethod.BIZ_SCALE
 	] = None
 
@@ -125,8 +124,8 @@ class CategorySegmentsHolder(Bucket):
 
 
 class CategoryMeasureBucket(CategorySegmentsHolder, MeasureBucket):
-	type: BucketType.CATEGORY_MEASURE = BucketType.CATEGORY_MEASURE
-	measure: Union[
+	type: Literal[BucketType.CATEGORY_MEASURE] = BucketType.CATEGORY_MEASURE
+	measure: Literal[
 		MeasureMethod.CONTINENT, MeasureMethod.REGION, MeasureMethod.COUNTRY,
 		MeasureMethod.PROVINCE, MeasureMethod.CITY, MeasureMethod.DISTRICT,
 		MeasureMethod.RESIDENCE_TYPE,
@@ -137,6 +136,6 @@ class CategoryMeasureBucket(CategorySegmentsHolder, MeasureBucket):
 
 
 class EnumMeasureBucket(CategorySegmentsHolder, MeasureBucket):
-	type: BucketType.ENUM_MEASURE = BucketType.ENUM_MEASURE
-	measure: MeasureMethod.ENUM = MeasureMethod.ENUM
+	type: Literal[BucketType.ENUM_MEASURE] = BucketType.ENUM_MEASURE
+	measure: Literal[MeasureMethod.ENUM] = MeasureMethod.ENUM
 	enumId: EnumId

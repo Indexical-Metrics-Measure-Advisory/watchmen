@@ -4,6 +4,7 @@ import type {
 	MaterializationRun,
 	MaterializationRunStatus,
 	MockDimensionOption,
+	MockMeasureOption,
 	MockMetricOption,
 	FlowGraph,
 	PageResult,
@@ -83,7 +84,8 @@ class MaterializationService {
 						buildMockFactorMapping(
 							input.metricName ?? mockMaterializations[index].metricName,
 							input.timeGrain ?? mockMaterializations[index].timeGrain,
-							input.groupBy ?? mockMaterializations[index].groupBy
+							input.groupBy ?? mockMaterializations[index].groupBy,
+							input.valueBucketId ?? mockMaterializations[index].valueBucketId
 						),
 					updatedAt: nowISO()
 				};
@@ -100,12 +102,15 @@ class MaterializationService {
 				autoCreateTopic: input.autoCreateTopic ?? true,
 				timeGrain: input.timeGrain ?? 'day',
 				groupBy: input.groupBy ?? [],
+				where: input.where,
+				valueBucketId: input.valueBucketId,
 				writeMode: input.writeMode ?? 'MERGE',
 				engine: input.engine ?? 'AUTO',
 				schedule: input.schedule ?? { enabled: false, frequency: 'day', time: '02:00' },
 				factorMapping:
 					input.factorMapping ??
-					buildMockFactorMapping(input.metricName ?? '', input.timeGrain ?? 'day', input.groupBy ?? []),
+					buildMockFactorMapping(
+						input.metricName ?? '', input.timeGrain ?? 'day', input.groupBy ?? [], input.valueBucketId),
 				enabled: input.enabled ?? true,
 				description: input.description,
 				createdAt: nowISO(),
@@ -372,6 +377,26 @@ class MaterializationService {
 			name: d.name,
 			qualifiedName: d.qualified_name,
 			type: d.type
+		}));
+	}
+
+	async getMeasuresByMetric(metricName: string): Promise<MockMeasureOption[]> {
+		if (USE_MOCK) {
+			await delay(200);
+			return mockMetricOptions
+				.filter((metric) => metric.name === metricName)
+				.map((metric) => ({ id: metric.name, name: metric.label, label: metric.label, agg: 'sum' }));
+		}
+		const response = await fetch(
+			`${API_BASE_URL}/metricflow/measures_by_metric?metric_name=${encodeURIComponent(metricName)}`,
+			{ headers: getDefaultHeaders() }
+		);
+		const data = await checkResponse(response);
+		return (data?.measures ?? []).map((measure: { name: string; label?: string; agg?: string }) => ({
+			id: measure.name,
+			name: measure.label ?? measure.name,
+			label: measure.label ?? measure.name,
+			agg: measure.agg
 		}));
 	}
 

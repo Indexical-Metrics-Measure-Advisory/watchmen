@@ -12,7 +12,7 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _metric_test_base import build_client
+from _metric_test_base import build_client, make_simple_metric
 from watchmen_metricflow.router import metric_router
 from watchmen_metricflow.router.metric_router import MetricFlowResponse
 from watchmen_metricflow.model.dimension_response import (
@@ -129,6 +129,23 @@ class TestFindDimensions(unittest.TestCase):
             response = client.post('/metricflow/find_dimensions', json=['revenue'])
         self.assertEqual(200, response.status_code)
         self.assertEqual(2, response.json()['total_count'])
+
+
+class TestFindMeasures(unittest.TestCase):
+    def test_find_measures_by_metric_uses_dependency_tree(self):
+        metric = make_simple_metric(name='revenue', measure='order_total')
+        model = SimpleNamespace(measures=[SimpleNamespace(
+            name='order_total', label='Order Total', description=None,
+            agg=SimpleNamespace(value='sum'))])
+        with mock.patch.object(metric_router, 'check_metric_names_allowed'), \
+                mock.patch.object(metric_router, 'load_metric_meta_cached', return_value=([metric], [model])):
+            client = build_client(metric_router.router)
+            response = client.get('/metricflow/measures_by_metric?metric_name=revenue')
+        self.assertEqual(200, response.status_code)
+        self.assertEqual({
+            'measures': [{'name': 'order_total', 'label': 'Order Total', 'description': None, 'agg': 'sum'}],
+            'total_count': 1,
+        }, response.json())
 
 
 # --------------------------------------------------------------------------- #

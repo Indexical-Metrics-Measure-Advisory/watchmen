@@ -158,6 +158,22 @@ class TestSaveMaterialization(unittest.TestCase):
         self.assertTrue(updated.rebuildPending)
         self.assertEqual(['region', 'channel'], updated.groupBy)
 
+    def test_update_where_change_marks_rebuild_and_persists_filter(self):
+        stored = make_materialization(where="{{ Dimension('region') }} = 'east'", tenantId=TENANT_ID)
+        service = mock_materialization_service()
+        service.find_by_id.return_value = stored
+        service.update.side_effect = lambda m: m
+        with self._patch(service):
+            client = build_client(materialization_router.router)
+            response = client.post('/metricflow/materialization', json={
+                'materializationId': stored.materializationId,
+                'where': "{{ Metric('order_total') }} >= 100",
+            })
+        self.assertEqual(200, response.status_code)
+        updated = service.update.call_args[0][0]
+        self.assertTrue(updated.rebuildPending)
+        self.assertEqual("{{ Metric('order_total') }} >= 100", updated.where)
+
     def test_update_time_grain_change_marks_rebuild(self):
         stored = make_materialization(timeGrain='day', tenantId=TENANT_ID)
         service = mock_materialization_service()
@@ -172,6 +188,87 @@ class TestSaveMaterialization(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         updated = service.update.call_args[0][0]
         self.assertTrue(updated.rebuildPending)
+
+    def test_update_adding_value_bucket_marks_rebuild(self):
+        stored = make_materialization(tenantId=TENANT_ID)
+        service = mock_materialization_service()
+        service.find_by_id.return_value = stored
+        service.update.side_effect = lambda m: m
+        with self._patch(service):
+            response = build_client(materialization_router.router).post(
+                '/metricflow/materialization', json={
+                    'materializationId': stored.materializationId,
+                    'valueBucketId': 'bucket-1',
+                })
+        self.assertEqual(200, response.status_code)
+        updated = service.update.call_args[0][0]
+        self.assertEqual('bucket-1', updated.valueBucketId)
+        self.assertTrue(updated.rebuildPending)
+
+    def test_update_changing_value_bucket_marks_rebuild(self):
+        stored = make_materialization(tenantId=TENANT_ID, valueBucketId='bucket-1')
+        service = mock_materialization_service()
+        service.find_by_id.return_value = stored
+        service.update.side_effect = lambda m: m
+        with self._patch(service):
+            response = build_client(materialization_router.router).post(
+                '/metricflow/materialization', json={
+                    'materializationId': stored.materializationId,
+                    'valueBucketId': 'bucket-2',
+                })
+        self.assertEqual(200, response.status_code)
+        updated = service.update.call_args[0][0]
+        self.assertEqual('bucket-2', updated.valueBucketId)
+        self.assertTrue(updated.rebuildPending)
+
+    def test_update_clearing_value_bucket_marks_rebuild(self):
+        stored = make_materialization(tenantId=TENANT_ID, valueBucketId='bucket-1')
+        service = mock_materialization_service()
+        service.find_by_id.return_value = stored
+        service.update.side_effect = lambda m: m
+        with self._patch(service):
+            response = build_client(materialization_router.router).post(
+                '/metricflow/materialization', json={
+                    'materializationId': stored.materializationId,
+                    'valueBucketId': '',
+                })
+        self.assertEqual(200, response.status_code)
+        updated = service.update.call_args[0][0]
+        self.assertIsNone(updated.valueBucketId)
+        self.assertTrue(updated.rebuildPending)
+
+    def test_create_with_bucket_but_without_bucket_mapping_is_rejected(self):
+        service = mock_materialization_service()
+        mapping = [{
+            'columnName': 'metricValue', 'factorName': 'sales_amount',
+            'factorType': 'number', 'role': 'metric', 'source': 'sales_amount',
+        }]
+        with self._patch(service):
+            response = build_client(materialization_router.router).post(
+                '/metricflow/materialization', json=make_materialization_dict(
+                    valueBucketId='bucket-1', factorMapping=mapping))
+        self.assertEqual(400, response.status_code)
+        self.assertIn('must include valueBucket', response.json()['detail'])
+        service.create.assert_not_called()
+
+    def test_update_with_inconsistent_bucket_mapping_is_rejected(self):
+        stored = make_materialization(tenantId=TENANT_ID)
+        service = mock_materialization_service()
+        service.find_by_id.return_value = stored
+        mapping = [{
+            'columnName': 'metricValue', 'factorName': 'sales_amount',
+            'factorType': 'number', 'role': 'metric', 'source': 'sales_amount',
+        }]
+        with self._patch(service):
+            response = build_client(materialization_router.router).post(
+                '/metricflow/materialization', json={
+                    'materializationId': stored.materializationId,
+                    'valueBucketId': 'bucket-1',
+                    'factorMapping': mapping,
+                })
+        self.assertEqual(400, response.status_code)
+        self.assertIn('must include valueBucket', response.json()['detail'])
+        service.update.assert_not_called()
 
     def test_update_identical_group_by_keeps_flag_clear(self):
         stored = make_materialization(groupBy=['region'], tenantId=TENANT_ID)
@@ -241,11 +338,14 @@ class TestMaterializationRebuildFlagShaper(unittest.TestCase):
         from watchmen_metricflow.meta.materialization_meta_service import (
             MATERIALIZATION_ENTITY_SHAPER)
         materialization = make_materialization(
-            tenantId=TENANT_ID, groupBy=['region'], rebuildPending=True)
+            tenantId=TENANT_ID, groupBy=['region'], rebuildPending=True,
+            where="{{ Dimension('region') }} = 'east'")
         row = MATERIALIZATION_ENTITY_SHAPER.serialize(materialization)
         self.assertTrue(row['rebuild_pending'])
+        self.assertEqual("{{ Dimension('region') }} = 'east'", row['where_clause'])
         restored = MATERIALIZATION_ENTITY_SHAPER.deserialize(row)
         self.assertTrue(restored.rebuildPending)
+        self.assertEqual("{{ Dimension('region') }} = 'east'", restored.where)
 
     def test_round_trip_keeps_false_when_column_missing(self):
         # rows written before the 18.1.8 migration have no rebuild_pending column
@@ -256,6 +356,22 @@ class TestMaterializationRebuildFlagShaper(unittest.TestCase):
         del row['rebuild_pending']
         restored = MATERIALIZATION_ENTITY_SHAPER.deserialize(row)
         self.assertFalse(restored.rebuildPending)
+
+
+class TestMaterializationValueBucketShaper(unittest.TestCase):
+    def test_round_trip_keeps_value_bucket_id_and_version(self):
+        from watchmen_metricflow.meta.materialization_meta_service import (
+            MATERIALIZATION_ENTITY_SHAPER)
+        materialization = make_materialization(
+            tenantId=TENANT_ID, valueBucketId='bucket-1', valueBucketVersion=7)
+
+        row = MATERIALIZATION_ENTITY_SHAPER.serialize(materialization)
+        restored = MATERIALIZATION_ENTITY_SHAPER.deserialize(row)
+
+        self.assertEqual('bucket-1', row['value_bucket_id'])
+        self.assertEqual(7, row['value_bucket_version'])
+        self.assertEqual('bucket-1', restored.valueBucketId)
+        self.assertEqual(7, restored.valueBucketVersion)
 
 
 class TestDeleteMaterialization(unittest.TestCase):

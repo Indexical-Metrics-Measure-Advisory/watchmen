@@ -62,6 +62,19 @@ class DimensionListResponse(BaseModel):
     #     }
 
 
+class MeasureInfo(BaseModel):
+    """Measure metadata available for filtering a metric query."""
+    name: str
+    label: Optional[str] = None
+    description: Optional[str] = None
+    agg: str
+
+
+class MeasureListResponse(BaseModel):
+    measures: List[MeasureInfo] = Field(default_factory=list)
+    total_count: int = 0
+
+
 class MetricInfo(BaseModel):
     """单个指标信息模型"""
     # model_config = ConfigDict(use_enum_values=True)

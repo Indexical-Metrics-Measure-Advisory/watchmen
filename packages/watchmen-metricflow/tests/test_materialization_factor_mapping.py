@@ -52,6 +52,18 @@ class TestBuildDefaultFactorMapping(unittest.TestCase):
         self.assertEqual('week', by_name['timeGrain'].source)
         self.assertEqual('metric_time__week', by_name['statDate'].source)
 
+    def test_value_bucket_is_a_text_dimension_before_the_metric(self):
+        columns = build_default_factor_mapping('sales_amount', 'day', ['region'], 'bucket-1')
+
+        self.assertEqual(
+            ['statDate', 'timeGrain', 'region', 'valueBucket', 'metricValue'],
+            [column.columnName for column in columns])
+        value_bucket = columns[-2]
+        self.assertEqual(FactorRole.DIMENSION, value_bucket.role)
+        self.assertEqual('text', value_bucket.factorType)
+        self.assertEqual('valueBucket', value_bucket.factorName)
+        self.assertEqual('valueBucket', value_bucket.source)
+
 
 class TestEffectiveMapping(unittest.TestCase):
     def test_stored_mapping_wins(self):
@@ -71,6 +83,11 @@ class TestEffectiveMapping(unittest.TestCase):
     def test_business_key_is_time_plus_dimensions(self):
         materialization = make_materialization()
         self.assertEqual(['statDate', 'region'], business_key_column_names(materialization))
+
+    def test_business_key_includes_value_bucket(self):
+        materialization = make_materialization(valueBucketId='bucket-1')
+        self.assertEqual(
+            ['statDate', 'region', 'valueBucket'], business_key_column_names(materialization))
 
 
 class TestColumnName(unittest.TestCase):
@@ -120,6 +137,17 @@ class TestMapResultRows(unittest.TestCase):
         self.assertEqual(date(2026, 1, 1), rows[0]['statDate'])
         self.assertEqual('day', rows[0]['timeGrain'])
         self.assertEqual('east', rows[0]['region'])
+        self.assertEqual(12.5, rows[0]['metricValue'])
+
+    def test_maps_value_bucket_as_text(self):
+        materialization = make_materialization(metricName='sales_amount', valueBucketId='bucket-1')
+        rows = map_result_rows(
+            ['metric_time__day', 'timeGrain', 'region', 'valueBucket', 'sales_amount'],
+            [[date(2026, 1, 1), 'day', 'east', 'high', '12.5']],
+            'day',
+            materialization=materialization)
+
+        self.assertEqual('high', rows[0]['valueBucket'])
         self.assertEqual(12.5, rows[0]['metricValue'])
 
     def test_missing_metric_column_raises(self):

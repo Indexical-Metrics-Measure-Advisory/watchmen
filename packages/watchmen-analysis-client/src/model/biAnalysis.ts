@@ -27,6 +27,7 @@ export interface BIDimensionSelection {
   axisDimension?: string; // X axis dimension (time preferred when inferred)
   seriesDimension?: string; // color/legend series dimension
   facetDimension?: string; // small-multiple (trellis) dimension
+  valueBucketId?: string; // metric value bucket; not part of dimensions/group_by
   timeRange?: string; // e.g., Past 7 days, Past 30 days
   timeGranularity?: string;
   limit?: number; // Top N: series/categories shown, the rest folded into Others

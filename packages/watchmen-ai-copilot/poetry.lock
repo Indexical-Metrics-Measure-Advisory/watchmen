@@ -6132,6 +6132,7 @@ oracle = ["watchmen-storage-oracle @ file:///Users/yifeng/Documents/git_watchmen
 oss = ["watchmen-storage-oss @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-oss"]
 postgresql = ["watchmen-storage-postgresql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-postgresql"]
 s3 = ["watchmen-storage-s3 @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-s3"]
+spark = ["pyspark (>=3.5,<4.0)"]
 
 [package.source]
 type = "directory"
@@ -6288,6 +6289,10 @@ watchmen-data-surface = {path = "../watchmen-data-surface", develop = true}
 watchmen-indicator-surface = {path = "../watchmen-indicator-surface", develop = true}
 watchmen-inquiry-surface = {path = "../watchmen-inquiry-surface", develop = true}
 watchmen-pipeline-surface = {path = "../watchmen-pipeline-surface", develop = true}
+
+[package.extras]
+mysql = ["watchmen-storage-mysql @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-storage-mysql"]
+trino = ["watchmen-inquiry-trino @ file:///Users/yifeng/Documents/git_watchmen/watchmen/packages/watchmen-inquiry-trino"]
 
 [package.source]
 type = "directory"

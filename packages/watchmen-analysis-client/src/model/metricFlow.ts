@@ -1,5 +1,6 @@
 export interface MetricQueryRequest {
   metric: string;
+  valueBucketId?: string;
   group_by?: string[];
   where?: string;
   start_time?: string; // ISO datetime string

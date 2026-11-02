@@ -25,7 +25,8 @@ import {
   Users,
   CalendarClock,
   History,
-  Workflow
+  Workflow,
+  Layers3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -229,6 +230,9 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
             <NavItem to="/metrics/semantic-models" icon={<GitBranch size={16} />} label={t('nav:semanticModelManagement')} collapsed={collapsed} isSubItem={true} />
           )}
           <NavItem to="/metrics/management" icon={<TrendingUp size={16} />} label={t('nav:metricsManagement')} collapsed={collapsed} isSubItem={true} />
+          {!isConsoleUser && (
+            <NavItem to="/metrics/buckets" icon={<Layers3 size={16} />} label={t('nav:metricBuckets')} collapsed={collapsed} isSubItem={true} />
+          )}
           {isAdmin && (
             <>
               <NavItem to="/metrics/materialization" icon={<CalendarClock size={16} />} label={t('nav:materialization')} collapsed={collapsed} isSubItem={true} />

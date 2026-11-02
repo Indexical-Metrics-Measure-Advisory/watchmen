@@ -620,6 +620,49 @@ class TestLeafTranslation(unittest.TestCase):
         self.assertEqual(conditions[1], ('amount', 'gte', 10))
         self.assertEqual(conditions[2], ('region', 'ne', 'x'))
 
+    def test_measure_filter_is_applied_after_leaf_aggregation(self):
+        metric = _simple_metric()
+        rows = {'order_total': [
+            {'region': 'east', 'order_total': 120},
+            {'region': 'west', 'order_total': 80},
+            {'region': 'north', 'order_total': None},
+        ]}
+        response = _run_metric(
+            metric, [metric], [_make_semantic_model()], rows,
+            MetricQueryRequest(
+                metric='total_sales', group_by=['region'],
+                where="{{ Metric('order_total') }} >= 100"))
+        self.assertEqual(response.data, (('east', 120),))
+
+    def test_ratio_applies_measure_filter_before_combining_series(self):
+        metric = _ratio_metric()
+        rows = {
+            'order_total': [{'region': 'east', 'order_total': 120}, {'region': 'west', 'order_total': 80}],
+            'order_count': [{'region': 'east', 'order_count': 3}, {'region': 'west', 'order_count': 2}],
+        }
+        response = _run_metric(
+            metric, [metric], [_make_semantic_model()], rows,
+            MetricQueryRequest(
+                metric='avg_order', group_by=['region'],
+                where="{{ Metric('order_total') }} >= 100"))
+        self.assertEqual(response.data, (('east', 40),))
+
+    def test_measure_filter_rejects_measure_outside_metric_tree(self):
+        metric = _simple_metric()
+        with self.assertRaises(HTTPException) as ctx:
+            _run_metric(
+                metric, [metric], [_make_semantic_model()], {'order_total': []},
+                MetricQueryRequest(
+                    metric='total_sales', where="{{ Metric('order_count') }} > 1"))
+        self.assertEqual(ctx.exception.status_code, 400)
+
+    def test_measure_filter_does_not_push_down_limit(self):
+        metric = _simple_metric()
+        context = svc.resolve_direct_context(metric, [metric], [_make_semantic_model()], _mysql_resolver())
+        self.assertIsNone(svc.DirectMetricQueryRunner(context)._prepare_single_leaf_pushdown(
+            metric, [], MetricQueryRequest(
+                metric='total_sales', where="{{ Metric('order_total') }} > 1", limit=1)))
+
     def test_time_range_becomes_between_filter(self):
         model = _make_semantic_model()
         req = MetricQueryRequest(

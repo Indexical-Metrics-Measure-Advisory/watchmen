@@ -7,6 +7,13 @@ export default defineConfig(() => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      "/watchmen/metricflow": {
+        target: "http://localhost:8910",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/watchmen/, ""),
+      },
+    },
   },
   plugins: [react()],
   resolve: {

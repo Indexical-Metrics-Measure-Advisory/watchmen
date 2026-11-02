@@ -8,6 +8,7 @@ from .materialization_error import MaterializationError
 TIME_COLUMN_NAME = 'statDate'
 TIME_GRAIN_COLUMN_NAME = 'timeGrain'
 METRIC_VALUE_COLUMN_NAME = 'metricValue'
+VALUE_BUCKET_COLUMN_NAME = 'valueBucket'
 TIME_SOURCE_PREFIX = 'metric_time'
 
 DATE_FACTOR_TYPES = ('date',)
@@ -17,9 +18,10 @@ TIME_GRAINS = ('day', 'week', 'month', 'quarter', 'year')
 
 
 def build_default_factor_mapping(
-		metric_name: str, time_grain: Any, group_by: Optional[Sequence[str]]
+		metric_name: str, time_grain: Any, group_by: Optional[Sequence[str]],
+		value_bucket_id: Optional[str] = None
 ) -> List[FactorMappingColumn]:
-	"""Default wide table layout: statDate + timeGrain + dimensions + metricValue."""
+	"""Default wide table layout: statDate + timeGrain + dimensions + optional valueBucket + metricValue."""
 	grain = _grain_value(time_grain)
 	columns = [
 		FactorMappingColumn(
@@ -35,6 +37,10 @@ def build_default_factor_mapping(
 		columns.append(FactorMappingColumn(
 			columnName=dimension, factorName=dimension, factorType='text',
 			role=FactorRole.DIMENSION, source=dimension))
+	if not is_blank(value_bucket_id):
+		columns.append(FactorMappingColumn(
+			columnName=VALUE_BUCKET_COLUMN_NAME, factorName=VALUE_BUCKET_COLUMN_NAME, factorType='text',
+			role=FactorRole.DIMENSION, source=VALUE_BUCKET_COLUMN_NAME))
 	columns.append(FactorMappingColumn(
 		columnName=METRIC_VALUE_COLUMN_NAME, factorName=metric_name, factorType='number',
 		role=FactorRole.METRIC, source=metric_name))
@@ -51,7 +57,21 @@ def get_effective_factor_mapping(materialization: Materialization) -> List[Facto
 	if materialization.factorMapping:
 		return list(materialization.factorMapping)
 	return build_default_factor_mapping(
-		materialization.metricName or '', materialization.timeGrain, materialization.groupBy)
+		materialization.metricName or '', materialization.timeGrain, materialization.groupBy,
+		materialization.valueBucketId)
+
+
+def validate_value_bucket_mapping(materialization: Materialization) -> None:
+	if not materialization.factorMapping:
+		return
+	has_bucket = any(
+		column.role == FactorRole.DIMENSION
+		and (column.source == VALUE_BUCKET_COLUMN_NAME or column.columnName == VALUE_BUCKET_COLUMN_NAME)
+		for column in materialization.factorMapping)
+	if not is_blank(materialization.valueBucketId) and not has_bucket:
+		raise MaterializationError('Factor mapping must include valueBucket when a value bucket is configured.')
+	if is_blank(materialization.valueBucketId) and has_bucket:
+		raise MaterializationError('Factor mapping cannot include valueBucket without a configured value bucket.')
 
 
 def business_key_column_names(materialization: Materialization) -> List[str]:

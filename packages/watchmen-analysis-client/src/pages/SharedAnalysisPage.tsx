@@ -39,7 +39,7 @@ const SharedAnalysisPage: React.FC = () => {
 
   const loadCardDataFor = async (card: BIChartCard) => {
     try {
-      if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && card.chartType !== 'alert' && card.chartType !== 'kpi') {
+      if ((!card.selection.dimensions || card.selection.dimensions.length === 0) && !card.selection.valueBucketId && card.chartType !== 'alert' && card.chartType !== 'kpi') {
         setCardDataMap(prev => ({ ...prev, [card.id]: { chartData: [], facets: null, rawData: null } }));
         return;
       }
@@ -94,6 +94,7 @@ const SharedAnalysisPage: React.FC = () => {
       const dimensionCount = dimensions?.length ?? 0;
       const req: MetricQueryRequest = {
         metric: card.metricId,
+        valueBucketId: card.selection.valueBucketId,
         group_by: buildGroupBy(dimensions, card.selection.timeGranularity, isTimeDimensionByName),
         start_time: start,
         end_time: end,

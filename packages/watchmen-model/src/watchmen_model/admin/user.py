@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 
@@ -22,3 +23,6 @@ class User(ExtendedBaseModel, TenantBasedTuple, OptimisticLock):
 	isActive: bool = True
 	groupIds: Optional[List[UserGroupId]] = None
 	role: Optional[UserRole] = None
+	# refreshed only when the credential really changes (create user, change password),
+	# jwt tokens issued before it are rejected; profile-only updates must NOT touch it
+	credentialChangedAt: Optional[datetime] = None

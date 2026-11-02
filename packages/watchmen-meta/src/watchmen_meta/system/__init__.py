@@ -5,4 +5,5 @@ from .kafka_collector_config_service import KafkaCollectorConfigService
 from .key_store_service import KeyStoreService
 from .pat_service import PatService
 from .plugin_service import PluginService
+from .revoked_token_service import RevokedTokenService
 from .tenant_service import TenantService

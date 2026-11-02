@@ -12,7 +12,7 @@ from watchmen_rest import get_admin_principal, get_any_admin_principal, get_any_
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import crypt_password, trans, trans_readonly
-from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_not_blank
 
 router = APIRouter()
 
@@ -154,6 +154,8 @@ def ask_save_user_action(
 				if user.groupIds is not None and len(user.groupIds) != 0:
 					# for super admin create user, there is no user group allowed
 					raise_400('No user group allowed for creating user by super admin.')
+			# a brand-new user owns no token yet, stamp it so every future token is comparable
+			user.credentialChangedAt = get_current_time_in_seconds()
 			user_service.redress_storable_id(user)
 			user_group_ids = ArrayHelper(user.groupIds).distinct().to_list()
 			user.groupIds = user_group_ids
@@ -170,6 +172,12 @@ def ask_save_user_action(
 				elif is_blank(user.password):
 					# keep original password
 					user.password = existing_user.password
+					user.credentialChangedAt = existing_user.credentialChangedAt
+				elif user.password != existing_user.password:
+					# password really changed, all tokens issued before this moment must be rejected
+					user.credentialChangedAt = get_current_time_in_seconds()
+				else:
+					user.credentialChangedAt = existing_user.credentialChangedAt
 
 			if principal_service.is_super_admin() and check_user_group:
 				# for super admin update user, simply keep user group

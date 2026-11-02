@@ -327,6 +327,7 @@ class SubscriptionRunner:
 			direct_result = await try_direct_metric_query(
 				MetricQueryRequest(
 					metric=metric.name, group_by=group_by or None,
+					value_bucket_id=card.selection.get('valueBucketId') if card.selection else None,
 					start_time=start_time, end_time=end_time),
 				self.principal_service)
 			if direct_result is not None:

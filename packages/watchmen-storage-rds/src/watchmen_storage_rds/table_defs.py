@@ -92,7 +92,14 @@ table_users = Table(
     create_str('name', 50, False), create_str('nickname', 50), create_str('password', 100),
     create_str('email', 100),
     create_bool('is_active'), create_json('group_ids'), create_str('role', 50),
+    create_datetime('credential_changed_at'),
     create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+table_revoked_tokens = Table(
+    'revoked_tokens', meta_data,
+    create_pk('jti'),
+    create_tuple_id_column('user_id', False), create_tuple_id_column('tenant_id'),
+    create_datetime('expires_at'), create_datetime('revoked_at', False)
 )
 table_user_groups = Table(
     'user_groups', meta_data,
@@ -994,6 +1001,8 @@ table_metric_materializations = Table(
     create_bool('auto_create_topic', False),
     create_str('time_grain', 10, False),
     create_json('group_by'),
+    create_medium_text('where_clause'),
+    create_tuple_id_column('value_bucket_id'), create_int('value_bucket_version'),
     create_str('write_mode', 20, False), create_str('engine', 20, False),
     create_str('frequency', 20), create_str('time', 10),
     create_str('date', 20), create_str('weekday', 10), create_int('day_of_month'),
@@ -1052,6 +1061,7 @@ tables: Dict[str, Table] = {
     SNOWFLAKE_WORKER_ID_TABLE: table_snowflake_competitive_workers,
     # system
     'pats': table_pats,
+    'revoked_tokens': table_revoked_tokens,
     'tenants': table_tenants,
     'ai_models': table_ai_models,
     'external_writers': table_external_writers,

@@ -11,10 +11,13 @@ from watchmen_metricflow.metricflow.main_api import query as dbt_query
 from watchmen_metricflow.model.materialization import Materialization, MaterializationEngine, TimeGrain, \
 	WriteMode
 from watchmen_metricflow.model.metric_request import MetricQueryRequest
+from watchmen_metricflow.model.metric_response import MetricFlowResponse
 from watchmen_metricflow.model.semantic import TimeGranularity
+from watchmen_model.indicator import Bucket
 from watchmen_metricflow.router.metric_router import build_metric_config, ensure_dbt_path
 from watchmen_metricflow.service.direct_metric_query_service import try_direct_metric_query
 from watchmen_metricflow.service.meta_service import get_metric_service
+from watchmen_metricflow.service.metric_value_bucket_service import apply_value_bucket_to_response, load_value_bucket
 from watchmen_metricflow.settings import ask_materialization_engine
 from watchmen_utilities import is_blank
 from .materialization_error import MaterializationError
@@ -65,6 +68,8 @@ def build_request(
 	return MetricQueryRequest(
 		metric=materialization.metricName,
 		group_by=group_by,
+		where=materialization.where,
+		value_bucket_id=materialization.valueBucketId,
 		time_granularity=TimeGranularity(str(materialization.timeGrain)),
 		start_time=datetime.combine(window_start, dt_time.min),
 		end_time=datetime.combine(window_end, dt_time(23, 59, 59))
@@ -76,14 +81,17 @@ def build_sql_preview(
 		engine: MaterializationEngine
 ) -> str:
 	group_by = ', '.join(materialization.groupBy or []) or '(none)'
+	where = f" AND ({materialization.where})" if not is_blank(materialization.where) else ''
+	bucket = '' if is_blank(materialization.valueBucketId) \
+		else f'\n-- value bucket: {materialization.valueBucketId} (metric-value post-processing)'
 	return (
 		f'-- materialization query (textual preview, executed by the metric engine)\n'
 		f'SELECT {TIME_SOURCE_PREFIX}__{materialization.timeGrain}, {group_by}, '
 		f'{materialization.metricName}\n'
 		f'FROM metric:{materialization.metricName}\n'
 		f'WHERE {TIME_SOURCE_PREFIX} >= \'{window_start}\' AND {TIME_SOURCE_PREFIX} '
-		f'<= \'{window_end}\'\n'
-		f'-- engine: {engine.value}'
+		f'<= \'{window_end}\'{where}\n'
+		f'-- engine: {engine.value}{bucket}'
 	)
 
 
@@ -104,7 +112,7 @@ def _resolve_requested_engine(materialization: Materialization) -> Materializati
 
 async def execute_metric_query(
 		materialization: Materialization, principal_service: PrincipalService,
-		window: Optional[Tuple[date, date]] = None
+		window: Optional[Tuple[date, date]] = None, value_bucket: Optional[Bucket] = None
 ) -> QueryOutcome:
 	"""Run the metric query, storage engine (direct bypass first, dbt fallback) or spark."""
 	if is_blank(materialization.metricName):
@@ -116,6 +124,9 @@ async def execute_metric_query(
 
 	window_start, window_end = window if window is not None else materialization_window(materialization)
 	request = build_request(materialization, window_start, window_end)
+	if value_bucket is None:
+		value_bucket = await run_in_threadpool(
+			load_value_bucket, materialization.valueBucketId, principal_service)
 	requested = _resolve_requested_engine(materialization)
 
 	if requested == MaterializationEngine.SPARK:
@@ -135,13 +146,7 @@ async def execute_metric_query(
 		logger.warning(f'Materialization [{materialization.materializationId}] direct query failed: {e}')
 
 	if direct_result is not None:
-		outcome = QueryOutcome(
-			column_names=list(direct_result.column_names),
-			rows=[tuple(row) for row in direct_result.data],
-			engine=MaterializationEngine.STORAGE,
-			sql_preview=build_sql_preview(materialization, window_start, window_end,
-			                              MaterializationEngine.STORAGE)
-		)
+		response = direct_result
 	else:
 		logger.info(
 			f'Materialization [{materialization.materializationId}] falls back to the dbt path, '
@@ -154,15 +159,19 @@ async def execute_metric_query(
 			metrics=[materialization.metricName],
 			group_by=request.group_by,
 			start_time=request.start_time,
-			end_time=request.end_time
+			end_time=request.end_time,
+			where=request.where
 		)
-		outcome = QueryOutcome(
-			column_names=list(query_result.result_df.column_names),
-			rows=[tuple(row) for row in query_result.result_df.rows],
-			engine=MaterializationEngine.STORAGE,
-			sql_preview=build_sql_preview(materialization, window_start, window_end,
-			                              MaterializationEngine.STORAGE)
-		)
+		response = MetricFlowResponse(
+			data=query_result.result_df.rows, column_names=query_result.result_df.column_names)
+	if value_bucket is not None:
+		response = apply_value_bucket_to_response(response, value_bucket, materialization.metricName)
+	outcome = QueryOutcome(
+		column_names=list(response.column_names),
+		rows=[tuple(row) for row in response.data],
+		engine=MaterializationEngine.STORAGE,
+		sql_preview=build_sql_preview(materialization, window_start, window_end, MaterializationEngine.STORAGE)
+	)
 
 	missing = find_missing_dimensions(outcome.column_names, materialization.groupBy)
 	if missing:

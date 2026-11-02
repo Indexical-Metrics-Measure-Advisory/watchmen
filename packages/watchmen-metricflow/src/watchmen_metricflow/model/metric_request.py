@@ -16,6 +16,7 @@ class MetricsQueryRequest(BaseModel):
 
 class MetricQueryRequest(BaseModel):
     metric: str = None
+    value_bucket_id: Optional[str] = None
     group_by: Optional[List[str]] = None
     where: Optional[str] = None
     time_granularity: Optional[TimeGranularity] = None

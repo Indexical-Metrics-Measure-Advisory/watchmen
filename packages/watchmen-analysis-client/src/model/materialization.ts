@@ -28,6 +28,22 @@ export interface FactorMappingColumn {
 	source?: string;
 }
 
+export type MaterializationFilterOperator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'IN';
+
+export interface MaterializationFilter {
+	field: string;
+	referenceType: 'Dimension' | 'Metric';
+	operator: MaterializationFilterOperator;
+	value: string;
+}
+
+export interface MockMeasureOption {
+	id: string;
+	name: string;
+	label: string;
+	agg?: string;
+}
+
 export type MaterializationEngine = 'AUTO' | 'STORAGE' | 'SPARK';
 
 export interface Materialization {
@@ -42,6 +58,9 @@ export interface Materialization {
 	autoCreateTopic: boolean;
 	timeGrain: TimeGrain;
 	groupBy: string[];
+	where?: string;
+	valueBucketId?: string;
+	valueBucketVersion?: number;
 	writeMode: WriteMode;
 	engine: MaterializationEngine;
 	schedule: MaterializationSchedule;

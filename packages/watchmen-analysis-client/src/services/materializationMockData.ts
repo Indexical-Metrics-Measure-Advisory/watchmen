@@ -52,7 +52,8 @@ export function getMockDimensions(metricName?: string): MockDimensionOption[] {
 export function buildMockFactorMapping(
 	metricName: string,
 	timeGrain: string,
-	groupBy: string[]
+	groupBy: string[],
+	valueBucketId?: string
 ): FactorMappingColumn[] {
 	const columns: FactorMappingColumn[] = [
 		{
@@ -79,6 +80,15 @@ export function buildMockFactorMapping(
 			source: dim
 		});
 	});
+	if (valueBucketId) {
+		columns.push({
+			columnName: 'valueBucket',
+			factorName: 'valueBucket',
+			factorType: 'text',
+			role: 'dimension',
+			source: 'valueBucket'
+		});
+	}
 	columns.push({
 		columnName: 'metricValue',
 		factorName: metricName,

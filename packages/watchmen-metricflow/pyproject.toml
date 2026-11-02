@@ -26,6 +26,7 @@ watchmen-rest = { path = "../watchmen-rest", develop = true }
 watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
 watchmen-data-surface = { path = "../watchmen-data-surface", develop = true }
 watchmen-inquiry-surface = { path = "../watchmen-inquiry-surface", develop = true }
+watchmen-indicator-kernel = { path = "../watchmen-indicator-kernel", develop = true }
 watchmen-indicator-surface = { path = "../watchmen-indicator-surface", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }

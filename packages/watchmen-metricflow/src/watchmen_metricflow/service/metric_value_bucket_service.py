@@ -36,10 +36,13 @@ def _read_segment_bound(value, bucket_id: BucketId, segment_index: int, bound_na
 
 def _segment_bounds(bucket: Bucket, segment_index: int) -> Tuple[Optional[Decimal], Optional[Decimal]]:
 	segment = bucket.segments[segment_index]
-	if segment.value is None:
+	value = segment.value
+	if value is None:
 		raise_400(f'Bucket [{bucket.bucketId}] segment [{segment_index}] value is required.')
-	minimum = _read_segment_bound(segment.value.min, bucket.bucketId, segment_index, 'min')
-	maximum = _read_segment_bound(segment.value.max, bucket.bucketId, segment_index, 'max')
+	minimum_value = value.get('min') if isinstance(value, dict) else value.min
+	maximum_value = value.get('max') if isinstance(value, dict) else value.max
+	minimum = _read_segment_bound(minimum_value, bucket.bucketId, segment_index, 'min')
+	maximum = _read_segment_bound(maximum_value, bucket.bucketId, segment_index, 'max')
 	if minimum is None and maximum is None:
 		raise_400(f'Bucket [{bucket.bucketId}] segment [{segment_index}] must define min or max.')
 	if minimum is not None and maximum is not None and minimum >= maximum:
@@ -89,14 +92,22 @@ def apply_value_bucket_to_response(
 	return MetricFlowResponse(data=tuple(rows), column_names=column_names)
 
 
+def load_value_bucket(
+		value_bucket_id: Optional[BucketId], principal_service: PrincipalService
+) -> Optional[Bucket]:
+	if is_blank(value_bucket_id):
+		return None
+	try:
+		return ask_bucket(value_bucket_id, principal_service)
+	except IndicatorKernelException:
+		raise_404(f'Bucket [{value_bucket_id}] not found.')
+
+
 def apply_value_bucket(
 		response: MetricFlowResponse, value_bucket_id: Optional[BucketId], metric_name: str,
 		principal_service: PrincipalService
 ) -> MetricFlowResponse:
-	if is_blank(value_bucket_id):
+	bucket = load_value_bucket(value_bucket_id, principal_service)
+	if bucket is None:
 		return response
-	try:
-		bucket = ask_bucket(value_bucket_id, principal_service)
-	except IndicatorKernelException:
-		raise_404(f'Bucket [{value_bucket_id}] not found.')
 	return apply_value_bucket_to_response(response, bucket, metric_name)

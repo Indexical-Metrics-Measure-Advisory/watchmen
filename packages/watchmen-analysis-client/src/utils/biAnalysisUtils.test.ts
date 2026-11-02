@@ -108,6 +108,49 @@ describe('transformMetricFlowToChart', () => {
     ]);
   });
 
+  it('uses valueBucket as the default axis without ordinary dimensions', () => {
+    const dataset = transformMetricFlowToChart(resp(
+      ['valueBucket', 'revenue'],
+      [['Low', 10], ['High', 20]],
+    ));
+    expect(dataset.rows).toEqual([
+      { name: 'High', value: 20 },
+      { name: 'Low', value: 10 },
+    ]);
+  });
+
+  it('uses valueBucket as the series after inferring a time axis', () => {
+    const dataset = transformMetricFlowToChart(resp(
+      ['order_date', 'valueBucket', 'revenue'],
+      [
+        ['2024-01-01', 'Low', 10],
+        ['2024-01-01', 'High', 20],
+        ['2024-01-02', 'Low', 15],
+      ],
+    ), { isTimeDimension: isTimeDimensionByName });
+    expect(dataset.rows).toEqual([
+      { date: '2024-01-01', High: 20, Low: 10 },
+      { date: '2024-01-02', Low: 15 },
+    ]);
+  });
+
+  it('honours valueBucket as an explicit facet and keeps the metric value last', () => {
+    const dataset = transformMetricFlowToChart(resp(
+      ['region', 'valueBucket', 'revenue'],
+      [
+        ['North', 'Low', 10],
+        ['North', 'High', 20],
+        ['South', 'High', 5],
+      ],
+    ), { axisDimension: 'region', facetDimension: 'valueBucket' });
+    expect(dataset.facets!.map(facet => facet.value)).toEqual(['High', 'Low']);
+    expect(dataset.facets![0].rows).toEqual([
+      { name: 'North', value: 20 },
+      { name: 'South', value: 5 },
+    ]);
+    expect(dataset.facets![1].rows).toEqual([{ name: 'North', value: 10 }]);
+  });
+
   it('sums to a single KPI row without dimensions', () => {
     const dataset = transformMetricFlowToChart(resp(['value'], [[2], [3]]));
     expect(dataset.rows).toEqual([{ value: 5 }]);

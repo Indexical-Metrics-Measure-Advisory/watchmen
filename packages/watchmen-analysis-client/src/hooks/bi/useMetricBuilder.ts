@@ -9,7 +9,7 @@ import type { ChartDatum } from '@/components/bi/ChartCard';
 import type { ChartFacetGroup } from '@/utils/biAnalysisUtils';
 import { transformMetricFlowToChart, timeRangeToBounds, toTimeRangeValue } from '@/utils/biAnalysisUtils';
 import { buildGroupBy, isTimeDimensionByName, MAX_MULTI_DIM_ROWS } from '@/utils/dimensionQuery';
-import { applyDimensionRole, resolveDimensionRoles } from '@/components/bi/dimensionRoles';
+import { applyDimensionRole, resolveDimensionRoles, VALUE_BUCKET_DIMENSION } from '@/components/bi/dimensionRoles';
 import type { DimensionRole } from '@/components/bi/dimensionRoles';
 import { getCategories as getRealCategories, getMetrics as getAllMetrics, findDimensionsByMetric } from '@/services/metricsManagementService';
 import type { Category } from '@/model/metricsManagement';
@@ -33,6 +33,7 @@ type BuilderChartConfig = {
   axisDimension?: string;
   seriesDimension?: string;
   facetDimension?: string;
+  valueBucketId?: string;
   timeRange: string;
   timeGranularity: string;
   customDateRange: DateRange | undefined;
@@ -47,6 +48,7 @@ const createDefaultChartConfig = (): BuilderChartConfig => ({
   axisDimension: undefined,
   seriesDimension: undefined,
   facetDimension: undefined,
+  valueBucketId: undefined,
   timeRange: 'Past 30 days',
   timeGranularity: 'day',
   customDateRange: { from: addDays(new Date(), -30), to: new Date() },
@@ -75,8 +77,8 @@ const pickTimeSeriesType = (data: unknown[]): BIChartType => {
   return extractChartKeys(data as ChartDatum[]).length > 5 ? 'stackedBar' : 'line';
 };
 
-const chartTypeFromDims = (dims: string[], detailed: MetricDimension[]): BIChartType => {
-  if (!Array.isArray(dims) || dims.length === 0) return 'kpi';
+const chartTypeFromDims = (dims: string[], detailed: MetricDimension[], hasValueBucket = false): BIChartType => {
+  if (!Array.isArray(dims) || dims.length === 0) return hasValueBucket ? 'bar' : 'kpi';
   const hasTimeDim = dims.some(val => {
     const found = detailed.find(d => (d.qualified_name || d.name) === val);
     return found ? inferType(found) === 'TIME' : false;
@@ -138,6 +140,8 @@ export type UseMetricBuilderReturn = {
     /** Resolved role per selected dimension (explicit roles win over defaults) */
     dimensionRoles: { dimension: string; role: DimensionRole }[];
     onDimensionRoleChange: (dimension: string, role: DimensionRole) => void;
+    valueBucketId?: string;
+    onValueBucketChange: (value: string) => void;
   };
   configProps: {
     timeRange: string;
@@ -252,9 +256,11 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
   }, [chartConfig.dimensions, availableDimsDetailed]);
 
   const previewFallbackType = useMemo<BIChartType>(() => {
-    if (chartConfig.chartType !== 'auto') return chartConfig.chartType;
-    return chartTypeFromDims(chartConfig.dimensions, availableDimsDetailed);
-  }, [chartConfig.chartType, chartConfig.dimensions, availableDimsDetailed]);
+    if (chartConfig.chartType !== 'auto') {
+      return chartConfig.valueBucketId && chartConfig.chartType === 'kpi' ? 'bar' : chartConfig.chartType;
+    }
+    return chartTypeFromDims(chartConfig.dimensions, availableDimsDetailed, Boolean(chartConfig.valueBucketId));
+  }, [chartConfig.chartType, chartConfig.dimensions, chartConfig.valueBucketId, availableDimsDetailed]);
 
   const previewQueryKey = useMemo(() => {
     if (!selectedMetric) return '';
@@ -266,6 +272,7 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
       axisDimension: chartConfig.axisDimension,
       seriesDimension: chartConfig.seriesDimension,
       facetDimension: chartConfig.facetDimension,
+      valueBucketId: chartConfig.valueBucketId,
       timeRange: chartConfig.timeRange,
       from,
       to,
@@ -363,12 +370,12 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
         if (cached) {
           let cachedType: BIChartType = 'bar';
           if (chartConfig.chartType !== 'auto') {
-            cachedType = chartConfig.chartType;
+            cachedType = previewFallbackType;
           } else if (isTimeData(cached.data)) {
             cachedType = pickTimeSeriesType(cached.data);
           } else if (isGroupedData(cached.data)) {
             cachedType = 'groupedBar';
-          } else if (!chartConfig.dimensions || chartConfig.dimensions.length === 0) {
+          } else if ((!chartConfig.dimensions || chartConfig.dimensions.length === 0) && !chartConfig.valueBucketId) {
             cachedType = 'kpi';
           } else {
             cachedType = previewFallbackType;
@@ -395,6 +402,7 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
 
         const req: MetricQueryRequest = {
           metric: selectedMetric.name,
+          valueBucketId: chartConfig.valueBucketId,
           group_by: groupBy,
           start_time: start,
           end_time: end,
@@ -410,12 +418,12 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
         if (alive) {
           let type: BIChartType = 'bar';
           if (chartConfig.chartType !== 'auto') {
-            type = chartConfig.chartType;
+            type = previewFallbackType;
           } else if (isTimeData(data)) {
             type = pickTimeSeriesType(data);
           } else if (isGroupedData(data)) {
             type = 'groupedBar';
-          } else if (!chartConfig.dimensions || chartConfig.dimensions.length === 0) {
+          } else if ((!chartConfig.dimensions || chartConfig.dimensions.length === 0) && !chartConfig.valueBucketId) {
             type = 'kpi';
           }
 
@@ -446,13 +454,12 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
   ]);
 
   // ── Metric builder handlers ──
-  // Once a card is added to the board, every selection is cleared so the next
-  // time the builder opens it presents a fresh state instead of the stale
-  // metric/dimensions/preview from the previous round.
+  // Metric-specific selections reset after adding a card; value buckets are
+  // metric-independent and remain available for the next card.
   const resetBuilder = useCallback(() => {
     setSearch('');
     setCategoryId('');
-    setChartConfig(createDefaultChartConfig());
+    setChartConfig(prev => ({ ...createDefaultChartConfig(), valueBucketId: prev.valueBucketId }));
     setSelectedDimType('');
     setDimSearch('');
     setShowAllDims(false);
@@ -512,6 +519,16 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
     setChartConfig(prev => ({ ...prev, ...applyDimensionRole(prev, dimension, role) }));
   }, []);
 
+  const handleValueBucketChange = useCallback((value: string) => {
+    setChartConfig(prev => ({
+      ...prev,
+      valueBucketId: value || undefined,
+      axisDimension: prev.axisDimension === VALUE_BUCKET_DIMENSION ? undefined : prev.axisDimension,
+      seriesDimension: prev.seriesDimension === VALUE_BUCKET_DIMENSION ? undefined : prev.seriesDimension,
+      facetDimension: prev.facetDimension === VALUE_BUCKET_DIMENSION ? undefined : prev.facetDimension,
+    }));
+  }, []);
+
   // Resolved role per selected dimension for the builder UI: explicit roles
   // win, the rest fall back to the shared inference rules (time → axis,
   // next dimension → series).
@@ -520,7 +537,10 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
     [chartConfig, resolveIsTimeDim]
   );
   const selectedDimensionRoles = useMemo(() => {
-    const roles: { dimension: string; role: DimensionRole }[] = chartConfig.dimensions.map(dimension => ({
+    const dimensions = chartConfig.valueBucketId
+      ? [...chartConfig.dimensions, VALUE_BUCKET_DIMENSION]
+      : chartConfig.dimensions;
+    const roles: { dimension: string; role: DimensionRole }[] = dimensions.map(dimension => ({
       dimension,
       role: 'detail' as DimensionRole,
     }));
@@ -533,7 +553,7 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
     assign(dimensionRoleOptions.seriesDimension, 'series');
     assign(dimensionRoleOptions.facetDimension, 'facet');
     return roles;
-  }, [chartConfig.dimensions, dimensionRoleOptions]);
+  }, [chartConfig.dimensions, chartConfig.valueBucketId, dimensionRoleOptions]);
 
   const filteredDimsInfo = useMemo(() => {
     const term = dimSearch.trim().toLowerCase();
@@ -567,13 +587,16 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
       return;
     }
 
-    let chartTypeForBoard: BIChartType = chartTypeFromDims(chartConfig.dimensions, availableDimsDetailed);
-    
+    let chartTypeForBoard: BIChartType = chartTypeFromDims(
+      chartConfig.dimensions, availableDimsDetailed, Boolean(chartConfig.valueBucketId)
+    );
+
     if (chartConfig.chartType !== 'auto') {
-      chartTypeForBoard = chartConfig.chartType;
+      chartTypeForBoard = chartConfig.valueBucketId && chartConfig.chartType === 'kpi' ? 'bar' : chartConfig.chartType;
     } else if (previewState.data.length > 0) {
-       chartTypeForBoard = previewState.type;
+      chartTypeForBoard = previewState.type;
     }
+    if (chartConfig.valueBucketId && chartTypeForBoard === 'kpi') chartTypeForBoard = 'bar';
 
     const titleTimeRange = chartConfig.timeRange === 'Custom' && chartConfig.customDateRange?.from && chartConfig.customDateRange?.to
       ? `${format(chartConfig.customDateRange.from, 'yyyy-MM-dd')} to ${format(chartConfig.customDateRange.to, 'yyyy-MM-dd')}`
@@ -590,6 +613,7 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
         axisDimension: dimensionRoleOptions.axisDimension,
         seriesDimension: dimensionRoleOptions.seriesDimension,
         facetDimension: dimensionRoleOptions.facetDimension,
+        valueBucketId: chartConfig.valueBucketId,
         timeRange: finalTimeRange,
         timeGranularity: hasSelectedTimeDimension ? chartConfig.timeGranularity : undefined,
         limit: chartConfig.limit
@@ -642,7 +666,9 @@ export const useMetricBuilder = (options: UseMetricBuilderOptions): UseMetricBui
     onShowAllDimsChange: setShowAllDims,
     dimensionRoles: selectedDimensionRoles,
     onDimensionRoleChange: handleDimensionRoleChange,
-  }), [availableDimsDetailed, selectedDimType, dimSearch, filteredDims, chartConfig.dimensions, toggleDim, filteredDimsInfo, showAllDims, selectedDimensionRoles, handleDimensionRoleChange]);
+    valueBucketId: chartConfig.valueBucketId,
+    onValueBucketChange: handleValueBucketChange,
+  }), [availableDimsDetailed, selectedDimType, dimSearch, filteredDims, chartConfig.dimensions, chartConfig.valueBucketId, toggleDim, filteredDimsInfo, showAllDims, selectedDimensionRoles, handleDimensionRoleChange, handleValueBucketChange]);
 
   // Config props
   const configProps = useMemo(() => ({

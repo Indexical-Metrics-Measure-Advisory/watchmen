@@ -11,15 +11,17 @@ from watchmen_metricflow.meta.metric_access_service import check_metric_names_al
 from watchmen_metricflow.metricflow.config.db_version.cli_configuration_db import CLIConfigurationDB
 from watchmen_metricflow.metricflow.main_api import query, load_dimensions_by_metrics, find_all_metrics, \
     get_dimension_values
-from watchmen_metricflow.model.dimension_response import DimensionListResponse, MetricListResponse
+from watchmen_metricflow.model.dimension_response import DimensionListResponse, MeasureListResponse, \
+    MeasureInfo, MetricListResponse
 from watchmen_metricflow.model.metric_request import MetricQueryRequest
 from watchmen_metricflow.model.metric_response import MetricFlowResponse
 from watchmen_metricflow.model.metrics import Metric
 from watchmen_metricflow.model.semantic import SemanticModel
 from watchmen_metricflow.service.meta_service import load_metrics_by_tenant_id_sync, \
     load_semantic_models_by_tenant_id_sync, build_profile, get_metric_service
-from watchmen_metricflow.service.direct_metric_query_service import try_direct_dimensions_by_metrics, \
-    try_direct_metric_query, try_direct_metrics_list
+from watchmen_metricflow.service.metric_value_bucket_service import apply_value_bucket
+from watchmen_metricflow.service.direct_metric_query_service import _collect_tree_measures, _normalize_metric, \
+    load_metric_meta_cached, try_direct_dimensions_by_metrics, try_direct_metric_query, try_direct_metrics_list
 from watchmen_metricflow.settings import ask_direct_bypass_types
 from watchmen_rest import get_admin_principal, get_any_principal, get_console_principal
 from watchmen_metricflow.cache.metric_config_cache import metric_config_cache
@@ -106,6 +108,31 @@ async def find_dimensions_by_metric(metric_name: str,principal_service: Principa
     return await run_in_threadpool(load_dimensions_by_metrics, [metric_name], config)
 
 
+@router.get("/metricflow/measures_by_metric", tags=["mcp"], operation_id="find_measures_by_metric",
+            response_model=MeasureListResponse)
+async def find_measures_by_metric(
+        metric_name: str, principal_service: PrincipalService = Depends(get_console_principal)
+) -> MeasureListResponse:
+    """List the semantic-model measures referenced by a metric, including nested references."""
+    await run_in_threadpool(
+        check_metric_names_allowed, get_metric_service(principal_service), principal_service, [metric_name])
+    metrics, semantic_models = await run_in_threadpool(load_metric_meta_cached, principal_service)
+    metrics_by_name = {metric.name: _normalize_metric(metric) for metric in metrics}
+    if metric_name not in metrics_by_name:
+        raise HTTPException(status_code=404, detail=f'Metric [{metric_name}] not found.')
+    measure_names = set()
+    if not _collect_tree_measures(metric_name, metrics_by_name, set(), measure_names):
+        raise HTTPException(status_code=400, detail=f'Metric [{metric_name}] has an invalid reference chain.')
+    measures = []
+    for model in semantic_models:
+        for measure in model.measures or []:
+            if measure.name in measure_names:
+                agg = measure.agg.value if hasattr(measure.agg, 'value') else str(measure.agg)
+                measures.append(MeasureInfo(
+                    name=measure.name, label=measure.label, description=measure.description, agg=agg))
+    measures.sort(key=lambda measure: measure.name)
+    return MeasureListResponse(measures=measures, total_count=len(measures))
+
 
 # find common dimensions between metrics and dimensions
 @router.post("/metricflow/find_dimensions", tags =["mcp"],operation_id="find_dimensions",response_model=DimensionListResponse)
@@ -147,6 +174,13 @@ async def find_dimensions(metrics: List[str],principal_service: PrincipalService
 #     return res
 
 
+async def _apply_configured_value_bucket(
+        req: MetricQueryRequest, response: MetricFlowResponse, principal_service: PrincipalService
+) -> MetricFlowResponse:
+    return await run_in_threadpool(
+        apply_value_bucket, response, req.value_bucket_id, req.metric, principal_service)
+
+
 @router.post("/metricflow/get_metric_value",tags =["mcp"], operation_id="get_metric_value", response_model=MetricFlowResponse)
 async def get_metric_value(req :MetricQueryRequest,
                         principal_service: PrincipalService = Depends(get_any_principal))->MetricFlowResponse:
@@ -158,7 +192,7 @@ async def get_metric_value(req :MetricQueryRequest,
     decline_reasons: List[str] = []
     direct_result = await try_direct_metric_query(req, principal_service, decline_reasons)
     if direct_result is not None:
-        return direct_result
+        return await _apply_configured_value_bucket(req, direct_result, principal_service)
 
     logger.info(f'get_metric_value [{req.metric}] falls back to the dbt path.')
 
@@ -183,7 +217,7 @@ async def get_metric_value(req :MetricQueryRequest,
         order = order
     )
     res = MetricFlowResponse(data=query_result.result_df.rows, column_names=query_result.result_df.column_names)
-    return res
+    return await _apply_configured_value_bucket(req, res, principal_service)
 
 
 
@@ -204,7 +238,7 @@ async def query_metrics(request_list: List[MetricQueryRequest],
         decline_reasons: List[str] = []
         direct_result = await try_direct_metric_query(request, principal_service, decline_reasons)
         if direct_result is not None:
-            response_list.append(direct_result)
+            response_list.append(await _apply_configured_value_bucket(request, direct_result, principal_service))
             continue
         logger.info(f'query_metrics [{request.metric}] falls back to the dbt path.')
         if config is None:
@@ -221,7 +255,7 @@ async def query_metrics(request_list: List[MetricQueryRequest],
             order= request.order
         )
         res = MetricFlowResponse(data=query_result.result_df.rows, column_names=query_result.result_df.column_names)
-        response_list.append(res)
+        response_list.append(await _apply_configured_value_bucket(request, res, principal_service))
 
     return response_list
 

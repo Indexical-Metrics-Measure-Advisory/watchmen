@@ -7,18 +7,18 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _metric_test_base import build_client
-from watchmen_model.indicator import Bucket
+from watchmen_model.indicator import Bucket, NumericValueSegment
 from watchmen_metricflow.model.metric_response import MetricFlowResponse
 from watchmen_metricflow.router import metric_router
 from watchmen_metricflow.service import metric_value_bucket_service
 
 
 def make_bucket():
-	return Bucket(
+	return Bucket.model_construct(
 		bucketId='bucket-1', name='Revenue bands', type='value', include='include-min',
 		segments=[
-			{'name': 'low', 'value': {'max': '100'}},
-			{'name': 'high', 'value': {'min': '100'}},
+			NumericValueSegment(name='low', value={'max': '100'}),
+			NumericValueSegment(name='high', value={'min': '100'}),
 		])
 
 

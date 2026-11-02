@@ -78,8 +78,9 @@ _OPERATOR_MAP = {
 }
 
 # {{ Dimension('name') }} / {{ Entity('name') }} / {{ TimeDimension('name', 'granularity') }}
+# / {{ Metric('name') }} for post-aggregation measure filters
 _WHERE_CONDITION_PATTERN = re.compile(
-	r'^\s*\{\{\s*(Dimension|Entity|TimeDimension)\s*\(\s*[\'"]([^\'"]+)[\'"]'
+	r'^\s*\{\{\s*(Dimension|Entity|TimeDimension|Metric)\s*\(\s*[\'"]([^\'"]+)[\'"]'
 	r'(?:\s*,\s*[\'"][^\'"]*[\'"])*\s*\)\s*\}\}\s*(=|!=|>=|<=|>|<|IN)\s*(.+?)\s*$',
 	re.IGNORECASE)
 
@@ -376,6 +377,10 @@ def _split_outside_quotes(text: str, separator_pattern: re.Pattern) -> List[str]
 		if quote is not None:
 			buffer.append(ch)
 			if ch == quote:
+				if index + 1 < len(text) and text[index + 1] == quote:
+					buffer.append(text[index + 1])
+					index += 2
+					continue
 				quote = None
 			index += 1
 			continue
@@ -403,7 +408,8 @@ _CSV_SPLIT_PATTERN = re.compile(r'\s*,\s*')
 def _parse_scalar_value(raw: str, where: str) -> Any:
 	raw = raw.strip()
 	if len(raw) >= 2 and raw[0] in ('\'', '"') and raw[-1] == raw[0]:
-		return raw[1:-1]
+		quote = raw[0]
+		return raw[1:-1].replace(quote * 2, quote)
 	lower = raw.lower()
 	if lower == 'true':
 		return True
@@ -430,23 +436,31 @@ def _parse_where_value(raw: str, where: str) -> Any:
 	return _parse_scalar_value(raw, where)
 
 
-def parse_where_filters(where: Optional[str]) -> List[Tuple[str, str, Any]]:
-	"""Parse a MetricFlow where DSL string into (dimension name, operator, value) tuples.
-
-	Supports {{ Dimension('x') }} / {{ Entity('x') }} / {{ TimeDimension('x', 'g') }}
-	with =, !=, >, >=, <, <=, IN (...) combined by AND. Anything else is a 400.
-	"""
+def parse_where_conditions(where: Optional[str]) -> List[Tuple[str, str, str, Any]]:
+	"""Parse where DSL into (reference type, name, operator, value) tuples."""
 	if where is None or len(where.strip()) == 0:
 		return []
-	conditions: List[Tuple[str, str, Any]] = []
+	conditions: List[Tuple[str, str, str, Any]] = []
 	for part in _split_outside_quotes(where, _AND_SPLIT_PATTERN):
 		match = _WHERE_CONDITION_PATTERN.match(part)
 		if match is None:
 			raise_400(f'Unsupported where clause [{part.strip()}] in [{where}].')
 		operator = _OPERATOR_MAP[match.group(3).upper()]
 		value = _parse_where_value(match.group(4), where)
-		conditions.append((match.group(2), operator, value))
+		conditions.append((match.group(1).lower(), match.group(2), operator, value))
 	return conditions
+
+
+def parse_where_filters(where: Optional[str]) -> List[Tuple[str, str, Any]]:
+	"""Parse row-level dimension/entity/time conditions; metric conditions are handled after aggregation."""
+	return [(name, operator, value) for kind, name, operator, value in parse_where_conditions(where)
+	        if kind != 'metric']
+
+
+def parse_measure_filters(where: Optional[str]) -> List[Tuple[str, str, Any]]:
+	"""Parse post-aggregation metric conditions, which reference semantic-model measures."""
+	return [(name, operator, value) for kind, name, operator, value in parse_where_conditions(where)
+	        if kind == 'metric']
 
 
 # =============================================================================
@@ -852,6 +866,37 @@ def _rows_to_series(rows: List[Dict[str, Any]], specs: List[_GroupSpec], leaf_la
 	return _Series(values, display, time_index, time_granularity, fill)
 
 
+def _matches_measure_filter(actual: Any, operator: str, expected: Any) -> bool:
+	if actual is None:
+		return False
+	if operator == 'eq':
+		return actual == expected
+	if operator == 'ne':
+		return actual != expected
+	if operator == 'gt':
+		return actual > expected
+	if operator == 'gte':
+		return actual >= expected
+	if operator == 'lt':
+		return actual < expected
+	if operator == 'lte':
+		return actual <= expected
+	if operator == 'in':
+		return actual in expected
+	return False
+
+
+def _filter_measure_rows(
+		rows: List[Dict[str, Any]], measure: Measure, filter_strings: List[str]) -> List[Dict[str, Any]]:
+	conditions = [condition for filter_string in filter_strings
+	              for condition in parse_measure_filters(filter_string) if condition[0] == measure.name]
+	if not conditions:
+		return rows
+	return [row for row in rows if all(
+		_matches_measure_filter(row.get(measure.name), operator, expected)
+		for _, operator, expected in conditions)]
+
+
 class _RunState:
 	"""Per-request state shared by all leaf queries (specs, filters, executor)."""
 
@@ -862,6 +907,7 @@ class _RunState:
 		self.specs = specs
 		self.req = req
 		self.execute = execute
+		self.excluded_keys = set()
 		# order/limit pushdown for single-leaf (simple metric) queries; consumed
 		# by the first run_leaf call. Set by DirectMetricQueryRunner.run only when
 		# the whole query provably consists of one leaf aggregation.
@@ -876,12 +922,17 @@ class _RunState:
 		ontology, request, leaf_label = _build_leaf_query(
 			self.specs, self.req, model, measure, source.table_ref, filter_strings, time_shift,
 			order_by=order_by, limit=limit)
-		rows = self.execute(ontology, request)
-		if len(rows) >= _LEAF_ROW_LIMIT:
+		raw_rows = self.execute(ontology, request)
+		rows = _filter_measure_rows(raw_rows, measure, filter_strings)
+		series = _rows_to_series(rows, self.specs, leaf_label, fill)
+		if rows is not raw_rows:
+			raw_keys = set(_rows_to_series(raw_rows, self.specs, leaf_label).values)
+			self.excluded_keys.update(raw_keys - set(series.values))
+		if len(raw_rows) >= _LEAF_ROW_LIMIT:
 			logger.warning(
 				f'Leaf query of measure [{measure.name}] hit the row cap [{_LEAF_ROW_LIMIT}]; '
 				f'the group-by cardinality exceeds the cap and the result is incomplete.')
-		return _rows_to_series(rows, self.specs, leaf_label, fill)
+		return series
 
 	def run_series_parallel(self, tasks: List[Callable[[], _Series]]) -> List[_Series]:
 		"""Evaluate independent metric subtrees concurrently.
@@ -1434,6 +1485,13 @@ class DirectMetricQueryRunner:
 
 	def run(self, req: MetricQueryRequest):
 		metric = self.context.metric
+		measure_names = set()
+		_collect_tree_measures(metric.name, self.context.metrics_by_name, set(), measure_names)
+		requested_measures = {name for name, _, _ in parse_measure_filters(req.where)}
+		unknown_measures = requested_measures - measure_names
+		if unknown_measures:
+			raise_400(f'Measures [{", ".join(sorted(unknown_measures))}] are not referenced by '
+			          f'metric [{metric.name}].')
 		force_time = _tree_needs_time(metric.name, self.context.metrics_by_name, set())
 		specs = _parse_group_specs(req, metric, force_time, list(self.context.measure_models.values()))
 		state = _RunState(self.context, specs, req, self.execute)
@@ -1441,6 +1499,9 @@ class DirectMetricQueryRunner:
 		# req.where must seed filter_strings here: downstream _build_filters reads
 		# time range from state.req but takes DSL conditions only via filter_strings
 		series = _eval_metric(state, metric.name, [req.where] if req.where else [], [], set())
+		for key in state.excluded_keys:
+			series.values.pop(key, None)
+			series.display.pop(key, None)
 		return _to_response(metric.name, specs, series, req)
 
 	def _prepare_single_leaf_pushdown(
@@ -1448,6 +1509,8 @@ class DirectMetricQueryRunner:
 			req: MetricQueryRequest) -> Optional[Tuple[List[OntologyOrderBy], Optional[int]]]:
 		"""Order/limit pushdown is only valid when the whole query is one leaf
 		aggregation: a simple metric whose measure reference hits a real measure."""
+		if parse_measure_filters(req.where):
+			return None
 		if _metric_type_value(metric) != MetricType.SIMPLE.value:
 			return None
 		params = metric.type_params

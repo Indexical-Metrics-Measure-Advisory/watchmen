@@ -26,6 +26,8 @@ from watchmen_metricflow.service import materialization_runner
 from watchmen_metricflow.service.materialization_error import MaterializationError
 from watchmen_metricflow.service.materialization_executor import (
     QueryOutcome,
+    build_request,
+    build_sql_preview,
     compute_window,
     is_rebuild,
     materialization_window,
@@ -82,6 +84,17 @@ class TestComputeWindow(unittest.TestCase):
         start, end = compute_window('year', datetime(2026, 1, 2))
         self.assertEqual(date(2026, 1, 1), start)
         self.assertEqual(date(2026, 1, 1), end)
+
+
+class TestMaterializationFilterRequest(unittest.TestCase):
+    def test_filter_reaches_query_request_and_sql_preview(self):
+        where = "{{ Dimension('region') }} = 'east' AND {{ Metric('order_total') }} >= 100"
+        materialization = make_materialization(where=where)
+        request = build_request(materialization, date(2026, 9, 1), date(2026, 9, 30))
+        self.assertEqual(where, request.where)
+        preview = build_sql_preview(
+            materialization, date(2026, 9, 1), date(2026, 9, 30), SimpleNamespace(value='STORAGE'))
+        self.assertIn(where, preview)
 
 
 class TestRebuildWindow(unittest.TestCase):
@@ -406,13 +419,75 @@ class TestExecuteRun(unittest.TestCase):
         run = runner._create_run(materialization, 'manual', None, None)
 
         with mock.patch.object(
-                materialization_runner, 'execute_metric_query',
-                mock.AsyncMock(side_effect=MaterializationError('boom'))):
+                materialization_runner, 'resolve_target_schema', return_value=self._schema()), \
+                mock.patch.object(
+                    materialization_runner, 'execute_metric_query',
+                    mock.AsyncMock(side_effect=MaterializationError('boom'))):
             asyncio.run(runner._execute(run, materialization))
 
         self.assertEqual(RunStatus.FAILED, run.status)
         self.assertTrue(materialization.rebuildPending)
         runner.materialization_service.update.assert_not_called()
+
+    def test_bucket_version_change_rebuilds_chunks_with_one_snapshot_and_updates_version(self):
+        runner = build_runner()
+        materialization = self._materialization()
+        materialization.valueBucketId = 'bucket-1'
+        materialization.valueBucketVersion = 1
+        bucket = SimpleNamespace(version=2)
+        runner.run_service.create.side_effect = lambda run: run
+        runner.run_service.update.side_effect = lambda run: run
+        runner.materialization_service.update.side_effect = lambda m: m
+        run = runner._create_run(materialization, 'manual', None, None)
+        windows = [(date(1970, 1, 1), date(2020, 12, 31)), (date(2021, 1, 1), date(2026, 10, 10))]
+        outcome = QueryOutcome(
+            column_names=['metric_time__day', 'valueBucket', 'metricValue'],
+            rows=[(date(2026, 9, 30), 'low', 1.0)],
+            engine='STORAGE', sql_preview='select bucket')
+        p1, p2, p3, wb_patch = self._success_patches(
+            runner, materialization, self._schema(), outcome,
+            [{'valueBucket': 'low', 'metricValue': 1.0}])
+
+        with p1 as query, p2, p3, wb_patch as write_back_mock, mock.patch.object(
+                materialization_runner, 'rebuild_chunks', return_value=windows), mock.patch.object(
+                materialization_runner, 'load_value_bucket', return_value=bucket) as load_bucket:
+            asyncio.run(runner._execute(run, materialization))
+
+        self.assertEqual(RunStatus.SUCCESS, run.status)
+        load_bucket.assert_called_once_with('bucket-1', runner.principal_service)
+        self.assertEqual(2, query.await_count)
+        self.assertTrue(all(call.args[3] is bucket for call in query.await_args_list))
+        self.assertTrue(write_back_mock.call_args_list[0].args[4])
+        self.assertFalse(write_back_mock.call_args_list[1].args[4])
+        self.assertFalse(materialization.rebuildPending)
+        self.assertEqual(2, materialization.valueBucketVersion)
+        self.assertEqual(2, runner.materialization_service.update.call_count)
+
+    def test_failed_bucket_version_change_keeps_pending_and_previous_version(self):
+        runner = build_runner()
+        materialization = self._materialization()
+        materialization.valueBucketId = 'bucket-1'
+        materialization.valueBucketVersion = 1
+        bucket = SimpleNamespace(version=2)
+        runner.run_service.create.side_effect = lambda run: run
+        runner.run_service.update.side_effect = lambda run: run
+        runner.materialization_service.update.side_effect = lambda m: m
+        run = runner._create_run(materialization, 'manual', None, None)
+
+        with mock.patch.object(
+                materialization_runner, 'load_value_bucket', return_value=bucket) as load_bucket, \
+                mock.patch.object(
+                    materialization_runner, 'resolve_target_schema', return_value=self._schema()), \
+                mock.patch.object(
+                    materialization_runner, 'execute_metric_query',
+                    mock.AsyncMock(side_effect=MaterializationError('bucket query failed'))):
+            asyncio.run(runner._execute(run, materialization))
+
+        self.assertEqual(RunStatus.FAILED, run.status)
+        self.assertTrue(materialization.rebuildPending)
+        self.assertEqual(1, materialization.valueBucketVersion)
+        load_bucket.assert_called_once_with('bucket-1', runner.principal_service)
+        runner.materialization_service.update.assert_called_once()
 
     def test_clear_flag_failure_does_not_fail_the_run(self):
         # the data is already rebuilt, only the bookkeeping write failed

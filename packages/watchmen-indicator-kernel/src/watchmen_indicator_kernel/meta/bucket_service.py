@@ -12,7 +12,7 @@ from watchmen_utilities import ArrayHelper
 class BucketShaper(EntityShaper):
 	# noinspection PyMethodMayBeStatic
 	def try_get_include(self, bucket: Bucket) -> Optional[RangeBucketValueIncluding]:
-		if bucket.type == BucketType.VALUE:
+		if bucket.type == BucketType.VALUE or bucket.type == BucketType.VALUE_MEASURE:
 			if isinstance(bucket, NumericValueBucket):
 				return bucket.include
 			else:
@@ -55,18 +55,19 @@ class BucketShaper(EntityShaper):
 
 	# noinspection PyMethodMayBeStatic
 	def to_derived_bucket(self, bucket: Bucket) -> Bucket:
+		data = bucket.model_dump(exclude_none=True)
 		if bucket.type == BucketType.VALUE:
 			if not isinstance(bucket, NumericValueBucket):
-				return NumericValueBucket(**bucket.to_dict())
+				return NumericValueBucket(**data)
 		elif bucket.type == BucketType.VALUE_MEASURE:
 			if not isinstance(bucket, NumericValueMeasureBucket):
-				return NumericValueMeasureBucket(**bucket.to_dict())
+				return NumericValueMeasureBucket(**data)
 		elif bucket.type == BucketType.CATEGORY_MEASURE:
 			if not isinstance(bucket, CategoryMeasureBucket):
-				return CategoryMeasureBucket(**bucket.to_dict())
+				return CategoryMeasureBucket(**data)
 		elif bucket.type == BucketType.ENUM_MEASURE:
 			if not isinstance(bucket, EnumMeasureBucket):
-				return EnumMeasureBucket(**bucket.to_dict())
+				return EnumMeasureBucket(**data)
 		return bucket
 
 	def deserialize(self, row: EntityRow) -> Bucket:
@@ -108,8 +109,13 @@ class BucketService(TupleService):
 		return 'bucket_id'
 
 	# noinspection DuplicatedCode
-	def find_page_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
+	def find_page_by_text(
+			self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable,
+			bucket_types: Optional[Tuple[BucketType, ...]] = None) -> DataPage:
 		criteria = []
+		if bucket_types:
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='type'), operator=EntityCriteriaOperator.IN, right=list(bucket_types)))
 		if text is not None and len(text.strip()) != 0:
 			criteria.append(EntityCriteriaJoint(
 				conjunction=EntityCriteriaJointConjunction.OR,

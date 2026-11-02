@@ -7,6 +7,7 @@ from .key_store import KeyStore
 from .plugin import Plugin, PluginApplyTo, PluginType
 from .tenant import Tenant
 from .token import PersonalAccessToken, Token
+from .revoked_token import RevokedToken
 from .operation import Operation, OperationType
 from .audit_log import AuditLog, AuditOperationType
 from .publish_notification import PublishNotificationResource, PublishNotificationSetting, PublishNotificationTargetType

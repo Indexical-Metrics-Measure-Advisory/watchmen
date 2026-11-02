@@ -8,7 +8,7 @@ from watchmen_serverless_lambda.trigger import event_bridge_handler, s3_file_han
 from watchmen_rest import RestSettings
 from watchmen_rest.auth_helper import register_authentication_manager
 from watchmen_rest.authentication import build_authentication_manager
-from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat
+from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat, is_token_revoked
 
 
 
@@ -32,7 +32,7 @@ write_worker_id_in_tmp(snowflake_generator.workerId)
 settings = RestSettings()
 register_authentication_manager(build_authentication_manager(
 	settings, build_find_user_by_name(), build_find_user_by_pat(),
-	[]
+	[], is_token_revoked
 ))
 
 

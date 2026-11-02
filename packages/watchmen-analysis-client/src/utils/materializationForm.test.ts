@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
+  buildMaterializationWhere,
   isTimeDimensionOption,
+  parseMaterializationWhere,
   resolveTargetTopicIdOnLoad,
 } from '@/utils/materializationForm';
 
@@ -39,5 +41,35 @@ describe('resolveTargetTopicIdOnLoad', () => {
 
   it('shows the stored topic when the flag is absent (older rows)', () => {
     expect(resolveTargetTopicIdOnLoad({ targetTopicId: 'topic-9' })).toBe('topic-9');
+  });
+});
+
+describe('materialization filters', () => {
+  it('builds dimension and measure conditions with escaped and typed values', () => {
+    expect(buildMaterializationWhere([
+      { field: 'region', referenceType: 'Dimension', operator: '=', value: "O'Brien" },
+      { field: 'order_total', referenceType: 'Metric', operator: '>=', value: '100.5' },
+      { field: 'active', referenceType: 'Dimension', operator: '=', value: 'true' },
+    ])).toBe(
+      "{{ Dimension('region') }} = 'O''Brien' AND {{ Metric('order_total') }} >= 100.5 " +
+      "AND {{ Dimension('active') }} = true",
+    );
+  });
+
+  it('round-trips IN lists and mixed conditions', () => {
+    const where = buildMaterializationWhere([
+      { field: 'region', referenceType: 'Dimension', operator: 'IN', value: 'east, west' },
+      { field: 'order_total', referenceType: 'Metric', operator: '<', value: '500' },
+    ]);
+    expect(parseMaterializationWhere(where)).toEqual([
+      { field: 'region', referenceType: 'Dimension', operator: 'IN', value: 'east, west' },
+      { field: 'order_total', referenceType: 'Metric', operator: '<', value: '500' },
+    ]);
+  });
+
+  it('returns no condition or rules for empty input', () => {
+    expect(buildMaterializationWhere([])).toBeUndefined();
+    expect(parseMaterializationWhere()).toEqual([]);
+    expect(parseMaterializationWhere('')).toEqual([]);
   });
 });

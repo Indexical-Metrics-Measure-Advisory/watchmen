@@ -13,6 +13,8 @@ from watchmen_metricflow.meta.materialization_meta_service import Materializatio
 from watchmen_metricflow.model.materialization import FlowGraph, Materialization, \
 	MaterializationFlow, MaterializationPageRequest, MaterializationRun, MaterializationRunFilter, \
 	MaterializationRunRequest, RunTriggerType
+from watchmen_metricflow.service.materialization_error import MaterializationError
+from watchmen_metricflow.service.materialization_factor_mapping import validate_value_bucket_mapping
 from watchmen_metricflow.service.materialization_flow_graph import build_flow_graph, detect_cycle, \
 	level_flow_materializations
 from watchmen_metricflow.service.materialization_runner import MaterializationRunner
@@ -25,11 +27,11 @@ router = APIRouter()
 # else (tenantId, userId, ids, audit fields) is ignored
 UPDATABLE_MATERIALIZATION_KEYS = {
 	'name', 'metricId', 'metricName', 'metricLabel', 'targetTopicId', 'targetTopicName',
-	'autoCreateTopic', 'timeGrain', 'groupBy', 'writeMode', 'engine', 'schedule',
+	'autoCreateTopic', 'timeGrain', 'groupBy', 'where', 'valueBucketId', 'writeMode', 'engine', 'schedule',
 	'factorMapping', 'enabled', 'description'
 }
-# blank values clear the stored target topic, the UI sends '' when switching back to auto-create
-CLEARABLE_MATERIALIZATION_KEYS = ('targetTopicId', 'targetTopicName')
+# blank values clear optional references; the UI sends '' when clearing a selection
+CLEARABLE_MATERIALIZATION_KEYS = ('targetTopicId', 'targetTopicName', 'valueBucketId')
 UPDATABLE_FLOW_KEYS = {'name', 'materializationIds', 'manualEdges', 'schedule', 'enabled', 'description'}
 
 
@@ -84,6 +86,10 @@ async def save_materialization(
 		materialization.materializationId = str(service.snowflakeGenerator.next_id())
 
 		def action() -> Materialization:
+			try:
+				validate_value_bucket_mapping(materialization)
+			except MaterializationError as e:
+				raise_400(str(e))
 			return service.create(materialization)
 
 		return trans(service, action)
@@ -105,6 +111,10 @@ async def save_materialization(
 			# the stored rows are keyed by the old business key; the next run
 			# rebuilds the full history under the new one, then clears the flag
 			stored.rebuildPending = True
+		try:
+			validate_value_bucket_mapping(stored)
+		except MaterializationError as e:
+			raise_400(str(e))
 		return service.update(stored)
 
 	return trans(service, update)
@@ -112,10 +122,14 @@ async def save_materialization(
 
 def _business_key_changed(
 		stored: Materialization, payload: dict, incoming: Materialization) -> bool:
-	"""Group-by set or time grain changes invalidate the stored business key."""
+	"""Changes to the business key or query scope require a history rebuild."""
 	if 'groupBy' in payload and set(incoming.groupBy or []) != set(stored.groupBy or []):
 		return True
 	if 'timeGrain' in payload and incoming.timeGrain != stored.timeGrain:
+		return True
+	if 'where' in payload and (incoming.where or None) != (stored.where or None):
+		return True
+	if 'valueBucketId' in payload and (incoming.valueBucketId or None) != (stored.valueBucketId or None):
 		return True
 	return False
 

@@ -4,6 +4,7 @@ from typing import Callable, Optional
 from watchmen_meta.admin.user_service import USER_ENTITY_NAME, USER_ENTITY_SHAPER
 from watchmen_meta.common import ask_meta_storage
 from watchmen_meta.system.pat_service import PAT_ENTITY_NAME, PAT_ENTITY_SHAPER
+from watchmen_meta.system.revoked_token_service import RevokedTokenService
 from watchmen_model.admin import User
 from watchmen_model.system import PersonalAccessToken
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityFinder, EntityIdHelper, \
@@ -94,3 +95,15 @@ def build_find_user_by_pat() -> Callable[[str], Optional[User]]:
 	autonomous transaction inside
 	"""
 	return lambda pat_token: find_user_by_pat(ask_meta_storage(), pat_token)
+
+
+def is_token_revoked(jti: str) -> bool:
+	"""
+	autonomous transaction inside
+	"""
+	storage = ask_meta_storage()
+	storage.begin()
+	try:
+		return RevokedTokenService(storage, None, None).is_revoked(jti)
+	finally:
+		storage.close()

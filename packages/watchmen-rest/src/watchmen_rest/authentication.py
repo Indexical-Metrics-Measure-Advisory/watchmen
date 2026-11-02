@@ -1,6 +1,8 @@
+from calendar import timegm
 from datetime import datetime, timedelta
 from logging import getLogger
 from typing import Callable, List, Optional, Tuple, Dict
+from uuid import uuid4
 
 from jose import JWTError
 from jose.jwt import decode, encode
@@ -19,7 +21,8 @@ logger = getLogger(__name__)
 
 
 def create_jwt_token(subject: str, expires_delta: timedelta, secret_key: str, algorithm: str) -> str:
-	to_encode = {'exp': datetime.now() + expires_delta, 'sub': subject}
+	now = datetime.now()
+	to_encode = {'exp': now + expires_delta, 'iat': now, 'jti': uuid4().hex, 'sub': subject}
 	encoded_jwt = encode(to_encode, secret_key, algorithm=algorithm)
 	return encoded_jwt
 
@@ -31,11 +34,29 @@ def validate_jwt(token, secret_key: str, algorithm: str):
 		raise AuthFailOn401('Unauthorized caused by unrecognized token.')
 
 
+def is_token_issued_before(issued_at, moment: Optional[datetime]) -> bool:
+	"""
+	compare the numeric iat claim of a token with a naive datetime.
+	iat is encoded by jose from a naive datetime with utctimetuple,
+	so the same convention is used here to keep both sides on the same wall clock
+	"""
+	if moment is None:
+		return False
+	return issued_at < timegm(moment.utctimetuple())
+
+
 class JWTAuthenticationProvider(AuthenticationProvider):
-	def __init__(self, secret_key: str, algorithm: str, find_user_by_name: Callable[[str], Optional[User]]):
+	def __init__(
+			self,
+			secret_key: str,
+			algorithm: str,
+			find_user_by_name: Callable[[str], Optional[User]],
+			find_revoked_token: Optional[Callable[[str], bool]] = None
+	):
 		self.secretKey = secret_key
 		self.algorithm = algorithm
 		self.find_user_by_name = find_user_by_name
+		self.find_revoked_token = find_revoked_token
 
 	def accept(self, details: AuthenticationDetails) -> bool:
 		return is_not_blank(details.scheme) and details.scheme.lower() == AuthenticationScheme.JWT.value.lower()
@@ -45,7 +66,24 @@ class JWTAuthenticationProvider(AuthenticationProvider):
 			token = details.token
 			payload = validate_jwt(token, self.secretKey, self.algorithm)
 			username = payload['sub']
-			return self.find_user_by_name(username)
+			issued_at = payload.get('iat')
+			jti = payload.get('jti')
+			if issued_at is None or jti is None:
+				# every token issued by this platform carries both claims,
+				# a token without them is either forged or issued before token revocation was deployed
+				return None
+			if self.find_revoked_token is not None and self.find_revoked_token(jti):
+				# token was revoked by a logout, only this very token is affected
+				return None
+			# noinspection PyTypeChecker
+			user: Optional[User] = self.find_user_by_name(username)
+			if user is None:
+				return None
+			if is_token_issued_before(issued_at, user.credentialChangedAt):
+				# credential was changed (password change) after this token was issued,
+				# all tokens of the user issued before it must be rejected
+				return None
+			return user
 		except AuthFailOn401 as e:
 			logger.error(e, exc_info=True, stack_info=True)
 			return None
@@ -136,11 +174,12 @@ def build_authentication_manager(
 		settings: RestSettings,
 		find_user_by_name: Callable[[str], Optional[User]],
 		find_user_by_pat: Callable[[str], Optional[User]],
-		authentication_providers: List[AuthenticationProvider]
+		authentication_providers: List[AuthenticationProvider],
+		find_revoked_token: Optional[Callable[[str], bool]] = None
 ) -> AuthenticationManager:
 	authentication_manager = AuthenticationManager()
 	authentication_manager.register_provider(
-		JWTAuthenticationProvider(settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM, find_user_by_name)
+		JWTAuthenticationProvider(settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM, find_user_by_name, find_revoked_token)
 	).register_provider(
 		PATAuthenticationProvider(find_user_by_pat)
 	).register_provider(

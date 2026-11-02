@@ -4,7 +4,7 @@ import sys
 import urllib.parse
 import boto3
 import asyncio
-from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat
+from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat, is_token_revoked
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import UserRole
 from watchmen_model.pipeline_kernel import PipelineTriggerDataWithPAT, PipelineTriggerTraceId
@@ -35,7 +35,7 @@ def handler(event, context):
 
 	topic_event = json.loads(raw_event)
 	settings = RestSettings()
-	register_authentication_manager(build_authentication_manager(settings, build_find_user_by_name(), build_find_user_by_pat(), []))
+	register_authentication_manager(build_authentication_manager(settings, build_find_user_by_name(), build_find_user_by_pat(), [], is_token_revoked))
 	trigger_data = PipelineTriggerDataWithPAT(pat=topic_event.get('pat'), code=topic_event.get('code'), data=topic_event.get('data'))
 	pat = trigger_data.pat
 	if is_blank(pat):

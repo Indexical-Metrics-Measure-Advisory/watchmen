@@ -30,9 +30,11 @@ import type { MetricDefinition } from '@/model/metricsManagement';
 import type { MetricDimension } from '@/model/analysis';
 import type { MetricFlowResponse } from '@/model/metricFlow';
 import { inferType } from './utils';
+import { VALUE_BUCKET_DIMENSION } from './dimensionRoles';
 import type { DimensionRole } from './dimensionRoles';
 import type { ChartFacetGroup } from '@/utils/biAnalysisUtils';
 import { RechartsProvider } from './charts/RechartsContext';
+import ValueBucketSelect from '@/components/metric-buckets/ValueBucketSelect';
 import { useTranslation } from 'react-i18next';
 
 export type MetricBuilderSheetProps = {
@@ -65,6 +67,8 @@ export type MetricBuilderSheetProps = {
   /** Resolved role per selected dimension (explicit roles win over defaults) */
   dimensionRoles: { dimension: string; role: DimensionRole }[];
   onDimensionRoleChange: (dimension: string, role: DimensionRole) => void;
+  valueBucketId?: string;
+  onValueBucketChange: (value: string) => void;
   timeRange: string;
   onTimeRangeChange: (value: string) => void;
   timeGranularity: string;
@@ -112,6 +116,8 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
   onShowAllDimsChange,
   dimensionRoles,
   onDimensionRoleChange,
+  valueBucketId,
+  onValueBucketChange,
   timeRange,
   onTimeRangeChange,
   timeGranularity,
@@ -128,7 +134,7 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
   previewRawData,
   onAddToDashboard
 }: MetricBuilderSheetProps) {
-  const { t } = useTranslation(['biAnalysis', 'metricsParams']);
+  const { t } = useTranslation(['biAnalysis', 'metricsParams', 'metricBuckets']);
   // Memoize preview card object to avoid creating new reference on every render
   const resolvedRoles = React.useMemo(() => {
     const map = new Map(dimensionRoles.map(entry => [entry.dimension, entry.role]));
@@ -149,11 +155,12 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
       axisDimension: dimensionRoles.find(entry => entry.role === 'axis')?.dimension,
       seriesDimension: dimensionRoles.find(entry => entry.role === 'series')?.dimension,
       facetDimension: dimensionRoles.find(entry => entry.role === 'facet')?.dimension,
+      valueBucketId,
       timeRange,
       timeGranularity,
       limit
     }
-  } : null, [selectedMetric, timeRange, previewType, selectedDims, dimensionRoles, timeGranularity, limit]);
+  } : null, [selectedMetric, timeRange, previewType, selectedDims, dimensionRoles, valueBucketId, timeGranularity, limit]);
 
   // Memoize dimTypes computation to avoid repeated Set creation on each render
   const dimTypes = React.useMemo(
@@ -329,12 +336,19 @@ export const MetricBuilderSheet = React.memo(function MetricBuilderSheet({
                         )}
                       </Tabs>
 
-                      {selectedDims.length > 0 && (
+                      <div className="space-y-2 mb-4">
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase">{t('metricBuckets:list.title')}</Label>
+                        <ValueBucketSelect value={valueBucketId} onChange={onValueBucketChange} />
+                      </div>
+
+                      {(selectedDims.length > 0 || valueBucketId) && (
                         <div className="space-y-1 mb-4">
                           <Label className="text-xs font-semibold text-muted-foreground uppercase">{t('biAnalysis:metricBuilder.dimensionRoles')}</Label>
                           <div className="rounded-md border divide-y">
-                            {selectedDims.map(dim => {
-                              const label = availableDimsDetailed.find(d => (d.qualified_name || d.name) === dim)?.description || dim;
+                            {dimensionRoles.map(({ dimension: dim }) => {
+                              const label = dim === VALUE_BUCKET_DIMENSION
+                                ? t('metricBuckets:list.title')
+                                : availableDimsDetailed.find(d => (d.qualified_name || d.name) === dim)?.description || dim;
                               const role = resolvedRoles.get(dim) ?? 'detail';
                               return (
                                 <div key={dim} className="flex items-center gap-2 px-2 py-1.5">

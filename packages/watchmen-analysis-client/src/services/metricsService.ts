@@ -440,10 +440,11 @@ export class MetricsService implements IMetricsApi {
 
   async getMetricValue(req: MetricQueryRequest): Promise<MetricFlowResponse> {
     try {
+      const { valueBucketId, ...request } = req;
       const response = await fetch(`${API_BASE_URL}/metricflow/get_metric_value`, {
         method: 'POST',
         headers: getDefaultHeaders(),
-        body: JSON.stringify(req)
+        body: JSON.stringify({ ...request, value_bucket_id: valueBucketId })
       });
       if (!response.ok) throw new Error('Failed to fetch metric value');
       return await response.json();
