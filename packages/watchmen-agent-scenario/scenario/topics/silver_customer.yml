@@ -1,0 +1,19 @@
+# Agent scenario silver topic: customer dimension merged from raw_policy.
+name: silver_customer
+description: Agent scenario silver customer dimension
+type: distinct
+kind: business
+dataSourceCode: __DATASOURCE_CODE__
+factors:
+  - name: customer_id
+    type: text
+    label: Customer ID
+    precision: '64'
+  - name: customer_name
+    type: text
+    label: Customer Name
+    precision: '128'
+  - name: region
+    type: text
+    label: Region
+    precision: '32'

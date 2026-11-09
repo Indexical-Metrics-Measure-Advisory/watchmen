@@ -1,0 +1,35 @@
+# Agent scenario semantic model over silver_policy (legacy id strategy: id null for create).
+# __TOPIC_ID_silver_policy__ is rendered by the scenario driver after the topic push;
+# node_relation is a placeholder and is rebuilt server-side from topicId.
+id: null
+name: agent_scenario_policy
+description: Agent scenario semantic model over silver_policy
+sourceType: topic
+# quoted so the rendered snowflake id stays a string for YAML parsers
+topicId: '__TOPIC_ID_silver_policy__'
+node_relation:
+  alias: topic_silver_policy
+  schema_name: rendered_by_server
+  database: rendered_by_server
+  relation_name: rendered_by_server.topic_silver_policy
+entities:
+  - name: policy_id
+    type: primary
+    expr: policy_id
+measures:
+  - name: total_premium
+    agg: sum
+    expr: premium
+  - name: policy_count
+    agg: count
+    expr: policy_id
+dimensions:
+  - name: policy_status
+    type: categorical
+    expr: policy_status
+  - name: region
+    type: categorical
+    expr: region
+  - name: effective_date
+    type: time
+    expr: effective_date

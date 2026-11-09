@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "mysql-smoke",
+  "version": "1.0.0",
+  "description": "Deterministic MySQL/doll smoke gate for AI-developed Watchmen candidates.",
+  "tags": ["L2", "mysql", "smoke", "ai-dev"],
+  "required_suites": ["compose", "db-scripts", "server", "scenarios"],
+  "allowed_skips": ["newman", "performance"],
+  "required_metrics": [],
+  "max_repairs": 2,
+  "protected_paths": ["packages/watchmen-test-harness/"],
+  "layers": {
+    "L0": ["harness-unit"],
+    "L1": ["affected-package-tests"],
+    "L2": ["postman", "mysql-doll-smoke"],
+    "L3": ["baseline-candidate-regression"],
+    "L4": ["performance-baseline", "release-gate"]
+  }
+}

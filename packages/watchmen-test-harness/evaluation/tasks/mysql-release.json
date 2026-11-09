@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "mysql-release",
+  "version": "1.0.0",
+  "description": "Release-readiness gate for an AI-developed Watchmen candidate version.",
+  "tags": ["L2", "L3", "L4", "mysql", "release"],
+  "required_suites": ["compose", "db-scripts", "server", "newman", "scenarios", "performance", "teardown"],
+  "allowed_skips": [],
+  "required_metrics": ["functional_pass_rate", "throughput_rps", "e2e_sec"],
+  "max_repairs": 2,
+  "protected_paths": ["packages/watchmen-test-harness/"],
+  "layers": {
+    "L0": ["harness-unit"],
+    "L1": ["affected-package-tests"],
+    "L2": ["postman", "mysql-doll-full"],
+    "L3": ["baseline-candidate-regression"],
+    "L4": ["performance-three-sample-comparison", "human-release-review"]
+  }
+}

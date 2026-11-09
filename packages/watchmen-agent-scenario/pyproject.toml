@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "watchmen-agent-scenario"
+version = "18.0.0"
+description = "Self-contained end-to-end test scenario that drives agent-cli and agent-runtime-cli against an empty environment"
+authors = ["imma-team"]
+packages = [
+	{ include = "agent_scenario", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.32.3"
+pyyaml = "^6.0.3"
+pymysql = "^1.1.1"
+watchmen-agent-cli = { path = "../watchmen-agent-cli", develop = true }
+watchmen-agent-runtime-cli = { path = "../watchmen-agent-runtime-cli", develop = true }
+
+[tool.poetry.scripts]
+agent-scenario = "agent_scenario.cli:run"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

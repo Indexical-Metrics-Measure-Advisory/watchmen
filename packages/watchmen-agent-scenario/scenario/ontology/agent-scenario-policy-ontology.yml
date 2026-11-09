@@ -1,0 +1,81 @@
+# Agent scenario virtual ontology: Customer / Policy over the silver topics.
+# No-id agent view: links reference objects by business name; derived attribute
+# path alternates object and link business names.
+name: agent-scenario-policy-ontology
+description: Agent scenario customer-policy ontology
+owner: agent-scenario
+technicalOwner: agent-scenario
+tags:
+  - agent-scenario
+  - insurance
+sensitivity: internal
+virtualObjects:
+  - name: Customer
+    description: Policyholder customer
+    icon: user
+    physicalTables:
+      - topicName: silver_customer
+        kind: primary
+        alias: cust
+        fields:
+          - customer_id
+          - customer_name
+          - region
+    attributes:
+      - name: customer_id
+        sourceTable: cust
+        sourceField: customer_id
+      - name: customer_name
+        sourceTable: cust
+        sourceField: customer_name
+      - name: region
+        sourceTable: cust
+        sourceField: region
+    derivedAttributes:
+      - name: total_premium
+        description: Sum of premiums of the policies owned by the customer
+        aggregate: sum
+        path:
+          - Customer
+          - customer-owns-policy
+          - Policy
+        targetField: premium
+  - name: Policy
+    description: Insurance policy
+    icon: file
+    physicalTables:
+      - topicName: silver_policy
+        kind: primary
+        alias: pol
+        fields:
+          - policy_id
+          - customer_id
+          - region
+          - premium
+          - policy_status
+          - effective_date
+    attributes:
+      - name: policy_id
+        sourceTable: pol
+        sourceField: policy_id
+      - name: customer_id
+        sourceTable: pol
+        sourceField: customer_id
+      - name: region
+        sourceTable: pol
+        sourceField: region
+      - name: premium
+        sourceTable: pol
+        sourceField: premium
+      - name: policy_status
+        sourceTable: pol
+        sourceField: policy_status
+virtualLinks:
+  - name: customer-owns-policy
+    description: A customer owns zero or more policies
+    sourceObjectName: Customer
+    targetObjectName: Policy
+    joinType: inner
+    joinConditions:
+      - sourceField: customer_id
+        targetField: customer_id

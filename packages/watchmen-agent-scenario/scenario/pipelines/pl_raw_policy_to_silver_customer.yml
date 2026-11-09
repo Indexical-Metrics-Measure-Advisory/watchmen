@@ -1,0 +1,49 @@
+# Agent scenario pipeline: raw_policy -> silver_customer (insert-or-merge by customer_id).
+# enabled is explicit: newly created pipelines default to disabled.
+name: pl_raw_policy_to_silver_customer
+sourceTopicName: raw_policy
+type: insert-or-merge
+enabled: true
+validated: true
+conditional: false
+stages:
+  - name: land_customer
+    conditional: false
+    units:
+      - name: upsert_customer
+        conditional: false
+        do:
+          - type: insert-or-merge-row
+            topicName: silver_customer
+            accumulateMode: standard
+            by:
+              jointType: and
+              filters:
+                - left:
+                    kind: topic
+                    topicName: silver_customer
+                    factorName: customer_id
+                  operator: equals
+                  right:
+                    kind: topic
+                    topicName: raw_policy
+                    factorName: customer_id
+            mapping:
+              - factorName: customer_id
+                arithmetic: none
+                source:
+                  kind: topic
+                  topicName: raw_policy
+                  factorName: customer_id
+              - factorName: customer_name
+                arithmetic: none
+                source:
+                  kind: topic
+                  topicName: raw_policy
+                  factorName: customer_name
+              - factorName: region
+                arithmetic: none
+                source:
+                  kind: topic
+                  topicName: raw_policy
+                  factorName: region

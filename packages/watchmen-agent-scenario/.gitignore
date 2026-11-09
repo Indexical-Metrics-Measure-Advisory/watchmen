@@ -1,0 +1,30 @@
+# ---- Python caches / builds ----
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.venv_*/
+build/
+dist/
+
+# ---- Scenario runtime artifacts ----
+# working dir holds rendered vaults, reports, and local paths; never commit
+agent-scenario-work/
+scenario-report.json
+
+# ---- Agent CLI vault metadata ----
+# wherever a vault is placed inside this package (SCN_WORKDIR override included):
+# config.json carries the PAT, query-log.jsonl carries local paths
+.agent-cli/
+.agent-runtime-cli/
+query-log.jsonl
+eval-reports/
+
+# ---- Secrets / local config ----
+.env
+.env.*
+
+# ---- Tooling / OS scratch ----
+.mimosa/
+.icloud
+.DS_Store

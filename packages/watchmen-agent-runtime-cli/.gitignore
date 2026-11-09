@@ -17,3 +17,9 @@
 /test/
 /dist/
 .workbuddy
+
+# ---- vault artifacts: config.json carries the PAT, query logs carry local paths ----
+runtime-vault/
+.agent-runtime-cli/
+query-log.jsonl
+eval-reports/
