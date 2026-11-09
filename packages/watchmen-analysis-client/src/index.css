@@ -234,3 +234,9 @@
 .hljs-name {
   @apply text-red-600 dark:text-red-400;
 }
+
+.graph-grid {
+  background-color: #fbfdff;
+  background-image: radial-gradient(#dbe5f0 0.8px, transparent 0.8px);
+  background-size: 18px 18px;
+}

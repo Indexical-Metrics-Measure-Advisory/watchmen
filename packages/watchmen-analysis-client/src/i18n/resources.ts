@@ -191,7 +191,8 @@ export const resources = {
 				legendDeclared: "dependsOn (declared)",
 				legendInferred: "derived from pipelines",
 				flowDirection: "Upstream → downstream (data flow)",
-				legendTypes: "Product types"
+				legendTypes: "Product types",
+					selectNodeHint: "Select a node to view product details"
 			},
 			actions: {
 				refresh: "Refresh",
@@ -2551,7 +2552,8 @@ export const resources = {
 				legendDeclared: "dependsOn（人工声明）",
 				legendInferred: "由管道推导",
 				flowDirection: "上游 → 下游（数据流向）",
-				legendTypes: "产品类型"
+				legendTypes: "产品类型",
+					selectNodeHint: "点击节点查看产品详情"
 			},
 			actions: {
 				refresh: "刷新",
@@ -4886,7 +4888,8 @@ export const resources = {
 				legendDeclared: "dependsOn（人工聲明）",
 				legendInferred: "由管道推導",
 				flowDirection: "上游 → 下游（資料流向）",
-				legendTypes: "產品類型"
+				legendTypes: "產品類型",
+					selectNodeHint: "點擊節點查看產品詳情"
 			},
 			actions: {
 				refresh: "重新整理",
