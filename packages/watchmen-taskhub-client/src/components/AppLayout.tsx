@@ -7,6 +7,7 @@ import {
   Search, Workflow, X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { APP_NAME, APP_TITLE } from '@/config';
 import { useTaskHub } from '@/context/TaskHubContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from './ui';
@@ -53,7 +54,7 @@ export default function AppLayout() {
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 text-white shadow-md shadow-blue-200">
               <Workflow className="h-5 w-5" />
             </div>
-            {!collapsed && <div className="min-w-0"><div className="truncate text-lg font-bold tracking-tight">Watchmen</div><div className="text-[11px] font-medium tracking-wide text-muted-foreground">UNIFIED TASK HUB</div></div>}
+            {!collapsed && <div className="min-w-0"><div className="truncate text-lg font-bold tracking-tight">{APP_NAME}</div><div className="text-[11px] font-medium tracking-wide text-muted-foreground">UNIFIED TASK HUB</div></div>}
           </Link>
           <Button variant="ghost" size="icon" className="ml-auto md:hidden" onClick={() => setMobileOpen(false)}><X className="h-4 w-4" /></Button>
         </div>

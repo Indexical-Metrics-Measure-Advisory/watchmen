@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TaskTargetKind, TaskTargetOption, TaskType } from '@/model';
 import { taskTargetService } from '@/services/taskTargetService';
+import { APP_NAME } from '@/config';
 
 export const targetKindsByTaskType: Record<TaskType, { value: TaskTargetKind; label: string }[]> = {
   collector_online: [
@@ -18,7 +19,7 @@ export const targetKindsByTaskType: Record<TaskType, { value: TaskTargetKind; la
   custom: [{ value: 'custom_entity', label: '自定义业务实体' }]
 };
 
-export default function TaskTargetPicker({ taskType, targetKind, targetId, onChange }: {
+function TaskTargetPicker({ taskType, targetKind, targetId, onChange }: {
   taskType: TaskType;
   targetKind: TaskTargetKind;
   targetId: string;
@@ -34,6 +35,7 @@ export default function TaskTargetPicker({ taskType, targetKind, targetId, onCha
     let active = true;
     if (targetKind === 'custom_entity') {
       setOptions([]);
+      setLoading(false);
       setError('');
       return () => { active = false; };
     }
@@ -49,10 +51,12 @@ export default function TaskTargetPicker({ taskType, targetKind, targetId, onCha
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <label className="block text-xs font-medium">{t('关联实体类型')}<select className="field mt-1.5 w-full" value={targetKind} onChange={(event) => onChange(event.target.value as TaskTargetKind, '', '')}>{kinds.map((kind) => <option key={kind.value} value={kind.value}>{t(kind.label)}</option>)}</select></label>
-      {targetKind === 'custom_entity' ? <label className="block text-xs font-medium">{t('业务实体引用')}<input required className="field mt-1.5 w-full font-mono text-xs" value={targetId} onChange={(event) => onChange(targetKind, event.target.value, event.target.value)} /></label> : <label className="block text-xs font-medium">{t('关联 Watchmen 实体')}<select required className="field mt-1.5 w-full" value={targetId} disabled={loading} onChange={(event) => {
+      {targetKind === 'custom_entity' ? <label className="block text-xs font-medium">{t('业务实体引用')}<input required className="field mt-1.5 w-full font-mono text-xs" value={targetId} onChange={(event) => onChange(targetKind, event.target.value, event.target.value)} /></label> : <label className="block text-xs font-medium">{t('关联 {{name}} 实体', { name: APP_NAME })}<select required className="field mt-1.5 w-full" value={targetId} disabled={loading} onChange={(event) => {
         const selected = options.find((option) => option.id === event.target.value);
         if (selected) onChange(targetKind, selected.id, selected.name);
       }}><option value="">{loading ? t('加载中…') : t('请选择具体实体')}</option>{options.map((option) => <option key={option.id} value={option.id}>{option.name} · {option.id}</option>)}</select>{error && <span className="mt-1 block text-[11px] text-rose-600">{error}</span>}{!loading && !error && options.length === 0 && <span className="mt-1 block text-[11px] text-muted-foreground">{t('当前租户暂无可关联实体')}</span>}</label>}
     </div>
   );
 }
+
+export default memo(TaskTargetPicker);

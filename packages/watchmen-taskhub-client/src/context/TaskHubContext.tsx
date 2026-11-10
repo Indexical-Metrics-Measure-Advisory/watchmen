@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import i18n from '@/i18n';
 import type {
   NewDependencyInput, NewTaskInput, RunStatus, ScheduleDefinition, TaskHubSnapshot
@@ -23,6 +23,7 @@ interface TaskHubContextValue extends TaskHubSnapshot {
   rejectDependency: (dependencyId: string) => Promise<void>;
   addDependency: (input: NewDependencyInput) => Promise<void>;
   createTask: (input: NewTaskInput) => Promise<string>;
+  updateDefinition: (taskId: string, input: NewTaskInput) => Promise<void>;
 }
 
 const emptySnapshot: TaskHubSnapshot = {
@@ -39,20 +40,28 @@ export function TaskHubProvider({ children, service = taskHubService }: { childr
   const [snapshot, setSnapshot] = useState<TaskHubSnapshot>(emptySnapshot);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<Notice | undefined>();
+  const refreshPromise = useRef<Promise<void> | null>(null);
 
   const dismissNotice = useCallback(() => setNotice(undefined), []);
   const reportError = useCallback((reason: unknown) => {
     setNotice({ message: reason instanceof Error ? reason.message : String(reason), tone: 'error' });
   }, []);
-  const refresh = useCallback(async () => {
-    try {
-      setSnapshot(await service.load());
-    } catch (reason) {
-      reportError(reason);
-    } finally {
-      setLoading(false);
-    }
+  const refresh = useCallback(() => {
+    if (refreshPromise.current) return refreshPromise.current;
+    const request = (async () => {
+      try {
+        setSnapshot(await service.load());
+      } catch (reason) {
+        reportError(reason);
+      } finally {
+        setLoading(false);
+        refreshPromise.current = null;
+      }
+    })();
+    refreshPromise.current = request;
+    return request;
   }, [service, reportError]);
+  const refreshAfterMutation = useCallback(() => service.subscribe ? Promise.resolve() : refresh(), [service, refresh]);
 
   useEffect(() => {
     void refresh();
@@ -64,92 +73,103 @@ export function TaskHubProvider({ children, service = taskHubService }: { childr
     if (!task || task.readOnly) return;
     try {
       await service.runTask(taskId, { processDate: new Date().toISOString().slice(0, 10) });
-      await refresh();
+      await refreshAfterMutation();
       setNotice({ message: i18n.t('已创建 {{name}} 的运行实例', { name: task.name }), tone: 'success' });
     } catch (reason) {
       reportError(reason);
     }
-  }, [snapshot.tasks, service, refresh, reportError]);
+  }, [snapshot.tasks, service, refreshAfterMutation, reportError]);
 
   const toggleTask = useCallback(async (taskId: string) => {
     const task = snapshot.tasks.find((item) => item.id === taskId);
     if (!task) return;
     try {
       await service.setTaskEnabled(taskId, !task.enabled);
-      await refresh();
+      await refreshAfterMutation();
       setNotice({ message: i18n.t('{{name}}已{{action}}', { name: task.name, action: i18n.t(task.enabled ? '停用' : '启用') }), tone: 'info' });
     } catch (reason) {
       reportError(reason);
     }
-  }, [snapshot.tasks, service, refresh, reportError]);
+  }, [snapshot.tasks, service, refreshAfterMutation, reportError]);
 
   const adoptDependency = useCallback(async (dependencyId: string) => {
     try {
       await service.adoptDependency(dependencyId);
-      await refresh();
+      await refreshAfterMutation();
       setNotice({ message: i18n.t('推导依赖已采纳，成环检测通过'), tone: 'success' });
     } catch (reason) {
       reportError(reason);
     }
-  }, [service, refresh, reportError]);
+  }, [service, refreshAfterMutation, reportError]);
 
   const rejectDependency = useCallback(async (dependencyId: string) => {
     try {
       await service.rejectDependency(dependencyId);
-      await refresh();
+      await refreshAfterMutation();
       setNotice({ message: i18n.t('已拒绝该推导边，后续 discover 不会自动恢复'), tone: 'info' });
     } catch (reason) {
       reportError(reason);
     }
-  }, [service, refresh, reportError]);
+  }, [service, refreshAfterMutation, reportError]);
 
   const addDependency = useCallback(async (input: NewDependencyInput) => {
     try {
       await service.createDependency(input);
-      await refresh();
+      await refreshAfterMutation();
       setNotice({ message: i18n.t('显式依赖已创建，成环检测通过'), tone: 'success' });
     } catch (reason) {
       reportError(reason);
       throw reason;
     }
-  }, [service, refresh, reportError]);
+  }, [service, refreshAfterMutation, reportError]);
 
   const updateSchedule = useCallback(async (taskId: string, schedule: ScheduleDefinition) => {
     try {
       await service.updateSchedule(taskId, schedule);
-      await refresh();
+      await refreshAfterMutation();
       setNotice({ message: i18n.t('调度定义已保存'), tone: 'success' });
     } catch (reason) {
       reportError(reason);
     }
-  }, [service, refresh, reportError]);
+  }, [service, refreshAfterMutation, reportError]);
 
   const updateIntegration = useCallback(async (taskId: string, input: import('@/model').TaskIntegrationInput) => {
     try {
       await service.updateIntegration(taskId, input);
-      await refresh();
+      await refreshAfterMutation();
       setNotice({ message: i18n.t('触发与回调配置已保存'), tone: 'success' });
     } catch (reason) {
       reportError(reason);
     }
-  }, [service, refresh, reportError]);
+  }, [service, refreshAfterMutation, reportError]);
 
   const createTask = useCallback(async (input: NewTaskInput) => {
     try {
       const task = await service.createTask(input);
-      await refresh();
+      await refreshAfterMutation();
       setNotice({ message: i18n.t('任务已创建'), tone: 'success' });
       return task.id;
     } catch (reason) {
       reportError(reason);
       throw reason;
     }
-  }, [service, refresh, reportError]);
+  }, [service, refreshAfterMutation, reportError]);
+
+  const updateDefinition = useCallback(async (taskId: string, input: NewTaskInput) => {
+    try {
+      await service.updateDefinition(taskId, input);
+      await refreshAfterMutation();
+      setNotice({ message: i18n.t('任务定义已保存'), tone: 'success' });
+    } catch (reason) {
+      reportError(reason);
+      throw reason;
+    }
+  }, [service, refreshAfterMutation, reportError]);
 
   const value = useMemo(() => ({
     ...snapshot, loading, notice, dismissNotice, refresh, runTask, toggleTask, updateSchedule, updateIntegration,
-    adoptDependency, rejectDependency, addDependency, createTask
-  }), [snapshot, loading, notice, dismissNotice, refresh, runTask, toggleTask, updateSchedule, updateIntegration, adoptDependency, rejectDependency, addDependency, createTask]);
+    adoptDependency, rejectDependency, addDependency, createTask, updateDefinition
+  }), [snapshot, loading, notice, dismissNotice, refresh, runTask, toggleTask, updateSchedule, updateIntegration, adoptDependency, rejectDependency, addDependency, createTask, updateDefinition]);
 
   return <TaskHubContext.Provider value={value}>{children}</TaskHubContext.Provider>;
 }

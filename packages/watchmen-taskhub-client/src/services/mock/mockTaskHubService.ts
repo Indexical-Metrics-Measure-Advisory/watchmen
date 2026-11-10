@@ -79,6 +79,24 @@ export const mockTaskHubService: TaskHubService = {
     return clone(task);
   },
 
+  async updateDefinition(taskId, input) {
+    const task = snapshot.tasks.find((item) => item.id === taskId);
+    if (!task) throw new Error(i18n.t('任务不存在'));
+    Object.assign(task, {
+      name: input.name,
+      description: input.description,
+      owner: input.owner,
+      type: input.type,
+      engine: input.engine,
+      engineRef: input.engineRef,
+      targetKind: input.targetKind,
+      targetName: input.targetName,
+      executionMode: executionMode(input.schedule)
+    });
+    emit();
+    return clone(task);
+  },
+
   async setTaskEnabled(taskId, enabled) {
     const task = snapshot.tasks.find((item) => item.id === taskId);
     if (!task) throw new Error(i18n.t('任务不存在'));

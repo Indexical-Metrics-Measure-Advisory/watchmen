@@ -59,13 +59,17 @@ const buildMapGraph = (tasks: TaskDefinition[], dependencies: TaskDependency[]) 
   const levels = new Map(nodes.map((node) => [node.id, 0]));
   const indegrees = new Map(nodes.map((node) => [node.id, 0]));
   const dataEdges = edges.filter((edge) => !edge.dependency);
-  dataEdges.forEach((edge) => indegrees.set(edge.targetId, (indegrees.get(edge.targetId) ?? 0) + 1));
+  const outgoing = new Map<string, BuildMapEdge[]>();
+  dataEdges.forEach((edge) => {
+    indegrees.set(edge.targetId, (indegrees.get(edge.targetId) ?? 0) + 1);
+    outgoing.set(edge.sourceId, [...(outgoing.get(edge.sourceId) ?? []), edge]);
+  });
   const queue = nodes.filter((node) => indegrees.get(node.id) === 0).map((node) => node.id);
   const visited = new Set<string>();
   for (let index = 0; index < queue.length; index += 1) {
     const sourceId = queue[index];
     visited.add(sourceId);
-    dataEdges.filter((edge) => edge.sourceId === sourceId).forEach((edge) => {
+    (outgoing.get(sourceId) ?? []).forEach((edge) => {
       levels.set(edge.targetId, Math.max(levels.get(edge.targetId) ?? 0, (levels.get(sourceId) ?? 0) + 1));
       const indegree = (indegrees.get(edge.targetId) ?? 0) - 1;
       indegrees.set(edge.targetId, indegree);
@@ -96,10 +100,22 @@ export default function BuildMapPage() {
   const [selectedId, setSelectedId] = useState<string>();
   const [showDependencies, setShowDependencies] = useState(true);
   const { nodes, edges, width, height } = useMemo(() => buildMapGraph(tasks, dependencies), [tasks, dependencies]);
+  const { nodeById, taskById, assetById, refById } = useMemo(() => {
+    const tasksById = new Map(tasks.map((task) => [task.id, task]));
+    const refsById = new Map<string, TaskDefinition['refs'][number]>();
+    tasks.forEach((task) => task.refs.forEach((ref) => { if (!refsById.has(ref.id)) refsById.set(ref.id, ref); }));
+    return {
+      nodeById: new Map(nodes.map((node) => [node.id, node])),
+      taskById: tasksById,
+      assetById: new Map(assets.map((asset) => [asset.id, asset])),
+      refById: refsById
+    };
+  }, [nodes, tasks, assets]);
+  const visibleEdges = useMemo(() => showDependencies ? edges : edges.filter((edge) => !edge.dependency), [edges, showDependencies]);
   const selectedNodeId = nodes.some((node) => node.id === selectedId) ? selectedId : nodes[0]?.id;
-  const selectedAsset = assets.find((asset) => asset.id === selectedNodeId);
-  const selectedTask = tasks.find((task) => task.id === selectedNodeId);
-  const selectedRef = tasks.flatMap((task) => task.refs).find((ref) => ref.id === selectedNodeId);
+  const selectedAsset = assetById.get(selectedNodeId ?? '');
+  const selectedTask = taskById.get(selectedNodeId ?? '');
+  const selectedRef = refById.get(selectedNodeId ?? '');
 
   return (
     <div className="page-container">
@@ -109,10 +125,9 @@ export default function BuildMapPage() {
         <Card className="min-w-0 overflow-hidden">
           <SectionHeader title={t('客户与订单构建链路')} description={t('点击节点查看资产卡片或任务详情')} action={<div className="flex gap-3 text-[10px] text-muted-foreground"><span className="flex items-center gap-1"><i className="h-0.5 w-4 bg-blue-400" />{t('数据边')}</span><span className="flex items-center gap-1"><i className="h-0.5 w-4 border-t border-dashed border-violet-400" />{t('编排边')}</span></div>} />
           <div className="graph-grid overflow-auto"><svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ height, minWidth: Math.max(1000, width) }} role="img" aria-label="Data asset build map"><defs><marker id="map-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#7fa6c9" /></marker><marker id="map-arrow-violet" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a78bfa" /></marker></defs>
-            {edges.map((edge) => {
-              if (edge.dependency && !showDependencies) return null;
-              const source = nodes.find((node) => node.id === edge.sourceId)!;
-              const target = nodes.find((node) => node.id === edge.targetId)!;
+            {visibleEdges.map((edge) => {
+              const source = nodeById.get(edge.sourceId)!;
+              const target = nodeById.get(edge.targetId)!;
               const x1 = source.x + NODE_WIDTH; const y1 = source.y + NODE_HEIGHT / 2; const x2 = target.x; const y2 = target.y + NODE_HEIGHT / 2; const mid = (x1 + x2) / 2;
               return <path key={edge.id} d={`M${x1} ${y1} H${mid} V${y2} H${x2 - 4}`} fill="none" stroke={edge.dependency ? '#a78bfa' : '#7fa6c9'} strokeWidth={edge.dependency ? 1.5 : 1.8} strokeDasharray={edge.dependency ? '6 5' : undefined} markerEnd={`url(#${edge.dependency ? 'map-arrow-violet' : 'map-arrow'})`} opacity={edge.dependency ? 0.85 : 0.7} />;
             })}
@@ -125,7 +140,7 @@ export default function BuildMapPage() {
         <Card className="h-fit">
           <SectionHeader title={selectedAsset || selectedRef ? t('资产构建卡片') : t('任务节点')} description={selectedNodeId} />
           <div className="p-5">
-            {selectedAsset && <><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600"><Box className="h-5 w-5" /></div><h2 className="mt-3 break-all text-lg font-semibold">{selectedAsset.name}</h2><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{selectedAsset.description}</p><dl className="mt-5 space-y-3 border-y py-4 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">{t('资产类型')}</dt><dd>{selectedAsset.type}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">{t('数据行数')}</dt><dd>{formatRows(selectedAsset.rowCount)}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">{t('责任人')}</dt><dd>{selectedAsset.owner}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">{t('最近构建')}</dt><dd>{selectedAsset.lastBuiltAt?.slice(11, 16) ?? '—'}</dd></div></dl><div className="mt-4"><div className="mb-2 text-xs font-medium">{t('构建者')}</div>{selectedAsset.builderTaskIds.length === 0 ? <span className="text-xs text-muted-foreground">{t('外部资产，无平台内构建者')}</span> : selectedAsset.builderTaskIds.map((id) => <Link key={id} to={`/tasks/${id}`} className="mb-2 flex items-center gap-2 rounded-lg border p-2.5 text-xs hover:border-primary/40"><Workflow className="h-3.5 w-3.5 text-violet-500" />{tasks.find((task) => task.id === id)?.name}</Link>)}</div><Link to="/assets" className="mt-4 block text-center text-xs font-medium text-primary hover:underline">{t('打开完整资产视图 →')}</Link></>}
+            {selectedAsset && <><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600"><Box className="h-5 w-5" /></div><h2 className="mt-3 break-all text-lg font-semibold">{selectedAsset.name}</h2><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{selectedAsset.description}</p><dl className="mt-5 space-y-3 border-y py-4 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">{t('资产类型')}</dt><dd>{selectedAsset.type}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">{t('数据行数')}</dt><dd>{formatRows(selectedAsset.rowCount)}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">{t('责任人')}</dt><dd>{selectedAsset.owner}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">{t('最近构建')}</dt><dd>{selectedAsset.lastBuiltAt?.slice(11, 16) ?? '—'}</dd></div></dl><div className="mt-4"><div className="mb-2 text-xs font-medium">{t('构建者')}</div>{selectedAsset.builderTaskIds.length === 0 ? <span className="text-xs text-muted-foreground">{t('外部资产，无平台内构建者')}</span> : selectedAsset.builderTaskIds.map((id) => <Link key={id} to={`/tasks/${id}`} className="mb-2 flex items-center gap-2 rounded-lg border p-2.5 text-xs hover:border-primary/40"><Workflow className="h-3.5 w-3.5 text-violet-500" />{taskById.get(id)?.name}</Link>)}</div><Link to="/assets" className="mt-4 block text-center text-xs font-medium text-primary hover:underline">{t('打开完整资产视图 →')}</Link></>}
             {!selectedAsset && selectedRef && <><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600"><Box className="h-5 w-5" /></div><h2 className="mt-3 break-all text-lg font-semibold">{selectedRef.name}</h2><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{selectedRef.type} · {selectedRef.role}</p><dl className="mt-5 border-y py-4 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">{t('资产类型')}</dt><dd>{selectedRef.type}</dd></div></dl><Link to="/assets" className="mt-4 block text-center text-xs font-medium text-primary hover:underline">{t('打开完整资产视图 →')}</Link></>}
             {selectedTask && <><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-50 text-violet-600"><Workflow className="h-5 w-5" /></div><h2 className="mt-3 text-lg font-semibold">{selectedTask.name}</h2><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{selectedTask.description}</p><div className="mt-4 text-xs font-medium text-slate-600">{selectedTask.engine} · {selectedTask.type}</div><div className="mt-4 space-y-2 text-xs"><div className="flex justify-between"><span className="text-muted-foreground">{t('调度')}</span><span>{selectedTask.schedule.frequency} · {selectedTask.schedule.timeOfDay ?? selectedTask.schedule.cronExpression ?? selectedTask.schedule.intervalMinutes ?? '—'}</span></div><div className="flex justify-between"><span className="text-muted-foreground">{t('责任人')}</span><span>{selectedTask.owner}</span></div></div><Link to={`/tasks/${selectedTask.id}`} className="mt-5 block rounded-md border py-2 text-center text-xs font-medium text-primary hover:bg-blue-50">{t('查看任务详情')}</Link></>}
           </div>

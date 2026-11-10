@@ -67,11 +67,22 @@ const loadRestTargets = async (kind: TaskTargetKind): Promise<TaskTargetOption[]
   }
 };
 
+const targetCache = new Map<string, { expiresAt: number; request: Promise<TaskTargetOption[]> }>();
+
 export const taskTargetService = {
-  async listTargets(_taskType: TaskType, kind: TaskTargetKind): Promise<TaskTargetOption[]> {
-    if (import.meta.env.VITE_TASKHUB_DATA_SOURCE !== 'rest') {
-      return mockTargets.filter((target) => target.kind === kind);
+  async listTargets(taskType: TaskType, kind: TaskTargetKind): Promise<TaskTargetOption[]> {
+    const key = `${taskType}:${kind}`;
+    const cached = targetCache.get(key);
+    if (cached && cached.expiresAt > Date.now()) return cached.request;
+    const request = import.meta.env.VITE_TASKHUB_DATA_SOURCE === 'rest'
+      ? loadRestTargets(kind)
+      : Promise.resolve(mockTargets.filter((target) => target.kind === kind));
+    targetCache.set(key, { request, expiresAt: Date.now() + 60_000 });
+    try {
+      return await request;
+    } catch (reason) {
+      targetCache.delete(key);
+      throw reason;
     }
-    return loadRestTargets(kind);
   }
 };

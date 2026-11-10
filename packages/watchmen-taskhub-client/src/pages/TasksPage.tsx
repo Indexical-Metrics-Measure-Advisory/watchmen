@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { ListFilter, Play, Plus, RefreshCw, Search, SquareCode } from 'lucide-react';
@@ -36,6 +36,10 @@ export default function TasksPage() {
     ...engineDefaults.materialization, engineRef: '', targetName: '', schedule: defaultSchedule(),
     externalTrigger: { enabled: true }, callback: defaultTaskCallback()
   });
+
+  const changeTarget = useCallback((targetKind: TaskTargetKind, engineRef: string, targetName: string) => {
+    setForm((current) => ({ ...current, targetKind, engineRef, targetName }));
+  }, []);
 
   const filtered = useMemo(() => tasks.filter((task) => {
     const matchesKeyword = `${task.name}${task.description}${task.owner}${task.tags.join('')}`.toLowerCase().includes(keyword.toLowerCase());
@@ -101,7 +105,7 @@ export default function TasksPage() {
           </div>
           <label className="block text-xs font-medium">{t('描述')}<textarea className="mt-1.5 min-h-16 w-full rounded-md border bg-white p-3 text-sm focus:border-primary/50 focus:outline-none" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label>
           <label className="block text-xs font-medium">{t('执行引擎')}<input readOnly className="field mt-1.5 w-full bg-slate-50" value={form.engine} /></label>
-          <TaskTargetPicker taskType={form.type} targetKind={form.targetKind} targetId={form.engineRef} onChange={(targetKind, engineRef, targetName) => setForm({ ...form, targetKind, engineRef, targetName })} />
+          <TaskTargetPicker taskType={form.type} targetKind={form.targetKind} targetId={form.engineRef} onChange={changeTarget} />
           <div className="border-t pt-4"><div className="mb-4 text-sm font-semibold">{t('触发与回调')}</div><TaskIntegrationEditor value={form} onChange={(integration) => setForm({ ...form, ...integration })} /></div>
           <div className="border-t pt-4"><div className="mb-4 text-sm font-semibold">{t('调度定义')}</div><ScheduleEditor value={form.schedule} onChange={(schedule) => setForm({ ...form, schedule })} /></div>
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-600">{t('任务类型只表达业务能力。触发时由对应引擎适配器在背后调用 REST API，并统一处理幂等、状态轮询和终态收口。')}</div>

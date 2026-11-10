@@ -5,6 +5,7 @@ import { ListChecks, LogIn, ShieldCheck } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { SSOTypes } from '@/model';
+import { APP_TITLE } from '@/config';
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -40,7 +41,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md p-8 shadow-xl">
         <div className="mb-8 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-white"><ListChecks className="h-6 w-6" /></div>
-          <h1 className="mt-4 text-2xl font-bold">Watchmen Task Hub</h1>
+          <h1 className="mt-4 text-2xl font-bold">{APP_TITLE}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{t('统一注册 · 统一编排 · 统一监控')}</p>
         </div>
         {sso ? <div className="space-y-4">

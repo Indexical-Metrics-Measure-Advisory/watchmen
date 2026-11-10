@@ -64,6 +64,23 @@ export const restTaskHubService: TaskHubService = {
     return mapTask(dto);
   },
 
+  async updateDefinition(taskId, input) {
+    const task = await request<TaskDefinitionDto>(`/tasks/${encodeURIComponent(taskId)}`);
+    await request(`/tasks/${encodeURIComponent(taskId)}`, {
+      method: 'PUT',
+      ...jsonBody({
+        ...task,
+        name: input.name,
+        description: input.description,
+        ownerId: input.owner,
+        taskType: input.type,
+        executionMode: input.schedule.frequency === 'EVENT' ? 'EVENT' : input.schedule.frequency === 'STREAMING' ? 'STREAMING' : 'SCHEDULED',
+        engineRef: { kind: input.targetKind, id: input.engineRef }
+      })
+    });
+    return getTask(taskId);
+  },
+
   async setTaskEnabled(taskId, enabled) {
     await request(`/tasks/${encodeURIComponent(taskId)}/enabled`, { method: 'POST', ...jsonBody({ enabled }) });
     return getTask(taskId);

@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import {
   ArrowLeft, Box, CalendarClock, Check, ChevronRight, CircleUserRound, Database,
-  ExternalLink, GitBranch, Play, RefreshCw, RotateCcw, Save, Settings2, ShieldCheck
+  ExternalLink, GitBranch, Pencil, Play, RefreshCw, RotateCcw, Save, Settings2, ShieldCheck
 } from 'lucide-react';
 import ScheduleEditor from '@/components/ScheduleEditor';
+import TaskDefinitionEditorDialog from '@/components/TaskDefinitionEditorDialog';
 import TaskIntegrationEditor from '@/components/TaskIntegrationEditor';
 import { Button, Card, PageHeader, SectionHeader, StatusBadge, Tag, TaskTypeBadge } from '@/components/ui';
 import { useTaskHub } from '@/context/TaskHubContext';
@@ -20,9 +21,10 @@ const tabs = [
 
 export default function TaskDetailPage() {
   const { taskId } = useParams();
-  const { tasks, runs, dependencies, runTask, toggleTask, updateSchedule, updateIntegration } = useTaskHub();
+  const { tasks, runs, dependencies, runTask, toggleTask, updateSchedule, updateIntegration, updateDefinition } = useTaskHub();
   const { t } = useTranslation();
   const [tab, setTab] = useState('overview');
+  const [editDefinitionOpen, setEditDefinitionOpen] = useState(false);
   const [scheduleDraft, setScheduleDraft] = useState(defaultSchedule());
   const [integrationDraft, setIntegrationDraft] = useState<TaskIntegrationInput>({
     externalTrigger: { enabled: true }, callback: defaultTaskCallback()
@@ -45,7 +47,7 @@ export default function TaskDetailPage() {
     <div className="page-container">
       <Link to="/tasks" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary"><ArrowLeft className="h-3.5 w-3.5" />{t('返回任务中心')}</Link>
       <PageHeader eyebrow={task.engineRef} title={task.name} description={task.description}
-        actions={<><StatusBadge status={task.lastStatus} pulse /><Button variant="outline" size="sm" disabled={task.readOnly} onClick={() => toggleTask(task.id)}><Settings2 className="h-3.5 w-3.5" />{t(task.enabled ? '停用' : '启用')}</Button><Button size="sm" disabled={task.readOnly} onClick={() => runTask(task.id)}><Play className="h-3.5 w-3.5" />{t('手动运行')}</Button></>} />
+        actions={<><StatusBadge status={task.lastStatus} pulse /><Button variant="outline" size="sm" disabled={task.readOnly} onClick={() => setEditDefinitionOpen(true)}><Pencil className="h-3.5 w-3.5" />{t('编辑定义')}</Button><Button variant="outline" size="sm" disabled={task.readOnly} onClick={() => toggleTask(task.id)}><Settings2 className="h-3.5 w-3.5" />{t(task.enabled ? '停用' : '启用')}</Button><Button size="sm" disabled={task.readOnly} onClick={() => runTask(task.id)}><Play className="h-3.5 w-3.5" />{t('手动运行')}</Button></>} />
 
       <div className="flex gap-1 overflow-x-auto border-b border-border">
         {tabs.map((item) => <button key={item.id} onClick={() => setTab(item.id)} className={cn('relative whitespace-nowrap px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-800', tab === item.id && 'text-primary after:absolute after:inset-x-2 after:bottom-[-1px] after:h-0.5 after:bg-primary')}>{t(item.label)}{item.id === 'runs' && <span className="ml-1.5 rounded-full bg-slate-100 px-1.5 text-[10px]">{taskRuns.length}</span>}</button>)}
@@ -76,6 +78,10 @@ export default function TaskDetailPage() {
       {tab === 'refs' && <Card className="overflow-hidden"><SectionHeader title="Task Resource Refs" description={t('SOURCE / TARGET 显式资产边，是构建视图与依赖推导的底座')} action={<Button variant="outline" size="sm"><Box className="h-3.5 w-3.5" />{t('补充 Ref')}</Button>} /><table className="table-shell"><thead><tr><th>{t('角色')}</th><th>{t('资产类型')}</th><th>{t('规范 ID')}</th><th>{t('资产名称')}</th><th>{t('来源')}</th></tr></thead><tbody>{task.refs.map((ref) => <tr key={`${ref.role}-${ref.id}`}><td><Tag tone={ref.role === 'TARGET' ? 'green' : 'blue'}>{ref.role}</Tag></td><td className="text-xs"><Database className="mr-1.5 inline h-3.5 w-3.5 text-slate-400" />{ref.type}</td><td className="font-mono text-xs">{ref.id}</td><td className="font-medium">{ref.name}</td><td className="text-xs text-muted-foreground">{t(ref.inferred ? '自动推断' : '人工声明')}</td></tr>)}</tbody></table>{task.refs.length === 0 && <div className="p-10 text-center text-xs text-muted-foreground">{t('尚未声明读写资产，暂不能参与数据依赖推导')}</div>}</Card>}
 
       {tab === 'dependencies' && <div className="grid gap-5 lg:grid-cols-2"><Card><SectionHeader title={t('上游依赖')} description={t('全部满足后才允许 dispatch')} /><div className="space-y-3 p-5">{upstream.map((dependency) => <div key={dependency.id} className="rounded-lg border p-4"><div className="flex items-center justify-between"><span className="text-sm font-medium">{tasks.find((item) => item.id === dependency.upstreamTaskId)?.name}</span><Tag tone="blue">{dependency.condition}</Tag></div><div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground"><span>{t('实例策略')}：{dependency.instancePolicy}</span><span>{t('跨日偏移')}：{dependency.offsetDays} {t('天')}</span><span>{t('来源')}：{dependency.kind}</span><span>{t('状态')}：{dependency.status}</span></div></div>)}{upstream.length === 0 && <div className="text-xs text-muted-foreground">{t('无上游依赖，可由调度直接分发')}</div>}</div></Card><Card><SectionHeader title={t('分发安全')} description={t('统一 dispatch 保证等待实例不会调用引擎')} /><div className="space-y-4 p-5 text-xs leading-relaxed text-slate-600"><div className="flex gap-3"><ShieldCheck className="h-5 w-5 shrink-0 text-emerald-500" /><p>{t('实例锁键为')} <code className="rounded bg-slate-100 px-1">tenant + task + instanceKey + attempt</code>，SCHEDULE、MANUAL、API、DEPENDENCY {t('共用')}。</p></div><div className="flex gap-3"><RefreshCw className="h-5 w-5 shrink-0 text-blue-500" /><p>{t('上游显式重跑成功后，仅恢复最新状态为 SKIPPED 的下游，不重复执行已成功实例。')}</p></div><Button variant="outline" size="sm"><ExternalLink className="h-3.5 w-3.5" />{t('查看引擎原生记录')}</Button></div></Card></div>}
+      {editDefinitionOpen && <TaskDefinitionEditorDialog task={task} open onClose={() => setEditDefinitionOpen(false)} onSubmit={async (input) => {
+        await updateDefinition(task.id, input);
+        setEditDefinitionOpen(false);
+      }} />}
     </div>
   );
 }

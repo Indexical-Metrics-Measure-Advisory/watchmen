@@ -6,6 +6,7 @@ import type {
 export interface TaskHubService {
   load: () => Promise<TaskHubSnapshot>;
   createTask: (input: NewTaskInput) => Promise<TaskDefinition>;
+  updateDefinition: (taskId: string, input: NewTaskInput) => Promise<TaskDefinition>;
   setTaskEnabled: (taskId: string, enabled: boolean) => Promise<TaskDefinition>;
   updateSchedule: (taskId: string, schedule: ScheduleDefinition) => Promise<TaskDefinition>;
   updateIntegration: (taskId: string, input: TaskIntegrationInput) => Promise<TaskDefinition>;
