@@ -1,0 +1,26 @@
+# Agent scenario gold topic: enriched policy rows built by pl_silver_policy_to_gold.
+# Covers computed parameter (year-of), constant mapping, and write-factor flag.
+name: gold_policy
+description: Agent scenario gold policy with derived year and high-premium flag
+type: distinct
+kind: business
+dataSourceCode: __DATASOURCE_CODE__
+factors:
+  - name: policy_id
+    type: text
+    label: Policy ID
+    precision: '64'
+  - name: region
+    type: text
+    label: Region
+    precision: '32'
+  - name: premium
+    type: number
+    label: Premium
+  - name: effective_year
+    type: year
+    label: Effective Year
+  - name: high_premium
+    type: text
+    label: High Premium Flag
+    precision: '8'

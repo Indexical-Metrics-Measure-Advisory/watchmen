@@ -104,8 +104,24 @@ def cmd_bind(args, settings: Settings, report: Report, pat: str) -> int:
 def cmd_verify(args, settings: Settings, report: Report, pat: str) -> int:
 	from agent_scenario.pusher import Pusher
 	from agent_scenario.verifier import Verifier
+	admin_client, _ = build_clients(settings, pat)
 	pusher = Pusher(settings, report, pat)
-	Verifier(settings, report, pusher.runtime_cli).verify_all()
+	try:
+		Verifier(settings, report, pusher.runtime_cli).verify_all()
+	except AssertionError as e:
+		if not getattr(args, 'heal', False):
+			raise
+		# drift self-heal: truncate every physical table, replay the mock,
+		# then re-verify once (see edge_check.truncate_all)
+		from agent_scenario.edge_check import TRUNCATE_TOPICS, truncate_all
+		from agent_scenario.injector import inject_record, load_mock_records
+		from agent_scenario.report import truncate
+		report.record('verify.heal', True, f'drift detected ({truncate(e)}); healing')
+		truncate_all(settings, report, admin_client, TRUNCATE_TOPICS)
+		for record in load_mock_records(settings):
+			inject_record(admin_client, 'raw_policy', record)
+		report.record('verify.heal', True, 'mock replayed, re-verifying')
+		Verifier(settings, report, pusher.runtime_cli).verify_all()
 	return 0
 
 
@@ -118,10 +134,29 @@ def cmd_merge_check(args, settings: Settings, report: Report, pat: str) -> int:
 	return 0
 
 
+def cmd_edge_check(args, settings: Settings, report: Report, pat: str) -> int:
+	from agent_scenario.edge_check import run_edge_check
+	from agent_scenario.pusher import Pusher
+	admin_client, _ = build_clients(settings, pat)
+	pusher = Pusher(settings, report, pat)
+	run_edge_check(settings, report, admin_client, pusher.runtime_cli)
+	return 0
+
+
+def cmd_pull_check(args, settings: Settings, report: Report, pat: str) -> int:
+	from agent_scenario.pull_check import run_pull_check
+	from agent_scenario.pusher import Pusher
+	pusher = Pusher(settings, report, pat)
+	run_pull_check(settings, report, pusher.agent_cli)
+	return 0
+
+
 def cmd_teardown(args, settings: Settings, report: Report, pat: str) -> int:
 	from agent_scenario.teardown import run_teardown
 	admin_client, metricflow_client = build_clients(settings, pat)
-	super_client = build_super_client(settings)
+	# datasource deletion is super-admin only; skip it when no super PAT is given
+	super_client = ApiClient(settings.doll_host, pat=settings.super_pat) \
+		if settings.super_pat else None
 	run_teardown(settings, report, admin_client, super_client, metricflow_client,
 		drop_database=args.drop_db)
 	return 0
@@ -169,6 +204,12 @@ def cmd_run(args, settings: Settings, report: Report, pat: str) -> int:
 	# insert-or-merge UPDATE propagation: change one premium, assert everything
 	# shifts, restore, assert it falls back (data ends identical to the mock)
 	run_merge_check(settings, report, admin_client, pusher.runtime_cli)
+	# edge values (NULL/0/negative, date boundaries, rename) + truncate-replay heal
+	from agent_scenario.edge_check import run_edge_check
+	run_edge_check(settings, report, admin_client, pusher.runtime_cli)
+	# pull half of the two-way YAML sync contract
+	from agent_scenario.pull_check import run_pull_check
+	run_pull_check(settings, report, pusher.agent_cli)
 	return 0
 
 
@@ -185,6 +226,8 @@ COMMANDS = {
 	'bind-infra': cmd_bind_infra,
 	'verify': cmd_verify,
 	'merge-check': cmd_merge_check,
+	'edge-check': cmd_edge_check,
+	'pull-check': cmd_pull_check,
 	'teardown': cmd_teardown,
 	'run': cmd_run,
 	'config': cmd_config,
@@ -207,11 +250,23 @@ def build_parser() -> argparse.ArgumentParser:
 		'bind-infra',
 		help='bind tenant infra monitor topics (raw_pipeline_monitor_log, pipeline_monitor_error_log) '
 			'to the scenario datasource; required once per fresh tenant')
-	subparsers.add_parser('verify', help='assert runtime results via agent-runtime-cli')
+	verify_parser = subparsers.add_parser('verify', help='assert runtime results via agent-runtime-cli')
+	verify_parser.add_argument(
+		'--heal', action='store_true',
+		help='on value-assertion failure: truncate scenario tables, replay the mock, re-verify once')
 	subparsers.add_parser(
 		'merge-check',
 		help='inject one changed record, assert every aggregate shifts (insert-or-merge UPDATE '
 			'propagation), then restore the original value and assert it falls back')
+	subparsers.add_parser(
+		'edge-check',
+		help='inject the edge dataset (NULL/zero/negative premium, leap-day and year-end dates, '
+			'long unicode name, customer rename), assert edge semantics, then truncate and replay '
+			'the base mock (also exercises the drift self-heal path)')
+	subparsers.add_parser(
+		'pull-check',
+		help='pull every scenario entity back via agent-cli and diff business fields against the '
+			'source YAML (two-way sync contract, pull half)')
 
 	teardown_parser = subparsers.add_parser('teardown', help='best-effort removal of scenario entities')
 	teardown_parser.add_argument(

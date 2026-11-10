@@ -8,9 +8,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'src'))
 from agent_scenario.verifier import compute_expected, metric_column, rows_as_dicts  # noqa: E402
 
 RECORDS = [
-	{'policy_id': 'P1', 'customer_id': 'C1', 'region': 'east', 'policy_status': 'active', 'premium': 100},
-	{'policy_id': 'P2', 'customer_id': 'C1', 'region': 'east', 'policy_status': 'lapsed', 'premium': 50},
-	{'policy_id': 'P3', 'customer_id': 'C2', 'region': 'west', 'policy_status': 'active', 'premium': 70},
+	{'policy_id': 'P1', 'customer_id': 'C1', 'region': 'east', 'policy_status': 'active',
+		'premium': 100, 'effective_date': '2026-01-15'},
+	{'policy_id': 'P2', 'customer_id': 'C1', 'region': 'east', 'policy_status': 'lapsed',
+		'premium': 50, 'effective_date': '2026-01-20'},
+	{'policy_id': 'P3', 'customer_id': 'C2', 'region': 'west', 'policy_status': 'active',
+		'premium': 70, 'effective_date': '2026-02-05'},
 ]
 
 
@@ -24,6 +27,57 @@ class ExpectedAggregationTest(unittest.TestCase):
 		self.assertEqual({'C1': 150.0, 'C2': 70.0}, expected['by_customer'])
 		self.assertEqual(220.0, expected['total']['total_premium'])
 		self.assertEqual(3, expected['total']['policy_count'])
+
+
+class PullNormalizationTest(unittest.TestCase):
+	def setUp(self) -> None:
+		from agent_scenario.pull_check import normalize_ontology, normalize_pipeline, normalize_topic
+		self.normalize_topic = normalize_topic
+		self.normalize_pipeline = normalize_pipeline
+		self.normalize_ontology = normalize_ontology
+
+	def test_topic_normalization_ignores_server_extras(self) -> None:
+		pushed = {'name': 't', 'type': 'distinct', 'kind': 'business',
+			'factors': [{'name': 'a', 'type': 'number', 'label': 'A', 'precision': None}]}
+		pulled = {'name': 't', 'type': 'distinct', 'kind': 'business', 'description': None,
+			'dataSourceCode': 'ds',
+			'factors': [{'name': 'a', 'type': 'number', 'label': 'A', 'precision': None,
+				'flatten': False, 'enumId': None}]}
+		self.assertEqual(self.normalize_topic(pushed), self.normalize_topic(pulled))
+
+	def test_pipeline_normalization_captures_actions(self) -> None:
+		pipeline = {'name': 'p', 'sourceTopicName': 's', 'type': 'insert-or-merge', 'enabled': True,
+			'stages': [{'units': [{'do': [{'type': 'insert-or-merge-row', 'topicName': 't',
+				'mapping': [{'factorName': 'x', 'source': {'factorName': 'y'}}]}]}]}]}
+		normalized = self.normalize_pipeline(pipeline)
+		self.assertEqual(1, normalized['stage_count'])
+		self.assertEqual(['insert-or-merge-row:t:x<-y'], normalized['actions'])
+
+	def test_ontology_normalization(self) -> None:
+		ontology = {'name': 'o',
+			'virtualObjects': [{'name': 'Policy', 'physicalTables': [{}], 'derivedAttributes': []}],
+			'virtualLinks': [{'name': 'l', 'sourceObjectName': 'A', 'targetObjectName': 'B'}]}
+		normalized = self.normalize_ontology(ontology)
+		self.assertEqual([('Policy', 1, 0)], normalized['objects'])
+		self.assertEqual([('l', 'A', 'B')], normalized['links'])
+
+
+class VerifierExpectedFieldsTest(unittest.TestCase):
+	def test_expected_exposes_new_dimensions(self) -> None:
+		from agent_scenario.verifier import compute_expected
+		records = [
+			{'policy_id': 'P1', 'customer_id': 'C1', 'region': 'east',
+				'policy_status': 'active', 'premium': 1200, 'effective_date': '2026-01-10'},
+			{'policy_id': 'P2', 'customer_id': 'C1', 'region': 'east',
+				'policy_status': 'active', 'premium': 900, 'effective_date': '2026-02-20'},
+		]
+		expected = compute_expected(records)
+		self.assertEqual({'2026-01': 1200.0, '2026-02': 900.0},
+			{k: v['total_premium'] for k, v in expected['by_month'].items()})
+		self.assertEqual(1, expected['high']['count'])
+		self.assertEqual(1200.0, expected['high']['total_premium'])
+		self.assertEqual([1200.0, 900.0], expected['premiums_desc'])
+		self.assertEqual(1, expected['between_1000_1300'])
 
 
 class PushActionResultTest(unittest.TestCase):

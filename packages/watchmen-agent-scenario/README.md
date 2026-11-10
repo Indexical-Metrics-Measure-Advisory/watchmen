@@ -72,8 +72,10 @@ and writes `agent-scenario-work/scenario-report.json`.
 | `bind` | bind ontology virtual objects to the datasource | after `push` only |
 | `bind-infra` | bind tenant infra monitor topics (`raw_pipeline_monitor_log`, `pipeline_monitor_error_log`) to the scenario datasource | once per fresh tenant — pipelines otherwise log async monitor-write errors; `run` does it automatically (also with `--skip-bootstrap`) |
 | `inject` | POST mock records to `/pipeline/data` | after pipelines are enabled |
-| `verify` | runtime assertions via `agent-runtime-cli` | repeatable smoke check |
+| `verify [--heal]` | runtime assertions via `agent-runtime-cli`; `--heal` truncates the scenario tables, replays the mock and re-verifies once when a value assertion fails (drift self-heal) | repeatable smoke check |
 | `merge-check` | inject one changed record (P101 premium +100), re-run every runtime assertion against the shifted expectations (insert-or-merge **UPDATE propagation** through pipelines, metrics and the ontology derived attribute), restore the original value and assert the aggregates fall back | data-change semantics; `run` executes it automatically after `verify` |
+| `edge-check` | inject the edge dataset (NULL / zero / negative premium, leap-day and year-end dates, long unicode name, customer rename event), assert NULL-safe aggregation, negative values, non-key merge and date boundaries, then truncate every physical table and replay the base mock | edge-value semantics + the truncate/replay heal path; `run` executes it automatically |
+| `pull-check` | pull every scenario entity back via `agent-cli` (`topic/pipeline/ontology pull-name`) and diff business fields against the source YAML | two-way sync contract, pull half; `run` executes it automatically |
 | `teardown [--drop-db]` | best-effort removal of all scenario entities (needs `TUPLE_DELETABLE` server-side); `--drop-db` also drops the MySQL database | clean slate / CI teardown |
 | `config` | print resolved settings with secrets masked | debugging env wiring |
 
@@ -89,6 +91,12 @@ With the shipped 15-record mock set:
 | `ontology list/get` | ontology + both virtual objects resolve |
 | `ontology compile` (region=east, derived total_premium) | SQL contains the link JOIN |
 | `ontology query` (region=east) | 2 customers; derived premiums C001 2900, C002 2200 |
+| time dimension (`--start-time/--end-time`, `--time-granularity month`) | Jan 6100 / Feb 4600 / Mar 5150; single-month window isolates its bucket |
+| `metrics dimensions` / `find-dimensions` | region, policy_status, effective_date discovered |
+| ontology operators (`gte/in/between`), `--order-by/--limit/--offset/--group-by` | gte 8 rows (cross-checks the gold high-premium flag), top3 [1750, 1500, 1400], 3 groups |
+| gold pipeline (multi-stage, computed `year-of`, conditional unit, `write-factor`) | gold_policy: 15 rows, sum 15850, effective_year all 2026, high_premium Y=8 / sum 10550 |
+| edge values | NULL premium ignored by sum (edge bucket 200), negative -50 stored, leap-day 2024-02-29 lands as gold year 2024, 41-char unicode name intact, rename event merged |
+| pull round-trip | pulled topic/pipeline/ontology YAML business-equivalent to the source files |
 | `merge-check` (P101 premium 1200→1300) | every aggregate shifts by +100: east 5200, total 15950, ratio 1063.33, C001 derived 3000; after restore all values return to the originals |
 
 Change the mock file and every expected value follows automatically — nothing

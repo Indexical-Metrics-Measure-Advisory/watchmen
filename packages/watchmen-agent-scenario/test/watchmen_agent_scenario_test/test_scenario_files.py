@@ -1,8 +1,12 @@
 import json
+import sys
 import unittest
 from pathlib import Path
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'src'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 SCENARIO_DIR = Path(__file__).resolve().parents[2] / 'scenario'
 
@@ -22,8 +26,10 @@ class TopicYamlTest(unittest.TestCase):
 	def setUp(self) -> None:
 		self.topics = load_all('topics')
 
-	def test_three_topics(self) -> None:
-		self.assertEqual({'raw_policy', 'silver_customer', 'silver_policy'}, set(self.topics))
+	def test_topics(self) -> None:
+		self.assertEqual(
+			{'raw_policy', 'silver_customer', 'silver_policy', 'gold_policy'},
+			set(self.topics))
 
 	def test_no_forbidden_ids(self) -> None:
 		for name, topic in self.topics.items():
@@ -53,26 +59,61 @@ class PipelineYamlTest(unittest.TestCase):
 			self.assertTrue(pipeline['enabled'], f'{name} must be enabled')
 			self.assertEqual('insert-or-merge', pipeline['type'])
 
-	def test_no_forbidden_ids(self) -> None:
+	def test_no_forbidden_ids_or_bool_keys(self) -> None:
 		for name, pipeline in self.pipelines.items():
 			for key in ('pipelineId', 'topicId', 'tenantId', 'version'):
 				self.assertNotIn(key, pipeline, f'{name} must not carry {key}')
+			text = json.dumps(pipeline)
+			self.assertNotIn('true": null', text, 'YAML on-key parsed as boolean leaks as "true"')
+
+	def test_on_keys_are_strings(self) -> None:
+		# the conditional gold pipeline needs the on payload; it must survive
+		# YAML 1.1 bool coercion via quoting
+		gold = self.pipelines['pl_silver_policy_to_gold']
+		unit = gold['stages'][1]['units'][0]
+		self.assertIn('on', unit)
+		self.assertNotIn(True, unit)
 
 	def test_references_resolve(self) -> None:
 		raw_factors = {factor['name'] for factor in self.topics['raw_policy']['factors']}
 		for name, pipeline in self.pipelines.items():
 			self.assertIn(pipeline['sourceTopicName'], self.topics, f'{name} source topic missing')
-			target = pipeline['stages'][0]['units'][0]['do'][0]
-			target_name = target['topicName']
-			self.assertIn(target_name, self.topics, f'{name} target topic missing')
-			target_factors = {factor['name'] for factor in self.topics[target_name]['factors']}
-			for mapping in target['mapping']:
-				self.assertIn(mapping['source']['topicName'], ('raw_policy',), f'{name} maps from unknown topic')
-				self.assertIn(mapping['source']['factorName'], raw_factors, f'{name} maps unknown source factor')
-				self.assertIn(mapping['factorName'], target_factors, f'{name} maps unknown target factor')
-			for condition in target['by']['filters']:
-				for side in ('left', 'right'):
-					self.assertIn(condition[side]['topicName'], ('raw_policy', target_name))
+			for stage in pipeline['stages']:
+				for unit in stage['units']:
+					for action in unit['do']:
+						target_name = action.get('topicName')
+						if target_name:
+							self.assertIn(target_name, self.topics, f'{name} target topic missing')
+							self.assert_mappings(name, action, raw_factors)
+
+	def assert_mappings(self, name, action, raw_factors) -> None:
+		target_name = action.get('topicName')
+		target_factors = {
+			factor['name'] for factor in self.topics.get(target_name, {}).get('factors', [])}
+		allowed_sources = {pipeline for pipeline in self.topics}
+		for mapping in action.get('mapping') or []:
+			source = mapping.get('source') or {}
+			if source.get('kind') == 'topic':
+				self.assertIn(source['topicName'], allowed_sources, f'{name} maps from unknown topic')
+			self.assertIn(mapping['factorName'], target_factors,
+				f'{name} maps unknown target factor {mapping["factorName"]}')
+		for condition in (action.get('by') or {}).get('filters') or []:
+			for side in ('left', 'right'):
+				side_topic = condition[side].get('topicName')
+				if condition[side].get('kind') == 'topic':
+					self.assertIn(side_topic, allowed_sources)
+
+	def test_gold_pipeline_features(self) -> None:
+		gold = self.pipelines['pl_silver_policy_to_gold']
+		self.assertEqual(2, len(gold['stages']), 'gold pipeline must be multi-stage')
+		mapping = gold['stages'][0]['units'][0]['do'][0]['mapping']
+		computed = [m for m in mapping if (m.get('source') or {}).get('kind') == 'computed']
+		self.assertEqual(1, len(computed), 'computed parameter (year-of) expected')
+		self.assertEqual('year-of', computed[0]['source']['type'])
+		constant = [m for m in mapping if (m.get('source') or {}).get('kind') == 'constant']
+		self.assertEqual(1, len(constant), 'constant mapping expected')
+		flag_action = gold['stages'][1]['units'][0]['do'][0]
+		self.assertEqual('write-factor', flag_action['type'], 'write-factor action expected')
 
 
 class SemanticYamlTest(unittest.TestCase):
@@ -161,25 +202,39 @@ class MockDataTest(unittest.TestCase):
 	def setUp(self) -> None:
 		self.records = json.loads(
 			(SCENARIO_DIR / 'data' / 'mock_policies.json').read_text(encoding='utf-8'))
+		self.edge_records = json.loads(
+			(SCENARIO_DIR / 'data' / 'mock_policies_edge.json').read_text(encoding='utf-8'))
 		self.raw = load_all('topics')['raw_policy']
 
 	def test_keys_match_raw_factors(self) -> None:
 		factors = {factor['name'] for factor in self.raw['factors']}
-		for record in self.records:
+		for record in self.records + self.edge_records:
 			self.assertTrue(set(record) <= factors, f'unknown keys: {set(record) - factors}')
 
+	def test_edge_dataset_isolated(self) -> None:
+		# the edge bucket must not leak into base regions
+		self.assertEqual({'edge'}, {record['region'] for record in self.edge_records})
+		self.assertEqual(4, len(self.edge_records))
+		self.assertTrue(any(record['premium'] is None for record in self.edge_records),
+			'edge dataset must include a NULL premium')
+
 	def test_expected_aggregates(self) -> None:
-		# the numbers the verifier will compare against at runtime
-		by_region = {}
-		for record in self.records:
-			entry = by_region.setdefault(record['region'], [0.0, 0])
-			entry[0] += record['premium']
-			entry[1] += 1
-		self.assertEqual({'east', 'central', 'west'}, set(by_region))
-		total_premium = sum(value[0] for value in by_region.values())
-		total_count = sum(value[1] for value in by_region.values())
-		self.assertEqual(15, total_count)
-		self.assertEqual(total_premium, sum(record['premium'] for record in self.records))
+		from agent_scenario.verifier import compute_expected
+		expected = compute_expected(self.records)
+		self.assertEqual({'east', 'central', 'west'}, set(expected['by_region']))
+		self.assertEqual(15, expected['total']['policy_count'])
+		self.assertEqual(sum(record['premium'] for record in self.records),
+			expected['total']['total_premium'])
+		# month buckets partition the total
+		self.assertEqual(expected['total']['total_premium'],
+			sum(entry['total_premium'] for entry in expected['by_month'].values()))
+		# high-premium population feeds the gold flag + ontology gte cross-check
+		self.assertEqual(
+			len([r for r in self.records if r['premium'] >= 1000]), expected['high']['count'])
+		# NULL premium contributes 0 to sums but is counted
+		edge = compute_expected(self.edge_records)
+		self.assertEqual(4, edge['total']['policy_count'])
+		self.assertEqual(200.0, edge['total']['total_premium'])
 
 
 if __name__ == '__main__':

@@ -1,0 +1,6 @@
+[
+	{"policy_id": "P201", "customer_id": "C901", "customer_name": "Edge-Änn-超长姓名边界测试字符串-12345678901234567890", "region": "edge", "premium": null, "policy_status": "active", "effective_date": "2024-02-29"},
+	{"policy_id": "P202", "customer_id": "C901", "customer_name": "Edge-Änn-超长姓名边界测试字符串-12345678901234567890", "region": "edge", "premium": 0, "policy_status": "lapsed", "effective_date": "2026-12-31"},
+	{"policy_id": "P203", "customer_id": "C902", "customer_name": "Edge-Neg", "region": "edge", "premium": -50, "policy_status": "active", "effective_date": "2026-01-01"},
+	{"policy_id": "P204", "customer_id": "C903", "customer_name": "Edge-Old", "region": "edge", "premium": 250, "policy_status": "lapsed", "effective_date": "2026-06-15"}
+]

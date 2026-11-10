@@ -1,12 +1,12 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from agent_scenario.bootstrap import find_datasource_by_code
 from agent_scenario.http_client import ApiClient, HttpError
 from agent_scenario.report import Report, truncate
 from agent_scenario.settings import Settings
 
-SCENARIO_PIPELINE_PREFIX = 'pl_raw_policy_to_'
-SCENARIO_TOPICS = ['raw_policy', 'silver_customer', 'silver_policy']
+SCENARIO_PIPELINE_PREFIXES = ('pl_raw_policy_to_', 'pl_silver_policy_to_')
+SCENARIO_TOPICS = ['raw_policy', 'silver_customer', 'silver_policy', 'gold_policy']
 
 
 def entity_names(settings: Settings) -> Dict[str, List[str]]:
@@ -21,17 +21,23 @@ def entity_names(settings: Settings) -> Dict[str, List[str]]:
 
 
 def _best_effort(report: Report, name: str, action) -> None:
-	"""Run a delete step; tuple-deletion may be disabled server-side (404)."""
+	"""Run a delete step; 403 (needs super-admin) and 404 (deletion disabled
+	server-side) are recorded as skips - teardown stays best-effort."""
 	try:
 		result = action()
 		report.record(name, True, truncate(result))
 	except HttpError as e:
-		report.record(name, False, truncate(e))
+		text = str(e)
+		if '403' in text:
+			report.record(name, True, f'skipped: forbidden (needs super-admin) | {truncate(text)}')
+		else:
+			report.record(name, False, truncate(text))
 
 
 def run_teardown(
 		settings: Settings, report: Report, admin_client: ApiClient,
-		super_client: ApiClient, metricflow_client: ApiClient, drop_database: bool) -> None:
+		super_client: Optional[ApiClient], metricflow_client: ApiClient,
+		drop_database: bool) -> None:
 	"""Best-effort removal of every entity the scenario created."""
 	names = entity_names(settings)
 
@@ -40,7 +46,7 @@ def run_teardown(
 		from agent_scenario.binder import find_ontology_id
 		ontology_id = find_ontology_id(metricflow_client, settings.scenario_name)
 		_best_effort(report, 'teardown.ontology',
-			lambda: metricflow_client.get(
+			lambda: metricflow_client.delete(
 				'/ontology/delete', params={'ontologyId': ontology_id}))
 	except HttpError as e:
 		report.record('teardown.ontology', False, truncate(e))
@@ -56,7 +62,7 @@ def run_teardown(
 		pipelines = admin_client.get('/pipeline/all') or []
 		scenario_pipelines = [
 			pipeline for pipeline in pipelines
-			if str(pipeline.get('name') or '').startswith(SCENARIO_PIPELINE_PREFIX)
+			if str(pipeline.get('name') or '').startswith(SCENARIO_PIPELINE_PREFIXES)
 		]
 		for pipeline in scenario_pipelines:
 			_best_effort(report, f"teardown.pipeline.{pipeline['name']}",
@@ -73,11 +79,15 @@ def run_teardown(
 					lambda t=topic: admin_client.delete('/topic', params={'topic_id': t['topicId']}))
 		except HttpError as e:
 			report.record(f'teardown.topic.{topic_name}', False, truncate(e))
-	existing = find_datasource_by_code(super_client, settings.datasource_code)
-	if existing is not None:
-		_best_effort(report, 'teardown.datasource',
-			lambda: super_client.delete(
-				'/datasource', params={'data_source_id': existing['dataSourceId']}))
+	if super_client is not None:
+		existing = find_datasource_by_code(super_client, settings.datasource_code)
+		if existing is not None:
+			_best_effort(report, 'teardown.datasource',
+				lambda: super_client.delete(
+					'/datasource', params={'data_source_id': existing['dataSourceId']}))
+	else:
+		report.record('teardown.datasource', True,
+			'skipped: no super-admin PAT (set SCN_SUPER_PAT to also remove the datasource)')
 
 	# physical database (optional, explicit opt-in)
 	if drop_database:
