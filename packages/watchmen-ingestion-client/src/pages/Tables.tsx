@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   CollectorTableConfig, Condition, Dependence,
@@ -344,19 +345,16 @@ const TableForm = ({
 
           <div>
             <Label htmlFor="form-model-name">{t('form.modelName')}</Label>
-            <Select
+            <SearchableSelect
+              id="form-model-name"
               value={formData.modelName || ''}
               onValueChange={(value) => setFormData({ ...formData, modelName: value })}
-            >
-              <SelectTrigger id="form-model-name" className={errors.modelName ? "border-red-500" : ""}>
-                <SelectValue placeholder={t('form.selectModelName')} />
-              </SelectTrigger>
-              <SelectContent>
-                {modelNames.map((name) => (
-                  <SelectItem key={name} value={name}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={modelNames}
+              placeholder={t('form.selectModelName')}
+              searchPlaceholder={t('form.searchModelName')}
+              emptyText={t('form.noModelFound')}
+              className={errors.modelName ? "border-red-500" : ""}
+            />
             {errors.modelName && <p className="text-sm text-red-600 mt-1">{errors.modelName}</p>}
           </div>
 
