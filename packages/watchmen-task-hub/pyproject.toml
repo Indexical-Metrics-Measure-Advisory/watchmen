@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "watchmen-task-hub"
+version = "18.0.0"
+description = "Unified task registration, orchestration and monitoring models and services"
+authors = ["luke0623 <luke0623@outlook.com>"]
+license = "MIT"
+packages = [
+	{ include = "watchmen_task_hub", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "~3.12"
+requests = "^2.32.3"
+watchmen-model = { path = "../watchmen-model", develop = true }
+watchmen-meta = { path = "../watchmen-meta", develop = true }
+watchmen-utilities = { path = "../watchmen-utilities", develop = true }
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
+watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
+watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
+watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
+
+[tool.poetry.extras]
+mysql = ["watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle"]
+mssql = ["watchmen-storage-mssql"]
+postgresql = ["watchmen-storage-postgresql"]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

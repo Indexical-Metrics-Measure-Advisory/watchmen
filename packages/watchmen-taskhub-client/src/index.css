@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 220 20% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 16%;
+    --primary: 210 100% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 210 100% 50%;
+    --radius: 0.75rem;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 20% 16%;
+    --sidebar-accent: 210 40% 96.1%;
+    --sidebar-accent-foreground: 210 100% 35%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply bg-background;
+  }
+
+  body {
+    @apply m-0 min-w-[320px] bg-background text-foreground antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  button, input, select, textarea {
+    font: inherit;
+  }
+
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    @apply outline-none ring-2 ring-primary/30 ring-offset-2;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply rounded-xl border border-border/70 bg-card shadow-glass transition-shadow duration-300;
+  }
+
+  .glass-card-hover {
+    @apply glass-card hover:shadow-glass-hover;
+  }
+
+  .page-container {
+    @apply mx-auto w-full max-w-[1600px] space-y-5 p-4 md:p-6 lg:p-7;
+  }
+
+  .table-shell {
+    @apply w-full text-sm;
+  }
+
+  .table-shell thead {
+    @apply bg-slate-50/80 text-xs text-muted-foreground;
+  }
+
+  .table-shell th {
+    @apply whitespace-nowrap px-4 py-3 text-left font-medium;
+  }
+
+  .table-shell td {
+    @apply border-t border-border/70 px-4 py-3.5 align-middle;
+  }
+
+  .table-shell tbody tr {
+    @apply transition-colors hover:bg-blue-50/35;
+  }
+
+  .field {
+    @apply h-9 rounded-md border border-input bg-white px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/10;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+}
+
+.graph-grid {
+  background-color: #fbfdff;
+  background-image: radial-gradient(#dbe5f0 0.8px, transparent 0.8px);
+  background-size: 18px 18px;
+}
+
+.timeline-grid {
+  background-image: linear-gradient(to right, #e8eef5 1px, transparent 1px);
+  background-size: calc(100% / 12) 100%;
+}
+
+@media print {
+  aside, header, button {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+}

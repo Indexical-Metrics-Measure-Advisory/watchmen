@@ -1055,6 +1055,92 @@ table_materialization_job_locks = Table(
                      name='uq_materialization_job_locks_on_scope')
 )
 
+# task hub
+table_task_definitions = Table(
+    'task_definitions', meta_data,
+    create_pk('task_id'), create_str('name', 200, False), create_description(),
+    create_str('task_type', 64, False), create_str('execution_mode', 32, False),
+    create_str('engine_kind', 128, False), create_str('engine_id', 255, False),
+    create_json('engine_ref'), create_json('schedule'), create_bool('enabled', False),
+    create_tuple_id_column('owner_id'), create_json('tags'), create_json('params'),
+    create_json('external_trigger'), create_json('callback'),
+    create_int('dependency_wait_timeout_minutes', False), create_int('freshness_sla_minutes'),
+    create_datetime('synced_at'), create_json('last_run_summary'),
+    create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock(),
+    UniqueConstraint('tenant_id', 'engine_kind', 'engine_id', name='uk_task_engine')
+)
+table_task_refs = Table(
+    'task_refs', meta_data,
+    create_pk('ref_id'), create_tuple_id_column('task_id', False), create_str('ref_type', 64, False),
+    create_str('target_id', 512, False), create_str('target_name', 512), create_str('ref_role', 16, False),
+    create_bool('inferred', False), create_bool('unresolved', False),
+    create_tenant_id(), *create_tuple_audit_columns()
+)
+table_task_dependencies = Table(
+    'task_dependencies', meta_data,
+    create_pk('dependency_id'), create_tuple_id_column('upstream_task_id', False),
+    create_tuple_id_column('downstream_task_id', False), create_str('kind', 32, False),
+    create_str('adoption_status', 32, False), create_str('condition_type', 32, False),
+    create_str('instance_policy', 32, False), create_bool('enabled', False),
+    create_int('offset_days', False), create_tuple_id_column('declared_by'),
+    create_tenant_id(), *create_tuple_audit_columns(),
+    UniqueConstraint('tenant_id', 'downstream_task_id', 'upstream_task_id', name='uk_dependency_pair')
+)
+table_task_runs = Table(
+    'task_runs', meta_data,
+    create_pk('run_id'), create_tuple_id_column('task_id', False), create_str('task_type', 64, False),
+    create_str('instance_key', 512, False), create_int('attempt', False), create_tuple_id_column('retry_of_run_id'),
+    create_date('process_date'), create_datetime('window_start'), create_datetime('window_end'),
+    create_str('status', 32, False), create_str('trigger_type', 32, False),
+    create_bool('bypass_dependencies', False), create_str('idempotency_key', 255, False),
+    create_str('request_hash', 64), create_str('engine_run_key', 512, False),
+    create_str('execution_target', 255), create_str('callback_token_hash', 64),
+    create_datetime('started_at'), create_datetime('finished_at'), create_int('duration_ms'), create_int('row_count'),
+    create_str('error_code', 128), create_medium_text('error_message'), create_json('result_refs'),
+    create_tuple_id_column('triggered_by'), create_tenant_id(), *create_tuple_audit_columns(),
+    UniqueConstraint('tenant_id', 'task_id', 'instance_key', 'attempt', name='uk_run_attempt'),
+    UniqueConstraint('tenant_id', 'task_id', 'idempotency_key', name='uk_run_idempotency'),
+    UniqueConstraint('tenant_id', 'task_id', 'engine_run_key', name='uk_run_engine')
+)
+table_task_run_dependencies = Table(
+    'task_run_dependencies', meta_data,
+    create_pk('run_dependency_id'), create_tuple_id_column('run_id', False),
+    create_tuple_id_column('dependency_id', False), create_tuple_id_column('upstream_run_id'),
+    create_str('state', 32, False), create_medium_text('reason'), create_datetime('evaluated_at'),
+    create_tenant_id(), *create_tuple_audit_columns(),
+    UniqueConstraint('tenant_id', 'run_id', 'dependency_id', name='uk_run_dependency')
+)
+table_task_alert_rules = Table(
+    'task_alert_rules', meta_data,
+    create_pk('rule_id'), create_str('name', 200, False), create_tuple_id_column('scope_task_id'),
+    create_str('scope_task_type', 64), create_str('event_type', 64, False), create_json('threshold'),
+    create_json('channel'), create_int('throttle_minutes', False), create_bool('enabled', False),
+    create_tenant_id(), *create_tuple_audit_columns()
+)
+table_task_alert_events = Table(
+    'task_alert_events', meta_data,
+    create_pk('alert_event_id'), create_tuple_id_column('rule_id', False), create_tuple_id_column('task_id'),
+    create_tuple_id_column('run_id'), create_str('event_key', 512, False), create_str('status', 32, False),
+    create_json('payload'), create_medium_text('error_message'), create_datetime('sent_at'),
+    create_tenant_id(), *create_tuple_audit_columns(),
+    UniqueConstraint('tenant_id', 'event_key', name='uk_alert_event_key')
+)
+table_task_sync_states = Table(
+    'task_sync_states', meta_data,
+    create_pk('sync_id'), create_str('adapter_name', 255, False), create_json('cursor'),
+    create_str('status', 32, False), create_datetime('last_sync_at'), create_datetime('last_success_at'),
+    create_medium_text('error_message'), create_tenant_id(), *create_tuple_audit_columns(),
+    UniqueConstraint('tenant_id', 'adapter_name', name='uk_sync_adapter')
+)
+table_task_job_locks = Table(
+    'task_job_locks', meta_data,
+    create_pk('lock_id'), create_tuple_id_column('task_id', False), create_str('instance_key', 512, False),
+    create_int('attempt', False), create_tuple_id_column('run_id', False), create_str('owner_id', 255),
+    create_datetime('locked_at'), create_datetime('expires_at'),
+    create_tenant_id(), *create_tuple_audit_columns(),
+    UniqueConstraint('tenant_id', 'task_id', 'instance_key', 'attempt', name='uk_task_job_lock')
+)
+
 # noinspection DuplicatedCode
 tables: Dict[str, Table] = {
     # snowflake workers
@@ -1156,6 +1242,15 @@ tables: Dict[str, Table] = {
     'materialization_flows': table_materialization_flows,
     'materialization_runs': table_materialization_runs,
     'materialization_job_locks': table_materialization_job_locks,
+    'task_definitions': table_task_definitions,
+    'task_refs': table_task_refs,
+    'task_dependencies': table_task_dependencies,
+    'task_runs': table_task_runs,
+    'task_run_dependencies': table_task_run_dependencies,
+    'task_alert_rules': table_task_alert_rules,
+    'task_alert_events': table_task_alert_events,
+    'task_sync_states': table_task_sync_states,
+    'task_job_locks': table_task_job_locks,
     'global_alert_rules': table_global_alert_rules,
     'alert_instances': table_alert_instances,
     'action_types': table_action_types,
