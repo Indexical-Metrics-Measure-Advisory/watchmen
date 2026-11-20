@@ -1,0 +1,103 @@
+# Agent scenario pipeline: silver_policy -> gold_policy.
+# Engine features covered on top of plain insert-or-merge:
+#   stage 1 - computed parameter (year-of) + constant mapping
+#   stage 2 - conditional unit (premium >= 1000) + write-factor back into the row
+# NOTE: the 'on' keys are quoted on purpose - bare `on:` is parsed as boolean
+# True by YAML 1.1 loaders.
+name: pl_silver_policy_to_gold
+sourceTopicName: silver_policy
+type: insert-or-merge
+enabled: true
+validated: true
+conditional: false
+stages:
+  - name: land_gold
+    conditional: false
+    units:
+      - name: upsert_gold
+        conditional: false
+        do:
+          - type: insert-or-merge-row
+            topicName: gold_policy
+            accumulateMode: standard
+            by:
+              jointType: and
+              filters:
+                - left:
+                    kind: topic
+                    topicName: gold_policy
+                    factorName: policy_id
+                  operator: equals
+                  right:
+                    kind: topic
+                    topicName: silver_policy
+                    factorName: policy_id
+            mapping:
+              - factorName: policy_id
+                arithmetic: none
+                source:
+                  kind: topic
+                  topicName: silver_policy
+                  factorName: policy_id
+              - factorName: region
+                arithmetic: none
+                source:
+                  kind: topic
+                  topicName: silver_policy
+                  factorName: region
+              - factorName: premium
+                arithmetic: none
+                source:
+                  kind: topic
+                  topicName: silver_policy
+                  factorName: premium
+              - factorName: effective_year
+                arithmetic: none
+                source:
+                  kind: computed
+                  type: year-of
+                  parameters:
+                    - kind: topic
+                      topicName: silver_policy
+                      factorName: effective_date
+              - factorName: high_premium
+                arithmetic: none
+                source:
+                  kind: constant
+                  value: 'N'
+  - name: flag_high_premium
+    conditional: false
+    units:
+      - name: mark_high
+        conditional: true
+        'on':
+          jointType: and
+          filters:
+            - left:
+                kind: topic
+                topicName: silver_policy
+                factorName: premium
+              operator: more-equals
+              right:
+                kind: constant
+                value: '1000'
+        do:
+          - type: write-factor
+            topicName: gold_policy
+            factorName: high_premium
+            arithmetic: none
+            by:
+              jointType: and
+              filters:
+                - left:
+                    kind: topic
+                    topicName: gold_policy
+                    factorName: policy_id
+                  operator: equals
+                  right:
+                    kind: topic
+                    topicName: silver_policy
+                    factorName: policy_id
+            source:
+              kind: constant
+              value: 'Y'

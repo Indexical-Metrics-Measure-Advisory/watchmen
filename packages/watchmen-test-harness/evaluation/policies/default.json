@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "version": "1.0.0",
+  "required_suites": ["compose", "db-scripts", "server", "scenarios"],
+  "allowed_skips": ["newman", "performance"],
+  "metrics": {
+    "functional_pass_rate": {
+      "direction": "higher",
+      "max_regression_percent": 0.0,
+      "min_samples": 1,
+      "required": true
+    },
+    "throughput_rps": {
+      "direction": "higher",
+      "max_regression_percent": 10.0,
+      "min_samples": 3,
+      "required": false
+    },
+    "e2e_sec": {
+      "direction": "lower",
+      "max_regression_percent": 10.0,
+      "min_samples": 3,
+      "required": false
+    }
+  },
+  "protected_paths": ["packages/watchmen-test-harness/"]
+}

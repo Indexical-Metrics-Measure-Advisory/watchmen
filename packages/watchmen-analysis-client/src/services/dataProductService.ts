@@ -313,7 +313,7 @@ export class DataProductService {
     const search = new URLSearchParams();
     if (params.domain) search.set("domain", params.domain);
     if (params.q) search.set("q", params.q);
-    if (params.focus) search.set("focus", params.focus);
+    if (params.focus) search.set("focus", params.focus.replace(/^product:/, ""));
     if (params.depth) search.set("depth", String(params.depth));
     const qs = search.toString();
     const response = await fetch(`${ENDPOINT}/graph/products${qs ? `?${qs}` : ""}`, {

@@ -1,29 +1,42 @@
-"""Aggregated run summary: markdown report + stdout table.
-
-Every runner phase reports a status (pass/fail/skip) with detail; the module turns
-that into `summary.md` inside the results directory so CI or the ai-dev gate can
-consume one file, and prints the same table for humans.
-"""
-
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional, Union
 
-_STATUS_ICON = {'pass': 'PASS', 'fail': 'FAIL', 'skip': 'SKIP'}
+from watchmen_test_harness.evaluation_models import GateResult, SuiteResult
 
 
-def write_summary(results_dir: Path, phases: Dict[str, Dict[str, str]]) -> str:
-	"""Writes summary.md and echoes it; returns the markdown content."""
+_STATUS_ICON = {'pass': 'PASS', 'fail': 'FAIL', 'skip': 'SKIP', 'error': 'ERROR'}
+
+
+def write_summary(
+		results_dir: Path,
+		phases: Dict[str, Union[SuiteResult, Dict[str, str]]],
+		gate: Optional[GateResult] = None) -> str:
 	lines = ['# watchmen-test-harness run', '', '| Phase | Status | Detail |', '|---|---|---|']
-	for name, outcome in phases.items():
-		status = _STATUS_ICON.get(outcome.get('status', 'fail'), 'FAIL')
-		detail = outcome.get('detail', '').replace('|', '\\|').replace('\n', ' ')
+	for name, raw_outcome in phases.items():
+		outcome = raw_outcome if isinstance(raw_outcome, SuiteResult) else SuiteResult(
+			name=name, status=raw_outcome.get('status', 'fail'), detail=raw_outcome.get('detail', '')
+		)
+		status = _STATUS_ICON[outcome.status]
+		detail = outcome.detail.replace('|', '\\|').replace('\n', ' ')
 		lines.append(f'| {name} | {status} | {detail} |')
 
-	failed = [n for n, o in phases.items() if o.get('status') == 'fail']
-	skipped = [n for n, o in phases.items() if o.get('status') == 'skip']
-	lines += ['', f'**Result**: {"FAILED" if failed else "PASSED"}'
+	failed = [
+		name for name, outcome in phases.items()
+		if (outcome.status if isinstance(outcome, SuiteResult) else outcome.get('status')) in {'fail', 'error'}
+	]
+	skipped = [
+		name for name, outcome in phases.items()
+		if (outcome.status if isinstance(outcome, SuiteResult) else outcome.get('status')) == 'skip'
+	]
+	result = 'FAILED' if failed or (gate and gate.status == 'fail') else 'PASSED'
+	lines += ['', f'**Result**: {result}'
 		f' (failed: {", ".join(failed) if failed else "none"};'
 		f' skipped: {", ".join(skipped) if skipped else "none"})']
+	if gate:
+		lines += ['', f'**Gate**: {gate.status.upper()}']
+		for check in gate.checks:
+			if check.status == 'fail':
+				lines.append(f'- {check.name}: {check.detail}')
 
 	content = '\n'.join(lines) + '\n'
 	results_dir.mkdir(parents=True, exist_ok=True)

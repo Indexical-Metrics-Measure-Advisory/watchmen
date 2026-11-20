@@ -1,0 +1,30 @@
+# Agent scenario silver topic: policy fact merged from raw_policy.
+# region is denormalized here so MetricFlow can group premiums by region.
+name: silver_policy
+description: Agent scenario silver policy fact
+type: distinct
+kind: business
+dataSourceCode: __DATASOURCE_CODE__
+factors:
+  - name: policy_id
+    type: text
+    label: Policy ID
+    precision: '64'
+  - name: customer_id
+    type: text
+    label: Customer ID
+    precision: '64'
+  - name: region
+    type: text
+    label: Region
+    precision: '32'
+  - name: premium
+    type: number
+    label: Premium
+  - name: policy_status
+    type: text
+    label: Policy Status
+    precision: '32'
+  - name: effective_date
+    type: date
+    label: Effective Date

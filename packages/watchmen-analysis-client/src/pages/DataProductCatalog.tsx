@@ -197,14 +197,14 @@ const BatchAddDialog: React.FC<{
         <DialogHeader>
           <DialogTitle>{t("batchAdd.title")}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
-          <div className="relative">
+        <div className="min-w-0 space-y-3">
+          <div className="relative min-w-0">
             <Search className="absolute left-2 top-2.5 w-4 h-4 text-slate-400" />
             <Input
               placeholder={t("batchAdd.searchPlaceholder")}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-8"
+              className="min-w-0 pl-8"
             />
           </div>
           <ScrollArea className="h-72 border rounded-md">

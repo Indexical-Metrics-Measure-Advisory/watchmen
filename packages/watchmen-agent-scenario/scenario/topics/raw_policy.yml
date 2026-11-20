@@ -1,0 +1,35 @@
+# Agent scenario raw topic: incoming insurance policy events.
+# No-id agent view: topicId / factorId / tenantId / version must stay absent;
+# __DATASOURCE_CODE__ is rendered by the scenario driver before push.
+name: raw_policy
+description: Agent scenario raw insurance policy events
+type: raw
+kind: business
+dataSourceCode: __DATASOURCE_CODE__
+factors:
+  - name: policy_id
+    type: text
+    label: Policy ID
+    precision: '64'
+  - name: customer_id
+    type: text
+    label: Customer ID
+    precision: '64'
+  - name: customer_name
+    type: text
+    label: Customer Name
+    precision: '128'
+  - name: region
+    type: text
+    label: Region
+    precision: '32'
+  - name: premium
+    type: number
+    label: Premium
+  - name: policy_status
+    type: text
+    label: Policy Status
+    precision: '32'
+  - name: effective_date
+    type: date
+    label: Effective Date

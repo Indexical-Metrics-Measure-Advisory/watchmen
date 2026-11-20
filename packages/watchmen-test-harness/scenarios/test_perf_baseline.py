@@ -262,12 +262,18 @@ def test_perf_baseline_chain(perf_stack, perf_api, db):
 		'rows': ROWS,
 		'child_rows': ROWS,
 		'extract_sec': round(marks.get('extract_done', float('nan')), 2),
-		'merge_sec': round(marks.get('merge_done', float('nan')), 2),
+		'merge_sec': round(
+			marks['merge_done'] - marks['extract_done']
+			if 'merge_done' in marks and 'extract_done' in marks else float('nan'), 2),
 		'first_target_sec': round(marks.get('first_target', float('nan')), 2),
 		'e2e_sec': round(e2e, 2),
 		'throughput_rps': round(ROWS / e2e, 2),
 		'peak_queue_record': peak_record,
-		'config': 'defaults (PARTIAL_SIZE=100, tick=3s, no tuning)',
+		'config': {
+			'poll_interval_sec': POLL_INTERVAL,
+			'poll_timeout_sec': POLL_TIMEOUT,
+			'server': json.loads(os.environ.get('WHT_PERF_CONFIG', '{}')),
+		},
 		'db_delta': {name: status_after[name] - status_before[name] for name in DB_STATUS_COUNTERS},
 	}
 

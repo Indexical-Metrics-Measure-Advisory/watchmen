@@ -1,0 +1,14 @@
+# Agent scenario metric (ratio): premium per policy.
+id: null
+name: agent_premium_per_policy
+label: Agent Scenario Premium Per Policy
+description: Average premium per policy (agent scenario)
+type: ratio
+type_params:
+  numerator:
+    name: total_premium
+  denominator:
+    name: policy_count
+  input_measures:
+    - name: total_premium
+    - name: policy_count

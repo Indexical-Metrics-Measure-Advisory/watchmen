@@ -1,0 +1,66 @@
+# Agent scenario pipeline: raw_policy -> silver_policy (insert-or-merge by policy_id).
+name: pl_raw_policy_to_silver_policy
+sourceTopicName: raw_policy
+type: insert-or-merge
+enabled: true
+validated: true
+conditional: false
+stages:
+  - name: land_policy
+    conditional: false
+    units:
+      - name: upsert_policy
+        conditional: false
+        do:
+          - type: insert-or-merge-row
+            topicName: silver_policy
+            accumulateMode: standard
+            by:
+              jointType: and
+              filters:
+                - left:
+                    kind: topic
+                    topicName: silver_policy
+                    factorName: policy_id
+                  operator: equals
+                  right:
+                    kind: topic
+                    topicName: raw_policy
+                    factorName: policy_id
+            mapping:
+              - factorName: policy_id
+                arithmetic: none
+                source:
+                  kind: topic
+                  topicName: raw_policy
+                  factorName: policy_id
+              - factorName: customer_id
+                arithmetic: none
+                source:
+                  kind: topic
+                  topicName: raw_policy
+                  factorName: customer_id
+              - factorName: region
+                arithmetic: none
+                source:
+                  kind: topic
+                  topicName: raw_policy
+                  factorName: region
+              - factorName: premium
+                arithmetic: none
+                source:
+                  kind: topic
+                  topicName: raw_policy
+                  factorName: premium
+              - factorName: policy_status
+                arithmetic: none
+                source:
+                  kind: topic
+                  topicName: raw_policy
+                  factorName: policy_status
+              - factorName: effective_date
+                arithmetic: none
+                source:
+                  kind: topic
+                  topicName: raw_policy
+                  factorName: effective_date

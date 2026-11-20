@@ -1,0 +1,11 @@
+# Agent scenario metric (simple): sum of premium via measure total_premium.
+id: null
+name: agent_total_premium
+label: Agent Scenario Total Premium
+description: Total premium across policies (agent scenario)
+type: simple
+type_params:
+  measure:
+    name: total_premium
+  input_measures:
+    - name: total_premium

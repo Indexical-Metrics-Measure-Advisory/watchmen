@@ -1,0 +1,17 @@
+[
+	{"policy_id": "P101", "customer_id": "C001", "customer_name": "Amy",   "region": "east",    "premium": 1200, "policy_status": "active", "effective_date": "2026-01-10"},
+	{"policy_id": "P102", "customer_id": "C001", "customer_name": "Amy",   "region": "east",    "premium": 800,  "policy_status": "lapsed", "effective_date": "2026-01-22"},
+	{"policy_id": "P103", "customer_id": "C002", "customer_name": "Bob",   "region": "east",    "premium": 1500, "policy_status": "active", "effective_date": "2026-02-05"},
+	{"policy_id": "P104", "customer_id": "C002", "customer_name": "Bob",   "region": "east",    "premium": 700,  "policy_status": "active", "effective_date": "2026-03-11"},
+	{"policy_id": "P105", "customer_id": "C003", "customer_name": "Carol", "region": "central", "premium": 1100, "policy_status": "active", "effective_date": "2026-01-15"},
+	{"policy_id": "P106", "customer_id": "C003", "customer_name": "Carol", "region": "central", "premium": 950,  "policy_status": "lapsed", "effective_date": "2026-02-18"},
+	{"policy_id": "P107", "customer_id": "C004", "customer_name": "Dave",  "region": "central", "premium": 1300, "policy_status": "active", "effective_date": "2026-02-27"},
+	{"policy_id": "P108", "customer_id": "C004", "customer_name": "Dave",  "region": "central", "premium": 600,  "policy_status": "lapsed", "effective_date": "2026-03-08"},
+	{"policy_id": "P109", "customer_id": "C005", "customer_name": "Eve",   "region": "west",    "premium": 1750, "policy_status": "active", "effective_date": "2026-01-08"},
+	{"policy_id": "P110", "customer_id": "C005", "customer_name": "Eve",   "region": "west",    "premium": 1250, "policy_status": "lapsed", "effective_date": "2026-01-30"},
+	{"policy_id": "P111", "customer_id": "C006", "customer_name": "Frank", "region": "west",    "premium": 850,  "policy_status": "active", "effective_date": "2026-02-14"},
+	{"policy_id": "P112", "customer_id": "C006", "customer_name": "Frank", "region": "west",    "premium": 1400, "policy_status": "active", "effective_date": "2026-03-03"},
+	{"policy_id": "P113", "customer_id": "C005", "customer_name": "Eve",   "region": "west",    "premium": 500,  "policy_status": "lapsed", "effective_date": "2026-03-19"},
+	{"policy_id": "P114", "customer_id": "C003", "customer_name": "Carol", "region": "central", "premium": 1050, "policy_status": "active", "effective_date": "2026-03-27"},
+	{"policy_id": "P115", "customer_id": "C001", "customer_name": "Amy",   "region": "east",    "premium": 900,  "policy_status": "active", "effective_date": "2026-03-25"}
+]
